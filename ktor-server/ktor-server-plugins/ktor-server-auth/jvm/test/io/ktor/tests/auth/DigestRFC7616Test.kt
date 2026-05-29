@@ -341,6 +341,7 @@ class DigestRFC7616Test {
         val response = client.get("/")
         assertEquals(HttpStatusCode.Unauthorized, response.status)
         val challenges = response.headers.getAll(HttpHeaders.WWWAuthenticate)!!
+        assertEquals(2, challenges.size)
         assertTrue(challenges.any { it.contains("algorithm=SHA-256") })
         assertTrue(challenges.any { it.contains("algorithm=MD5") })
     }
@@ -424,6 +425,36 @@ class DigestRFC7616Test {
         val expectedRspauth =
             md5("${sessionHa1.toHexString()}:$nonce:$nc:$cnonce:auth:${md5(":/").toHexString()}").toHexString()
         assertTrue(authInfo.contains("rspauth=\"$expectedRspauth\""))
+    }
+
+    @Test
+    fun `server sends one WWW-Authenticate header per algorithm`() = testApplication {
+        setupDigestAuth(algorithms = listOf(DigestAlgorithm.SHA_512_256, DigestAlgorithm.MD5))
+
+        val response = client.get("/")
+        assertEquals(HttpStatusCode.Unauthorized, response.status)
+        val headers = assertNotNull(response.headers.getAll(HttpHeaders.WWWAuthenticate))
+        assertEquals(2, headers.size)
+    }
+
+    @Test
+    fun `server accepts lowercase charset parameter in Authorization header`() = testApplication {
+        setupDigestAuth(algorithms = listOf(DigestAlgorithm.MD5))
+
+        val challenge = client.get("/")
+        assertEquals(HttpStatusCode.Unauthorized, challenge.status)
+        val nonce = Regex("""nonce="([^"]+)"""").find(challenge.headers[HttpHeaders.WWWAuthenticate]!!)!!.groupValues[1]
+
+        val ha1 = computeHA1("user", "test", "pass", DigestAlgorithm.MD5)
+        val credential = createCredential("test", "user", "/", nonce, "MD5", "testcnonce")
+        val response = credential.expectedDigest(HttpMethod.Get, ha1).toHexString()
+
+        val authResponse = client.get("/") {
+            val authorization = buildAuthHeader("user", "test", nonce, "/", response, "MD5", "00000001", "testcnonce") +
+                ", charset=utf-8"
+            header(HttpHeaders.Authorization, authorization)
+        }
+        assertEquals(HttpStatusCode.OK, authResponse.status)
     }
 
     @Test

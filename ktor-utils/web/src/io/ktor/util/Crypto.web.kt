@@ -44,13 +44,14 @@ public actual fun Digest(name: String): Digest = object : Digest {
     override suspend fun build(): ByteArray {
         val combined = state.reduceOrNull { a, b -> a + b } ?: ByteArray(0)
         val digestBuffer = try {
-            _crypto.subtle.digest(name, combined.toJsArray()).awaitBuffer()
-        } catch (e: JsException) {
+            _crypto.subtle.digest(name, combined.toJsArray()).await()
+        } catch (cause: Throwable) {
+            if (cause is CancellationException) throw cause
             // Browser SubtleCrypto excludes MD5 for security reasons; fall back to a pure Kotlin implementation.
             if (name == "MD5") {
                 md5(combined)
             } else {
-                throw e
+                throw cause
             }
         }
         val digestView = DataView(digestBuffer)

@@ -5,7 +5,6 @@
 package io.ktor.network.sockets.nodejs
 
 import io.ktor.network.sockets.*
-import kotlin.js.JsModule
 
 // js.Error
 internal external interface JsError {
@@ -25,8 +24,7 @@ internal external interface NodeNet {
     fun createServer(options: CreateServerOptions): Server
 }
 
-@JsModule("node:net")
-internal external val nodeNet: NodeNet
+internal expect suspend fun loadNodeNet(): NodeNet
 
 internal fun CreateConnectionOptions(
     remoteAddress: SocketAddress,

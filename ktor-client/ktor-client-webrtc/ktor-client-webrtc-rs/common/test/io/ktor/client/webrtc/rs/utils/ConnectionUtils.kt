@@ -5,6 +5,7 @@
 package io.ktor.client.webrtc.rs.utils
 
 import io.ktor.client.webrtc.*
+import io.ktor.test.*
 import io.ktor.test.dispatcher.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -12,7 +13,6 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withTimeout
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull

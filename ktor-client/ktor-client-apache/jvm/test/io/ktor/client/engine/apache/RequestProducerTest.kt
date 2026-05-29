@@ -7,6 +7,7 @@ package io.ktor.client.engine.apache
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.test.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.writeByteBuffer
@@ -15,7 +16,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.runTest
 import org.apache.http.HttpEntityEnclosingRequest
 import org.apache.http.nio.ContentEncoder
 import org.apache.http.nio.IOControl

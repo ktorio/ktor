@@ -14,6 +14,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.JsonClassDiscriminator
+import kotlin.reflect.typeOf
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -212,6 +213,15 @@ abstract class AbstractSchemaInferenceTest(
         assertSchemaMatches<Email>()
 
     @Test
+    fun `nullable value classes`() {
+        assertEquals(nullableType(JsonType.STRING), inference.buildSchema(typeOf<String?>()).type)
+        assertEquals(JsonType.STRING, inference.buildSchema(typeOf<Email>()).type)
+        assertEquals(nullableType(JsonType.STRING), inference.buildSchema(typeOf<Email?>()).type)
+        assertEquals(nullableType(JsonType.STRING), inference.buildSchema(typeOf<NullableEmail>()).type)
+        assertEquals(nullableType(JsonType.INTEGER), inference.buildSchema(typeOf<Score?>()).type)
+    }
+
+    @Test
     fun `nested generics`() =
         assertSchemaMatches<Response<Page<Country>>>()
 
@@ -220,6 +230,9 @@ abstract class AbstractSchemaInferenceTest(
         val expected = readSchemaYaml<T>()
         assertEquals(expected, yaml.encodeToString(schema))
     }
+
+    private fun nullableType(type: JsonType): SchemaType =
+        SchemaType.AnyOf(listOf(type, JsonType.NULL))
 
     private inline fun <reified T> readSchemaYaml(): String {
         val standardFile = "/schema/${T::class.simpleName}.yaml"
@@ -339,6 +352,14 @@ data class TreeNode(
 @JvmInline
 @Serializable
 value class Email(val value: String)
+
+@JvmInline
+@Serializable
+value class NullableEmail(val value: String?)
+
+@JvmInline
+@Serializable
+value class Score(val value: Int)
 
 @Serializable
 data class ItemsRefData(

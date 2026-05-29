@@ -8,7 +8,6 @@ import io.ktor.test.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.test.TestResult
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.seconds
 
 expect abstract class BaseTest() {
     open val timeout: Duration
@@ -17,8 +16,9 @@ expect abstract class BaseTest() {
     open fun afterTest()
 
     fun collectUnhandledException(error: Throwable) // TODO: better name?
+
     fun runTest(
-        timeout: Duration = 60.seconds,
+        timeout: Duration = DEFAULT_TEST_TIMEOUT,
         retries: Int = DEFAULT_RETRIES,
         block: suspend CoroutineScope.() -> Unit
     ): TestResult

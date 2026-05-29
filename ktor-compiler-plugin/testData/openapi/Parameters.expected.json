@@ -5,7 +5,7 @@
         "version": "1.0.0"
     },
     "paths": {
-        "/parameters/{a}/{b}/{c}": {
+        "/parameters/{a}/{b}/{c}/{k}": {
             "get": {
                 "tags": [
                     "parameters"
@@ -30,6 +30,14 @@
                     },
                     {
                         "name": "c",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "k",
                         "in": "path",
                         "required": true,
                         "schema": {
@@ -74,6 +82,27 @@
                     {
                         "name": "i",
                         "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "l",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "m",
+                        "in": "header",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    {
+                        "name": "n",
+                        "in": "cookie",
                         "schema": {
                             "type": "string"
                         }

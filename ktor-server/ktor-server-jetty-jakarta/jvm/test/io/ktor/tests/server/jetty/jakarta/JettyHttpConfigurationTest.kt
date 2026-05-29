@@ -11,12 +11,13 @@ import io.ktor.server.engine.*
 import io.ktor.server.jetty.jakarta.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.coroutines.test.*
-import org.junit.jupiter.params.*
-import org.junit.jupiter.params.provider.*
-import java.net.*
-import kotlin.random.*
-import kotlin.test.*
+import io.ktor.test.*
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.MethodSource
+import java.net.ServerSocket
+import kotlin.random.Random
+import kotlin.test.assertEquals
 
 class JettyHttpConfigurationTest {
 

@@ -7,8 +7,8 @@ import io.ktor.client.plugins.auth.providers.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
+import io.ktor.test.*
 import io.ktor.util.*
-import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 
 class DigestProviderTest {
@@ -60,6 +60,47 @@ class DigestProviderTest {
         requestBuilder = HttpRequestBuilder {
             takeFrom(url)
         }
+    }
+
+    @Test
+    fun `isApplicable rejects challenge whose algorithm does not match the configured one`() = runTest {
+        if (!PlatformUtils.IS_JVM) return@runTest
+
+        val sha512Challenge =
+            parseAuthorizationHeader("""Digest algorithm=SHA-512-256, realm="realm", nonce="sha-nonce"""")
+        assertNotNull(sha512Challenge)
+        assertFalse(digestAuthProvider.isApplicable(sha512Challenge))
+    }
+
+    @Test
+    fun `isApplicable accepts challenge with no algorithm parameter treating it as MD5`() = runTest {
+        if (!PlatformUtils.IS_JVM) return@runTest
+
+        val legacyChallenge = parseAuthorizationHeader("""Digest realm="realm", nonce="legacy-nonce"""")
+        assertNotNull(legacyChallenge)
+        assertTrue(digestAuthProvider.isApplicable(legacyChallenge))
+    }
+
+    @Test
+    fun `client uses nonce from the algorithm-matching challenge not from the first challenge`() = runTest {
+        if (!PlatformUtils.IS_JVM) return@runTest
+
+        val provider = DigestAuthProvider({ DigestAuthCredentials("username", "password") }, "realm")
+
+        val sha512Challenge =
+            parseAuthorizationHeader("""Digest algorithm=SHA-512-256, realm="realm", nonce="sha-nonce"""")
+        assertNotNull(sha512Challenge)
+        assertFalse(provider.isApplicable(sha512Challenge))
+
+        val md5Challenge =
+            parseAuthorizationHeader("""Digest algorithm=MD5, realm="realm", nonce="md5-nonce"""")
+        assertNotNull(md5Challenge)
+        assertTrue(provider.isApplicable(md5Challenge))
+
+        provider.addRequestHeaders(requestBuilder, md5Challenge)
+
+        val header = assertNotNull(requestBuilder.headers[HttpHeaders.Authorization])
+        assertContains(header, """nonce="md5-nonce"""")
     }
 
     @Test

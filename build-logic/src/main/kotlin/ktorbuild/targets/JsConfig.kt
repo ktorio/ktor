@@ -106,10 +106,7 @@ internal fun Project.configureJsTestTasks(target: String) {
 }
 
 internal fun Project.configureNodeJs() {
-    val nodeVersion = providers.fileContents(layout.settingsDirectory.file(".nvmrc"))
-        .asText
-        .map { it.trim() }
-
+    val nodeVersion = libs.versions.node
     plugins.withType<NodeJsPlugin> { the<NodeJsEnvSpec>().configure(nodeVersion) }
     plugins.withType<WasmNodeJsPlugin> { the<WasmNodeJsEnvSpec>().configure(nodeVersion) }
 }
@@ -120,11 +117,13 @@ private fun BaseNodeJsEnvSpec.configure(nodeVersion: Provider<String>) {
 }
 
 internal fun Project.configureYarn() {
-    plugins.withType<YarnPlugin> { the<YarnRootEnvSpec>().configure() }
-    plugins.withType<WasmYarnPlugin> { the<WasmYarnRootEnvSpec>().configure() }
+    val version = libs.versions.yarn
+    plugins.withType<YarnPlugin> { the<YarnRootEnvSpec>().configure(version) }
+    plugins.withType<WasmYarnPlugin> { the<WasmYarnRootEnvSpec>().configure(version) }
 }
 
-private fun BaseYarnRootEnvSpec.configure() {
+private fun BaseYarnRootEnvSpec.configure(yarnVersion: Provider<String>) {
+    version = yarnVersion
     if (isKtorDevEnvironment) download = false
     // Don't ignore scripts if we want Chrome to be installed automatically with puppeteer.
     if (shouldDownloadBrowser) ignoreScripts = false

@@ -4,8 +4,9 @@
 
 package io.ktor.util
 
-import kotlinx.coroutines.test.runTest
-import kotlin.test.*
+import io.ktor.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class DigestTest {
 

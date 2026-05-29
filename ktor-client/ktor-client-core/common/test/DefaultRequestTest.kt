@@ -8,16 +8,15 @@ import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.test.dispatcher.*
+import io.ktor.test.*
 import io.ktor.util.*
-import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class DefaultRequestTest {
 
     @Test
-    fun testDefaultPathWithDir() = testSuspend {
+    fun testDefaultPathWithDir() = runTest {
         val client = HttpClient(MockEngine) {
             engine {
                 addHandler {
@@ -38,7 +37,7 @@ class DefaultRequestTest {
     }
 
     @Test
-    fun testDefaultPathWithFile() = testSuspend {
+    fun testDefaultPathWithFile() = runTest {
         val client = HttpClient(MockEngine) {
             engine {
                 addHandler {
@@ -59,7 +58,7 @@ class DefaultRequestTest {
     }
 
     @Test
-    fun testDefaultWithoutUrl() = testSuspend {
+    fun testDefaultWithoutUrl() = runTest {
         val client = HttpClient(MockEngine) {
             engine {
                 addHandler {
@@ -78,7 +77,7 @@ class DefaultRequestTest {
     }
 
     @Test
-    fun testDefaultHostAndPort() = testSuspend {
+    fun testDefaultHostAndPort() = runTest {
         val client = HttpClient(MockEngine) {
             engine {
                 addHandler {
@@ -98,7 +97,7 @@ class DefaultRequestTest {
     }
 
     @Test
-    fun testDefaultProtocol() = testSuspend {
+    fun testDefaultProtocol() = runTest {
         val client = HttpClient(MockEngine) {
             engine {
                 addHandler {
@@ -126,7 +125,7 @@ class DefaultRequestTest {
     }
 
     @Test
-    fun testDefaultNoPortKeepsRequestPort() = testSuspend {
+    fun testDefaultNoPortKeepsRequestPort() = runTest {
         val client = HttpClient(MockEngine) {
             engine {
                 addHandler {
@@ -146,7 +145,7 @@ class DefaultRequestTest {
     }
 
     @Test
-    fun testDefaultHeader() = testSuspend {
+    fun testDefaultHeader() = runTest {
         val client = HttpClient(MockEngine) {
             engine {
                 addHandler {
@@ -173,7 +172,7 @@ class DefaultRequestTest {
     }
 
     @Test
-    fun testDefaultAttributes() = testSuspend {
+    fun testDefaultAttributes() = runTest {
         val client = HttpClient(MockEngine) {
             engine {
                 addHandler {
@@ -191,7 +190,7 @@ class DefaultRequestTest {
     }
 
     @Test
-    fun testDefaultQuery() = testSuspend {
+    fun testDefaultQuery() = runTest {
         val client = HttpClient(MockEngine) {
             engine {
                 addHandler {
@@ -209,7 +208,7 @@ class DefaultRequestTest {
     }
 
     @Test
-    fun testDefaultFragment() = testSuspend {
+    fun testDefaultFragment() = runTest {
         val client = HttpClient(MockEngine) {
             engine {
                 addHandler {
@@ -227,7 +226,7 @@ class DefaultRequestTest {
     }
 
     @Test
-    fun testCookieSentOnce() = testSuspend {
+    fun testCookieSentOnce() = runTest {
         val client = HttpClient(MockEngine) {
             engine {
                 addHandler {
@@ -253,7 +252,7 @@ class DefaultRequestTest {
     }
 
     @Test
-    fun testDefaultRequestConfigDoesntOverrideUserHeaders() = testSuspend {
+    fun testDefaultRequestConfigDoesntOverrideUserHeaders() = runTest {
         val client = HttpClient(MockEngine) {
             engine {
                 addHandler {
@@ -303,7 +302,7 @@ class DefaultRequestTest {
     }
 
     @Test
-    fun testHeadersBlockInDefaultRequest() = testSuspend {
+    fun testHeadersBlockInDefaultRequest() = runTest {
         val client = HttpClient(MockEngine) {
             engine {
                 addHandler {
@@ -330,7 +329,7 @@ class DefaultRequestTest {
     }
 
     @Test
-    fun testHeadersBlockWithMultipleAppends() = testSuspend {
+    fun testHeadersBlockWithMultipleAppends() = runTest {
         val client = HttpClient(MockEngine) {
             engine {
                 addHandler {
@@ -350,7 +349,7 @@ class DefaultRequestTest {
     }
 
     @Test
-    fun testHeadersBlockChainingInDefaultRequest() = testSuspend {
+    fun testHeadersBlockChainingInDefaultRequest() = runTest {
         val client = HttpClient(MockEngine) {
             engine {
                 addHandler {

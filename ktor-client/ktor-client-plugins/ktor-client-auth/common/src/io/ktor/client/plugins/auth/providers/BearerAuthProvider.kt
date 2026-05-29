@@ -69,6 +69,22 @@ public class BearerAuthConfig {
     internal var loadTokens: suspend () -> BearerTokens? = { null }
     internal var sendWithoutRequest: (HttpRequestBuilder) -> Boolean = { true }
 
+    /**
+     * Specifies the authentication realm this provider should answer.
+     *
+     * The realm is matched against the `realm` parameter from a `WWW-Authenticate: Bearer`
+     * challenge. Leave it `null` (default) when the client has a single bearer provider or when
+     * the server does not distinguish bearer credentials by realm. Set it when multiple bearer
+     * providers are installed, and this provider should only handle challenges for a particular
+     * protection space.
+     *
+     * Typical values are the exact realm strings advertised by the server, for example `api`,
+     * `admin`, or another application-defined name. Do not include the `Bearer` scheme name.
+     * When set, a bearer challenge whose `realm` parameter is absent or different is ignored by
+     * this provider.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.providers.BearerAuthConfig.realm)
+     */
     public var realm: String? = null
 
     /**
@@ -88,7 +104,18 @@ public class BearerAuthConfig {
     public var cacheTokens: Boolean = true
 
     /**
-     * Configures a callback that refreshes a token when the 401 status code is received.
+     * Configures a callback that refreshes bearer tokens when the client receives an unauthorized response.
+     *
+     * The callback is synchronized with the provider's token cache. If several requests receive an unauthorized
+     * response for the same cached token at the same time, only one refresh callback is executed and the other
+     * requests reuse the refreshed token.
+     *
+     * Return new tokens when refresh succeeds. With the default [cacheTokens] value, the returned tokens replace
+     * the cached tokens and are used to retry the failed request. Return `null` when refresh is not possible; the
+     * original request is not retried with new bearer credentials, and the unauthorized response is returned.
+     *
+     * @param block a callback that receives the unauthorized response, client, and previously loaded tokens, and
+     * returns refreshed bearer tokens or `null` when refresh fails.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.providers.BearerAuthConfig.refreshTokens)
      */
@@ -107,7 +134,13 @@ public class BearerAuthConfig {
     }
 
     /**
-     * Sends credentials without waiting for [HttpStatusCode.Unauthorized].
+     * Configures when bearer credentials are sent without waiting for [HttpStatusCode.Unauthorized].
+     *
+     * By default, bearer authentication sends credentials with every request. Use this predicate to limit
+     * preemptive authentication to trusted hosts, paths, or other request properties.
+     *
+     * @param block a predicate that receives an outgoing request and returns `true` when bearer credentials
+     * should be sent with it before receiving a challenge.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.providers.BearerAuthConfig.sendWithoutRequest)
      */

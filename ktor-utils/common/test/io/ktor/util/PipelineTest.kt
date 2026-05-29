@@ -4,9 +4,10 @@
 
 package io.ktor.util
 
+import io.ktor.test.*
 import io.ktor.util.pipeline.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.test.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlin.test.*
 
 class PipelineTest {

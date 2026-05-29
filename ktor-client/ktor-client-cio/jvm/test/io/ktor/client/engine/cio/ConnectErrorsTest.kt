@@ -17,8 +17,8 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.test.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.assertThrows
 import java.io.File
 import java.net.ConnectException

@@ -8,7 +8,6 @@ import io.ktor.client.engine.*
 import io.ktor.test.*
 import kotlinx.coroutines.test.TestResult
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 
@@ -26,7 +25,7 @@ private typealias ClientTestFailure = TestFailure<HttpClientEngineFactory<*>>
  */
 abstract class ClientLoader(
     rule: EngineSelectionRule = EngineSelectionRule { true },
-    private val timeout: Duration = 1.minutes,
+    private val timeout: Duration = DEFAULT_TEST_TIMEOUT,
 ) {
 
     private val engines = enginesToTest.filter { rule.shouldRun(it.engineName) }
@@ -38,7 +37,7 @@ abstract class ClientLoader(
      */
     fun clientTests(
         rule: EngineSelectionRule = EngineSelectionRule { true },
-        retries: Int = 1,
+        retries: Int = DEFAULT_RETRIES,
         timeout: Duration = this.timeout,
         block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
     ): TestResult {

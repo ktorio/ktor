@@ -17,6 +17,10 @@ kotlin {
             api(projects.ktorTestDispatcher)
         }
 
+        commonTest.dependencies {
+            implementation(projects.ktorTestBase)
+        }
+
         jvmMain.dependencies {
             api(projects.ktorNetworkTls)
 
@@ -33,8 +37,6 @@ kotlin {
 
         jvmTest.dependencies {
             implementation(projects.ktorServerConfigYaml)
-            implementation(libs.kotlin.test)
-            implementation(libs.junit)
         }
     }
 }

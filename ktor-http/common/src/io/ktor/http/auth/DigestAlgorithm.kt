@@ -15,6 +15,8 @@ package io.ktor.http.auth
  * These provide the strongest security properties. MD5 variants are deprecated and should only
  * be used for backward compatibility with legacy systems.
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.auth.DigestAlgorithm)
+ *
  * @property name The name of the algorithm as it appears in HTTP headers (e.g., "MD5", "SHA-256-sess")
  * @property hashName The Java Security algorithm name used for MessageDigest (e.g., "MD5", "SHA-256")
  * @property isSession Whether this is a session variant that incorporates nonce and cnonce into HA1
@@ -25,24 +27,48 @@ public class DigestAlgorithm(
     public val isSession: Boolean
 ) {
     public companion object {
-        /** MD5 algorithm - deprecated, use only for backward compatibility with legacy systems */
+        /**
+         * MD5 algorithm - deprecated, use only for backward compatibility with legacy systems
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.auth.DigestAlgorithm.Companion.MD5)
+         */
         @Deprecated("MD5 is deprecated because it is not secure")
         public val MD5: DigestAlgorithm = DigestAlgorithm("MD5", "MD5", isSession = false)
 
-        /** MD5 session variant - deprecated, use only for backward compatibility with legacy systems */
+        /**
+         * MD5 session variant - deprecated, use only for backward compatibility with legacy systems
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.auth.DigestAlgorithm.Companion.MD5_SESS)
+         */
         @Deprecated("MD5-sess is deprecated because it is not secure")
         public val MD5_SESS: DigestAlgorithm = DigestAlgorithm("MD5-sess", "MD5", isSession = true)
 
-        /** SHA-256 algorithm - minimum recommended for production use */
+        /**
+         * SHA-256 algorithm - minimum recommended for production use
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.auth.DigestAlgorithm.Companion.SHA_256)
+         */
         public val SHA_256: DigestAlgorithm = DigestAlgorithm("SHA-256", "SHA-256", isSession = false)
 
-        /** SHA-256 session variant - minimum recommended for production use */
+        /**
+         * SHA-256 session variant - minimum recommended for production use
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.auth.DigestAlgorithm.Companion.SHA_256_SESS)
+         */
         public val SHA_256_SESS: DigestAlgorithm = DigestAlgorithm("SHA-256-sess", "SHA-256", isSession = true)
 
-        /** SHA-512/256 algorithm - **recommended for new implementations**, provides the strongest security */
+        /**
+         * SHA-512/256 algorithm - **recommended for new implementations**, provides the strongest security
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.auth.DigestAlgorithm.Companion.SHA_512_256)
+         */
         public val SHA_512_256: DigestAlgorithm = DigestAlgorithm("SHA-512-256", "SHA-512/256", isSession = false)
 
-        /** SHA-512/256 session variant - **recommended for new implementations**, provides the strongest security */
+        /**
+         * SHA-512/256 session variant - **recommended for new implementations**, provides the strongest security
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.auth.DigestAlgorithm.Companion.SHA_512_256_SESS)
+         */
         public val SHA_512_256_SESS: DigestAlgorithm =
             DigestAlgorithm("SHA-512-256-sess", "SHA-512/256", isSession = true)
 
@@ -52,6 +78,8 @@ public class DigestAlgorithm(
 
         /**
          * Parses an algorithm name string into a [DigestAlgorithm].
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.auth.DigestAlgorithm.Companion.from)
          *
          * @param name The algorithm name (case-insensitive), e.g., "MD5", "SHA-256", "SHA-256-sess"
          * @return The corresponding [DigestAlgorithm] or null if not recognized
@@ -65,18 +93,24 @@ public class DigestAlgorithm(
 /**
  * Represents the quality of protection (qop) options for HTTP Digest Authentication as defined in RFC 7616.
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.auth.DigestQop)
+ *
  * @property value The string value as it appears in HTTP headers
  */
 public class DigestQop(public val value: String) {
     public companion object {
         /**
          * Authentication only protects the integrity of the request method and URI.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.auth.DigestQop.Companion.AUTH)
          */
         public val AUTH: DigestQop = DigestQop("auth")
 
         /**
          * Authentication with integrity protection additionally protects the integrity of the request body.
          * When using this mode, the A2 hash includes the hash of the entity body.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.auth.DigestQop.Companion.AUTH_INT)
          */
         public val AUTH_INT: DigestQop = DigestQop("auth-int")
 
@@ -84,6 +118,8 @@ public class DigestQop(public val value: String) {
 
         /**
          * Parses a qop string value into a [DigestQop].
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.auth.DigestQop.Companion.from)
          *
          * @param value The qop value (case-insensitive), e.g., "auth", "auth-int"
          * @return The corresponding [DigestQop] or null if not recognized

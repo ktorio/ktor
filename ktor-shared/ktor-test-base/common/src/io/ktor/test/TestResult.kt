@@ -4,7 +4,6 @@
 
 package io.ktor.test
 
-import io.ktor.util.*
 import kotlinx.coroutines.test.TestResult
 
 internal expect val DummyTestResult: TestResult
@@ -43,11 +42,3 @@ internal expect inline fun <T> runTestForEach(items: Iterable<T>, crossinline te
  * @return A [TestResult] representing the outcome of the test after all attempts.
  */
 expect inline fun retryTest(retries: Int, crossinline test: (Int) -> TestResult): TestResult
-
-/**
- * Defaults to `1` on all platforms except for JVM.
- * On JVM retries are disabled as we use test-retry Gradle plugin instead.
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.test.DEFAULT_RETRIES)
- */
-val DEFAULT_RETRIES: Int = if (PlatformUtils.IS_JVM) 0 else 1

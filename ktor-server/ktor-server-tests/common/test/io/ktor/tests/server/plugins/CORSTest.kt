@@ -9,12 +9,12 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.application.hooks.*
-import io.ktor.server.plugins.cors.routing.CORS
-import io.ktor.server.request.httpMethod
+import io.ktor.server.plugins.cors.routing.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import kotlinx.coroutines.test.*
+import io.ktor.test.*
 import kotlin.test.*
 
 class CORSTest {

@@ -1,20 +1,20 @@
 [versions]
 
 kotlin = "2.3.21"
-android-gradlePlugin = "9.1.0"
+android-gradlePlugin = "9.2.1"
 androidx-test = "1.7.0"
 kotlinx-html = "0.12.0"
 kotlinx-datetime = "0.6.2"
 kotlinx-io = "0.9.0"
-coroutines = "1.10.2"
+coroutines = "1.11.0"
 atomicfu = "0.32.1"
-serialization = "1.9.0"
+serialization = "1.11.0"
 dokka = "2.2.0"
 kover = "0.9.8"
 kotlinter = "5.2.0"
 kotlinx-browser = "0.5.0"
 
-netty = "4.2.13.Final"
+netty = "4.2.14.Final"
 netty-tcnative = "2.0.77.Final"
 
 jetty = "9.4.58.v20250814"
@@ -42,9 +42,9 @@ jackson-annotations = "2.21"
 
 junit = "5.14.4"
 slf4j = "2.0.18"
-logback = "1.5.32"
+logback = "1.5.33"
 
-dropwizard = "4.2.38"
+dropwizard = "4.2.39"
 micrometer = "1.16.5"
 
 jansi = "2.4.3"
@@ -56,7 +56,7 @@ mockk = "1.14.9"
 
 java-jwt = "4.5.2"
 
-jwks-rsa = "0.24.0"
+jwks-rsa = "0.24.1"
 mustache = "0.9.14"
 freemarker = "2.3.34"
 pebble = "4.1.1"
@@ -70,21 +70,20 @@ jte = "3.2.4"
 javax-servlet = "4.0.1"
 jakarta-servlet = "5.0.0"
 
-ws = "8.18.3"
 xmlutil = "0.91.3"
 yamlkt = "0.13.0"
 kaml = "0.79.0"
 
-swagger-codegen = "3.0.79"
-swagger-codegen-generators = "1.0.61"
-swagger-parser = "2.1.42"
+swagger-codegen = "3.0.81"
+swagger-codegen-generators = "1.0.62"
+swagger-parser = "2.1.43"
 
-puppeteer = "24.16.1"
 tomlj = "1.1.1"
 
-zstd-jni = "1.5.7-8"
+zstd-jni = "1.5.7-9"
 
 # Keep it in sync with build-settings-logic/settings.gradle.kts
+# TODO: Remove module 'develocity-patched' after updating Develocity plugin to 4.4+
 develocity = "4.3.2" # Should be compatible with our server: ge.jetbrains.com
 develocity-commonCustomUserData = "2.6.0"
 gradleDoctor = "0.12.1"
@@ -94,6 +93,12 @@ android-compileSdk = "36"
 android-minSdk = "28"
 ios-deploymentTarget = "13.0"
 ios-webrtc-sdk = "137.7151.04"
+
+# JS versions
+node = "22.22.2"
+yarn = "1.22.22"
+ws = "8.20.1"
+puppeteer = "25.0.4"
 
 [libraries]
 
@@ -106,6 +111,7 @@ kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref =
 kotlin-serialization = { module = "org.jetbrains.kotlin:kotlin-serialization", version.ref = "kotlin" }
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
+kotlin-test-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }
 kotlin-test-junit5 = { module = "org.jetbrains.kotlin:kotlin-test-junit5", version.ref = "kotlin" }
 kotlin-compiler = { module = "org.jetbrains.kotlin:kotlin-compiler", version.ref = "kotlin" }
 kotlin-compilerEmbeddable = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable", version.ref = "kotlin" }

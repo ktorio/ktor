@@ -7,7 +7,7 @@ package io.ktor.client.engine.cio
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import kotlinx.coroutines.test.runTest
+import io.ktor.test.*
 import java.net.ServerSocket
 import java.net.SocketException
 import kotlin.concurrent.thread

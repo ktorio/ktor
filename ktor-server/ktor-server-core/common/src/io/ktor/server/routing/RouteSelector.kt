@@ -708,7 +708,7 @@ internal data class ContentTypeHeaderRouteSelector(
         val parsedHeaders = parseAndSortContentTypeHeader(headers)
 
         val header = parsedHeaders.firstOrNull { header ->
-            contentTypes.any { it.isCompatibleWith(ContentType.parse(header.value)) }
+            contentTypes.any { header.toContentType().match(it) }
         } ?: return failedEvaluation
 
         return RouteSelectorEvaluation.Success(header.quality)
@@ -758,7 +758,7 @@ public data class HttpMultiAcceptRouteSelector(
             }
 
             val header = parsedHeaders.firstOrNull { header ->
-                contentTypes.any { it.isCompatibleWith(ContentType.parse(header.value)) }
+                contentTypes.any { it.isCompatibleWith(header.toContentType()) }
             }
             if (header != null) {
                 return RouteSelectorEvaluation.Success(header.quality)
@@ -827,4 +827,17 @@ private fun ContentType.isCompatibleWith(other: ContentType): Boolean = when {
     other.contentType == "*" && other.contentSubtype == "*" -> true
     this.contentSubtype == "*" -> other.match(this)
     else -> this.match(other)
+}
+
+private fun HeaderValue.toContentType(): ContentType {
+    val contentType = ContentType.parse(value)
+    return if (params.isEmpty()) {
+        contentType
+    } else {
+        ContentType(
+            contentType.contentType,
+            contentType.contentSubtype,
+            params.filter { it.name != "q" }
+        )
+    }
 }

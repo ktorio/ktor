@@ -7,16 +7,12 @@ import io.ktor.client.engine.*
 import io.ktor.client.plugins.api.*
 import io.ktor.client.request.*
 import io.ktor.http.*
+import io.ktor.test.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.test.runTest
 import kotlin.coroutines.EmptyCoroutineContext
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertSame
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 class HttpClientConfigTest {
 

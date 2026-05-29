@@ -42,6 +42,8 @@ public class ByteChannel(public override val autoFlush: Boolean = false) : ByteR
      * Note: This is an internal API and subject to change or removal without notice. If you need to use this property,
      * please share your use case with us at [KTOR-9579](https://youtrack.jetbrains.com/issue/KTOR-9579).
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.ByteChannel.hasFreeSpace)
+     *
      * @return `true` if there is free space in the flush buffer; `false` otherwise.
      */
     @InternalAPI

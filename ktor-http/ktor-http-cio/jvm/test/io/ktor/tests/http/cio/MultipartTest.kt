@@ -5,11 +5,14 @@
 package io.ktor.tests.http.cio
 
 import io.ktor.http.cio.*
+import io.ktor.test.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
-import kotlinx.coroutines.test.*
-import kotlinx.io.*
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.channels.toList
+import kotlinx.coroutines.runBlocking
+import kotlinx.io.IOException
 import kotlin.test.*
 
 @OptIn(DelicateCoroutinesApi::class)

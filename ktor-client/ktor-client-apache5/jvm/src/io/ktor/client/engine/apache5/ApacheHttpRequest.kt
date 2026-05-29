@@ -9,14 +9,16 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
-import org.apache.hc.client5.http.*
-import org.apache.hc.client5.http.impl.async.*
-import org.apache.hc.core5.concurrent.*
-import org.apache.hc.core5.http.message.*
-import org.apache.hc.core5.http.nio.*
-import java.net.*
-import kotlin.coroutines.*
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.cancel
+import org.apache.hc.client5.http.ConnectTimeoutException
+import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient
+import org.apache.hc.core5.concurrent.FutureCallback
+import org.apache.hc.core5.http.message.StatusLine
+import org.apache.hc.core5.http.nio.AsyncRequestProducer
+import java.net.ConnectException
+import java.net.SocketTimeoutException
+import kotlin.coroutines.CoroutineContext
 
 @OptIn(InternalAPI::class)
 internal suspend fun CloseableHttpAsyncClient.sendRequest(
@@ -36,6 +38,8 @@ internal suspend fun CloseableHttpAsyncClient.sendRequest(
     }
 
     val future = execute(request, responseConsumer, callback)!!
+    bodyConsumer.attachFuture(future)
+
     try {
         val rawResponse = responseConsumer.responseDeferred.await()
 
@@ -66,9 +70,9 @@ internal suspend fun CloseableHttpAsyncClient.sendRequest(
     }
 }
 
-internal fun mapCause(exception: Exception, requestData: HttpRequestData): Exception = when {
-    exception is ConnectTimeoutException -> ConnectTimeoutException(requestData, exception)
-    exception is ConnectException && exception.isTimeoutException() -> ConnectTimeoutException(requestData, exception)
-    exception is SocketTimeoutException -> SocketTimeoutException(requestData, exception)
+internal fun mapCause(exception: Exception, requestData: HttpRequestData): Exception = when (exception) {
+    is ConnectTimeoutException -> ConnectTimeoutException(requestData, exception)
+    is ConnectException if exception.isTimeoutException() -> ConnectTimeoutException(requestData, exception)
+    is SocketTimeoutException -> SocketTimeoutException(requestData, exception)
     else -> exception
 }

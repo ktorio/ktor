@@ -4,11 +4,7 @@
 
 package io.ktor.util
 
-import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Int8Array
-import kotlin.js.*
 
 public expect fun ByteArray.toJsArray(): Int8Array
 public expect fun Int8Array.toByteArray(): ByteArray
-
-internal expect suspend fun Promise<ArrayBuffer>.awaitBuffer(): ArrayBuffer

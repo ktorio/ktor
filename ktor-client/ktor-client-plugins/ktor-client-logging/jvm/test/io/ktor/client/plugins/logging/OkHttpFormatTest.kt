@@ -13,10 +13,10 @@ import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.test.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.test.runTest
 import kotlinx.io.Buffer
 import kotlinx.io.readByteArray
 import org.junit.jupiter.api.BeforeEach

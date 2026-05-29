@@ -4,18 +4,77 @@
 
 package io.ktor.http.content
 
+import io.ktor.utils.io.*
+import io.ktor.utils.io.charsets.*
+import io.ktor.utils.io.jvm.javaio.*
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.OutputStream
+import java.io.Writer
+
+private const val BLOCKING_BRIDGE_PARALLELISM_PROPERTY_NAME = "io.ktor.blocking.bridge.parallelism"
 
 /**
- * Redispatches [block] onto [Dispatchers.IO] for blocking I/O.
+ * Dispatcher used by Ktor blocking bridges.
  *
- * This is used by non-blocking engines (CIO, Netty) where the calling thread is an event-loop
- * thread that must not block. Servlet-based engines bypass this entirely via
- * [OutputStreamContent.writeTo] with a native [java.io.OutputStream].
+ * Blocking bridges expose synchronous APIs over suspending Ktor I/O primitives. Their operations may block
+ * waiting for backpressure or suspending I/O completion. This dispatcher gives such bridges a dedicated parallelism
+ * budget so they don't exhaust shared [Dispatchers.IO] capacity used by user code and other Ktor internals.
+ *
+ * The parallelism can be configured with [BLOCKING_BRIDGE_PARALLELISM_PROPERTY_NAME].
  */
-internal suspend fun withBlocking(block: suspend () -> Unit) {
-    withContext(Dispatchers.IO) {
-        block()
+private val BlockingBridgeDispatcher = Dispatchers.IO.limitedParallelism(
+    parallelism = System.getProperty(BLOCKING_BRIDGE_PARALLELISM_PROPERTY_NAME)?.toIntOrNull() ?: 64,
+    name = "ktor-blocking-bridge",
+)
+
+/**
+ * Executes [block] with this channel represented as a blocking [OutputStream].
+ *
+ * Blocking operations are dispatched to [dispatcher] so they don't block event loop threads. This function doesn't
+ * close the channel after [block] finishes: the caller that owns the [ByteWriteChannel] lifecycle is responsible for
+ * closing it from a suspending context.
+ *
+ * The stream passed to [block] is owned by this function and must not be used after [block] returns.
+ */
+internal suspend inline fun ByteWriteChannel.withBlockingOutputStream(
+    dispatcher: CoroutineDispatcher = BlockingBridgeDispatcher,
+    crossinline block: suspend (OutputStream) -> Unit,
+) {
+    withContext(dispatcher) {
+        val outputStream = toOutputStream()
+        block(outputStream)
     }
+}
+
+/**
+ * Executes [block] with this channel represented as a blocking [Writer] using [charset].
+ *
+ * Blocking operations are dispatched to [dispatcher] so they don't block event loop threads. The [Writer] is closed
+ * inside [dispatcher] to finalize encoder state, but the underlying stream close is suppressed: the caller that owns
+ * the [ByteWriteChannel] lifecycle is responsible for closing the channel from a suspending context.
+ *
+ * The writer passed to [block] is owned by this function and must not be used after [block] returns.
+ */
+internal suspend inline fun ByteWriteChannel.withBlockingWriter(
+    charset: Charset,
+    dispatcher: CoroutineDispatcher = BlockingBridgeDispatcher,
+    crossinline block: suspend (Writer) -> Unit,
+) {
+    withContext(dispatcher) {
+        val writer = toOutputStream().nonClosing().writer(charset)
+        writer.use { block(it) }
+    }
+}
+
+private fun OutputStream.nonClosing(): OutputStream = NonClosingOutputStream(this)
+
+/** A wrapper preventing calling `runBlocking { flushAndClose() }` which could lead to a deadlock. */
+private class NonClosingOutputStream(private val delegate: OutputStream) : OutputStream() {
+    override fun write(b: Int) = delegate.write(b)
+    override fun write(b: ByteArray) = delegate.write(b)
+    override fun write(b: ByteArray, off: Int, len: Int) = delegate.write(b, off, len)
+    override fun flush() = delegate.flush()
+    override fun close() = Unit
 }

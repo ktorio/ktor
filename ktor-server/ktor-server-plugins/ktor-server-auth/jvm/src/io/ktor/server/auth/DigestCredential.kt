@@ -230,7 +230,7 @@ public fun HttpAuthHeader.Parameterized.toDigestCredential(
 
     val charsetParam = parameter("charset")
     // only UTF-8 can be advertised though default charset is not specified in RFC 2617
-    require(charsetParam == null || charsetParam == Charsets.UTF_8.name()) {
+    require(charsetParam == null || charsetParam.equals(Charsets.UTF_8.name(), ignoreCase = true)) {
         "Unsupported charset in digest authentication header"
     }
 
