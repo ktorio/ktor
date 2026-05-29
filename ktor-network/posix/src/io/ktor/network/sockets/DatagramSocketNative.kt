@@ -43,9 +43,7 @@ internal class DatagramSocketNative(
                 val received = readDatagram()
                 channel.send(received)
             }
-        } catch (_: ClosedSendChannelException) {
-        } catch (cause: IOException) {
-        } catch (cause: PosixException) {
+        } catch (_: ClosedSocketException) {
         }
     }
 
@@ -88,7 +86,7 @@ internal class DatagramSocketNative(
             }
 
             when (bytesRead) {
-                0L -> throw IOException("Failed reading from closed socket")
+                0L -> throw ClosedSocketException()
                 -1L -> {
                     val error = getSocketError()
                     if (isWouldBlockError(error)) return null
@@ -106,3 +104,5 @@ internal class DatagramSocketNative(
         }
     }
 }
+
+private class ClosedSocketException : IOException()

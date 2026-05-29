@@ -10,7 +10,6 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.errors.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
-import kotlinx.io.IOException
 
 @OptIn(ExperimentalForeignApi::class)
 internal fun CoroutineScope.attachForReadingImpl(
@@ -49,11 +48,7 @@ internal fun CoroutineScope.attachForReadingImpl(
             }
 
             if (count == 0) {
-                try {
-                    selector.select(selectable, SelectInterest.READ)
-                } catch (_: IOException) {
-                    break
-                }
+                selector.select(selectable, SelectInterest.READ)
             }
         }
 
