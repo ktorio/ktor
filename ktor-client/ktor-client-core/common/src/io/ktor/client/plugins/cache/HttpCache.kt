@@ -21,6 +21,7 @@ import io.ktor.util.date.*
 import io.ktor.util.logging.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.CancellationException
 import kotlin.coroutines.CoroutineContext
 
 internal object CacheControl {
@@ -136,6 +137,37 @@ public class HttpCache private constructor(
         public fun privateStorage(storage: CacheStorage) {
             privateStorageNew = storage
         }
+    }
+
+    /**
+     * Removes all entries from both public and private cache storages.
+     *
+     * Both storages are always attempted: a failure clearing one does not skip the other.
+     * If both fail, the first failure is thrown with the second attached as a suppressed cause.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.cache.HttpCache.clearAllCaches)
+     */
+    public suspend fun clearAllCaches() {
+        check(!useOldStorage) {
+            "clearAllCaches() is not supported with deprecated HttpCacheStorage. " +
+                "Please migrate to the new CacheStorage API."
+        }
+        var firstError: Throwable? = null
+        try {
+            privateStorageNew.clear()
+        } catch (cause: CancellationException) {
+            throw cause
+        } catch (cause: Throwable) {
+            firstError = cause
+        }
+        try {
+            publicStorageNew.clear()
+        } catch (cause: CancellationException) {
+            throw cause
+        } catch (cause: Throwable) {
+            if (firstError == null) firstError = cause else firstError.addSuppressed(cause)
+        }
+        firstError?.let { throw it }
     }
 
     public companion object : HttpClientPlugin<Config, HttpCache> {
