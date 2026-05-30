@@ -8,11 +8,13 @@ public final class io/ktor/client/engine/cio/CIO : io/ktor/client/engine/HttpCli
 
 public final class io/ktor/client/engine/cio/CIOEngineConfig : io/ktor/client/engine/HttpClientEngineConfig {
 	public fun <init> ()V
+	public final fun getDnsResolver ()Lkotlin/jvm/functions/Function2;
 	public final fun getEndpoint ()Lio/ktor/client/engine/cio/EndpointConfig;
 	public final fun getHttps ()Lio/ktor/network/tls/TLSConfigBuilder;
 	public final fun getMaxConnectionsCount ()I
 	public final fun getRequestTimeout ()J
 	public final fun https (Lkotlin/jvm/functions/Function1;)Lio/ktor/network/tls/TLSConfigBuilder;
+	public final fun setDnsResolver (Lkotlin/jvm/functions/Function2;)V
 	public final fun setMaxConnectionsCount (I)V
 	public final fun setRequestTimeout (J)V
 }
@@ -25,6 +27,11 @@ public final class io/ktor/client/engine/cio/CIOEngineContainer : io/ktor/client
 	public fun <init> ()V
 	public fun getFactory ()Lio/ktor/client/engine/HttpClientEngineFactory;
 	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/client/engine/cio/CioDnsResolverKt {
+	public static final fun CioDnsResolver-SxA4cEA (Ljava/lang/String;IJ)Lkotlin/jvm/functions/Function2;
+	public static synthetic fun CioDnsResolver-SxA4cEA$default (Ljava/lang/String;IJILjava/lang/Object;)Lkotlin/jvm/functions/Function2;
 }
 
 public final class io/ktor/client/engine/cio/EndpointConfig {
@@ -47,6 +54,11 @@ public final class io/ktor/client/engine/cio/EndpointConfig {
 
 public final class io/ktor/client/engine/cio/FailToConnectException : java/lang/Exception {
 	public fun <init> ()V
+}
+
+public final class io/ktor/client/engine/cio/JvmDnsResolverKt {
+	public static final fun JvmDnsResolver (Lkotlinx/coroutines/CoroutineDispatcher;)Lkotlin/jvm/functions/Function2;
+	public static synthetic fun JvmDnsResolver$default (Lkotlinx/coroutines/CoroutineDispatcher;ILjava/lang/Object;)Lkotlin/jvm/functions/Function2;
 }
 
 public final class io/ktor/client/plugins/websocket/cio/BuildersCioKt {
