@@ -69,6 +69,11 @@ internal class NettyHttp3Handler(
         }
     }
 
+    override fun channelInactive(context: ChannelHandlerContext) {
+        handlerJob.cancel()
+        context.fireChannelInactive()
+    }
+
     override fun channelReadComplete(context: ChannelHandlerContext) {
         state.isChannelReadCompleted.compareAndSet(expect = false, update = true)
         responseWriter.flushIfNeeded()

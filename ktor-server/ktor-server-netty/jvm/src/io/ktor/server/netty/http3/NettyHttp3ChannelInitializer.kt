@@ -40,7 +40,7 @@ internal class NettyHttp3ChannelInitializer(
         val quicServerCodec = Http3.newQuicServerCodecBuilder()
             .sslContext(quicSslContext)
             .tokenHandler(http3Configuration.quicTokenHandler)
-            .maxIdleTimeout(http3Configuration.quicMaxIdleTimeoutMillis.inWholeMilliseconds, TimeUnit.MILLISECONDS)
+            .maxIdleTimeout(http3Configuration.quicMaxIdleTimeout.inWholeMilliseconds, TimeUnit.MILLISECONDS)
             .initialMaxData(http3Configuration.quicInitialMaxData)
             .initialMaxStreamDataBidirectionalLocal(http3Configuration.quicInitialMaxStreamDataBidirectionalLocal)
             .initialMaxStreamDataBidirectionalRemote(http3Configuration.quicInitialMaxStreamDataBidirectionalRemote)
