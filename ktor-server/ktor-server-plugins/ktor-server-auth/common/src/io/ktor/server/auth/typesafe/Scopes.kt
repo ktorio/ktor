@@ -4,11 +4,11 @@
 
 package io.ktor.server.auth.typesafe
 
+import io.ktor.server.application.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
-import kotlin.jvm.JvmName
 
 /**
  * Provides typed access to an authenticated principal captured for a typed authentication route.
@@ -21,11 +21,11 @@ import kotlin.jvm.JvmName
 @KtorDsl
 public interface AuthenticatedContext<P> {
     /**
-     * Returns the principal captured for [context].
+     * Returns the principal captured for [call].
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.AuthenticatedContext.principal)
      */
-    public fun principal(context: RoutingContext): P
+    public fun principal(call: ApplicationCall): P
 }
 
 /**
@@ -42,8 +42,8 @@ public interface AuthenticatedContext<P> {
 public open class DefaultAuthenticatedContext<P : Any> @PublishedApi internal constructor(
     @PublishedApi internal val principalKey: AttributeKey<P>,
 ) : AuthenticatedContext<P> {
-    override fun principal(context: RoutingContext): P {
-        return checkNotNull(context.call.attributes.getOrNull(principalKey)) {
+    override fun principal(call: ApplicationCall): P {
+        return checkNotNull(call.attributes.getOrNull(principalKey)) {
             "Principal not found. This should not happen inside an authenticateWith block."
         }
     }
@@ -64,12 +64,12 @@ public class RoleBasedContext<P : Any, R : AuthRole> internal constructor(
     private val rolesKey: AttributeKey<Set<R>>,
 ) : DefaultAuthenticatedContext<P>(principalKey) {
     /**
-     * Returns the roles resolved for [context].
+     * Returns the roles resolved for [call].
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.RoleBasedContext.roles)
      */
-    public fun roles(context: RoutingContext): Set<R> {
-        return context.call.attributes[rolesKey]
+    public fun roles(call: ApplicationCall): Set<R> {
+        return call.attributes[rolesKey]
     }
 }
 
@@ -83,26 +83,26 @@ public class RoleBasedContext<P : Any, R : AuthRole> internal constructor(
 public interface SessionAuthenticatedContext<S : Any, P : Any> : AuthenticatedContext<P> {
 
     /**
-     * Returns the session value captured for [context].
+     * Returns the session value captured for [call].
      */
-    public fun session(context: RoutingContext): S
+    public fun getSession(call: ApplicationCall): S
 
     /**
-     * Stores [value] as the current session for [context].
+     * Stores [value] as the current session for [call].
      */
-    public fun setSession(context: RoutingContext, value: S)
+    public fun setSession(call: ApplicationCall, value: S)
 
     /**
-     * Replaces the current session for [context] with the value returned by [transform].
+     * Replaces the current session for [call] with the value returned by [transform].
      *
      * @return the updated session value.
      */
-    public fun updateSession(context: RoutingContext, transform: (S) -> S): S
+    public fun updateSession(call: ApplicationCall, transform: (S) -> S): S
 
     /**
-     * Clears the current session for [context].
+     * Clears the current session for [call].
      */
-    public fun clearSession(context: RoutingContext)
+    public fun clearSession(call: ApplicationCall)
 }
 
 /**
@@ -124,36 +124,36 @@ public class DefaultSessionAuthenticatedContext<S : Any, P : Any> @PublishedApi 
     private val sessionProviderName: String,
 ) : SessionAuthenticatedContext<S, P>, AuthenticatedContext<P> by base {
     /**
-     * Returns the session value that passed authentication for [context].
+     * Returns the session value that passed authentication for [call].
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.SessionAuthenticatedContext.session)
      */
-    override fun session(context: RoutingContext): S {
-        return checkNotNull(context.call.attributes.getOrNull(sessionKey)) {
+    override fun getSession(call: ApplicationCall): S {
+        return checkNotNull(call.attributes.getOrNull(sessionKey)) {
             "Session not found. This should not happen inside a session authenticateWith block."
         }
     }
 
     /**
-     * Sets a new session value for [context].
+     * Sets a new session value for [call].
      *
-     * The captured route session is updated as well, so subsequent reads of [session] in the same handler see [value].
+     * The captured route session is updated as well, so later reads of [getSession] in the same handler see [value].
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.SessionAuthenticatedContext.setSession)
      */
-    override fun setSession(context: RoutingContext, value: S) {
-        context.call.sessions.set(sessionProviderName, value)
-        context.call.attributes.put(sessionKey, value)
+    override fun setSession(call: ApplicationCall, value: S) {
+        call.sessions.set(sessionProviderName, value)
+        call.attributes.put(sessionKey, value)
     }
 
     /**
-     * Clears the authenticated session for [context].
+     * Clears the authenticated session for [call].
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.SessionAuthenticatedContext.clearSession)
      */
-    override fun clearSession(context: RoutingContext) {
-        context.call.sessions.clear(sessionProviderName)
-        context.call.attributes.remove(sessionKey)
+    override fun clearSession(call: ApplicationCall) {
+        call.sessions.clear(sessionProviderName)
+        call.attributes.remove(sessionKey)
     }
 
     /**
@@ -163,9 +163,9 @@ public class DefaultSessionAuthenticatedContext<S : Any, P : Any> @PublishedApi 
      *
      * @return the updated session value.
      */
-    override fun updateSession(context: RoutingContext, transform: (S) -> S): S {
-        val updated = transform(session(context))
-        setSession(context, updated)
+    override fun updateSession(call: ApplicationCall, transform: (S) -> S): S {
+        val updated = transform(getSession(call))
+        setSession(call, updated)
         return updated
     }
 }
@@ -184,8 +184,8 @@ public class DefaultSessionAuthenticatedContext<S : Any, P : Any> @PublishedApi 
 public class OptionalAuthenticatedContext<P : Any> internal constructor(
     private val principalKey: AttributeKey<P>,
 ) : AuthenticatedContext<P?> {
-    override fun principal(context: RoutingContext): P? {
-        return context.call.attributes.getOrNull(principalKey)
+    override fun principal(call: ApplicationCall): P? {
+        return call.attributes.getOrNull(principalKey)
     }
 }
 
@@ -206,9 +206,9 @@ public fun <P, A : AuthenticatedContext<P>> authenticatedContext(): A = auth
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.principal)
  */
 @ExperimentalKtorApi
-context(auth: AuthenticatedContext<P>)
-public val <P> RoutingContext.principal: P
-    get() = auth.principal(context = this)
+context(routingCtx: RoutingContext, authCtx: AuthenticatedContext<P>)
+public val <P> principal: P
+    get() = authCtx.principal(routingCtx.call)
 
 /**
  * Authenticated session captured for the current session-protected typed route.
@@ -218,24 +218,12 @@ public val <P> RoutingContext.principal: P
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.session)
  */
 @ExperimentalKtorApi
-context(ctx: SessionAuthenticatedContext<S, *>)
-public var <S : Any> RoutingContext.session: S
-    get() = ctx.session(context = this)
+context(routingCtx: RoutingContext, authCtx: SessionAuthenticatedContext<S, *>)
+public var <S : Any> session: S
+    get() = authCtx.getSession(routingCtx.call)
     set(value) {
-        ctx.setSession(context = this, value)
+        authCtx.setSession(routingCtx.call, value)
     }
-
-/**
- * Sets the authenticated session for the current session-protected typed route.
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.setSession)
- */
-@ExperimentalKtorApi
-@JvmName("setAuthenticatedSession")
-context(ctx: SessionAuthenticatedContext<S, *>)
-public fun <S : Any> RoutingContext.setSession(value: S) {
-    ctx.setSession(context = this, value)
-}
 
 /**
  * Replaces the authenticated session with the value returned by [transform].
@@ -245,9 +233,9 @@ public fun <S : Any> RoutingContext.setSession(value: S) {
  * @return the updated session value.
  */
 @ExperimentalKtorApi
-context(ctx: SessionAuthenticatedContext<S, *>)
-public fun <S : Any> RoutingContext.updateSession(transform: (S) -> S): S {
-    return ctx.updateSession(context = this, transform)
+context(routingCtx: RoutingContext, authCtx: SessionAuthenticatedContext<S, *>)
+public fun <S : Any> updateSession(transform: (S) -> S): S {
+    return authCtx.updateSession(routingCtx.call, transform)
 }
 
 /**
@@ -256,9 +244,9 @@ public fun <S : Any> RoutingContext.updateSession(transform: (S) -> S): S {
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.clearSession)
  */
 @ExperimentalKtorApi
-context(ctx: SessionAuthenticatedContext<S, *>)
-public fun <S : Any> RoutingContext.clearSession() {
-    ctx.clearSession(context = this)
+context(routingCtx: RoutingContext, authCtx: SessionAuthenticatedContext<S, *>)
+public fun <S : Any> clearSession() {
+    authCtx.clearSession(routingCtx.call)
 }
 
 /**
@@ -269,6 +257,6 @@ public fun <S : Any> RoutingContext.clearSession() {
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.roles)
  */
 @ExperimentalKtorApi
-context(ctx: RoleBasedContext<*, R>)
-public val <R : AuthRole> RoutingContext.roles: Set<R>
-    get() = ctx.roles(context = this)
+context(routingCtx: RoutingContext, authCtx: RoleBasedContext<*, R>)
+public val <R : AuthRole> roles: Set<R>
+    get() = authCtx.roles(routingCtx.call)
