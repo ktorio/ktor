@@ -173,7 +173,7 @@ private object ReceiveBytes : Hook<suspend (ApplicationCall, Any) -> Any> {
     }
 }
 
-private suspend fun AuthenticationContext.executeChallenges(call: ApplicationCall) {
+internal suspend fun AuthenticationContext.executeChallenges(call: ApplicationCall) {
     val challenges = challenge.challenges
 
     if (this.executeChallenges(challenges, call)) return
@@ -192,7 +192,7 @@ private suspend fun AuthenticationContext.executeChallenges(call: ApplicationCal
     }
 }
 
-private suspend fun AuthenticationContext.executeChallenges(
+internal suspend fun AuthenticationContext.executeChallenges(
     challenges: List<ChallengeFunction>,
     call: ApplicationCall
 ): Boolean {
