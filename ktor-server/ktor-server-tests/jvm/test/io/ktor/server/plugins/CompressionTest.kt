@@ -760,6 +760,7 @@ class CompressionTest {
     fun testDecoding() = testApplication {
         install(Compression) {
             zstdStandard()
+            maxEncodingChainLength = 5
         }
         routing {
             post("/identity") {
@@ -1085,6 +1086,80 @@ class CompressionTest {
             }.bodyAsText()
             assertEquals(expectedText, responseText)
         }
+    }
+
+    @Test
+    fun testRejectTooLongContentEncodingChain() = testApplication {
+        val compressed = GZip.encode(ByteReadChannel(textToCompressAsBytes)).readRemaining().readByteArray()
+
+        install(Compression) {
+            mode = CompressionConfig.Mode.DecompressRequest
+            gzip()
+            maxEncodingChainLength = 2
+        }
+        routing {
+            post("/gzip") {
+                call.respond(call.receive<ByteArray>())
+            }
+        }
+
+        val response = client.post("/gzip") {
+            setBody(compressed)
+            // 6 encodings > limit of 2
+            header(HttpHeaders.ContentEncoding, "gzip,gzip,gzip,gzip,gzip,gzip")
+        }
+        assertEquals(HttpStatusCode.BadRequest, response.status)
+    }
+
+    @Test
+    fun testRejectDecompressionBomb() = testApplication {
+        // Build a small payload that decompresses to a much larger one ("zip bomb"-like).
+        val bombPlain = ByteArray(1024 * 1024) // 1 MiB of zeros
+        val bombCompressed = GZip.encode(ByteReadChannel(bombPlain)).readRemaining().readByteArray()
+
+        install(Compression) {
+            mode = CompressionConfig.Mode.DecompressRequest
+            gzip()
+            maxDecodedContentLength = 16 * 1024 // 16 KiB cap, far below 1 MiB
+        }
+        routing {
+            post("/gzip") {
+                runCatching { call.receive<ByteArray>() }
+                    .onSuccess { call.respond(HttpStatusCode.OK) }
+                    .onFailure { call.respond(HttpStatusCode.PayloadTooLarge) }
+            }
+        }
+
+        val response = client.post("/gzip") {
+            setBody(bombCompressed)
+            header(HttpHeaders.ContentEncoding, "gzip")
+        }
+        assertEquals(HttpStatusCode.PayloadTooLarge, response.status)
+    }
+
+    @Test
+    fun testAllowDecodedContentBelowLimit() = testApplication {
+        val compressed = GZip.encode(ByteReadChannel(textToCompressAsBytes)).readRemaining().readByteArray()
+
+        install(Compression) {
+            mode = CompressionConfig.Mode.DecompressRequest
+            gzip()
+            maxDecodedContentLength = textToCompressAsBytes.size.toLong() + 100
+        }
+        routing {
+            post("/gzip") {
+                val body = call.receive<ByteArray>()
+                assertContentEquals(textToCompressAsBytes, body)
+                call.respond(body)
+            }
+        }
+
+        val response = client.post("/gzip") {
+            setBody(compressed)
+            header(HttpHeaders.ContentEncoding, "gzip")
+        }
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertContentEquals(textToCompressAsBytes, response.body<ByteArray>())
     }
 
     private suspend fun ApplicationTestBuilder.handleAndAssert(
