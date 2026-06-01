@@ -81,6 +81,8 @@ public final class io/ktor/server/netty/NettyApplicationEngine : io/ktor/server/
 
 public final class io/ktor/server/netty/NettyApplicationEngine$Configuration : io/ktor/server/engine/BaseApplicationEngine$Configuration {
 	public fun <init> ()V
+	public final fun enableHttp3 (Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun enableHttp3$default (Lio/ktor/server/netty/NettyApplicationEngine$Configuration;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 	public final fun getChannelPipelineConfig ()Lkotlin/jvm/functions/Function1;
 	public final fun getConfigureBootstrap ()Lkotlin/jvm/functions/Function1;
 	public final fun getEnableH2c ()Z
@@ -170,5 +172,23 @@ public final class io/ktor/server/netty/NettyChannelInitializer$Companion {
 
 public final class io/ktor/server/netty/cio/NettyResponsePipelineException : java/lang/Exception {
 	public fun <init> (Ljava/lang/String;)V
+}
+
+public final class io/ktor/server/netty/http3/NettyHttp3Configuration {
+	public fun <init> ()V
+	public final fun getConfigureQuicServerCodec ()Lkotlin/jvm/functions/Function1;
+	public final fun getQuicInitialMaxData ()J
+	public final fun getQuicInitialMaxStreamDataBidirectionalLocal ()J
+	public final fun getQuicInitialMaxStreamDataBidirectionalRemote ()J
+	public final fun getQuicInitialMaxStreamsBidirectional ()J
+	public final fun getQuicMaxIdleTimeout-UwyO8pc ()J
+	public final fun getQuicTokenHandler ()Lio/netty/handler/codec/quic/QuicTokenHandler;
+	public final fun setConfigureQuicServerCodec (Lkotlin/jvm/functions/Function1;)V
+	public final fun setQuicInitialMaxData (J)V
+	public final fun setQuicInitialMaxStreamDataBidirectionalLocal (J)V
+	public final fun setQuicInitialMaxStreamDataBidirectionalRemote (J)V
+	public final fun setQuicInitialMaxStreamsBidirectional (J)V
+	public final fun setQuicMaxIdleTimeout-LRDsOJo (J)V
+	public final fun setQuicTokenHandler (Lio/netty/handler/codec/quic/QuicTokenHandler;)V
 }
 

@@ -1,16 +1,16 @@
 /*
-* Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
-package io.ktor.server.netty.http2
+package io.ktor.server.netty.http3
 
 import io.ktor.server.netty.http.*
 import io.ktor.utils.io.*
 import io.netty.buffer.*
-import io.netty.handler.codec.http2.*
+import io.netty.handler.codec.http3.*
 import kotlinx.coroutines.channels.*
 
-internal suspend fun ReceiveChannel<Http2DataFrame>.http2frameLoop(bc: ByteWriteChannel) {
+internal suspend fun ReceiveChannel<Http3DataFrame>.http3frameLoop(bc: ByteWriteChannel) {
     try {
         while (true) {
             val message = receive()
@@ -19,10 +19,6 @@ internal suspend fun ReceiveChannel<Http2DataFrame>.http2frameLoop(bc: ByteWrite
                 transferByteBuf(content, bc)
             } finally {
                 message.release()
-            }
-
-            if (message.isEndStream) {
-                break
             }
         }
     } catch (expected: ClosedReceiveChannelException) {

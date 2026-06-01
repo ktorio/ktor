@@ -1,19 +1,19 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.server.netty
 
 import io.ktor.http.*
 import io.ktor.server.netty.http.*
-import io.netty.handler.codec.http2.*
+import io.netty.handler.codec.http3.*
 import kotlin.test.*
 
-class NettyHttp2ApplicationResponseTest {
+class NettyHttp3ApplicationResponseTest {
 
     @Test
-    fun testAllHeadersSkipPseudoHeaders() {
-        val nettyHeaders = DefaultHttp2Headers()
+    fun `test all headers skip pseudo headers`() {
+        val nettyHeaders = DefaultHttp3Headers()
         val headers = HttpMultiplexedResponseHeaders(nettyHeaders)
         nettyHeaders.status("200")
         headers.append(HttpHeaders.ContentType, "text/plain")
@@ -21,8 +21,8 @@ class NettyHttp2ApplicationResponseTest {
     }
 
     @Test
-    fun testGetHeaderSkipPseudoHeaders() {
-        val nettyHeaders = DefaultHttp2Headers()
+    fun `test get header skip pseudo headers`() {
+        val nettyHeaders = DefaultHttp3Headers()
         val headers = HttpMultiplexedResponseHeaders(nettyHeaders)
         nettyHeaders.status("200")
         headers.append(HttpHeaders.ContentType, "text/plain")
@@ -31,8 +31,8 @@ class NettyHttp2ApplicationResponseTest {
     }
 
     @Test
-    fun testGetHeaderValuesSkipPseudoHeaders() {
-        val nettyHeaders = DefaultHttp2Headers()
+    fun `test get header values skip pseudo headers`() {
+        val nettyHeaders = DefaultHttp3Headers()
         val headers = HttpMultiplexedResponseHeaders(nettyHeaders)
         nettyHeaders.status("200")
         headers.append(HttpHeaders.ContentType, "text/plain")
@@ -41,8 +41,8 @@ class NettyHttp2ApplicationResponseTest {
     }
 
     @Test
-    fun testAppendThrowsOnPseudoHeaders() {
-        val nettyHeaders = DefaultHttp2Headers()
+    fun `test append throws on pseudo headers`() {
+        val nettyHeaders = DefaultHttp3Headers()
         val headers = HttpMultiplexedResponseHeaders(nettyHeaders)
         headers.append(HttpHeaders.ContentType, "text/plain")
         assertFailsWith<IllegalHeaderNameException> { headers.append(":status", "200") }

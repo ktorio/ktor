@@ -14,6 +14,7 @@ import io.netty.channel.ChannelPromise
 import io.netty.handler.codec.http.FullHttpResponse
 import io.netty.handler.codec.http.HttpResponse
 import io.netty.handler.codec.http2.Http2HeadersFrame
+import io.netty.handler.codec.http3.Http3HeadersFrame
 import kotlinx.atomicfu.AtomicBoolean
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CoroutineScope
@@ -204,6 +205,7 @@ internal class NettyHttpResponsePipeline(
             responseChannel === ByteReadChannel.Empty -> 0
             responseMessage is HttpResponse -> responseMessage.headers().getInt("Content-Length", -1)
             responseMessage is Http2HeadersFrame -> responseMessage.headers().getInt("content-length", -1)
+            responseMessage is Http3HeadersFrame -> responseMessage.headers().getInt("content-length", -1)
             else -> -1
         }
 
