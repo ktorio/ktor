@@ -66,12 +66,8 @@ internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: In
 @Suppress("CAST_NEVER_SUCCEEDS")
 @OptIn(UnsafeNumber::class, BetaInteropApi::class)
 public actual fun CharsetDecoder.decode(input: Source, dst: Appendable, max: Int): Int {
-    if (max != Int.MAX_VALUE) {
-        throw IOException("Max argument is deprecated")
-    }
-
     val charset = _charset as? CharsetDarwin ?: error("Charset $this is not supported by darwin.")
-    val source: ByteArray = input.readByteArray()
+    val source: ByteArray = input.readByteArray(max)
 
     val data = source.toNSData()
     val content = NSString.create(data, charset.encoding) as? String
