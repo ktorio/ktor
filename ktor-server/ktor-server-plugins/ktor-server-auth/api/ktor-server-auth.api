@@ -655,7 +655,7 @@ public abstract interface class io/ktor/server/auth/typesafe/AuthScheme {
 }
 
 public abstract interface class io/ktor/server/auth/typesafe/AuthenticatedContext {
-	public abstract fun principal (Lio/ktor/server/routing/RoutingContext;)Ljava/lang/Object;
+	public abstract fun principal (Lio/ktor/server/application/ApplicationCall;)Ljava/lang/Object;
 }
 
 public class io/ktor/server/auth/typesafe/DefaultAuthScheme : io/ktor/server/auth/typesafe/AuthScheme {
@@ -671,16 +671,16 @@ public final class io/ktor/server/auth/typesafe/DefaultAuthScheme$Companion {
 public class io/ktor/server/auth/typesafe/DefaultAuthenticatedContext : io/ktor/server/auth/typesafe/AuthenticatedContext {
 	public fun <init> (Lio/ktor/util/AttributeKey;)V
 	public final fun getPrincipalKey ()Lio/ktor/util/AttributeKey;
-	public fun principal (Lio/ktor/server/routing/RoutingContext;)Ljava/lang/Object;
+	public fun principal (Lio/ktor/server/application/ApplicationCall;)Ljava/lang/Object;
 }
 
 public final class io/ktor/server/auth/typesafe/DefaultSessionAuthenticatedContext : io/ktor/server/auth/typesafe/AuthenticatedContext, io/ktor/server/auth/typesafe/SessionAuthenticatedContext {
 	public fun <init> (Lio/ktor/server/auth/typesafe/DefaultAuthenticatedContext;Lio/ktor/util/AttributeKey;Ljava/lang/String;)V
-	public fun clearSession (Lio/ktor/server/routing/RoutingContext;)V
-	public fun principal (Lio/ktor/server/routing/RoutingContext;)Ljava/lang/Object;
-	public fun session (Lio/ktor/server/routing/RoutingContext;)Ljava/lang/Object;
-	public fun setSession (Lio/ktor/server/routing/RoutingContext;Ljava/lang/Object;)V
-	public fun updateSession (Lio/ktor/server/routing/RoutingContext;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+	public fun clearSession (Lio/ktor/server/application/ApplicationCall;)V
+	public fun getSession (Lio/ktor/server/application/ApplicationCall;)Ljava/lang/Object;
+	public fun principal (Lio/ktor/server/application/ApplicationCall;)Ljava/lang/Object;
+	public fun setSession (Lio/ktor/server/application/ApplicationCall;Ljava/lang/Object;)V
+	public fun updateSession (Lio/ktor/server/application/ApplicationCall;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 
 public final class io/ktor/server/auth/typesafe/OptionalAuthScheme : io/ktor/server/auth/typesafe/AuthScheme {
@@ -697,7 +697,7 @@ public final class io/ktor/server/auth/typesafe/OptionalAuthSchemeKt {
 }
 
 public final class io/ktor/server/auth/typesafe/OptionalAuthenticatedContext : io/ktor/server/auth/typesafe/AuthenticatedContext {
-	public fun principal (Lio/ktor/server/routing/RoutingContext;)Ljava/lang/Object;
+	public fun principal (Lio/ktor/server/application/ApplicationCall;)Ljava/lang/Object;
 }
 
 public final class io/ktor/server/auth/typesafe/RoleBasedAuthScheme : io/ktor/server/auth/typesafe/AuthScheme {
@@ -713,7 +713,7 @@ public final class io/ktor/server/auth/typesafe/RoleBasedAuthSchemeKt {
 }
 
 public final class io/ktor/server/auth/typesafe/RoleBasedContext : io/ktor/server/auth/typesafe/DefaultAuthenticatedContext {
-	public final fun roles (Lio/ktor/server/routing/RoutingContext;)Ljava/util/Set;
+	public final fun roles (Lio/ktor/server/application/ApplicationCall;)Ljava/util/Set;
 }
 
 public final class io/ktor/server/auth/typesafe/RouteBuildersKt {
@@ -729,13 +729,12 @@ public final class io/ktor/server/auth/typesafe/RouteBuildersKt {
 
 public final class io/ktor/server/auth/typesafe/ScopesKt {
 	public static final fun authenticatedContext (Lio/ktor/server/auth/typesafe/AuthenticatedContext;)Lio/ktor/server/auth/typesafe/AuthenticatedContext;
-	public static final fun clearSession (Lio/ktor/server/auth/typesafe/SessionAuthenticatedContext;Lio/ktor/server/routing/RoutingContext;)V
-	public static final fun getPrincipal (Lio/ktor/server/auth/typesafe/AuthenticatedContext;Lio/ktor/server/routing/RoutingContext;)Ljava/lang/Object;
-	public static final fun getRoles (Lio/ktor/server/auth/typesafe/RoleBasedContext;Lio/ktor/server/routing/RoutingContext;)Ljava/util/Set;
-	public static final fun getSession (Lio/ktor/server/auth/typesafe/SessionAuthenticatedContext;Lio/ktor/server/routing/RoutingContext;)Ljava/lang/Object;
-	public static final fun setAuthenticatedSession (Lio/ktor/server/auth/typesafe/SessionAuthenticatedContext;Lio/ktor/server/routing/RoutingContext;Ljava/lang/Object;)V
-	public static final fun setSession (Lio/ktor/server/auth/typesafe/SessionAuthenticatedContext;Lio/ktor/server/routing/RoutingContext;Ljava/lang/Object;)V
-	public static final fun updateSession (Lio/ktor/server/auth/typesafe/SessionAuthenticatedContext;Lio/ktor/server/routing/RoutingContext;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+	public static final fun clearSession (Lio/ktor/server/routing/RoutingContext;Lio/ktor/server/auth/typesafe/SessionAuthenticatedContext;)V
+	public static final fun getPrincipal (Lio/ktor/server/routing/RoutingContext;Lio/ktor/server/auth/typesafe/AuthenticatedContext;)Ljava/lang/Object;
+	public static final fun getRoles (Lio/ktor/server/routing/RoutingContext;Lio/ktor/server/auth/typesafe/RoleBasedContext;)Ljava/util/Set;
+	public static final fun getSession (Lio/ktor/server/routing/RoutingContext;Lio/ktor/server/auth/typesafe/SessionAuthenticatedContext;)Ljava/lang/Object;
+	public static final fun setSession (Lio/ktor/server/routing/RoutingContext;Lio/ktor/server/auth/typesafe/SessionAuthenticatedContext;Ljava/lang/Object;)V
+	public static final fun updateSession (Lio/ktor/server/routing/RoutingContext;Lio/ktor/server/auth/typesafe/SessionAuthenticatedContext;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 
 public class io/ktor/server/auth/typesafe/SessionAuthScheme : io/ktor/server/auth/typesafe/DefaultAuthScheme {
@@ -748,10 +747,10 @@ public final class io/ktor/server/auth/typesafe/SessionAuthScheme$Companion {
 }
 
 public abstract interface class io/ktor/server/auth/typesafe/SessionAuthenticatedContext : io/ktor/server/auth/typesafe/AuthenticatedContext {
-	public abstract fun clearSession (Lio/ktor/server/routing/RoutingContext;)V
-	public abstract fun session (Lio/ktor/server/routing/RoutingContext;)Ljava/lang/Object;
-	public abstract fun setSession (Lio/ktor/server/routing/RoutingContext;Ljava/lang/Object;)V
-	public abstract fun updateSession (Lio/ktor/server/routing/RoutingContext;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+	public abstract fun clearSession (Lio/ktor/server/application/ApplicationCall;)V
+	public abstract fun getSession (Lio/ktor/server/application/ApplicationCall;)Ljava/lang/Object;
+	public abstract fun setSession (Lio/ktor/server/application/ApplicationCall;Ljava/lang/Object;)V
+	public abstract fun updateSession (Lio/ktor/server/application/ApplicationCall;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 
 public final class io/ktor/server/auth/typesafe/SessionsConfigTypesafeExtensionsKt {
