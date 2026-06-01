@@ -10,6 +10,9 @@ plugins {
 
 kotlin {
     sourceSets {
+        commonMain.dependencies {
+            implementation(projects.ktorServerRoutingOpenapi)
+        }
         commonTest.dependencies {
             implementation(projects.ktorServerDoubleReceive)
         }
