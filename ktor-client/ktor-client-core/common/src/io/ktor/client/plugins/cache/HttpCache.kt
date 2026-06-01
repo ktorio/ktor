@@ -393,8 +393,8 @@ internal fun mergedHeadersLookup(
         }
 
         else -> {
-            val value = content.headers.getAll(header) ?: allHeadersExtractor(header) ?: emptyList()
-            value.joinToString(";")
+            val value = content.headers.getAll(header) ?: allHeadersExtractor(header)
+            value.joinHeaderValues()
         }
     }
 }
