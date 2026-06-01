@@ -22,9 +22,9 @@ class PathPatternSerializationTest {
     }
 
     @Resource("parent/{path}")
-    class NestedClass {
+    class NestedClass(val path: String) {
         @Resource("{child}/path")
-        data class ChildClass(val parent: NestedClass)
+        data class ChildClass(val child: String, val parent: NestedClass)
     }
 
     @Test
@@ -34,18 +34,18 @@ class PathPatternSerializationTest {
     }
 
     @Resource("parent/{path}/")
-    class NestedClassWithSlash {
+    class NestedClassWithSlash(val path: String) {
         @Resource("{child}/path")
-        data class ChildClassWithSlash(val parent: NestedClass)
+        data class ChildClassWithSlash(val child: String, val parent: NestedClass)
 
         @Resource("/{child}/path")
-        data class ChildClassWithoutSlash(val parent: NestedClass)
+        data class ChildClassWithoutSlash(val child: String, val parent: NestedClass)
     }
 
     @Resource("parent/{path}")
-    class NestedClassWithoutSlash {
+    class NestedClassWithoutSlash(val path: String) {
         @Resource("/{child}/path")
-        data class ChildClassWithSlash(val parent: NestedClass)
+        data class ChildClassWithSlash(val child: String, val parent: NestedClass)
     }
 
     @Test
@@ -68,10 +68,11 @@ class PathPatternSerializationTest {
 
     @Resource("/{child}/path")
     data class Container(
-        val child: MultipleParents
+        val child: String,
+        val parent: MultipleParents,
     )
 
-    @Resource("/{child}/path")
+    @Resource("/{value}/path")
     data class MultipleParents(val parent1: NestedClass, val value: String, val parent2: NestedClassWithSlash)
 
     @Test
