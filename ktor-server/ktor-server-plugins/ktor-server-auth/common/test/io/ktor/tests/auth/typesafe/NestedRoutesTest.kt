@@ -140,7 +140,7 @@ class NestedRoutesTest {
 
                 authenticateWith(innerScheme) {
                     post("/nested") {
-                        val outer = outerContext.principal(this)
+                        val outer = with(outerContext) { principal }
                         call.respondText("${outer.name}:${principal.name}")
                     }
                 }

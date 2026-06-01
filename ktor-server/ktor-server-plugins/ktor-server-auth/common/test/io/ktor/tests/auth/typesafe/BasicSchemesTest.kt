@@ -10,6 +10,7 @@ import io.ktor.client.plugins.cookies.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.server.application.ApplicationCall
 import io.ktor.server.auth.typesafe.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -25,12 +26,12 @@ data class UserSession(val username: String, val visits: Int = 0)
 private class EmailContext(
     defaultContext: DefaultAuthenticatedContext<TestUser>
 ) : AuthenticatedContext<TestUser> by defaultContext {
-    fun email(context: RoutingContext): String = principal(context).email
+    fun email(call: ApplicationCall): String = principal(call).email
 }
 
-context(auth: EmailContext)
-private val RoutingContext.email: String
-    get() = auth.email(this)
+context(routingCtx: RoutingContext, authCtx: EmailContext)
+private val email: String
+    get() = authCtx.email(routingCtx.call)
 
 class BasicSchemesTest {
 
