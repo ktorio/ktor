@@ -14,7 +14,6 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.coroutineContext
 
 internal val CALL_COROUTINE = CoroutineName("call-context")
 internal val CLIENT_CONFIG = AttributeKey<HttpClientConfig<*>>("client-config")
@@ -104,9 +103,6 @@ public interface HttpClientEngine : CoroutineScope, Closeable {
     public val supportedCapabilities: Set<HttpClientEngineCapability<*>>
         get() = emptySet()
 
-    private val closed: Boolean
-        get() = !(coroutineContext[Job]?.isActive ?: false)
-
     /**
      * Executes an HTTP request and produces an HTTP response.
      *
@@ -136,6 +132,7 @@ public interface HttpClientEngine : CoroutineScope, Closeable {
      */
     @InternalAPI
     public fun install(client: HttpClient) {
+        val engine = this
         client.sendPipeline.intercept(HttpSendPipeline.Engine) { content ->
             val builder = HttpRequestBuilder().apply {
                 takeFromWithExecutionContext(context)
@@ -149,9 +146,20 @@ public interface HttpClientEngine : CoroutineScope, Closeable {
             }
 
             validateHeaders(requestData)
-            checkExtensions(requestData)
+            checkExtensions(requestData, supportedCapabilities)
 
-            val responseData = executeWithinCallContext(requestData)
+            val callContext = createCallContext(requestData.executionContext)
+            val context = callContext + KtorCallContextElement(callContext)
+
+            val responseData =  async(context) {
+                val closed = !(engine.coroutineContext[Job]?.isActive ?: false)
+                if (closed) {
+                    throw ClientEngineClosedException()
+                }
+
+                execute(requestData)
+            }.await()
+
             val call = HttpClientCall(client, requestData, responseData)
 
             val response = call.response
@@ -166,28 +174,11 @@ public interface HttpClientEngine : CoroutineScope, Closeable {
             proceedWith(call)
         }
     }
+}
 
-    /**
-     * Creates a call context and uses it as a coroutine context to [execute] a request.
-     */
-    @OptIn(InternalAPI::class)
-    private suspend fun executeWithinCallContext(requestData: HttpRequestData): HttpResponseData {
-        val callContext = createCallContext(requestData.executionContext)
-
-        val context = callContext + KtorCallContextElement(callContext)
-        return async(context) {
-            if (closed) {
-                throw ClientEngineClosedException()
-            }
-
-            execute(requestData)
-        }.await()
-    }
-
-    private fun checkExtensions(requestData: HttpRequestData) {
-        for (requestedExtension in requestData.requiredCapabilities) {
-            require(supportedCapabilities.contains(requestedExtension)) { "Engine doesn't support $requestedExtension" }
-        }
+private fun checkExtensions(requestData: HttpRequestData, supportedCapabilities: Set<HttpClientEngineCapability<*>>) {
+    for (requestedExtension in requestData.requiredCapabilities) {
+        require(supportedCapabilities.contains(requestedExtension)) { "Engine doesn't support $requestedExtension" }
     }
 }
 
