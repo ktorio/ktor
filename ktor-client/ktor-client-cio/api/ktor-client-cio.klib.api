@@ -62,7 +62,3 @@ final object io.ktor.client.engine.cio/CIO : io.ktor.client.engine/HttpClientEng
 }
 
 final fun (io.ktor.client.engine.cio/CIOEngineConfig).io.ktor.client.engine.cio/endpoint(kotlin/Function1<io.ktor.client.engine.cio/EndpointConfig, kotlin/Unit>): io.ktor.client.engine.cio/EndpointConfig // io.ktor.client.engine.cio/endpoint|endpoint@io.ktor.client.engine.cio.CIOEngineConfig(kotlin.Function1<io.ktor.client.engine.cio.EndpointConfig,kotlin.Unit>){}[0]
-
-// Targets: [js]
-final val io.ktor.client.engine.cio/initHook // io.ktor.client.engine.cio/initHook|{}initHook[0]
-    final fun <get-initHook>(): dynamic // io.ktor.client.engine.cio/initHook.<get-initHook>|<get-initHook>(){}[0]

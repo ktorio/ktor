@@ -9,10 +9,8 @@ import io.ktor.util.*
 import io.ktor.utils.io.*
 
 @Suppress("DEPRECATION")
-@OptIn(ExperimentalStdlibApi::class, ExperimentalJsExport::class, InternalAPI::class)
-@Deprecated("", level = DeprecationLevel.HIDDEN)
-@JsExport
+@OptIn(ExperimentalStdlibApi::class, InternalAPI::class)
 @EagerInitialization
-public val initHook: dynamic = run {
+private val initHook: Unit = run {
     if (PlatformUtils.IS_NODE) engines.append(CIO)
 }
