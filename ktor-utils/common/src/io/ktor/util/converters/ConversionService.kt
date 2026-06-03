@@ -6,6 +6,8 @@ package io.ktor.util.converters
 
 import io.ktor.util.reflect.*
 import kotlin.reflect.*
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 /**
  * Data conversion service that does serialization and deserialization to/from list of strings
@@ -97,6 +99,7 @@ public object DefaultConversionService : ConversionService {
         throwConversionException(klass.toString())
     }
 
+    @OptIn(ExperimentalUuidApi::class)
     private fun convertPrimitives(klass: KClass<*>, value: String) = when (klass) {
         Int::class -> value.toInt()
         Float::class -> value.toFloat()
@@ -105,6 +108,7 @@ public object DefaultConversionService : ConversionService {
         Short::class -> value.toShort()
         Char::class -> value.single()
         Boolean::class -> value.toBoolean()
+        Uuid::class -> Uuid.parse(value)
         String::class -> value
         else -> null
     }

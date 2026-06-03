@@ -8,6 +8,8 @@ import io.ktor.server.plugins.dataconversion.*
 import io.ktor.server.testing.*
 import io.ktor.util.reflect.*
 import kotlin.test.*
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 class DataConversionTest {
     @Test
@@ -15,6 +17,16 @@ class DataConversionTest {
         application {
             val id = conversionService.fromValues(listOf("1"), typeInfo<Int>())
             assertEquals(1, id)
+        }
+    }
+
+    @OptIn(ExperimentalUuidApi::class)
+    @Test
+    fun testDefaultUUidConversion() = testApplication {
+        application {
+            val actual = Uuid.generateV7()
+            val id = conversionService.fromValues(listOf(actual.toString()), typeInfo<Uuid>())
+            assertEquals(actual, id)
         }
     }
 
@@ -26,6 +38,18 @@ class DataConversionTest {
             val type = typeInfo<List<Int>>()
             val id = conversionService.fromValues(listOf("1", "2"), type)
             assertEquals(expectedList, id)
+        }
+    }
+
+    @OptIn(ExperimentalUuidApi::class)
+    @Test
+    fun testDefaultUUidConversionList() = testApplication {
+        application {
+            val type = typeInfo<List<Uuid>>()
+            val values = listOf(Uuid.generateV7(), Uuid.generateV7())
+            val id =
+                conversionService.fromValues(values.map { it.toString() }, type)
+            assertEquals(values, id)
         }
     }
 
