@@ -25,3 +25,7 @@ internal val Project.kotlin: KotlinMultiplatformExtension get() = extensions.get
 
 internal fun Project.kotlin(configure: KotlinMultiplatformExtension.() -> Unit) =
     extensions.configure("kotlin", configure)
+
+internal fun KotlinMultiplatformExtension.android(action: KotlinMultiplatformAndroidLibraryTarget.() -> Unit) {
+    (this as ExtensionAware).extensions.configure("android", action)
+}
