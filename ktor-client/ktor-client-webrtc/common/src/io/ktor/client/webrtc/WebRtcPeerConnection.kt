@@ -35,9 +35,9 @@ public abstract class WebRtcPeerConnection private constructor(
         config = config
     )
 
-    internal fun startFetchingStatistics(): Job? {
-        val refreshRate = config.statsRefreshRate ?: return null
-        return coroutineScope.launch {
+    internal fun startFetchingStatistics() {
+        val refreshRate = config.statsRefreshRate ?: return
+        coroutineScope.launch {
             while (isActive) {
                 delay(duration = refreshRate)
                 events.emitStats(stats = getStatistics())
@@ -77,15 +77,6 @@ public abstract class WebRtcPeerConnection private constructor(
      */
     public abstract suspend fun createAnswer(): WebRtc.SessionDescription
 
-    /**
-     * Creates a local data channel associated with this peer connection.
-     *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcPeerConnection.createDataChannel)
-     *
-     * @param label The data channel label.
-     * @param options Configuration block for the data channel.
-     * @return The created data channel.
-     */
     public abstract suspend fun createDataChannel(
         label: String,
         options: (WebRtcDataChannelOptions.() -> Unit) = {}
@@ -169,7 +160,6 @@ public abstract class WebRtcPeerConnection private constructor(
     }
 
     override fun close() {
-        events.emitConnectionStateChange(WebRtc.ConnectionState.CLOSED)
         coroutineScope.cancel()
     }
 }

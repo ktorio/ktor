@@ -476,8 +476,6 @@ public object WebRtc {
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.DataChannel.send)
          *
          * @param text The text message to send.
-         * @throws DataChannelClosedException if the channel is closed or not open for sending.
-         * @throws IOException if the message cannot be sent by the underlying WebRTC transport.
          * @see [MDN RTCDataChannel.send()](https://developer.mozilla.org/en-US/docs/Web/API/RTCDataChannel/send)
          */
         public suspend fun send(text: String)
@@ -488,8 +486,6 @@ public object WebRtc {
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.DataChannel.send)
          *
          * @param bytes The binary data to send.
-         * @throws DataChannelClosedException if the channel is closed or not open for sending.
-         * @throws IOException if the message cannot be sent by the underlying WebRTC transport.
          * @see [MDN RTCDataChannel.send()](https://developer.mozilla.org/en-US/docs/Web/API/RTCDataChannel/send)
          */
         public suspend fun send(bytes: ByteArray)
@@ -500,7 +496,7 @@ public object WebRtc {
          * This method will suspend the current coroutine until a message is received.
          * The message can be either text or binary data.
          *
-         * @throws DataChannelClosedException if the channel is closed by this or remote peer.
+         * @throws WebRtcDataChannelClosedException if the channel is closed by this or remote peer.
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.DataChannel.receive)
          */
@@ -559,12 +555,12 @@ public object WebRtc {
         public fun tryReceiveText(): String?
 
         /**
-         * Closes the data channel transport. The underlying message-receiving channel will be closed.
+         * Closes the data channel transport. The underlying message receiving channel will be closed.
          *
          * After calling a channel will start a closing process:
-         * - The channel state will transition to [WebRtc.DataChannel.State.CLOSING]
+         * - The channel state will transition to [WebRtc.DataChannel.State.CLOSED]
          * - No more messages can be sent through this channel
-         * - The underlying message-receiving channel will be closed
+         * - The underlying message receiving channel will be closed
          * - Any pending send operations may fail
          * - A [DataChannelEvent.Closed] event will be emitted
          *
@@ -599,21 +595,4 @@ public object WebRtc {
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.IceException)
      */
     public class IceException(message: String?, cause: Throwable? = null) : RuntimeException(message, cause)
-
-    /**
-     * Signals that some I/O exception has occurred.
-     *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.IOException)
-     */
-    public open class IOException(message: String, cause: Throwable? = null) : kotlinx.io.IOException(message, cause)
-
-    /**
-     * Exception thrown when trying to send to or read from a closed [DataChannel].
-     *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.DataChannelClosedException)
-     */
-    public open class DataChannelClosedException(
-        message: String,
-        cause: Throwable? = null
-    ) : IOException(message, cause)
 }

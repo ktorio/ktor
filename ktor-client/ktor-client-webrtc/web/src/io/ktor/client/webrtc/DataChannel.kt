@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.webrtc
@@ -14,6 +14,7 @@ import web.buffer.BinaryType
 import web.buffer.arraybuffer
 import web.buffer.blob
 import web.rtc.RTCDataChannel
+import kotlin.js.ExperimentalWasmJsInterop
 import kotlin.js.JsString
 
 /**
@@ -61,17 +62,17 @@ public class JsWebRtcDataChannel(
 
     private fun requireOpen() {
         if (state.canSend()) return
-        throw WebRtc.DataChannelClosedException("Data channel '$label' cannot send.")
+        throw WebRtcDataChannelClosedException("Data channel '$label' is not open")
     }
 
     override suspend fun send(text: String) {
         requireOpen()
-        withIOException { channel.send(text) }
+        channel.send(text)
     }
 
     override suspend fun send(bytes: ByteArray) {
         requireOpen()
-        withIOException { channel.send(bytes.toInt8Array()) }
+        channel.send(bytes.toInt8Array())
     }
 
     override fun setBufferedAmountLowThreshold(threshold: Long) {
@@ -80,16 +81,16 @@ public class JsWebRtcDataChannel(
 
     override fun closeTransport() {
         channel.close()
-        stopReceivingMessages()
     }
 
+    @OptIn(ExperimentalWasmJsInterop::class)
     internal fun setupEvents(eventsEmitter: WebRtcConnectionEventsEmitter) {
         channel.onopen = eventHandler(coroutineScope) {
-            eventsEmitter.emitDataChannelEvent(DataChannelEvent.Open(this@JsWebRtcDataChannel))
+            eventsEmitter.emitDataChannelEvent(DataChannelEvent.Open(this))
         }
 
         channel.onbufferedamountlow = eventHandler(coroutineScope) {
-            eventsEmitter.emitDataChannelEvent(DataChannelEvent.BufferedAmountLow(this@JsWebRtcDataChannel))
+            eventsEmitter.emitDataChannelEvent(DataChannelEvent.BufferedAmountLow(this))
         }
 
         channel.onmessage = eventHandler(coroutineScope) { e ->
@@ -113,11 +114,11 @@ public class JsWebRtcDataChannel(
 
         channel.onclose = eventHandler(coroutineScope) { _ ->
             stopReceivingMessages()
-            eventsEmitter.emitDataChannelEvent(DataChannelEvent.Closed(this@JsWebRtcDataChannel))
+            eventsEmitter.emitDataChannelEvent(DataChannelEvent.Closed(this))
         }
 
         channel.onerror = eventHandler(coroutineScope) { e ->
-            eventsEmitter.emitDataChannelEvent(DataChannelEvent.Error(this@JsWebRtcDataChannel, e.error.message))
+            eventsEmitter.emitDataChannelEvent(DataChannelEvent.Error(this, e.error.message))
         }
     }
 }

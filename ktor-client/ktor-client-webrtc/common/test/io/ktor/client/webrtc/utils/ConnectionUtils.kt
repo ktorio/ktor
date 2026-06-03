@@ -11,6 +11,7 @@ import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.test.TestResult
 import kotlin.time.Duration
 
@@ -107,6 +108,9 @@ fun <T> Flow<T>.collectToChannel(channelCapacity: Int = Channel.UNLIMITED): Chan
     }
     return channel
 }
+
+context(scope: BackgroundTasksScope)
+fun <T> StateFlow<T>.collectToChannel(): Channel<T> = collectToChannel(channelCapacity = Channel.CONFLATED)
 
 // Exchange ice candidates first, then exchange offer and answer.
 suspend fun BackgroundTasksScope.connect(

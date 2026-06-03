@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.webrtc
@@ -196,45 +196,54 @@ class WebRtcEngineTest {
     }
 
     @Test
-    fun testStatsCollection() = runTestWithRealTime {
-        client.createPeerConnection {
-            statsRefreshRate = 10.milliseconds
-            exceptionHandler = CoroutineExceptionHandler { _, e -> throw e }
-        }.use { peerConnection ->
-            client.createAudioTrack().use { audioTrack ->
-                peerConnection.addTrack(audioTrack)
-                withBackgroundTasks {
-                    val stats = peerConnection.stats.collectToChannel()
-                    assertNull(stats.tryReceive().getOrNull())
+    fun testStatsCollection() = testConnection(realtime = true) { peerConnection ->
+        client.createAudioTrack().use { audioTrack ->
+            peerConnection.addTrack(audioTrack)
 
-                    withTimeout(5.seconds) {
-                        val firstStats = stats.receive()
-                        assertEquals(emptyList(), firstStats)
+            val stats = peerConnection.stats.collectToChannel()
+            assertNull(stats.tryReceive().getOrNull())
 
-                        val realStats = stats.receive()
-                        assertTrue(realStats.size >= 2)
+            withTimeout(5.seconds) {
+                val firstStats = stats.receive()
+                assertEquals(emptyList(), firstStats)
 
-                        assertNotNull(realStats.firstOrNull { it.type == "peer-connection" })
+                val realStats = stats.receive()
+                assertTrue(realStats.size >= 2)
 
-                        val mediaSource = realStats.first { it.type == "media-source" }
-                        assertEquals("audio", mediaSource.props["kind"])
+                assertNotNull(realStats.firstOrNull { it.type == "peer-connection" })
 
-                        peerConnection.close()
-                        delay(100.milliseconds)
-                        stats.assertReceived(0)
-                    }
-                }
+                val mediaSource = realStats.first { it.type == "media-source" }
+                assertEquals("audio", mediaSource.props["kind"])
             }
         }
     }
 
-    private fun Channel<*>.assertReceived(count: Int) {
-        repeat(count) { assertNotNull(tryReceive().getOrNull()) }
+    private fun Channel<*>.assertOnlyOneReceived() {
+        assertNotNull(tryReceive().getOrNull())
         assertNull(tryReceive().getOrNull())
     }
 
     @Test
-    fun testConnectionCloseDoesNotEffectOtherConnections() = runTestWithRealTime {
+    fun testClientClose() = runTestWithRealTime {
+        val delay = 10
+        val connection1 = client.createPeerConnection {
+            statsRefreshRate = delay.milliseconds
+            exceptionHandler = CoroutineExceptionHandler { _, e -> throw e }
+        }
+        withBackgroundTasks {
+            val stats1 = connection1.stats.collectToChannel()
+            delay(duration = (delay * 1.5).milliseconds)
+            stats1.assertOnlyOneReceived()
+            client.close()
+
+            delay(duration = (delay * 5).milliseconds)
+            // ensure no more elements are emitted after close
+            assertNull(stats1.tryReceive().getOrNull())
+        }
+    }
+
+    @Test
+    fun testConnectionClose() = runTestWithRealTime {
         val delay = 10
         val config = WebRtcConnectionConfig().apply {
             statsRefreshRate = delay.milliseconds
@@ -242,11 +251,22 @@ class WebRtcEngineTest {
         }
         val connection1 = client.createPeerConnection(config)
         val connection2 = client.createPeerConnection(config)
-        connection1.close()
+        withBackgroundTasks {
+            val stats1 = connection1.stats.collectToChannel()
+            val stats2 = connection2.stats.collectToChannel()
+            delay(duration = (delay * 1.5).milliseconds)
 
-        delay(100.milliseconds)
-        assertEquals(WebRtc.ConnectionState.CLOSED, connection1.state.value)
-        assertNotEquals(WebRtc.ConnectionState.CLOSED, connection2.state.value)
+            stats1.assertOnlyOneReceived()
+            stats2.assertOnlyOneReceived()
+
+            connection1.close()
+
+            delay(duration = (delay * 5).milliseconds)
+            // ensure no more elements are emitted after close
+            assertNull(stats1.tryReceive().getOrNull())
+            // connection2 should still receive stats
+            withTimeout(1.seconds) { stats2.receive() }
+        }
     }
 
     @Test
