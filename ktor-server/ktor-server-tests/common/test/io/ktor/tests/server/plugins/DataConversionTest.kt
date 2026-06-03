@@ -24,7 +24,7 @@ class DataConversionTest {
     @Test
     fun testDefaultUUidConversion() = testApplication {
         application {
-            val actual = Uuid.generateV7()
+            val actual = Uuid.random()
             val id = conversionService.fromValues(listOf(actual.toString()), typeInfo<Uuid>())
             assertEquals(actual, id)
         }
@@ -46,7 +46,7 @@ class DataConversionTest {
     fun testDefaultUUidConversionList() = testApplication {
         application {
             val type = typeInfo<List<Uuid>>()
-            val values = listOf(Uuid.generateV7(), Uuid.generateV7())
+            val values = listOf(Uuid.random(), Uuid.random())
             val id =
                 conversionService.fromValues(values.map { it.toString() }, type)
             assertEquals(values, id)
