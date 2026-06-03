@@ -251,10 +251,6 @@ final class io.ktor.client.webrtc/WebRtcConnectionEventsEmitter : io.ktor.client
     final fun emitStats(kotlin.collections/List<io.ktor.client.webrtc/WebRtc.Stats>) // io.ktor.client.webrtc/WebRtcConnectionEventsEmitter.emitStats|emitStats(kotlin.collections.List<io.ktor.client.webrtc.WebRtc.Stats>){}[0]
 }
 
-final class io.ktor.client.webrtc/WebRtcDataChannelClosedException : kotlin/Exception { // io.ktor.client.webrtc/WebRtcDataChannelClosedException|null[0]
-    constructor <init>(kotlin/String, kotlin/Throwable? = ...) // io.ktor.client.webrtc/WebRtcDataChannelClosedException.<init>|<init>(kotlin.String;kotlin.Throwable?){}[0]
-}
-
 final class io.ktor.client.webrtc/WebRtcDataChannelOptions { // io.ktor.client.webrtc/WebRtcDataChannelOptions|null[0]
     constructor <init>() // io.ktor.client.webrtc/WebRtcDataChannelOptions.<init>|<init>(){}[0]
 

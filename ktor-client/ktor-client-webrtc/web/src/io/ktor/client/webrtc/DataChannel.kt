@@ -60,18 +60,11 @@ public class JsWebRtcDataChannel(
     override val protocol: String
         get() = channel.protocol
 
-    private fun requireOpen() {
-        if (state.canSend()) return
-        throw WebRtcDataChannelClosedException("Data channel '$label' is not open")
-    }
-
     override suspend fun send(text: String) {
-        requireOpen()
         channel.send(text)
     }
 
     override suspend fun send(bytes: ByteArray) {
-        requireOpen()
         channel.send(bytes.toInt8Array())
     }
 

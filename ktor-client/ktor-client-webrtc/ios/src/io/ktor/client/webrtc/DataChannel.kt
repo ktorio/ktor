@@ -59,20 +59,21 @@ public class IosWebRtcDataChannel(
     override val protocol: String
         get() = nativeChannel.protocol()
 
-    private fun requireOpen() {
-        if (state.canSend()) return
-        throw WebRtcDataChannelClosedException("Data channel '$label' is closed.")
+    private fun assertOpen() {
+        if (!state.canSend()) {
+            error("Data channel is closed.")
+        }
     }
 
     override suspend fun send(text: String) {
-        requireOpen()
+        assertOpen()
         if (!nativeChannel.sendData(data = text.toRTCDataBuffer())) {
             error("Failed to send text message over DataChannel.")
         }
     }
 
     override suspend fun send(bytes: ByteArray) {
-        requireOpen()
+        assertOpen()
         if (!nativeChannel.sendData(data = bytes.toRTCDataBuffer())) {
             error("Failed to send binary message over DataChannel.")
         }

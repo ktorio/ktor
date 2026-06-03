@@ -6,7 +6,6 @@ package io.ktor.client.webrtc
 
 import io.ktor.utils.io.*
 import kotlinx.coroutines.channels.*
-import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Duration
 
 /**
@@ -53,7 +52,7 @@ public class DataChannelReceiveOptions {
 @KtorDsl
 public class WebRtcDataChannelOptions {
     /**
-     * A 16-bit numeric ID for the channel; permitted values are 0 to 65,534.
+     * A 16-bit numeric ID for the channel; permitted values are 0 to 65534.
      * If you don't include this option, the user agent will select an ID for you.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcDataChannelOptions.id)
@@ -206,16 +205,7 @@ public abstract class WebRtcDataChannel private constructor(
         receiveChannel = Channel(options = receiveOptions)
     )
 
-    override suspend fun receive(): WebRtc.DataChannel.Message {
-        try {
-            return receiveChannel.receive()
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Throwable) {
-            val message = "Data channel '$label' is closed and no more messages will be received."
-            throw WebRtcDataChannelClosedException(message, e)
-        }
-    }
+    override suspend fun receive(): WebRtc.DataChannel.Message = receiveChannel.receive()
 
     override suspend fun receiveBinary(): ByteArray = receive().binaryOrThrow()
 
@@ -235,10 +225,3 @@ public abstract class WebRtcDataChannel private constructor(
         receiveChannel.close()
     }
 }
-
-/**
- * Exception thrown when trying to send or read from closed [WebRtcDataChannel]
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcDataChannelClosedException)
- */
-public class WebRtcDataChannelClosedException(message: String, cause: Throwable? = null) : Exception(message, cause)
