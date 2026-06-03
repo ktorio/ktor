@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.webrtc
@@ -51,7 +51,7 @@ public open class WebRtcConnectionConfig {
     public var bundlePolicy: WebRtc.BundlePolicy = WebRtc.BundlePolicy.BALANCED
 
     /**
-     * A string that specifies the RTCP mux policy to use when gathering ICE candidates to support non-multiplexed RTCP.
+     * An enum that specifies the RTCP mux policy to use when gathering ICE candidates to support non-multiplexed RTCP.
      * Defaults to [WebRtc.RtcpMuxPolicy.REQUIRE].
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcConnectionConfig.rtcpMuxPolicy)
@@ -192,11 +192,7 @@ public abstract class WebRtcEngineBase(
         return createPeerConnectionInternal(config).also { it.startFetchingStatistics() }
     }
 
-    /**
-     * Engine-specific peer connection construction.
-     * Implementors must NOT start background statistics collection here.
-     */
-    protected abstract suspend fun createPeerConnectionInternal(config: WebRtcConnectionConfig): WebRtcPeerConnection
+    internal abstract suspend fun createPeerConnectionInternal(config: WebRtcConnectionConfig): WebRtcPeerConnection
 
     /**
      * Creates a new coroutine context for the new connection based on engine context and provided exception handler.

@@ -127,7 +127,6 @@ abstract class io.ktor.client.webrtc/WebRtcEngineBase : io.ktor.client.webrtc/We
     open val config // io.ktor.client.webrtc/WebRtcEngineBase.config|{}config[0]
         open fun <get-config>(): io.ktor.client.webrtc/WebRtcConfig // io.ktor.client.webrtc/WebRtcEngineBase.config.<get-config>|<get-config>(){}[0]
 
-    abstract suspend fun createPeerConnectionInternal(io.ktor.client.webrtc/WebRtcConnectionConfig): io.ktor.client.webrtc/WebRtcPeerConnection // io.ktor.client.webrtc/WebRtcEngineBase.createPeerConnectionInternal|createPeerConnectionInternal(io.ktor.client.webrtc.WebRtcConnectionConfig){}[0]
     final fun createConnectionContext(kotlinx.coroutines/CoroutineExceptionHandler?): kotlin.coroutines/CoroutineContext // io.ktor.client.webrtc/WebRtcEngineBase.createConnectionContext|createConnectionContext(kotlinx.coroutines.CoroutineExceptionHandler?){}[0]
     final suspend fun createPeerConnection(io.ktor.client.webrtc/WebRtcConnectionConfig): io.ktor.client.webrtc/WebRtcPeerConnection // io.ktor.client.webrtc/WebRtcEngineBase.createPeerConnection|createPeerConnection(io.ktor.client.webrtc.WebRtcConnectionConfig){}[0]
     open fun close() // io.ktor.client.webrtc/WebRtcEngineBase.close|close(){}[0]
@@ -249,10 +248,6 @@ final class io.ktor.client.webrtc/WebRtcConnectionEventsEmitter : io.ktor.client
     final fun emitRemoveTrack(io.ktor.client.webrtc/WebRtcMedia.Track) // io.ktor.client.webrtc/WebRtcConnectionEventsEmitter.emitRemoveTrack|emitRemoveTrack(io.ktor.client.webrtc.WebRtcMedia.Track){}[0]
     final fun emitSignalingStateChange(io.ktor.client.webrtc/WebRtc.SignalingState) // io.ktor.client.webrtc/WebRtcConnectionEventsEmitter.emitSignalingStateChange|emitSignalingStateChange(io.ktor.client.webrtc.WebRtc.SignalingState){}[0]
     final fun emitStats(kotlin.collections/List<io.ktor.client.webrtc/WebRtc.Stats>) // io.ktor.client.webrtc/WebRtcConnectionEventsEmitter.emitStats|emitStats(kotlin.collections.List<io.ktor.client.webrtc.WebRtc.Stats>){}[0]
-}
-
-final class io.ktor.client.webrtc/WebRtcDataChannelClosedException : kotlin/Exception { // io.ktor.client.webrtc/WebRtcDataChannelClosedException|null[0]
-    constructor <init>(kotlin/String, kotlin/Throwable? = ...) // io.ktor.client.webrtc/WebRtcDataChannelClosedException.<init>|<init>(kotlin.String;kotlin.Throwable?){}[0]
 }
 
 final class io.ktor.client.webrtc/WebRtcDataChannelOptions { // io.ktor.client.webrtc/WebRtcDataChannelOptions|null[0]
@@ -694,6 +689,14 @@ final object io.ktor.client.webrtc/WebRtc { // io.ktor.client.webrtc/WebRtc|null
         final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.client.webrtc/WebRtc.Stats.equals|equals(kotlin.Any?){}[0]
         final fun hashCode(): kotlin/Int // io.ktor.client.webrtc/WebRtc.Stats.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // io.ktor.client.webrtc/WebRtc.Stats.toString|toString(){}[0]
+    }
+
+    open class DataChannelClosedException : io.ktor.client.webrtc/WebRtc.IOException { // io.ktor.client.webrtc/WebRtc.DataChannelClosedException|null[0]
+        constructor <init>(kotlin/String, kotlin/Throwable? = ...) // io.ktor.client.webrtc/WebRtc.DataChannelClosedException.<init>|<init>(kotlin.String;kotlin.Throwable?){}[0]
+    }
+
+    open class IOException : kotlinx.io/IOException { // io.ktor.client.webrtc/WebRtc.IOException|null[0]
+        constructor <init>(kotlin/String, kotlin/Throwable? = ...) // io.ktor.client.webrtc/WebRtc.IOException.<init>|<init>(kotlin.String;kotlin.Throwable?){}[0]
     }
 }
 

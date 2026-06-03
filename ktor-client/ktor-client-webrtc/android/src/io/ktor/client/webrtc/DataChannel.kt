@@ -29,7 +29,7 @@ public class AndroidWebRtcDataChannel(
     override val label: String = nativeChannel.label()
 
     override val state: WebRtc.DataChannel.State
-        get() = nativeChannel.state().toKtor()
+        get() = if (closed.value) WebRtc.DataChannel.State.CLOSED else nativeChannel.state().toKtor()
 
     override val bufferedAmount: Long
         get() = nativeChannel.bufferedAmount()
@@ -56,19 +56,25 @@ public class AndroidWebRtcDataChannel(
 
     private fun requireOpen() {
         if (!closed.value && state.canSend()) return
-        throw WebRtcDataChannelClosedException("Data channel '$label' is closed.")
+        throw WebRtc.DataChannelClosedException("Data channel '$label' cannot send.")
     }
 
     override suspend fun send(text: String) {
         requireOpen()
         val buffer = DataChannel.Buffer(Charsets.UTF_8.encode(text), false)
-        nativeChannel.send(buffer)
+        // throws only if native channel is released, not IO exception
+        if (!nativeChannel.send(buffer)) {
+            throw WebRtc.IOException("Failed to send text message over data channel '$label'.")
+        }
     }
 
     override suspend fun send(bytes: ByteArray) {
         requireOpen()
         val buffer = DataChannel.Buffer(ByteBuffer.wrap(bytes), true)
-        nativeChannel.send(buffer)
+        // throws only if native channel is released, not IO exception
+        if (!nativeChannel.send(buffer)) {
+            throw WebRtc.IOException("Failed to send binary message over data channel '$label'.")
+        }
     }
 
     override fun setBufferedAmountLowThreshold(threshold: Long) {
@@ -77,6 +83,7 @@ public class AndroidWebRtcDataChannel(
 
     override fun closeTransport() {
         nativeChannel.close()
+        stopReceivingMessages()
     }
 
     override fun close() {

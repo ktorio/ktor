@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.webrtc
@@ -61,20 +61,20 @@ public class IosWebRtcDataChannel(
 
     private fun requireOpen() {
         if (state.canSend()) return
-        throw WebRtcDataChannelClosedException("Data channel '$label' is closed.")
+        throw WebRtc.DataChannelClosedException("Data channel '$label' cannot send.")
     }
 
     override suspend fun send(text: String) {
         requireOpen()
         if (!nativeChannel.sendData(data = text.toRTCDataBuffer())) {
-            error("Failed to send text message over DataChannel.")
+            throw WebRtc.IOException("Failed to send text message over data channel '$label'.")
         }
     }
 
     override suspend fun send(bytes: ByteArray) {
         requireOpen()
         if (!nativeChannel.sendData(data = bytes.toRTCDataBuffer())) {
-            error("Failed to send binary message over DataChannel.")
+            throw WebRtc.IOException("Failed to send binary message over data channel '$label'.")
         }
     }
 
@@ -84,6 +84,7 @@ public class IosWebRtcDataChannel(
 
     override fun closeTransport() {
         nativeChannel.close()
+        stopReceivingMessages()
     }
 
     private fun runInConnectionScope(block: suspend CoroutineScope.() -> Unit) {

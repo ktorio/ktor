@@ -34,7 +34,7 @@ public class RustWebRtcEngine(
 ) : WebRtcEngineBase("webrtc-rs", config),
     MediaTrackFactory by mediaTrackFactory {
 
-    override suspend fun createPeerConnection(config: WebRtcConnectionConfig): WebRtcPeerConnection {
+    override suspend fun createPeerConnectionInternal(config: WebRtcConnectionConfig): WebRtcPeerConnection {
         val nativeConfig = ConnectionConfig(
             iceServers = config.iceServers.map {
                 IceServer(it.urls, it.username ?: "", it.credential ?: "")

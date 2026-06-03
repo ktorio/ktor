@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.webrtc
@@ -7,7 +7,6 @@ package io.ktor.client.webrtc
 import io.ktor.client.webrtc.utils.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.runTest
@@ -214,6 +213,21 @@ class WebRtcDataChannelTest {
     }
 
     @Test
+    fun testCloseUnblocksPendingReceive() = runTest {
+        client.createPeerConnection().use { pc1 ->
+            val channel = pc1.createDataChannel("test-label")
+            val receiving = launch {
+                assertFailsWith<WebRtc.DataChannelClosedException> {
+                    channel.receive()
+                }
+            }
+            yield() // ensure receive() is actually suspended
+            channel.close()
+            receiving.join()
+        }
+    }
+
+    @Test
     fun testDataChannelCloseHandling() = testDataChannel { pc1, pc2 ->
         val dataChannel1 = pc1.createDataChannel("close-test")
 
@@ -230,17 +244,17 @@ class WebRtcDataChannelTest {
         dataChannel1.waitForClose(dataChannelEvents1)
         dataChannel2.waitForClose(dataChannelEvents2)
 
-        val sendException1 = assertFailsWith<WebRtcDataChannelClosedException> { dataChannel1.send("Hello") }
+        val sendException1 = assertFailsWith<WebRtc.DataChannelClosedException> { dataChannel1.send("Hello") }
         assertNull(sendException1.cause)
 
-        val sendException2 = assertFailsWith<WebRtcDataChannelClosedException> { dataChannel2.send("Hello") }
+        val sendException2 = assertFailsWith<WebRtc.DataChannelClosedException> { dataChannel2.send("Hello") }
         assertNull(sendException2.cause)
 
-        val receiveException1 = assertFailsWith<WebRtcDataChannelClosedException> { dataChannel1.receive() }
-        assertIs<ClosedReceiveChannelException>(receiveException1.cause)
+        val receiveException1 = assertFailsWith<WebRtc.DataChannelClosedException> { dataChannel1.receive() }
+        assertNull(receiveException1.cause)
 
-        val receiveException2 = assertFailsWith<WebRtcDataChannelClosedException> { dataChannel2.receive() }
-        assertIs<ClosedReceiveChannelException>(receiveException2.cause)
+        val receiveException2 = assertFailsWith<WebRtc.DataChannelClosedException> { dataChannel2.receive() }
+        assertNull(receiveException2.cause)
 
         assertEquals(null, dataChannel1.tryReceive())
         assertEquals(null, dataChannel2.tryReceive())

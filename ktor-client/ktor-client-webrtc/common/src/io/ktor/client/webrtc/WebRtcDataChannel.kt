@@ -1,12 +1,11 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.webrtc
 
 import io.ktor.utils.io.*
 import kotlinx.coroutines.channels.*
-import kotlin.coroutines.cancellation.CancellationException
 import kotlin.time.Duration
 
 /**
@@ -206,15 +205,21 @@ public abstract class WebRtcDataChannel private constructor(
         receiveChannel = Channel(options = receiveOptions)
     )
 
+    private fun ChannelResult<*>.requireClosed() {
+        // we always close receiveChannel without cause, assert it here
+        // remove assertion if exceptions are expected
+        if (isClosed) return
+        throw WebRtc.IOException("Internal exception occurred in '$label' data channel.", exceptionOrNull())
+    }
+
     override suspend fun receive(): WebRtc.DataChannel.Message {
-        try {
-            return receiveChannel.receive()
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Throwable) {
-            val message = "Data channel '$label' is closed and no more messages will be received."
-            throw WebRtcDataChannelClosedException(message, e)
+        val result = receiveChannel.receiveCatching()
+        if (result.isSuccess) {
+            return result.getOrThrow()
         }
+        result.requireClosed()
+        val message = "Data channel '$label' is closed and no more messages will be received."
+        throw WebRtc.DataChannelClosedException(message, result.exceptionOrNull())
     }
 
     override suspend fun receiveBinary(): ByteArray = receive().binaryOrThrow()
@@ -236,9 +241,14 @@ public abstract class WebRtcDataChannel private constructor(
     }
 }
 
-/**
- * Exception thrown when trying to send or read from closed [WebRtcDataChannel]
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcDataChannelClosedException)
- */
-public class WebRtcDataChannelClosedException(message: String, cause: Throwable? = null) : Exception(message, cause)
+internal suspend inline fun <R> withIOException(crossinline block: suspend () -> R): R {
+    return try {
+        block()
+    } catch (cause: CancellationException) {
+        throw cause
+    } catch (cause: WebRtc.IOException) {
+        throw cause
+    } catch (cause: Exception) {
+        throw WebRtc.IOException("Error in WebRtcDataChannel operation", cause)
+    }
+}
