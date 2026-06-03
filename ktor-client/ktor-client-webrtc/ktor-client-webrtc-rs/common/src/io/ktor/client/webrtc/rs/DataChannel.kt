@@ -68,6 +68,7 @@ public class RustWebRtcDataChannel(
     }
 
     override fun closeTransport(): Unit = runBlocking {
+        stopReceivingMessages()
         inner.closeChannel()
     }
 

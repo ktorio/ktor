@@ -71,13 +71,13 @@ class IosDelegateRetentionTest {
         audio = false,
         video = false,
         realTime = true,
-    ) { jobs ->
+    ) {
         client.createPeerConnection().use { pc1 ->
             client.createPeerConnection().use { pc2 ->
-                val pc2DataChannels = pc2.dataChannelEvents.collectToChannel(this, jobs)
+                val pc2DataChannels = pc2.dataChannelEvents.collectToChannel()
 
                 val local = pc1.createDataChannel("delegate-retention-local")
-                connect(pc1, pc2, jobs)
+                connect(pc1, pc2)
 
                 // Wait for pc2 to receive the remote channel.
                 val remote = withTimeout(5.seconds) {
@@ -121,10 +121,10 @@ class IosDelegateRetentionTest {
         audio = false,
         video = false,
         realTime = true,
-    ) { jobs ->
+    ) {
         client.createPeerConnection().use { pc1 ->
             client.createPeerConnection().use { pc2 ->
-                val pc2DataChannels = pc2.dataChannelEvents.collectToChannel(this, jobs)
+                val pc2DataChannels = pc2.dataChannelEvents.collectToChannel()
 
                 pc1.createDataChannel("pc-delegate-test")
 
@@ -132,9 +132,9 @@ class IosDelegateRetentionTest {
                 // before the state-transition callbacks would have fired.
                 forceGc()
 
-                connect(pc1, pc2, jobs)
+                connect(pc1, pc2)
 
-                // Drain pc2's channels flow so the connection settles into CONNECTED.
+                // Drain pc2's channel flow so the connection settles into CONNECTED.
                 withTimeout(5.seconds) { pc2DataChannels.receive() }
 
                 // We must observe CONNECTED on pc1; that only arrives if the PC delegate

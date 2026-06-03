@@ -124,6 +124,15 @@ public class AndroidWebRtcPeerConnection(
         label: String,
         options: WebRtcDataChannelOptions.() -> Unit
     ): WebRtcDataChannel {
+        return createDataChannelInternal(label, options).apply {
+            setupEvents(events)
+        }
+    }
+
+    internal suspend fun createDataChannelInternal(
+        label: String,
+        options: WebRtcDataChannelOptions.() -> Unit
+    ): AndroidWebRtcDataChannel {
         val options = WebRtcDataChannelOptions().apply(options)
         val channelInit = DataChannel.Init().apply {
             if (options.id != null) {
@@ -141,9 +150,7 @@ public class AndroidWebRtcPeerConnection(
         }
         val nativeChannel = peerConnection.createDataChannel(label, channelInit)
         val receiveOptions = DataChannelReceiveOptions().apply(options.receiveOptions)
-        return AndroidWebRtcDataChannel(nativeChannel, channelInit, coroutineScope, receiveOptions).apply {
-            setupEvents(events)
-        }
+        return AndroidWebRtcDataChannel(nativeChannel, channelInit, coroutineScope, receiveOptions)
     }
 
     override suspend fun setLocalDescription(description: WebRtc.SessionDescription) {

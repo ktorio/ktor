@@ -4,6 +4,7 @@
 
 package io.ktor.client.webrtc
 
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.launch
@@ -25,11 +26,10 @@ public class AndroidWebRtcDataChannel(
     override val id: Int?
         get() = nativeChannel.id().let { if (it >= 0) it else null }
 
-    override val label: String
-        get() = nativeChannel.label()
+    override val label: String = nativeChannel.label()
 
     override val state: WebRtc.DataChannel.State
-        get() = nativeChannel.state().toKtor()
+        get() = if (closed.value) WebRtc.DataChannel.State.CLOSED else nativeChannel.state().toKtor()
 
     override val bufferedAmount: Long
         get() = nativeChannel.bufferedAmount()
@@ -51,6 +51,8 @@ public class AndroidWebRtcDataChannel(
 
     override val protocol: String
         get() = channelInit?.protocol ?: error("Protocol is not supported in WebRTC")
+
+    private val closed = atomic(false)
 
     private fun assertOpen() {
         if (!state.canSend()) {
@@ -75,11 +77,16 @@ public class AndroidWebRtcDataChannel(
     }
 
     override fun closeTransport() {
+        stopReceivingMessages()
         nativeChannel.close()
     }
 
     override fun close() {
+        if (!closed.compareAndSet(expect = false, update = true)) {
+            return
+        }
         super.close()
+        nativeChannel.unregisterObserver()
         nativeChannel.dispose()
     }
 

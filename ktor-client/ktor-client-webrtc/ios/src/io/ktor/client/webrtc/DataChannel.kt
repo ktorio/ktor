@@ -84,6 +84,7 @@ public class IosWebRtcDataChannel(
     }
 
     override fun closeTransport() {
+        stopReceivingMessages()
         nativeChannel.close()
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.webrtc
@@ -7,8 +7,11 @@ package io.ktor.client.webrtc
 import io.ktor.client.webrtc.utils.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestResult
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.yield
 import kotlin.test.*
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -193,6 +196,33 @@ class WebRtcDataChannelTest {
     }
 
     @Test
+    fun testReceivePropagatesCancellationException() = runTest {
+        client.createPeerConnection().use { pc1 ->
+            val channel = pc1.createDataChannel("test-label")
+            val job = launch { channel.receive() }
+            yield() // ensure receive() is actually suspended
+            job.cancel()
+            job.join()
+            assertTrue(job.isCancelled)
+        }
+    }
+
+    @Test
+    fun testCloseUnblocksPendingReceive() = runTest {
+        client.createPeerConnection().use { pc1 ->
+            val channel = pc1.createDataChannel("test-label")
+            val receiving = launch {
+                assertFails {
+                    channel.receive()
+                }
+            }
+            yield() // ensure receive() is actually suspended
+            channel.close()
+            receiving.join()
+        }
+    }
+
+    @Test
     fun testDataChannelCloseHandling() = testDataChannel { pc1, pc2 ->
         val dataChannel1 = pc1.createDataChannel("close-test")
 
@@ -212,7 +242,31 @@ class WebRtcDataChannelTest {
         assertFails { dataChannel1.send("Hello") }
         assertFails { dataChannel2.send("Hello") }
         assertFails { dataChannel1.receive() }
+        assertEquals(null, dataChannel1.tryReceive())
         assertEquals(null, dataChannel2.tryReceive())
+    }
+
+    @Test
+    fun testCloseIsIdempotent() = testDataChannel { pc1, pc2 ->
+        val ch1 = pc1.createDataChannel("idempotent-close")
+        val events1 = pc1.dataChannelEvents.collectToChannel()
+        val events2 = pc2.dataChannelEvents.collectToChannel()
+        connect(pc1, pc2)
+        val ch2 = waitForChannel(events2)
+        waitForChannel(events1)
+
+        // Multiple close() calls must not throw.
+        ch1.close()
+        ch1.close()
+
+        // Don't check state because object is in undefined state after close
+        // and could throw exception on field access etc.
+        ch1.waitForClose(events1)
+        ch2.waitForClose(events2)
+
+        ch1.close()
+        ch2.close()
+        ch2.close()
     }
 
     @Test

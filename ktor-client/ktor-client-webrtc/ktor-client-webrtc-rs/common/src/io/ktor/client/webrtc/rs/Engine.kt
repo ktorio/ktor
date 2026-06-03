@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.webrtc.rs
@@ -34,7 +34,7 @@ public class RustWebRtcEngine(
 ) : WebRtcEngineBase("webrtc-rs", config),
     MediaTrackFactory by mediaTrackFactory {
 
-    override suspend fun createPeerConnection(config: WebRtcConnectionConfig): WebRtcPeerConnection {
+    override suspend fun createPeerConnection(config: WebRtcConnectionConfig): RustWebRtcConnection {
         val nativeConfig = ConnectionConfig(
             iceServers = config.iceServers.map {
                 IceServer(it.urls, it.username ?: "", it.credential ?: "")
@@ -57,6 +57,8 @@ public class RustWebRtcEngine(
         )
         val nativeConnection = makePeerConnection(nativeConfig)
         val coroutineContext = createConnectionContext(config.exceptionHandler)
-        return RustWebRtcConnection(nativeConnection, coroutineContext, config)
+        val connection = RustWebRtcConnection(nativeConnection, coroutineContext, config)
+        connection.startFetchingStatistics()
+        return connection
     }
 }
