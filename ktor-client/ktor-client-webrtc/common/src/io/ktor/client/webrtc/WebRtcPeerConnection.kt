@@ -18,8 +18,7 @@ import kotlin.coroutines.CoroutineContext
  */
 public abstract class WebRtcPeerConnection private constructor(
     protected val events: WebRtcConnectionEventsEmitter,
-    protected val coroutineScope: CoroutineScope,
-    private val config: WebRtcConnectionConfig
+    protected val coroutineScope: CoroutineScope
 ) : Closeable, WebRtcConnectionEvents by events {
 
     /**
@@ -29,18 +28,18 @@ public abstract class WebRtcPeerConnection private constructor(
      * @param coroutineContext Coroutine context to fetch statistics and emit events.
      * @param config Configuration for the peer connection.
      */
-    public constructor(coroutineContext: CoroutineContext, config: WebRtcConnectionConfig) : this(
-        events = WebRtcConnectionEventsEmitter(config),
-        coroutineScope = CoroutineScope(coroutineContext),
-        config = config
-    )
-
-    internal fun startFetchingStatistics() {
-        val refreshRate = config.statsRefreshRate ?: return
-        coroutineScope.launch {
-            while (isActive) {
-                delay(duration = refreshRate)
-                events.emitStats(stats = getStatistics())
+    public constructor(
+        coroutineContext: CoroutineContext,
+        config: WebRtcConnectionConfig
+    ) : this(events = WebRtcConnectionEventsEmitter(config), coroutineScope = CoroutineScope(coroutineContext)) {
+        // Start fetching statistics
+        val refreshRate = config.statsRefreshRate
+        if (refreshRate != null) {
+            coroutineScope.launch {
+                while (isActive) {
+                    delay(duration = refreshRate)
+                    events.emitStats(stats = getStatistics())
+                }
             }
         }
     }

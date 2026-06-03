@@ -51,7 +51,7 @@ public class IosWebRtcEngine(
         return RTCIceServer(urls, username, credential)
     }
 
-    override suspend fun createPeerConnectionInternal(config: WebRtcConnectionConfig): WebRtcPeerConnection {
+    override suspend fun createPeerConnection(config: WebRtcConnectionConfig): WebRtcPeerConnection {
         val iceServers = config.iceServers.map { it.toIos() }
         val rtcConfig = RTCConfiguration().also {
             it.iceServers = iceServers
