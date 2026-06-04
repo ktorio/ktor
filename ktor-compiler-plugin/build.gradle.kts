@@ -36,15 +36,20 @@ sourceSets {
 
 idea.module.generatedSourceDirs.add(projectDir.resolve("test-gen"))
 
+// This module compiles against a newer Kotlin compiler API than the rest of the project.
+// The project-wide Kotlin version (and Kotlin Gradle plugin) is kept on `libs.versions.kotlin`,
+// but the compiler API artifacts this plugin links against are overridden here.
+val kotlinCompilerVersion = "2.4.0"
+
 dependencies {
-    compileOnly(libs.kotlin.compilerEmbeddable)
+    compileOnly("org.jetbrains.kotlin:kotlin-compiler-embeddable:$kotlinCompilerVersion")
     implementation(libs.kotlinx.serialization.json)
 
-    testFixturesApi(libs.kotlin.test.junit5)
-    testFixturesApi(libs.kotlin.compilerTestFramework)
-    testFixturesApi(libs.kotlin.compiler)
+    testFixturesApi("org.jetbrains.kotlin:kotlin-test-junit5:$kotlinCompilerVersion")
+    testFixturesApi("org.jetbrains.kotlin:kotlin-compiler-internal-test-framework:$kotlinCompilerVersion")
+    testFixturesApi("org.jetbrains.kotlin:kotlin-compiler:$kotlinCompilerVersion")
     testFixturesApi(libs.kotlinx.serialization.json)
-    testFixturesApi(libs.kotlinx.serialization.compiler.embedded)
+    testFixturesApi("org.jetbrains.kotlin:kotlin-serialization-compiler-plugin-embeddable:$kotlinCompilerVersion")
 
     testSamples(projects.ktorServerCore)
     testSamples(projects.ktorServerCio)
@@ -58,13 +63,13 @@ dependencies {
     testSamples(projects.ktorClientApache)
     testSamples(projects.ktorSerializationKotlinxJson)
     testSamples(projects.ktorOpenapiSchema)
-    testSamples(libs.kotlin.test)
+    testSamples("org.jetbrains.kotlin:kotlin-test:$kotlinCompilerVersion")
 
-    testRuntimeOnly(libs.kotlin.test.junit5)
-    testRuntimeOnly(libs.kotlin.test)
-    testRuntimeOnly(libs.kotlin.reflect)
-    testRuntimeOnly(libs.kotlin.script.runtime)
-    testRuntimeOnly(libs.kotlin.annotations.jvm)
+    testRuntimeOnly("org.jetbrains.kotlin:kotlin-test-junit5:$kotlinCompilerVersion")
+    testRuntimeOnly("org.jetbrains.kotlin:kotlin-test:$kotlinCompilerVersion")
+    testRuntimeOnly("org.jetbrains.kotlin:kotlin-reflect:$kotlinCompilerVersion")
+    testRuntimeOnly("org.jetbrains.kotlin:kotlin-script-runtime:$kotlinCompilerVersion")
+    testRuntimeOnly("org.jetbrains.kotlin:kotlin-annotations-jvm:$kotlinCompilerVersion")
 }
 
 buildConfig {
@@ -111,6 +116,16 @@ tasks {
     }
 
     test(configureCompilerPluginTest)
+
+    // This module uses the bare `kotlin.jvm` plugin (not KMP), so it only exposes a `test` task.
+    // The rest of the repository — and CI — follows the KMP convention of running `:module:jvmTest`.
+    // Register a `jvmTest` alias that depends on `test` so this module participates in the standard
+    // CI test suite and matches the conventions documented in AGENTS.md.
+    val jvmTest by registering {
+        group = "verification"
+        description = "Alias for the `test` task to match the KMP `jvmTest` convention used across the repository."
+        dependsOn(test)
+    }
 
     val updateSnapshots by registering(Test::class) {
         group = "verification"

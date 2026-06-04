@@ -15,6 +15,10 @@ import java.util.regex.Pattern;
 @TestMetadata("ktor-compiler-plugin/testData/openapi")
 @TestDataPath("$PROJECT_ROOT")
 public class OpenapiTestGenerated extends AbstractOpenapiTest {
+  private void run(String fileName) {
+    runTest("ktor-compiler-plugin/testData/openapi/" + fileName);
+  }
+
   @Test
   public void testAllFilesPresentInOpenapi() {
     KtTestUtil.assertAllTestsPresentByMetadataWithExcluded(this.getClass(), new File("ktor-compiler-plugin/testData/openapi"), Pattern.compile("^(.+)\\.kt$"), null, true);
@@ -23,78 +27,78 @@ public class OpenapiTestGenerated extends AbstractOpenapiTest {
   @Test
   @TestMetadata("CallHandlerFunctions.kt")
   public void testCallHandlerFunctions() {
-    runTest("ktor-compiler-plugin/testData/openapi/CallHandlerFunctions.kt");
+    run("CallHandlerFunctions.kt");
   }
 
   @Test
   @TestMetadata("KDocOptions.kt")
   public void testKDocOptions() {
-    runTest("ktor-compiler-plugin/testData/openapi/KDocOptions.kt");
+    run("KDocOptions.kt");
   }
 
   @Test
   @TestMetadata("MarkdownOptions.kt")
   public void testMarkdownOptions() {
-    runTest("ktor-compiler-plugin/testData/openapi/MarkdownOptions.kt");
+    run("MarkdownOptions.kt");
   }
 
   @Test
   @TestMetadata("Nesting.kt")
   public void testNesting() {
-    runTest("ktor-compiler-plugin/testData/openapi/Nesting.kt");
+    run("Nesting.kt");
   }
 
   @Test
   @TestMetadata("NullableValueClasses.kt")
   public void testNullableValueClasses() {
-    runTest("ktor-compiler-plugin/testData/openapi/NullableValueClasses.kt");
+    run("NullableValueClasses.kt");
   }
 
   @Test
   @TestMetadata("OddReferences.kt")
   public void testOddReferences() {
-    runTest("ktor-compiler-plugin/testData/openapi/OddReferences.kt");
+    run("OddReferences.kt");
   }
 
   @Test
   @TestMetadata("Parameters.kt")
   public void testParameters() {
-    runTest("ktor-compiler-plugin/testData/openapi/Parameters.kt");
+    run("Parameters.kt");
   }
 
   @Test
   @TestMetadata("RareCalls.kt")
   public void testRareCalls() {
-    runTest("ktor-compiler-plugin/testData/openapi/RareCalls.kt");
+    run("RareCalls.kt");
   }
 
   @Test
   @TestMetadata("Recursion.kt")
   public void testRecursion() {
-    runTest("ktor-compiler-plugin/testData/openapi/Recursion.kt");
+    run("Recursion.kt");
   }
 
   @Test
   @TestMetadata("Resources.kt")
   public void testResources() {
-    runTest("ktor-compiler-plugin/testData/openapi/Resources.kt");
+    run("Resources.kt");
   }
 
   @Test
   @TestMetadata("Responses.kt")
   public void testResponses() {
-    runTest("ktor-compiler-plugin/testData/openapi/Responses.kt");
+    run("Responses.kt");
   }
 
   @Test
   @TestMetadata("RouteFunctions.kt")
   public void testRouteFunctions() {
-    runTest("ktor-compiler-plugin/testData/openapi/RouteFunctions.kt");
+    run("RouteFunctions.kt");
   }
 
   @Test
   @TestMetadata("TypeParameters.kt")
   public void testTypeParameters() {
-    runTest("ktor-compiler-plugin/testData/openapi/TypeParameters.kt");
+    run("TypeParameters.kt");
   }
 }

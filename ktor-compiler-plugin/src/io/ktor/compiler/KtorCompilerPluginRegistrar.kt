@@ -6,7 +6,6 @@ import io.ktor.openapi.fir.OpenApiAnalysisExtension
 import io.ktor.openapi.ir.OpenApiCodeGenerationExtension
 import io.ktor.openapi.OpenApiProcessorConfig
 import io.ktor.openapi.routing.RouteCallLookup
-import kotlinx.serialization.ExperimentalSerializationApi
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
@@ -16,7 +15,6 @@ import org.jetbrains.kotlin.fir.extensions.FirExtensionRegistrarAdapter
 import java.nio.file.Paths
 import kotlin.io.path.absolutePathString
 
-@OptIn(ExperimentalSerializationApi::class)
 class KtorCompilerPluginRegistrar : CompilerPluginRegistrar() {
 
     override val pluginId: String get() = PLUGIN_ID

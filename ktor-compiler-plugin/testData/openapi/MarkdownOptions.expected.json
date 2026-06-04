@@ -196,7 +196,10 @@
     "components": {
         "schemas": {
             "Contact": {
-                "type": "object",
+                "type": [
+                    "object",
+                    "null"
+                ],
                 "title": "Contact",
                 "properties": {
                     "name": {
@@ -220,7 +223,10 @@
                 }
             },
             "License": {
-                "type": "object",
+                "type": [
+                    "object",
+                    "null"
+                ],
                 "title": "License",
                 "required": [
                     "name"
@@ -270,24 +276,10 @@
                         ]
                     },
                     "contact": {
-                        "oneOf": [
-                            {
-                                "$ref": "#/components/schemas/Contact"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ]
+                        "$ref": "#/components/schemas/Contact"
                     },
                     "license": {
-                        "oneOf": [
-                            {
-                                "$ref": "#/components/schemas/License"
-                            },
-                            {
-                                "type": "null"
-                            }
-                        ]
+                        "$ref": "#/components/schemas/License"
                     },
                     "extensions": {
                         "type": [
