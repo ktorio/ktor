@@ -80,7 +80,9 @@ internal class OkHttpWebsocketSession(
             for (frame in _outgoing) {
                 when (frame) {
                     is Frame.Binary -> websocket.send(frame.data.toByteString(0, frame.data.size))
+
                     is Frame.Text -> websocket.send(String(frame.data))
+
                     is Frame.Close -> {
                         val outgoingCloseReason = frame.readReason()!!
                         if (!outgoingCloseReason.isReserved()) {

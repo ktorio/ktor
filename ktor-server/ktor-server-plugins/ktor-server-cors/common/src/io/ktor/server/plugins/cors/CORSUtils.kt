@@ -75,8 +75,10 @@ internal fun corsCheckOrigins(
         when {
             allowsAnyHost ->
                 LOGGER.trace { "${request.id()}: Any * host is allowed" }
+
             normalizedOrigin in hostsNormalized ->
                 LOGGER.trace { "${request.id()}: Origin $normalizedOrigin is allowed from $hostsNormalized" }
+
             matchWildcardHosts ->
                 LOGGER.trace {
                     val (prefix, suffix) = hostsWithWildcard
@@ -85,6 +87,7 @@ internal fun corsCheckOrigins(
                         }!!
                     "${request.id()}: Origin $normalizedOrigin matches wildcard host $prefix*$suffix"
                 }
+
             originPredicates.any { it(origin) } -> {
                 LOGGER.trace {
                     "${request.id()}: Origin $normalizedOrigin fulfills " +

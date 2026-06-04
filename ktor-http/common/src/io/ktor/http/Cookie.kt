@@ -208,15 +208,20 @@ public fun renderSetCookieHeader(
  */
 public fun encodeCookieValue(value: String, encoding: CookieEncoding): String = when (encoding) {
     CookieEncoding.RAW -> value
+
     CookieEncoding.DQUOTES -> when {
         value.contains('"') -> throw IllegalArgumentException(
             "The cookie value contains characters that cannot be encoded in DQUOTES format. " +
                 "Consider URL_ENCODING mode"
         )
+
         value.any { it.shouldEscapeInCookies() } -> "\"$value\""
+
         else -> value
     }
+
     CookieEncoding.BASE64_ENCODING -> value.encodeBase64()
+
     CookieEncoding.URI_ENCODING -> value.encodeURLParameter(spaceToPlus = true)
 }
 
@@ -229,9 +234,12 @@ public fun decodeCookieValue(encodedValue: String, encoding: CookieEncoding): St
     CookieEncoding.RAW, CookieEncoding.DQUOTES -> when {
         encodedValue.trimStart().startsWith("\"") && encodedValue.trimEnd().endsWith("\"") ->
             encodedValue.trim().removeSurrounding("\"")
+
         else -> encodedValue
     }
+
     CookieEncoding.URI_ENCODING -> encodedValue.decodeURLQueryComponent(plusIsSpace = true)
+
     CookieEncoding.BASE64_ENCODING -> Base64.decode(encodedValue).decodeToString()
 }
 

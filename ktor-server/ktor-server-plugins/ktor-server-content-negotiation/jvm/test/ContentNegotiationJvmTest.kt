@@ -132,11 +132,14 @@ internal fun buildMultipart(
                         channel.writeFully(it.provider().readRemaining().readByteArray())
                         ""
                     }
+
                     is PartData.BinaryItem -> {
                         channel.writeFully(it.provider().readByteArray())
                         ""
                     }
+
                     is PartData.FormItem -> it.value
+
                     is PartData.BinaryChannelItem -> {
                         it.provider().copyTo(channel)
                         ""

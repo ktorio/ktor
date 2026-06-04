@@ -97,6 +97,7 @@ internal suspend fun BodyTransformedHook.Context.processRange(
         }
 
         merged.size == 1 -> processSingleRange(content, merged.single(), length)
+
         else -> processMultiRange(content, merged, length)
     }
 }

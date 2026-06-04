@@ -41,8 +41,11 @@ internal object YamlNodeSerialAdapter : GenericElementSerialAdapter {
                     key.content to value.toGenericElement()
                 }.toMap()
             )
+
             is YamlList -> GenericElementList(items.map { it.toGenericElement() })
+
             is YamlScalar -> GenericElementString(content)
+
             else -> GenericElement.EmptyObject
         }
     }

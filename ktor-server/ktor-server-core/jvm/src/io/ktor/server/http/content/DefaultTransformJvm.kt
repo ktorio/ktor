@@ -23,8 +23,10 @@ internal actual fun platformTransformDefaultContent(
             else -> null
         }
     }
+
     is InputStream -> object : OutgoingContent.ReadChannelContent() {
         override fun readFrom(): ByteReadChannel = value.toByteReadChannel()
     }
+
     else -> null
 }

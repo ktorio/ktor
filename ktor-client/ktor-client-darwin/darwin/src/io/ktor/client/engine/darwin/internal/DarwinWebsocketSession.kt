@@ -261,5 +261,6 @@ private fun convertWebsocketError(error: NSError): Exception = when {
         error.code.convert<Int>() == EMSGSIZE -> {
         FrameTooBigException(frameSize = -1L, DarwinHttpRequestException(error))
     }
+
     else -> DarwinHttpRequestException(error)
 }

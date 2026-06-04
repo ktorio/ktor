@@ -303,6 +303,7 @@ private fun findBoundary(contentType: CharSequence): Int {
                     paramNameCount = 0
                 }
             }
+
             1 -> {
                 if (ch == '=') {
                     state = 2
@@ -319,16 +320,20 @@ private fun findBoundary(contentType: CharSequence): Int {
                     paramNameCount++
                 }
             }
+
             2 -> {
                 when (ch) {
                     '"' -> state = 3
+
                     ',' -> state = 0
+
                     ';' -> {
                         state = 1
                         paramNameCount = 0
                     }
                 }
             }
+
             3 -> {
                 if (ch == '"') {
                     state = 1
@@ -337,6 +342,7 @@ private fun findBoundary(contentType: CharSequence): Int {
                     state = 4
                 }
             }
+
             4 -> {
                 state = 3
             }
@@ -392,18 +398,22 @@ internal fun parseBoundaryInternal(contentType: CharSequence): ByteArray {
                     ' ' -> {
                         // skip space
                     }
+
                     '"' -> {
                         state = 2 // start quoted string parsing
                     }
+
                     ';', ',' -> {
                         break@loop
                     }
+
                     else -> {
                         state = 1
                         put(v.toByte())
                     }
                 }
             }
+
             1 -> { // non-quoted string
                 if (ch == ' ' || ch == ',' || ch == ';') { // space, comma or semicolon (;)
                     break@loop
@@ -421,6 +431,7 @@ internal fun parseBoundaryInternal(contentType: CharSequence): ByteArray {
                     put(v.toByte())
                 }
             }
+
             3 -> {
                 put(v.toByte())
                 state = 2

@@ -120,6 +120,7 @@ public actual fun EngineConnectorConfig.withPort(otherPort: Int): EngineConnecto
     is EngineSSLConnectorBuilder -> object : EngineSSLConnectorConfig by this {
         override val port: Int = otherPort
     }
+
     else -> object : EngineConnectorConfig by this {
         override val port: Int = otherPort
     }

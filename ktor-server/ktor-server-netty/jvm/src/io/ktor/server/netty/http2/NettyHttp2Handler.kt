@@ -46,6 +46,7 @@ internal class NettyHttp2Handler(
                 state.activeRequests.incrementAndGet()
                 startHttp2(context, message.headers())
             }
+
             is Http2DataFrame -> {
                 context.applicationCall?.request?.apply {
                     val eof = message.isEndStream
@@ -58,12 +59,14 @@ internal class NettyHttp2Handler(
                     }
                 } ?: message.release()
             }
+
             is Http2ResetFrame -> {
                 context.applicationCall?.request?.let { r ->
                     val e = if (message.errorCode() == 0L) null else Http2ClosedChannelException(message.errorCode())
                     r.contentActor.close(e)
                 }
             }
+
             else -> context.fireChannelRead(message)
         }
     }

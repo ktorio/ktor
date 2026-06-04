@@ -174,6 +174,7 @@ public class CollectSchemaReferences(private val schemaToComponent: (JsonSchema)
                 is AdditionalProperties.PSchema -> AdditionalProperties.PSchema(
                     ap.value.mapToReference(::collectSchema)
                 )
+
                 else -> ap
             },
         )

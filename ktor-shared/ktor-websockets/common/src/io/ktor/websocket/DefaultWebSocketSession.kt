@@ -259,7 +259,9 @@ internal class DefaultWebSocketSessionImpl(
                     }
 
                     is Frame.Pong -> pinger.value?.send(frame)
+
                     is Frame.Ping -> ponger.send(frame)
+
                     else -> {
                         checkMaxFrameSize(frameBody, frame)
 
@@ -380,6 +382,7 @@ internal class DefaultWebSocketSessionImpl(
 
         val newPinger: SendChannel<Frame.Pong>? = when {
             closed.value -> null
+
             interval > PINGER_DISABLED -> pinger(raw.outgoing, interval, timeoutMillis) {
                 sendCloseSequence(it, IOException("Ping timeout"))
             }

@@ -50,6 +50,7 @@ public sealed interface AdditionalProperties {
                         val schemaSerializer = decoder.serializersModule.serializer<ReferenceOr<JsonSchema>>()
                         PSchema(element.deserialize(schemaSerializer))
                     }
+
                     else -> Allowed(element.deserialize(Boolean.serializer()))
                 }
             }
@@ -57,6 +58,7 @@ public sealed interface AdditionalProperties {
             override fun serialize(encoder: Encoder, value: AdditionalProperties) {
                 when (value) {
                     is Allowed -> encoder.encodeBoolean(value.value)
+
                     is PSchema ->
                         encoder.encodeSerializableValue(
                             ReferenceOr.serializer(JsonSchema.serializer()),

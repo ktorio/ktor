@@ -175,6 +175,7 @@ public class RoutingRoot(
 public val Route.application: Application
     get() = when (this) {
         is RoutingRoot -> application
+
         else -> parent?.application ?: throw UnsupportedOperationException(
             "Cannot retrieve application from unattached routing entry"
         )

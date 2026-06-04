@@ -70,6 +70,7 @@ private class TLSSocket(
                         pipe.writePacket(record.packet)
                         pipe.flush()
                     }
+
                     else -> throw TLSException("Unexpected record ${record.type} ($length bytes)")
                 }
             }

@@ -202,6 +202,7 @@ public data class LegacyCertificatePinner(
 
                     pin.hash == sha256
                 }
+
                 LegacyCertificatesInfo.HASH_ALGORITHM_SHA_1 -> {
                     if (sha1 == null) {
                         sha1 = publicKey.toSha1String()
@@ -209,6 +210,7 @@ public data class LegacyCertificatePinner(
 
                     pin.hash == sha1
                 }
+
                 else -> {
                     println("CertificatePinner: Unsupported hashAlgorithm: ${pin.hashAlgorithm}")
                     false

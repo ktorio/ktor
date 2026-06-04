@@ -15,6 +15,7 @@ internal actual fun Application.inferPlatformSpecificSecurityScheme(provider: Au
             scheme = "digest",
             description = provider.description ?: HttpSecurityScheme.DEFAULT_DIGEST_DESCRIPTION
         )
+
         // Catch an exception thrown when the auth-jwt plugin is not installed
         else -> runCatching { inferJwtScheme(provider) }.getOrElse { null }
     }

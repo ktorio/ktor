@@ -60,6 +60,7 @@ public class KotlinxWebsocketSerializationConverter(
                     )
                 }
             }
+
             is BinaryFormat -> {
                 if (content is Frame.Binary) {
                     format.decodeFromByteArray(serializer, content.readBytes())
@@ -70,6 +71,7 @@ public class KotlinxWebsocketSerializationConverter(
                     )
                 }
             }
+
             else -> {
                 error("Unsupported format $format")
             }
@@ -91,10 +93,12 @@ public class KotlinxWebsocketSerializationConverter(
                 val content = format.encodeToString(serializer as KSerializer<Any?>, value)
                 Frame.Text(content)
             }
+
             is BinaryFormat -> {
                 val content = format.encodeToByteArray(serializer as KSerializer<Any?>, value)
                 Frame.Binary(true, content)
             }
+
             else -> error("Unsupported format $format")
         }
     }

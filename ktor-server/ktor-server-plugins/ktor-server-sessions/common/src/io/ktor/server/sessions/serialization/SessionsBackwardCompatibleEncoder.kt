@@ -34,11 +34,14 @@ internal class SessionsBackwardCompatibleEncoder(
     override fun beginStructure(descriptor: SerialDescriptor): CompositeEncoder {
         when (descriptor.kind) {
             StructureKind.LIST -> currentList = mutableListOf()
+
             StructureKind.MAP -> currentMap = mutableMapOf()
+
             StructureKind.CLASS, PolymorphicKind.SEALED -> {
                 currentClassEncoder = SessionsBackwardCompatibleEncoder(serializersModule)
                 return currentClassEncoder!!
             }
+
             else -> throw IllegalArgumentException("Unsupported kind: ${descriptor.kind}")
         }
         return super.beginStructure(descriptor)

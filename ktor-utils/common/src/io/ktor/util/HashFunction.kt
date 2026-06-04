@@ -98,16 +98,19 @@ internal class Sha1 : HashFunction {
                     val k = 1518500249
                     (a leftRotate 5) + f + e + k + words[i]
                 }
+
                 i < 40 -> {
                     val f = b xor c xor d
                     val k = 1859775393
                     (a leftRotate 5) + f + e + k + words[i]
                 }
+
                 i < 60 -> {
                     val f = (b and c) or (b and d) or (c and d)
                     val k = -1894007588
                     (a leftRotate 5) + f + e + k + words[i]
                 }
+
                 else -> {
                     val f = b xor c xor d
                     val k = -899497514

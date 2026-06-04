@@ -76,6 +76,7 @@ internal class DatagramSendChannel(
 
                 when (bytesWritten) {
                     0 -> throw IOException("Failed writing to closed socket")
+
                     -1 -> {
                         val error = getSocketError()
                         if (isWouldBlockError(error)) {
@@ -97,6 +98,7 @@ internal class DatagramSendChannel(
 
                     when (bytesWritten) {
                         0 -> throw IOException("Failed writing to closed socket")
+
                         -1 -> {
                             val error = getSocketError()
                             if (isWouldBlockError(error)) {
@@ -191,6 +193,7 @@ internal class DatagramSendChannel(
 
         when (bytesWritten) {
             0 -> throw IOException("Failed writing to closed socket")
+
             -1 -> {
                 val error = getSocketError()
                 if (isWouldBlockError(error)) {

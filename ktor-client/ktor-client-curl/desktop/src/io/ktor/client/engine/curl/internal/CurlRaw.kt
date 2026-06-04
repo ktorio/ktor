@@ -103,7 +103,10 @@ internal suspend fun OutgoingContent.toByteChannel(): ByteReadChannel = when (th
     }.channel
 
     is OutgoingContent.ReadChannelContent -> readFrom()
+
     is OutgoingContent.NoContent -> ByteReadChannel.Empty
+
     is OutgoingContent.ContentWrapper -> delegate().toByteChannel()
+
     is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(this@toByteChannel)
 }

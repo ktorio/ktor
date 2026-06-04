@@ -105,8 +105,11 @@ public val OverridePrevious: DependencyConflictPolicy = DependencyConflictPolicy
 private fun DependencyInitializer.distance(): Int = when (this) {
     is DependencyInitializer.Explicit,
     is DependencyInitializer.Value -> -1
+
     is DependencyInitializer.Implicit -> distance
+
     is DependencyInitializer.Ambiguous -> functions.minOf { it.distance() }
+
     is DependencyInitializer.Missing,
     is DependencyInitializer.Null -> Int.MAX_VALUE
 }

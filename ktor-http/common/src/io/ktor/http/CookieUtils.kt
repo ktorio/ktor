@@ -299,7 +299,7 @@ internal class CookieDateParser {
             }
         }
 
-        /**
+        /*
          * 3. If the year-value is greater than or equal to 70 and less than or
          * equal to 99, increment the year-value by 1900
          * 4. If the year-value is greater than or equal to 0 and less than or

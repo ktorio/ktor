@@ -221,6 +221,7 @@ public val Logging: ClientPlugin<LoggingConfig> = createClientPlugin("Logging", 
 
                 null
             }
+
             is OutgoingContent.ByteArrayContent -> {
                 val bytes = content.bytes()
                 logRequestBody(url, content, bytes.size.toLong(), headers, method, logLines, ByteReadChannel(bytes))

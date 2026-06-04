@@ -17,8 +17,11 @@ import kotlinx.io.*
 @OptIn(DelicateCoroutinesApi::class)
 public suspend fun OutgoingContent.toByteArray(): ByteArray = when (this) {
     is OutgoingContent.ContentWrapper -> delegate().toByteArray()
+
     is OutgoingContent.ByteArrayContent -> bytes()
+
     is OutgoingContent.ReadChannelContent -> readFrom().toByteArray()
+
     is OutgoingContent.WriteChannelContent -> {
         val channel = ByteChannel()
         GlobalScope.launch(Dispatchers.Unconfined) {
@@ -35,7 +38,9 @@ public suspend fun OutgoingContent.toByteArray(): ByteArray = when (this) {
 @OptIn(DelicateCoroutinesApi::class)
 public suspend fun OutgoingContent.toByteReadPacket(): Source = when (this) {
     is OutgoingContent.ByteArrayContent -> ByteReadPacket(bytes())
+
     is OutgoingContent.ReadChannelContent -> readFrom().readRemaining()
+
     is OutgoingContent.WriteChannelContent -> {
         val channel = ByteChannel()
         GlobalScope.launch(Dispatchers.Unconfined) {

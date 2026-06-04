@@ -56,6 +56,7 @@ public actual abstract class Charset(internal val _name: String) {
 
         public fun isSupported(charset: String): Boolean = when {
             charset == "UTF-8" || charset == "utf-8" || charset == "UTF8" || charset == "utf8" -> true
+
             (charset == "ISO-8859-1" || charset == "iso-8859-1") ||
                 charset.replace('_', '-')
                     .let { it == "iso-8859-1" || it.lowercase() == "iso-8859-1" } ||

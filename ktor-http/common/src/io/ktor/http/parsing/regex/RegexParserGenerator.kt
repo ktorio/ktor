@@ -28,12 +28,15 @@ private fun Grammar.toRegex(
     shouldGroup: Boolean = false
 ): GrammarRegex = when (this) {
     is StringGrammar -> GrammarRegex(Regex.escape(value))
+
     is RawGrammar -> GrammarRegex(value)
+
     is NamedGrammar -> {
         val nested = grammar.toRegex(groups, offset + 1)
         groups.add(name, offset)
         GrammarRegex(nested.regex, nested.groupsCount, group = true)
     }
+
     is ComplexGrammar -> {
         val expression = StringBuilder()
 
@@ -49,6 +52,7 @@ private fun Grammar.toRegex(
         val groupsCount = if (shouldGroup) currentOffset - offset - 1 else currentOffset - offset
         GrammarRegex(expression.toString(), groupsCount, shouldGroup)
     }
+
     is SimpleGrammar -> {
         val operator = when (this) {
             is MaybeGrammar -> '?'
@@ -60,8 +64,11 @@ private fun Grammar.toRegex(
         val nested = grammar.toRegex(groups, offset, shouldGroup = true)
         GrammarRegex("${nested.regex}$operator", nested.groupsCount)
     }
+
     is AnyOfGrammar -> GrammarRegex("[${Regex.escape(value)}]")
+
     is RangeGrammar -> GrammarRegex("[$from-$to]")
+
     else -> error("Unsupported grammar element: $this")
 }
 

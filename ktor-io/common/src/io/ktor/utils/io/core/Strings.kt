@@ -32,6 +32,7 @@ public fun String(
     charset: Charset = Charsets.UTF_8
 ): String = when (charset) {
     Charsets.UTF_8 -> bytes.decodeToString(offset, offset + length)
+
     else -> buildPacket {
         writeFully(bytes, offset, length)
     }.readText(charset)
