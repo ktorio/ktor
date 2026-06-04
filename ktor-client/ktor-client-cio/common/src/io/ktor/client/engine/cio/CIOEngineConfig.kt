@@ -47,6 +47,28 @@ public class CIOEngineConfig : HttpClientEngineConfig() {
     public var requestTimeout: Long = 15000
 
     /**
+     * Resolves a hostname to a list of IP address strings used to establish connections.
+     * When `null`, the platform's default name service is used.
+     *
+     * Bypassed for proxied requests and Unix domain sockets. TLS SNI keeps using the original
+     * hostname, so resolving to an IP does not break certificate validation.
+     *
+     * An empty result fails the connection with [FailToConnectException]. Currently only the
+     * first address is used; multi-address fallback is left to a follow-up.
+     *
+     * ```kotlin
+     * HttpClient(CIO) {
+     *     engine {
+     *         dnsResolver = { hostname -> listOf("127.0.0.1") }
+     *     }
+     * }
+     * ```
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.cio.CIOEngineConfig.dnsResolver)
+     */
+    public var dnsResolver: (suspend (hostname: String) -> List<String>)? = null
+
+    /**
      * Allows you to configure [HTTPS](https://ktor.io/docs/client-ssl.html) settings for this engine.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.cio.CIOEngineConfig.https)
