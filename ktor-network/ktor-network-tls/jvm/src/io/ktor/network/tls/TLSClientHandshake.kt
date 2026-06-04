@@ -261,9 +261,11 @@ internal class TLSClientHandshake(
                         verifyHostnameInCertificate(config.serverName, serverCertificate)
                     }
                 }
+
                 TLSHandshakeType.CertificateRequest -> {
                     certificateInfo = readClientCertificateRequest(packet)
                 }
+
                 TLSHandshakeType.ServerKeyExchange -> {
                     when (exchangeType) {
                         ECDHE -> {

@@ -322,10 +322,12 @@ public sealed class HttpAuthHeader(public val authScheme: String) {
             val newParameters = parameters.mapNotNull {
                 when {
                     it.name != name -> it
+
                     !replaced -> {
                         replaced = true
                         HeaderValueParam(name, value)
                     }
+
                     else -> null
                 }
             }

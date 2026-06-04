@@ -127,6 +127,7 @@ public abstract class NettyApplicationResponse(
             content.isClosedForRead -> {
                 responseMessage(chunked = false, data = EmptyByteArray)
             }
+
             else -> {
                 responseMessage(chunked, last = false)
             }

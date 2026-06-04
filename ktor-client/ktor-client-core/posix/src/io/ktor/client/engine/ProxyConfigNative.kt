@@ -86,6 +86,8 @@ public actual val ProxyConfig.type: ProxyType
     get() = when (url.protocol) {
         URLProtocol.HTTP,
         URLProtocol.HTTPS -> ProxyType.HTTP
+
         URLProtocol.SOCKS -> ProxyType.SOCKS
+
         else -> ProxyType.UNKNOWN
     }

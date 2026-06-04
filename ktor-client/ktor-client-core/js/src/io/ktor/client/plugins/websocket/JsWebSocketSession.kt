@@ -65,7 +65,9 @@ internal class JsWebSocketSession(
         val onMessage = websocket.addEventListener<MessageEvent>("message") { event ->
             val frame: Frame = when (val data = event.data) {
                 is ArrayBuffer -> Frame.Binary(true, Int8Array(data).unsafeCast<ByteArray>())
+
                 is String -> Frame.Text(data)
+
                 else -> {
                     val error = IllegalStateException("Unknown frame type: ${event.type}")
                     _closeReason.completeExceptionally(error)
@@ -116,6 +118,7 @@ internal class JsWebSocketSession(
 
                         websocket.send(text.decodeToString(0, 0 + text.size))
                     }
+
                     FrameType.BINARY -> {
                         val source = it.data as Int8Array
                         val frameData = source.buffer.slice(
@@ -125,6 +128,7 @@ internal class JsWebSocketSession(
 
                         websocket.send(frameData)
                     }
+
                     FrameType.CLOSE -> {
                         val data = buildPacket { writeFully(it.data) }
                         val code = data.readShort()
@@ -136,6 +140,7 @@ internal class JsWebSocketSession(
                             websocket.close(code, reason)
                         }
                     }
+
                     FrameType.PING, FrameType.PONG -> {
                         // ignore
                     }

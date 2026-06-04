@@ -194,6 +194,7 @@ public class JettyApplicationCall(
                 is OutputStreamContent -> Content.Sink.asOutputStream(response).use { stream ->
                     content.writeTo(stream)
                 }
+
                 else -> super.respondWriteChannelContent(content)
             }
         }

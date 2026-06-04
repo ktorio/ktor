@@ -44,6 +44,7 @@ class UDPSocketTest {
                 cause.message?.contains("Permission denied", ignoreCase = true) == true -> {
                     denied = true
                 }
+
                 // PosixException (WSAEACCES)
                 cause.message?.contains("10013", ignoreCase = true) == true -> {
                     denied = true

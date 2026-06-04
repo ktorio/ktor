@@ -553,6 +553,7 @@ public data class PathSegmentTailcardRouteSelector(
 
         val values = when {
             name.isEmpty() -> parametersOf()
+
             else -> parametersOf(
                 name,
                 segments.drop(segmentIndex).mapIndexed { index, segment ->
@@ -784,7 +785,9 @@ internal fun evaluatePathSegmentParameter(
     fun failedEvaluation(failedPart: String?): RouteSelectorEvaluation {
         return when {
             !isOptional -> RouteSelectorEvaluation.FailedPath
+
             failedPart == null -> RouteSelectorEvaluation.Missing
+
             failedPart.isEmpty() -> // trailing slash
                 RouteSelectorEvaluation.Success(RouteSelectorEvaluation.qualityMissing, segmentIncrement = 1)
 

@@ -69,11 +69,13 @@ internal open class HoconDecoder(
                     config.getList(currentPath),
                     serializersModule = serializersModule
                 )
+
             StructureKind.MAP ->
                 HoconMapDecoder(
                     config.getObject(currentPath).toConfig(),
                     serializersModule = serializersModule
                 )
+
             StructureKind.CLASS,
             StructureKind.OBJECT ->
                 HoconDecoder(config, currentPath, serializersModule)
@@ -127,12 +129,14 @@ internal class HoconListDecoder(
                         ?: throw SerializationException("Expected a ConfigList but got $currentElement"),
                     serializersModule = serializersModule
                 )
+
             StructureKind.MAP ->
                 HoconMapDecoder(
                     (currentElement as? ConfigObject)?.toConfig()
                         ?: throw SerializationException("Expected a ConfigObject but got $currentElement"),
                     serializersModule = serializersModule
                 )
+
             StructureKind.CLASS,
             StructureKind.OBJECT ->
                 HoconDecoder(

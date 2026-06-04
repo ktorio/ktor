@@ -90,11 +90,16 @@ public suspend fun logError(call: ApplicationCall, error: Throwable) {
  */
 public fun defaultExceptionStatusCode(cause: Throwable): HttpStatusCode? = when (cause) {
     is BadRequestException -> HttpStatusCode.BadRequest
+
     is NotFoundException -> HttpStatusCode.NotFound
+
     is UnsupportedMediaTypeException,
     is CannotTransformContentToTypeException -> HttpStatusCode.UnsupportedMediaType
+
     is PayloadTooLargeException -> HttpStatusCode.PayloadTooLarge
+
     is TimeoutException, is TimeoutCancellationException -> HttpStatusCode.GatewayTimeout
+
     else -> null
 }
 

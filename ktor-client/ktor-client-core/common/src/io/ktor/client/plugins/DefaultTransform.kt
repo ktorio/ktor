@@ -55,6 +55,7 @@ public fun HttpClient.defaultTransformers() {
             }
 
             is OutgoingContent -> body
+
             else -> platformRequestDefaultTransform(contentType, context, body)
         }
         if (content?.contentType != null) {

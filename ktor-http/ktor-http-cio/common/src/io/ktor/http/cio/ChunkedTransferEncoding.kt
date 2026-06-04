@@ -139,17 +139,22 @@ private suspend fun parseChunkSize(input: ByteReadChannel): Long {
         if (inQuotes && byte != QUOTE) continue
         try {
             when (byte) {
-                CR -> continue // set in finally block
+                CR -> continue
+
+                // set in finally block
                 LF -> {
                     if (!afterCr) throw IOException("Illegal newline character in chunk size")
                     if (i < 3) throw IOException("Empty chunk size")
                     return result
                 }
+
                 QUOTE -> inQuotes = !inQuotes
+
                 SEMICOLON -> {
                     if (i == 1) throw IOException("Empty chunk size")
                     inExtension = true
                 }
+
                 else -> {
                     if (inExtension) continue // always ignore extensions
                     val intValue = byte.toInt() and 0xff

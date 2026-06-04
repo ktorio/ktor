@@ -94,8 +94,11 @@ public class AndroidWebRtcDataChannel(
             override fun onStateChange() = runInConnectionScope {
                 val event = when (state) {
                     WebRtc.DataChannel.State.CONNECTING -> null
+
                     WebRtc.DataChannel.State.OPEN -> DataChannelEvent.Open(this@AndroidWebRtcDataChannel)
+
                     WebRtc.DataChannel.State.CLOSING -> DataChannelEvent.Closing(this@AndroidWebRtcDataChannel)
+
                     WebRtc.DataChannel.State.CLOSED -> {
                         stopReceivingMessages()
                         DataChannelEvent.Closed(this@AndroidWebRtcDataChannel)

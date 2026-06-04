@@ -41,6 +41,7 @@ internal actual suspend fun tcpBind(
 
 internal fun SelectorProvider.openSocketChannelFor(address: SocketAddress) = when (address) {
     is InetSocketAddress -> openSocketChannel()
+
     is UnixSocketAddress -> {
         val selectorProviderClass = SelectorProvider::class.java
         val protocolFamilyClass = ProtocolFamily::class.java
@@ -52,7 +53,9 @@ internal fun SelectorProvider.openSocketChannelFor(address: SocketAddress) = whe
 
 internal fun SelectorProvider.openServerSocketChannelFor(address: SocketAddress?) = when (address) {
     null -> openServerSocketChannel()
+
     is InetSocketAddress -> openServerSocketChannel()
+
     is UnixSocketAddress -> {
         val selectorProviderClass = SelectorProvider::class.java
         val protocolFamilyClass = ProtocolFamily::class.java

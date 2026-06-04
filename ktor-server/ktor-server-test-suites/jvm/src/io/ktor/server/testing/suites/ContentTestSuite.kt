@@ -626,6 +626,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
                 call.receiveMultipart().forEachPart { part ->
                     when (part) {
                         is PartData.FormItem -> response.append("${part.name}=${part.value}\n")
+
                         is PartData.FileItem ->
                             response.append(
                                 "file:${part.name},${part.originalFileName},${
@@ -634,6 +635,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
                             )
 
                         is PartData.BinaryItem -> {}
+
                         is PartData.BinaryChannelItem -> {}
                     }
                 }
@@ -694,6 +696,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
                 call.receiveMultipart(formFieldLimit = 1 * 1024 * 1024).forEachPart { part ->
                     when (part) {
                         is PartData.FormItem -> response.append("${part.name}=${part.value}\n")
+
                         is PartData.FileItem -> {
                             val lineSequence = part.provider()
                                 .readRemaining()

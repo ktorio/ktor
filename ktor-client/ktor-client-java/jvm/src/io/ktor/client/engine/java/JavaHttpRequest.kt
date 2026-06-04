@@ -61,15 +61,20 @@ internal fun OutgoingContent.convertToHttpRequestBody(
     callContext: CoroutineContext
 ): HttpRequest.BodyPublisher = when (this) {
     is OutgoingContent.ByteArrayContent -> HttpRequest.BodyPublishers.ofByteArray(bytes())
+
     is OutgoingContent.ReadChannelContent -> JavaHttpRequestBodyPublisher(
         coroutineContext = callContext,
         contentLength = contentLength ?: -1
     ) { readFrom() }
+
     is OutgoingContent.WriteChannelContent -> JavaHttpRequestBodyPublisher(
         coroutineContext = callContext,
         contentLength = contentLength ?: -1
     ) { GlobalScope.writer(callContext) { writeTo(channel) }.channel }
+
     is OutgoingContent.NoContent -> HttpRequest.BodyPublishers.noBody()
+
     is OutgoingContent.ContentWrapper -> delegate().convertToHttpRequestBody(callContext)
+
     is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(this)
 }

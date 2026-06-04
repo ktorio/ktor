@@ -46,10 +46,15 @@ public class ObservableContent(
     @OptIn(DelicateCoroutinesApi::class)
     private fun getContent(delegate: OutgoingContent): ByteReadChannel = when (delegate) {
         is ContentWrapper -> getContent(delegate.delegate())
+
         is ByteArrayContent -> ByteReadChannel(delegate.bytes())
+
         is ProtocolUpgrade -> throw UnsupportedContentTypeException(delegate)
+
         is NoContent -> ByteReadChannel.Empty
+
         is ReadChannelContent -> delegate.readFrom()
+
         is WriteChannelContent -> GlobalScope.writer(callContext, autoFlush = true) {
             delegate.writeTo(channel)
         }.channel

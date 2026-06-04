@@ -50,11 +50,16 @@ internal actual fun Application.installReference(
                             when (param.type) {
                                 // special types, from application
                                 DependencyRegistry::class.starProjectedType -> registry
+
                                 DependencyMap::class.starProjectedType,
                                 DependencyResolver::class.starProjectedType -> this@set
+
                                 Application::class.starProjectedType -> this@installReference
+
                                 ApplicationEnvironment::class.starProjectedType -> environment
+
                                 ApplicationConfig::class.starProjectedType -> environment.config
+
                                 // regular types, from resolver
                                 else -> get(reflection.toDependencyKey(param))
                             }

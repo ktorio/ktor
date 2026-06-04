@@ -17,19 +17,24 @@ import io.ktor.utils.io.*
  */
 public fun transformDefaultContent(call: ApplicationCall, value: Any): OutgoingContent? = when (value) {
     is OutgoingContent -> value
+
     is String -> {
         val contentType = call.defaultTextContentType(null)
         TextContent(value, contentType, null)
     }
+
     is ByteArray -> {
         ByteArrayContent(value)
     }
+
     is HttpStatusCode -> {
         HttpStatusCodeContent(value)
     }
+
     is ByteReadChannel -> object : OutgoingContent.ReadChannelContent() {
         override fun readFrom(): ByteReadChannel = value
     }
+
     else -> platformTransformDefaultContent(call, value)
 }
 

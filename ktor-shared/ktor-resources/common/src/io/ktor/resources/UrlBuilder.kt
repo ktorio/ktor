@@ -68,10 +68,12 @@ public fun <T> href(
                 usedForPathParameterNames += part.dropLast(1)
                 values
             }
+
             part.endsWith("...") -> {
                 usedForPathParameterNames += part.dropLast(3)
                 parameters.getAll(part.dropLast(3)) ?: emptyList()
             }
+
             else -> {
                 val values = parameters.getAll(part)
                 if (values == null || values.size != 1) {

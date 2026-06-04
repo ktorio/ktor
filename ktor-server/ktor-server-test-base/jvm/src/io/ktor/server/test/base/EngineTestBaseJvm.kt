@@ -187,6 +187,7 @@ actual abstract class EngineTestBase<
             val failures = startServer(server)
             when {
                 failures.isEmpty() -> return server
+
                 failures.any { it.hasBindException() || it is TimeoutCancellationException } -> {
                     FreePorts.recycle(port)
                     FreePorts.recycle(sslPort)

@@ -82,12 +82,14 @@ private fun mapOkHttpException(
     origin: IOException
 ): Throwable = when (origin) {
     is StreamAdapterIOException -> origin.cause ?: origin
+
     is SocketTimeoutException ->
         if (origin.isConnectException()) {
             ConnectTimeoutException(requestData, origin)
         } else {
             SocketTimeoutException(requestData, origin)
         }
+
     else -> origin
 }
 

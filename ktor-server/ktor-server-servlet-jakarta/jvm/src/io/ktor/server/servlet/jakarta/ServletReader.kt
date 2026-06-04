@@ -130,10 +130,12 @@ private class ServletReader(
     private fun wrapException(cause: Throwable): Throwable? {
         return when (cause) {
             is EOFException -> null
+
             is TimeoutException -> ChannelReadException(
                 "Cannot read from a servlet input stream",
                 exception = cause as Exception
             )
+
             else -> cause
         }
     }

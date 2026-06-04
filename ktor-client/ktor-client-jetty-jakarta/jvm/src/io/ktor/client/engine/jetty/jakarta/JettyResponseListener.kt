@@ -66,7 +66,9 @@ internal class JettyResponseListener(
     ) {
         val cause = when (val code = frame?.error ?: 0) {
             0 -> null
+
             ErrorCode.CANCEL_STREAM_ERROR.code -> ClosedChannelException()
+
             else -> {
                 val ec = ErrorCode.from(code)
                 IOException("Connection reset ${ec?.name ?: "with unknown error code $code"}")

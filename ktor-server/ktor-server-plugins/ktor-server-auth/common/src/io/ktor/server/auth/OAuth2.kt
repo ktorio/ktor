@@ -30,6 +30,7 @@ internal suspend fun ApplicationCall.oauth2HandleCallback(): OAuthCallback? {
             attributes.put(cacheOAuthFormReceiveKey, Unit)
             receiveParameters()
         }
+
         else -> parameters
     }
     val code = params[OAuth2RequestParameters.Code]
@@ -72,6 +73,7 @@ internal suspend fun oauth2RequestAccessToken(
 ): OAuthAccessTokenResponse.OAuth2 {
     val interceptor: HttpRequestBuilder.() -> Unit = when (configure) {
         null -> settings.accessTokenInterceptor
+
         else -> fun HttpRequestBuilder.() {
             settings.accessTokenInterceptor(this)
             configure()
@@ -162,6 +164,7 @@ private suspend fun oauth2RequestAccessToken(
 
     when (method) {
         HttpMethod.Get -> request.url.parameters.appendAll(urlParameters)
+
         HttpMethod.Post -> {
             if (passParamsInURL) {
                 request.url.parameters.appendAll(urlParameters)
@@ -246,6 +249,7 @@ private suspend fun oauth2RequestAccessToken(
 
 private fun decodeContent(content: String, contentType: ContentType): Parameters = when {
     contentType.match(ContentType.Application.FormUrlEncoded) -> content.parseUrlEncodedParameters()
+
     contentType.match(ContentType.Application.Json) -> Parameters.build {
         Json.decodeFromString(JsonObject.serializer(), content).forEach { (key, element) ->
             (element as? JsonPrimitive)?.content?.let { append(key, it) }
@@ -263,7 +267,9 @@ private fun decodeContent(content: String, contentType: ContentType): Parameters
             content.matches("([a-zA-Z\\d_-]+=[^=&]+&?)+".toRegex()) -> decodeContent(
                 content,
                 ContentType.Application.FormUrlEncoded
-            ) // TODO too risky, isn't it?
+            )
+
+            // TODO too risky, isn't it?
             else -> throw IOException("unsupported content type $contentType")
         }
     }

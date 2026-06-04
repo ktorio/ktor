@@ -68,8 +68,11 @@ internal class CurlWebSocketSession(
         val flags = if (frame.fin) 0 else CURLWS_CONT
         when (frame.frameType) {
             FrameType.BINARY -> sendFrame(CURLWS_BINARY or flags, frame.data)
+
             FrameType.TEXT -> sendFrame(CURLWS_TEXT or flags, frame.data)
+
             FrameType.PING -> sendFrame(CURLWS_PING or flags, frame.data)
+
             FrameType.PONG -> sendFrame(CURLWS_PONG or flags, frame.data)
 
             FrameType.CLOSE -> {

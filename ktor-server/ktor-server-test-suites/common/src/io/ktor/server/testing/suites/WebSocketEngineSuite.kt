@@ -773,6 +773,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         while (true) {
             when (val frame = input.readFrame(Long.MAX_VALUE, 0)) {
                 is Frame.Ping -> continue@loop
+
                 is Frame.Close -> {
                     assertEquals(closeCode, frame.readReason()?.code)
                     if (replyCloseFrame) socket.close()

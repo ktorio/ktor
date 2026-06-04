@@ -80,7 +80,9 @@ public class DefaultClientSSESession(
 
         when (cause) {
             null -> return@onCompletion
+
             is CancellationException -> return@onCompletion
+
             else -> {
                 throw SSEClientException(cause = cause, message = cause.message)
             }
@@ -207,6 +209,7 @@ public class DefaultClientSSESession(
                     val value = line.substringAfter(COLON, missingDelimiterValue = "").removePrefix(SPACE)
                     when (field) {
                         "event" -> eventType = value
+
                         "data" -> {
                             wasData = true
                             data.append(value).append(END_OF_LINE)
