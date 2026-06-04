@@ -189,6 +189,7 @@ internal class SuspendFunctionGun<TSubject : Any, TContext : Any>(
 
         when (val exception = result.exceptionOrNull()) {
             null -> toResume.resumeWith(result)
+
             else -> {
                 val recoveredException = recoverStackTraceBridge(exception, next)
                 toResume.resumeWithException(recoveredException)

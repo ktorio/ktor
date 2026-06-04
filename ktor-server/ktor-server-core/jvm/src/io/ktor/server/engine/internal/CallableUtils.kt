@@ -105,15 +105,22 @@ private suspend fun <R> callFunctionWithInjection(
     val args = entryPoint.parameters.mapNotNull { parameter ->
         parameter to when {
             parameter.kind == KParameter.Kind.INSTANCE -> instance
+
             isApplicationEnvironment(parameter) -> application.environment
+
             isApplication(parameter) -> application
 
             else -> {
                 val injectedValue = runCatching { moduleInjector.resolveParameter(application, parameter) }
                 when {
                     injectedValue.isSuccess -> injectedValue.getOrThrow()
-                    parameter.isOptional -> return@mapNotNull null // skip
-                    parameter.type.isMarkedNullable -> null // value = null
+
+                    // skip
+                    parameter.isOptional -> return@mapNotNull null
+
+                    // value = null
+                    parameter.type.isMarkedNullable -> null
+
                     // This check should go last
                     parameter.type.toString().contains("Application") -> {
                         // It is possible that type is okay, but classloader is not
@@ -124,6 +131,7 @@ private suspend fun <R> callFunctionWithInjection(
                                 "$ApplicationClassInstance:{${ApplicationClassInstance.classLoader}}"
                         )
                     }
+
                     else -> throw IllegalArgumentException(
                         "Failed to inject parameter `${parameter.name ?: "<receiver>"}: ${parameter.type}` " +
                             "in module function `$entryPoint`",

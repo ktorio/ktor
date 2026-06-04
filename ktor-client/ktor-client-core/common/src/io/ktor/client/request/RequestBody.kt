@@ -18,10 +18,12 @@ public inline fun <reified T> HttpRequestBuilder.setBody(body: T) {
             this.body = NullBody
             bodyType = typeInfo<T>()
         }
+
         is OutgoingContent -> {
             this.body = body
             bodyType = null
         }
+
         else -> {
             this.body = body
             bodyType = typeInfo<T>()

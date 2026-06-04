@@ -36,6 +36,7 @@ internal suspend fun commonFetch(
 
     val promise: Promise<org.w3c.fetch.Response> = when {
         PlatformUtils.IS_BROWSER -> fetch(input, init)
+
         else -> {
             val options = makeJsCall<RequestInit>(
                 jsObjectAssign(),

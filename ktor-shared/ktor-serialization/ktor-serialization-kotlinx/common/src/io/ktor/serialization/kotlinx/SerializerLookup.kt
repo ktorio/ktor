@@ -11,13 +11,13 @@ import kotlinx.serialization.builtins.*
 import kotlinx.serialization.modules.*
 import kotlin.reflect.*
 
-@InternalSerializationApi
-@ExperimentalSerializationApi
 /**
  * Attempts to create a serializer for the given [typeInfo]
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.serialization.kotlinx.serializerForTypeInfo)
  */
+@InternalSerializationApi
+@ExperimentalSerializationApi
 public fun SerializersModule.serializerForTypeInfo(typeInfo: TypeInfo): KSerializer<*> {
     val module = this
     return typeInfo.kotlinType
@@ -81,9 +81,13 @@ private fun <T : Any> KSerializer<T>.maybeNullable(typeInfo: TypeInfo): KSeriali
 @InternalAPI
 public fun guessSerializer(value: Any?, module: SerializersModule): KSerializer<Any> = when (value) {
     null -> String.serializer().nullable
+
     is List<*> -> ListSerializer(value.elementSerializer(module))
+
     is Array<*> -> value.firstOrNull()?.let { guessSerializer(it, module) } ?: ListSerializer(String.serializer())
+
     is Set<*> -> SetSerializer(value.elementSerializer(module))
+
     is Map<*, *> -> {
         val keySerializer = value.keys.elementSerializer(module)
         val valueSerializer = value.values.elementSerializer(module)

@@ -465,6 +465,7 @@ public object PathSegmentSelectorBuilder {
         val signature = value.substring(prefixIndex + 1, suffixIndex)
         return when {
             signature.endsWith("?") -> PathSegmentOptionalParameterRouteSelector(signature.dropLast(1), prefix, suffix)
+
             signature.endsWith("...") -> {
                 if (!suffix.isNullOrEmpty()) {
                     throw IllegalArgumentException("Suffix after tailcard is not supported")

@@ -52,7 +52,9 @@ internal class JettyResponseListener(
     override fun onReset(stream: Stream, frame: ResetFrame) {
         val error = when (frame.error) {
             0 -> null
+
             ErrorCode.CANCEL_STREAM_ERROR.code -> ClosedChannelException()
+
             else -> {
                 val code = ErrorCode.from(frame.error)
                 IOException("Connection reset ${code?.name ?: "with unknown error code ${frame.error}"}")

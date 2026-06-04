@@ -135,7 +135,9 @@ public open class MapApplicationConfig : ApplicationConfig {
                     addedListKeys.add(listKey)
                     listKey
                 }
+
                 listKey == null -> candidate
+
                 else -> null
             }
             if (isTopLevel) key else key?.substringAfter("$path.")
@@ -150,10 +152,12 @@ public open class MapApplicationConfig : ApplicationConfig {
             val path = combine(path, key)
             when {
                 map.containsKey(path) -> key to map[path]
+
                 map.containsKey(combine(path, "size")) -> when {
                     map.containsKey(combine(path, "0")) -> key to property(path).getList()
                     else -> key to configList(key).map { it.toMap() }
                 }
+
                 else -> key to config(key).toMap()
             }
         }

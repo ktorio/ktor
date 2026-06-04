@@ -60,6 +60,7 @@ public class CIOMultipartDataBase(
         return try {
             when (event) {
                 is MultipartEvent.MultipartPart -> partToData(event)
+
                 else -> {
                     event.releaseSuspend()
                     null

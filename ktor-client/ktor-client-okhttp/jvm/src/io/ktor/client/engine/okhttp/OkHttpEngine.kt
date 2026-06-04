@@ -129,6 +129,7 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
                     .getOrNull(ResponseAdapterAttributeKey)
                     ?.adapt(requestData, status, headers, body, requestData.body, callContext)
                     ?: body
+
             else -> body
         }
 
@@ -235,7 +236,9 @@ internal fun OutgoingContent.convertToOkHttpBody(
     }
 
     is OutgoingContent.NoContent -> ByteArray(0).toRequestBody(null, 0, 0)
+
     is OutgoingContent.ContentWrapper -> delegate().convertToOkHttpBody(callContext, config)
+
     is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(this)
 }
 

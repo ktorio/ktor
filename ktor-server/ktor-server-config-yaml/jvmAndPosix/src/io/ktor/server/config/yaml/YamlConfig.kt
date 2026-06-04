@@ -170,8 +170,11 @@ private fun YamlMap.swapEnvironmentVariables(): YamlMap {
     fun YamlNode.replace(): YamlNode =
         when (this) {
             is YamlList -> YamlList(items.map { it.replace() }, path)
+
             is YamlMap -> YamlMap(entries.mapValues { it.value.replace() }, path)
+
             is YamlScalar -> resolveReferences(rootNode)
+
             is YamlNull,
             is YamlTaggedNode -> this
         }
@@ -235,12 +238,17 @@ private fun resolveReference(rootNode: YamlMap, value: String, visited: MutableS
 
 private fun toPrimitive(yaml: YamlNode?): Any? = when (yaml) {
     is YamlScalar -> yaml.content
+
     is YamlMap -> yaml.entries.entries.associate { (key, value) ->
         key.content to toPrimitive(value)
     }
+
     is YamlList -> yaml.items.map { toPrimitive(it) }
+
     is YamlNull -> null
+
     is YamlTaggedNode -> toPrimitive(yaml.innerNode)
+
     null -> null
 }
 

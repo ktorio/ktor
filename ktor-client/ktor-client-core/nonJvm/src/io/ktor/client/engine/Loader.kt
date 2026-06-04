@@ -9,13 +9,13 @@ import kotlinx.atomicfu.*
 
 private typealias EngineFactory = HttpClientEngineFactory<HttpClientEngineConfig>
 
-@InternalAPI
 /**
  * Shared engines collection for.
  * Use [append] to enable engine auto discover in [HttpClient()].
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.engines)
  */
+@InternalAPI
 public object engines : Iterable<EngineFactory> {
     private val head = atomic<Node?>(null)
 

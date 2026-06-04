@@ -34,6 +34,7 @@ private fun ParametersBuilder.parse(query: String, startIndex: Int, limit: Int, 
                 equalIndex = -1
                 count++
             }
+
             '=' -> {
                 if (equalIndex == -1) {
                     equalIndex = index

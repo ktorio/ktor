@@ -155,7 +155,9 @@ internal suspend fun OAuthAuthenticationProvider.oauth2(authProviderName: String
             callbackResponse,
             context
         )
+
         is OAuthCallback.Error -> OAuth2RedirectError(callbackResponse.error, callbackResponse.errorDescription)
+
         else -> AuthenticationFailedCause.NoCredentials
     }
 

@@ -36,15 +36,18 @@ internal class SessionsBackwardCompatibleDecoder(
                 val value = parameters[currentName]!!.drop(3).decodeURLQueryComponent()
                 return ListLikeDecoder(serializersModule, value)
             }
+
             StructureKind.MAP -> {
                 val encoded = parameters[currentName]!!.drop(2).decodeURLQueryComponent()
                 val decoded = parseQueryString(encoded, decode = true)
                 return MapDecoder(serializersModule, decoded.formUrlEncode())
             }
+
             StructureKind.CLASS -> {
                 val value = parameters[currentName]!!.drop(2).decodeURLQueryComponent()
                 return SessionsBackwardCompatibleDecoder(serializersModule, value)
             }
+
             else -> throw IllegalArgumentException("Unsupported kind: ${descriptor.kind}")
         }
     }

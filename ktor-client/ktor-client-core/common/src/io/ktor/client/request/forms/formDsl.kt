@@ -47,18 +47,23 @@ public fun formData(vararg values: FormPart<*>): List<PartData> {
 
         val part = when (value) {
             is String -> PartData.FormItem(value, {}, partHeaders.build())
+
             is Number -> PartData.FormItem(value.toString(), {}, partHeaders.build())
+
             is Boolean -> PartData.FormItem(value.toString(), {}, partHeaders.build())
+
             is ByteArray -> {
                 partHeaders.append(HttpHeaders.ContentLength, value.size.toString())
                 PartData.BinaryItem({ ByteReadPacket(value) }, {}, partHeaders.build())
             }
+
             is Source -> {
                 if (value is Buffer) {
                     partHeaders.append(HttpHeaders.ContentLength, value.remaining.toString())
                 }
                 PartData.BinaryItem({ value.peek() }, { value.close() }, partHeaders.build())
             }
+
             is InputProvider -> {
                 val size = value.size
                 if (size != null) {
@@ -66,6 +71,7 @@ public fun formData(vararg values: FormPart<*>): List<PartData> {
                 }
                 PartData.BinaryItem(value.block, {}, partHeaders.build())
             }
+
             is ChannelProvider -> {
                 val size = value.size
                 if (size != null) {
@@ -73,6 +79,7 @@ public fun formData(vararg values: FormPart<*>): List<PartData> {
                 }
                 PartData.BinaryChannelItem(value.block, partHeaders.build())
             }
+
             else -> error("Unknown form content type: $value")
         }
 

@@ -44,14 +44,19 @@ internal suspend fun HttpRequestData.toRaw(
 private suspend fun getBodyBytes(content: OutgoingContent, callContext: CoroutineContext): ByteArray? {
     return when (content) {
         is OutgoingContent.ByteArrayContent -> content.bytes()
+
         is OutgoingContent.ReadChannelContent -> content.readFrom().readRemaining().readByteArray()
+
         is OutgoingContent.WriteChannelContent -> {
             GlobalScope.writer(callContext) {
                 content.writeTo(channel)
             }.channel.readRemaining().readByteArray()
         }
+
         is OutgoingContent.ContentWrapper -> getBodyBytes(content.delegate(), callContext)
+
         is OutgoingContent.NoContent -> null
+
         is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(content)
     }
 }

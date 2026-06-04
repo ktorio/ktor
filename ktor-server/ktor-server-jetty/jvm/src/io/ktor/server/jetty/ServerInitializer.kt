@@ -43,6 +43,7 @@ internal fun Server.initializeServer(
 
         val connectionFactories = when (ktorConnector.type) {
             ConnectorType.HTTP -> arrayOf(HttpConnectionFactory(httpConfig), HTTP2CServerConnectionFactory(httpConfig))
+
             ConnectorType.HTTPS -> arrayOf(
                 SslConnectionFactory(
                     SslContextFactory.Server().apply {
@@ -60,10 +61,12 @@ internal fun Server.initializeServer(
                                 trustStore = ktorConnector.trustStore
                                 true
                             }
+
                             ktorConnector.trustStorePath != null -> {
                                 trustStorePath = ktorConnector.trustStorePath!!.absolutePath
                                 true
                             }
+
                             else -> false
                         }
 
@@ -87,6 +90,7 @@ internal fun Server.initializeServer(
                 http2ConnectionFactory ?: HTTP2CServerConnectionFactory(httpConfig),
                 HttpConnectionFactory(httpConfig)
             ).filterNotNull().toTypedArray()
+
             else -> throw IllegalArgumentException(
                 "Connector type ${ktorConnector.type} is not supported by Jetty engine implementation"
             )
