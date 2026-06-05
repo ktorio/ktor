@@ -134,7 +134,7 @@ class IosDelegateRetentionTest {
 
                 connect(pc1, pc2)
 
-                // Drain pc2's channels flow so the connection settles into CONNECTED.
+                // Drain pc2's channel flow so the connection settles into CONNECTED.
                 withTimeout(5.seconds) { pc2DataChannels.receive() }
 
                 // We must observe CONNECTED on pc1; that only arrives if the PC delegate

@@ -1,12 +1,14 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.webrtc.rs
 
 import io.ktor.client.webrtc.*
-import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import uniffi.ktor_client_webrtc.*
@@ -15,7 +17,7 @@ import kotlin.coroutines.CoroutineContext
 public class RustWebRtcConnection(
     internal val inner: PeerConnection,
     coroutineContext: CoroutineContext,
-    config: WebRtcConnectionConfig
+    private val config: WebRtcConnectionConfig
 ) : WebRtcPeerConnection(coroutineContext, config) {
 
     init {
@@ -69,6 +71,16 @@ public class RustWebRtcConnection(
         })
     }
 
+    internal fun startFetchingStatistics(): Job? {
+        val refreshRate = config.statsRefreshRate ?: return null
+        return coroutineScope.launch {
+            while (isActive) {
+                delay(duration = refreshRate)
+                events.emitStats(stats = getStatistics())
+            }
+        }
+    }
+
     // There is no need to make those getters async
     // It is async in Rust because of async mutex
     override val localDescription: WebRtc.SessionDescription?
@@ -89,6 +101,15 @@ public class RustWebRtcConnection(
         label: String,
         options: WebRtcDataChannelOptions.() -> Unit
     ): WebRtcDataChannel {
+        return createDataChannelInternal(label, options).apply {
+            setupEvents(events)
+        }
+    }
+
+    internal suspend fun createDataChannelInternal(
+        label: String,
+        options: WebRtcDataChannelOptions.() -> Unit
+    ): RustWebRtcDataChannel {
         val options = WebRtcDataChannelOptions().apply(options)
         val channelInit = DataChannelInit(
             negotiated = when (options.negotiated) {
@@ -102,9 +123,7 @@ public class RustWebRtcConnection(
         )
         val nativeChannel = inner.createDataChannel(label, channelInit)
         val receiveOptions = DataChannelReceiveOptions().apply(options.receiveOptions)
-        return RustWebRtcDataChannel(nativeChannel, coroutineScope, receiveOptions).apply {
-            setupEvents(events)
-        }
+        return RustWebRtcDataChannel(nativeChannel, coroutineScope, receiveOptions)
     }
 
     override suspend fun setLocalDescription(description: WebRtc.SessionDescription): Unit = withSdpException {

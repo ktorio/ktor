@@ -73,6 +73,7 @@ public class JsWebRtcDataChannel(
     }
 
     override fun closeTransport() {
+        stopReceivingMessages()
         channel.close()
     }
 
