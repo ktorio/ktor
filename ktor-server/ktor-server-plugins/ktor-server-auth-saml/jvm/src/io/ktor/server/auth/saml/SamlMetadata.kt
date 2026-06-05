@@ -256,22 +256,22 @@ public class SamlContactPerson {
     /**
      * The contact's given name (first name).
      */
-    public var givenName: String = ""
+    public var givenName: String? = null
 
     /**
      * The contact's surname (last name).
      */
-    public var surname: String = ""
+    public var surname: String? = null
 
     /**
      * The contact's email address.
      */
-    public var emailAddress: String = ""
+    public var emailAddress: String? = null
 
     /**
      * The contact's telephone number.
      */
-    public var telephoneNumber: String = ""
+    public var telephoneNumber: String? = null
 }
 
 /**
