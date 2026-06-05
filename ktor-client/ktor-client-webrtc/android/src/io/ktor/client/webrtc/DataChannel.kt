@@ -52,22 +52,25 @@ public class AndroidWebRtcDataChannel(
     override val protocol: String
         get() = channelInit?.protocol ?: error("Protocol is not supported in WebRTC")
 
-    private fun assertOpen() {
-        if (!state.canSend()) {
-            error("Data channel is closed.")
-        }
+    private fun requireOpen() {
+        if (state.canSend()) return
+        throw WebRtc.DataChannelClosedException("Data channel '$label' cannot send.")
     }
 
     override suspend fun send(text: String) {
-        assertOpen()
+        requireOpen()
         val buffer = DataChannel.Buffer(Charsets.UTF_8.encode(text), false)
-        nativeChannel.send(buffer)
+        if (!nativeChannel.send(buffer)) {
+            throw WebRtc.IOException("Failed to send text message over data channel '$label'.")
+        }
     }
 
     override suspend fun send(bytes: ByteArray) {
-        assertOpen()
+        requireOpen()
         val buffer = DataChannel.Buffer(ByteBuffer.wrap(bytes), true)
-        nativeChannel.send(buffer)
+        if (!nativeChannel.send(buffer)) {
+            throw WebRtc.IOException("Failed to send binary message over data channel '$label'.")
+        }
     }
 
     override fun setBufferedAmountLowThreshold(threshold: Long) {
