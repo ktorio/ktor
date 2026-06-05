@@ -26,7 +26,7 @@ public fun SamlSpMetadata.toXml(): String {
     require(!spEntityId.isNullOrBlank()) { "spEntityId is required for SP metadata" }
     require(acsUrl.isNotBlank()) { "acsUrl is required for SP metadata" }
 
-    val entityDescriptor = buildEntityDescriptor(this)
+    val entityDescriptor = buildEntityDescriptor(metadata = this)
     return entityDescriptor.marshalToString()
 }
 
@@ -50,18 +50,14 @@ private fun buildEntityDescriptor(metadata: SamlSpMetadata): EntityDescriptor {
         // Add SLO endpoint if configured
         val sloUrl = metadata.sloUrl
         if (sloUrl.isNotBlank()) {
-            val sloRedirect = builderFactory.build<SingleLogoutService>(SingleLogoutService.DEFAULT_ELEMENT_NAME) {
-                binding = SAMLConstants.SAML2_REDIRECT_BINDING_URI
-                location = sloUrl
+            val uris = listOf(SAMLConstants.SAML2_REDIRECT_BINDING_URI, SAMLConstants.SAML2_POST_BINDING_URI)
+            val services = uris.map { bindingUri ->
+                builderFactory.build<SingleLogoutService>(SingleLogoutService.DEFAULT_ELEMENT_NAME) {
+                    binding = bindingUri
+                    location = sloUrl
+                }
             }
-            singleLogoutServices.add(sloRedirect)
-
-            // Also add POST binding for SLO
-            val sloPost = builderFactory.build<SingleLogoutService>(SingleLogoutService.DEFAULT_ELEMENT_NAME) {
-                binding = SAMLConstants.SAML2_POST_BINDING_URI
-                location = sloUrl
-            }
-            singleLogoutServices.add(sloPost)
+            singleLogoutServices.addAll(services)
         }
 
         metadata.supportedNameIdFormats.forEach { format ->
@@ -75,9 +71,8 @@ private fun buildEntityDescriptor(metadata: SamlSpMetadata): EntityDescriptor {
             keyDescriptors.add(buildKeyDescriptor(certificate, UsageType.SIGNING))
         }
 
-        val encryptionCertificate =
-            metadata.encryptionCredential?.entityCertificate
-                ?: signingCertificate?.takeIf { metadata.signingCredential?.supportsDecryption == true }
+        val encryptionCertificate = metadata.encryptionCredential?.entityCertificate
+            ?: signingCertificate?.takeIf { metadata.signingCredential?.supportsDecryption == true }
         encryptionCertificate?.let { certificate ->
             keyDescriptors.add(buildKeyDescriptor(certificate, UsageType.ENCRYPTION))
         }
@@ -87,18 +82,13 @@ private fun buildEntityDescriptor(metadata: SamlSpMetadata): EntityDescriptor {
         entityID = metadata.spEntityId
         roleDescriptors.add(spDescriptor)
 
-        // Add Organization if configured
-        if (metadata.organizationUrl != null ||
-            metadata.organizationName != null ||
-            metadata.organizationDisplayName != null
-        ) {
-            organization = buildOrganization(metadata)
+        metadata.toOrganization()?.let {
+            organization = it
         }
-
-        metadata.technicalContacts.forEach { contact: SamlContactPerson ->
+        metadata.technicalContacts.forEach { contact ->
             contactPersons.add(contact.toOpenSaml(type = ContactPersonTypeEnumeration.TECHNICAL))
         }
-        metadata.supportContacts.forEach { contact: SamlContactPerson ->
+        metadata.supportContacts.forEach { contact ->
             contactPersons.add(contact.toOpenSaml(type = ContactPersonTypeEnumeration.SUPPORT))
         }
     }
@@ -130,26 +120,22 @@ private fun SamlContactPerson.toOpenSaml(type: ContactPersonTypeEnumeration): Op
     return builderFactory.build(OpenSamlContactPerson.DEFAULT_ELEMENT_NAME) {
         this.type = type
 
-        if (contact.givenName.isNotBlank()) {
-            givenName = builderFactory.build(GivenName.DEFAULT_ELEMENT_NAME) {
-                value = contact.givenName
-            }
+        contact.givenName?.let {
+            givenName = builderFactory.build(GivenName.DEFAULT_ELEMENT_NAME) { value = it }
         }
 
-        if (contact.surname.isNotBlank()) {
-            surName = builderFactory.build(SurName.DEFAULT_ELEMENT_NAME) {
-                value = contact.surname
-            }
+        contact.surname?.let {
+            surName = builderFactory.build(SurName.DEFAULT_ELEMENT_NAME) { value = it }
         }
 
-        if (contact.emailAddress.isNotBlank()) {
+        contact.emailAddress?.let {
             val email = builderFactory.build<EmailAddress>(EmailAddress.DEFAULT_ELEMENT_NAME) {
                 uri = contact.emailAddress
             }
             emailAddresses.add(email)
         }
 
-        if (contact.telephoneNumber.isNotBlank()) {
+        contact.telephoneNumber?.let {
             val phone = builderFactory.build<TelephoneNumber>(TelephoneNumber.DEFAULT_ELEMENT_NAME) {
                 value = contact.telephoneNumber
             }
@@ -158,31 +144,31 @@ private fun SamlContactPerson.toOpenSaml(type: ContactPersonTypeEnumeration): Op
     }
 }
 
-private fun buildOrganization(metadata: SamlSpMetadata): Organization {
-    val builderFactory = XMLObjectProviderRegistrySupport.getBuilderFactory()
-
-    return builderFactory.build(Organization.DEFAULT_ELEMENT_NAME) {
-        if (metadata.organizationName != null) {
-            val name = builderFactory.build<OrganizationName>(OrganizationName.DEFAULT_ELEMENT_NAME) {
-                value = metadata.organizationName
+private fun SamlSpMetadata.toOrganization(): Organization? {
+    if (organizationUrl == null && organizationName == null && organizationDisplayName == null) {
+        return null
+    }
+    val factory = XMLObjectProviderRegistrySupport.getBuilderFactory()
+    return factory.build(Organization.DEFAULT_ELEMENT_NAME) {
+        organizationName?.let {
+            val name = factory.build<OrganizationName>(OrganizationName.DEFAULT_ELEMENT_NAME) {
+                value = it
                 xmlLang = "en"
             }
             organizationNames.add(name)
         }
 
-        if (metadata.organizationDisplayName != null) {
-            val displayName = builderFactory.build<OrganizationDisplayName>(
-                OrganizationDisplayName.DEFAULT_ELEMENT_NAME
-            ) {
-                value = metadata.organizationDisplayName
+        organizationDisplayName?.let {
+            val displayName = factory.build<OrganizationDisplayName>(OrganizationDisplayName.DEFAULT_ELEMENT_NAME) {
+                value = it
                 xmlLang = "en"
             }
             displayNames.add(displayName)
         }
 
-        if (metadata.organizationUrl != null) {
-            val url = builderFactory.build<OrganizationURL>(OrganizationURL.DEFAULT_ELEMENT_NAME) {
-                uri = metadata.organizationUrl
+        organizationUrl?.let {
+            val url = factory.build<OrganizationURL>(OrganizationURL.DEFAULT_ELEMENT_NAME) {
+                uri = it
                 xmlLang = "en"
             }
             urLs.add(url)
