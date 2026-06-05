@@ -4,6 +4,7 @@
 
 package io.ktor.client.webrtc
 
+import io.ktor.utils.io.InternalAPI
 import js.buffer.ArrayBuffer
 import js.buffer.toByteArray
 import js.typedarrays.toInt8Array
@@ -60,12 +61,21 @@ public class JsWebRtcDataChannel(
     override val protocol: String
         get() = channel.protocol
 
-    override suspend fun send(text: String) {
-        channel.send(text)
+    private fun requireOpen() {
+        if (state.canSend()) return
+        throw WebRtc.DataChannelClosedException("Data channel '$label' cannot send.")
     }
 
+    @OptIn(InternalAPI::class)
+    override suspend fun send(text: String) {
+        requireOpen()
+        withIOException { channel.send(text) }
+    }
+
+    @OptIn(InternalAPI::class)
     override suspend fun send(bytes: ByteArray) {
-        channel.send(bytes.toInt8Array())
+        requireOpen()
+        withIOException { channel.send(bytes.toInt8Array()) }
     }
 
     override fun setBufferedAmountLowThreshold(threshold: Long) {
