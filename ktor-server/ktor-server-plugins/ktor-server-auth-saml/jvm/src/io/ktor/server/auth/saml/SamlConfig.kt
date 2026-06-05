@@ -183,32 +183,15 @@ public class SamlConfig internal constructor(
     public var allowIdpInitiatedSso: Boolean = false
 
     /**
-     * List of allowed URL prefixes for RelayState redirection.
+     * Validator for RelayState URLs to prevent open redirect attacks.
      *
-     * When configured, the SP will only redirect to URLs that start with one of these prefixes
-     * after successful authentication. This prevents open redirect attacks where an attacker
-     * crafts a SAML response with a malicious RelayState parameter.
+     * When a SAML response includes a RelayState parameter, the SP may redirect the user
+     * to that URL after successful authentication. Without proper validation, this can be
+     * exploited for open redirect attacks.
      *
-     * By default, an empty list is used which blocks all external redirects (only relative paths
-     * starting with "/" are allowed).
-     *
-     * To allow all RelayState URLs (UNSAFE, not recommended for production), set to `null`.
-     *
-     * **Example:**
-     * ```kotlin
-     * saml("saml-auth") {
-     *     // Only allow redirects to same origin
-     *     allowedRelayStateUrls = listOf("https://myapp.example.com/")
-     *
-     *     // Or allow multiple domains
-     *     allowedRelayStateUrls = listOf(
-     *         "https://myapp.example.com/",
-     *         "https://app.example.com/"
-     *     )
-     * }
-     * ```
+     * @see RelayStateValidator for detailed documentation on each validator type
      */
-    public var allowedRelayStateUrls: List<String>? = emptyList()
+    public var relayStateValidator: RelayStateValidator = RelayStateValidator.Default
 
     /**
      * Whether to require the Destination attribute in SAML responses.

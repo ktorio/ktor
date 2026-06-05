@@ -70,6 +70,36 @@ public final class io/ktor/server/auth/saml/NameIdFormat$Companion {
 	public final fun getUnspecified-yVcJgns ()Ljava/lang/String;
 }
 
+public abstract interface class io/ktor/server/auth/saml/RelayStateValidator {
+	public static final field Companion Lio/ktor/server/auth/saml/RelayStateValidator$Companion;
+	public abstract fun validate (Ljava/lang/String;)Z
+}
+
+public final class io/ktor/server/auth/saml/RelayStateValidator$AllowList : io/ktor/server/auth/saml/RelayStateValidator {
+	public fun <init> (Ljava/util/List;)V
+	public fun <init> ([Ljava/lang/String;)V
+	public fun validate (Ljava/lang/String;)Z
+}
+
+public final class io/ktor/server/auth/saml/RelayStateValidator$Companion {
+	public final fun containsDangerousPatterns (Ljava/lang/String;)Z
+	public final fun isAbsoluteUrlSafe (Ljava/lang/String;)Z
+	public final fun normalizeRelativePath (Ljava/lang/String;)Ljava/lang/String;
+}
+
+public final class io/ktor/server/auth/saml/RelayStateValidator$Custom : io/ktor/server/auth/saml/RelayStateValidator {
+	public fun <init> (Lkotlin/jvm/functions/Function1;)V
+	public fun validate (Ljava/lang/String;)Z
+}
+
+public final class io/ktor/server/auth/saml/RelayStateValidator$Default : io/ktor/server/auth/saml/RelayStateValidator {
+	public static final field INSTANCE Lio/ktor/server/auth/saml/RelayStateValidator$Default;
+	public fun equals (Ljava/lang/Object;)Z
+	public fun hashCode ()I
+	public fun toString ()Ljava/lang/String;
+	public fun validate (Ljava/lang/String;)Z
+}
+
 public final class io/ktor/server/auth/saml/SamlAlgorithms {
 	public static final field INSTANCE Lio/ktor/server/auth/saml/SamlAlgorithms;
 	public final fun getRECOMMENDED_DIGEST_ALGORITHMS ()Ljava/util/Set;
@@ -131,7 +161,6 @@ public final class io/ktor/server/auth/saml/SamlConfig : io/ktor/server/auth/Aut
 	public final fun challenge (Lkotlin/jvm/functions/Function3;)V
 	public final fun getAllowIdpInitiatedSso ()Z
 	public final fun getAllowedDigestAlgorithms ()Ljava/util/Set;
-	public final fun getAllowedRelayStateUrls ()Ljava/util/List;
 	public final fun getAllowedSignatureAlgorithms ()Ljava/util/Set;
 	public final fun getAuthnRequestBinding ()Lio/ktor/server/auth/saml/SamlBinding;
 	public final fun getClockSkew-UwyO8pc ()J
@@ -140,6 +169,7 @@ public final class io/ktor/server/auth/saml/SamlConfig : io/ktor/server/auth/Aut
 	public final fun getForceAuthn ()Z
 	public final fun getIdp ()Lio/ktor/server/auth/saml/IdPMetadata;
 	public final fun getNameIdFormat-W8VwlJw ()Ljava/lang/String;
+	public final fun getRelayStateValidator ()Lio/ktor/server/auth/saml/RelayStateValidator;
 	public final fun getRequestedAuthnContext-4ml6bek ()Ljava/lang/String;
 	public final fun getRequireDestination ()Z
 	public final fun getRequireSignedLogoutRequest ()Z
@@ -149,7 +179,6 @@ public final class io/ktor/server/auth/saml/SamlConfig : io/ktor/server/auth/Aut
 	public final fun replayCache (Lio/ktor/server/auth/saml/SamlReplayCache;)V
 	public final fun setAllowIdpInitiatedSso (Z)V
 	public final fun setAllowedDigestAlgorithms (Ljava/util/Set;)V
-	public final fun setAllowedRelayStateUrls (Ljava/util/List;)V
 	public final fun setAllowedSignatureAlgorithms (Ljava/util/Set;)V
 	public final fun setAuthnRequestBinding (Lio/ktor/server/auth/saml/SamlBinding;)V
 	public final fun setClockSkew-LRDsOJo (J)V
@@ -158,6 +187,7 @@ public final class io/ktor/server/auth/saml/SamlConfig : io/ktor/server/auth/Aut
 	public final fun setForceAuthn (Z)V
 	public final fun setIdp (Lio/ktor/server/auth/saml/IdPMetadata;)V
 	public final fun setNameIdFormat-eInvKLk (Ljava/lang/String;)V
+	public final fun setRelayStateValidator (Lio/ktor/server/auth/saml/RelayStateValidator;)V
 	public final fun setRequestedAuthnContext-Br-yMbY (Ljava/lang/String;)V
 	public final fun setRequireDestination (Z)V
 	public final fun setRequireSignedLogoutRequest (Z)V
