@@ -287,7 +287,7 @@ public class SamlAuthenticationProvider internal constructor(
 
             when {
                 samlRequest != null && samlResponse != null -> {
-                    logger.debug("SLO endpoint failed. Both `SAMLRequest` and `SAMLResponse` are present")
+                    logger.debug("SLO endpoint failed. Both `SAMLRequest` and `SAMLRequest` are present")
                     call.respond(HttpStatusCode.BadRequest, "Malformed SAML request")
                 }
 
