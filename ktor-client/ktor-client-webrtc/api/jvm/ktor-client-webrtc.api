@@ -174,6 +174,11 @@ public final class io/ktor/client/webrtc/WebRtc$DataChannel$State : java/lang/En
 	public static fun values ()[Lio/ktor/client/webrtc/WebRtc$DataChannel$State;
 }
 
+public class io/ktor/client/webrtc/WebRtc$DataChannelClosedException : io/ktor/client/webrtc/WebRtc$IOException {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
 public final class io/ktor/client/webrtc/WebRtc$DegradationPreference : java/lang/Enum {
 	public static final field BALANCED Lio/ktor/client/webrtc/WebRtc$DegradationPreference;
 	public static final field DISABLED Lio/ktor/client/webrtc/WebRtc$DegradationPreference;
@@ -188,6 +193,11 @@ public abstract interface class io/ktor/client/webrtc/WebRtc$DtmfSender {
 	public abstract fun getCanInsertDtmf ()Z
 	public abstract fun getToneBuffer ()Ljava/lang/String;
 	public abstract fun insertDtmf (Ljava/lang/String;II)V
+}
+
+public class io/ktor/client/webrtc/WebRtc$IOException : java/io/IOException {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 
 public final class io/ktor/client/webrtc/WebRtc$IceCandidate {
@@ -487,6 +497,7 @@ public abstract class io/ktor/client/webrtc/WebRtcDataChannel : io/ktor/client/w
 	public fun <init> (Lio/ktor/client/webrtc/DataChannelReceiveOptions;)V
 	public fun close ()V
 	protected final fun emitMessage-JP2dKIU (Lio/ktor/client/webrtc/WebRtc$DataChannel$Message;)Ljava/lang/Object;
+	public final fun iterator ()Lkotlinx/coroutines/channels/ChannelIterator;
 	public fun receive (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun receiveBinary (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun receiveText (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -494,6 +505,10 @@ public abstract class io/ktor/client/webrtc/WebRtcDataChannel : io/ktor/client/w
 	public fun tryReceive ()Lio/ktor/client/webrtc/WebRtc$DataChannel$Message;
 	public fun tryReceiveBinary ()[B
 	public fun tryReceiveText ()Ljava/lang/String;
+}
+
+public final class io/ktor/client/webrtc/WebRtcDataChannelKt {
+	public static final fun withIOException (Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/client/webrtc/WebRtcDataChannelOptions {

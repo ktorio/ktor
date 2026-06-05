@@ -239,10 +239,9 @@ class WebRtcDataChannelTest {
         dataChannel1.waitForClose(dataChannelEvents1)
         dataChannel2.waitForClose(dataChannelEvents2)
 
-        assertFails { dataChannel1.send("Hello") }
-        assertFails { dataChannel2.send("Hello") }
-        assertFails { dataChannel1.receive() }
-        assertEquals(null, dataChannel1.tryReceive())
+        assertFailsWith<WebRtc.DataChannelClosedException> { dataChannel1.send("Hello") }
+        assertFailsWith<WebRtc.DataChannelClosedException> { dataChannel2.send("Hello") }
+        assertFailsWith<WebRtc.DataChannelClosedException> { dataChannel1.receive() }
         assertEquals(null, dataChannel2.tryReceive())
     }
 
