@@ -204,7 +204,7 @@ internal fun bootstrapServletApplication(
     initParameters: List<Pair<String, String>>
 ): ServletApplicationBootstrap {
     val parameters = initParameters
-        .filter { (name, _) -> name.startsWith("io.ktor") }
+        .filter { (name, _) -> name.startsWith("io.ktor.") }
         .map { (name, value) -> name.removePrefix("io.ktor.") to value }
 
     val parametersConfig = MapApplicationConfig(parameters)

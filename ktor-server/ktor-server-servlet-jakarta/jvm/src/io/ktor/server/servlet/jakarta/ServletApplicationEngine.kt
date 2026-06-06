@@ -105,8 +105,8 @@ public open class ServletApplicationEngine : KtorServlet() {
     }
 
     override fun destroy() {
-        // In managed mode the server is stopped by KtorManagedServerStopListener on context
-        // destruction, which also guarantees the stop events fire even if no request was ever served.
+        // In managed mode the server is stopped by KtorServletContextListener on context destruction,
+        // which also guarantees the stop events fire even if no request was ever served.
         if (servletContext.managedEmbeddedServer() == null) {
             application.monitor.raise(ApplicationStopPreparing, environment)
             super.destroy()
@@ -205,7 +205,7 @@ internal fun bootstrapServletApplication(
     initParameters: List<Pair<String, String>>
 ): ServletApplicationBootstrap {
     val parameters = initParameters
-        .filter { (name, _) -> name.startsWith("io.ktor") }
+        .filter { (name, _) -> name.startsWith("io.ktor.") }
         .map { (name, value) -> name.removePrefix("io.ktor.") to value }
 
     val parametersConfig = MapApplicationConfig(parameters)
