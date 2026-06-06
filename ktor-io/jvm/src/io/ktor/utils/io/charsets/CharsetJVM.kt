@@ -80,11 +80,11 @@ public actual val CharsetDecoder.charset: Charset get() = charset()!!
 
 public actual fun CharsetDecoder.decode(input: Source, dst: Appendable, max: Int): Int {
     if (charset == Charsets.UTF_8) {
-        return input.readString().also { dst.append(it) }.length
+        return input.readString(max.toLong()).also { dst.append(it) }.length
     }
 
     val result = input.remaining
-    dst.append(input.readByteString().decodeToString(charset))
+    dst.append(input.readByteString(max).decodeToString(charset))
     return result.toInt()
 }
 

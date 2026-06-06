@@ -74,4 +74,14 @@ class CharsetDecoderTest {
             // Expected on native platforms
         }
     }
+
+    @Test
+    fun `decoding valid UTF-8 with max limit should stop at max`() {
+        val data = "Hello, world!".toByteArray()
+        val source = buildPacket { writeFully(data) }
+
+        val result = Charsets.UTF_8.newDecoder().decode(source, 5)
+
+        assertEquals("Hello", result)
+    }
 }
