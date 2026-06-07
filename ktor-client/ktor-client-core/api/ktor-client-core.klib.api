@@ -1948,6 +1948,9 @@ final class io.ktor.client.engine.js/JsError : kotlin/Throwable { // io.ktor.cli
 open class io.ktor.client.engine.js/JsClientEngineConfig : io.ktor.client.engine/HttpClientEngineConfig { // io.ktor.client.engine.js/JsClientEngineConfig|null[0]
     constructor <init>() // io.ktor.client.engine.js/JsClientEngineConfig.<init>|<init>(){}[0]
 
+    final var fetch // io.ktor.client.engine.js/JsClientEngineConfig.fetch|{}fetch[0]
+        final fun <get-fetch>(): kotlin/Function2<kotlin/String, io.ktor.client.fetch/RequestInit?, kotlin.js/Promise<org.w3c.fetch/Response>> // io.ktor.client.engine.js/JsClientEngineConfig.fetch.<get-fetch>|<get-fetch>(){}[0]
+        final fun <set-fetch>(kotlin/Function2<kotlin/String, io.ktor.client.fetch/RequestInit?, kotlin.js/Promise<org.w3c.fetch/Response>>) // io.ktor.client.engine.js/JsClientEngineConfig.fetch.<set-fetch>|<set-fetch>(kotlin.Function2<kotlin.String,io.ktor.client.fetch.RequestInit?,kotlin.js.Promise<org.w3c.fetch.Response>>){}[0]
     final var nodeOptions // io.ktor.client.engine.js/JsClientEngineConfig.nodeOptions|{}nodeOptions[0]
         // Targets: [js]
         final fun <get-nodeOptions>(): dynamic // io.ktor.client.engine.js/JsClientEngineConfig.nodeOptions.<get-nodeOptions>|<get-nodeOptions>(){}[0]
