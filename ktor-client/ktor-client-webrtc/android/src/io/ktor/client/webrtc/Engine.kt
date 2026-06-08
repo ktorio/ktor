@@ -60,7 +60,7 @@ public class AndroidWebRtcEngine(
         val coroutineContext = createConnectionContext(config.exceptionHandler)
         return AndroidWebRtcPeerConnection(coroutineContext, config) { observer ->
             localFactory.createPeerConnection(rtcConfig, observer)
-        }
+        }.also { it.startFetchingStatistics() }
     }
 }
 

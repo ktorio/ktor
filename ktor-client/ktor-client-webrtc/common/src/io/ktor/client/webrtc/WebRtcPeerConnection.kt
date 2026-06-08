@@ -18,7 +18,8 @@ import kotlin.coroutines.CoroutineContext
  */
 public abstract class WebRtcPeerConnection private constructor(
     protected val events: WebRtcConnectionEventsEmitter,
-    protected val coroutineScope: CoroutineScope
+    protected val coroutineScope: CoroutineScope,
+    private val config: WebRtcConnectionConfig
 ) : Closeable, WebRtcConnectionEvents by events {
 
     /**
@@ -31,15 +32,18 @@ public abstract class WebRtcPeerConnection private constructor(
     public constructor(
         coroutineContext: CoroutineContext,
         config: WebRtcConnectionConfig
-    ) : this(events = WebRtcConnectionEventsEmitter(config), coroutineScope = CoroutineScope(coroutineContext)) {
-        // Start fetching statistics
-        val refreshRate = config.statsRefreshRate
-        if (refreshRate != null) {
-            coroutineScope.launch {
-                while (isActive) {
-                    delay(duration = refreshRate)
-                    events.emitStats(stats = getStatistics())
-                }
+    ) : this(
+        events = WebRtcConnectionEventsEmitter(config),
+        coroutineScope = CoroutineScope(coroutineContext),
+        config = config
+    )
+
+    internal fun startFetchingStatistics(): Job? {
+        val refreshRate = config.statsRefreshRate ?: return null
+        return coroutineScope.launch {
+            while (isActive) {
+                delay(duration = refreshRate)
+                events.emitStats(stats = getStatistics())
             }
         }
     }
@@ -76,6 +80,15 @@ public abstract class WebRtcPeerConnection private constructor(
      */
     public abstract suspend fun createAnswer(): WebRtc.SessionDescription
 
+    /**
+     * Creates a local data channel associated with this peer connection.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcPeerConnection.createDataChannel)
+     *
+     * @param label The data channel label.
+     * @param options Configuration block for the data channel.
+     * @return The created data channel.
+     */
     public abstract suspend fun createDataChannel(
         label: String,
         options: (WebRtcDataChannelOptions.() -> Unit) = {}
@@ -159,6 +172,7 @@ public abstract class WebRtcPeerConnection private constructor(
     }
 
     override fun close() {
+        events.emitConnectionStateChange(WebRtc.ConnectionState.CLOSED)
         coroutineScope.cancel()
     }
 }

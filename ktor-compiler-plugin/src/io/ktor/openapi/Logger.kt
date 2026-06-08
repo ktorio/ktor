@@ -1,12 +1,11 @@
 package io.ktor.openapi
 
 import org.jetbrains.kotlin.cli.common.messages.CompilerMessageLocation
-import org.jetbrains.kotlin.cli.common.messages.CompilerMessageSeverity
-import org.jetbrains.kotlin.cli.common.messages.MessageCollector
+import org.jetbrains.kotlin.cli.reportLog
+import org.jetbrains.kotlin.config.CompilerConfiguration
 import java.nio.file.Paths
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import kotlin.io.path.appendText
 import kotlin.io.path.bufferedWriter
 
 fun interface Logger {
@@ -14,7 +13,7 @@ fun interface Logger {
         const val DEBUG_LOG_FILE = "ktor-compiler-debug.log"
         private val LOG_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS: ")
 
-        fun wrap(messageCollector: MessageCollector, debug: Boolean, logDir: String?): Logger {
+        fun wrap(configuration: CompilerConfiguration, debug: Boolean, logDir: String?): Logger {
             val debugFileWriter = if (debug && logDir != null) {
                 Paths.get(logDir, DEBUG_LOG_FILE).bufferedWriter().also {
                     it.append(LocalDateTime.now().format(LOG_FORMATTER))
@@ -24,16 +23,12 @@ fun interface Logger {
             } else null
 
             return Logger { message, cause, location ->
-                // Always log messages to message collector
+                // Always log messages via the compiler configuration's reporter
                 val fullMessage = if (debug && cause != null) {
                     "$message\n${cause.stackTraceToString()}"
                 } else message
 
-                messageCollector.report(
-                    severity = CompilerMessageSeverity.LOGGING,
-                    message = fullMessage,
-                    location = location,
-                )
+                configuration.reportLog(fullMessage, location)
 
                 debugFileWriter?.appendLine(buildString {
                     append(LocalDateTime.now().format(LOG_FORMATTER))

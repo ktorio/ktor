@@ -171,6 +171,15 @@ public class IosWebRtcConnection(
         label: String,
         options: WebRtcDataChannelOptions.() -> Unit
     ): WebRtcDataChannel {
+        return createDataChannelInternal(label, options).apply {
+            setupEvents(events)
+        }
+    }
+
+    internal suspend fun createDataChannelInternal(
+        label: String,
+        options: WebRtcDataChannelOptions.() -> Unit
+    ): IosWebRtcDataChannel {
         val options = WebRtcDataChannelOptions().apply(options)
         val configuration = RTCDataChannelConfiguration().apply {
             if (options.id != null) {
@@ -190,9 +199,7 @@ public class IosWebRtcConnection(
             "Failed to create data channel with label: $label"
         }
         val receiveOptions = DataChannelReceiveOptions().apply(options.receiveOptions)
-        return IosWebRtcDataChannel(nativeChannel, coroutineScope, receiveOptions).apply {
-            setupEvents(events)
-        }
+        return IosWebRtcDataChannel(nativeChannel, coroutineScope, receiveOptions)
     }
 
     override suspend fun setLocalDescription(description: WebRtc.SessionDescription): Unit =

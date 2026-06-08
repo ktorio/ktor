@@ -47,7 +47,7 @@
                     "parent": {
                         "oneOf": [
                             {
-                                "$ref": "#/components/schemas/openapi.Node"
+                                "$ref": "#/components/schemas/Node"
                             },
                             {
                                 "type": "null"

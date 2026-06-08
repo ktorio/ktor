@@ -69,7 +69,7 @@ public class IosWebRtcEngine(
                 configuration = rtcConfig,
                 delegate = delegate,
             )
-        }
+        }.also { it.startFetchingStatistics() }
     }
 }
 
