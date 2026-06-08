@@ -7,13 +7,9 @@ import io.ktor.openapi.ir.OpenApiCodeGenerationExtension
 import io.ktor.openapi.OpenApiProcessorConfig
 import io.ktor.openapi.routing.RouteCallLookup
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
-import org.jetbrains.kotlin.cli.common.messages.MessageCollector
 import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
-import org.jetbrains.kotlin.config.CommonConfigurationKeys
 import org.jetbrains.kotlin.config.CompilerConfiguration
 import org.jetbrains.kotlin.fir.extensions.FirExtensionRegistrarAdapter
-import java.nio.file.Paths
-import kotlin.io.path.absolutePathString
 
 class KtorCompilerPluginRegistrar : CompilerPluginRegistrar() {
 
@@ -26,8 +22,7 @@ class KtorCompilerPluginRegistrar : CompilerPluginRegistrar() {
             return
         }
 
-        val messageCollector = configuration.get(CommonConfigurationKeys.MESSAGE_COLLECTOR_KEY, MessageCollector.NONE)
-        val logger = Logger.wrap(messageCollector, openApiConfig.debug, openApiConfig.logDir)
+        val logger = Logger.wrap(configuration, openApiConfig.debug, openApiConfig.logDir)
         val routes: RouteCallLookup = mutableMapOf()
         // Analysis FIR plugin reads the comments and caches them to the routes graph
         FirExtensionRegistrarAdapter.registerExtension(
