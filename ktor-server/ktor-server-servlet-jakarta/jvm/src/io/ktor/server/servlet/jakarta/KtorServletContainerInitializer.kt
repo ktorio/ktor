@@ -36,8 +36,14 @@ public class KtorServletContainerInitializer : ServletContainerInitializer {
 }
 
 /**
- * Starts and stops a servlet-hosted Ktor application together with the web application context, so the
- * lifecycle events fire at deploy/undeploy regardless of `load-on-startup` (see KTOR-8524).
+ * Starts and stops a servlet-hosted Ktor application together with the web application context,
+ * independently of when (or whether) the [ServletApplicationEngine] servlet is initialized.
+ *
+ * In a WAR deployment without `load-on-startup` the servlet container initializes the servlet lazily on
+ * the first request. Binding the application lifecycle to `contextInitialized` / `contextDestroyed`
+ * makes `ApplicationStarted` fire at deployment time instead of only after the first request, and
+ * guarantees `ApplicationStopped` fires on undeploy even when no request was ever served (otherwise
+ * resources released by `ApplicationStopped` handlers would leak).
  *
  * Registered automatically by [KtorServletContainerInitializer]; it can also be added as a `<listener>`
  * in `web.xml`.
@@ -87,6 +93,7 @@ public class KtorServletContextListener : ServletContextListener {
         server.application.monitor.raise(ApplicationStopPreparing, server.environment)
         server.stop()
         ctx.removeAttribute(ManagedServerKey)
+        ctx.removeAttribute(ApplicationEnginePipelineAttributeKey)
     }
 }
 
