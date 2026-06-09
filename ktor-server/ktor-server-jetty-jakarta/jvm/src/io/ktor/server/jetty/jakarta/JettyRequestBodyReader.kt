@@ -36,6 +36,7 @@ internal fun CoroutineScope.bodyReader(request: Request, log: Logger, idleTimeou
                         }
                     }
                 }
+
                 // read the chunk, exit and close channel if last chunk or failure
                 else -> {
                     with(chunk) {

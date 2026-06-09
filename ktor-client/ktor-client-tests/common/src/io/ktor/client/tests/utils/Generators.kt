@@ -22,7 +22,9 @@ suspend fun List<PartData>.makeString(): String = buildString {
         append("${it.name!!}\n")
         val content = when (it) {
             is PartData.FileItem -> filenameContentTypeAndContentString(it.provider, it.headers)
+
             is PartData.FormItem -> it.value
+
             is PartData.BinaryItem -> filenameContentTypeAndContentString(
                 { ByteReadChannel(it.provider().readByteArray()) },
                 it.headers

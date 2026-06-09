@@ -115,7 +115,9 @@ internal fun List<LongRange>.mergeRangesKeepOrder(): List<LongRange> {
     val sortedMerged = sortedBy { it.first }.fold(ArrayList<LongRange>(size)) { acc, range ->
         when {
             acc.isEmpty() -> acc.add(range)
+
             acc.last().last < range.first - 1 -> acc.add(range)
+
             else -> {
                 val last = acc.last()
                 acc[acc.lastIndex] = last.first..max(last.last, range.last)

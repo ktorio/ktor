@@ -73,11 +73,13 @@ public class MultiPartFormDataContent(
                 val size = bodySize?.plus(PART_OVERHEAD_SIZE)?.plus(headers.size)
                 PreparedPart.ChannelPart(headers, part.provider, size)
             }
+
             is PartData.BinaryItem -> {
                 val headers = headersBuilder.build().readByteArray()
                 val size = bodySize?.plus(PART_OVERHEAD_SIZE)?.plus(headers.size)
                 PreparedPart.InputPart(headers, part.provider, size)
             }
+
             is PartData.FormItem -> {
                 val bytes = buildPacket { writeText(part.value) }.readByteArray()
                 val provider = { buildPacket { writeFully(bytes) } }
@@ -90,6 +92,7 @@ public class MultiPartFormDataContent(
                 val size = bytes.size + PART_OVERHEAD_SIZE + headers.size
                 PreparedPart.InputPart(headers, provider, size.toLong())
             }
+
             is PartData.BinaryChannelItem -> {
                 val headers = headersBuilder.build().readByteArray()
                 val size = bodySize?.plus(PART_OVERHEAD_SIZE)?.plus(headers.size)
@@ -133,6 +136,7 @@ public class MultiPartFormDataContent(
                             input.copyTo(channel)
                         }
                     }
+
                     is PreparedPart.ChannelPart -> {
                         part.provider().copyTo(channel)
                     }

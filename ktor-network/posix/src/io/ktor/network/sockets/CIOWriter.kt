@@ -37,6 +37,7 @@ internal fun CoroutineScope.attachForWritingImpl(
 
                 when (bytesWritten) {
                     0 -> sockedClosed = true
+
                     -1 -> {
                         val error = getSocketError()
                         if (isWouldBlockError(error)) {

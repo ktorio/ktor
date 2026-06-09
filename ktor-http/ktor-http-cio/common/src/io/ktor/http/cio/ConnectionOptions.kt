@@ -96,7 +96,9 @@ public class ConnectionOptions(
 
                         hopHeadersList.add(connection.substring(start, idx))
                     }
+
                     connectionOptions == null -> connectionOptions = detected.second
+
                     else -> {
                         connectionOptions = ConnectionOptions(
                             close = connectionOptions.close || detected.second.close,
@@ -132,6 +134,7 @@ public class ConnectionOptions(
                 else -> buildToString()
             }
         }
+
         else -> buildToString()
     }
 

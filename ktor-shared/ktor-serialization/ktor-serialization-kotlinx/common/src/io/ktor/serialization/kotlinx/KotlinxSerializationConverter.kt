@@ -69,7 +69,9 @@ public class KotlinxSerializationConverter(
         try {
             return when (format) {
                 is StringFormat -> format.decodeFromString(serializer, contentPacket.readText(charset))
+
                 is BinaryFormat -> format.decodeFromByteArray(serializer, contentPacket.readByteArray())
+
                 else -> {
                     contentPacket.discard()
                     error("Unsupported format $format")

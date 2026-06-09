@@ -242,6 +242,7 @@ private fun CharSequence.decodeImpl(
                 sb.append(' ')
                 index++
             }
+
             c == '%' -> {
                 // if ByteArray was not needed before, create it with an estimate of remaining string be all hex
                 if (bytes == null) {
@@ -273,6 +274,7 @@ private fun CharSequence.decodeImpl(
                 // Note: Tried using ByteBuffer and using enc.decode() – it's slower
                 sb.append(bytes.decodeToString(0, 0 + count))
             }
+
             else -> {
                 sb.append(c)
                 index++

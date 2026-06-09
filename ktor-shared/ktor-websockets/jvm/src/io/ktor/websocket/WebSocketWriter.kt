@@ -61,11 +61,13 @@ public class WebSocketWriter(
             loop@ for (message in queue) {
                 when (message) {
                     is Frame -> if (drainQueueAndSerialize(message, buffer)) break@loop
+
                     is FlushRequest -> {
                         // we don't need writeChannel.flush() here as
                         // we do flush at the end of every drainQueueAndSerialize
                         message.complete()
                     }
+
                     else -> throw IllegalArgumentException("unknown message $message")
                 }
             }
@@ -89,12 +91,19 @@ public class WebSocketWriter(
                 val message = queue.tryReceive().getOrNull() ?: break
                 when (message) {
                     is Frame.Close -> {
-                    } // ignore
+                    }
+
+                    // ignore
                     is Frame.Ping, is Frame.Pong -> {
-                    } // ignore
+                    }
+
+                    // ignore
                     is FlushRequest -> message.complete()
+
                     is Frame.Text, is Frame.Binary -> {
-                    } // discard
+                    }
+
+                    // discard
                     else -> throw IllegalArgumentException("unknown message $message")
                 }
             } while (true)
@@ -113,11 +122,14 @@ public class WebSocketWriter(
                 val message = queue.tryReceive().getOrNull() ?: break
                 when (message) {
                     is FlushRequest -> flush = message
+
                     is Frame.Close -> {
                         serializer.enqueue(message)
                         closeSent = true
                     }
+
                     is Frame -> serializer.enqueue(message)
+
                     else -> throw IllegalArgumentException("unknown message $message")
                 }
             }

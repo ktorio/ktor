@@ -387,7 +387,9 @@ internal fun mergedHeadersLookup(
 ): (String) -> String = block@{ header ->
     return@block when (header) {
         HttpHeaders.ContentLength -> content.contentLength?.toString() ?: ""
+
         HttpHeaders.ContentType -> content.contentType?.toString() ?: ""
+
         HttpHeaders.UserAgent -> {
             content.headers[HttpHeaders.UserAgent] ?: headerExtractor(HttpHeaders.UserAgent) ?: KTOR_DEFAULT_USER_AGENT
         }

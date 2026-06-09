@@ -146,7 +146,9 @@ internal class SessionSerializerReflection<T : Any>(
         when {
             isListType(p.returnType) -> when {
                 value !is List<*> -> assignValue(instance, p, coerceType(p.returnType, value))
+
                 p is KMutableProperty1<X, *> -> p.setter.call(instance, coerceType(p.returnType, value))
+
                 originalValue is MutableList<*> -> {
                     originalValue.withUnsafe {
                         clear()
@@ -159,7 +161,9 @@ internal class SessionSerializerReflection<T : Any>(
 
             isSetType(p.returnType) -> when {
                 value !is Set<*> -> assignValue(instance, p, coerceType(p.returnType, value))
+
                 p is KMutableProperty1<X, *> -> p.setter.call(instance, coerceType(p.returnType, value))
+
                 originalValue is MutableSet<*> -> {
                     originalValue.withUnsafe {
                         clear()
@@ -172,7 +176,9 @@ internal class SessionSerializerReflection<T : Any>(
 
             isMapType(p.returnType) -> when {
                 value !is Map<*, *> -> assignValue(instance, p, coerceType(p.returnType, value))
+
                 p is KMutableProperty1<X, *> -> p.setter.call(instance, coerceType(p.returnType, value))
+
                 originalValue is MutableMap<*, *> -> {
                     originalValue.withUnsafe {
                         clear()
@@ -198,8 +204,10 @@ internal class SessionSerializerReflection<T : Any>(
     private fun coerceType(type: KType, value: Any?): Any? =
         when {
             value == null -> null
+
             isListType(type) -> when {
                 value !is List<*> && value is Iterable<*> -> coerceType(type, value.toList())
+
                 value !is List<*> -> throw IllegalArgumentException(
                     "Couldn't coerce type ${value::class.java} to $type"
                 )
@@ -222,6 +230,7 @@ internal class SessionSerializerReflection<T : Any>(
 
             isSetType(type) -> when {
                 value !is Set<*> && value is Iterable<*> -> coerceType(type, value.toSet())
+
                 value !is Set<*> -> throw IllegalArgumentException("Couldn't coerce type ${value::class.java} to $type")
 
                 else -> {
@@ -242,6 +251,7 @@ internal class SessionSerializerReflection<T : Any>(
 
             isMapType(type) -> when (value) {
                 !is Map<*, *> -> throw IllegalArgumentException("Couldn't coerce type ${value::class.java} to $type")
+
                 else -> {
                     val keyType = type.arguments[0].type
                         ?: throw IllegalArgumentException(
@@ -284,7 +294,9 @@ internal class SessionSerializerReflection<T : Any>(
             }
 
             type.toJavaClass() == Float::class.java && value is Number -> value.toFloat()
+
             type.toJavaClass() == UUID::class.java && value is String -> UUID.fromString(value)
+
             else -> value
         }
 
@@ -333,9 +345,13 @@ internal class SessionSerializerReflection<T : Any>(
         } else {
             when (value.getOrNull(1)) {
                 null, 'n' -> null
+
                 'i' -> value.drop(2).toInt()
+
                 'l' -> value.drop(2).toLong()
+
                 'f' -> value.drop(2).toDouble()
+
                 'b' -> when (value.getOrNull(2)) {
                     'o' -> when (value.getOrNull(3)) {
                         't' -> true
@@ -344,7 +360,9 @@ internal class SessionSerializerReflection<T : Any>(
                     }
 
                     'd' -> BigDecimal(value.drop(3))
+
                     'i' -> BigInteger(value.drop(3))
+
                     else -> throw IllegalArgumentException("Unsupported b-type ${value.take(3)}")
                 }
 
@@ -355,6 +373,7 @@ internal class SessionSerializerReflection<T : Any>(
                 }
 
                 's' -> value.drop(2)
+
                 'c' -> when (value.getOrNull(2)) {
                     'l' -> deserializeCollection(value.drop(3))
                     's' -> deserializeCollection(value.drop(3)).toSet()
@@ -363,7 +382,9 @@ internal class SessionSerializerReflection<T : Any>(
                 }
 
                 'm' -> deserializeMap(value.drop(2))
+
                 '#' -> deserializeObject(owner, value.drop(2))
+
                 else -> throw IllegalArgumentException("Unsupported type ${value.take(2)}")
             }
         }
@@ -371,25 +392,40 @@ internal class SessionSerializerReflection<T : Any>(
     private fun serializeValue(value: Any?): String =
         when (value) {
             null -> "#n"
+
             is Int -> "#i$value"
+
             is Long -> "#l$value"
+
             is Float -> "#f$value"
+
             is Double -> "#f$value"
+
             is Boolean -> "#bo${value.toString().first()}"
+
             is Char -> "#ch$value"
+
             is BigDecimal -> "#bd$value"
+
             is BigInteger -> "#bi$value"
+
             is Optional<*> -> when {
                 value.isPresent -> "#op${serializeValue(value.get())}"
                 else -> "#om"
             }
 
             is String -> "#s$value"
+
             is List<*> -> "#cl${serializeCollection(value)}"
+
             is Set<*> -> "#cs${serializeCollection(value)}"
+
             is Map<*, *> -> "#m${serializeMap(value)}"
+
             is Enum<*> -> "#s${value.name}"
+
             is UUID -> "#s$value"
+
             else -> "##${serializeClassInstance(value)}"
         }
 

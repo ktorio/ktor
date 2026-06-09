@@ -133,8 +133,11 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
     private fun OutgoingContent.toByteReadChannel(timeoutAttributes: HttpTimeoutConfig?): ByteReadChannel =
         when (this) {
             is OutgoingContent.NoContent -> ByteReadChannel.Empty
+
             is OutgoingContent.ByteArrayContent -> ByteReadChannel(bytes())
+
             is OutgoingContent.ReadChannelContent -> readFrom()
+
             is OutgoingContent.WriteChannelContent -> writer(coroutineContext) {
                 val counted = channel.counted()
                 val job = launch {
@@ -145,6 +148,7 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
             }.channel
 
             is OutgoingContent.ContentWrapper -> delegate().toByteReadChannel(timeoutAttributes)
+
             is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(this)
         }
 

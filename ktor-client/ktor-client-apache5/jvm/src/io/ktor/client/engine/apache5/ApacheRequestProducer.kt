@@ -96,12 +96,17 @@ internal class ApacheRequestEntityProducer(
     @OptIn(DelicateCoroutinesApi::class)
     private fun getChannel(callContext: CoroutineContext, body: OutgoingContent): ByteReadChannel = when (body) {
         is OutgoingContent.ByteArrayContent -> ByteReadChannel(body.bytes())
+
         is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(body)
+
         is OutgoingContent.NoContent -> ByteReadChannel.Empty
+
         is OutgoingContent.ReadChannelContent -> body.readFrom()
+
         is OutgoingContent.WriteChannelContent -> GlobalScope.writer(callContext, autoFlush = true) {
             body.writeTo(channel)
         }.channel
+
         is OutgoingContent.ContentWrapper -> getChannel(callContext, body.delegate())
     }
 

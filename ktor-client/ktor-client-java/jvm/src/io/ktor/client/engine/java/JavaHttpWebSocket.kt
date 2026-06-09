@@ -206,6 +206,7 @@ internal class JavaHttpWebSocket(
             }
 
             result.isClosed -> result.exceptionOrNull()?.let { throw it }
+
             else -> async(start = CoroutineStart.UNDISPATCHED) {
                 _incoming.send(frame)
                 onSent()

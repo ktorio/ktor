@@ -111,8 +111,11 @@ public class IosWebRtcDataChannel(
             override fun dataChannelDidChangeState(dataChannel: RTCDataChannel) = runInConnectionScope {
                 val event = when (state) {
                     WebRtc.DataChannel.State.CONNECTING -> null
+
                     WebRtc.DataChannel.State.OPEN -> DataChannelEvent.Open(this@IosWebRtcDataChannel)
+
                     WebRtc.DataChannel.State.CLOSING -> DataChannelEvent.Closing(this@IosWebRtcDataChannel)
+
                     WebRtc.DataChannel.State.CLOSED -> {
                         stopReceivingMessages()
                         DataChannelEvent.Closed(this@IosWebRtcDataChannel)

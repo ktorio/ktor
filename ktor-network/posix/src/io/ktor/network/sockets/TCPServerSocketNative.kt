@@ -52,6 +52,7 @@ internal class TCPServerSocketNative(
                 isWouldBlockError(error) -> {
                     selector.select(this@TCPServerSocketNative, SelectInterest.ACCEPT)
                 }
+
                 else -> {
                     val posixException = PosixException.forSocketError(error)
                     throw IOException("Accept failed", posixException)

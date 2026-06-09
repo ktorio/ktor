@@ -48,7 +48,9 @@ internal fun Url.toNSUrl(): NSURL {
 
         when {
             encodedQuery.isEmpty() -> components.percentEncodedQuery = null
+
             queryEncoded -> components.percentEncodedQuery = encodedQuery
+
             else -> components.percentEncodedQueryItems = parameters.toMap()
                 .flatMap { (key, value) -> if (value.isEmpty()) listOf(key to null) else value.map { key to it } }
                 .map { NSURLQueryItem(it.first.encodeQueryKey(), it.second?.encodeQueryValue()) }

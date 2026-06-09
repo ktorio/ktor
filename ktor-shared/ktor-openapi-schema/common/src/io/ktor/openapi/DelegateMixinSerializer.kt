@@ -96,6 +96,7 @@ internal abstract class DelegateMixinSerializer<T>(
         val dividedElements = joinedElement.extract(properties.keys)
         when (dividedElements.size) {
             1 -> encoder.encodeSerializableValue(baseSerializer, value)
+
             else -> {
                 encoder.encodeSerializableValue(
                     encoder.serializersModule.serializer<GenericElement>(),

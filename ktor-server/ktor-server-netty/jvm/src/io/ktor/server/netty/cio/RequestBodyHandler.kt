@@ -162,7 +162,9 @@ internal class RequestBodyHandler(
 
             when (e) {
                 is ByteChannel -> e.close()
+
                 is ReferenceCounted -> e.release()
+
                 else -> {
                 }
             }

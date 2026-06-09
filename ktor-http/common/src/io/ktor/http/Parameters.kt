@@ -109,7 +109,9 @@ public class ParametersSingleImpl(name: String, values: List<String>) : Paramete
 public operator fun Parameters.plus(other: Parameters): Parameters = when {
     caseInsensitiveName == other.caseInsensitiveName -> when {
         this.isEmpty() -> other
+
         other.isEmpty() -> this
+
         else -> Parameters.build {
             appendAll(this@plus)
             appendAll(other)

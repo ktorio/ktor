@@ -107,8 +107,11 @@ internal abstract class SocketBase(
 
     private fun combine(e1: Throwable?, e2: Throwable?): Throwable? = when {
         e1 == null -> e2
+
         e2 == null -> e1
+
         e1 === e2 -> e1
+
         else -> {
             e1.addSuppressed(e2)
             e1

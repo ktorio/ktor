@@ -43,7 +43,9 @@ public fun ApplicationReceivePipeline.installDefaultTransformations() {
 
         val transformed: Any? = when (call.receiveType.type) {
             ByteReadChannel::class -> null
+
             ByteArray::class -> channel.toByteArray()
+
             Parameters::class -> {
                 val contentType = withContentType(call) { call.request.contentType() }
                 when {

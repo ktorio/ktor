@@ -100,7 +100,9 @@ internal class DarwinWebsocketSession(
         val result = _incoming.trySend(frame)
         when {
             result.isSuccess -> return
+
             result.isClosed -> result.exceptionOrNull()?.let { throw it }
+
             else -> launch(start = CoroutineStart.UNDISPATCHED) {
                 _incoming.send(frame)
             }
@@ -263,5 +265,6 @@ private fun convertWebsocketError(error: NSError): Exception = when {
         error.code.convert<Int>() == EMSGSIZE -> {
         FrameTooBigException(frameSize = -1L, DarwinHttpRequestException(error))
     }
+
     else -> DarwinHttpRequestException(error)
 }

@@ -167,14 +167,17 @@ class HighLoadHttpGenerator(
                         remaining = 0
                         true
                     }
+
                     hp -> {
                         current.clear()
                         doWrite()
                     }
+
                     --remaining > 0 -> {
                         current.clear()
                         doWrite()
                     }
+
                     else -> true
                 }
             }

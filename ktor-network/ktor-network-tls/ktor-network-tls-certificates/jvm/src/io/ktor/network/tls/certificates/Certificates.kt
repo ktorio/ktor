@@ -245,10 +245,12 @@ private fun Sink.writeX509Info(
                     KeyType.CA -> {
                         caExtension()
                     }
+
                     KeyType.Server -> {
                         extKeyUsage { serverAuth() }
                         subjectAlternativeNames(domains, ipAddresses)
                     }
+
                     KeyType.Client -> {
                         extKeyUsage { clientAuth() }
                     }
@@ -492,21 +494,25 @@ private fun Sink.writeDerLength(length: Int) {
 
     when {
         length <= 0x7f -> writeByte(length.toByte())
+
         length <= 0xff -> {
             writeByte(0x81.toByte())
             writeByte(length.toByte())
         }
+
         length <= 0xffff -> {
             writeByte(0x82.toByte())
             writeByte((length ushr 8).toByte())
             writeByte(length.toByte())
         }
+
         length <= 0xffffff -> {
             writeByte(0x83.toByte())
             writeByte((length ushr 16).toByte())
             writeByte(((length ushr 8) and 0xff).toByte())
             writeByte(length.toByte())
         }
+
         else -> {
             writeByte(0x84.toByte())
             writeByte((length ushr 24).toByte())

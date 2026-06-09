@@ -52,6 +52,7 @@ internal class CIOEngine(
         null -> null
 
         ProxyType.HTTP -> config.proxy
+
         else -> throw IllegalStateException("CIO engine does not currently support $type proxies.")
     }
 

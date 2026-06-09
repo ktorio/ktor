@@ -269,6 +269,7 @@ internal fun buildMultipart(
                             }
 
                             is PartData.FormItem -> it.value
+
                             is PartData.BinaryChannelItem -> {
                                 it.provider().copyTo(channel)
                                 ""

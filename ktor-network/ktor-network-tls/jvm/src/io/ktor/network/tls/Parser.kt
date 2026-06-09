@@ -92,6 +92,7 @@ internal fun Source.readCurveParams(): NamedCurve {
         }
 
         ServerKeyExchangeType.ExplicitPrime -> error("ExplicitPrime server key exchange type is not yet supported")
+
         ServerKeyExchangeType.ExplicitChar -> error("ExplicitChar server key exchange type is not yet supported")
     }
 }
