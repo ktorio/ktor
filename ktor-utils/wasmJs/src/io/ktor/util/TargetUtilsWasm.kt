@@ -8,6 +8,7 @@ import kotlinx.coroutines.await
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Int8Array
 import org.khronos.webgl.get
+import kotlin.js.Promise
 
 private fun toJsArrayImpl(vararg x: Byte): Int8Array = js("new Int8Array(x)")
 
