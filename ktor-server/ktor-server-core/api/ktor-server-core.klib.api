@@ -1305,6 +1305,25 @@ final class io.ktor.server.routing/RoutingRoot : io.ktor.server.routing/Routing,
     }
 }
 
+final value class io.ktor.server.routing/SegmentedPath : kotlin.collections/List<kotlin/String> { // io.ktor.server.routing/SegmentedPath|null[0]
+    final val size // io.ktor.server.routing/SegmentedPath.size|{}size[0]
+        final fun <get-size>(): kotlin/Int // io.ktor.server.routing/SegmentedPath.size.<get-size>|<get-size>(){}[0]
+
+    final fun contains(kotlin/String): kotlin/Boolean // io.ktor.server.routing/SegmentedPath.contains|contains(kotlin.String){}[0]
+    final fun containsAll(kotlin.collections/Collection<kotlin/String>): kotlin/Boolean // io.ktor.server.routing/SegmentedPath.containsAll|containsAll(kotlin.collections.Collection<kotlin.String>){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.server.routing/SegmentedPath.equals|equals(kotlin.Any?){}[0]
+    final fun get(kotlin/Int): kotlin/String // io.ktor.server.routing/SegmentedPath.get|get(kotlin.Int){}[0]
+    final fun hashCode(): kotlin/Int // io.ktor.server.routing/SegmentedPath.hashCode|hashCode(){}[0]
+    final fun indexOf(kotlin/String): kotlin/Int // io.ktor.server.routing/SegmentedPath.indexOf|indexOf(kotlin.String){}[0]
+    final fun isEmpty(): kotlin/Boolean // io.ktor.server.routing/SegmentedPath.isEmpty|isEmpty(){}[0]
+    final fun iterator(): kotlin.collections/Iterator<kotlin/String> // io.ktor.server.routing/SegmentedPath.iterator|iterator(){}[0]
+    final fun lastIndexOf(kotlin/String): kotlin/Int // io.ktor.server.routing/SegmentedPath.lastIndexOf|lastIndexOf(kotlin.String){}[0]
+    final fun listIterator(): kotlin.collections/ListIterator<kotlin/String> // io.ktor.server.routing/SegmentedPath.listIterator|listIterator(){}[0]
+    final fun listIterator(kotlin/Int): kotlin.collections/ListIterator<kotlin/String> // io.ktor.server.routing/SegmentedPath.listIterator|listIterator(kotlin.Int){}[0]
+    final fun subList(kotlin/Int, kotlin/Int): kotlin.collections/List<kotlin/String> // io.ktor.server.routing/SegmentedPath.subList|subList(kotlin.Int;kotlin.Int){}[0]
+    final fun toString(): kotlin/String // io.ktor.server.routing/SegmentedPath.toString|toString(){}[0]
+}
+
 open class <#A: kotlin/Any> io.ktor.server.application/CallContext { // io.ktor.server.application/CallContext|null[0]
     final val pluginConfig // io.ktor.server.application/CallContext.pluginConfig|{}pluginConfig[0]
         final fun <get-pluginConfig>(): #A // io.ktor.server.application/CallContext.pluginConfig.<get-pluginConfig>|<get-pluginConfig>(){}[0]
