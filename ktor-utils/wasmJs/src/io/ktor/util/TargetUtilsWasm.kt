@@ -4,11 +4,8 @@
 
 package io.ktor.util
 
-import kotlinx.coroutines.await
-import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Int8Array
 import org.khronos.webgl.get
-import kotlin.js.Promise
 
 private fun toJsArrayImpl(vararg x: Byte): Int8Array = js("new Int8Array(x)")
 
@@ -16,6 +13,3 @@ public actual fun ByteArray.toJsArray(): Int8Array = toJsArrayImpl(*this)
 
 public actual fun Int8Array.toByteArray(): ByteArray =
     ByteArray(this.length) { this[it] }
-
-internal actual suspend fun Promise<ArrayBuffer>.awaitBuffer(): ArrayBuffer =
-    await<ArrayBuffer>()
