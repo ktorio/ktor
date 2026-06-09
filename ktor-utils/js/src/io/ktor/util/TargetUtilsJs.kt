@@ -7,6 +7,7 @@ package io.ktor.util
 import kotlinx.coroutines.await
 import org.khronos.webgl.ArrayBuffer
 import org.khronos.webgl.Int8Array
+import kotlin.js.Promise
 
 public actual fun ByteArray.toJsArray(): Int8Array = this.unsafeCast<Int8Array>()
 
