@@ -8,17 +8,23 @@ plugins {
 }
 
 kotlin {
+    compilerOptions {
+        freeCompilerArgs.add("-Xcontext-parameters")
+    }
+
     sourceSets {
         jvmMain.dependencies {
             api(projects.ktorServerCore)
+            api(projects.ktorServerAuth)
+            api(projects.ktorServerAuthJwt)
             api(projects.ktorClientCore)
             api(libs.kotlinx.serialization.json)
-            api(projects.ktorClientContentNegotiation)
-            api(projects.ktorSerializationKotlinxJson)
         }
         jvmTest.dependencies {
             implementation(projects.ktorServerTestHost)
             implementation(projects.ktorServerContentNegotiation)
+            implementation(projects.ktorServerCio)
+            implementation(projects.ktorClientMock)
         }
     }
 }
