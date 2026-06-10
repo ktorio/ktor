@@ -534,6 +534,8 @@ public final class io/ktor/server/auth/OAuthServerSettings$OAuth2ServerSettings 
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/HttpMethod;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;ZLio/ktor/util/NonceManager;Lkotlin/jvm/functions/Function1;ZLjava/util/List;Ljava/util/List;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function3;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/HttpMethod;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/Map;ZLio/ktor/util/NonceManager;Lkotlin/jvm/functions/Function2;ZLjava/util/List;Ljava/util/List;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function3;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/HttpMethod;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/Map;ZLio/ktor/util/NonceManager;Lkotlin/jvm/functions/Function2;ZLjava/util/List;Ljava/util/List;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function3;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/HttpMethod;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/Map;ZLio/ktor/util/NonceManager;Lkotlin/jvm/functions/Function2;ZLjava/util/List;Ljava/util/List;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/HttpMethod;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/Map;ZLio/ktor/util/NonceManager;Lkotlin/jvm/functions/Function2;ZLjava/util/List;Ljava/util/List;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getAccessTokenInterceptor ()Lkotlin/jvm/functions/Function1;
 	public final fun getAccessTokenRequiresBasicAuth ()Z
 	public final fun getAccessTokenUrl ()Ljava/lang/String;
@@ -545,11 +547,13 @@ public final class io/ktor/server/auth/OAuthServerSettings$OAuth2ServerSettings 
 	public final fun getDefaultScopes ()Ljava/util/List;
 	public final fun getExtraAuthParameters ()Ljava/util/List;
 	public final fun getExtraTokenParameters ()Ljava/util/List;
+	public final fun getExtraTokenParametersProvider ()Lkotlin/jvm/functions/Function3;
 	public final fun getNonceManager ()Lio/ktor/util/NonceManager;
 	public final fun getOnStateCreated ()Lkotlin/jvm/functions/Function3;
 	public final fun getPassParamsInURL ()Z
 	public final fun getRefreshUrl ()Ljava/lang/String;
 	public final fun getRequestMethod ()Lio/ktor/http/HttpMethod;
+	public final fun getVerifyState ()Lkotlin/jvm/functions/Function3;
 }
 
 public final class io/ktor/server/auth/OAuthVersion : java/lang/Enum {
@@ -658,6 +662,10 @@ public abstract interface class io/ktor/server/auth/typesafe/AuthenticatedContex
 	public abstract fun principal (Lio/ktor/server/application/ApplicationCall;)Ljava/lang/Object;
 }
 
+public final class io/ktor/server/auth/typesafe/BasicTypedProviderKt {
+	public static final fun bearer (Ljava/lang/String;Lkotlin/reflect/KClass;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/auth/typesafe/DefaultAuthScheme;
+}
+
 public class io/ktor/server/auth/typesafe/DefaultAuthScheme : io/ktor/server/auth/typesafe/AuthScheme {
 	public static final field Companion Lio/ktor/server/auth/typesafe/DefaultAuthScheme$Companion;
 	public fun <init> (Ljava/lang/String;Lkotlin/reflect/KClass;Lio/ktor/server/auth/AuthenticationProvider;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function1;)V
@@ -681,6 +689,55 @@ public final class io/ktor/server/auth/typesafe/DefaultSessionAuthenticatedConte
 	public fun principal (Lio/ktor/server/application/ApplicationCall;)Ljava/lang/Object;
 	public fun setSession (Lio/ktor/server/application/ApplicationCall;Ljava/lang/Object;)V
 	public fun updateSession (Lio/ktor/server/application/ApplicationCall;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+}
+
+public final class io/ktor/server/auth/typesafe/OAuth2Config {
+	public fun <init> ()V
+	public final fun getClient ()Lio/ktor/client/HttpClient;
+	public final fun getDescription ()Ljava/lang/String;
+	public final fun getOnForbidden ()Lkotlin/jvm/functions/Function3;
+	public final fun getProviderLookup ()Lkotlin/jvm/functions/Function2;
+	public final fun getSettings ()Lio/ktor/server/auth/OAuthServerSettings$OAuth2ServerSettings;
+	public final fun getUrlProvider ()Lkotlin/jvm/functions/Function3;
+	public final fun setClient (Lio/ktor/client/HttpClient;)V
+	public final fun setDescription (Ljava/lang/String;)V
+	public final fun setOnForbidden (Lkotlin/jvm/functions/Function3;)V
+	public final fun setProviderLookup (Lkotlin/jvm/functions/Function2;)V
+	public final fun setSettings (Lio/ktor/server/auth/OAuthServerSettings$OAuth2ServerSettings;)V
+	public final fun setUrlProvider (Lkotlin/jvm/functions/Function3;)V
+}
+
+public class io/ktor/server/auth/typesafe/OAuth2Flow {
+	public static final field Companion Lio/ktor/server/auth/typesafe/OAuth2Flow$Companion;
+}
+
+public final class io/ktor/server/auth/typesafe/OAuth2Flow$Companion {
+	public final fun from (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/auth/typesafe/OAuth2Flow;
+}
+
+public final class io/ktor/server/auth/typesafe/OAuth2SessionConfig : io/ktor/server/auth/typesafe/TypedSessionAuthConfig {
+	public fun <init> ()V
+	public final fun getSessionCreator ()Lkotlin/jvm/functions/Function3;
+	public final fun getSessionName ()Ljava/lang/String;
+	public final fun setSessionCreator (Lkotlin/jvm/functions/Function3;)V
+	public final fun setSessionName (Ljava/lang/String;)V
+}
+
+public final class io/ktor/server/auth/typesafe/OAuth2SessionFlow {
+	public static final field Companion Lio/ktor/server/auth/typesafe/OAuth2SessionFlow$Companion;
+	public fun <init> (Lio/ktor/server/auth/typesafe/OAuth2Flow;Lio/ktor/server/auth/typesafe/SessionAuthScheme;Lio/ktor/server/auth/typesafe/OAuth2SessionConfig;)V
+	public final fun getSessions ()Lio/ktor/server/auth/typesafe/SessionAuthScheme;
+}
+
+public final class io/ktor/server/auth/typesafe/OAuth2SessionFlow$Companion {
+	public final fun from (Lio/ktor/server/auth/typesafe/OAuth2Flow;Lio/ktor/server/auth/typesafe/OAuth2SessionConfig;Lio/ktor/util/reflect/TypeInfo;Lkotlin/reflect/KClass;)Lio/ktor/server/auth/typesafe/OAuth2SessionFlow;
+}
+
+public final class io/ktor/server/auth/typesafe/OAuthFlowKt {
+	public static final fun oauth2Flow (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/auth/typesafe/OAuth2Flow;
+	public static final fun oauthCallback (Lio/ktor/server/routing/Route;Lio/ktor/server/auth/typesafe/OAuth2Flow;Ljava/lang/String;Lkotlin/jvm/functions/Function3;)Lio/ktor/server/routing/Route;
+	public static final fun oauthCallback (Lio/ktor/server/routing/Route;Lio/ktor/server/auth/typesafe/OAuth2SessionFlow;Ljava/lang/String;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;)Lio/ktor/server/routing/Route;
+	public static synthetic fun oauthCallback$default (Lio/ktor/server/routing/Route;Lio/ktor/server/auth/typesafe/OAuth2SessionFlow;Ljava/lang/String;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;ILjava/lang/Object;)Lio/ktor/server/routing/Route;
 }
 
 public final class io/ktor/server/auth/typesafe/OptionalAuthScheme : io/ktor/server/auth/typesafe/AuthScheme {
@@ -839,6 +896,7 @@ public class io/ktor/server/auth/typesafe/TypedSessionAuthConfig {
 	public final fun getContextFactory ()Lkotlin/jvm/functions/Function1;
 	public final fun setContextFactory (Lkotlin/jvm/functions/Function1;)V
 	public final fun storage (Lkotlin/jvm/functions/Function2;)V
+	public final fun transformSession (Lkotlin/jvm/functions/Function3;)V
 	public final fun validate (Lkotlin/jvm/functions/Function3;)V
 }
 

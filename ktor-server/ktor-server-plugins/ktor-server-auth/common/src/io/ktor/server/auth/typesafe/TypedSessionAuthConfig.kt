@@ -13,6 +13,23 @@ import io.ktor.utils.io.*
 import kotlin.reflect.KClass
 
 /**
+ * Resolves a route principal from a stored session value.
+ *
+ * The resolver receives the current [RoutingContext] and the session value.
+ *
+ * Return `null` to reject the session.
+ */
+public typealias SessionPrincipalResolver<S, P> = suspend RoutingContext.(S) -> P?
+
+/**
+ * Transforms a session value before principal resolution.
+ *
+ * Return the session value that should be validated for the current call, or `null` to reject the session.
+ */
+@OptIn(ExperimentalKtorApi::class)
+public typealias SessionTransformer<S> = suspend RoutingContext.(S) -> S?
+
+/**
  * Configures the [Sessions] plugin for a typed session authentication scheme.
  *
  * @param S stored session type.
@@ -21,15 +38,6 @@ import kotlin.reflect.KClass
  */
 @OptIn(ExperimentalKtorApi::class)
 public typealias SessionsPluginConfig<S, P, C> = SessionsConfig.(SessionAuthScheme<S, P, C>) -> Unit
-
-/**
- * Resolves a route principal from a stored session value.
- *
- * The resolver receives the current [RoutingContext] and the session value.
- *
- * Return `null` to reject the session.
- */
-public typealias SessionPrincipalResolver<S, P> = suspend RoutingContext.(S) -> P?
 
 /**
  * Configures a typed Session authentication scheme.
@@ -74,6 +82,8 @@ public open class TypedSessionAuthConfig<
 
     internal var principalResolver: SessionPrincipalResolver<S, P>? = null
 
+    internal var sessionTransformer: SessionTransformer<S>? = null
+
     internal var csrfConfig: (CSRFConfig.() -> Unit)? = null
 
     internal var sessionsPluginConfig: SessionsPluginConfig<S, P, *>? = null
@@ -98,6 +108,24 @@ public open class TypedSessionAuthConfig<
      */
     public fun validate(body: suspend RoutingContext.(S) -> P?) {
         principalResolver = body
+    }
+
+    /**
+     * Transforms the session value before [validate] resolves the route principal.
+     *
+     * This hook is intended for integrations that need to update or invalidate a stored session as part of
+     * authentication. Return the effective session value for this request, or `null` to reject the session.
+     *
+     * The stored session is rewritten only when the returned value is different instance as the incoming
+     * session (`!=`). Returning the same object skips [io.ktor.server.sessions.CurrentSession.set].
+     *
+     * @param block transformation function called with the session value read by the
+     * [io.ktor.server.sessions.Sessions] plugin.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedSessionAuthConfig.transformSession)
+     */
+    public fun transformSession(block: SessionTransformer<S>) {
+        sessionTransformer = block
     }
 
     /**
@@ -126,10 +154,21 @@ public open class TypedSessionAuthConfig<
     ): SessionAuthenticationProvider<S> {
         val config = SessionAuthenticationProvider.Config(name, description, sessionType)
         val resolver = requireNotNull(principalResolver) { "Principal resolver cannot be null" }
+        val transformer = sessionTransformer
         config.validate { session ->
-            val principal = toRoutingContext().resolver(session)
+            val routingContext = toRoutingContext()
+            val effectiveSession = if (transformer != null) {
+                val updatedSession = routingContext.transformer(session) ?: return@validate null
+                if (updatedSession != session) {
+                    sessions.set(name, updatedSession)
+                }
+                updatedSession
+            } else {
+                session
+            }
+            val principal = routingContext.resolver(effectiveSession)
             if (principal != null) {
-                attributes.put(sessionKey, session)
+                attributes.put(sessionKey, effectiveSession)
             }
             principal
         }
