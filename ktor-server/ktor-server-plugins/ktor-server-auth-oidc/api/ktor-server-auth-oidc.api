@@ -1,10 +1,10 @@
-public final class io/ktor/server/auth/openid/DiscoveryException : java/lang/RuntimeException {
+public final class io/ktor/server/auth/oidc/DiscoveryException : java/lang/RuntimeException {
 	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 
-public final class io/ktor/server/auth/openid/OpenIdProviderMetadata {
-	public static final field Companion Lio/ktor/server/auth/openid/OpenIdProviderMetadata$Companion;
+public final class io/ktor/server/auth/oidc/OpenIdProviderMetadata {
+	public static final field Companion Lio/ktor/server/auth/oidc/OpenIdProviderMetadata$Companion;
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;IILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getAcrValuesSupported ()Ljava/util/List;
@@ -46,22 +46,22 @@ public final class io/ktor/server/auth/openid/OpenIdProviderMetadata {
 	public final fun getUserinfoSigningAlgValuesSupported ()Ljava/util/List;
 }
 
-public final synthetic class io/ktor/server/auth/openid/OpenIdProviderMetadata$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
-	public static final field INSTANCE Lio/ktor/server/auth/openid/OpenIdProviderMetadata$$serializer;
+public final synthetic class io/ktor/server/auth/oidc/OpenIdProviderMetadata$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/ktor/server/auth/oidc/OpenIdProviderMetadata$$serializer;
 	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
-	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/server/auth/openid/OpenIdProviderMetadata;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/server/auth/oidc/OpenIdProviderMetadata;
 	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
 	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
-	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/ktor/server/auth/openid/OpenIdProviderMetadata;)V
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/ktor/server/auth/oidc/OpenIdProviderMetadata;)V
 	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
 	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
 }
 
-public final class io/ktor/server/auth/openid/OpenIdProviderMetadata$Companion {
+public final class io/ktor/server/auth/oidc/OpenIdProviderMetadata$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
 }
 
-public final class io/ktor/server/auth/openid/OpenIdProviderMetadataKt {
+public final class io/ktor/server/auth/oidc/OpenIdProviderMetadataKt {
 	public static final fun fetchOpenIdMetadata (Lio/ktor/client/HttpClient;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
