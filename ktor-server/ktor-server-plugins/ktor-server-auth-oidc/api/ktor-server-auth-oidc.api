@@ -1,4 +1,4 @@
-public final class io/ktor/server/auth/oidc/DiscoveryException : java/lang/RuntimeException {
+public final class io/ktor/server/auth/oidc/OpenIdDiscoveryException : java/lang/RuntimeException {
 	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
