@@ -305,6 +305,43 @@ class BasicSchemesTest {
     }
 
     @Test
+    fun `session scheme transforms session before principal resolution`() = testApplication {
+        val sessionName = "test-session-transform"
+        val sessionScheme = session<UserSession, TestUser>(sessionName) {
+            transformSession { session -> session.copy(visits = session.visits + 1) }
+            validate { session -> TestUser(session.username, "${session.username}-${session.visits}@test.com") }
+        }
+
+        install(Sessions) {
+            cookie(sessionScheme)
+        }
+
+        routing {
+            get("/set-session") {
+                call.sessions.set(sessionScheme, UserSession("Alice"))
+                call.respondText("ok")
+            }
+
+            authenticateWith(sessionScheme) {
+                get("/protected") {
+                    call.respondText("${session.username}:${session.visits}:${principal.email}")
+                }
+            }
+        }
+
+        val cookieClient = createClient { install(HttpCookies) }
+        cookieClient.get("/set-session")
+
+        val first = cookieClient.get("/protected")
+        assertEquals(HttpStatusCode.OK, first.status)
+        assertEquals("Alice:1:Alice-1@test.com", first.bodyAsText())
+
+        val second = cookieClient.get("/protected")
+        assertEquals(HttpStatusCode.OK, second.status)
+        assertEquals("Alice:2:Alice-2@test.com", second.bodyAsText())
+    }
+
+    @Test
     fun `session scheme requires Sessions to be installed before typed route`() = testApplication {
         val sessionScheme = session<UserSession>("missing-session") {
             validate { session -> session }
