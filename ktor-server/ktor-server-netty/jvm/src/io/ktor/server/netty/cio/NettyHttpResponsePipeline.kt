@@ -69,6 +69,12 @@ internal class NettyHttpResponsePipeline(
         call.finishedEvent = context.newPromise()
         previousCallHandled = call.finishedEvent
 
+        // Initialize the call's responseWriteJob as a child of the call's coroutineContext Job.
+        // This call happens synchronously on the Netty I/O thread before the user handler coroutine
+        // is dispatched, so the value is safely published to both the call thread and any later
+        // I/O-thread listeners that complete the job.
+        call.initResponseWriteJob()
+
         processElement(call)
     }
 
