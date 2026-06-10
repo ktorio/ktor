@@ -192,6 +192,15 @@ public class OpenIdProviderMetadata(
     public val checkSessionIframe: String? = null,
 )
 
+internal fun OpenIdProviderMetadata.validate(expectedIssuer: String) {
+    require(issuer == expectedIssuer) {
+        "OpenID issuer mismatch: expected exactly $expectedIssuer, got $issuer"
+    }
+    require(jwksUri.isNotBlank()) { "jwks_uri is missing" }
+    require(tokenEndpoint.isNotBlank()) { "token_endpoint is missing" }
+    require(authorizationEndpoint.isNotBlank()) { "authorization_endpoint is missing" }
+}
+
 /**
  * Fetches OpenID Connect discovery document from the authorization server.
  *
@@ -208,6 +217,7 @@ public class OpenIdProviderMetadata(
  * @param issuer The issuer URL (e.g., "https://accounts.google.com")
  * @return The OpenID Connect configuration containing endpoints and metadata
  * @throws OpenIdDiscoveryException if the request fails or the response is invalid
+ * @throws IllegalArgumentException if the decoded metadata fails issuer or required endpoint validation
  *
  */
 public suspend fun HttpClient.fetchOpenIdMetadata(issuer: String): OpenIdProviderMetadata {
@@ -222,15 +232,7 @@ public suspend fun HttpClient.fetchOpenIdMetadata(issuer: String): OpenIdProvide
     } catch (e: Exception) {
         throw OpenIdDiscoveryException("Failed to fetch OpenID configuration from $issuer", e)
     }
-    if (config.jwksUri.isBlank()) {
-        throw OpenIdDiscoveryException("OpenID configuration from $issuer is missing jwks_uri")
-    }
-    if (config.authorizationEndpoint.isBlank()) {
-        throw OpenIdDiscoveryException("OpenID configuration from $issuer is missing authorization_endpoint")
-    }
-    if (config.tokenEndpoint.isBlank()) {
-        throw OpenIdDiscoveryException("OpenID configuration from $issuer is missing token_endpoint")
-    }
+    config.validate(expectedIssuer = issuer)
     return config
 }
 

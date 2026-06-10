@@ -28,7 +28,7 @@ class OidcDiscoveryTest {
         refreshingOpenIdProvider(discoveryRequests, allowRefreshResponse)
 
         val openIdClient = openIdHttpClient()
-        lateinit var provider: OidcProvider
+        lateinit var provider: OidcProvider<OidcToken>
         application {
             val oidc = openIdConnect {
                 httpClient = openIdClient
@@ -89,7 +89,7 @@ class OidcDiscoveryTest {
         }
 
         val openIdClient = openIdHttpClient()
-        lateinit var provider: OidcProvider
+        lateinit var provider: OidcProvider<OidcToken>
         application {
             monitor.subscribe(OidcMetadataRefreshFailed) { failure ->
                 refreshFailed.complete(failure)
@@ -161,6 +161,7 @@ class OidcDiscoveryTest {
             testApplication {
                 externalServices {
                     hosts(ISSUER_URL) {
+                        installDiscoveryContentNegotiation()
                         routing {
                             get("/.well-known/openid-configuration") {
                                 discoveryRequests.incrementAndGet()
