@@ -2,7 +2,7 @@
  * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.server.auth.openid
+package io.ktor.server.auth.oidc
 
 import io.ktor.client.*
 import io.ktor.client.plugins.*
@@ -23,7 +23,7 @@ import kotlinx.serialization.json.Json
  *
  * Use [HttpClient.fetchOpenIdMetadata] to fetch this configuration from an identity provider.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.openid.OpenIdProviderMetadata)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OpenIdProviderMetadata)
  *
  * @property issuer The authorization server's issuer identifier URL.
  *   See [OpenID Connect Discovery 1.0 §3](https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata).
@@ -208,7 +208,7 @@ private val discoveryJson = Json {
  *
  * The returned [OpenIdProviderMetadata] contains discovered endpoint URLs and supported features.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.openid.fetchOpenIdMetadata)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.fetchOpenIdMetadata)
  *
  * @param issuer The issuer URL (e.g., "https://accounts.google.com")
  * @return The OpenID Connect configuration containing endpoints and metadata
@@ -244,7 +244,7 @@ public suspend fun HttpClient.fetchOpenIdMetadata(issuer: String): OpenIdProvide
 /**
  * Base exception for OpenID Connect discovery failures.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.openid.DiscoveryException)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.DiscoveryException)
  *
  */
 public class DiscoveryException(message: String, cause: Throwable? = null) : RuntimeException(message, cause)
