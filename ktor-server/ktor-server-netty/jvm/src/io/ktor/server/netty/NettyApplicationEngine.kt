@@ -327,6 +327,11 @@ public class NettyApplicationEngine(
     init {
         pipeline.insertPhaseAfter(EnginePipeline.Call, AFTER_CALL_PHASE)
         pipeline.intercept(AFTER_CALL_PHASE) {
+            // [NettyApplicationCall.finish] is non-suspending: it only ensures the response is
+            // committed (headers + status flushed). The actual write completion is awaited via
+            // structured concurrency — the call's responseWriteJob is a child of the call's
+            // coroutine Job, so the call coroutine remains "completing" until the I/O-thread
+            // writer finishes and cleanup runs from responseWriteJob's invokeOnCompletion handler.
             (call as? NettyApplicationCall)?.finish()
         }
     }
