@@ -55,7 +55,7 @@ class OidcEnvironmentConfigTest {
         openIdProvider()
 
         val openIdClient = openIdHttpClient()
-        lateinit var provider: OidcProvider
+        lateinit var provider: OidcProvider<OidcToken>
         application {
             val oidc = openIdConnect {
                 httpClient = openIdClient
@@ -90,7 +90,7 @@ class OidcEnvironmentConfigTest {
         }
 
         val openIdClient = openIdHttpClient()
-        lateinit var provider: OidcProvider
+        lateinit var provider: OidcProvider<OidcToken>
         application {
             val oidc = openIdConnect {
                 httpClient = openIdClient
