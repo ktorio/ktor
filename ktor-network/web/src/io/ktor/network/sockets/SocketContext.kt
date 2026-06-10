@@ -9,6 +9,7 @@ import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import kotlinx.io.*
+import org.khronos.webgl.*
 import kotlin.coroutines.*
 import io.ktor.network.sockets.nodejs.Socket as NodejsSocket
 
@@ -17,7 +18,7 @@ internal class SocketContext(
     private val address: SocketAddress?,
     parentContext: Job?
 ) {
-    private val incomingFrames: Channel<JsBuffer> = Channel(Channel.UNLIMITED)
+    private val incomingFrames: Channel<Uint8Array> = Channel(Channel.UNLIMITED)
     private val socketContext = Job(parentContext)
 
     fun initiate(connectCont: CancellableContinuation<Socket>?) {
@@ -81,14 +82,15 @@ private class SocketImpl(
     override val localAddress: SocketAddress,
     override val remoteAddress: SocketAddress,
     override val coroutineContext: CoroutineContext,
-    private val incoming: ReceiveChannel<JsBuffer>,
+    private val incoming: ReceiveChannel<Uint8Array>,
     private val socket: NodejsSocket
 ) : SocketBase(coroutineContext), Socket {
 
     override fun attachForReadingImpl(channel: ByteChannel): WriterJob =
         writer(Dispatchers.Unconfined, channel = channel) {
             incoming.consumeEach { buffer ->
-                channel.writeByteArray(buffer.toByteArray())
+                @OptIn(ExperimentalUnsignedTypes::class)
+                channel.writeByteArray(buffer.toUByteArray().asByteArray())
                 channel.flush()
             }
         }
@@ -97,7 +99,8 @@ private class SocketImpl(
         reader(Dispatchers.Unconfined, channel = channel) {
             while (true) {
                 val result = channel.read { bytes, startIndex, endIndex ->
-                    socket.write(bytes.toJsBuffer(startIndex, endIndex))
+                    @OptIn(ExperimentalUnsignedTypes::class)
+                    socket.write(bytes.asUByteArray().toUint8Array().subarray(startIndex, endIndex))
                     endIndex - startIndex
                 }
                 if (result == -1) {

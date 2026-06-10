@@ -5,21 +5,17 @@
 package io.ktor.network.sockets.nodejs
 
 import io.ktor.network.sockets.*
+import org.khronos.webgl.*
 
 // js.Error
-internal external interface JsError {
+internal external interface JsError : JsAny {
     val message: String?
 }
 
 internal expect fun JsError.toThrowable(): Throwable
 internal expect fun Throwable.toJsError(): JsError?
 
-internal external interface JsBuffer // Int8Array
-
-internal expect fun ByteArray.toJsBuffer(fromIndex: Int, toIndex: Int): JsBuffer
-internal expect fun JsBuffer.toByteArray(): ByteArray
-
-internal external interface NodeNet {
+internal external interface NodeNet : JsAny {
     fun createConnection(options: CreateConnectionOptions): Socket
     fun createServer(options: CreateServerOptions): Server
 }
@@ -50,14 +46,14 @@ internal fun CreateConnectionOptions(
     }
 }
 
-internal external interface CreateConnectionOptions {
+internal external interface CreateConnectionOptions : JsAny {
     var timeout: Int?
     var allowHalfOpen: Boolean?
 }
 
-internal expect fun TcpCreateConnectionOptions(
+private fun TcpCreateConnectionOptions(
     block: TcpCreateConnectionOptions.() -> Unit
-): TcpCreateConnectionOptions
+): TcpCreateConnectionOptions = createJsObject(block)
 
 internal external interface TcpCreateConnectionOptions : CreateConnectionOptions {
     var port: Int
@@ -70,23 +66,23 @@ internal external interface TcpCreateConnectionOptions : CreateConnectionOptions
     var keepAlive: Boolean?
 }
 
-internal expect fun IpcCreateConnectionOptions(
+private fun IpcCreateConnectionOptions(
     block: IpcCreateConnectionOptions.() -> Unit
-): IpcCreateConnectionOptions
+): IpcCreateConnectionOptions = createJsObject(block)
 
 internal external interface IpcCreateConnectionOptions : CreateConnectionOptions {
     var path: String
 }
 
 @Suppress("ktlint:standard:value-parameter-comment")
-internal external interface Socket {
+internal external interface Socket : JsAny {
     val localAddress: String
     val localPort: Int
 
     val remoteAddress: String
     val remotePort: Int
 
-    fun write(buffer: JsBuffer): Boolean
+    fun write(buffer: Uint8Array): Boolean
 
     fun destroy(error: JsError?)
 
@@ -95,7 +91,7 @@ internal external interface Socket {
 
     fun on(event: String /* "close" */, listener: (hadError: Boolean) -> Unit)
     fun on(event: String /* "connect", "end", "timeout",  */, listener: () -> Unit)
-    fun on(event: String /* "data" */, listener: (data: JsBuffer) -> Unit)
+    fun on(event: String /* "data" */, listener: (data: Uint8Array) -> Unit)
     fun on(event: String /* "error" */, listener: (error: JsError) -> Unit)
 }
 
@@ -103,21 +99,21 @@ internal fun Socket.onClose(block: (hadError: Boolean) -> Unit): Unit = on("clos
 internal fun Socket.onConnect(block: () -> Unit): Unit = on("connect", block)
 internal fun Socket.onEnd(block: () -> Unit): Unit = on("end", block)
 internal fun Socket.onTimeout(block: () -> Unit): Unit = on("timeout", block)
-internal fun Socket.onData(block: (data: JsBuffer) -> Unit): Unit = on("data", block)
+internal fun Socket.onData(block: (data: Uint8Array) -> Unit): Unit = on("data", block)
 internal fun Socket.onError(block: (error: JsError) -> Unit): Unit = on("error", block)
 
-internal expect fun CreateServerOptions(
+internal fun CreateServerOptions(
     block: CreateServerOptions.() -> Unit
-): CreateServerOptions
+): CreateServerOptions = createJsObject(block)
 
-internal external interface CreateServerOptions {
+internal external interface CreateServerOptions : JsAny {
     var allowHalfOpen: Boolean?
     var keepAlive: Boolean?
     var noDelay: Boolean?
 }
 
 @Suppress("ktlint:standard:value-parameter-comment")
-internal external interface Server {
+internal external interface Server : JsAny {
     fun address(): ServerLocalAddressInfo?
     fun listen(options: ServerListenOptions)
 
@@ -152,17 +148,17 @@ internal fun ServerListenOptions(localAddress: SocketAddress?): ServerListenOpti
     }
 }
 
-internal expect fun ServerListenOptions(
+private fun ServerListenOptions(
     block: ServerListenOptions.() -> Unit
-): ServerListenOptions
+): ServerListenOptions = createJsObject(block)
 
-internal external interface ServerListenOptions {
+internal external interface ServerListenOptions : JsAny {
     var port: Int?
     var host: String?
     var path: String?
 }
 
-internal external interface ServerLocalAddressInfo
+internal external interface ServerLocalAddressInfo : JsAny
 
 internal external interface TcpServerLocalAddressInfo : ServerLocalAddressInfo {
     val address: String
@@ -170,4 +166,18 @@ internal external interface TcpServerLocalAddressInfo : ServerLocalAddressInfo {
     val port: Int
 }
 
-internal expect fun ServerLocalAddressInfo.toSocketAddress(): SocketAddress
+internal fun ServerLocalAddressInfo.toSocketAddress(): SocketAddress = when (jsTypeOf(this)) {
+    "string" -> {
+        UnixSocketAddress(unsafeCast<JsString>().toString())
+    }
+
+    else -> {
+        val info = unsafeCast<TcpServerLocalAddressInfo>()
+        InetSocketAddress(info.address, info.port)
+    }
+}
+
+internal expect fun jsTypeOf(a: JsAny): String
+
+private fun <T : JsAny> createJsObject(): T = js("({})")
+private fun <T : JsAny> createJsObject(block: T.() -> Unit): T = createJsObject<T>().apply(block)
