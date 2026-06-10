@@ -4,8 +4,12 @@
 
 package io.ktor.server.auth.oidc
 
+import io.ktor.client.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
+import io.ktor.serialization.kotlinx.json.*
+import io.ktor.server.application.*
+import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
@@ -15,18 +19,27 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation as ClientContentNegotiation
 
 class FetchOpenIdProviderMetadataTest {
 
     private val discoveryJson = Json { ignoreUnknownKeys = true }
 
+    private fun ApplicationTestBuilder.discoveryClient(): HttpClient = createClient {
+        install(ClientContentNegotiation) {
+            json(discoveryJson)
+        }
+    }
+
     private fun TestApplicationBuilder.configService(config: OpenIdProviderMetadata) {
         externalServices {
             hosts("http://localhost") {
+                install(ContentNegotiation) {
+                    json(discoveryJson)
+                }
                 routing {
                     get("/.well-known/openid-configuration") {
-                        val text = discoveryJson.encodeToString(config)
-                        call.respondText(text, ContentType.Application.Json)
+                        call.respond(config)
                     }
                 }
             }
@@ -46,7 +59,7 @@ class FetchOpenIdProviderMetadataTest {
     }
 
     @Test
-    fun testFetchOpenIdConfiguration() = testApplication {
+    fun `fetches OpenID configuration`() = testApplication {
         val issuer = "http://localhost"
 
         configService(
@@ -63,7 +76,7 @@ class FetchOpenIdProviderMetadataTest {
             )
         )
 
-        val metadata = client.fetchOpenIdMetadata(issuer)
+        val metadata = discoveryClient().fetchOpenIdMetadata(issuer)
 
         assertEquals(issuer, metadata.issuer)
         assertEquals("$issuer/authorize", metadata.authorizationEndpoint)
@@ -77,7 +90,7 @@ class FetchOpenIdProviderMetadataTest {
     }
 
     @Test
-    fun testFetchOpenIdConfigurationNewSpecFields() = testApplication {
+    fun `fetches OpenID configuration new spec fields`() = testApplication {
         val issuer = "http://localhost"
 
         configService(
@@ -100,7 +113,7 @@ class FetchOpenIdProviderMetadataTest {
             )
         )
 
-        val config = client.fetchOpenIdMetadata(issuer)
+        val config = discoveryClient().fetchOpenIdMetadata(issuer)
 
         assertEquals("$issuer/logout", config.endSessionEndpoint)
         assertEquals(listOf("authorization_code", "refresh_token"), config.grantTypesSupported)
@@ -121,7 +134,7 @@ class FetchOpenIdProviderMetadataTest {
     }
 
     @Test
-    fun testFetchOpenIdConfigurationAllOptionalFieldsNull() = testApplication {
+    fun `fetches OpenID configuration with all optional fields null`() = testApplication {
         val issuer = "http://localhost"
 
         configService(
@@ -133,7 +146,7 @@ class FetchOpenIdProviderMetadataTest {
             )
         )
 
-        val config = client.fetchOpenIdMetadata(issuer)
+        val config = discoveryClient().fetchOpenIdMetadata(issuer)
 
         assertNull(config.userInfoEndpoint)
         assertNull(config.registrationEndpoint)
@@ -171,7 +184,7 @@ class FetchOpenIdProviderMetadataTest {
     }
 
     @Test
-    fun testFetchOpenIdConfigurationMissingJwksUri() = testApplication {
+    fun `fetches OpenID configuration fails when jwks_uri is missing`() = testApplication {
         val issuer = "http://localhost"
 
         configService(
@@ -183,14 +196,14 @@ class FetchOpenIdProviderMetadataTest {
             )
         )
 
-        val exception = assertFailsWith<DiscoveryException> {
-            client.fetchOpenIdMetadata(issuer)
+        val exception = assertFailsWith<OpenIdDiscoveryException> {
+            discoveryClient().fetchOpenIdMetadata(issuer)
         }
         assertTrue(exception.message!!.contains("missing jwks_uri"))
     }
 
     @Test
-    fun testFetchOpenIdConfigurationMissingAuthorizationEndpoint() = testApplication {
+    fun `fetches OpenID configuration fails when authorization_endpoint is missing`() = testApplication {
         val issuer = "http://localhost"
 
         configService(
@@ -202,14 +215,14 @@ class FetchOpenIdProviderMetadataTest {
             )
         )
 
-        val exception = assertFailsWith<DiscoveryException> {
-            client.fetchOpenIdMetadata(issuer)
+        val exception = assertFailsWith<OpenIdDiscoveryException> {
+            discoveryClient().fetchOpenIdMetadata(issuer)
         }
         assertTrue(exception.message!!.contains("missing authorization_endpoint"))
     }
 
     @Test
-    fun testFetchOpenIdConfigurationMissingTokenEndpoint() = testApplication {
+    fun `fetches OpenID configuration fails when token_endpoint is missing`() = testApplication {
         val issuer = "http://localhost"
         configService(
             OpenIdProviderMetadata(
@@ -219,20 +232,20 @@ class FetchOpenIdProviderMetadataTest {
                 jwksUri = "$issuer/.well-known/jwks.json"
             )
         )
-        val exception = assertFailsWith<DiscoveryException> {
-            client.fetchOpenIdMetadata(issuer)
+        val exception = assertFailsWith<OpenIdDiscoveryException> {
+            discoveryClient().fetchOpenIdMetadata(issuer)
         }
         assertTrue(exception.message!!.contains("missing token_endpoint"))
     }
 
     @Test
-    fun testFetchOpenIdConfigurationHttpError() = testApplication {
+    fun `fetches OpenID configuration fails on HTTP error`() = testApplication {
         val issuer = "http://localhost"
 
         errorConfigService(HttpStatusCode.NotFound, "Not Found")
 
-        assertFailsWith<DiscoveryException> {
-            client.fetchOpenIdMetadata(issuer)
+        assertFailsWith<OpenIdDiscoveryException> {
+            discoveryClient().fetchOpenIdMetadata(issuer)
         }
     }
 }
