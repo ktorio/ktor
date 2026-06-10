@@ -187,10 +187,10 @@ class FetchOpenIdProviderMetadataTest {
             )
         )
 
-        val exception = assertFailsWith<OpenIdDiscoveryException> {
+        val exception = assertFailsWith<IllegalArgumentException> {
             discoveryClient().fetchOpenIdMetadata(issuer)
         }
-        assertTrue(exception.message!!.contains("missing jwks_uri"))
+        assertTrue(exception.message!!.contains("jwks_uri is missing"))
     }
 
     @Test
@@ -206,10 +206,10 @@ class FetchOpenIdProviderMetadataTest {
             )
         )
 
-        val exception = assertFailsWith<OpenIdDiscoveryException> {
+        val exception = assertFailsWith<IllegalArgumentException> {
             discoveryClient().fetchOpenIdMetadata(issuer)
         }
-        assertTrue(exception.message!!.contains("missing authorization_endpoint"))
+        assertTrue(exception.message!!.contains("authorization_endpoint is missing"))
     }
 
     @Test
@@ -223,10 +223,10 @@ class FetchOpenIdProviderMetadataTest {
                 jwksUri = "$issuer/.well-known/jwks.json"
             )
         )
-        val exception = assertFailsWith<OpenIdDiscoveryException> {
+        val exception = assertFailsWith<IllegalArgumentException> {
             discoveryClient().fetchOpenIdMetadata(issuer)
         }
-        assertTrue(exception.message!!.contains("missing token_endpoint"))
+        assertTrue(exception.message!!.contains("token_endpoint is missing"))
     }
 
     @Test
