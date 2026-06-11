@@ -36,8 +36,9 @@ private val ProviderNameRegex = Regex("[a-z0-9]+(?:-[a-z0-9]+)*")
  *   Registered internally as `"$name-oauth"` and used only for the auto-registered routes;
  *   browser session authentication is exposed as [OidcProvider.sessions].
  *
- * This plugin implements the Authorization Code Flow with PKCE (RFC 6749 §4.1, OIDC Core §3.1) and resource-server
- * Bearer / RFC 7662 introspection. Implicit and Hybrid flows are not supported.
+ * This plugin implements the Authorization Code Flow with PKCE (RFC 6749 §4.1, OIDC Core §3.1), resource-server
+ * Bearer / RFC 7662 introspection, and optional OAuth 2.0 Protected Resource Metadata (RFC 9728) via
+ * [OidcPluginConfig.protectedResource]. Implicit and Hybrid flows are not supported.
  *
  * Provider metadata is fetched automatically from the issuer's discovery document
  * (`<issuer>/.well-known/openid-configuration`) and periodically refreshed unless a provider configures static
@@ -297,8 +298,25 @@ public class Oidc internal constructor(
         return provider
     }
 
+    internal fun configureProtectedResourceRoute() {
+        config.protectedResourceConfig?.let { protectedResourceConfig ->
+            application.configureProtectedResourceRoute(protectedResourceConfig) {
+                providers.values.map { it.config }
+            }
+        }
+    }
+
+    private fun resourceMetadataUrl(): String? =
+        config.protectedResourceConfig?.let { protectedResourceConfig ->
+            require(protectedResourceConfig.resource.isNotBlank()) {
+                "protectedResource(resource) must be set to the resource server's identifier URL"
+            }
+            buildResourceMetadataUrl(protectedResourceConfig.resource)
+        }
+
     private suspend fun commitProvider(provider: OidcProvider<*>) = providerRegistrationMutex.withLock {
         checkProductionEnvironment(provider)
+        provider.resourceMetadataUrl = resourceMetadataUrl()
         if (provider.config.oauthConfig != null) {
             application.configureOAuthRoute(provider)
         }
@@ -444,6 +462,7 @@ public class Oidc internal constructor(
                 client = managedClient,
             )
             plugin.loadConfigFromEnvironment()
+            plugin.configureProtectedResourceRoute()
 
             pipeline.monitor.subscribe(ApplicationModulesLoaded) {
                 if (plugin.providers.isEmpty()) {
