@@ -10,7 +10,7 @@ import java.security.SecureRandom
  * Symmetric key material used to encrypt the temporary OAuth state cookie.
  *
  * The key protects the in-flight OAuth state between the login redirect and the callback, including the OIDC
- * `state` and `nonce`. Configure the same key on every node in a cluster. Use [rotating] to
+ * `state`, `nonce`, and PKCE code verifier. Configure the same key on every node in a cluster. Use [rotating] to
  * accept cookies encrypted by the previous key while new cookies are encrypted by the current key.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcStateEncryptionKey)

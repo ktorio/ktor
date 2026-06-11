@@ -44,3 +44,14 @@ internal suspend fun HttpClient.completeOidcCallback(
         configureRequest()
     }
 }
+
+internal fun assertValidPkceCodeVerifier(codeVerifier: String) {
+    assertTrue(
+        codeVerifier.length in 43..128,
+        "PKCE code verifier must contain 43 to 128 characters",
+    )
+    assertTrue(
+        codeVerifier.all { it.isLetterOrDigit() || it in "-._~" },
+        "PKCE code verifier must use RFC 7636 unreserved characters",
+    )
+}
