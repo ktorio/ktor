@@ -23,7 +23,9 @@ import org.slf4j.Logger
 private const val AuthorizationHeaderLogLimit: Int = 96
 
 @OptIn(InternalAPI::class)
-internal fun <P : Any> OidcProvider<P>.createBearerScheme(): OidcBearerScheme<P> {
+internal fun <P : Any> OidcProvider<P>.createBearerScheme(
+    resourceMetadataUrl: String?,
+): OidcBearerScheme<P> {
     val extractor = bearerConfig.tokenExtractor
     return bearer(
         name = "$name-bearer",
@@ -45,9 +47,10 @@ internal fun <P : Any> OidcProvider<P>.createBearerScheme(): OidcBearerScheme<P>
         }
 
         onUnauthorized = { _ ->
+            val parameters = resourceMetadataUrl?.let { mapOf("resource_metadata" to it) }.orEmpty()
             val challenge = HttpAuthHeader.Parameterized(
                 authScheme = AuthScheme.Bearer,
-                parameters = emptyMap(),
+                parameters = parameters,
             )
             call.respond(UnauthorizedResponse(challenge))
         }

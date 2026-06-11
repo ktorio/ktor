@@ -98,6 +98,8 @@ public final class io/ktor/server/auth/oidc/OidcPluginConfig {
 	public final fun getHttpClient ()Lio/ktor/client/HttpClient;
 	public final fun getInitialDiscoveryAttempts ()I
 	public final fun getInitialDiscoveryRetryDelay-UwyO8pc ()J
+	public final fun protectedResource (Ljava/lang/String;)V
+	public final fun protectedResource (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
 	public final fun setDiscoveryRefreshFailureDelay-LRDsOJo (J)V
 	public final fun setDiscoveryRefreshInterval-LRDsOJo (J)V
 	public final fun setHttpClient (Lio/ktor/client/HttpClient;)V
@@ -500,6 +502,71 @@ public abstract class io/ktor/server/auth/oidc/OpenIdTestTokenBuilder {
 	public final fun setName (Ljava/lang/String;)V
 	public final fun setNotBefore (Lkotlin/time/Instant;)V
 	public final fun setSubject (Ljava/lang/String;)V
+}
+
+public final class io/ktor/server/auth/oidc/ProtectedResourceMetadata {
+	public static final field Companion Lio/ktor/server/auth/oidc/ProtectedResourceMetadata$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;Ljava/util/List;Ljava/util/List;Ljava/lang/Boolean;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;Ljava/util/List;Ljava/util/List;Ljava/lang/Boolean;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getAuthorizationDetailsTypesSupported ()Ljava/util/List;
+	public final fun getAuthorizationServers ()Ljava/util/List;
+	public final fun getBearerMethodsSupported ()Ljava/util/List;
+	public final fun getDpopBoundAccessTokensRequired ()Ljava/lang/Boolean;
+	public final fun getDpopSigningAlgValuesSupported ()Ljava/util/List;
+	public final fun getJwksUri ()Ljava/lang/String;
+	public final fun getResource ()Ljava/lang/String;
+	public final fun getResourceDocumentation ()Ljava/lang/String;
+	public final fun getResourceName ()Ljava/lang/String;
+	public final fun getResourcePolicyUri ()Ljava/lang/String;
+	public final fun getResourceSigningAlgValuesSupported ()Ljava/util/List;
+	public final fun getResourceTosUri ()Ljava/lang/String;
+	public final fun getScopesSupported ()Ljava/util/List;
+	public final fun getTlsClientCertificateBoundAccessTokens ()Ljava/lang/Boolean;
+}
+
+public final synthetic class io/ktor/server/auth/oidc/ProtectedResourceMetadata$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/ktor/server/auth/oidc/ProtectedResourceMetadata$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/server/auth/oidc/ProtectedResourceMetadata;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/ktor/server/auth/oidc/ProtectedResourceMetadata;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/ktor/server/auth/oidc/ProtectedResourceMetadata$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/ktor/server/auth/oidc/ProtectedResourceMetadataConfig {
+	public final fun getAuthorizationDetailsTypesSupported ()Ljava/util/List;
+	public final fun getAuthorizationServers ()Ljava/util/List;
+	public final fun getBearerMethodsSupported ()Ljava/util/List;
+	public final fun getDpopBoundAccessTokensRequired ()Ljava/lang/Boolean;
+	public final fun getDpopSigningAlgValuesSupported ()Ljava/util/List;
+	public final fun getJwksUri ()Ljava/lang/String;
+	public final fun getResource ()Ljava/lang/String;
+	public final fun getResourceDocumentation ()Ljava/lang/String;
+	public final fun getResourceName ()Ljava/lang/String;
+	public final fun getResourcePolicyUri ()Ljava/lang/String;
+	public final fun getResourceSigningAlgValuesSupported ()Ljava/util/List;
+	public final fun getResourceTosUri ()Ljava/lang/String;
+	public final fun getScopesSupported ()Ljava/util/List;
+	public final fun getTlsClientCertificateBoundAccessTokens ()Ljava/lang/Boolean;
+	public final fun setAuthorizationDetailsTypesSupported (Ljava/util/List;)V
+	public final fun setAuthorizationServers (Ljava/util/List;)V
+	public final fun setBearerMethodsSupported (Ljava/util/List;)V
+	public final fun setDpopBoundAccessTokensRequired (Ljava/lang/Boolean;)V
+	public final fun setDpopSigningAlgValuesSupported (Ljava/util/List;)V
+	public final fun setJwksUri (Ljava/lang/String;)V
+	public final fun setResourceDocumentation (Ljava/lang/String;)V
+	public final fun setResourceName (Ljava/lang/String;)V
+	public final fun setResourcePolicyUri (Ljava/lang/String;)V
+	public final fun setResourceSigningAlgValuesSupported (Ljava/util/List;)V
+	public final fun setResourceTosUri (Ljava/lang/String;)V
+	public final fun setScopesSupported (Ljava/util/List;)V
+	public final fun setTlsClientCertificateBoundAccessTokens (Ljava/lang/Boolean;)V
 }
 
 public final class io/ktor/server/auth/oidc/TokenClaims {
