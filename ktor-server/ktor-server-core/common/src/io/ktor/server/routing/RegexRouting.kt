@@ -296,7 +296,10 @@ private fun Route.createRouteFromRegexPath(regex: Regex): Route {
  */
 public class PathSegmentRegexRouteSelector(public val regex: Regex) : RouteSelector(), RoutePathComponent {
 
-    override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
+    override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation =
+        evaluateSync(context, segmentIndex)
+
+    override fun evaluateSync(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val prefix = if (regex.pattern.startsWith('/') || regex.pattern.startsWith("""\/""")) "/" else ""
         val postfix = if (regex.pattern.endsWith('/') && context.call.ignoreTrailingSlash) "/" else ""
         val pathSegments = context.segments.drop(segmentIndex).joinToString("/", prefix, postfix)
@@ -304,7 +307,7 @@ public class PathSegmentRegexRouteSelector(public val regex: Regex) : RouteSelec
 
         val segmentIncrement = result.value.length.let { consumedLength ->
             if (pathSegments.length == consumedLength) {
-                context.segments.size - segmentIndex
+                context.segmentsSize - segmentIndex
             } else if (pathSegments[consumedLength] == '/') {
                 countSegments(result, consumedLength, prefix)
             } else if (consumedLength >= 1 && pathSegments[consumedLength - 1] == '/') {

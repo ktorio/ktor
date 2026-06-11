@@ -17,11 +17,13 @@ import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelInboundHandlerAdapter
 import io.netty.handler.codec.http.*
 import io.netty.handler.timeout.ReadTimeoutException
+import io.netty.util.concurrent.EventExecutor
 import io.netty.util.concurrent.EventExecutorGroup
 import kotlinx.coroutines.*
 import java.io.IOException
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.cancellation.CancellationException
 
 internal class NettyHttp1Handler(
@@ -44,6 +46,13 @@ internal class NettyHttp1Handler(
     private val activeCalls = ConcurrentLinkedQueue<NettyHttp1ApplicationCall>()
 
     private var activated = false
+
+    // Per-channel cache of the connection-stable portion of the per-call coroutine context.
+    // The dispatcher, user context, application context, and coroutine name are reused across
+    // all requests on this connection, so we build them once and combine only with the per-call
+    // [Job] on each request.
+    private var cachedApplication: Application? = null
+    private var cachedBaseContext: CoroutineContext = EmptyCoroutineContext
 
     override fun channelActive(context: ChannelHandlerContext) {
         // channelActive may be fired more than once on this handler (for example, when the pipeline is
@@ -154,15 +163,41 @@ internal class NettyHttp1Handler(
         super.channelReadComplete(context)
     }
 
-    private fun handleRequest(context: ChannelHandlerContext, message: HttpRequest) {
-        val userAppContext = applicationProvider().coroutineContext + userContext
-        val callJob = Job(parent = userAppContext[Job])
-
-        val callExecutor = pinnedCallExecutor(context, callEventGroup)
-        val callContext = userAppContext +
+    /**
+     * Returns the connection-stable portion of the per-call coroutine context, building it lazily on
+     * the first request and refreshing it if the running [Application] reference changes (for example,
+     * after a hot reload).
+     *
+     * Combining the application/user/dispatcher/name elements is the same on every request, so caching
+     * them avoids a chain of `CombinedContext` allocations per call; only the per-call [Job] is added
+     * fresh in [handleRequest].
+     */
+    private fun baseCallContext(
+        context: ChannelHandlerContext,
+        callExecutor: EventExecutor
+    ): CoroutineContext {
+        val application = applicationProvider()
+        val cached = cachedBaseContext
+        if (cachedApplication === application && cached !== EmptyCoroutineContext) {
+            return cached
+        }
+        val fresh = application.coroutineContext +
+            userContext +
             NettyDispatcher.CurrentContext(context, callExecutor) +
-            callJob +
             CallHandlerCoroutineName
+        cachedApplication = application
+        cachedBaseContext = fresh
+        return fresh
+    }
+
+    private fun handleRequest(context: ChannelHandlerContext, message: HttpRequest) {
+        val callExecutor = pinnedCallExecutor(context, callEventGroup)
+        val baseContext = baseCallContext(context, callExecutor)
+        val callJob = Job(parent = baseContext[Job])
+
+        // Only the per-call [Job] is combined per request; the rest of the context is cached on the
+        // handler instance and reused across all calls on this connection.
+        val callContext = baseContext + callJob
         val call = prepareCallFromRequest(context, message, callContext = callContext)
         activeCalls.add(call)
 

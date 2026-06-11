@@ -40,6 +40,19 @@ public class RoutingRoot(
     Routing {
     private val tracers = mutableListOf<(RoutingResolveTrace) -> Unit>()
 
+    /**
+     * Lazy, cached path-only fast-path index over this routing tree.
+     *
+     * The trie is built on first access using a snapshot of the current tree and reused for
+     * the lifetime of this [RoutingRoot]. It is intentionally not invalidated on dynamic
+     * route additions in this revision; routes that are added after the first request will
+     * still resolve correctly via the DFS fallback, but will not benefit from fast-path
+     * resolution until the cache is rebuilt.
+     *
+     * TODO: support invalidation when the routing tree is mutated at runtime.
+     */
+    internal val pathTrie: RoutingPathTrie by lazy { RoutingPathTrie.build(this) }
+
     init {
         addDefaultTracing()
     }
@@ -67,6 +80,18 @@ public class RoutingRoot(
 
     @OptIn(InternalAPI::class)
     public suspend fun interceptor(context: PipelineContext<Unit, PipelineCall>) {
+        // Fast path: when there are no tracers and the routing tree is amenable to constant
+        // path resolution, bypass the [RoutingResolveContext] allocation (and its `resolve`
+        // continuation, scratch ArrayLists, and per-segment parsing) entirely.
+        if (tracers.isEmpty()) {
+            val call = context.call
+            val fast = pathTrie.tryFastResolve(call.request.path(), call.request.httpMethod)
+            if (fast != null) {
+                executeResult(context, fast.route, fast.parameters)
+                return
+            }
+        }
+
         val resolveContext = RoutingResolveContext(this, context.call, tracers)
         when (val resolveResult = resolveContext.resolve()) {
             is RoutingResolveResult.Success ->
