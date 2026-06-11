@@ -9,7 +9,6 @@ package io.ktor.server.auth.oidc
 import com.auth0.jwk.JwkProvider
 import com.auth0.jwk.JwkProviderBuilder
 import io.ktor.client.*
-import io.ktor.server.auth.typesafe.*
 import io.ktor.server.routing.*
 import io.ktor.utils.io.*
 import org.slf4j.Logger

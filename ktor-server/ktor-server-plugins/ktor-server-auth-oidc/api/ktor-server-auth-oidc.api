@@ -1,3 +1,4 @@
+public final class io/ktor/server/auth/oidc/Oidc {
 public abstract class io/ktor/server/auth/oidc/CodeChallengeMethod {
 	public abstract fun getName ()Ljava/lang/String;
 }
@@ -7,7 +8,6 @@ public final class io/ktor/server/auth/oidc/CodeChallengeMethod$S256 : io/ktor/s
 	public fun getName ()Ljava/lang/String;
 }
 
-public final class io/ktor/server/auth/oidc/Oidc {
 	public static final field Companion Lio/ktor/server/auth/oidc/Oidc$Companion;
 	public final fun provider (Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun provider (Ljava/lang/String;Lkotlin/reflect/KClass;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;

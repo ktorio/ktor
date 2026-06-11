@@ -174,8 +174,6 @@ private suspend fun HttpClient.introspectOpaqueToken(
                 basicAuth(username = strategy.clientId, password = strategy.clientSecret)
             }
         }.body<JsonObject>().toOpaqueTokenIntrospection()
-    } catch (e: CancellationException) {
-        throw e
     } catch (e: SerializationException) {
         rejectToken(e.message)
     }

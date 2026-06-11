@@ -33,8 +33,8 @@ internal fun <P : Any> OidcProvider<P>.createBearerScheme(): DefaultAuthScheme<P
 
         authenticate { credential ->
             runCatching {
-                val principal = verifyAccessToken(credential.token)
-                transformPrincipal(principal)
+                val token = verifyAccessToken(credential.token)
+                transformPrincipal(token)
             }.onFailure { cause ->
                 if (cause is CancellationException) throw cause
                 logger.trace("OpenID access token authentication failed $cause")
