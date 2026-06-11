@@ -48,9 +48,35 @@ public class OidcBearerContext<P : Any> internal constructor(
 }
 
 /**
+ * Route context used by OpenID Connect session authentication.
+ *
+ * It exposes the typed authenticated principal, the raw stored [OidcToken.Id] session, and provider-bound helpers
+ * inside `authenticateWith(provider.sessions)` route bodies.
+ *
+ * @param P provider principal type exposed to the route.
+ */
+@KtorDsl
+@OptIn(ExperimentalKtorApi::class)
+public class OidcSessionsContext<P : Any> internal constructor(
+    default: SessionAuthenticatedContext<OidcToken.Id, P>,
+    private val provider: OidcProvider<P>,
+) : SessionAuthenticatedContext<OidcToken.Id, P> by default, OidcProviderContext<P> {
+
+    override fun provider(): OidcProvider<P> = provider
+}
+
+/**
  * Typed Bearer authentication scheme for an OpenID Connect provider.
  *
  * @param P provider principal type exposed to the route.
  */
 @OptIn(ExperimentalKtorApi::class)
 public typealias OidcBearerScheme<P> = DefaultAuthScheme<P, OidcBearerContext<P>>
+
+/**
+ * Typed session authentication scheme for an OpenID Connect provider.
+ *
+ * @param P provider principal type exposed to the route.
+ */
+@OptIn(ExperimentalKtorApi::class)
+public typealias OidcSessionsScheme<P> = SessionAuthScheme<OidcToken.Id, P, OidcSessionsContext<P>>

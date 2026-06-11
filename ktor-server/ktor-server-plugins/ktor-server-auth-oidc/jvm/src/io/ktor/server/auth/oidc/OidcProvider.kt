@@ -11,6 +11,9 @@ import com.auth0.jwk.JwkProviderBuilder
 import io.ktor.client.*
 import io.ktor.server.routing.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.net.URI
@@ -23,10 +26,12 @@ import kotlin.time.toJavaDuration
  * Typed authentication capabilities for one configured OpenID Connect provider.
  *
  * [bearer] is available when the provider was configured with `bearer { }`.
+ * [sessions] is available when the provider was configured with `sessions { }`.
  *
  * @param P principal type exposed by this provider's route-facing capabilities.
  * @property name provider name. It is also used to derive default routes (`/oidc/{name}/...`), the OAuth scheme
- * name (`{name}-oauth`), and the Bearer scheme name (`{name}-bearer`).
+ * name (`{name}-oauth`), the Bearer scheme name (`{name}-bearer`), and the default session cookie root
+ * (`{NAME}_SESSION`).
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcProvider)
  */
@@ -46,6 +51,11 @@ public class OidcProvider<P : Any> internal constructor(
     internal val oauthConfig: OidcOAuthConfig<P>
         get() = checkNotNull(config.oauthConfig) { "OAuth is not enabled for provider $name" }
 
+    internal val sessionConfig: OidcSessionConfig<P>
+        get() = checkNotNull(config.sessionConfig) {
+            "Sessions are not enabled. Call sessions { } in the provider $name."
+        }
+
     internal val accessTokenConfig: OidcAccessTokenConfig
         get() = checkNotNull(config.accessTokenConfig) { "Access token is not enabled for provider $name" }
 
@@ -60,8 +70,16 @@ public class OidcProvider<P : Any> internal constructor(
     private var providerState: OidcProviderState? = null
 
     internal val oauthFlow by lazy { createOauthFlow() }
+    internal val oauthSessionFlow by lazy { createSessions(secure = !developmentMode) }
 
     internal val stateCodec: OidcStateCodec by lazy { createStateCodec() }
+
+    internal val sessionRefreshPath: String by lazy { oidcRoutePath(sessionConfig.refreshUri) }
+
+    internal val sessionLogoutPath: String by lazy { oidcRoutePath(sessionConfig.logoutUri) }
+
+    private val tokenRefreshMutex = Mutex()
+    private val tokenRefreshes = HashMap<String, CompletableDeferred<OidcTokenRefreshResult>>()
 
     internal val canIntrospectOpaqueToken: Boolean =
         config.accessTokenConfig?.opaqueToken is OpaqueTokenStrategy.Introspect
@@ -143,6 +161,53 @@ public class OidcProvider<P : Any> internal constructor(
     }
 
     /**
+     * Refreshes token material for this provider using the supplied refresh token.
+     *
+     * @param refreshToken Refresh token to send to the provider token endpoint.
+     * @return Raw token response fields and an optional verified ID-token principal.
+     * @throws IllegalArgumentException when OAuth is not enabled.
+     */
+    public suspend fun refreshToken(refreshToken: String): OidcTokenRefreshResult {
+        val (refresh, inProgress) = tokenRefreshMutex.withLock {
+            tokenRefreshes[refreshToken]?.let { return@withLock it to true }
+            val pending = CompletableDeferred<OidcTokenRefreshResult>()
+            tokenRefreshes[refreshToken] = pending
+            pending to false
+        }
+
+        if (inProgress) {
+            return refresh.await()
+        }
+
+        try {
+            val result = refreshTokenInternal(refreshToken)
+            refresh.complete(result)
+            return result
+        } catch (cause: Exception) {
+            refresh.completeExceptionally(cause)
+            throw cause
+        } finally {
+            tokenRefreshMutex.withLock {
+                tokenRefreshes.remove(refreshToken)
+            }
+        }
+    }
+
+    /**
+     * Builds an RP-initiated logout URL for the provider.
+     *
+     * Local plugin-managed logout clears the local session before building this URL, so a failure to build or reach
+     * the provider logout URL does not restore the local session.
+     *
+     * @param idTokenHint ID token hint to pass to the provider logout endpoint.
+     * @param postLogoutRedirectUri Optional absolute URI to receive the user after the provider logout.
+     * @return Provider logout URL.
+     * @throws IllegalArgumentException when [idTokenHint] is blank or metadata does not expose an end-session endpoint.
+     */
+    public fun buildLogoutUrl(idTokenHint: String, postLogoutRedirectUri: String?): String =
+        buildLogoutUrlInternal(idTokenHint, postLogoutRedirectUri)
+
+    /**
      * Typed Bearer authentication scheme.
      *
      * Use with `authenticateWith(provider.bearer)`.
@@ -150,6 +215,16 @@ public class OidcProvider<P : Any> internal constructor(
      * @throws IllegalStateException when the provider was not configured with `bearer { }`.
      */
     public val bearer: OidcBearerScheme<P> by lazy { createBearerScheme() }
+
+    /**
+     * Typed browser session authentication scheme.
+     *
+     * OpenID Connect stores the raw [OidcToken.Id] in a provider-specific session, then maps that value
+     * to [P] for routes protected with `authenticateWith(provider.sessions)`.
+     *
+     * @throws IllegalStateException when the provider was not configured with `sessions { }`.
+     */
+    public val sessions: OidcSessionsScheme<P> get() = oauthSessionFlow.sessions
 }
 
 private class OidcProviderState(
