@@ -35,6 +35,10 @@ internal fun <P : Any> Application.configureOAuthRoute(provider: OidcProvider<P>
                 parameters.append("scope", config.scopes.joinToString(" "))
                 parameters.append("state", oauthState)
                 parameters.append("nonce", authorizationTransaction.nonce)
+                if (config.pkceEnabled) {
+                    parameters.append("code_challenge", authorizationTransaction.codeChallenge())
+                    parameters.append("code_challenge_method", PkceCodeChallengeMethod)
+                }
                 config.resourceIndicators.forEach { parameters.append("resource", it) }
             }.buildString()
 

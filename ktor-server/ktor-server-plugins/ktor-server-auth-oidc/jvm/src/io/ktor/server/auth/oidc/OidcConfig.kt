@@ -473,14 +473,16 @@ public class OidcOAuthConfig<P : Any> internal constructor(
     public var fetchUserInfo: Boolean = false
 
     /**
-     * Symmetric key used to encrypt the in-flight OAuth state cookie carrying `state` and `nonce`
-     * between the login redirect and the callback.
+     * Symmetric key used to encrypt the in-flight OAuth state cookie carrying `state`, `nonce`, and the PKCE code
+     * verifier between the login redirect and the callback.
      *
      * Required in production. In development mode an ephemeral key is generated when not set.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcOAuthConfig.stateEncryptionKey)
      */
     public var stateEncryptionKey: OidcStateEncryptionKey? = null
+
+    internal var pkceEnabled: Boolean = true
 
     /**
      * Configures the OAuth callback route URI.
@@ -505,6 +507,17 @@ public class OidcOAuthConfig<P : Any> internal constructor(
      * Called when OAuth, OpenID Connect verification, or principal mapping fails during the callback.
      */
     internal var onFailure: UnauthorizedHandler = { call.respond(HttpStatusCode.Unauthorized) }
+
+    /**
+     * Disables PKCE (RFC 7636).
+     *
+     * Use only with legacy OpenID Providers that reject PKCE parameters.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcOAuthConfig.disablePkce)
+     */
+    public fun disablePkce() {
+        pkceEnabled = false
+    }
 
     /**
      * Sets the handler called after a successful OAuth/OIDC login.
