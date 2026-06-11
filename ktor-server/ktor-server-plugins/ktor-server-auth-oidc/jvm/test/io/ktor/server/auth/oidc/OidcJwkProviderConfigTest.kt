@@ -27,22 +27,22 @@ class OidcJwkProviderConfigTest {
 
     @Test
     fun `cache config caches fetched keys`() {
-        val keys = OpenIdTestKeys()
+        val keys = testRsaKeys
 
         withJwksServer(keys) { jwksUri, fetchCount ->
             val jwkProvider = oidcJwkProvider(jwksUri) {
                 jwkCache(maxEntries = 1, duration = 1.hours)
             }
 
-            assertEquals(keys.jwk.id, jwkProvider.get(keys.jwk.id).id)
-            assertEquals(keys.jwk.id, jwkProvider.get(keys.jwk.id).id)
+            assertEquals(keys.keyId, jwkProvider.get(keys.keyId).id)
+            assertEquals(keys.keyId, jwkProvider.get(keys.keyId).id)
             assertEquals(1, fetchCount.get())
         }
     }
 
     @Test
     fun `disableCache lets repeated key lookups reach the rate limiter`() {
-        val keys = OpenIdTestKeys()
+        val keys = testRsaKeys
 
         withJwksServer(keys) { jwksUri, fetchCount ->
             val jwkProvider = oidcJwkProvider(jwksUri) {
@@ -50,9 +50,9 @@ class OidcJwkProviderConfigTest {
                 jwkRateLimit(bucketSize = 1, refillDuration = 1.hours)
             }
 
-            assertEquals(keys.jwk.id, jwkProvider.get(keys.jwk.id).id)
+            assertEquals(keys.keyId, jwkProvider.get(keys.keyId).id)
             assertFailsWith<RateLimitReachedException> {
-                jwkProvider.get(keys.jwk.id)
+                jwkProvider.get(keys.keyId)
             }
             assertEquals(1, fetchCount.get())
         }
@@ -60,7 +60,7 @@ class OidcJwkProviderConfigTest {
 
     @Test
     fun `rateLimit limits repeated unknown-key lookups`() {
-        val keys = OpenIdTestKeys()
+        val keys = testRsaKeys
 
         withJwksServer(keys) { jwksUri, fetchCount ->
             val jwkProvider = oidcJwkProvider(jwksUri) {
@@ -80,7 +80,7 @@ class OidcJwkProviderConfigTest {
 
     @Test
     fun `disableRateLimit allows repeated unknown-key lookups`() {
-        val keys = OpenIdTestKeys()
+        val keys = testRsaKeys
 
         withJwksServer(keys) { jwksUri, fetchCount ->
             val jwkProvider = oidcJwkProvider(jwksUri) {
@@ -99,7 +99,7 @@ class OidcJwkProviderConfigTest {
 
     @Test
     fun `jwkBuilder remains the final low-level override`() {
-        val keys = OpenIdTestKeys()
+        val keys = testRsaKeys
 
         withJwksServer(keys) { jwksUri, fetchCount ->
             val jwkProvider = oidcJwkProvider(jwksUri) {
@@ -110,9 +110,9 @@ class OidcJwkProviderConfigTest {
                 }
             }
 
-            assertEquals(keys.jwk.id, jwkProvider.get(keys.jwk.id).id)
+            assertEquals(keys.keyId, jwkProvider.get(keys.keyId).id)
             assertFailsWith<RateLimitReachedException> {
-                jwkProvider.get(keys.jwk.id)
+                jwkProvider.get(keys.keyId)
             }
             assertEquals(1, fetchCount.get())
         }
@@ -196,7 +196,7 @@ class OidcJwkProviderConfigTest {
                 addHandler { respondOk() }
             }
         }
-        val provider = try {
+        val provider = client.use { client ->
             OidcProvider(
                 name = "auth0",
                 client = client,
@@ -205,11 +205,7 @@ class OidcJwkProviderConfigTest {
                     jwt(configureJwt)
                     validate()
                 },
-            ).apply {
-                updateMetadata(metadata(jwksUri = jwksUri))
-            }
-        } finally {
-            client.close()
+            ).also { it.updateMetadata(metadata(jwksUri = jwksUri)) }
         }
         return provider.currentJwkProvider()
     }
@@ -225,7 +221,7 @@ class OidcJwkProviderConfigTest {
     )
 
     private fun OpenIdTestKeys.jwksJson(): String {
-        val jwk = this.jwk
+        val jwk = jwkProvider.get(keyId)
         return """
             {
               "keys": [
