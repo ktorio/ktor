@@ -19,12 +19,12 @@ kotlin {
             api(projects.ktorServerAuthJwt)
             api(projects.ktorClientCore)
             api(projects.ktorClientContentNegotiation)
+            api(projects.ktorServerContentNegotiation)
             api(projects.ktorSerializationKotlinxJson)
             api(libs.kotlinx.serialization.json)
         }
         jvmTest.dependencies {
             implementation(projects.ktorServerTestHost)
-            implementation(projects.ktorServerContentNegotiation)
             implementation(projects.ktorServerCio)
             implementation(projects.ktorClientMock)
         }

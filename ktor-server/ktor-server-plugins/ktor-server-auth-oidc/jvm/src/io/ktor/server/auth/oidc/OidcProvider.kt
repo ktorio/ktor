@@ -59,6 +59,8 @@ public class OidcProvider<P : Any> internal constructor(
     internal val accessTokenConfig: OidcAccessTokenConfig
         get() = checkNotNull(config.accessTokenConfig) { "Access token is not enabled for provider $name" }
 
+    internal var resourceMetadataUrl: String? = null
+
     internal val bearerConfig: OidcBearerConfig
         get() = checkNotNull(config.bearerConfig) {
             "Bearer scheme is not enabled. Call bearer { } in the provider $name."
@@ -214,7 +216,7 @@ public class OidcProvider<P : Any> internal constructor(
      *
      * @throws IllegalStateException when the provider was not configured with `bearer { }`.
      */
-    public val bearer: OidcBearerScheme<P> by lazy { createBearerScheme() }
+    public val bearer: OidcBearerScheme<P> by lazy { createBearerScheme(resourceMetadataUrl) }
 
     /**
      * Typed browser session authentication scheme.
