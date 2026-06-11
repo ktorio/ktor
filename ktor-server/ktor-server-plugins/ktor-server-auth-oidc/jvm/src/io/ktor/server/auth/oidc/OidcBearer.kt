@@ -13,8 +13,11 @@ import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.typesafe.*
 import io.ktor.server.response.*
+import io.ktor.server.sessions.serialization.*
+import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.CancellationException
+import kotlinx.serialization.json.Json
 import org.slf4j.Logger
 
 private const val HEADER_LOG_LIMIT: Int = 96
@@ -59,6 +62,69 @@ internal fun <P : Any> OidcProvider<P>.createOauthFlow(): OAuth2Flow =
             oauthConfig.onFailure.invoke(this@onForbidden, cause)
         }
     }
+
+internal fun <P : Any> OidcProvider<P>.createSessions(
+    secure: Boolean
+): OAuth2SessionFlow<OidcToken.Id, P, SessionAuthenticatedContext<OidcToken.Id, P>> {
+    val sessionJson = Json {
+        ignoreUnknownKeys = true
+        serializersModule = OidcToken.serializersModule
+    }
+
+    @OptIn(InternalAPI::class)
+    val sessionFlowConfig = OAuth2SessionConfig<OidcToken.Id, P, SessionAuthenticatedContext<OidcToken.Id, P>>().apply {
+        sessionConfig.name?.let { sessionName = it }
+
+        storage { scheme ->
+            cookie(scheme, storage = sessionConfig.storage) {
+                serializer = KotlinxSessionSerializer(
+                    OidcToken.Id.serializer(),
+                    format = sessionJson,
+                )
+                cookie.httpOnly = true
+                cookie.secure = secure
+                cookie.extensions["SameSite"] = "lax"
+                sessionConfig.cookieConfigure?.invoke(this)
+            }
+        }
+
+        sessionCreator = sessionCreator@{ oauthResponse ->
+            call.validateAuthorizationResponseIssuer(currentMetadata())
+            val response = requireNotNull(oauthResponse as? OAuthAccessTokenResponse.OAuth2) {
+                "Expected OAuth2 token response, but got: ${oauthResponse::class.simpleName}"
+            }
+            val oauthState = response.state ?: call.request.queryParameters["state"]
+            val authorizationTransaction = oauthState?.let {
+                call.consumeAuthorizationTransaction(stateCodec, it)
+            }
+
+            val token = buildOAuthToken(response, expectedNonce = authorizationTransaction?.nonce)
+            if (token !is OidcToken.Id) {
+                logger.debug("Received non-ID token, skipping session creation")
+                return@sessionCreator null
+            }
+            token
+        }
+
+        transformSession { refreshSessionIfNeeded(token = it) }
+
+        validate { transformPrincipal(token = it) }
+
+        sessionConfig.csrfConfigurer?.let { configure ->
+            csrfProtection(configure)
+        }
+
+        contextFactory = { it }
+    }
+
+    @OptIn(InternalAPI::class)
+    return OAuth2SessionFlow.from(
+        oauth = oauthFlow,
+        config = sessionFlowConfig,
+        principalType = principalType,
+        sessionTypeInfo = typeInfo<OidcToken.Id>(),
+    )
+}
 
 private fun OidcProvider<*>.oauthServerSettings(): OAuthServerSettings.OAuth2ServerSettings {
     val config = oauthConfig

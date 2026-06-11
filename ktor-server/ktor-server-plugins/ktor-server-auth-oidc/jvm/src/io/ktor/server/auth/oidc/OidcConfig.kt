@@ -12,9 +12,11 @@ import io.ktor.http.auth.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.typesafe.*
 import io.ktor.server.plugins.*
+import io.ktor.server.plugins.csrf.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.server.sessions.*
 import io.ktor.utils.io.*
 import kotlin.reflect.KClass
 import kotlin.time.Duration
@@ -109,6 +111,7 @@ public class OidcProviderConfig<P : Any> internal constructor(
     internal var accessTokenConfig: OidcAccessTokenConfig? = null
     internal var bearerConfig: OidcBearerConfig? = null
     internal var oauthConfig: OidcOAuthConfig<P>? = null
+    internal var sessionConfig: OidcSessionConfig<P>? = null
 
     /**
      * Configures JWT verification shared by ID-token and JWT access-token validation.
@@ -137,9 +140,24 @@ public class OidcProviderConfig<P : Any> internal constructor(
 
     /**
      * Configures access-token acceptance for Bearer authentication and OAuth callbacks without an ID token.
+     * Access-token-only OAuth callbacks are accepted only when [sessions] is not configured.
      */
     public fun accessToken(configure: OidcAccessTokenConfig.() -> Unit) {
         accessTokenConfig = (accessTokenConfig ?: OidcAccessTokenConfig()).apply(configure)
+    }
+
+    /**
+     * Configures the OIDC session for this provider, including cookie transport and CSRF protection.
+     *
+     * Defaults to a cookie named `"${name.uppercase()}_SESSION"` with secure defaults
+     * (`httpOnly`, `secure` in production, `SameSite=lax`), and CSRF protection enabled
+     * with [CSRFConfig.originMatchesHost].
+     *
+     * Used by both the OAuth flow (login/refresh/logout routes) and typed session authentication
+     * (`authenticateWith(provider.sessions)`) to read/write the verified [OidcToken.Id] session.
+     */
+    public fun sessions(configure: OidcSessionConfig<P>.() -> Unit = {}) {
+        sessionConfig = OidcSessionConfig<P>(name).apply(configure)
     }
 
     /**
@@ -462,7 +480,8 @@ public class OidcOAuthConfig<P : Any> internal constructor(
      * OAuth scopes requested during authorization.
      *
      * The `openid` scope is required unless [OidcProviderConfig.accessToken] is configured, in which case
-     * access-token-only OAuth callbacks may accept a response without an ID token.
+     * non-session OAuth callbacks may accept an access-token-only response. Session-backed callbacks always
+     * require an ID token.
      */
     public var scopes: List<String> = listOf("openid", "profile", "email")
 
@@ -472,7 +491,7 @@ public class OidcOAuthConfig<P : Any> internal constructor(
     public var resourceIndicators: List<String> = emptyList()
 
     /**
-     * Expected audience for ID token validation in the callback flow.
+     * Expected audience for ID token validation in callback/refresh.
      * Defaults to [clientId] when not specified.
      */
     public var idTokenAudience: String? = null
@@ -539,6 +558,14 @@ public class OidcOAuthConfig<P : Any> internal constructor(
     public var loginUri: URLBuilder.() -> Unit = { path("oidc", providerName, "login") }
 
     /**
+     * Configures the local redirect URI used after plugin-managed logout.
+     *
+     * Defaults to `/`. When the provider supports RP-initiated logout, this URI is also sent as
+     * `post_logout_redirect_uri` and must be registered with the OpenID Provider. Query parameters are not supported.
+     */
+    public var postLogoutRedirectUri: URLBuilder.() -> Unit = { path("/") }
+
+    /**
      * Called after a successful OAuth login.
      */
     internal var onSuccess: suspend RoutingContext.(P) -> Unit = { call.respond(HttpStatusCode.OK) }
@@ -581,6 +608,96 @@ public class OidcOAuthConfig<P : Any> internal constructor(
                 "idTokenAudience must not be blank"
             }
         }
+    }
+}
+
+/**
+ * Configuration for OIDC session transport and CSRF protection.
+ *
+ * Controls how the OpenID Connect session is stored and transported between client and server, and whether CSRF
+ * protection is applied to routes authenticated with the enclosing provider.
+ *
+ * By default, sessions use cookie transport with secure defaults and CSRF protection is enabled with
+ * [CSRFConfig.originMatchesHost].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcSessionConfig)
+ *
+ * @param P provider principal type exposed to route handlers.
+ */
+@KtorDsl
+public class OidcSessionConfig<P : Any> internal constructor(private val providerName: String) {
+    /**
+     * Cookie / session name.
+     *
+     * When `null`, defaults to the provider name in uppercase followed by `_SESSION`.
+     */
+    public var name: String? = null
+
+    /**
+     * Server-side session storage. Defaults to in-memory storage.
+     *
+     * In-memory storage is intended for local development and single-instance deployments. Use shared storage for
+     * clustered production deployments.
+     */
+    public var storage: SessionStorage = SessionStorageMemory()
+
+    /**
+     * Strategy used to refresh session token material.
+     *
+     * The default disables automatic refresh, but expired ID-token sessions are still rejected on user routes.
+     * Expiry and refresh timing use [OidcToken.Id.claims] [io.ktor.server.auth.oidc.TokenClaims.expiresAt];
+     * when the ID token has no `exp` claim, sessions are never treated as expired and auto-refresh never triggers.
+     */
+    public var tokenRefreshStrategy: OidcTokenRefreshStrategy<P> = OidcTokenRefreshStrategy.Disabled
+
+    internal var cookieConfigure: (CookieIdSessionBuilder<OidcToken.Id>.() -> Unit)? = null
+
+    internal var csrfConfigurer: (CSRFConfig.() -> Unit)? = { originMatchesHost() }
+
+    /**
+     * Plugin-managed logout route URI.
+     *
+     * Defaults to `/oidc/{providerName}/logout`. The route is installed only when both
+     * [OidcProviderConfig.sessions] and [OidcProviderConfig.oauth] are configured.
+     * Query parameters are not supported.
+     */
+    public var logoutUri: (URLBuilder.() -> Unit) = { path("oidc", providerName, "logout") }
+
+    /**
+     * Plugin-managed refresh route URI.
+     *
+     * Defaults to `/oidc/{providerName}/refresh`. The route is installed only when both
+     * [OidcProviderConfig.sessions] and [OidcProviderConfig.oauth] are configured.
+     * Query parameters are not supported.
+     */
+    public var refreshUri: (URLBuilder.() -> Unit) = { path("oidc", providerName, "refresh") }
+
+    /**
+     * Configures cookie attributes for the session cookie.
+     *
+     * The plugin applies secure defaults before this block runs: `httpOnly = true`, `secure = true` (in production),
+     * `SameSite = lax`. Values set in this block override those defaults.
+     */
+    public fun cookie(configure: CookieIdSessionBuilder<OidcToken.Id>.() -> Unit) {
+        cookieConfigure = configure
+    }
+
+    /**
+     * Configures CSRF protection for routes authenticated with this provider's typed session capability.
+     *
+     * By default, CSRF protection is enabled with [CSRFConfig.originMatchesHost].
+     * CSRF checks are applied to plugin-managed POST routes (refresh, logout) and user-defined non-safe HTTP methods
+     * under `authenticateWith(provider.sessions)`.
+     */
+    public fun csrfProtection(configure: CSRFConfig.() -> Unit) {
+        csrfConfigurer = configure
+    }
+
+    /**
+     * Disables CSRF protection for this provider's routes.
+     */
+    public fun disableCsrfProtection() {
+        csrfConfigurer = null
     }
 }
 

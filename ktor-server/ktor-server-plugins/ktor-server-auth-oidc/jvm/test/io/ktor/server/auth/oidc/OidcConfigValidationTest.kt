@@ -10,6 +10,7 @@ import ch.qos.logback.classic.Level
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.auth.oidc.utils.*
+import io.ktor.server.sessions.*
 import io.ktor.server.testing.*
 import io.ktor.utils.io.*
 import kotlin.test.*
@@ -126,16 +127,76 @@ class OidcConfigValidationTest {
     }
 
     @Test
+    fun `session config stores routes names storage and csrf settings`() {
+        val customStorage = SessionStorageMemory()
+
+        OidcProviderConfig("sessions", OidcToken::class).apply {
+            assertNull(sessionConfig)
+            sessions {
+                refreshUri = { path("custom", "refresh") }
+                logoutUri = { path("custom", "logout") }
+                name = "CUSTOM"
+                storage = customStorage
+                disableCsrfProtection()
+            }
+            assertNotNull(sessionConfig!!.refreshUri)
+            assertNotNull(sessionConfig!!.logoutUri)
+            assertEquals("CUSTOM", sessionConfig!!.name)
+            assertSame(customStorage, sessionConfig!!.storage)
+            assertNull(sessionConfig!!.csrfConfigurer)
+        }
+
+        OidcProviderConfig("csrf", OidcToken::class).apply {
+            sessions {
+                csrfProtection {
+                    allowOrigin("https://example.com")
+                }
+            }
+            assertNotNull(sessionConfig!!.csrfConfigurer)
+        }
+    }
+
+    @Test
     fun `bearer token source defaults to authorization header unless customized`() {
         OidcProviderConfig("default", OidcToken::class).apply {
             bearer()
             assertNull(bearerConfig!!.tokenExtractor)
+        }
+        OidcProviderConfig("session", OidcToken::class).apply {
+            sessions()
+            bearer()
+            assertNull(bearerConfig!!.tokenExtractor)
+            assertNotNull(sessionConfig!!.csrfConfigurer)
         }
         OidcProviderConfig("custom", OidcToken::class).apply {
             bearer {
                 tokenExtractor = { call -> call.request.headers["X-Token"] }
             }
             assertNotNull(bearerConfig!!.tokenExtractor)
+        }
+    }
+
+    @Test
+    fun `session storage memory warning is emitted only for production memory storage`() {
+        val customStorage = object : SessionStorage {
+            override suspend fun write(id: String, value: String) {
+            }
+
+            override suspend fun invalidate(id: String) {
+            }
+
+            override suspend fun read(id: String): String = error("not used")
+        }
+
+        assertSessionStorageWarning(providerName = "auth0", configure = { sessions() }) { events ->
+            assertTrue(events.any { it.formattedMessage.contains("SessionStorageMemory") })
+        }
+        assertSessionStorageWarning(providerName = "custom-storage", configure = {
+            sessions {
+                storage = customStorage
+            }
+        }) { events ->
+            assertTrue(events.none { it.formattedMessage.contains("SessionStorageMemory") })
         }
     }
 
@@ -198,6 +259,34 @@ class OidcConfigValidationTest {
                 }
             }
             startApplication()
+        }
+    }
+
+    private fun assertSessionStorageWarning(
+        providerName: String,
+        configure: OidcProviderConfig<OidcToken>.() -> Unit,
+        assertions: (List<ch.qos.logback.classic.spi.ILoggingEvent>) -> Unit,
+    ) {
+        captureProviderLogs(providerName, Level.WARN).use { logs ->
+            testApplication {
+                serverConfig {
+                    developmentMode = false
+                }
+                application {
+                    val oidc = openIdConnect { }
+                    oidc.provider(providerName) {
+                        testIssuer()
+                        oauth {
+                            clientId = "client-id"
+                            clientSecret = "client-secret"
+                            stateEncryptionKey = testStateEncryptionKey()
+                        }
+                        configure()
+                    }
+                }
+                startApplication()
+            }
+            assertions(logs.events)
         }
     }
 
