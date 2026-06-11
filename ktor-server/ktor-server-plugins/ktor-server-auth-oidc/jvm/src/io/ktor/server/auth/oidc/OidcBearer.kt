@@ -14,6 +14,7 @@ import io.ktor.server.auth.*
 import io.ktor.server.auth.typesafe.*
 import io.ktor.server.response.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.CancellationException
 import org.slf4j.Logger
 
 private const val AuthorizationHeaderLogLimit: Int = 96
@@ -32,10 +33,11 @@ internal fun <P : Any> OidcProvider<P>.createBearerScheme(): OidcBearerScheme<P>
 
         authenticate { credential ->
             runCatching {
-                val principal = verifyAccessToken(credential.token)
-                transformPrincipal(principal)
+                val token = verifyAccessToken(credential.token)
+                transformPrincipal(token)
             }.onFailure {
-                logger.trace("OpenID access token authentication failed {}", it.message)
+                if (it is CancellationException) throw it
+                logger.trace("OpenID access token authentication failed. {}", it.message)
             }.getOrNull()
         }
 
@@ -47,6 +49,47 @@ internal fun <P : Any> OidcProvider<P>.createBearerScheme(): OidcBearerScheme<P>
             call.respond(UnauthorizedResponse(challenge))
         }
     }
+}
+
+internal fun <P : Any> OidcProvider<P>.createOauthFlow(): OAuth2Flow =
+    oauth2Flow(name) {
+        client = this@createOauthFlow.client
+        settings = oauthServerSettings()
+        urlProvider = { call.request.oidcRedirectUri(oauthConfig.redirectUri) }
+        onForbidden = onForbidden@{ cause ->
+            val message = (cause as? AuthenticationFailedCause.Error)?.message ?: cause.toString()
+            logger.debug("OAuth authentication failed for: {}", message)
+            oauthConfig.onFailure.invoke(this@onForbidden, cause)
+        }
+    }
+
+private fun OidcProvider<*>.oauthServerSettings(): OAuthServerSettings.OAuth2ServerSettings {
+    val config = oauthConfig
+    val metadata = currentMetadata()
+    return OAuthServerSettings.OAuth2ServerSettings(
+        name = name,
+        authorizeUrl = metadata.authorizationEndpoint,
+        accessTokenUrl = metadata.tokenEndpoint,
+        requestMethod = HttpMethod.Post,
+        clientId = config.clientId,
+        clientSecret = config.clientSecret,
+        defaultScopes = config.scopes,
+        extraAuthParameters = config.resourceIndicators.map { "resource" to it },
+        extraTokenParameters = config.resourceIndicators.map { "resource" to it },
+        authorizeUrlInterceptor = authorize@{ request ->
+            val state = parameters[OAuth2RequestParameters.State]
+            val transaction = state?.let {
+                request.call.readAuthorizationTransaction(stateCodec, it)
+            } ?: return@authorize
+            parameters.append("nonce", transaction.nonce)
+        },
+        verifyState = { call, state ->
+            call.validateAuthorizationResponseIssuer(currentMetadata())
+            state != null && call.readAuthorizationTransaction(stateCodec, state) != null
+        },
+        extraTokenParametersProvider = { _, _ -> emptyList() },
+        onStateCreated = { call, state -> call.createAuthorizationTransaction(stateCodec, state) },
+    )
 }
 
 private fun ApplicationCall.extractBearerHeader(extractor: TokenExtractor?, logger: Logger): HttpAuthHeader? {

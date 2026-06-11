@@ -19,10 +19,8 @@ import io.ktor.server.testing.*
 import io.ktor.utils.io.*
 import kotlinx.serialization.PolymorphicSerializer
 import kotlinx.serialization.json.Json
-import java.util.*
 import kotlin.test.*
 import kotlin.time.Clock
-import kotlin.time.Duration.Companion.ZERO
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
 
@@ -30,21 +28,14 @@ class OidcBearerJwtTest {
 
     @Test
     fun `bearer authentication rejects invalid JWT inputs`() = testApplication {
-        val keys = OpenIdTestKeys()
-        val otherKeys = OpenIdTestKeys()
+        val keys = testRsaKeys
+        val otherKeys = testOtherRsaKeys
 
-        openIdProvider()
-        val openIdClient = openIdHttpClient()
         application {
-            val oidc = openIdConnect {
-                httpClient = openIdClient
-                discoveryRefreshInterval = ZERO
-            }
+            val oidc = openIdConnect { }
             val oidcProvider = oidc.provider("google") {
-                issuer = ISSUER_URL
-                jwt {
-                    jwkProviderFactory = { keys.jwkProvider }
-                }
+                testIssuer()
+                jwt(keys)
                 accessToken {
                     audiences = setOf("api")
                 }
@@ -61,27 +52,40 @@ class OidcBearerJwtTest {
             }
         }
 
-        val validToken = keys.token(audience = "api", subject = "valid-user")
+        val validToken = keys.accessToken {
+            subject = "valid-user"
+        }
         val valid = client.get("/protected") {
             header(HttpHeaders.Authorization, "Bearer $validToken")
         }
         assertEquals(HttpStatusCode.OK, valid.status)
         assertEquals("valid-user", valid.bodyAsText())
 
-        val expired = keys.token(
-            audience = "api",
-            subject = "expired-user",
-            expiresAt = Date(Clock.System.now().minus(60.seconds).toEpochMilliseconds()),
-        )
+        val expired = keys.accessToken {
+            subject = "expired-user"
+            expiresAt = Clock.System.now() - 60.seconds
+        }
+        val wrongIssuer = keys.accessToken {
+            issuer = "https://issuer.example.net"
+            subject = "wrong-issuer"
+        }
+        val wrongSignature = otherKeys.accessToken {
+            subject = "wrong-signature"
+            keyId = "kid-1"
+        }
+        val wrongAudience = keys.accessToken {
+            audience = "other-api"
+            subject = "wrong-audience"
+        }
         val failures = listOf(
             null,
             "Basic $validToken",
             "Bearer not-a-jwt",
-            "Bearer ${keys.hmacToken(audience = "api", subject = "hmac")}",
-            "Bearer ${keys.unsignedToken(audience = "api", subject = "unsigned")}",
-            "Bearer ${keys.token(audience = "api", subject = "wrong-issuer", issuer = "https://issuer.example.net")}",
-            "Bearer ${otherKeys.token(audience = "api", subject = "wrong-signature", keyId = "kid-1")}",
-            "Bearer ${keys.token(audience = "other-api", subject = "wrong-audience")}",
+            "Bearer ${hmacToken(audience = "api", subject = "hmac")}",
+            "Bearer ${unsignedToken(audience = "api", subject = "unsigned")}",
+            "Bearer $wrongIssuer",
+            "Bearer $wrongSignature",
+            "Bearer $wrongAudience",
             "Bearer $expired",
         )
 
@@ -95,20 +99,13 @@ class OidcBearerJwtTest {
 
     @Test
     fun `bearer authentication accepts JWT access token without subject`() = testApplication {
-        val keys = OpenIdTestKeys()
+        val keys = testRsaKeys
 
-        openIdProvider()
-        val openIdClient = openIdHttpClient()
         application {
-            val oidc = openIdConnect {
-                httpClient = openIdClient
-                discoveryRefreshInterval = ZERO
-            }
+            val oidc = openIdConnect { }
             val oidcProvider = oidc.provider("auth0") {
-                issuer = ISSUER_URL
-                jwt {
-                    jwkProviderFactory = { keys.jwkProvider }
-                }
+                testIssuer()
+                jwt(keys)
                 accessToken {
                     audiences = setOf("api")
                 }
@@ -127,23 +124,28 @@ class OidcBearerJwtTest {
             }
         }
 
+        val token = keys.accessToken {
+            clientId = "service-client"
+            claim("azp", "authorized-party")
+        }
         val response = client.get("/protected") {
             header(
                 HttpHeaders.Authorization,
-                "Bearer ${keys.token(audience = "api", subject = null, clientId = "service-client")}"
+                "Bearer $token"
             )
         }
         assertEquals(HttpStatusCode.OK, response.status)
-        assertEquals("missing:service-client", response.bodyAsText())
+        assertEquals("missing:authorized-party", response.bodyAsText())
     }
 
     @Test
     fun `token claims headerString preserves embedded quotes`() {
-        val keys = OpenIdTestKeys()
-        val token = keys.token(audience = "api", headerClaims = mapOf("quoted" to "a\"b"))
+        val token = testRsaKeys.accessToken {
+            keyId = "a\"b"
+        }
         val claims = TokenClaims(JWT.decode(token))
 
-        assertEquals("a\"b", claims.headerString("quoted"))
+        assertEquals("a\"b", claims.headerString("kid"))
     }
 
     @Test
@@ -169,20 +171,13 @@ class OidcBearerJwtTest {
 
     @Test
     fun `custom token source replaces authorization header`() = testApplication {
-        val keys = OpenIdTestKeys()
+        val keys = testRsaKeys
 
-        openIdProvider()
-        val openIdClient = openIdHttpClient()
         application {
-            val oidc = openIdConnect {
-                httpClient = openIdClient
-                discoveryRefreshInterval = ZERO
-            }
+            val oidc = openIdConnect { }
             val oidcProvider = oidc.provider("auth0") {
-                issuer = ISSUER_URL
-                jwt {
-                    jwkProviderFactory = { keys.jwkProvider }
-                }
+                testIssuer()
+                jwt(keys)
                 accessToken {
                     audiences = setOf("custom-api")
                 }
@@ -203,7 +198,10 @@ class OidcBearerJwtTest {
             }
         }
 
-        val token = keys.token(audience = "custom-api", subject = "custom-user")
+        val token = keys.accessToken {
+            audience = "custom-api"
+            subject = "custom-user"
+        }
         val authorizationHeaderIgnored = client.get("/custom") {
             header(HttpHeaders.Authorization, "Bearer $token")
         }
@@ -218,22 +216,15 @@ class OidcBearerJwtTest {
 
     @Test
     fun `malformed authorization header is logged at trace level with truncated value`() = testApplication {
-        val keys = OpenIdTestKeys()
+        val keys = testRsaKeys
         val malformedHeader = "Bearer invalid@" + "x".repeat(160)
 
         captureProviderLogs("auth0", ch.qos.logback.classic.Level.TRACE).use { logs ->
-            openIdProvider()
-            val openIdClient = openIdHttpClient()
             application {
-                val oidc = openIdConnect {
-                    httpClient = openIdClient
-                    discoveryRefreshInterval = ZERO
-                }
+                val oidc = openIdConnect { }
                 val provider = oidc.provider("auth0") {
-                    issuer = ISSUER_URL
-                    jwt {
-                        jwkProviderFactory = { keys.jwkProvider }
-                    }
+                    testIssuer()
+                    jwt(keys)
                     accessToken {
                         audiences = setOf("api")
                     }
@@ -266,15 +257,10 @@ class OidcBearerJwtTest {
 
     @Test
     fun `verifyAccessToken normalizes malformed jwt rejection`() = testApplication {
-        openIdProvider()
-        val openIdClient = openIdHttpClient()
         application {
-            val oidc = openIdConnect {
-                httpClient = openIdClient
-                discoveryRefreshInterval = ZERO
-            }
+            val oidc = openIdConnect { }
             val provider = oidc.provider("auth0") {
-                issuer = ISSUER_URL
+                testIssuer()
                 accessToken {
                     audiences = setOf("api")
                 }
@@ -301,16 +287,10 @@ class OidcBearerJwtTest {
 
     @Test
     fun `transformPrincipal exposes typed application principal`() = testApplication {
-        val keys = OpenIdTestKeys()
+        val keys = testRsaKeys
 
-        openIdProvider()
-        val openIdClient = openIdHttpClient()
         application {
-            val oidc = openIdConnect {
-                httpClient = openIdClient
-                discoveryRefreshInterval = ZERO
-            }
-
+            val oidc = openIdConnect {}
             val google = oidc.provider(
                 name = "google",
                 transformPrincipal = { p ->
@@ -318,10 +298,8 @@ class OidcBearerJwtTest {
                     accessToken?.userInfo?.subject?.let(::UserIdPrincipal)
                 }
             ) {
-                issuer = ISSUER_URL
-                jwt {
-                    jwkProviderFactory = { keys.jwkProvider }
-                }
+                testIssuer()
+                jwt(keys)
                 accessToken {
                     audiences = setOf("api")
                 }
@@ -337,8 +315,11 @@ class OidcBearerJwtTest {
             }
         }
 
+        val token = keys.accessToken {
+            subject = "typed-user"
+        }
         val response = client.get("/typed") {
-            header(HttpHeaders.Authorization, "Bearer ${keys.token(audience = "api", subject = "typed-user")}")
+            header(HttpHeaders.Authorization, "Bearer $token")
         }
         assertEquals(HttpStatusCode.OK, response.status)
         assertEquals("typed-user", response.bodyAsText())
