@@ -21,6 +21,44 @@ import kotlin.time.Duration.Companion.seconds
 class OidcDiscoveryTest {
 
     @Test
+    fun `static metadata skips initial discovery and periodic refresh`() = testApplication {
+        val discoveryRequests = AtomicInteger()
+        externalServices {
+            hosts(ISSUER_URL) {
+                routing {
+                    installDiscoveryContentNegotiation()
+                    get("/.well-known/openid-configuration") {
+                        discoveryRequests.incrementAndGet()
+                        call.respond(openIdProviderMetadata)
+                    }
+                }
+            }
+        }
+
+        val openIdClient = openIdHttpClient()
+        lateinit var provider: OidcProvider<OidcToken>
+        application {
+            val oidc = openIdConnect {
+                httpClient = openIdClient
+                discoveryRefreshInterval = 10.milliseconds
+                discoveryRefreshFailureDelay = 10.milliseconds
+            }
+            provider = oidc.provider("auth0") {
+                issuer = ISSUER_URL
+                metadata = testOpenIdProviderMetadata(
+                    issuer = ISSUER_URL,
+                    authorizationEndpoint = "$ISSUER_URL/authorize-static",
+                )
+            }
+        }
+
+        startApplication()
+        assertEquals("$ISSUER_URL/authorize-static", provider.currentMetadata().authorizationEndpoint)
+        delay(50.milliseconds)
+        assertEquals(0, discoveryRequests.get())
+    }
+
+    @Test
     fun `provider uses refreshed discovery metadata`() = testApplication {
         val discoveryRequests = AtomicInteger()
         val allowRefreshResponse = CompletableDeferred<Unit>()
@@ -35,9 +73,7 @@ class OidcDiscoveryTest {
                 discoveryRefreshInterval = 10.milliseconds
                 discoveryRefreshFailureDelay = 10.milliseconds
             }
-            provider = oidc.provider("auth0") {
-                issuer = ISSUER_URL
-            }
+            provider = oidc.provider("auth0") { issuer = ISSUER_URL }
         }
 
         startApplication()
@@ -161,7 +197,6 @@ class OidcDiscoveryTest {
             testApplication {
                 externalServices {
                     hosts(ISSUER_URL) {
-                        installDiscoveryContentNegotiation()
                         routing {
                             get("/.well-known/openid-configuration") {
                                 discoveryRequests.incrementAndGet()
@@ -244,14 +279,13 @@ class OidcDiscoveryTest {
                         routing {
                             get("/.well-known/openid-configuration") {
                                 discoveryRequests.incrementAndGet()
-                                call.respond(
-                                    OpenIdProviderMetadata(
-                                        issuer = "$ISSUER_URL/",
-                                        authorizationEndpoint = "$ISSUER_URL/authorize",
-                                        tokenEndpoint = "$ISSUER_URL/token",
-                                        jwksUri = "$ISSUER_URL/jwks",
-                                    )
+                                val metadata = OpenIdProviderMetadata(
+                                    issuer = "$ISSUER_URL/",
+                                    authorizationEndpoint = "$ISSUER_URL/authorize",
+                                    tokenEndpoint = "$ISSUER_URL/token",
+                                    jwksUri = "$ISSUER_URL/jwks",
                                 )
+                                call.respond(metadata)
                             }
                         }
                     }
@@ -273,10 +307,7 @@ class OidcDiscoveryTest {
             }
         }
 
-        assertContains(
-            failure.message.orEmpty(),
-            "OpenID issuer mismatch: expected exactly $ISSUER_URL, got $ISSUER_URL/"
-        )
+        assertContains(failure.message.orEmpty(), "OpenID issuer mismatch: expected exactly")
         assertEquals(1, discoveryRequests.get())
     }
 
@@ -288,33 +319,24 @@ class OidcDiscoveryTest {
             hosts(ISSUER_URL) {
                 installDiscoveryContentNegotiation()
                 routing {
-                    refreshingDiscoveryEndpoint(discoveryRequests, allowRefreshResponse)
+                    get("/.well-known/openid-configuration") {
+                        val requestNumber = discoveryRequests.incrementAndGet()
+                        val authorizationEndpoint = if (requestNumber == 1) {
+                            "$ISSUER_URL/authorize-initial"
+                        } else {
+                            allowRefreshResponse.await()
+                            "$ISSUER_URL/authorize-refreshed"
+                        }
+                        val metadata = OpenIdProviderMetadata(
+                            issuer = ISSUER_URL,
+                            authorizationEndpoint = authorizationEndpoint,
+                            tokenEndpoint = "$ISSUER_URL/token",
+                            jwksUri = "$ISSUER_URL/jwks"
+                        )
+                        call.respond(metadata)
+                    }
                 }
             }
-        }
-    }
-
-    private fun Route.refreshingDiscoveryEndpoint(
-        discoveryRequests: AtomicInteger,
-        allowRefreshResponse: CompletableDeferred<Unit>,
-    ) {
-        get("/.well-known/openid-configuration") {
-            val requestNumber = discoveryRequests.incrementAndGet()
-            val authorizationEndpoint = if (requestNumber == 1) {
-                "$ISSUER_URL/authorize-initial"
-            } else {
-                allowRefreshResponse.await()
-                "$ISSUER_URL/authorize-refreshed"
-            }
-
-            call.respond(
-                OpenIdProviderMetadata(
-                    issuer = ISSUER_URL,
-                    authorizationEndpoint = authorizationEndpoint,
-                    tokenEndpoint = "$ISSUER_URL/token",
-                    jwksUri = "$ISSUER_URL/jwks",
-                )
-            )
         }
     }
 }

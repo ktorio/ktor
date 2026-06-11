@@ -10,12 +10,14 @@ import io.ktor.events.*
 import io.ktor.events.EventDefinition
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
+import io.ktor.server.config.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlin.reflect.KClass
 
@@ -24,8 +26,15 @@ private val ProviderNameRegex = Regex("[a-z0-9]+(?:-[a-z0-9]+)*")
 /**
  * First-class OpenID Connect plugin for Ktor server authentication.
  *
- * Installs per-provider Bearer token authentication (`bearer { }`) that validates JWT access tokens issued by the
- * provider. Use [OidcProvider.bearer] with `authenticateWith`.
+ * Installs per-provider support for:
+ * - Bearer token authentication (`bearer { }`) that validates JWT access tokens issued by the provider.
+ *   Use [OidcProvider.bearer] with `authenticateWith`.
+ * - **OAuth 2.0 / OIDC login flow** (`oauth { }`) — handles the authorization code flow,
+ *   including login and redirect routes.
+ *   Registered internally as `"$name-oauth"` and used only for the auto-registered routes.
+ *
+ * This plugin implements the Authorization Code Flow (RFC 6749 §4.1, OIDC Core §3.1) and resource-server
+ * Bearer / RFC 7662 introspection. Implicit and Hybrid flows are not supported.
  *
  * Provider metadata is fetched automatically from the issuer's discovery document
  * (`<issuer>/.well-known/openid-configuration`) and periodically refreshed unless a provider configures static
@@ -59,7 +68,7 @@ private val ProviderNameRegex = Regex("[a-z0-9]+(?:-[a-z0-9]+)*")
  * val google = oidc.provider("google") {
  *     issuer = "https://accounts.google.com"
  *
- *     // JWT settings used for access-token verification.
+ *     // JWT settings shared by ID-token and JWT access-token verification.
  *     jwt {
  *         clockSkew = 60.seconds
  *     }
@@ -74,14 +83,25 @@ private val ProviderNameRegex = Regex("[a-z0-9]+(?:-[a-z0-9]+)*")
  *         // Optional: customise where the token is extracted from.
  *         tokenExtractor = { call -> call.request.cookies["MY_TOKEN"] }
  *     }
+ *
+ *     // OAuth/OIDC login flow — installs login and callback routes.
+ *     oauth {
+ *         clientId = System.getenv("GOOGLE_CLIENT_ID")
+ *         clientSecret = System.getenv("GOOGLE_CLIENT_SECRET")
+ *         scopes = listOf("openid", "profile", "email")
+ *
+ *         onSuccess {
+ *             call.respondRedirect("/dashboard")
+ *         }
+ *     }
  * }
  *
  * // Protect routes using typed provider capabilities.
  * routing {
- *     authenticateWith<OidcToken>(google.bearer) {
+ *     authenticateWith(google.bearer) {
  *         get("/profile") {
  *             val user = principal as OidcToken.Access
- *             call.respond("Logged in as ${user.userInfo?.name}")
+ *             call.respond("Logged in as ${user.userInfo.name}")
  *         }
  *     }
  *
@@ -94,12 +114,46 @@ private val ProviderNameRegex = Regex("[a-z0-9]+(?:-[a-z0-9]+)*")
  * }
  * ```
  *
+ * ## Testing with static metadata and local keys
+ *
+ * Tests can avoid real discovery and JWKS calls while keeping normal issuer, audience, algorithm, and signature
+ * validation:
+ * ```kotlin
+ * val keys = OpenIdTestKeys.rsa(issuer = TEST_ISSUER, audience = TEST_AUDIENCE)
+ *
+ * val provider = oidc.provider<UserPrincipal>("test") {
+ *     issuer = TEST_ISSUER
+ *     metadata = OpenIdProviderMetadata(
+ *         issuer = TEST_ISSUER,
+ *         authorizationEndpoint = "$TEST_ISSUER/authorize",
+ *         tokenEndpoint = "$TEST_ISSUER/token",
+ *         jwksUri = "$TEST_ISSUER/jwks",
+ *     )
+ *
+ *     jwt(keys)
+ *
+ *     accessToken {
+ *         audiences = setOf(TEST_AUDIENCE)
+ *     }
+ *
+ *     bearer()
+ * }
+ *
+ * val token = keys.accessToken {
+ *     subject = "user-1"
+ *     email = "user@example.com"
+ * }
+ * ```
+ *
  * ## Environment-based configuration
  *
  * Provider defaults can also be loaded from `application.conf` (or equivalent):
  * ```hocon
- * ktor.openid.google {
+ * ktor.oidc.google {
  *     issuer = "https://accounts.google.com"
+ *     clientId = ${GOOGLE_CLIENT_ID}
+ *     clientSecret = ${GOOGLE_CLIENT_SECRET}
+ *     scopes = ["openid", "profile", "email"]
  * }
  * ```
  *
@@ -112,6 +166,7 @@ private val ProviderNameRegex = Regex("[a-z0-9]+(?:-[a-z0-9]+)*")
  *         audiences = setOf("api")
  *     }
  *     bearer()
+ *     oauth()
  * }
  * ```
  *
@@ -122,8 +177,10 @@ public class Oidc internal constructor(
     private val config: OidcPluginConfig,
     private val client: HttpClient,
 ) {
+    private val environmentProviders = HashMap<String, EnvConfig>()
+
     @Volatile
-    private var providers: Map<String, OidcProvider<*>> = linkedMapOf()
+    private var providers = HashMap<String, OidcProvider<*>>()
 
     private val pendingProviderNames = mutableSetOf<String>()
     private val pendingProviderIssuers = mutableSetOf<String>()
@@ -156,7 +213,7 @@ public class Oidc internal constructor(
      * @param name provider name used in generated routes and authentication scheme names. Must contain lowercase
      * letters, digits, and hyphen-separated segments only.
      * @param transformPrincipal maps verified OpenID Connect principals to the typed route principal.
-     * @param configure configures discovery, token validation, and Bearer authentication.
+     * @param configure configures discovery, token validation, Bearer authentication, and OAuth flow.
      * @return configured provider whose route-facing capabilities use principal type [P].
      * @throws IllegalArgumentException when [name] or issuer is already configured, or the provider
      * configuration is invalid.
@@ -166,15 +223,14 @@ public class Oidc internal constructor(
         name: String,
         noinline transformPrincipal: PrincipalTransformer<P>,
         noinline configure: OidcProviderConfig<P>.() -> Unit,
-    ): OidcProvider<P> =
-        provider(name, principalType = P::class, transformPrincipal, configure)
+    ): OidcProvider<P> = provider(name, principalType = P::class, transformPrincipal, configure)
 
     /**
      * Configures an OpenID Connect provider that exposes [OidcToken] directly to routes.
      *
      * @param name provider name used in generated routes and authentication scheme names. Must contain lowercase
      * letters, digits, and hyphen-separated segments only.
-     * @param configure configures discovery, token validation, and Bearer authentication.
+     * @param configure configures discovery, token validation, Bearer authentication, and OAuth flow.
      * @return configured provider whose route-facing capabilities use [OidcToken].
      * @throws IllegalArgumentException when [name] or issuer is already configured, or the provider
      * configuration is invalid.
@@ -183,8 +239,7 @@ public class Oidc internal constructor(
     public suspend fun provider(
         name: String,
         configure: OidcProviderConfig<OidcToken>.() -> Unit,
-    ): OidcProvider<OidcToken> =
-        provider(name, transformPrincipal = { it }, configure)
+    ): OidcProvider<OidcToken> = provider(name, transformPrincipal = { it }, configure)
 
     private suspend fun <P : Any> reserveProviderName(
         name: String,
@@ -199,7 +254,7 @@ public class Oidc internal constructor(
             "OpenID Connect provider $name is already configured"
         }
         val providerConfig = OidcProviderConfig(name, principalType).apply {
-            config.environmentProviders[name]?.let { env -> applyEnvDefaults(env) }
+            environmentProviders[name]?.let { env -> applyEnvDefaults(env) }
         }
         try {
             providerConfig.configure()
@@ -226,11 +281,33 @@ public class Oidc internal constructor(
     }
 
     private suspend fun commitProvider(provider: OidcProvider<*>) = providerRegistrationMutex.withLock {
-        application.startRefreshingMetadata(provider)
-        providers = providers + (provider.name to provider)
-        config.environmentProviders.remove(provider.name)
+        checkProductionEnvironment(provider)
+        if (provider.config.oauthConfig != null) {
+            application.configureOAuthRoute(provider)
+        }
+        startRefreshingMetadata(provider)
+        providers[provider.name] = provider
+        environmentProviders.remove(provider.name)
         pendingProviderNames.remove(provider.name)
         pendingProviderIssuers.remove(provider.issuer)
+    }
+
+    private fun checkProductionEnvironment(provider: OidcProvider<*>) {
+        val devMode = application.developmentMode
+
+        // ensure production stateEncryptionKey is configured
+        val oauthConfig = provider.config.oauthConfig
+        if (oauthConfig == null || oauthConfig.stateEncryptionKey != null) {
+            return
+        }
+        if (devMode) {
+            provider.logger.warn("OpenID Connect OAuth stateEncryptionKey is not configured.")
+            oauthConfig.stateEncryptionKey = OidcStateEncryptionKey.random()
+        } else {
+            error(
+                "OpenID Connect OAuth provider ${provider.name} cannot start in production without stateEncryptionKey"
+            )
+        }
     }
 
     private suspend fun releaseProvider(name: String, issuer: String?) {
@@ -251,6 +328,7 @@ public class Oidc internal constructor(
                 throw cause
             } catch (cause: Throwable) {
                 val nextAttempt = attempt + 1
+
                 if (nextAttempt >= maxAttempts) {
                     val message = "Failed to discover OpenID configuration after $maxAttempts attempt(s)"
                     throw OpenIdDiscoveryException(message, cause)
@@ -264,11 +342,11 @@ public class Oidc internal constructor(
         error("Should not reach here")
     }
 
-    private fun Application.startRefreshingMetadata(provider: OidcProvider<*>) {
+    private fun startRefreshingMetadata(provider: OidcProvider<*>) {
         if (provider.config.metadata != null || !config.discoveryRefreshInterval.isPositive()) {
             return
         }
-        launch(Dispatchers.IO) {
+        application.launch(Dispatchers.IO) {
             var hasPreviousFailure = false
             var consecutiveFailures = 0
             while (isActive) {
@@ -288,7 +366,7 @@ public class Oidc internal constructor(
                 } catch (cause: Throwable) {
                     consecutiveFailures++
                     val event = OidcMetadataRefreshFailure(provider, consecutiveFailures, cause)
-                    monitor.raiseCatching(
+                    application.monitor.raiseCatching(
                         definition = OidcMetadataRefreshFailed,
                         value = event,
                         logger = provider.logger
@@ -296,6 +374,21 @@ public class Oidc internal constructor(
                     hasPreviousFailure = true
                 }
             }
+        }
+    }
+
+    private fun loadConfigFromEnvironment() {
+        val config = application.environment.config
+        if (config.propertyOrNull("ktor.oidc") == null) {
+            return
+        }
+        val root = config.config("ktor.oidc")
+        root.keys().map { it.substringBefore(".") }.distinct().forEach { providerName ->
+            val env = root.property(providerName).getAs<EnvConfig>()
+            require((env.clientId == null) == (env.clientSecret == null)) {
+                "OpenID Connect provider $providerName must configure both clientId and clientSecret, or neither"
+            }
+            environmentProviders[providerName] = env
         }
     }
 
@@ -308,7 +401,6 @@ public class Oidc internal constructor(
             configure: OidcPluginConfig.() -> Unit
         ): Oidc {
             val config = OidcPluginConfig().apply {
-                pipeline.loadConfigFromEnvironment()
                 configure()
                 validate()
             }
@@ -323,6 +415,7 @@ public class Oidc internal constructor(
                 config = config,
                 client = managedClient,
             )
+            plugin.loadConfigFromEnvironment()
 
             pipeline.monitor.subscribe(ApplicationModulesLoaded) {
                 if (plugin.providers.isEmpty()) {
@@ -335,10 +428,27 @@ public class Oidc internal constructor(
     }
 }
 
-private fun <P : Any> OidcProviderConfig<P>.applyEnvDefaults(env: OidcPluginConfig.EnvConfig) =
-    apply {
-        issuer = env.issuer
+/**
+ * Represents a single configured OpenID Connect provider loaded from the environment.
+ */
+@Serializable
+internal data class EnvConfig(
+    val issuer: String,
+    val clientId: String? = null,
+    val clientSecret: String? = null,
+    val scopes: List<String> = listOf("openid", "profile", "email"),
+)
+
+private fun <P : Any> OidcProviderConfig<P>.applyEnvDefaults(env: EnvConfig) = apply {
+    issuer = env.issuer
+    env.clientId?.let { id ->
+        oauth {
+            clientId = id
+            clientSecret = env.clientSecret!!
+            scopes = env.scopes
+        }
     }
+}
 
 /**
  * Details of a failed periodic OpenID Connect discovery metadata refresh.
@@ -388,6 +498,8 @@ public val OidcMetadataRefreshFailed: EventDefinition<OidcMetadataRefreshFailure
  * @param configure Plugin configuration block.
  * @return Installed OpenID Connect provider registry.
  * @throws IllegalArgumentException when environment-based provider configuration is invalid.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.openIdConnect)
  */
 public fun Application.openIdConnect(
     configure: OidcPluginConfig.() -> Unit = {},
