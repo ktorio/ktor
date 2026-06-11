@@ -72,6 +72,7 @@ public final class io/ktor/server/auth/oidc/OidcOAuthConfig {
 	public final fun getFetchUserInfo ()Z
 	public final fun getIdTokenAudience ()Ljava/lang/String;
 	public final fun getLoginUri ()Lkotlin/jvm/functions/Function1;
+	public final fun getPostLogoutRedirectUri ()Lkotlin/jvm/functions/Function1;
 	public final fun getRedirectUri ()Lkotlin/jvm/functions/Function1;
 	public final fun getResourceIndicators ()Ljava/util/List;
 	public final fun getScopes ()Ljava/util/List;
@@ -83,6 +84,7 @@ public final class io/ktor/server/auth/oidc/OidcOAuthConfig {
 	public final fun setFetchUserInfo (Z)V
 	public final fun setIdTokenAudience (Ljava/lang/String;)V
 	public final fun setLoginUri (Lkotlin/jvm/functions/Function1;)V
+	public final fun setPostLogoutRedirectUri (Lkotlin/jvm/functions/Function1;)V
 	public final fun setRedirectUri (Lkotlin/jvm/functions/Function1;)V
 	public final fun setResourceIndicators (Ljava/util/List;)V
 	public final fun setScopes (Ljava/util/List;)V
@@ -104,11 +106,14 @@ public final class io/ktor/server/auth/oidc/OidcPluginConfig {
 }
 
 public final class io/ktor/server/auth/oidc/OidcProvider {
+	public final fun buildLogoutUrl (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
 	public final fun currentJwkProvider ()Lcom/auth0/jwk/JwkProvider;
 	public final fun currentMetadata ()Lio/ktor/server/auth/oidc/OpenIdProviderMetadata;
 	public final fun getBearer ()Lio/ktor/server/auth/typesafe/DefaultAuthScheme;
 	public final fun getIssuer ()Ljava/lang/String;
 	public final fun getName ()Ljava/lang/String;
+	public final fun getSessions ()Lio/ktor/server/auth/typesafe/SessionAuthScheme;
+	public final fun refreshToken (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/server/auth/oidc/OidcProviderConfig {
@@ -123,12 +128,42 @@ public final class io/ktor/server/auth/oidc/OidcProviderConfig {
 	public final fun jwt (Lkotlin/jvm/functions/Function1;)V
 	public final fun oauth (Lkotlin/jvm/functions/Function1;)V
 	public static synthetic fun oauth$default (Lio/ktor/server/auth/oidc/OidcProviderConfig;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public final fun sessions (Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun sessions$default (Lio/ktor/server/auth/oidc/OidcProviderConfig;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 	public final fun setIssuer (Ljava/lang/String;)V
 	public final fun setMetadata (Lio/ktor/server/auth/oidc/OpenIdProviderMetadata;)V
 }
 
 public abstract interface class io/ktor/server/auth/oidc/OidcProviderContext {
 	public abstract fun provider ()Lio/ktor/server/auth/oidc/OidcProvider;
+}
+
+public final class io/ktor/server/auth/oidc/OidcSessionConfig {
+	public final fun cookie (Lkotlin/jvm/functions/Function1;)V
+	public final fun csrfProtection (Lkotlin/jvm/functions/Function1;)V
+	public final fun disableCsrfProtection ()V
+	public final fun getLogoutUri ()Lkotlin/jvm/functions/Function1;
+	public final fun getName ()Ljava/lang/String;
+	public final fun getRefreshUri ()Lkotlin/jvm/functions/Function1;
+	public final fun getStorage ()Lio/ktor/server/sessions/SessionStorage;
+	public final fun getTokenRefreshStrategy ()Lio/ktor/server/auth/oidc/OidcTokenRefreshStrategy;
+	public final fun setLogoutUri (Lkotlin/jvm/functions/Function1;)V
+	public final fun setName (Ljava/lang/String;)V
+	public final fun setRefreshUri (Lkotlin/jvm/functions/Function1;)V
+	public final fun setStorage (Lio/ktor/server/sessions/SessionStorage;)V
+	public final fun setTokenRefreshStrategy (Lio/ktor/server/auth/oidc/OidcTokenRefreshStrategy;)V
+}
+
+public final class io/ktor/server/auth/oidc/OidcSessionsContext : io/ktor/server/auth/oidc/OidcProviderContext, io/ktor/server/auth/typesafe/SessionAuthenticatedContext {
+	public fun clearSession (Lio/ktor/server/routing/RoutingContext;)V
+	public fun principal (Lio/ktor/server/routing/RoutingContext;)Ljava/lang/Object;
+	public fun provider ()Lio/ktor/server/auth/oidc/OidcProvider;
+	public fun session (Lio/ktor/server/routing/RoutingContext;)Lio/ktor/server/auth/oidc/OidcToken$Id;
+	public synthetic fun session (Lio/ktor/server/routing/RoutingContext;)Ljava/lang/Object;
+	public fun setSession (Lio/ktor/server/routing/RoutingContext;Lio/ktor/server/auth/oidc/OidcToken$Id;)V
+	public synthetic fun setSession (Lio/ktor/server/routing/RoutingContext;Ljava/lang/Object;)V
+	public fun updateSession (Lio/ktor/server/routing/RoutingContext;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/auth/oidc/OidcToken$Id;
+	public synthetic fun updateSession (Lio/ktor/server/routing/RoutingContext;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 
 public final class io/ktor/server/auth/oidc/OidcStateEncryptionKey {
@@ -258,6 +293,34 @@ public final synthetic class io/ktor/server/auth/oidc/OidcToken$UserInfo$$serial
 
 public final class io/ktor/server/auth/oidc/OidcToken$UserInfo$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/ktor/server/auth/oidc/OidcTokenRefreshResult {
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Lkotlin/time/Duration;Ljava/lang/String;Ljava/lang/String;Lio/ktor/server/auth/oidc/OidcToken$Id;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Lkotlin/time/Duration;Ljava/lang/String;Ljava/lang/String;Lio/ktor/server/auth/oidc/OidcToken$Id;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getAccessToken ()Ljava/lang/String;
+	public final fun getExpiresIn-FghU774 ()Lkotlin/time/Duration;
+	public final fun getIdToken ()Lio/ktor/server/auth/oidc/OidcToken$Id;
+	public final fun getRefreshToken ()Ljava/lang/String;
+	public final fun getScope ()Ljava/lang/String;
+	public final fun getTokenType ()Ljava/lang/String;
+}
+
+public abstract interface class io/ktor/server/auth/oidc/OidcTokenRefreshStrategy {
+}
+
+public final class io/ktor/server/auth/oidc/OidcTokenRefreshStrategy$Auto : io/ktor/server/auth/oidc/OidcTokenRefreshStrategy {
+	public synthetic fun <init> (JILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (JLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getBeforeExpiry-UwyO8pc ()J
+}
+
+public abstract interface class io/ktor/server/auth/oidc/OidcTokenRefreshStrategy$Custom : io/ktor/server/auth/oidc/OidcTokenRefreshStrategy {
+	public abstract fun refresh (Lio/ktor/server/auth/oidc/OidcProvider;Lio/ktor/server/auth/oidc/OidcToken$Id;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/server/auth/oidc/OidcTokenRefreshStrategy$Disabled : io/ktor/server/auth/oidc/OidcTokenRefreshStrategy {
+	public static final field INSTANCE Lio/ktor/server/auth/oidc/OidcTokenRefreshStrategy$Disabled;
 }
 
 public final class io/ktor/server/auth/oidc/OpaqueTokenIntrospection {
