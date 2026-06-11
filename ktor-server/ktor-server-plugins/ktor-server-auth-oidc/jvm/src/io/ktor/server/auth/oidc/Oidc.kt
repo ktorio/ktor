@@ -33,7 +33,7 @@ private val ProviderNameRegex = Regex("[a-z0-9]+(?:-[a-z0-9]+)*")
  *   including login and redirect routes.
  *   Registered internally as `"$name-oauth"` and used only for the auto-registered routes.
  *
- * This plugin implements the Authorization Code Flow (RFC 6749 §4.1, OIDC Core §3.1) and resource-server
+ * This plugin implements the Authorization Code Flow with PKCE (RFC 6749 §4.1, OIDC Core §3.1) and resource-server
  * Bearer / RFC 7662 introspection. Implicit and Hybrid flows are not supported.
  *
  * Provider metadata is fetched automatically from the issuer's discovery document

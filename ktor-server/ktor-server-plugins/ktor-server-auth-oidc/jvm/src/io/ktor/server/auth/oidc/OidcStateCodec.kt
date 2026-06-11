@@ -28,6 +28,7 @@ internal class OidcStateCodec(
         val payload = OidcStateCookiePayload(
             state = state,
             nonce = transaction.nonce,
+            codeVerifier = transaction.codeVerifier,
             expiresAt = clock.now() + AuthorizationTransactionTtl,
         )
         return encrypt(payload)
@@ -38,7 +39,7 @@ internal class OidcStateCodec(
         if (payload.state != state || payload.expiresAt <= clock.now()) {
             return null
         }
-        return OidcAuthorizationTransaction(payload.nonce)
+        return OidcAuthorizationTransaction(payload.nonce, payload.codeVerifier)
     }
 
     private fun encrypt(payload: OidcStateCookiePayload): String {
@@ -88,5 +89,6 @@ internal class OidcStateCodec(
 internal class OidcStateCookiePayload(
     val state: String,
     val nonce: String,
+    val codeVerifier: String,
     val expiresAt: Instant,
 )
