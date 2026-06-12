@@ -4,7 +4,11 @@
 
 package io.ktor.server.config
 
+import io.ktor.util.logging.*
+
 internal expect val CONFIG_PATH: List<String>
+
+private val logger = KtorSimpleLogger("io.ktor.server.config.ConfigLoader")
 
 /**
  * Loads an application configuration.
@@ -51,23 +55,34 @@ public interface ConfigLoader {
          */
         public fun load(path: String? = null): ApplicationConfig {
             if (path == null) {
+                logger.debug("Loading default configuration")
                 val default = loadDefault()
                 if (default != null) return default
             }
 
             for (loader in configLoaders) {
+                logger.debug("Trying ConfigLoader: ${loader::class.simpleName}")
                 val config = loader.load(path)
-                if (config != null) return config
+                if (config != null) {
+                    logger.debug("Configuration loaded successfully using ${loader::class.simpleName} from path: $path")
+                    return config
+                }
             }
 
+            logger.debug("No configuration found, using empty MapApplicationConfig")
             return MapApplicationConfig()
         }
 
         private fun loadDefault(): ApplicationConfig? {
             for (defaultPath in CONFIG_PATH) {
+                logger.debug("Trying default config path: $defaultPath")
                 for (loader in configLoaders) {
+                    logger.debug("Trying ConfigLoader: ${loader::class.simpleName} for path: $defaultPath")
                     val config = loader.load(defaultPath)
-                    if (config != null) return config
+                    if (config != null) {
+                        logger.debug("Default configuration loaded using ${loader::class.simpleName} from path: $defaultPath")
+                        return config
+                    }
                 }
             }
 
