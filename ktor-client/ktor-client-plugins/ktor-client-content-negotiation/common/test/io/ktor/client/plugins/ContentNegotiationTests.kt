@@ -232,6 +232,49 @@ class ContentNegotiationTests {
     }
 
     @Test
+    fun doesNotAddAcceptHeadersWhenUserHeaderPresentAndOptionEnabled() {
+        testWithEngine(MockEngine) {
+            setupWithContentNegotiation {
+                register(ContentType.Application.Json, TestContentConverter())
+                addAcceptHeaderOnlyIfNonePresent = true
+            }
+
+            test { client ->
+                client.get("https://test.com/") {
+                    accept(ContentType.Application.OctetStream)
+                }.apply {
+                    val sentHeaders = call.request.headers.getAll(HttpHeaders.Accept)
+                        ?.map { ContentType.parse(it) }
+                        ?: emptyList()
+
+                    assertEquals(1, sentHeaders.size)
+                    assertContains(sentHeaders, ContentType.Application.OctetStream)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun addsAcceptHeadersWhenNoUserHeaderPresentEvenIfOptionEnabled() {
+        testWithEngine(MockEngine) {
+            setupWithContentNegotiation {
+                register(ContentType.Application.Json, TestContentConverter())
+                addAcceptHeaderOnlyIfNonePresent = true
+            }
+
+            test { client ->
+                client.get("https://test.com/").apply {
+                    val sentHeaders = call.request.headers.getAll(HttpHeaders.Accept)
+                        ?.map { ContentType.parse(it) }
+                        ?: emptyList()
+
+                    assertContains(sentHeaders, ContentType.Application.Json)
+                }
+            }
+        }
+    }
+
+    @Test
     fun testKeepsContentType() {
         testWithEngine(MockEngine) {
             setupWithContentNegotiation {

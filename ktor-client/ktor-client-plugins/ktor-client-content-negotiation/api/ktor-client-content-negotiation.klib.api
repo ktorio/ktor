@@ -13,6 +13,9 @@ final class io.ktor.client.plugins.contentnegotiation/ContentConverterException 
 final class io.ktor.client.plugins.contentnegotiation/ContentNegotiationConfig : io.ktor.serialization/Configuration { // io.ktor.client.plugins.contentnegotiation/ContentNegotiationConfig|null[0]
     constructor <init>() // io.ktor.client.plugins.contentnegotiation/ContentNegotiationConfig.<init>|<init>(){}[0]
 
+    final var addAcceptHeaderOnlyIfNonePresent // io.ktor.client.plugins.contentnegotiation/ContentNegotiationConfig.addAcceptHeaderOnlyIfNonePresent|{}addAcceptHeaderOnlyIfNonePresent[0]
+        final fun <get-addAcceptHeaderOnlyIfNonePresent>(): kotlin/Boolean // io.ktor.client.plugins.contentnegotiation/ContentNegotiationConfig.addAcceptHeaderOnlyIfNonePresent.<get-addAcceptHeaderOnlyIfNonePresent>|<get-addAcceptHeaderOnlyIfNonePresent>(){}[0]
+        final fun <set-addAcceptHeaderOnlyIfNonePresent>(kotlin/Boolean) // io.ktor.client.plugins.contentnegotiation/ContentNegotiationConfig.addAcceptHeaderOnlyIfNonePresent.<set-addAcceptHeaderOnlyIfNonePresent>|<set-addAcceptHeaderOnlyIfNonePresent>(kotlin.Boolean){}[0]
     final var defaultAcceptHeaderQValue // io.ktor.client.plugins.contentnegotiation/ContentNegotiationConfig.defaultAcceptHeaderQValue|{}defaultAcceptHeaderQValue[0]
         final fun <get-defaultAcceptHeaderQValue>(): kotlin/Double? // io.ktor.client.plugins.contentnegotiation/ContentNegotiationConfig.defaultAcceptHeaderQValue.<get-defaultAcceptHeaderQValue>|<get-defaultAcceptHeaderQValue>(){}[0]
         final fun <set-defaultAcceptHeaderQValue>(kotlin/Double?) // io.ktor.client.plugins.contentnegotiation/ContentNegotiationConfig.defaultAcceptHeaderQValue.<set-defaultAcceptHeaderQValue>|<set-defaultAcceptHeaderQValue>(kotlin.Double?){}[0]
