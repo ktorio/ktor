@@ -147,6 +147,13 @@ public class CORSConfig {
     /**
      * Allows requests from the same origin.
      *
+     * When `true` (default), same-origin requests skip CORS processing: no `Access-Control-*` headers are added
+     * and the request is passed to route handlers as-is.
+     *
+     * The only exception is CORS preflight requests — `OPTIONS` with an `Access-Control-Request-Method` header.
+     * Those are always handled by the plugin and receive a successful response with the appropriate CORS headers,
+     * even when the origin matches the server.
+     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.cors.CORSConfig.allowSameOrigin)
      */
     public var allowSameOrigin: Boolean = true

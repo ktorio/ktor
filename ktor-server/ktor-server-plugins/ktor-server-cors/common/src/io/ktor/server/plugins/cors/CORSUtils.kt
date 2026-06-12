@@ -111,6 +111,9 @@ internal fun corsCheckRequestHeaders(
 internal fun headerMatchesAPredicate(header: String, headerPredicates: List<(String) -> Boolean>): Boolean =
     headerPredicates.any { it(header) }
 
+internal fun ApplicationRequest.isCorsPreflightRequest(): Boolean =
+    httpMethod == HttpMethod.Options && header(HttpHeaders.AccessControlRequestMethod) != null
+
 internal fun ApplicationCall.corsCheckCurrentMethod(methods: Set<HttpMethod>): Boolean = request.httpMethod in methods
 
 internal fun ApplicationCall.corsCheckRequestMethod(methods: Set<HttpMethod>): Boolean {
