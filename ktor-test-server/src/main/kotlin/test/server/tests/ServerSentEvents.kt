@@ -73,10 +73,24 @@ internal fun Application.serverSentEvents() {
                     writeSseEvents(events)
                 }
             }
+            get("/headers") {
+                call.respondSseEvents(
+                    flow {
+                        emit(SseEvent(call.request.headers[HttpHeaders.ContentLength] ?: ""))
+                    }
+                )
+            }
             post("/echo") {
                 call.respondSseEvents(
                     flow {
                         emit(SseEvent(call.receiveText()))
+                    }
+                )
+            }
+            post("/echo-headers") {
+                call.respondSseEvents(
+                    flow {
+                        emit(SseEvent(call.request.headers[HttpHeaders.ContentLength] ?: ""))
                     }
                 )
             }
