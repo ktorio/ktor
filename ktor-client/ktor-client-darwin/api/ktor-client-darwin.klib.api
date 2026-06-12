@@ -49,6 +49,7 @@ final class io.ktor.client.engine.darwin/DarwinClientEngineConfig : io.ktor.clie
 
     final fun configureRequest(kotlin/Function1<platform.Foundation/NSMutableURLRequest, kotlin/Unit>) // io.ktor.client.engine.darwin/DarwinClientEngineConfig.configureRequest|configureRequest(kotlin.Function1<platform.Foundation.NSMutableURLRequest,kotlin.Unit>){}[0]
     final fun configureSession(kotlin/Function1<platform.Foundation/NSURLSessionConfiguration, kotlin/Unit>) // io.ktor.client.engine.darwin/DarwinClientEngineConfig.configureSession|configureSession(kotlin.Function1<platform.Foundation.NSURLSessionConfiguration,kotlin.Unit>){}[0]
+    final fun configureUrlAllowedCharacters(kotlin/Function1<io.ktor.client.engine.darwin/UrlAllowedCharactersConfig, kotlin/Unit>) // io.ktor.client.engine.darwin/DarwinClientEngineConfig.configureUrlAllowedCharacters|configureUrlAllowedCharacters(kotlin.Function1<io.ktor.client.engine.darwin.UrlAllowedCharactersConfig,kotlin.Unit>){}[0]
     final fun usePreconfiguredSession(platform.Foundation/NSURLSession, io.ktor.client.engine.darwin/KtorNSURLSessionDelegate) // io.ktor.client.engine.darwin/DarwinClientEngineConfig.usePreconfiguredSession|usePreconfiguredSession(platform.Foundation.NSURLSession;io.ktor.client.engine.darwin.KtorNSURLSessionDelegate){}[0]
     final fun usePreconfiguredSession(platform.Foundation/NSURLSession?) // io.ktor.client.engine.darwin/DarwinClientEngineConfig.usePreconfiguredSession|usePreconfiguredSession(platform.Foundation.NSURLSession?){}[0]
 
@@ -163,6 +164,26 @@ final class io.ktor.client.engine.darwin/KtorNSURLSessionDelegate : platform.Fou
 
     // Targets: [watchosArm32, watchosArm64]
     final fun hash(): kotlin/UInt // io.ktor.client.engine.darwin/KtorNSURLSessionDelegate.hash|objc:hash[0]
+}
+
+final class io.ktor.client.engine.darwin/UrlAllowedCharactersConfig { // io.ktor.client.engine.darwin/UrlAllowedCharactersConfig|null[0]
+    constructor <init>() // io.ktor.client.engine.darwin/UrlAllowedCharactersConfig.<init>|<init>(){}[0]
+
+    final var fragmentAllowedCharacterSet // io.ktor.client.engine.darwin/UrlAllowedCharactersConfig.fragmentAllowedCharacterSet|{}fragmentAllowedCharacterSet[0]
+        final fun <get-fragmentAllowedCharacterSet>(): platform.Foundation/NSCharacterSet // io.ktor.client.engine.darwin/UrlAllowedCharactersConfig.fragmentAllowedCharacterSet.<get-fragmentAllowedCharacterSet>|<get-fragmentAllowedCharacterSet>(){}[0]
+        final fun <set-fragmentAllowedCharacterSet>(platform.Foundation/NSCharacterSet) // io.ktor.client.engine.darwin/UrlAllowedCharactersConfig.fragmentAllowedCharacterSet.<set-fragmentAllowedCharacterSet>|<set-fragmentAllowedCharacterSet>(platform.Foundation.NSCharacterSet){}[0]
+    final var hostAllowedCharacterSet // io.ktor.client.engine.darwin/UrlAllowedCharactersConfig.hostAllowedCharacterSet|{}hostAllowedCharacterSet[0]
+        final fun <get-hostAllowedCharacterSet>(): platform.Foundation/NSCharacterSet // io.ktor.client.engine.darwin/UrlAllowedCharactersConfig.hostAllowedCharacterSet.<get-hostAllowedCharacterSet>|<get-hostAllowedCharacterSet>(){}[0]
+        final fun <set-hostAllowedCharacterSet>(platform.Foundation/NSCharacterSet) // io.ktor.client.engine.darwin/UrlAllowedCharactersConfig.hostAllowedCharacterSet.<set-hostAllowedCharacterSet>|<set-hostAllowedCharacterSet>(platform.Foundation.NSCharacterSet){}[0]
+    final var pathAllowedCharacterSet // io.ktor.client.engine.darwin/UrlAllowedCharactersConfig.pathAllowedCharacterSet|{}pathAllowedCharacterSet[0]
+        final fun <get-pathAllowedCharacterSet>(): platform.Foundation/NSCharacterSet // io.ktor.client.engine.darwin/UrlAllowedCharactersConfig.pathAllowedCharacterSet.<get-pathAllowedCharacterSet>|<get-pathAllowedCharacterSet>(){}[0]
+        final fun <set-pathAllowedCharacterSet>(platform.Foundation/NSCharacterSet) // io.ktor.client.engine.darwin/UrlAllowedCharactersConfig.pathAllowedCharacterSet.<set-pathAllowedCharacterSet>|<set-pathAllowedCharacterSet>(platform.Foundation.NSCharacterSet){}[0]
+    final var queryAllowedCharacterSet // io.ktor.client.engine.darwin/UrlAllowedCharactersConfig.queryAllowedCharacterSet|{}queryAllowedCharacterSet[0]
+        final fun <get-queryAllowedCharacterSet>(): platform.Foundation/NSCharacterSet // io.ktor.client.engine.darwin/UrlAllowedCharactersConfig.queryAllowedCharacterSet.<get-queryAllowedCharacterSet>|<get-queryAllowedCharacterSet>(){}[0]
+        final fun <set-queryAllowedCharacterSet>(platform.Foundation/NSCharacterSet) // io.ktor.client.engine.darwin/UrlAllowedCharactersConfig.queryAllowedCharacterSet.<set-queryAllowedCharacterSet>|<set-queryAllowedCharacterSet>(platform.Foundation.NSCharacterSet){}[0]
+    final var userAllowedCharacterSet // io.ktor.client.engine.darwin/UrlAllowedCharactersConfig.userAllowedCharacterSet|{}userAllowedCharacterSet[0]
+        final fun <get-userAllowedCharacterSet>(): platform.Foundation/NSCharacterSet // io.ktor.client.engine.darwin/UrlAllowedCharactersConfig.userAllowedCharacterSet.<get-userAllowedCharacterSet>|<get-userAllowedCharacterSet>(){}[0]
+        final fun <set-userAllowedCharacterSet>(platform.Foundation/NSCharacterSet) // io.ktor.client.engine.darwin/UrlAllowedCharactersConfig.userAllowedCharacterSet.<set-userAllowedCharacterSet>|<set-userAllowedCharacterSet>(platform.Foundation.NSCharacterSet){}[0]
 }
 
 final object io.ktor.client.engine.darwin/Darwin : io.ktor.client.engine/HttpClientEngineFactory<io.ktor.client.engine.darwin/DarwinClientEngineConfig> { // io.ktor.client.engine.darwin/Darwin|null[0]

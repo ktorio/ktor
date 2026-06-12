@@ -6,8 +6,10 @@ package io.ktor.client.engine.darwin
 
 import io.ktor.client.engine.*
 import io.ktor.client.engine.darwin.internal.*
+import io.ktor.utils.io.KtorDsl
 import kotlinx.cinterop.*
 import platform.Foundation.*
+import platform.Foundation.NSCharacterSet
 
 /**
  * A challenge handler type for [NSURLSession].
@@ -21,6 +23,59 @@ public typealias ChallengeHandler = (
     challenge: NSURLAuthenticationChallenge,
     completionHandler: (NSURLSessionAuthChallengeDisposition, NSURLCredential?) -> Unit
 ) -> Unit
+
+/**
+ * Configuration of allowed character sets used for URL percent-encoding.
+ *
+ * Each property defines the set of characters that can appear unescaped
+ * in the corresponding URL component. Characters not included in the
+ * configured set will be percent-encoded during URL construction.
+ *
+ * By default, the configuration uses `NSCharacterSet.URL*AllowedCharacterSet` values.
+ */
+@KtorDsl
+public class UrlAllowedCharactersConfig {
+
+    /**
+     * Allowed characters for the user information component of a URL
+     * (for example, the username in `https://user@example.com`).
+     *
+     * Defaults to [NSCharacterSet.URLUserAllowedCharacterSet].
+     */
+    public var userAllowedCharacterSet: NSCharacterSet = NSCharacterSet.URLUserAllowedCharacterSet
+
+    /**
+     * Allowed characters for the host component of a URL
+     * (for example, `example.com`).
+     *
+     * Defaults to [NSCharacterSet.URLHostAllowedCharacterSet].
+     */
+    public var hostAllowedCharacterSet: NSCharacterSet = NSCharacterSet.URLHostAllowedCharacterSet
+
+    /**
+     * Allowed characters for the path component of a URL
+     * (for example, `/api/v1/users`).
+     *
+     * Defaults to [NSCharacterSet.URLPathAllowedCharacterSet].
+     */
+    public var pathAllowedCharacterSet: NSCharacterSet = NSCharacterSet.URLPathAllowedCharacterSet
+
+    /**
+     * Allowed characters for the query component of a URL
+     * (for example, `page=1&sort=name`).
+     *
+     * Defaults to [NSCharacterSet.URLQueryAllowedCharacterSet].
+     */
+    public var queryAllowedCharacterSet: NSCharacterSet = NSCharacterSet.URLQueryAllowedCharacterSet
+
+    /**
+     * Allowed characters for the fragment component of a URL
+     * (for example, `section-1` in `https://example.com#section-1`).
+     *
+     * Defaults to [NSCharacterSet.URLFragmentAllowedCharacterSet].
+     */
+    public var fragmentAllowedCharacterSet: NSCharacterSet = NSCharacterSet.URLFragmentAllowedCharacterSet
+}
 
 /**
  * A configuration for the [Darwin] client engine.
@@ -70,6 +125,11 @@ public class DarwinClientEngineConfig : HttpClientEngineConfig() {
      */
     public var preconfiguredSession: NSURLSession? = null
         private set
+
+    /**
+     * Specifies allowed character sets used for URL percent-encoding.
+     */
+    internal val urlAllowedCharactersConfig: UrlAllowedCharactersConfig = UrlAllowedCharactersConfig()
 
     /**
      * Specifies a session to use for making HTTP requests.
@@ -161,5 +221,12 @@ public class DarwinClientEngineConfig : HttpClientEngineConfig() {
     @OptIn(UnsafeNumber::class)
     public fun handleChallenge(block: ChallengeHandler) {
         challengeHandler = block
+    }
+
+    /**
+     * Configures the set of allowed URL characters using the provided [block].
+     */
+    public fun configureUrlAllowedCharacters(block: UrlAllowedCharactersConfig.() -> Unit) {
+        urlAllowedCharactersConfig.block()
     }
 }

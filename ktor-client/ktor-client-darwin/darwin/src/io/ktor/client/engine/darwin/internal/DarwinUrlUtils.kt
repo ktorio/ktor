@@ -4,17 +4,18 @@
 
 package io.ktor.client.engine.darwin.internal
 
+import io.ktor.client.engine.darwin.*
 import io.ktor.http.*
 import io.ktor.util.*
 import platform.Foundation.*
 
-internal fun Url.toNSUrl(): NSURL {
-    val userEncoded = encodedUser.orEmpty().isEncoded(NSCharacterSet.URLUserAllowedCharacterSet)
-    val passwordEncoded = encodedPassword.orEmpty().isEncoded(NSCharacterSet.URLUserAllowedCharacterSet)
-    val hostEncoded = host.isEncoded(NSCharacterSet.URLHostAllowedCharacterSet)
-    val pathEncoded = encodedPath.isEncoded(NSCharacterSet.URLPathAllowedCharacterSet)
-    val queryEncoded = encodedQuery.isEncoded(NSCharacterSet.URLQueryAllowedCharacterSet)
-    val fragmentEncoded = encodedFragment.isEncoded(NSCharacterSet.URLFragmentAllowedCharacterSet)
+internal fun Url.toNSUrl(config: UrlAllowedCharactersConfig = UrlAllowedCharactersConfig()): NSURL {
+    val userEncoded = encodedUser.orEmpty().isEncoded(config.userAllowedCharacterSet)
+    val passwordEncoded = encodedPassword.orEmpty().isEncoded(config.userAllowedCharacterSet)
+    val hostEncoded = host.isEncoded(config.hostAllowedCharacterSet)
+    val pathEncoded = encodedPath.isEncoded(config.pathAllowedCharacterSet)
+    val queryEncoded = encodedQuery.isEncoded(config.queryAllowedCharacterSet)
+    val fragmentEncoded = encodedFragment.isEncoded(config.fragmentAllowedCharacterSet)
     if (userEncoded && passwordEncoded && hostEncoded && pathEncoded && queryEncoded && fragmentEncoded) {
         return NSURL(string = toString())
     }
@@ -26,16 +27,16 @@ internal fun Url.toNSUrl(): NSURL {
 
         components.percentEncodedUser = when {
             userEncoded -> encodedUser
-            else -> user?.sanitize(NSCharacterSet.URLUserAllowedCharacterSet)
+            else -> user?.sanitize(config.userAllowedCharacterSet)
         }
         components.percentEncodedPassword = when {
             passwordEncoded -> encodedPassword
-            else -> password?.sanitize(NSCharacterSet.URLUserAllowedCharacterSet)
+            else -> password?.sanitize(config.userAllowedCharacterSet)
         }
 
         components.percentEncodedHost = when {
             hostEncoded -> host
-            else -> host.sanitize(NSCharacterSet.URLHostAllowedCharacterSet)
+            else -> host.sanitize(config.hostAllowedCharacterSet)
         }
         if (port != DEFAULT_PORT && port != protocol.defaultPort) {
             components.port = NSNumber(int = port)
@@ -43,7 +44,7 @@ internal fun Url.toNSUrl(): NSURL {
 
         components.percentEncodedPath = when {
             pathEncoded -> encodedPath
-            else -> rawSegments.joinToString("/").sanitize(NSCharacterSet.URLPathAllowedCharacterSet)
+            else -> rawSegments.joinToString("/").sanitize(config.pathAllowedCharacterSet)
         }
 
         when {
@@ -51,13 +52,13 @@ internal fun Url.toNSUrl(): NSURL {
             queryEncoded -> components.percentEncodedQuery = encodedQuery
             else -> components.percentEncodedQueryItems = parameters.toMap()
                 .flatMap { (key, value) -> if (value.isEmpty()) listOf(key to null) else value.map { key to it } }
-                .map { NSURLQueryItem(it.first.encodeQueryKey(), it.second?.encodeQueryValue()) }
+                .map { NSURLQueryItem(it.first.encodeQueryKey(config), it.second?.encodeQueryValue(config)) }
         }
 
         components.percentEncodedFragment = when {
             encodedFragment.isEmpty() -> null
             fragmentEncoded -> encodedFragment
-            else -> fragment.sanitize(NSCharacterSet.URLFragmentAllowedCharacterSet)
+            else -> fragment.sanitize(config.fragmentAllowedCharacterSet)
         }
 
         return components.URL ?: error("Invalid url: $this")
@@ -67,11 +68,11 @@ internal fun Url.toNSUrl(): NSURL {
 private fun String.sanitize(allowed: NSCharacterSet): String =
     asNSString().stringByAddingPercentEncodingWithAllowedCharacters(allowed)!!
 
-private fun String.encodeQueryKey(): String =
-    encodeQueryValue().replace("=", "%3D")
+private fun String.encodeQueryKey(config: UrlAllowedCharactersConfig): String =
+    encodeQueryValue(config).replace("=", "%3D")
 
-private fun String.encodeQueryValue(): String =
-    asNSString().stringByAddingPercentEncodingWithAllowedCharacters(NSCharacterSet.URLQueryAllowedCharacterSet)!!
+private fun String.encodeQueryValue(config: UrlAllowedCharactersConfig): String =
+    asNSString().stringByAddingPercentEncodingWithAllowedCharacters(config.queryAllowedCharacterSet)!!
         .replace("&", "%26")
         .replace(";", "%3B")
 
