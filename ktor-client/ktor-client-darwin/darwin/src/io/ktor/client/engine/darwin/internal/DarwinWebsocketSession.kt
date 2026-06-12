@@ -70,13 +70,13 @@ internal class DarwinWebsocketSession(
         launch {
             sendMessages()
         }
-        coroutineContext[Job]!!.invokeOnCompletion { cause ->
+        coroutineContext.job.invokeOnCompletion { cause ->
             if (cause != null) {
                 val code = CloseReason.Codes.INTERNAL_ERROR.code.convert<NSInteger>()
                 task.cancelWithCloseCode(code, "Client failed".toByteArray().toNSData())
             }
             _incoming.close(cause)
-            _outgoing.cancel(cause = CancellationException(cause))
+            _outgoing.cancel(cause = cause as? CancellationException ?: CancellationException(cause))
         }
     }
 
@@ -98,12 +98,10 @@ internal class DarwinWebsocketSession(
 
     private fun receiveFrame(frame: Frame) {
         val result = _incoming.trySend(frame)
-        when {
-            result.isSuccess -> return
-            result.isClosed -> result.exceptionOrNull()?.let { throw it }
-            else -> launch(start = CoroutineStart.UNDISPATCHED) {
-                _incoming.send(frame)
-            }
+        if (result.isSuccess || result.isClosed) return
+
+        launch(start = CoroutineStart.UNDISPATCHED) {
+            _incoming.send(frame)
         }
     }
 
