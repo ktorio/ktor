@@ -73,10 +73,10 @@ internal fun corsCheckOrigins(
         }
     } else {
         when {
-            allowsAnyHost ->
-                LOGGER.trace { "${request.id()}: Any * host is allowed" }
+            allowsAnyHost -> LOGGER.trace { "${request.id()}: Any * host is allowed" }
             normalizedOrigin in hostsNormalized ->
                 LOGGER.trace { "${request.id()}: Origin $normalizedOrigin is allowed from $hostsNormalized" }
+
             matchWildcardHosts ->
                 LOGGER.trace {
                     val (prefix, suffix) = hostsWithWildcard
@@ -85,6 +85,7 @@ internal fun corsCheckOrigins(
                         }!!
                     "${request.id()}: Origin $normalizedOrigin matches wildcard host $prefix*$suffix"
                 }
+
             originPredicates.any { it(origin) } -> {
                 LOGGER.trace {
                     "${request.id()}: Origin $normalizedOrigin fulfills " +
@@ -134,6 +135,27 @@ internal suspend fun ApplicationCall.respondCorsFailed() {
     respond(HttpStatusCode.Forbidden)
 }
 
+private fun findPortDigitStartIndex(origin: String, hostStartIndex: Int): Int {
+    val isIpv6 = hostStartIndex < origin.length && origin[hostStartIndex] == '['
+    if (isIpv6) {
+        val ipv6LiteralEndIndex = origin.indexOf(']', hostStartIndex)
+        if (ipv6LiteralEndIndex == -1) {
+            return -1
+        }
+        val portSeparatorIndex = origin.indexOf(':', ipv6LiteralEndIndex)
+        return if (portSeparatorIndex != -1) portSeparatorIndex + 1 else origin.length
+    }
+
+    for (index in hostStartIndex until origin.length) {
+        when (origin[index]) {
+            ':' -> return index + 1
+            '/' -> return origin.length
+            '?' -> return -1
+        }
+    }
+    return origin.length
+}
+
 internal fun isValidOrigin(origin: String): Boolean {
     if (origin.isEmpty()) return false
     if (origin == "null") return true
@@ -148,17 +170,11 @@ internal fun isValidOrigin(origin: String): Boolean {
 
     if (!protoValid) return false
 
-    var portIndex = origin.length
-    for (index in protoDelimiter + 3 until origin.length) {
-        val ch = origin[index]
-        if (ch == ':' || ch == '/') {
-            portIndex = index + 1
-            break
-        }
-        if (ch == '?') return false
-    }
+    val hostStartIndex = protoDelimiter + 3
+    val portDigitStartIndex = findPortDigitStartIndex(origin, hostStartIndex)
+    if (portDigitStartIndex == -1) return false
 
-    for (index in portIndex until origin.length) {
+    for (index in portDigitStartIndex until origin.length) {
         val isTrailingSlash = index == origin.length - 1 && origin[index] == '/'
         if (!origin[index].isDigit() && !isTrailingSlash) return false
     }
@@ -175,8 +191,13 @@ internal fun normalizeOrigin(origin: String): String {
     } else {
         builder.append(origin)
     }
-    if (!builder.toString().substringAfterLast(":", "").matches(NUMBER_REGEX)) {
-        val port = when (builder.toString().substringBefore(':')) {
+    val originWithoutTrailingSlash = builder.toString()
+    val hostStartIndex = originWithoutTrailingSlash.indexOf("://") + 3
+    val portDigitStartIndex = findPortDigitStartIndex(originWithoutTrailingSlash, hostStartIndex)
+    val hasExplicitPort = portDigitStartIndex in originWithoutTrailingSlash.indices &&
+        originWithoutTrailingSlash.substring(portDigitStartIndex).matches(NUMBER_REGEX)
+    if (!hasExplicitPort) {
+        val port = when (originWithoutTrailingSlash.substringBefore(':')) {
             "http" -> "80"
             "https" -> "443"
             else -> null

@@ -151,8 +151,9 @@ public class CORSConfig {
      * and the request is passed to route handlers as-is.
      *
      * The only exception is CORS preflight requests — `OPTIONS` with an `Access-Control-Request-Method` header.
-     * Those are always handled by the plugin and receive a successful response with the appropriate CORS headers,
-     * even when the origin matches the server.
+     * The plugin still evaluates those (not skipped), even when the origin matches the server.
+     * The plugin checks the requested method and headers against the configured allowlists; if allowed, it responds
+     * with the appropriate CORS headers (typically `200 OK`), otherwise it responds with `403 Forbidden`.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.cors.CORSConfig.allowSameOrigin)
      */
