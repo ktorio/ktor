@@ -54,10 +54,7 @@ internal fun PluginBuilder<CORSConfig>.buildPlugin() {
     val allowNonSimpleContentTypes: Boolean = pluginConfig.allowNonSimpleContentTypes
     val headersList = pluginConfig.headers.filterNot { it in CORSConfig.CorsSimpleRequestHeaders }
         .let { if (allowNonSimpleContentTypes) it + HttpHeaders.ContentType else it }
-    val methodsListHeaderValue = methods.filterNot { it in CORSConfig.CorsDefaultMethods }
-        .map { it.value }
-        .sorted()
-        .joinToString(", ")
+    val methodsListHeaderValue = methods.map { it.value }.sorted().joinToString(", ")
     val maxAgeHeaderValue = pluginConfig.maxAgeInSeconds.let { if (it > 0) it.toString() else null }
     val exposedHeaders = when {
         pluginConfig.exposedHeaders.isNotEmpty() -> pluginConfig.exposedHeaders.sorted().joinToString(", ")
