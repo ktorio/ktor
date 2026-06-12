@@ -67,6 +67,16 @@ public class ContentNegotiationConfig : Configuration {
     public var defaultAcceptHeaderQValue: Double? = null
 
     /**
+     * If set to true, the plugin will not add Accept headers for registered content types
+     * if the request already has any Accept header set.
+     * Useful when working with APIs that are strict about Accept header values.
+     * Default is false to preserve backward compatibility.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.contentnegotiation.ContentNegotiationConfig.addAcceptHeaderOnlyIfNonePresent)
+     */
+    public var addAcceptHeaderOnlyIfNonePresent: Boolean = false
+
+    /**
      * Registers a [contentType] to a specified [converter] with an optional [configuration] script for a converter.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.contentnegotiation.ContentNegotiationConfig.register)
@@ -184,16 +194,18 @@ public val ContentNegotiation: ClientPlugin<ContentNegotiationConfig> = createCl
         }
 
         val acceptHeaders = request.headers.getAll(HttpHeaders.Accept).orEmpty()
-        requestRegistrations.forEach {
-            if (acceptHeaders.none { h -> ContentType.parse(h).match(it.contentTypeToSend) }) {
-                // automatically added headers get a lower content type priority, so user-specified accept headers
-                //  with higher q or implicit q=1 will take precedence
-                val contentTypeToSend = when (val qValue = pluginConfig.defaultAcceptHeaderQValue) {
-                    null -> it.contentTypeToSend
-                    else -> it.contentTypeToSend.withParameter("q", qValue.toString())
+        if (!(pluginConfig.addAcceptHeaderOnlyIfNonePresent && acceptHeaders.isNotEmpty())) {
+            requestRegistrations.forEach {
+                if (acceptHeaders.none { h -> ContentType.parse(h).match(it.contentTypeToSend) }) {
+                    // automatically added headers get a lower content type priority, so user-specified accept headers
+                    //  with higher q or implicit q=1 will take precedence
+                    val contentTypeToSend = when (val qValue = pluginConfig.defaultAcceptHeaderQValue) {
+                        null -> it.contentTypeToSend
+                        else -> it.contentTypeToSend.withParameter("q", qValue.toString())
+                    }
+                    LOGGER.trace("Adding Accept=$contentTypeToSend header for ${request.url}")
+                    request.accept(contentTypeToSend)
                 }
-                LOGGER.trace("Adding Accept=$contentTypeToSend header for ${request.url}")
-                request.accept(contentTypeToSend)
             }
         }
 
