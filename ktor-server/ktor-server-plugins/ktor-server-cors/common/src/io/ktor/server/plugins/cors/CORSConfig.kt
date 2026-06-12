@@ -258,6 +258,16 @@ public class CORSConfig {
     }
 
     /**
+     * Allows any header to be used for the actual [CORS] request.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.cors.CORSConfig.anyHeader)
+     */
+    public fun anyHeader() {
+        allowNonSimpleContentTypes = true
+        headers.add("*")
+    }
+
+    /**
      * Allows using headers prefixed with [headerPrefix] for the actual [CORS] request.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.cors.CORSConfig.allowHeadersPrefixed)
