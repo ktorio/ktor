@@ -997,6 +997,54 @@ class CORSTest {
     }
 
     @Test
+    fun ipv6LiteralOriginIsAccepted() = testApplication {
+        install(CORS) {
+            anyHost()
+        }
+
+        routing {
+            get("/") {
+                call.respond("OK")
+            }
+        }
+
+        client.get("/") {
+            header(HttpHeaders.Origin, "http://[::1]:22222")
+        }.let { call ->
+            assertEquals(HttpStatusCode.OK, call.status)
+            assertEquals("*", call.headers[HttpHeaders.AccessControlAllowOrigin])
+        }
+
+        client.get("/") {
+            header(HttpHeaders.Origin, "http://[2001:db8::1]:8080")
+        }.let { call ->
+            assertEquals(HttpStatusCode.OK, call.status)
+            assertEquals("*", call.headers[HttpHeaders.AccessControlAllowOrigin])
+        }
+
+        client.get("/") {
+            header(HttpHeaders.Origin, "http://[::1]:22222/")
+        }.let { call ->
+            assertEquals(HttpStatusCode.OK, call.status)
+            assertEquals("*", call.headers[HttpHeaders.AccessControlAllowOrigin])
+        }
+
+        client.get("/") {
+            header(HttpHeaders.Origin, "http://[::1]:notaport")
+        }.let { call ->
+            assertEquals(HttpStatusCode.OK, call.status)
+            assertNull(call.headers[HttpHeaders.AccessControlAllowOrigin])
+        }
+
+        client.get("/") {
+            header(HttpHeaders.Origin, "http://[::1")
+        }.let { call ->
+            assertEquals(HttpStatusCode.OK, call.status)
+            assertNull(call.headers[HttpHeaders.AccessControlAllowOrigin])
+        }
+    }
+
+    @Test
     fun originValidation() = testApplication {
         install(CORS) {
             allowSameOrigin = false
