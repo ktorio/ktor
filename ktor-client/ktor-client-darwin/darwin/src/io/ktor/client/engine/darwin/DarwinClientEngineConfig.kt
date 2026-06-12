@@ -6,6 +6,7 @@ package io.ktor.client.engine.darwin
 
 import io.ktor.client.engine.*
 import io.ktor.client.engine.darwin.internal.*
+import io.ktor.utils.io.KtorDsl
 import kotlinx.cinterop.*
 import platform.Foundation.*
 import platform.Foundation.NSCharacterSet
@@ -32,6 +33,7 @@ public typealias ChallengeHandler = (
  *
  * By default, the configuration uses `NSCharacterSet.URL*AllowedCharacterSet` values.
  */
+@KtorDsl
 public class UrlAllowedCharactersConfig {
 
     /**
