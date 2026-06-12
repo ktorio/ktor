@@ -34,7 +34,7 @@ internal class DarwinSession(
 
     @OptIn(InternalAPI::class, ExperimentalForeignApi::class)
     internal suspend fun execute(request: HttpRequestData, callContext: CoroutineContext): HttpResponseData {
-        val nativeRequest = request.toNSUrlRequest()
+        val nativeRequest = request.toNSUrlRequest(config.urlAllowedCharactersConfig)
             .apply(config.requestConfig)
         val (task, response) = if (request.isUpgradeRequest()) {
             val task = withSession { webSocketTaskWithRequest(nativeRequest) }

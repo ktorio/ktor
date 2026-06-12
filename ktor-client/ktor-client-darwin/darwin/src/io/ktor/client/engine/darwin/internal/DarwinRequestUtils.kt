@@ -11,8 +11,8 @@ import kotlinx.cinterop.UnsafeNumber
 import platform.Foundation.*
 
 @OptIn(InternalAPI::class, UnsafeNumber::class)
-internal suspend fun HttpRequestData.toNSUrlRequest(): NSMutableURLRequest {
-    val url = url.toNSUrl()
+internal suspend fun HttpRequestData.toNSUrlRequest(config: UrlAllowedCharactersConfig): NSMutableURLRequest {
+    val url = url.toNSUrl(config)
     val nativeRequest = NSMutableURLRequest.requestWithURL(url).apply {
         setupSocketTimeout(this@toNSUrlRequest)
         body.toDataOrStream()?.let {
