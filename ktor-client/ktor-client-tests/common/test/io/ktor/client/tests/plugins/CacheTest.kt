@@ -19,6 +19,7 @@ import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.delay
 import kotlin.test.*
+import kotlin.time.Duration.Companion.milliseconds
 
 class CacheTest : ClientLoader() {
 
@@ -417,7 +418,7 @@ class CacheTest : ClientLoader() {
             val second = client.get(url).body<String>()
 
             assertEquals(first, second)
-            delay(2500)
+            delay(2500.milliseconds)
 
             val third = client.get(url).body<String>()
             assertNotEquals(first, third)
@@ -521,7 +522,7 @@ class CacheTest : ClientLoader() {
             val cache = publicStorage.findAll(url)
             assertEquals(1, cache.size)
 
-            delay(2500)
+            delay(2500.milliseconds)
 
             val stale = client.get(url) {
                 header(HttpHeaders.CacheControl, "max-stale=4")
@@ -665,7 +666,7 @@ class CacheTest : ClientLoader() {
             val second = client.get(url).body<String>()
 
             assertEquals(first, second)
-            delay(2500)
+            delay(2500.milliseconds)
 
             // now it should be already expired
             val third = client.get(url).body<String>()
@@ -857,6 +858,174 @@ class CacheTest : ClientLoader() {
     }
 
     @Test
+    fun test304WithNewlyAddedVaryHeader() = testWithEngine(MockEngine) {
+        val etag = "\"v1\""
+        val url = Url("https://example.com/x")
+        val publicStorage = CacheStorage.Unlimited()
+        config {
+            install(HttpCache) {
+                publicStorage(publicStorage)
+            }
+            engine {
+                addHandler { request ->
+                    if (request.headers.contains(HttpHeaders.IfNoneMatch)) {
+                        val headers = headersOf(
+                            HttpHeaders.ETag to listOf(etag),
+                            HttpHeaders.Vary to listOf("Origin"),
+                        )
+                        respond("", HttpStatusCode.NotModified, headers)
+                    } else {
+                        val headers = headersOf(
+                            HttpHeaders.ETag to listOf(etag),
+                            HttpHeaders.CacheControl to listOf("max-age=0, must-revalidate"),
+                        )
+                        respond("body", HttpStatusCode.OK, headers)
+                    }
+                }
+            }
+        }
+
+        test { client ->
+            val first = client.get(url).bodyAsText()
+            assertEquals("body", first)
+
+            val second = client.get(url).bodyAsText()
+            assertEquals("body", second)
+
+            val cached = publicStorage.findAll(url)
+            assertEquals(1, cached.size)
+            assertEquals(mapOf("origin" to ""), cached.single().varyKeys)
+            assertEquals("Origin", cached.single().headers[HttpHeaders.Vary])
+        }
+    }
+
+    @Test
+    fun test304WithoutVaryMatchesByEtag() = testWithEngine(MockEngine) {
+        val etag = "\"v1\""
+        val url = Url("https://example.com/x")
+        val publicStorage = CacheStorage.Unlimited()
+        config {
+            install(HttpCache) {
+                publicStorage(publicStorage)
+            }
+            engine {
+                addHandler { request ->
+                    if (request.headers.contains(HttpHeaders.IfNoneMatch)) {
+                        // The server omits Vary in the 304 but provides a matching validator.
+                        // The cached entry must be found by its ETag instead of failing with
+                        // InvalidCacheStateException.
+                        respond("", HttpStatusCode.NotModified, headersOf(HttpHeaders.ETag, etag))
+                    } else {
+                        val headers = headersOf(
+                            HttpHeaders.ETag to listOf(etag),
+                            HttpHeaders.Vary to listOf("Origin"),
+                            HttpHeaders.CacheControl to listOf("max-age=0, must-revalidate"),
+                        )
+                        respond("body", HttpStatusCode.OK, headers)
+                    }
+                }
+            }
+        }
+
+        test { client ->
+            val first = client.get(url).bodyAsText()
+            assertEquals("body", first)
+
+            // Triggers a conditional request that gets a 304 without the Vary header.
+            // Should not throw and should reply from cache.
+            val second = client.get(url).bodyAsText()
+            assertEquals("body", second)
+
+            assertEquals(1, publicStorage.findAll(url).size)
+        }
+    }
+
+    @Test
+    fun test304WithoutValidatorMatchesSingleStoredResponse() = testWithEngine(MockEngine) {
+        val url = Url("https://example.com/x")
+        val publicStorage = CacheStorage.Unlimited()
+        config {
+            install(HttpCache) {
+                publicStorage(publicStorage)
+            }
+            engine {
+                addHandler { request ->
+                    if (request.headers.contains(HttpHeaders.IfModifiedSince)) {
+                        // 304 carries no validator at all (no ETag, no Last-Modified).
+                        // Per RFC 9111 §4.3.4, since there is a single stored response that
+                        // also lacks a validator, that response is identified for update.
+                        respond("", HttpStatusCode.NotModified)
+                    } else {
+                        val headers = headersOf(
+                            HttpHeaders.LastModified to listOf("Mon, 01 Jan 2024 00:00:00 GMT"),
+                            HttpHeaders.CacheControl to listOf("max-age=0, must-revalidate"),
+                        )
+                        respond("body", HttpStatusCode.OK, headers)
+                    }
+                }
+            }
+        }
+
+        test { client ->
+            val first = client.get(url).bodyAsText()
+            assertEquals("body", first)
+
+            // The 304 has no validator, but the single stored response is freshened.
+            val second = client.get(url).bodyAsText()
+            assertEquals("body", second)
+
+            assertEquals(1, publicStorage.findAll(url).size)
+        }
+    }
+
+    @Test
+    fun test304WithoutValidatorIsNotMatchedWhenMultipleStoredResponses() = testWithEngine(MockEngine) {
+        val url = Url("https://example.com/x")
+        val publicStorage = CacheStorage.Unlimited()
+        config {
+            install(HttpCache) {
+                publicStorage(publicStorage)
+            }
+            engine {
+                addHandler { request ->
+                    if (request.headers.contains(HttpHeaders.IfModifiedSince)) {
+                        // 304 with no validator while several variants are stored:
+                        // the lenient single-entry rule must NOT apply, so this is treated
+                        // as a fresh response instead of an arbitrary cached entry.
+                        respond(
+                            "fresh",
+                            HttpStatusCode.OK,
+                            headersOf(HttpHeaders.LastModified, "Mon, 01 Jan 2024 00:00:00 GMT")
+                        )
+                    } else {
+                        val variant = request.headers[HttpHeaders.AcceptLanguage] ?: "default"
+                        val headers = headersOf(
+                            HttpHeaders.LastModified to listOf("Mon, 01 Jan 2024 00:00:00 GMT"),
+                            HttpHeaders.Vary to listOf(HttpHeaders.AcceptLanguage),
+                            HttpHeaders.CacheControl to listOf("max-age=0, must-revalidate"),
+                        )
+                        respond(variant, HttpStatusCode.OK, headers)
+                    }
+                }
+            }
+        }
+
+        test { client ->
+            // Store two different variants, so more than one stored response exists for the URL.
+            val en = client.get(url) { header(HttpHeaders.AcceptLanguage, "en") }.bodyAsText()
+            val es = client.get(url) { header(HttpHeaders.AcceptLanguage, "es") }.bodyAsText()
+            assertEquals("en", en)
+            assertEquals("es", es)
+            assertEquals(2, publicStorage.findAll(url).size)
+
+            // A request whose variant is not stored revalidates; the 304 has no validator, and
+            // there are multiple stored responses, so it must not be served from cache.
+            val fresh = client.get(url) { header(HttpHeaders.AcceptLanguage, "fr") }.bodyAsText()
+            assertEquals("fresh", fresh)
+        }
+    }
+
+    @Test
     fun testVaryHeader() = clientTests {
         val publicStorage = CacheStorage.Unlimited()
         val privateStorage = CacheStorage.Unlimited()
@@ -932,7 +1101,7 @@ class CacheTest : ClientLoader() {
 
         do {
             val start = GMTDate()
-            delay(delayValue)
+            delay(delayValue.milliseconds)
             val end = GMTDate()
             if (end > start + milliseconds) {
                 break

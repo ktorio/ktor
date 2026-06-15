@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 @file:Suppress("DEPRECATION")
 
@@ -43,14 +43,8 @@ internal val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.HttpCache")
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.cache.HttpCache)
  */
 public class HttpCache private constructor(
-    @Deprecated(
-        "This will become internal",
-        level = DeprecationLevel.ERROR
-    ) @Suppress("DEPRECATION_ERROR") internal val publicStorage: HttpCacheStorage,
-    @Deprecated(
-        "This will become internal",
-        level = DeprecationLevel.ERROR
-    ) @Suppress("DEPRECATION_ERROR") internal val privateStorage: HttpCacheStorage,
+    @Suppress("DEPRECATION_ERROR") internal val publicStorage: HttpCacheStorage,
+    @Suppress("DEPRECATION_ERROR") internal val privateStorage: HttpCacheStorage,
     private val publicStorageNew: CacheStorage,
     private val privateStorageNew: CacheStorage,
     private val useOldStorage: Boolean,
@@ -236,21 +230,11 @@ public class HttpCache private constructor(
 
                 if (response.status == HttpStatusCode.NotModified) {
                     LOGGER.trace { "Not modified response for ${response.call.request.url}, replying from cache" }
-                    val responseFromCache =
-                        plugin.findAndRefresh(response.call.request, response) ?: throw InvalidCacheStateException(
-                            response.call.request.url
-                        )
-                    if (responseFromCache.varyKeys().size != response.varyKeys().size) {
-                        LOGGER.warn(
-                            "Vary header mismatch on cached response for ${response.call.request.url}. " +
-                                "Received 304 Not Modified with Vary: ${response.varyKeys()} " +
-                                "but cached response has Vary: ${responseFromCache.varyKeys()}. " +
-                                "According to RFC 7232 §4.1 and RFC 9111 §4.1, " +
-                                "the server must include the full Vary header in 304 responses. " +
-                                "Falling back to missing cache logic. " +
-                                "Consider reporting this issue to the server maintainers."
-                        )
-                    }
+                    val responseFromCache = refreshNotModifiedResponse(
+                        response.call.request,
+                        response,
+                        plugin::findAndRefresh,
+                    )
 
                     scope.monitor.raise(HttpResponseFromCache, responseFromCache)
                     proceedWith(responseFromCache)
@@ -340,27 +324,35 @@ public class HttpCache private constructor(
             else -> publicStorageNew
         }
 
-        val cache = findResponse(storage, response.varyKeys(), url, request) ?: return null
-        storage.store(request.url, cache.copy(cache.varyKeys, response.cacheExpires(isSharedClient)))
-        return cache.createResponse(request.call.client, request, response.coroutineContext)
+        val cache = storage.selectResponseToUpdate(response, url, request) ?: return null
+        val newVaryKeys = response.varyKeys().ifEmpty { cache.varyKeys }
+        val mergedHeaders = cache.headers.merge(response.headers)
+        val expires = response.cacheExpires(isSharedClient)
+        val updatedCache = cache.copy(newVaryKeys, expires, mergedHeaders)
+
+        if (cache.varyKeys != newVaryKeys) {
+            storage.remove(url, cache.varyKeys)
+        }
+        storage.store(request.url, updatedCache)
+        return updatedCache.createResponse(request.call.client, request, response.coroutineContext)
     }
 
-    private suspend fun findResponse(
-        storage: CacheStorage,
-        varyKeys: Map<String, String>,
+    private suspend fun CacheStorage.selectResponseToUpdate(
+        response: HttpResponse,
         url: Url,
         request: HttpRequest
-    ): CachedResponseData? = when {
-        varyKeys.isNotEmpty() -> {
-            storage.find(url, varyKeys)
-        }
+    ): CachedResponseData? {
+        response.varyKeys()
+            .takeIf { it.isNotEmpty() }
+            ?.let { return find(url, varyKeys = it) }
 
-        else -> {
-            val requestHeaders = mergedHeadersLookup(request.content, request.headers::get, request.headers::getAll)
-            storage.findAll(url).sortedByDescending { it.responseTime }.firstOrNull { cachedResponse ->
-                cachedResponse.varyKeys.all { (key, value) -> requestHeaders(key) == value }
-            }
-        }
+        val requestHeaders = mergedHeadersLookup(request.content, request.headers::get, request.headers::getAll)
+        val cachedResponses = findAll(url).sortedByDescending { it.responseTime }
+
+        cachedResponses.firstOrNull { it.varyKeys.all { (key, value) -> requestHeaders(key) == value } }
+            ?.let { return it }
+
+        return cachedResponses.selectResponseToFreshen(response) { it.headers }
     }
 
     private suspend fun findResponse(context: HttpRequestBuilder, content: OutgoingContent): CachedResponseData? {

@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 @file:Suppress("DEPRECATION")
 
@@ -79,7 +79,7 @@ internal suspend fun HttpCacheStorage.store(url: Url, value: HttpResponse, isSha
 public interface CacheStorage {
 
     /**
-     * Store [value] in cache storage for [url] key.
+     * Store [data] in cache storage for [url] key.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.cache.storage.CacheStorage.store)
      */
@@ -225,7 +225,11 @@ public class CachedResponseData(
         return result
     }
 
-    internal fun copy(varyKeys: Map<String, String>, expires: GMTDate): CachedResponseData = CachedResponseData(
+    internal fun copy(
+        varyKeys: Map<String, String>,
+        expires: GMTDate,
+        headers: Headers = this.headers,
+    ): CachedResponseData = CachedResponseData(
         url = url,
         statusCode = statusCode,
         requestTime = requestTime,
@@ -236,4 +240,23 @@ public class CachedResponseData(
         varyKeys = varyKeys,
         body = body
     )
+}
+
+private val mergeCacheExcludedHeaders = setOf(
+    HttpHeaders.ContentLength,
+    HttpHeaders.Connection,
+    HttpHeaders.ProxyAuthenticate,
+    HttpHeaders.ProxyAuthenticationInfo,
+    HttpHeaders.ProxyAuthorization,
+)
+
+internal fun Headers.merge(other: Headers): Headers = Headers.build {
+    appendAll(this@merge)
+    for (name in other.names()) {
+        if (mergeCacheExcludedHeaders.any { it.equals(name, ignoreCase = true) }) {
+            continue
+        }
+        remove(name)
+        other.getAll(name)?.let { values -> appendAll(name, values) }
+    }
 }

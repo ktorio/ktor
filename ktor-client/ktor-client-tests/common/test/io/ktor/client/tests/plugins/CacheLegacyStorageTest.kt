@@ -5,6 +5,8 @@
 package io.ktor.client.tests.plugins
 
 import io.ktor.client.call.*
+import io.ktor.client.engine.mock.MockEngine
+import io.ktor.client.engine.mock.respond
 import io.ktor.client.plugins.cache.*
 import io.ktor.client.plugins.cache.storage.*
 import io.ktor.client.plugins.logging.*
@@ -18,6 +20,7 @@ import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.delay
 import kotlin.test.*
+import kotlin.time.Duration.Companion.milliseconds
 
 @Suppress("DEPRECATION", "DEPRECATION_ERROR")
 class CacheLegacyStorageTest : ClientLoader() {
@@ -339,7 +342,7 @@ class CacheLegacyStorageTest : ClientLoader() {
             val second = client.get(url).body<String>()
 
             assertEquals(first, second)
-            delay(2500)
+            delay(2500.milliseconds)
 
             val third = client.get(url).body<String>()
             assertNotEquals(first, third)
@@ -394,7 +397,7 @@ class CacheLegacyStorageTest : ClientLoader() {
             val cache = publicStorage.findByUrl(url)
             assertEquals(1, cache.size)
 
-            delay(2500)
+            delay(2500.milliseconds)
 
             val stale = client.get(url) {
                 header(HttpHeaders.CacheControl, "max-stale=4")
@@ -538,7 +541,7 @@ class CacheLegacyStorageTest : ClientLoader() {
             val second = client.get(url).body<String>()
 
             assertEquals(first, second)
-            delay(5000)
+            delay(5000.milliseconds)
 
             // now it should be already expired
             val third = client.get(url).body<String>()
@@ -633,6 +636,45 @@ class CacheLegacyStorageTest : ClientLoader() {
         }
     }
 
+    @Test
+    fun test304WithoutVaryMatchesByEtag() = testWithEngine(MockEngine) {
+        val etag = "\"v1\""
+        val url = Url("https://example.com/x")
+        val publicStorage = HttpCacheStorage.Unlimited()
+        config {
+            install(HttpCache) {
+                this.publicStorage = publicStorage
+            }
+            engine {
+                addHandler { request ->
+                    if (request.headers.contains(HttpHeaders.IfNoneMatch)) {
+                        // The server omits Vary in the 304 but provides a matching validator.
+                        // The legacy storage must locate the entry by ETag and reply from cache
+                        // instead of throwing InvalidCacheStateException.
+                        respond("", HttpStatusCode.NotModified, headersOf(HttpHeaders.ETag, etag))
+                    } else {
+                        val headers = headersOf(
+                            HttpHeaders.ETag to listOf(etag),
+                            HttpHeaders.Vary to listOf("Origin"),
+                            HttpHeaders.CacheControl to listOf("max-age=0, must-revalidate"),
+                        )
+                        respond("body", HttpStatusCode.OK, headers)
+                    }
+                }
+            }
+        }
+
+        test { client ->
+            val first = client.get(url).bodyAsText()
+            assertEquals("body", first)
+
+            val second = client.get(url).bodyAsText()
+            assertEquals("body", second)
+
+            assertEquals(1, publicStorage.findByUrl(url).size)
+        }
+    }
+
     /**
      * Does delay and ensures that the [GMTDate] measurements report at least
      * the specified number of [milliseconds].
@@ -644,7 +686,7 @@ class CacheLegacyStorageTest : ClientLoader() {
 
         do {
             val start = GMTDate()
-            delay(delayValue)
+            delay(delayValue.milliseconds)
             val end = GMTDate()
             if (end > start + milliseconds) {
                 break
