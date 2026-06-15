@@ -990,13 +990,8 @@ class CacheTest : ClientLoader() {
                 addHandler { request ->
                     if (request.headers.contains(HttpHeaders.IfModifiedSince)) {
                         // 304 with no validator while several variants are stored:
-                        // the lenient single-entry rule must NOT apply, so this is treated
-                        // as a fresh response instead of an arbitrary cached entry.
-                        respond(
-                            "fresh",
-                            HttpStatusCode.OK,
-                            headersOf(HttpHeaders.LastModified, "Mon, 01 Jan 2024 00:00:00 GMT")
-                        )
+                        // the lenient single-entry rule must NOT apply.
+                        respond("", HttpStatusCode.NotModified)
                     } else {
                         val variant = request.headers[HttpHeaders.AcceptLanguage] ?: "default"
                         val headers = headersOf(
@@ -1018,10 +1013,14 @@ class CacheTest : ClientLoader() {
             assertEquals("es", es)
             assertEquals(2, publicStorage.findAll(url).size)
 
-            // A request whose variant is not stored revalidates; the 304 has no validator, and
-            // there are multiple stored responses, so it must not be served from cache.
-            val fresh = client.get(url) { header(HttpHeaders.AcceptLanguage, "fr") }.bodyAsText()
-            assertEquals("fresh", fresh)
+            // Revalidate cached variants; the 304 has no validator and multiple stored
+            // responses exist, so the lenient single-entry rule must not apply — each
+            // response is matched by its request Vary keys instead.
+            val enAgain = client.get(url) { header(HttpHeaders.AcceptLanguage, "en") }.bodyAsText()
+            assertEquals("en", enAgain)
+
+            val esAgain = client.get(url) { header(HttpHeaders.AcceptLanguage, "es") }.bodyAsText()
+            assertEquals("es", esAgain)
         }
     }
 

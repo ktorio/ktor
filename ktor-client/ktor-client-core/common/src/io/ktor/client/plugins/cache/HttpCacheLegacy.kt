@@ -137,9 +137,8 @@ private fun HttpCacheStorage.selectResponseToUpdate(
     url: Url,
     request: HttpRequest
 ): HttpCacheEntry? {
-    response.varyKeys()
-        .takeIf { it.isNotEmpty() }
-        ?.let { return find(url, varyKeys = it) }
+    val varyKeys = response.varyKeys().takeIf { it.isNotEmpty() }
+    varyKeys?.let { find(url, varyKeys) }?.let { return it }
 
     val requestHeaders = mergedHeadersLookup(request.content, request.headers::get, request.headers::getAll)
     val cachedResponses = findByUrl(url).sortedByDescending { it.response.responseTime }

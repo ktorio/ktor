@@ -144,11 +144,12 @@ internal enum class ValidateStatus {
     ShouldWarn,
 }
 
-internal fun etagMatches(cachedEtag: String, validationEtag: String): Boolean {
-    val cached = EntityTagVersion.parseSingle(cachedEtag)
-    val validation = EntityTagVersion.parseSingle(validationEtag)
-    return cached.noneMatch(listOf(validation)) == VersionCheckResult.NOT_MODIFIED
-}
+internal fun etagMatches(cachedEtag: String, validationEtag: String): Boolean =
+    runCatching {
+        val cached = EntityTagVersion.parseSingle(cachedEtag)
+        val validation = EntityTagVersion.parseSingle(validationEtag)
+        return cached.noneMatch(listOf(validation)) == VersionCheckResult.NOT_MODIFIED
+    }.getOrDefault(false)
 
 internal fun HttpCacheEntry.withFreshenedMetadata(
     expires: GMTDate,
