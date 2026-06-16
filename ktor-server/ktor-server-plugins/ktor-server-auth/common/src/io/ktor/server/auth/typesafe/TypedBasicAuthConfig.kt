@@ -25,7 +25,6 @@ import io.ktor.utils.io.charsets.*
  *
  * @param P the principal type produced by this scheme.
  */
-@ExperimentalKtorApi
 @KtorDsl
 public class TypedBasicAuthConfig<P : Any> @PublishedApi internal constructor() {
     /**

@@ -22,7 +22,6 @@ import kotlin.reflect.KClass
  * @param P route principal type.
  * @param C authenticated route context type.
  */
-@OptIn(ExperimentalKtorApi::class)
 public typealias SessionContextFactory<S, P, C> = (SessionContext<S, P>) -> C
 
 /**
@@ -37,7 +36,6 @@ public typealias SessionContextFactory<S, P, C> = (SessionContext<S, P>) -> C
  * @param P the principal type exposed to authenticated routes.
  * @param C the authenticated route context type.
  */
-@ExperimentalKtorApi
 public open class SessionAuthScheme<S : Any, P : Any, C : SessionAuthenticatedContext<S, P>> internal constructor(
     name: String,
     principalType: KClass<P>,
@@ -109,7 +107,6 @@ public open class SessionAuthScheme<S : Any, P : Any, C : SessionAuthenticatedCo
 
     public companion object {
         @PublishedApi
-        @OptIn(ExperimentalKtorApi::class)
         internal fun <S : Any, P : Any, C : SessionAuthenticatedContext<S, P>> from(
             name: String,
             sessionTypeInfo: TypeInfo,
