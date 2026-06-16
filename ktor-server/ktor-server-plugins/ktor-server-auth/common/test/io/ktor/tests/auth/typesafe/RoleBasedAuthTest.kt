@@ -16,8 +16,6 @@ import io.ktor.server.testing.*
 import io.ktor.utils.io.ExperimentalKtorApi
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertIs
-
 class RoleBasedAuthTest {
 
     private fun roleScheme(name: String = "role-test") = acceptAllBasicScheme(name).withRoles { principal ->
@@ -33,10 +31,8 @@ class RoleBasedAuthTest {
     fun `role-based auth grants forbids and rejects`() = testApplication {
         routing {
             authenticateWith(roleScheme(), roles = setOf(TestRole.Admin)) {
-                assertIs<RoleBasedContext<TestUser, TestRole>>(authenticatedContext())
-
                 get("/admin") {
-                    call.respondText("${principal.name}:${roles.joinToString(",") { it.name }}")
+                    call.respondText("${call.principal.name}:${call.roles.joinToString(",") { it.name }}")
                 }
             }
         }

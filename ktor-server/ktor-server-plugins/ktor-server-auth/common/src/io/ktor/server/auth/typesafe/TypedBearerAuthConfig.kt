@@ -13,8 +13,8 @@ import io.ktor.utils.io.*
 /**
  * Configures a typed Bearer authentication scheme.
  *
- * Unlike [BearerAuthenticationProvider.Config], [authenticate] returns [P] so routes protected by [authenticateWith]
- * can read [principal] as the configured type.
+ * Unlike [BearerAuthenticationProvider.Config], [validate] returns [P] so routes protected by [authenticateWith]
+ * can read [ApplicationCall.principal] as the configured type.
  *
  * This config does not expose provider-level `challenge`. Set [onUnauthorized] or pass `onUnauthorized` to
  * [authenticateWith] to customize failure responses.
@@ -54,7 +54,7 @@ public class TypedBearerAuthConfig<P : Any> @InternalAPI constructor() {
      */
     public var onUnauthorized: UnauthorizedHandler? = null
 
-    private var authenticateFn: (suspend RoutingContext.(BearerTokenCredential) -> P?)? = null
+    private var validateFn: (suspend RoutingContext.(BearerTokenCredential) -> P?)? = null
     private var authHeaderFn: ((ApplicationCall) -> HttpAuthHeader?)? = null
     private var defaultScheme: String? = null
     private var additionalSchemes: List<String>? = null
@@ -64,13 +64,13 @@ public class TypedBearerAuthConfig<P : Any> @InternalAPI constructor() {
      *
      * Return `null` when the token is not accepted.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedBearerAuthConfig.authenticate)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedBearerAuthConfig.validate)
      *
-     * @param body authentication function called with the current routing context and extracted
+     * @param body validation function called with the current routing context and extracted
      * [BearerTokenCredential].
      */
-    public fun authenticate(body: suspend RoutingContext.(BearerTokenCredential) -> P?) {
-        authenticateFn = body
+    public fun validate(body: suspend RoutingContext.(BearerTokenCredential) -> P?) {
+        validateFn = body
     }
 
     /**
@@ -108,7 +108,7 @@ public class TypedBearerAuthConfig<P : Any> @InternalAPI constructor() {
     internal fun buildProvider(name: String): BearerAuthenticationProvider {
         val config = BearerAuthenticationProvider.Config(name, description)
         realm?.let { config.realm = it }
-        authenticateFn?.let { fn -> config.authenticate { credential -> toRoutingContext().fn(credential) } }
+        validateFn?.let { fn -> config.authenticate { credential -> toRoutingContext().fn(credential) } }
         authHeaderFn?.let { config.authHeader(it) }
         defaultScheme?.let { ds ->
             config.authSchemes(ds, *additionalSchemes!!.toTypedArray())

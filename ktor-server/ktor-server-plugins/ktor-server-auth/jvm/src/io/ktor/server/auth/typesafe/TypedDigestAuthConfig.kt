@@ -15,7 +15,7 @@ import io.ktor.utils.io.charsets.*
  * Configures a typed Digest authentication scheme.
  *
  * Unlike [DigestAuthenticationProvider.Config], [validate] returns [P] so routes protected by [authenticateWith] can
- * read [principal] as the configured type.
+ * read [ApplicationCall.principal] as the configured type.
  *
  * This config does not expose provider-level `challenge`. Set [onUnauthorized] or pass `onUnauthorized` to
  * [authenticateWith] to customize failure responses.

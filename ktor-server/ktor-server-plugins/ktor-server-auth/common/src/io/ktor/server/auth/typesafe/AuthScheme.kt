@@ -72,7 +72,7 @@ public open class DefaultAuthScheme<P : Any, C : AuthenticatedContext<P>>(
     internal val principalType: KClass<P>,
     internal val provider: AuthenticationProvider,
     internal val onUnauthorized: UnauthorizedHandler?,
-    internal val contextFactory: (DefaultAuthenticatedContext<P>) -> C
+    internal val contextFactory: (PrincipalContext<P>) -> C
 ) : AuthScheme<P, C> {
     internal val principalKey = AttributeKey<P>("TypesafeAuth:$name:Principal", TypeInfo(principalType))
 
@@ -90,7 +90,7 @@ public open class DefaultAuthScheme<P : Any, C : AuthenticatedContext<P>>(
     }
 
     override fun createAuthenticatedContext(route: Route): C {
-        return contextFactory(DefaultAuthenticatedContext(principalKey))
+        return contextFactory(PrincipalContext(principalKey))
     }
 
     private fun Application.registerSchemeIfNeeded() {
@@ -140,7 +140,7 @@ public open class DefaultAuthScheme<P : Any, C : AuthenticatedContext<P>>(
 
     public companion object {
         /**
-         * Creates a [DefaultAuthScheme] that exposes the authenticated principal through [DefaultAuthenticatedContext].
+         * Creates a [DefaultAuthScheme] that exposes the authenticated principal through [PrincipalContext].
          *
          * Typed provider builders use this helper when they do not need a custom route context.
          *
@@ -150,11 +150,12 @@ public open class DefaultAuthScheme<P : Any, C : AuthenticatedContext<P>>(
          * @param provider provider implementation that authenticates requests for this scheme.
          * @param onUnauthorized default failure handler for routes that use the scheme.
          */
+        @InternalAPI
         public inline fun <reified P : Any> withDefaultContext(
             name: String,
             provider: AuthenticationProvider,
             noinline onUnauthorized: UnauthorizedHandler?
-        ): DefaultAuthScheme<P, DefaultAuthenticatedContext<P>> {
+        ): DefaultAuthScheme<P, PrincipalContext<P>> {
             return DefaultAuthScheme(
                 name = name,
                 provider = provider,
@@ -167,4 +168,4 @@ public open class DefaultAuthScheme<P : Any, C : AuthenticatedContext<P>>(
 }
 
 @OptIn(ExperimentalKtorApi::class)
-public typealias DefaultAuthenticatedScheme<P> = DefaultAuthScheme<P, DefaultAuthenticatedContext<P>>
+public typealias DefaultAuthenticatedScheme<P> = DefaultAuthScheme<P, PrincipalContext<P>>
