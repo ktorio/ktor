@@ -38,7 +38,7 @@ class TypedJwtAuthTest {
         routing {
             authenticateWith(scheme) {
                 get("/profile") {
-                    call.respondText(principal.name)
+                    call.respondText(call.principal.name)
                 }
             }
         }
@@ -68,7 +68,7 @@ class TypedJwtAuthTest {
         routing {
             authenticateWith(scheme) {
                 get("/profile") {
-                    call.respondText(principal.name)
+                    call.respondText(call.principal.name)
                 }
             }
         }
@@ -93,7 +93,7 @@ class TypedJwtAuthTest {
         routing {
             authenticateWith(scheme) {
                 get("/profile") {
-                    call.respondText(principal.name)
+                    call.respondText(call.principal.name)
                 }
             }
         }
@@ -118,7 +118,7 @@ class TypedJwtAuthTest {
         routing {
             authenticateWith(scheme) {
                 get("/scheme") {
-                    call.respondText(principal.name)
+                    call.respondText(call.principal.name)
                 }
             }
             authenticateWith(
@@ -128,7 +128,7 @@ class TypedJwtAuthTest {
                 }
             ) {
                 get("/route") {
-                    call.respondText(principal.name)
+                    call.respondText(call.principal.name)
                 }
             }
         }

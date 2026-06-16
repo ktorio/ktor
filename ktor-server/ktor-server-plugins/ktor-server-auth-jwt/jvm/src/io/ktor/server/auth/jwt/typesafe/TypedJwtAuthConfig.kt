@@ -31,7 +31,6 @@ import io.ktor.utils.io.*
  *
  * @param P the principal type produced by this scheme.
  */
-@ExperimentalKtorApi
 @KtorDsl
 public class TypedJwtAuthConfig<P : Any> @PublishedApi internal constructor() {
     /**
