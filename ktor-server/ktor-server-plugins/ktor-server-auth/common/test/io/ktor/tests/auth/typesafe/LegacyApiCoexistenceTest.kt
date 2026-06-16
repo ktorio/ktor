@@ -40,11 +40,11 @@ class LegacyApiCoexistenceTest {
                 }
             }
             authenticateWith(newScheme) {
-                get("/new") { call.respondText(principal.email) }
+                get("/new") { call.respondText(call.principal.email) }
                 get("/new-call") {
                     // call.principal<T>() also works inside typesafe API
                     val manual = call.principal<TestUser>()
-                    call.respondText("${principal.name}:${manual?.name}")
+                    call.respondText("${call.principal.name}:${manual?.name}")
                 }
             }
         }
@@ -69,7 +69,7 @@ class LegacyApiCoexistenceTest {
 
         routing {
             authenticateWith(scheme) {
-                get("/test") { call.respondText(principal.name) }
+                get("/test") { call.respondText(call.principal.name) }
             }
         }
 
@@ -109,7 +109,7 @@ class LegacyApiCoexistenceTest {
                 authenticateWith(newScheme) {
                     post("/nested") {
                         val legacy = call.principal<TestUser>("legacy")
-                        call.respondText("${legacy?.name}:${principal.name}")
+                        call.respondText("${legacy?.name}:${call.principal.name}")
                     }
                 }
             }
@@ -163,10 +163,10 @@ class LegacyApiCoexistenceTest {
 
         routing {
             authenticateWith(newScheme) {
-                get("/outer") { call.respondText(principal.email) }
+                get("/outer") { call.respondText(call.principal.email) }
                 authenticate("legacy") {
                     post("/nested") {
-                        val typed = principal
+                        val typed = call.principal
                         val typedByName = call.principal<TestUser>("outer-new")
                         val legacy = call.principal<TestUser>("legacy")
                         call.respondText("${typed.email}:${typedByName?.email}:${legacy?.email}")

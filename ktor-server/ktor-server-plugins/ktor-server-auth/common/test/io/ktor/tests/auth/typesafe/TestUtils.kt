@@ -41,7 +41,7 @@ fun acceptAllBasicScheme(name: String = "accept-all-basic") = basic<TestUser>(na
 }
 
 fun testBearerScheme(name: String = "test-bearer") = bearer<TestUser>(name) {
-    authenticate { credential ->
+    validate { credential ->
         if (credential.token == "valid") {
             TestUser("bearer-user", "bearer@test.com")
         } else {

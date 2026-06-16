@@ -38,16 +38,33 @@ public interface AuthRole {
 /**
  * Creates a role-based scheme from this typed authentication scheme.
  *
- * Roles are resolved for each authenticated call. Use the returned scheme with [authenticateWith] and pass the roles
- * required by a route.
+ * Use this extension to add authorization on top of an existing typed authentication scheme.
+ * After the base scheme authenticates a request, [resolveRoles] maps the principal to the roles held by that principal.
+ * Route handlers then declare which roles are required via [Route.authenticateWith].
+ *
+ * Authentication and authorization fail separately:
+ * - The base scheme handles missing or invalid credentials.
+ * - Authenticated principals that lack any required role invoke [onForbidden] (HTTP 403 by default).
+ *
+ * Inside role-protected routes, use [ApplicationCall.principal] and [ApplicationCall.roles].
  *
  * ```kotlin
- * val adminAuth = userAuth.withRoles { user -> user.roles }
+ * enum class Role : AuthRole {
+ *     User, Admin
+ * }
+ *
+ * val userAuth = basic<User>("users") {
+ *     validate { credentials -> findUser(credentials) }
+ * }
+ *
+ * val roleAuth = userAuth.withRoles { user ->
+ *     if (user.isAdmin) setOf(Role.Admin, Role.User) else setOf(Role.User)
+ * }
  *
  * routing {
- *     authenticateWith(adminAuth, roles = setOf(Role.Admin)) {
+ *     authenticateWith(roleAuth, roles = setOf(Role.Admin)) {
  *         get("/admin") {
- *             call.respondText(principal.name)
+ *             call.respondText("${call.principal.name}:${call.roles.joinToString { it.name }}")
  *         }
  *     }
  * }
@@ -55,27 +72,34 @@ public interface AuthRole {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.withRoles)
  *
- * @param onForbidden default handler invoked when a principal does not have the required roles.
- * @param resolve resolves roles from the current routing context and authenticated principal.
- * @return a typed authentication scheme that also exposes [roles].
+ * @param P the principal type produced by the base scheme.
+ * @param R the role type used for authorization checks.
+ * @param onForbidden handler invoked when authentication succeeds, but the principal does not have every role
+ * required by the route. Receives the set of roles that the route demanded. Defaults to responding with
+ * [HttpStatusCode.Forbidden]. A route-level [ForbiddenHandler] passed to [Route.authenticateWith] overrides this
+ * handler for that route.
+ * @param resolveRoles maps the authenticated principal to the roles available for authorization.
+ * The lambda receiver is the current [RoutingContext].
+ * @return a [RoleBasedAuthScheme] that performs role checks after authentication.
  */
 @ExperimentalKtorApi
 public fun <P : Any, R : AuthRole> DefaultAuthScheme<P, *>.withRoles(
     onForbidden: suspend RoutingContext.(Set<R>) -> Unit = { _ -> call.respond(HttpStatusCode.Forbidden) },
-    resolve: suspend RoutingContext.(P) -> Set<R>
+    resolveRoles: suspend RoutingContext.(P) -> Set<R>
 ): RoleBasedAuthScheme<P, R> {
     return RoleBasedAuthScheme(
         base = this,
         principalType = principalType,
         defaultOnForbidden = onForbidden,
-        resolveRoles = resolve
+        resolveRoles = resolveRoles
     )
 }
 
 /**
  * Typed authentication scheme that checks resolved roles after authentication succeeds.
  *
- * Routes protected by this scheme receive a [RoleBasedContext] with both [principal] and [roles].
+ * Routes protected by this scheme receive a [RoleBasedContext] with [ApplicationCall.principal] and
+ * [ApplicationCall.roles].
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.RoleBasedAuthScheme)
  *
@@ -87,7 +111,7 @@ public fun <P : Any, R : AuthRole> DefaultAuthScheme<P, *>.withRoles(
 public class RoleBasedAuthScheme<P : Any, R : AuthRole> internal constructor(
     public val base: DefaultAuthScheme<P, *>,
     internal val principalType: KClass<P>,
-    private val defaultOnForbidden: suspend RoutingContext.(Set<R>) -> Unit,
+    private val defaultOnForbidden: ForbiddenHandler<R>,
     private val resolveRoles: suspend RoutingContext.(P) -> Set<R>
 ) : AuthScheme<P, RoleBasedContext<P, R>> {
     private val rolesKey: AttributeKey<Set<R>> = AttributeKey("TypesafeAuth:${base.name}:Roles")
@@ -101,7 +125,7 @@ public class RoleBasedAuthScheme<P : Any, R : AuthRole> internal constructor(
         route: Route,
         roles: Set<R>,
         onUnauthorized: UnauthorizedHandler?,
-        onForbidden: ForbiddenHandler?
+        onForbidden: ForbiddenHandler<R>?
     ): RoleBasedContext<P, R> {
         base.install(
             route = route,
@@ -112,9 +136,9 @@ public class RoleBasedAuthScheme<P : Any, R : AuthRole> internal constructor(
         return createAuthenticatedContext(route)
     }
 
-    internal suspend fun RoutingContext.validateRoles(requiredRoles: Set<R>, onForbidden: ForbiddenHandler?) {
+    internal suspend fun RoutingContext.validateRoles(requiredRoles: Set<R>, onForbidden: ForbiddenHandler<R>?) {
         if (requiredRoles.isEmpty()) {
-            LOGGER.debug("Skipping role-based authentication because no roles are required")
+            LOGGER.warn("Skipping role-based authentication because no roles are required")
             return
         }
 

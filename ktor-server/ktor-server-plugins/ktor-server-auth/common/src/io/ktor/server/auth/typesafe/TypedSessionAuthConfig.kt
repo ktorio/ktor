@@ -37,13 +37,14 @@ public typealias SessionTransformer<S> = suspend RoutingContext.(S) -> S?
  * @param C authenticated route context type.
  */
 @OptIn(ExperimentalKtorApi::class)
+@KtorDsl
 public typealias SessionsPluginConfig<S, P, C> = SessionsConfig.(SessionAuthScheme<S, P, C>) -> Unit
 
 /**
  * Configures a typed Session authentication scheme.
  *
  * Unlike [SessionAuthenticationProvider.Config], [validate] returns [P] from a stored session value [S], so routes
- * protected by [authenticateWith] can read [principal] as [P] and [session] as [S].
+ * protected by [authenticateWith] can read [ApplicationCall.principal] as [P] and [ApplicationCall.session] as [S].
  *
  * This config does not expose provider-level `challenge`. Set [onUnauthorized] or pass `onUnauthorized` to
  * [authenticateWith] to customize failure responses.
@@ -56,8 +57,8 @@ public typealias SessionsPluginConfig<S, P, C> = SessionsConfig.(SessionAuthSche
  * @param S the stored session type.
  * @param P the principal type exposed to authenticated routes.
  */
-@ExperimentalKtorApi
 @KtorDsl
+@ExperimentalKtorApi
 public open class TypedSessionAuthConfig<
     S : Any,
     P : Any,
@@ -94,7 +95,7 @@ public open class TypedSessionAuthConfig<
      * This internal API is intended for integrations that need provider-bound helpers in typed route bodies.
      */
     @InternalAPI
-    public var contextFactory: ((DefaultSessionAuthenticatedContext<S, P>) -> C)? = null
+    public var contextFactory: ((SessionContext<S, P>) -> C)? = null
 
     /**
      * Sets a validation function for the session value.
@@ -142,7 +143,7 @@ public open class TypedSessionAuthConfig<
      *
      * @param config session plugin configuration block.
      */
-    public fun storage(config: SessionsPluginConfig<S, P, *>) {
+    public fun transport(config: SessionsPluginConfig<S, P, *>) {
         sessionsPluginConfig = config
     }
 
