@@ -31,14 +31,14 @@ class MultipleSchemeTest {
     }
 
     private val bearerScheme = bearer<BearerUser>("multi-bearer") {
-        authenticate { BearerUser("${it.token}@bearer.com") }
+        validate { BearerUser("${it.token}@bearer.com") }
     }
 
     @Test
     fun `anyOf accepts matching schemes and rejects when none match`() = testApplication {
         routing {
             authenticateWithAnyOf(basicScheme, bearerScheme) {
-                get("/profile") { call.respondText(principal.email) }
+                get("/profile") { call.respondText(call.principal.email) }
             }
         }
 

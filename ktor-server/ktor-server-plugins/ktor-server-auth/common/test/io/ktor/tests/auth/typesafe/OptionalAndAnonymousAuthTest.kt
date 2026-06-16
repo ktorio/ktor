@@ -30,7 +30,7 @@ class OptionalAndAnonymousAuthTest {
     fun `optional auth returns principal or null`() = testApplication {
         routing {
             authenticateWith(baseScheme.optional()) {
-                get("/me") { call.respondText(principal?.email ?: "anonymous") }
+                get("/me") { call.respondText(call.principal?.email ?: "anonymous") }
             }
         }
 
@@ -57,12 +57,12 @@ class OptionalAndAnonymousAuthTest {
             validate { credentials ->
                 if (credentials.name == "user") AuthenticatedUser(credentials.name) else null
             }
-        }.optional { GuestUser() }
+        }.orAnonymous { GuestUser() }
 
         routing {
             authenticateWith(anonScheme) {
                 get("/test") {
-                    when (val p = principal) {
+                    when (val p = call.principal) {
                         is AuthenticatedUser -> call.respondText("auth:${p.id}")
                         is GuestUser -> call.respondText("guest:${p.label}")
                         else -> call.respondText("unknown")
