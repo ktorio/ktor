@@ -165,7 +165,9 @@ public final class io/ktor/server/application/OnCallRespondContext : io/ktor/ser
 }
 
 public abstract interface class io/ktor/server/application/PipelineCall : io/ktor/server/application/ApplicationCall {
+	public synthetic fun getRequest ()Lio/ktor/server/request/ApplicationRequest;
 	public abstract fun getRequest ()Lio/ktor/server/request/PipelineRequest;
+	public synthetic fun getResponse ()Lio/ktor/server/response/ApplicationResponse;
 	public abstract fun getResponse ()Lio/ktor/server/response/PipelineResponse;
 	public fun receiveNullable (Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun respond (Ljava/lang/Object;Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -464,7 +466,11 @@ public abstract class io/ktor/server/engine/BaseApplicationCall : io/ktor/server
 	public final fun getAttributes ()Lio/ktor/util/Attributes;
 	public fun getParameters ()Lio/ktor/http/Parameters;
 	public abstract fun getRequest ()Lio/ktor/server/engine/BaseApplicationRequest;
+	public synthetic fun getRequest ()Lio/ktor/server/request/ApplicationRequest;
+	public synthetic fun getRequest ()Lio/ktor/server/request/PipelineRequest;
 	public abstract fun getResponse ()Lio/ktor/server/engine/BaseApplicationResponse;
+	public synthetic fun getResponse ()Lio/ktor/server/response/ApplicationResponse;
+	public synthetic fun getResponse ()Lio/ktor/server/response/PipelineResponse;
 	protected final fun putResponseAttribute (Lio/ktor/server/engine/BaseApplicationResponse;)V
 	public static synthetic fun putResponseAttribute$default (Lio/ktor/server/engine/BaseApplicationCall;Lio/ktor/server/engine/BaseApplicationResponse;ILjava/lang/Object;)V
 	public fun receiveNullable (Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -1166,6 +1172,7 @@ public final class io/ktor/server/request/ApplicationRequestPropertiesKt {
 }
 
 public abstract interface class io/ktor/server/request/PipelineRequest : io/ktor/server/request/ApplicationRequest {
+	public synthetic fun getCall ()Lio/ktor/server/application/ApplicationCall;
 	public abstract fun getCall ()Lio/ktor/server/application/PipelineCall;
 	public abstract fun getPipeline ()Lio/ktor/server/request/ApplicationReceivePipeline;
 	public abstract fun setHeader (Ljava/lang/String;Ljava/util/List;)V
@@ -1311,6 +1318,7 @@ public final class io/ktor/server/response/DefaultResponsePushBuilder : io/ktor/
 }
 
 public abstract interface class io/ktor/server/response/PipelineResponse : io/ktor/server/response/ApplicationResponse {
+	public synthetic fun getCall ()Lio/ktor/server/application/ApplicationCall;
 	public abstract fun getCall ()Lio/ktor/server/application/PipelineCall;
 	public abstract fun getPipeline ()Lio/ktor/server/response/ApplicationSendPipeline;
 }
@@ -1862,7 +1870,6 @@ public final class io/ktor/server/routing/RoutingNodeKt {
 
 public final class io/ktor/server/routing/RoutingPath {
 	public static final field Companion Lio/ktor/server/routing/RoutingPath$Companion;
-	public synthetic fun <init> (Ljava/util/List;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getParts ()Ljava/util/List;
 	public fun toString ()Ljava/lang/String;
 }
