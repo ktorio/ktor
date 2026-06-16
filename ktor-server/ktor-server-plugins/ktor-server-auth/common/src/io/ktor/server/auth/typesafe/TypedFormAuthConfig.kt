@@ -24,7 +24,6 @@ import io.ktor.utils.io.*
  *
  * @param P the principal type produced by this scheme.
  */
-@ExperimentalKtorApi
 @KtorDsl
 public class TypedFormAuthConfig<P : Any> @PublishedApi internal constructor() {
     /**
