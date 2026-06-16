@@ -96,12 +96,12 @@ internal fun <P : Any> Route.installTypedMultiAuthInterceptor(
     schemes: List<DefaultAuthScheme<out P, *>>,
     principalKey: AttributeKey<P>,
     onUnauthorized: MultiUnauthorizedHandler?
-): DefaultAuthenticatedContext<P> {
+): PrincipalContext<P> {
     for (scheme in schemes) {
         scheme.preinstall(route = this)
     }
     install(createTypedMultiAuthInterceptor(schemes, principalKey, onUnauthorized, route = this))
-    return DefaultAuthenticatedContext(principalKey)
+    return PrincipalContext(principalKey)
 }
 
 internal fun <P : Any> createTypedMultiAuthInterceptor(

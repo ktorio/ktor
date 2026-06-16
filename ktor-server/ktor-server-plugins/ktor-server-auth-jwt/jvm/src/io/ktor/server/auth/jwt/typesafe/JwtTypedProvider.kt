@@ -2,10 +2,12 @@
  * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+@file:OptIn(InternalAPI::class)
+
 package io.ktor.server.auth.jwt.typesafe
 
 import io.ktor.server.auth.typesafe.DefaultAuthScheme
-import io.ktor.server.auth.typesafe.DefaultAuthenticatedContext
+import io.ktor.server.auth.typesafe.PrincipalContext
 import io.ktor.utils.io.*
 
 /**
@@ -24,9 +26,9 @@ import io.ktor.utils.io.*
 public inline fun <reified P : Any> jwt(
     name: String,
     configure: TypedJwtAuthConfig<P>.() -> Unit
-): DefaultAuthScheme<P, DefaultAuthenticatedContext<P>> {
+): DefaultAuthScheme<P, PrincipalContext<P>> {
     val typedConfig = TypedJwtAuthConfig<P>().apply(configure)
-    return DefaultAuthScheme.Companion.withDefaultContext(
+    return DefaultAuthScheme.withDefaultContext(
         name,
         typedConfig.buildProvider(name),
         typedConfig.onUnauthorized

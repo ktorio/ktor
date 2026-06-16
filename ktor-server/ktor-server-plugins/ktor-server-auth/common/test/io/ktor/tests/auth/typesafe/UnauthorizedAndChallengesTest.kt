@@ -2,7 +2,7 @@
  * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-@file:OptIn(ExperimentalKtorApi::class)
+@file:OptIn(ExperimentalKtorApi::class, InternalAPI::class)
 
 package io.ktor.tests.auth.typesafe
 
@@ -15,6 +15,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.get
 import io.ktor.server.testing.*
 import io.ktor.utils.io.ExperimentalKtorApi
+import io.ktor.utils.io.InternalAPI
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -45,7 +46,7 @@ class UnauthorizedAndChallengesTest {
 
         routing {
             authenticateWith(scheme) {
-                get("/profile") { call.respondText(principal.name) }
+                get("/profile") { call.respondText(call.principal.name) }
             }
         }
 
@@ -73,7 +74,7 @@ class UnauthorizedAndChallengesTest {
 
         routing {
             authenticateWith(scheme) {
-                get("/profile") { call.respondText(principal.name) }
+                get("/profile") { call.respondText(call.principal.name) }
             }
         }
 
@@ -99,12 +100,12 @@ class UnauthorizedAndChallengesTest {
 
         routing {
             authenticateWith(scheme) {
-                get("/default") { call.respondText(principal.name) }
+                get("/default") { call.respondText(call.principal.name) }
             }
             authenticateWith(scheme, onUnauthorized = { _ ->
                 call.respondText("Route override", status = HttpStatusCode.Unauthorized)
             }) {
-                get("/custom") { call.respondText(principal.name) }
+                get("/custom") { call.respondText(call.principal.name) }
             }
         }
 
@@ -123,7 +124,7 @@ class UnauthorizedAndChallengesTest {
                     call.respondText(cause::class.simpleName!!, status = HttpStatusCode.Unauthorized)
                 }
             ) {
-                get("/test") { call.respondText(principal.name) }
+                get("/test") { call.respondText(call.principal.name) }
             }
         }
 
@@ -153,7 +154,7 @@ class UnauthorizedAndChallengesTest {
                     call.respondText(text, status = HttpStatusCode.Unauthorized)
                 }
             ) {
-                get("/data") { call.respondText(principal.email) }
+                get("/data") { call.respondText(call.principal.email) }
             }
         }
 
@@ -178,7 +179,7 @@ class UnauthorizedAndChallengesTest {
                     call.respondText(cause::class.simpleName!!, status = HttpStatusCode.Unauthorized)
                 }
             ) {
-                get("/data") { call.respondText(principal.email) }
+                get("/data") { call.respondText(call.principal.email) }
             }
         }
 

@@ -2,6 +2,8 @@
  * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+@file:OptIn(InternalAPI::class)
+
 package io.ktor.server.auth.typesafe
 
 import io.ktor.server.application.*
@@ -21,7 +23,7 @@ import kotlin.reflect.KClass
  * @param C authenticated route context type.
  */
 @OptIn(ExperimentalKtorApi::class)
-public typealias SessionContextFactory<S, P, C> = (DefaultSessionAuthenticatedContext<S, P>) -> C
+public typealias SessionContextFactory<S, P, C> = (SessionContext<S, P>) -> C
 
 /**
  * A typed Session authentication scheme.
@@ -49,12 +51,11 @@ public open class SessionAuthScheme<S : Any, P : Any, C : SessionAuthenticatedCo
     provider = config.buildProvider(name, sessionType, sessionKey),
     onUnauthorized = config.onUnauthorized,
     contextFactory = { base ->
-        val default = DefaultSessionAuthenticatedContext(
+        val default = SessionContext(
             base = base,
             sessionKey = sessionKey,
             sessionProviderName = name
         )
-        @OptIn(InternalAPI::class)
         checkNotNull(config.contextFactory)(default)
     }
 ) {
@@ -63,10 +64,10 @@ public open class SessionAuthScheme<S : Any, P : Any, C : SessionAuthenticatedCo
      * Installs the [Sessions] plugin for this scheme on [route].
      *
      * This is used by integrations that own their route subtree and want the typed session scheme to install its
-     * configured storage automatically.
+     * configured transport automatically.
      *
      * @param route route where the [Sessions] plugin should be installed.
-     * @throws IllegalStateException when no storage configuration was provided.
+     * @throws IllegalStateException when no transport configuration was provided.
      */
     public fun installSessionsPlugin(route: Route) {
         val sessionsStorage = config.sessionsPluginConfig ?: run {
@@ -90,7 +91,6 @@ public open class SessionAuthScheme<S : Any, P : Any, C : SessionAuthenticatedCo
             route.install(plugin = CSRF, configure)
         }
 
-        @OptIn(InternalAPI::class)
         val providers = route.application.attributes.getOrNull(SessionProvidersKey).orEmpty()
         val provider = providers.firstOrNull { it.name == name }
             ?: error(

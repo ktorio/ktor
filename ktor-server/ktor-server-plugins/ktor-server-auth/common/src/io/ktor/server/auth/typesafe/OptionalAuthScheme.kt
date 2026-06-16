@@ -14,8 +14,8 @@ import io.ktor.utils.io.*
 /**
  * Converts this scheme into an optional scheme.
  *
- * Requests without credentials continue through the route with `principal == null`. Requests with invalid credentials
- * are still rejected by the original authentication scheme.
+ * Requests without credentials continue through the route with `call.principal == null`. Requests with invalid
+ * credentials are still rejected by the original authentication scheme.
  *
  * ```kotlin
  * val optionalAuth = userAuth.optional()
@@ -23,7 +23,7 @@ import io.ktor.utils.io.*
  * routing {
  *     authenticateWith(optionalAuth) {
  *         get("/me") {
- *             call.respondText(principal?.name ?: "anonymous")
+ *             call.respondText(call.principal?.name ?: "anonymous")
  *         }
  *     }
  * }
@@ -44,24 +44,24 @@ public fun <P : Any> DefaultAuthScheme<P, *>.optional(): OptionalAuthScheme<P> =
  * supertype [B] of authenticated principals [P] and anonymous principals [AP].
  *
  * ```kotlin
- * val publicAuth: AnonymousAuthScheme<Identity, User, Guest> = userAuth.optional { Guest() }
+ * val publicAuth: AnonymousAuthScheme<Identity, User, Guest> = userAuth.orAnonymous { Guest() }
  *
  * routing {
  *     authenticateWith(publicAuth) {
  *         get("/me") {
- *             call.respondText(principal.displayName)
+ *             call.respondText(call.principal.displayName)
  *         }
  *     }
  * }
  * ```
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.optional)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.orAnonymous)
  *
  * @param fallback creates a fallback principal when credentials are missing.
  * @return a typed scheme that exposes an authenticated or anonymous principal.
  */
 @ExperimentalKtorApi
-public fun <B : Any, P : B, AP : B> DefaultAuthScheme<P, *>.optional(
+public fun <B : Any, P : B, AP : B> DefaultAuthScheme<P, *>.orAnonymous(
     fallback: suspend (ApplicationCall) -> AP
 ): AnonymousAuthScheme<B, P, AP> {
     return AnonymousAuthScheme(base = this, anonymousFactory = fallback)
@@ -78,13 +78,13 @@ public fun <B : Any, P : B, AP : B> DefaultAuthScheme<P, *>.optional(
 @ExperimentalKtorApi
 public class OptionalAuthScheme<P : Any>(
     public val base: DefaultAuthScheme<P, *>
-) : AuthScheme<P, OptionalAuthenticatedContext<P>> {
+) : AuthScheme<P, OptionalPrincipalContext<P>> {
     override val name: String = base.name
 
-    override fun createAuthenticatedContext(route: Route): OptionalAuthenticatedContext<P> =
-        OptionalAuthenticatedContext(base.principalKey)
+    override fun createAuthenticatedContext(route: Route): OptionalPrincipalContext<P> =
+        OptionalPrincipalContext(base.principalKey)
 
-    internal fun install(route: Route): OptionalAuthenticatedContext<P> {
+    internal fun install(route: Route): OptionalPrincipalContext<P> {
         base.install(
             route = route,
             kind = "Optional",
@@ -108,15 +108,15 @@ public class OptionalAuthScheme<P : Any>(
 public class AnonymousAuthScheme<B : Any, P : B, AP : B>(
     public val base: DefaultAuthScheme<P, *>,
     internal val anonymousFactory: suspend (ApplicationCall) -> AP
-) : AuthScheme<P, DefaultAuthenticatedContext<B>> {
+) : AuthScheme<P, PrincipalContext<B>> {
     override val name: String = base.name
     private val principalKey: AttributeKey<B> =
         AttributeKey("TypesafeAuth:$name:AnonymousPrincipal", TypeInfo(Any::class))
 
-    override fun createAuthenticatedContext(route: Route): DefaultAuthenticatedContext<B> =
-        DefaultAuthenticatedContext(principalKey)
+    override fun createAuthenticatedContext(route: Route): PrincipalContext<B> =
+        PrincipalContext(principalKey)
 
-    internal fun install(route: Route): DefaultAuthenticatedContext<B> {
+    internal fun install(route: Route): PrincipalContext<B> {
         base.install(
             route = route,
             kind = "Anonymous",

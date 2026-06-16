@@ -54,7 +54,7 @@ class DigestAuthTest {
     fun `digest scheme returns typed principal`() = testApplication {
         routing {
             authenticateWith(createDigestScheme("test-digest")) {
-                get("/") { call.respondText("${principal.name}:${principal.email}") }
+                get("/") { call.respondText("${call.principal.name}:${call.principal.email}") }
             }
         }
 
@@ -69,7 +69,7 @@ class DigestAuthTest {
     fun `digest scheme rejects missing credentials`() = testApplication {
         routing {
             authenticateWith(createDigestScheme("test-digest-reject")) {
-                get("/") { call.respondText(principal.name) }
+                get("/") { call.respondText(call.principal.name) }
             }
         }
 
@@ -101,10 +101,10 @@ class DigestAuthTest {
 
         routing {
             authenticateWith(legacyThenV2) {
-                get("/v2") { call.respondText(principal.name) }
+                get("/v2") { call.respondText(call.principal.name) }
             }
             authenticateWith(v2ThenLegacy) {
-                get("/legacy") { call.respondText(principal.name) }
+                get("/legacy") { call.respondText(call.principal.name) }
             }
         }
 
