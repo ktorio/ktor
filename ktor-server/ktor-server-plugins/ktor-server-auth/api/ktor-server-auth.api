@@ -577,7 +577,6 @@ public final class io/ktor/server/auth/SessionAuthKt {
 
 public final class io/ktor/server/auth/SessionAuthenticationProvider : io/ktor/server/auth/AuthenticationProvider {
 	public static final field Companion Lio/ktor/server/auth/SessionAuthenticationProvider$Companion;
-	public synthetic fun <init> (Lio/ktor/server/auth/SessionAuthenticationProvider$Config;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getType ()Lkotlin/reflect/KClass;
 	public fun onAuthenticate (Lio/ktor/server/auth/AuthenticationContext;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
