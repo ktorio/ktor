@@ -24,9 +24,9 @@ import kotlin.test.*
 data class UserSession(val username: String, val visits: Int = 0)
 
 private class EmailContext(
-    defaultContext: DefaultAuthenticatedContext<TestUser>
+    defaultContext: PrincipalContext<TestUser>
 ) : AuthenticatedContext<TestUser> by defaultContext {
-    fun email(call: ApplicationCall): String = principal(call).email
+    fun email(call: ApplicationCall): String = getPrincipal(call).email
 }
 
 context(routingCtx: RoutingContext, authCtx: EmailContext)
@@ -42,10 +42,8 @@ class BasicSchemesTest {
     fun `basic scheme authenticates and rejects`() = testApplication {
         routing {
             authenticateWith(basicScheme) {
-                assertIs<DefaultAuthenticatedContext<TestUser>>(authenticatedContext())
-
                 get("/profile") {
-                    call.respondText("${principal.name}:${principal.email}")
+                    call.respondText("${call.principal.name}:${call.principal.email}")
                 }
             }
         }
@@ -69,7 +67,7 @@ class BasicSchemesTest {
         routing {
             authenticateWith(bearerScheme) {
                 get("/api") {
-                    call.respondText("${principal.name}:${principal.email}")
+                    call.respondText("${call.principal.name}:${call.principal.email}")
                 }
             }
         }
@@ -89,21 +87,21 @@ class BasicSchemesTest {
     @Test
     fun `different typed schemes with same name fail fast`() = testApplication {
         val first = bearer<TestUser>("duplicate-bearer") {
-            authenticate { TestUser("first", "first@test.com") }
+            validate { TestUser("first", "first@test.com") }
         }
         val second = bearer<TestUser>("duplicate-bearer") {
-            authenticate { TestUser("second", "second@test.com") }
+            validate { TestUser("second", "second@test.com") }
         }
 
         routing {
             authenticateWith(first) {
                 get("/first") {
-                    call.respondText(principal.name)
+                    call.respondText(call.principal.name)
                 }
             }
             authenticateWith(second) {
                 get("/second") {
-                    call.respondText(principal.name)
+                    call.respondText(call.principal.name)
                 }
             }
         }
@@ -118,18 +116,18 @@ class BasicSchemesTest {
     @Test
     fun `same typed scheme instance can protect multiple route blocks`() = testApplication {
         val scheme = bearer<TestUser>("reused-bearer") {
-            authenticate { TestUser("user", "user@test.com") }
+            validate { TestUser("user", "user@test.com") }
         }
 
         routing {
             authenticateWith(scheme) {
                 get("/first") {
-                    call.respondText(principal.name)
+                    call.respondText(call.principal.name)
                 }
             }
             authenticateWith(scheme) {
                 get("/second") {
-                    call.respondText(principal.name)
+                    call.respondText(call.principal.name)
                 }
             }
         }
@@ -162,7 +160,7 @@ class BasicSchemesTest {
         routing {
             authenticateWith(formScheme) {
                 post("/login") {
-                    call.respondText("${principal.name}:${principal.email}")
+                    call.respondText("${call.principal.name}:${call.principal.email}")
                 }
             }
         }
@@ -198,7 +196,7 @@ class BasicSchemesTest {
             }
             authenticateWith(sessionScheme) {
                 get("/protected") {
-                    call.respondText(principal.username)
+                    call.respondText(call.principal.username)
                 }
             }
         }
@@ -233,10 +231,8 @@ class BasicSchemesTest {
                 call.respondText("ok")
             }
             authenticateWith(sessionScheme) {
-                assertIs<SessionAuthenticatedContext<UserSession, TestUser>>(authenticatedContext())
-
                 get("/protected") {
-                    call.respondText("${session.username}:${session.visits}:${principal.email}")
+                    call.respondText("${call.session.username}:${call.session.visits}:${call.principal.email}")
                 }
             }
         }
@@ -265,15 +261,15 @@ class BasicSchemesTest {
             }
             authenticateWith(sessionScheme) {
                 get("/touch") {
-                    val updated = updateSession { current -> current.copy(visits = current.visits + 1) }
-                    call.respondText("${principal.name}:${updated.visits}:${session.visits}")
+                    val updated = call.updateSession { current -> current.copy(visits = current.visits + 1) }
+                    call.respondText("${call.principal.name}:${updated.visits}:${call.session.visits}")
                 }
                 get("/rename") {
-                    session = session.copy(username = "bob")
-                    call.respondText("${principal.name}:${session.username}")
+                    call.session = call.session.copy(username = "bob")
+                    call.respondText("${call.principal.name}:${call.session.username}")
                 }
                 get("/logout") {
-                    clearSession()
+                    call.clearSession()
                     call.respondText("bye")
                 }
             }
@@ -324,7 +320,7 @@ class BasicSchemesTest {
 
             authenticateWith(sessionScheme) {
                 get("/protected") {
-                    call.respondText("${session.username}:${session.visits}:${principal.email}")
+                    call.respondText("${call.session.username}:${call.session.visits}:${call.principal.email}")
                 }
             }
         }
@@ -350,7 +346,7 @@ class BasicSchemesTest {
         routing {
             authenticateWith(sessionScheme) {
                 get("/protected") {
-                    call.respondText(principal.username)
+                    call.respondText(call.principal.username)
                 }
             }
         }
@@ -375,7 +371,7 @@ class BasicSchemesTest {
         routing {
             authenticateWith(sessionScheme) {
                 get("/protected") {
-                    call.respondText(principal.username)
+                    call.respondText(call.principal.username)
                 }
             }
         }
@@ -399,7 +395,7 @@ class BasicSchemesTest {
         routing {
             authenticateWith(sessionScheme.optional()) {
                 get("/protected") {
-                    call.respondText(principal?.username.orEmpty())
+                    call.respondText(call.principal?.username.orEmpty())
                 }
             }
         }
@@ -422,7 +418,7 @@ class BasicSchemesTest {
         routing {
             authenticateWith(sessionScheme, roles = setOf(TestRole.User)) {
                 get("/protected") {
-                    call.respondText(principal.username)
+                    call.respondText(call.principal.username)
                 }
             }
         }
@@ -443,7 +439,7 @@ class BasicSchemesTest {
         routing {
             authenticateWithAnyOf<UserSession>(sessionScheme) {
                 get("/protected") {
-                    call.respondText(principal.username)
+                    call.respondText(call.principal.username)
                 }
             }
         }
@@ -463,15 +459,15 @@ class BasicSchemesTest {
             validate { TestUser(it.name, "${it.name}@test.com") }
         }
         val adminScheme = bearer<AdminPrincipal>("admin-scheme") {
-            authenticate { AdminPrincipal(42) }
+            validate { AdminPrincipal(42) }
         }
 
         routing {
             authenticateWith(userScheme) {
-                get("/user") { call.respondText(principal.email) }
+                get("/user") { call.respondText(call.principal.email) }
             }
             authenticateWith(adminScheme) {
-                get("/admin") { call.respondText("level=${principal.level}") }
+                get("/admin") { call.respondText("level=${call.principal.level}") }
             }
         }
 
@@ -500,10 +496,8 @@ class BasicSchemesTest {
 
         routing {
             authenticateWith(scheme) {
-                assertIs<EmailContext>(authenticatedContext())
-
                 get("/custom") {
-                    call.respondText("$email:${principal.name}")
+                    call.respondText("$email:${call.principal.name}")
                 }
             }
         }

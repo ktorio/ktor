@@ -13,8 +13,8 @@ import io.ktor.utils.io.*
 /**
  * Builds a route with an authenticated context receiver.
  *
- * Typed route builders use this function type so route handlers can access [principal], [roles], or custom context
- * extensions without calling `call.principal<T>()`.
+ * Typed route builders use this function type so route handlers can access [ApplicationCall.principal],
+ * [ApplicationCall.roles], or custom context extensions without calling [io.ktor.server.auth.principal].
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.AuthenticatedRouteBuilder)
  *
@@ -26,8 +26,8 @@ Route.() -> Unit
 /**
  * Creates a child route protected by [scheme].
  *
- * The scheme is registered in [Authentication] when this route is created. Inside [build], use [principal] to access
- * the principal as [P] without casting.
+ * The scheme is registered in [Authentication] when this route is created. Inside [build], use
+ * [ApplicationCall.principal] to access the principal as [P] without casting.
  * The first use of a scheme instance registers it lazily; later uses of the same scheme instance reuse that
  * registration. A different scheme instance with the same name is rejected.
  *
@@ -39,7 +39,7 @@ Route.() -> Unit
  * routing {
  *     authenticateWith(userAuth) {
  *         get("/me") {
- *             call.respondText(principal.name)
+ *             call.respondText(call.principal.name)
  *         }
  *     }
  * }
@@ -79,15 +79,15 @@ public typealias MultiUnauthorizedHandler = suspend RoutingContext.(Map<String, 
 /**
  * Creates a child route that accepts any of the provided typed authentication [schemes].
  *
- * The first scheme that authenticates the call supplies the [principal] available inside [build]. All schemes must
- * produce principals assignable to [P].
+ * The first scheme that authenticates the call supplies the [ApplicationCall.principal] available inside [build].
+ * All schemes must produce principals assignable to [P].
  * Each scheme instance is registered lazily on first use and reused on later uses. A different scheme instance with an
  * already registered name is rejected.
  *
  * ```kotlin
  * authenticateWithAnyOf(apiKeyAuth, bearerAuth) {
  *     get("/api/me") {
- *         call.respondText(principal.id)
+ *         call.respondText(call.principal.id)
  *     }
  * }
  * ```
@@ -96,13 +96,13 @@ public typealias MultiUnauthorizedHandler = suspend RoutingContext.(Map<String, 
  *
  * @param schemes typed schemes accepted by this route.
  * @param onUnauthorized optional handler invoked when all schemes fail.
- * @param build route builder with [DefaultAuthenticatedContext] available as a context parameter.
+ * @param build route builder with [PrincipalContext] available as a context parameter.
  */
 @ExperimentalKtorApi
 public inline fun <reified P : Any> Route.authenticateWithAnyOf(
     vararg schemes: DefaultAuthScheme<out P, *>,
     noinline onUnauthorized: MultiUnauthorizedHandler? = null,
-    noinline build: AuthenticatedRouteBuilder<DefaultAuthenticatedContext<P>>
+    noinline build: AuthenticatedRouteBuilder<PrincipalContext<P>>
 ): Route {
     return authenticateWithAnyOf(schemes.toList(), principalType = TypeInfo(P::class), onUnauthorized, build)
 }
@@ -113,7 +113,7 @@ internal fun <P : Any> Route.authenticateWithAnyOf(
     schemes: List<DefaultAuthScheme<out P, *>>,
     principalType: TypeInfo,
     onUnauthorized: MultiUnauthorizedHandler? = null,
-    build: AuthenticatedRouteBuilder<DefaultAuthenticatedContext<P>>
+    build: AuthenticatedRouteBuilder<PrincipalContext<P>>
 ): Route {
     require(schemes.isNotEmpty()) {
         "At least one scheme must be specified"
@@ -136,7 +136,7 @@ internal fun <P : Any> Route.authenticateWithAnyOf(
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.ForbiddenHandler)
  */
 @OptIn(ExperimentalKtorApi::class)
-public typealias ForbiddenHandler = suspend RoutingContext.(Set<AuthRole>) -> Unit
+public typealias ForbiddenHandler<R> = suspend RoutingContext.(Set<R>) -> Unit
 
 /**
  * Creates a child route protected by [scheme] and the required [roles].
@@ -149,7 +149,7 @@ public typealias ForbiddenHandler = suspend RoutingContext.(Set<AuthRole>) -> Un
  *
  * authenticateWith(adminAuth, roles = setOf(Role.Admin)) {
  *     get("/admin") {
- *         call.respondText(principal.name)
+ *         call.respondText(call.principal.name)
  *     }
  * }
  * ```
@@ -167,7 +167,7 @@ public fun <P : Any, R : AuthRole> Route.authenticateWith(
     scheme: RoleBasedAuthScheme<P, R>,
     roles: Set<R>,
     onUnauthorized: UnauthorizedHandler? = null,
-    onForbidden: ForbiddenHandler? = null,
+    onForbidden: ForbiddenHandler<R>? = null,
     build: AuthenticatedRouteBuilder<RoleBasedContext<P, R>>
 ): Route {
     val route = createChild(selector = AuthenticationRouteSelector(names = listOf(scheme.base.name)))
@@ -179,20 +179,20 @@ public fun <P : Any, R : AuthRole> Route.authenticateWith(
 }
 
 /**
- * Creates a child route where authentication is optional and [principal] is nullable.
+ * Creates a child route where authentication is optional and [ApplicationCall.principal] is nullable.
  *
- * Requests without credentials continue with `principal == null`. Requests with invalid credentials are rejected by
- * the original authentication scheme.
+ * Requests without credentials continue with `call.principal == null`. Requests with invalid credentials are rejected
+ * by the original authentication scheme.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.authenticateWith)
  *
  * @param scheme optional typed authentication scheme.
- * @param build route builder with [OptionalAuthenticatedContext] available as a context parameter.
+ * @param build route builder with [OptionalPrincipalContext] available as a context parameter.
  */
 @ExperimentalKtorApi
 public fun <P : Any> Route.authenticateWith(
     scheme: OptionalAuthScheme<P>,
-    build: AuthenticatedRouteBuilder<OptionalAuthenticatedContext<P>>
+    build: AuthenticatedRouteBuilder<OptionalPrincipalContext<P>>
 ): Route {
     val route = createChild(AuthenticationRouteSelector(listOf(scheme.name)))
     with(scheme.install(route)) {
@@ -204,18 +204,18 @@ public fun <P : Any> Route.authenticateWith(
 /**
  * Creates a child route where missing credentials are replaced by an anonymous principal.
  *
- * Requests without credentials continue with the fallback principal configured by [optional]. Requests with invalid
+ * Requests without credentials continue with the fallback principal configured by [orAnonymous]. Requests with invalid
  * credentials are rejected by the original authentication scheme.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.authenticateWith)
  *
  * @param scheme anonymous typed authentication scheme with a fallback factory.
- * @param build route builder with [DefaultAuthenticatedContext] of the common supertype.
+ * @param build route builder with [PrincipalContext] of the common supertype.
  */
 @ExperimentalKtorApi
 public fun <B : Any, P : B, AP : B> Route.authenticateWith(
     scheme: AnonymousAuthScheme<B, P, AP>,
-    build: AuthenticatedRouteBuilder<DefaultAuthenticatedContext<B>>
+    build: AuthenticatedRouteBuilder<PrincipalContext<B>>
 ): Route {
     val route = createChild(AuthenticationRouteSelector(listOf(scheme.name)))
     with(scheme.install(route)) {

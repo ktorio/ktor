@@ -9,6 +9,7 @@ package io.ktor.tests.auth.typesafe
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.server.auth.principal
 import io.ktor.server.auth.typesafe.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -33,13 +34,13 @@ class NestedRoutesTest {
     fun `sibling routes with different schemes and scheme reuse`() = testApplication {
         routing {
             authenticateWith(basicScheme) {
-                get("/basic") { call.respondText("basic:${principal.name}") }
+                get("/basic") { call.respondText("basic:${call.principal.name}") }
             }
             authenticateWith(bearerScheme) {
-                get("/bearer") { call.respondText("bearer:${principal.name}") }
+                get("/bearer") { call.respondText("bearer:${call.principal.name}") }
             }
             authenticateWith(basicScheme) {
-                get("/basic2") { call.respondText("basic2:${principal.name}") }
+                get("/basic2") { call.respondText("basic2:${call.principal.name}") }
             }
         }
 
@@ -83,11 +84,11 @@ class NestedRoutesTest {
         routing {
             authenticateWith(basicScheme) {
                 route("/api") {
-                    get("/users") { call.respondText("users:${principal.name}") }
-                    get("/items") { call.respondText("items:${principal.name}") }
+                    get("/users") { call.respondText("users:${call.principal.name}") }
+                    get("/items") { call.respondText("items:${call.principal.name}") }
                     route("/v2") {
                         route("/admin") {
-                            get("/deep") { call.respondText("deep:${principal.name}") }
+                            get("/deep") { call.respondText("deep:${call.principal.name}") }
                         }
                     }
                 }
@@ -136,12 +137,10 @@ class NestedRoutesTest {
 
         routing {
             authenticateWith(outerScheme) {
-                val outerContext = authenticatedContext()
-
                 authenticateWith(innerScheme) {
                     post("/nested") {
-                        val outer = with(outerContext) { principal }
-                        call.respondText("${outer.name}:${principal.name}")
+                        val outerPrincipal = call.principal<OuterUser>()
+                        call.respondText("${outerPrincipal?.name}:${call.principal.name}")
                     }
                 }
             }
@@ -175,7 +174,7 @@ class NestedRoutesTest {
             authenticateWith(basicScheme) {
                 authenticateWith(roleScheme, roles = setOf(TestRole.Admin)) {
                     get("/admin") {
-                        call.respondText("admin:${roles.joinToString(",") { it.name }}")
+                        call.respondText("admin:${call.roles.joinToString(",") { it.name }}")
                     }
                 }
             }

@@ -12,7 +12,7 @@ import io.ktor.utils.io.*
  * Configures a typed Form authentication scheme.
  *
  * Unlike [FormAuthenticationProvider.Config], [validate] returns [P] so routes protected by [authenticateWith] can
- * read [principal] as the configured type.
+ * read [ApplicationCall.principal] as the configured type.
  *
  * This config does not expose provider-level `challenge`. Set [onUnauthorized] or pass `onUnauthorized` to
  * [authenticateWith] to customize failure responses.
@@ -35,18 +35,18 @@ public class TypedFormAuthConfig<P : Any> @PublishedApi internal constructor() {
     public var description: String? = null
 
     /**
-     * POST parameter name used to read the username.
+     * Specifies a POST parameter name used to fetch a username.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedFormAuthConfig.userParamName)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedFormAuthConfig.usernameField)
      */
-    public var userParamName: String = "user"
+    public var usernameField: String = "user"
 
     /**
-     * POST parameter name used to read the password.
+     * Specifies a POST parameter name used to fetch a password.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedFormAuthConfig.passwordParamName)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedFormAuthConfig.passwordField)
      */
-    public var passwordParamName: String = "password"
+    public var passwordField: String = "password"
 
     /**
      * Default handler for authentication failures.
@@ -77,8 +77,8 @@ public class TypedFormAuthConfig<P : Any> @PublishedApi internal constructor() {
     @PublishedApi
     internal fun buildProvider(name: String): FormAuthenticationProvider {
         val config = FormAuthenticationProvider.Config(name, description)
-        config.userParamName = userParamName
-        config.passwordParamName = passwordParamName
+        config.userParamName = usernameField
+        config.passwordParamName = passwordField
         validateFn?.let { fn -> config.validate { credential -> toRoutingContext().fn(credential) } }
         return config.build()
     }
