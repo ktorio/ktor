@@ -32,7 +32,6 @@ public typealias UnauthorizedHandler = suspend RoutingContext.(AuthenticationFai
  * @param P the principal type produced by this scheme.
  * @param C the context type available inside authenticated routes.
  */
-@ExperimentalKtorApi
 public interface AuthScheme<P : Any, C : AuthenticatedContext<*>> {
     /**
      * Name that identifies this authentication scheme.
@@ -66,7 +65,6 @@ private val RegisteredSchemesKey = AttributeKey<MutableMap<String, Any>>("Typesa
  * @param C the context type available inside authenticated routes.
  * @property name name that identifies this authentication scheme.
  */
-@ExperimentalKtorApi
 public open class DefaultAuthScheme<P : Any, C : AuthenticatedContext<P>>(
     override val name: String,
     internal val principalType: KClass<P>,
@@ -167,5 +165,4 @@ public open class DefaultAuthScheme<P : Any, C : AuthenticatedContext<P>>(
     }
 }
 
-@OptIn(ExperimentalKtorApi::class)
 public typealias DefaultAuthenticatedScheme<P> = DefaultAuthScheme<P, PrincipalContext<P>>

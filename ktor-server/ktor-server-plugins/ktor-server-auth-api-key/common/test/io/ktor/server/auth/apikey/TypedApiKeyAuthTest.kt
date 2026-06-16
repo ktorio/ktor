@@ -35,7 +35,7 @@ class TypedApiKeyAuthTest {
                 }
             ) {
                 get("/protected") {
-                    call.respondText(principal.key)
+                    call.respondText(call.principal.key)
                 }
             }
         }
@@ -69,7 +69,7 @@ class TypedApiKeyAuthTest {
         routing {
             authenticateWith(scheme) {
                 get("/protected") {
-                    call.respondText(principal.key)
+                    call.respondText(call.principal.key)
                 }
             }
         }
@@ -95,7 +95,7 @@ class TypedApiKeyAuthTest {
         routing {
             authenticateWith(scheme) {
                 get("/scheme") {
-                    call.respondText(principal.key)
+                    call.respondText(call.principal.key)
                 }
             }
             authenticateWith(
@@ -105,7 +105,7 @@ class TypedApiKeyAuthTest {
                 }
             ) {
                 get("/route") {
-                    call.respondText(principal.key)
+                    call.respondText(call.principal.key)
                 }
             }
         }
@@ -148,7 +148,7 @@ class TypedApiKeyAuthTest {
                 }
             ) {
                 get("/protected") {
-                    call.respondText(principal.key)
+                    call.respondText(call.principal.key)
                 }
             }
         }

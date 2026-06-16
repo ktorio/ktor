@@ -25,7 +25,6 @@ import io.ktor.utils.io.*
  *
  * @param P the principal type produced by this scheme.
  */
-@ExperimentalKtorApi
 @KtorDsl
 public class TypedApiKeyAuthConfig<P : Any> @PublishedApi internal constructor() {
     /**

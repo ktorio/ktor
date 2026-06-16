@@ -16,7 +16,6 @@ import io.ktor.utils.io.*
  *
  * @param P the principal type, or a nullable principal type for optional authentication.
  */
-@ExperimentalKtorApi
 public interface AuthenticatedContext<P> {
     /**
      * Returns the principal captured for [call].
@@ -35,7 +34,6 @@ public interface AuthenticatedContext<P> {
  *
  * @param P the principal type available inside the route.
  */
-@ExperimentalKtorApi
 public open class PrincipalContext<P : Any> @PublishedApi internal constructor(
     @PublishedApi internal val principalKey: AttributeKey<P>,
 ) : AuthenticatedContext<P> {
@@ -54,7 +52,6 @@ public open class PrincipalContext<P : Any> @PublishedApi internal constructor(
  * @param P the principal type.
  * @param R the role type.
  */
-@ExperimentalKtorApi
 public class RoleBasedContext<P : Any, R : AuthRole> internal constructor(
     principalKey: AttributeKey<P>,
     private val rolesKey: AttributeKey<Set<R>>,
@@ -73,7 +70,6 @@ public class RoleBasedContext<P : Any, R : AuthRole> internal constructor(
  * @param S the stored session type.
  * @param P the principal type.
  */
-@ExperimentalKtorApi
 public interface SessionAuthenticatedContext<S : Any, P : Any> : AuthenticatedContext<P> {
 
     /**
@@ -110,7 +106,6 @@ public interface SessionAuthenticatedContext<S : Any, P : Any> : AuthenticatedCo
  * @param S the stored session type.
  * @param P the principal type.
  */
-@ExperimentalKtorApi
 public class SessionContext<S : Any, P : Any>(
     base: PrincipalContext<P>,
     private val sessionKey: AttributeKey<S>,
@@ -172,7 +167,6 @@ public class SessionContext<S : Any, P : Any>(
  *
  * @param P the principal type produced when authentication succeeds.
  */
-@ExperimentalKtorApi
 public class OptionalPrincipalContext<P : Any> internal constructor(
     private val principalKey: AttributeKey<P>,
 ) : AuthenticatedContext<P?> {
@@ -193,7 +187,6 @@ public class OptionalPrincipalContext<P : Any> internal constructor(
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.principal)
  */
-@ExperimentalKtorApi
 context(authCtx: AuthenticatedContext<P>)
 public val <P> ApplicationCall.principal: P
     get() = authCtx.getPrincipal(call = this)
@@ -205,7 +198,6 @@ public val <P> ApplicationCall.principal: P
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.session)
  */
-@ExperimentalKtorApi
 context(authCtx: SessionAuthenticatedContext<S, *>)
 public var <S : Any> ApplicationCall.session: S
     get() = authCtx.getSession(call = this)
@@ -220,7 +212,6 @@ public var <S : Any> ApplicationCall.session: S
  *
  * @return the updated session value.
  */
-@ExperimentalKtorApi
 context(authCtx: SessionAuthenticatedContext<S, *>)
 public fun <S : Any> ApplicationCall.updateSession(transform: (S) -> S): S {
     return authCtx.updateSession(call = this, transform)
@@ -231,7 +222,6 @@ public fun <S : Any> ApplicationCall.updateSession(transform: (S) -> S): S {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.clearSession)
  */
-@ExperimentalKtorApi
 context(authCtx: SessionAuthenticatedContext<S, *>)
 public fun <S : Any> ApplicationCall.clearSession() {
     authCtx.clearSession(call = this)
@@ -244,7 +234,6 @@ public fun <S : Any> ApplicationCall.clearSession() {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.roles)
  */
-@ExperimentalKtorApi
 context(authCtx: RoleBasedContext<*, R>)
 public val <R : AuthRole> ApplicationCall.roles: Set<R>
     get() = authCtx.getRoles(call = this)
