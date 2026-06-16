@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package test.server.tests
@@ -38,7 +38,7 @@ internal fun Application.echoTest() {
                 call.respondBytesWriter(status = HttpStatusCode.OK) {
                     val outputChannel = this
                     while (true) {
-                        val inputLine = inputChannel.readUTF8Line() ?: break
+                        val inputLine = inputChannel.readLine() ?: break
                         outputChannel.writeStringUtf8("server: $inputLine\n")
                         outputChannel.flush()
                     }
