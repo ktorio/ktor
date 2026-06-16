@@ -112,6 +112,7 @@ abstract class io.ktor.client.webrtc/WebRtcDataChannel : io.ktor.client.webrtc/W
     constructor <init>(io.ktor.client.webrtc/DataChannelReceiveOptions) // io.ktor.client.webrtc/WebRtcDataChannel.<init>|<init>(io.ktor.client.webrtc.DataChannelReceiveOptions){}[0]
 
     final fun emitMessage(io.ktor.client.webrtc/WebRtc.DataChannel.Message): kotlinx.coroutines.channels/ChannelResult<kotlin/Unit> // io.ktor.client.webrtc/WebRtcDataChannel.emitMessage|emitMessage(io.ktor.client.webrtc.WebRtc.DataChannel.Message){}[0]
+    final fun iterator(): kotlinx.coroutines.channels/ChannelIterator<io.ktor.client.webrtc/WebRtc.DataChannel.Message> // io.ktor.client.webrtc/WebRtcDataChannel.iterator|iterator(){}[0]
     final fun stopReceivingMessages() // io.ktor.client.webrtc/WebRtcDataChannel.stopReceivingMessages|stopReceivingMessages(){}[0]
     open fun tryReceive(): io.ktor.client.webrtc/WebRtc.DataChannel.Message? // io.ktor.client.webrtc/WebRtcDataChannel.tryReceive|tryReceive(){}[0]
     open fun tryReceiveBinary(): kotlin/ByteArray? // io.ktor.client.webrtc/WebRtcDataChannel.tryReceiveBinary|tryReceiveBinary(){}[0]
@@ -689,6 +690,14 @@ final object io.ktor.client.webrtc/WebRtc { // io.ktor.client.webrtc/WebRtc|null
         final fun hashCode(): kotlin/Int // io.ktor.client.webrtc/WebRtc.Stats.hashCode|hashCode(){}[0]
         final fun toString(): kotlin/String // io.ktor.client.webrtc/WebRtc.Stats.toString|toString(){}[0]
     }
+
+    open class DataChannelClosedException : io.ktor.client.webrtc/WebRtc.IOException { // io.ktor.client.webrtc/WebRtc.DataChannelClosedException|null[0]
+        constructor <init>(kotlin/String, kotlin/Throwable? = ...) // io.ktor.client.webrtc/WebRtc.DataChannelClosedException.<init>|<init>(kotlin.String;kotlin.Throwable?){}[0]
+    }
+
+    open class IOException : kotlinx.io/IOException { // io.ktor.client.webrtc/WebRtc.IOException|null[0]
+        constructor <init>(kotlin/String, kotlin/Throwable? = ...) // io.ktor.client.webrtc/WebRtc.IOException.<init>|<init>(kotlin.String;kotlin.Throwable?){}[0]
+    }
 }
 
 final object io.ktor.client.webrtc/WebRtcMedia { // io.ktor.client.webrtc/WebRtcMedia|null[0]
@@ -828,6 +837,7 @@ final object io.ktor.client.webrtc/WebRtcMedia { // io.ktor.client.webrtc/WebRtc
 }
 
 final fun <#A: io.ktor.client.webrtc/WebRtcConfig> io.ktor.client.webrtc/WebRtcClient(io.ktor.client.webrtc/WebRtcClientEngineFactory<#A>, kotlin/Function1<#A, kotlin/Unit> = ...): io.ktor.client.webrtc/WebRtcClient // io.ktor.client.webrtc/WebRtcClient|WebRtcClient(io.ktor.client.webrtc.WebRtcClientEngineFactory<0:0>;kotlin.Function1<0:0,kotlin.Unit>){0§<io.ktor.client.webrtc.WebRtcConfig>}[0]
+final suspend inline fun <#A: kotlin/Any?> io.ktor.client.webrtc/withIOException(crossinline kotlin.coroutines/SuspendFunction0<#A>): #A // io.ktor.client.webrtc/withIOException|withIOException(kotlin.coroutines.SuspendFunction0<0:0>){0§<kotlin.Any?>}[0]
 
 // Targets: [ios]
 abstract interface io.ktor.client.webrtc.media/Capturer : kotlin/AutoCloseable { // io.ktor.client.webrtc.media/Capturer|null[0]
