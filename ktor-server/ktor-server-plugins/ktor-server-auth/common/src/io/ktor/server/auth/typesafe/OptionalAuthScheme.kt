@@ -33,7 +33,6 @@ import io.ktor.utils.io.*
  *
  * @return a typed scheme that exposes a nullable principal.
  */
-@ExperimentalKtorApi
 public fun <P : Any> DefaultAuthScheme<P, *>.optional(): OptionalAuthScheme<P> = OptionalAuthScheme(base = this)
 
 /**
@@ -60,7 +59,6 @@ public fun <P : Any> DefaultAuthScheme<P, *>.optional(): OptionalAuthScheme<P> =
  * @param fallback creates a fallback principal when credentials are missing.
  * @return a typed scheme that exposes an authenticated or anonymous principal.
  */
-@ExperimentalKtorApi
 public fun <B : Any, P : B, AP : B> DefaultAuthScheme<P, *>.orAnonymous(
     fallback: suspend (ApplicationCall) -> AP
 ): AnonymousAuthScheme<B, P, AP> {
@@ -75,7 +73,6 @@ public fun <B : Any, P : B, AP : B> DefaultAuthScheme<P, *>.orAnonymous(
  * @param P the principal type produced when authentication succeeds.
  * @property base scheme used to authenticate requests that include credentials.
  */
-@ExperimentalKtorApi
 public class OptionalAuthScheme<P : Any>(
     public val base: DefaultAuthScheme<P, *>
 ) : AuthScheme<P, OptionalPrincipalContext<P>> {
@@ -104,7 +101,6 @@ public class OptionalAuthScheme<P : Any>(
  * @param AP the anonymous principal type.
  * @property base scheme used to authenticate requests that include credentials.
  */
-@ExperimentalKtorApi
 public class AnonymousAuthScheme<B : Any, P : B, AP : B>(
     public val base: DefaultAuthScheme<P, *>,
     internal val anonymousFactory: suspend (ApplicationCall) -> AP

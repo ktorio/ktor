@@ -52,7 +52,6 @@ Route.() -> Unit
  * challenge is used.
  * @param build route builder with [C] available as a context parameter.
  */
-@ExperimentalKtorApi
 public fun <P : Any, C : AuthenticatedContext<P>> Route.authenticateWith(
     scheme: DefaultAuthScheme<P, C>,
     onUnauthorized: UnauthorizedHandler? = null,
@@ -98,7 +97,6 @@ public typealias MultiUnauthorizedHandler = suspend RoutingContext.(Map<String, 
  * @param onUnauthorized optional handler invoked when all schemes fail.
  * @param build route builder with [PrincipalContext] available as a context parameter.
  */
-@ExperimentalKtorApi
 public inline fun <reified P : Any> Route.authenticateWithAnyOf(
     vararg schemes: DefaultAuthScheme<out P, *>,
     noinline onUnauthorized: MultiUnauthorizedHandler? = null,
@@ -107,7 +105,6 @@ public inline fun <reified P : Any> Route.authenticateWithAnyOf(
     return authenticateWithAnyOf(schemes.toList(), principalType = TypeInfo(P::class), onUnauthorized, build)
 }
 
-@OptIn(ExperimentalKtorApi::class)
 @PublishedApi
 internal fun <P : Any> Route.authenticateWithAnyOf(
     schemes: List<DefaultAuthScheme<out P, *>>,
@@ -135,7 +132,6 @@ internal fun <P : Any> Route.authenticateWithAnyOf(
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.ForbiddenHandler)
  */
-@OptIn(ExperimentalKtorApi::class)
 public typealias ForbiddenHandler<R> = suspend RoutingContext.(Set<R>) -> Unit
 
 /**
@@ -162,7 +158,6 @@ public typealias ForbiddenHandler<R> = suspend RoutingContext.(Set<R>) -> Unit
  * @param onForbidden optional route-level handler invoked when the principal lacks required roles.
  * @param build route builder with [RoleBasedContext] available as a context parameter.
  */
-@ExperimentalKtorApi
 public fun <P : Any, R : AuthRole> Route.authenticateWith(
     scheme: RoleBasedAuthScheme<P, R>,
     roles: Set<R>,
@@ -189,7 +184,6 @@ public fun <P : Any, R : AuthRole> Route.authenticateWith(
  * @param scheme optional typed authentication scheme.
  * @param build route builder with [OptionalPrincipalContext] available as a context parameter.
  */
-@ExperimentalKtorApi
 public fun <P : Any> Route.authenticateWith(
     scheme: OptionalAuthScheme<P>,
     build: AuthenticatedRouteBuilder<OptionalPrincipalContext<P>>
@@ -212,7 +206,6 @@ public fun <P : Any> Route.authenticateWith(
  * @param scheme anonymous typed authentication scheme with a fallback factory.
  * @param build route builder with [PrincipalContext] of the common supertype.
  */
-@ExperimentalKtorApi
 public fun <B : Any, P : B, AP : B> Route.authenticateWith(
     scheme: AnonymousAuthScheme<B, P, AP>,
     build: AuthenticatedRouteBuilder<PrincipalContext<B>>

@@ -25,7 +25,6 @@ import kotlin.reflect.KClass
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.AuthRole)
  */
-@ExperimentalKtorApi
 public interface AuthRole {
     /**
      * Name of this role.
@@ -107,7 +106,6 @@ public fun <P : Any, R : AuthRole> DefaultAuthScheme<P, *>.withRoles(
  * @param R the role type.
  * @property base authentication scheme that provides the principal.
  */
-@ExperimentalKtorApi
 public class RoleBasedAuthScheme<P : Any, R : AuthRole> internal constructor(
     public val base: DefaultAuthScheme<P, *>,
     internal val principalType: KClass<P>,

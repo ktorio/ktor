@@ -26,7 +26,6 @@ public typealias SessionPrincipalResolver<S, P> = suspend RoutingContext.(S) -> 
  *
  * Return the session value that should be validated for the current call, or `null` to reject the session.
  */
-@OptIn(ExperimentalKtorApi::class)
 public typealias SessionTransformer<S> = suspend RoutingContext.(S) -> S?
 
 /**
@@ -36,7 +35,6 @@ public typealias SessionTransformer<S> = suspend RoutingContext.(S) -> S?
  * @param P route principal type.
  * @param C authenticated route context type.
  */
-@OptIn(ExperimentalKtorApi::class)
 @KtorDsl
 public typealias SessionsPluginConfig<S, P, C> = SessionsConfig.(SessionAuthScheme<S, P, C>) -> Unit
 
@@ -58,7 +56,6 @@ public typealias SessionsPluginConfig<S, P, C> = SessionsConfig.(SessionAuthSche
  * @param P the principal type exposed to authenticated routes.
  */
 @KtorDsl
-@ExperimentalKtorApi
 public open class TypedSessionAuthConfig<
     S : Any,
     P : Any,
