@@ -3,15 +3,25 @@
  */
 
 import io.ktor.client.*
+import io.ktor.client.engine.HttpClientEngine
+import io.ktor.client.engine.HttpClientEngineCapability
+import io.ktor.client.engine.HttpClientEngineConfig
 import io.ktor.client.engine.mock.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.test.*
 import io.ktor.util.*
+import io.ktor.util.date.GMTDate
+import io.ktor.utils.io.InternalAPI
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.job
+import kotlinx.coroutines.test.runTest
+import kotlin.coroutines.CoroutineContext
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class DefaultRequestTest {
 
@@ -370,6 +380,52 @@ class DefaultRequestTest {
         }
 
         assertEquals("first-value, second-value", client.get("/").bodyAsText())
+    }
+
+    @Test
+    fun testEngineCapabilitiesGetMerged() = runTest {
+        val job = Job(backgroundScope.coroutineContext.job)
+        HttpClient(object : HttpClientEngine {
+            override val supportedCapabilities: Set<HttpClientEngineCapability<*>>
+                get() = setOf(HttpTimeoutCapability, UnixSocketCapability)
+            override val dispatcher: CoroutineDispatcher
+                get() = error("Unused")
+            override val config: HttpClientEngineConfig
+                get() = HttpClientEngineConfig()
+
+            @InternalAPI
+            override suspend fun execute(data: HttpRequestData): HttpResponseData {
+                assertTrue(message = "Request must contain timeout capability") {
+                    data.requiredCapabilities.contains(HttpTimeoutCapability)
+                }
+                assertTrue(message = "Request must contain unix socket capability") {
+                    data.requiredCapabilities.contains(UnixSocketCapability)
+                }
+
+                return HttpResponseData(
+                    HttpStatusCode.OK,
+                    GMTDate.START,
+                    Headers.Empty,
+                    HttpProtocolVersion.HTTP_1_1,
+                    Unit,
+                    Job(backgroundScope.coroutineContext.job),
+                )
+            }
+
+            override val coroutineContext: CoroutineContext
+                get() = job
+
+            override fun close() {}
+
+        }) {
+            defaultRequest {
+                unixSocket("engine.sock")
+            }
+        }.preparePost("/") {
+            timeout {
+                requestTimeoutMillis = 10000
+            }
+        }.execute()
     }
 }
 

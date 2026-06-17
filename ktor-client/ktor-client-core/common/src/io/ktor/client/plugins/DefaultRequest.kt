@@ -95,6 +95,20 @@ public class DefaultRequest private constructor(private val block: DefaultReques
                 val defaultUrl = defaultRequest.url.build()
                 mergeUrls(defaultUrl, context.url)
                 defaultRequest.attributes.allKeys.forEach {
+                    if (it == ENGINE_CAPABILITIES_KEY) {
+                        val capabilities = context.attributes.computeIfAbsent(ENGINE_CAPABILITIES_KEY) {
+                            mutableMapOf()
+                        }
+
+                        for ((key, value) in defaultRequest.attributes[ENGINE_CAPABILITIES_KEY]) {
+                            if (!capabilities.contains(key)) {
+                                capabilities[key] = value
+                            }
+                        }
+
+                        return@forEach
+                    }
+
                     if (!context.attributes.contains(it)) {
                         @Suppress("UNCHECKED_CAST")
                         context.attributes.put(it as AttributeKey<Any>, defaultRequest.attributes[it])
