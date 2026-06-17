@@ -143,6 +143,7 @@ public abstract class AbstractSerializationTest<T : SerialFormat> {
                 serialize(defaultContentType, Charsets.UTF_8, typeInfo<T>(), data)
         ) {
             is OutgoingContent.ByteArrayContent -> content.bytes()
+
             is ChannelWriterContent -> {
                 val channel = ByteChannel()
                 GlobalScope.launch {

@@ -104,6 +104,7 @@ public val DI: ApplicationPlugin<DependencyInjectionConfig> =
                     DefaultKeyCovariance
                 }
             }
+
             else -> pluginConfig.keyMapping
         }
 
@@ -144,6 +145,7 @@ public val DI: ApplicationPlugin<DependencyInjectionConfig> =
                 }
                 when (exceptions.size) {
                     0 -> environment.log.debug("All dependencies resolved successfully")
+
                     else -> {
                         environment.log.error(
                             buildString {

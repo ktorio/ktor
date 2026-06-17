@@ -80,6 +80,7 @@ internal class JsClientEngine(
         val protocols = protocolHeaderNames.mapNotNull { headers.getAll(it) }.flatten().toTypedArray()
         return when {
             PlatformUtils.IS_BROWSER -> js("new WebSocket(urlString_capturingHack, protocols)")
+
             else -> {
                 val ws_import: Promise<dynamic> = js("import('ws')")
                 val ws_capturingHack = ws_import.await().default

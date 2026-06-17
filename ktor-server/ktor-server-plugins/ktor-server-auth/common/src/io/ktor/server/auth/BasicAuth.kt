@@ -158,6 +158,7 @@ public fun ApplicationRequest.basicAuthenticationCredentials(charset: Charset? =
 
             return UserPasswordCredential(userPass.take(colonIndex), userPass.substring(colonIndex + 1))
         }
+
         else -> return null
     }
 }

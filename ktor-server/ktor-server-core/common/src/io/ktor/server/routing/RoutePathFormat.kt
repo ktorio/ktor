@@ -60,7 +60,9 @@ public object OpenApiRoutePathFormat : RoutePathFormat {
                 with(selector) { if (regex.pattern.trim('/').contains('/')) "{**}" else "{*}" }
 
             is PathSegmentTailcardRouteSelector -> "{**}"
+
             PathSegmentWildcardRouteSelector -> "{*}"
+
             TrailingSlashRouteSelector -> "/"
         }
 }

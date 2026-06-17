@@ -26,6 +26,7 @@ class ContentEncodingIntegrationTest : ClientLoader() {
             val response = client.get("$TEST_URL/gzip-with-content-length")
             val content = when (response.headers[HttpHeaders.ContentEncoding]) {
                 "gzip" -> GZipEncoder.decode(response.bodyAsChannel()).readRemaining().readString()
+
                 null -> {
                     // Content-Length should be removed for browser
                     if (PlatformUtils.IS_BROWSER) {
@@ -33,6 +34,7 @@ class ContentEncodingIntegrationTest : ClientLoader() {
                     }
                     response.bodyAsText()
                 }
+
                 else -> error("Unexpected content encoding: ${response.headers[HttpHeaders.ContentEncoding]}")
             }
 

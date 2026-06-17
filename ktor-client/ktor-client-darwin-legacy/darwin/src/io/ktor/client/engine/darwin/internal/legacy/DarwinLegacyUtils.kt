@@ -21,12 +21,17 @@ internal val NSURLSessionTask.id: ULong get() = this.taskIdentifier.toULong()
 @OptIn(DelicateCoroutinesApi::class)
 internal suspend fun OutgoingContent.toNSData(): NSData? = when (this) {
     is OutgoingContent.ByteArrayContent -> bytes().toNSData()
+
     is OutgoingContent.WriteChannelContent -> GlobalScope.writer(Dispatchers.Unconfined) {
         writeTo(channel)
     }.channel.readRemaining().readByteArray().toNSData()
+
     is OutgoingContent.ReadChannelContent -> readFrom().readRemaining().readByteArray().toNSData()
+
     is OutgoingContent.NoContent -> null
+
     is OutgoingContent.ContentWrapper -> delegate().toNSData()
+
     is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(this)
 }
 

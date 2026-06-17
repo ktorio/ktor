@@ -100,6 +100,7 @@ public class ServletUpgradeHandler : HttpUpgradeHandler, CoroutineScope {
                 context = up.userContext + upgradeJob,
                 pool = KtorDefaultPool
             )
+
             else -> servletReader(webConnection.inputStream, Int.MAX_VALUE).channel
         }
 

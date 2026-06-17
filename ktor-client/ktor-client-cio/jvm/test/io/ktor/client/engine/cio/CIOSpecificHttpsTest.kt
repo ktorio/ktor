@@ -103,19 +103,13 @@ class CIOSpecificHttpsTest : TestWithKtor() {
     @Test
     fun hello() {
         CIOCipherSuites.SupportedSuites.forEach { suite ->
-            /**
-             * Outdated by jetty.
-             */
+            // Outdated by jetty.
             if (suite == CIOCipherSuites.ECDHE_ECDSA_AES128_SHA256) return@forEach
 
-            /**
-             * Too strong for old JDK.
-             */
+            // Too strong for old JDK.
             if (suite == CIOCipherSuites.ECDHE_ECDSA_AES256_SHA384) return@forEach
 
-            /**
-             * Deprecated since jdk11.
-             */
+            // Deprecated since jdk11.
             if (suite == CIOCipherSuites.ECDHE_RSA_AES128_SHA256) return@forEach
             if (suite == CIOCipherSuites.TLS_RSA_WITH_AES_128_GCM_SHA256) return@forEach
 

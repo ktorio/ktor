@@ -240,6 +240,7 @@ private class DependencyKeyCovarianceParser(
 
         return when {
             position >= text.length -> error("Unexpected end of expression")
+
             peek() == '(' -> {
                 consume('(')
                 val result = parseAddition()
@@ -247,6 +248,7 @@ private class DependencyKeyCovarianceParser(
                 consume(')')
                 result
             }
+
             else -> parseIdentifier()
         }
     }

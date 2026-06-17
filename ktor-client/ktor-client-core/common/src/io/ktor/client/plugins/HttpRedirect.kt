@@ -87,9 +87,7 @@ public val HttpRedirect: ClientPlugin<HttpRedirectConfig> = createClientPlugin(
                 url.parameters.clear()
                 url.takeFrom(location)
 
-                /**
-                 * Disallow redirect with a security downgrade.
-                 */
+                // Disallow redirect with a security downgrade.
                 if (!allowHttpsDowngrade && previousProtocol.isSecure() && !url.protocol.isSecure()) {
                     LOGGER.trace("Blocked redirect from ${call.request.url} to $location due to HTTPS downgrade")
                     return call

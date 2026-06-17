@@ -35,6 +35,7 @@ public class HoconConfigLoader : ConfigLoader {
         val resource = Thread.currentThread().contextClassLoader.getResource(resolvedPath)
         val config = when {
             resource != null -> ConfigFactory.load(resolvedPath)
+
             else -> {
                 val file = File(resolvedPath)
                 if (file.exists()) ConfigFactory.parseFile(file) else null
@@ -89,8 +90,11 @@ public open class HoconApplicationConfig(private val config: Config) : Applicati
                 ConfigValueType.STRING,
                 ConfigValueType.NUMBER,
                 ConfigValueType.BOOLEAN -> ApplicationConfigValue.Type.SINGLE
+
                 ConfigValueType.NULL -> ApplicationConfigValue.Type.NULL
+
                 ConfigValueType.LIST -> ApplicationConfigValue.Type.LIST
+
                 ConfigValueType.OBJECT -> ApplicationConfigValue.Type.OBJECT
             }
 

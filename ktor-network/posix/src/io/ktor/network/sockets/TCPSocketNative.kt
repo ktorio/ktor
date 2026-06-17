@@ -32,6 +32,7 @@ internal class TCPSocketNative(
             val error = getSocketError()
             when {
                 connectResult >= 0 -> {}
+
                 isWouldBlockError(error) -> {
                     while (true) {
                         selector.select(this@TCPSocketNative, SelectInterest.CONNECT)
@@ -42,12 +43,16 @@ internal class TCPSocketNative(
                         ktor_getsockopt(descriptor, SOL_SOCKET, SO_ERROR, result.ptr, size.ptr).check()
                         val resultValue = result.value.toInt()
                         when {
-                            resultValue == 0 -> break // connected
+                            // connected
+                            resultValue == 0 -> break
+
                             isWouldBlockError(resultValue) -> continue
+
                             else -> throw PosixException.forSocketError(error = resultValue)
                         }
                     }
                 }
+
                 else -> throw PosixException.forSocketError(error)
             }
         }

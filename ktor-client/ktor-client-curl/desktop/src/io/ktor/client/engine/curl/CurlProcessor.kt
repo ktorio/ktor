@@ -91,8 +91,10 @@ internal class CurlProcessor(coroutineContext: CoroutineContext) {
 
             when (task) {
                 is SendRequest -> handleSendRequest(api, task)
+
                 is SendWebSocketFrame ->
                     api.sendWebSocketFrame(task.websocket, task.flags, task.data, task.completionHandler)
+
                 is CancelWebSocket ->
                     api.cancelWebSocket(task.websocket, CancellationException("WebSocket session closed"))
             }

@@ -46,6 +46,7 @@ public object DefaultConversionService : ConversionService {
         }
         return when (value) {
             is Iterable<*> -> value.flatMap { toValues(it) }
+
             else -> {
                 when (val klass = value::class) {
                     Int::class,
@@ -56,6 +57,7 @@ public object DefaultConversionService : ConversionService {
                     Char::class,
                     Boolean::class,
                     String::class -> listOf(value.toString())
+
                     else -> throw DataConversionException(
                         "Class $klass is not supported in default data conversion service"
                     )
@@ -79,8 +81,10 @@ public object DefaultConversionService : ConversionService {
         when {
             values.isEmpty() ->
                 throw DataConversionException("There are no values when trying to construct single value $type")
+
             values.size > 1 ->
                 throw DataConversionException("There are multiple values when trying to construct single value $type")
+
             else -> return fromValue(values.single(), type.type)
         }
     }

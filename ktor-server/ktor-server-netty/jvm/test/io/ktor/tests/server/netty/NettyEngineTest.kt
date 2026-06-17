@@ -516,6 +516,7 @@ class NettyH2cFlushTest :
                         body += String(frame.payload, Charsets.UTF_8)
                         if (frame.flags.endOfStream()) return body
                     }
+
                     Http2FrameTypes.HEADERS -> {
                         if (frame.flags.endOfStream()) return body
                     }

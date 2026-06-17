@@ -64,14 +64,19 @@ public class KotlinxSerializer(
 @Suppress("UNCHECKED_CAST")
 private fun buildSerializer(value: Any, module: SerializersModule): KSerializer<Any> = when (value) {
     is JsonElement -> JsonElement.serializer()
+
     is List<*> -> ListSerializer(value.elementSerializer(module))
+
     is Array<*> -> value.firstOrNull()?.let { buildSerializer(it, module) } ?: ListSerializer(String.serializer())
+
     is Set<*> -> SetSerializer(value.elementSerializer(module))
+
     is Map<*, *> -> {
         val keySerializer = value.keys.elementSerializer(module)
         val valueSerializer = value.values.elementSerializer(module)
         MapSerializer(keySerializer, valueSerializer)
     }
+
     else -> {
         @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
         module.getContextual(value::class) ?: value::class.serializer()

@@ -220,6 +220,7 @@ internal object GenericElementEncodingAdapter : GenericElementSerialAdapter {
         return when (encoder) {
             is GenericElementEncoder ->
                 GenericElement.encodeToElement(serializer, value)
+
             else -> null
         }
     }
@@ -341,7 +342,9 @@ internal class GenericElementMap(
         when (serializer.descriptor.kind) {
             StructureKind.CLASS, StructureKind.OBJECT ->
                 serializer.deserialize(GenericElementClassDecoder(element))
+
             StructureKind.MAP -> serializer.deserialize(GenericElementMapDecoder(element.entries.map { it.toPair() }))
+
             else -> serialError("Cannot deserialize map to ${serializer.descriptor.serialName}")
         }
 
@@ -382,7 +385,9 @@ internal abstract class GenericElementEncoder(
         ) =
             when (descriptor.kind) {
                 StructureKind.LIST -> GenericElementListEncoder(onClose, isRoot)
+
                 StructureKind.MAP -> GenericElementMapEncoder(onClose)
+
                 // Class, Objects, etc.
                 else -> GenericElementEntriesEncoder(onClose)
             }
@@ -583,7 +588,9 @@ internal class JsonGenericElement(
                 json,
                 elementSerializer
             )
+
             is JsonNull -> this
+
             else -> throw IllegalArgumentException("${other.element} is not an object")
         }
     }
@@ -667,12 +674,15 @@ internal abstract class GenericElementDecoder : AbstractDecoder() {
                 val nestedMap = element.entries().toMap()
                 GenericElementClassDecoder(nestedMap, serializersModule)
             }
+
             StructureKind.MAP -> {
                 GenericElementMapDecoder(element.entries(), serializersModule)
             }
+
             StructureKind.LIST -> {
                 GenericElementListDecoder(element, serializersModule)
             }
+
             else -> this
         }
     }
@@ -733,8 +743,10 @@ internal class GenericElementClassDecoder(
         when (currentElementName) {
             // self reference
             null -> this
+
             // decode a missing key
             !in map -> GenericElementMapDecoder(emptyList(), serializersModule)
+
             // decode a nested structure
             else -> createNestedDecoder(descriptor, getCurrentElement())
         }
