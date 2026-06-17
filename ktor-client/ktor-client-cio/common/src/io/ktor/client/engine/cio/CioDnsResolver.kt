@@ -224,6 +224,7 @@ private fun skipDnsName(source: Source) {
         val len = source.readByte().toInt() and 0xFF
         when {
             len == 0 -> return
+
             len and DNS_POINTER_MASK == DNS_POINTER_MASK -> {
                 source.readByte() // 2-byte pointer; first byte already consumed
                 return
