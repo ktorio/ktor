@@ -236,7 +236,7 @@ class ContentNegotiationTests {
         testWithEngine(MockEngine) {
             setupWithContentNegotiation {
                 register(ContentType.Application.Json, TestContentConverter())
-                addAcceptHeaderOnlyIfNonePresent = true
+                acceptHeaderMergeStrategy = ContentTypeMergeStrategy.SkipIfPresent
             }
 
             test { client ->
@@ -259,7 +259,7 @@ class ContentNegotiationTests {
         testWithEngine(MockEngine) {
             setupWithContentNegotiation {
                 register(ContentType.Application.Json, TestContentConverter())
-                addAcceptHeaderOnlyIfNonePresent = true
+                acceptHeaderMergeStrategy = ContentTypeMergeStrategy.SkipIfPresent
             }
 
             test { client ->
