@@ -232,6 +232,72 @@ class ContentNegotiationTests {
     }
 
     @Test
+    fun doesNotAddAcceptHeadersWhenUserHeaderPresentAndOptionEnabled() {
+        testWithEngine(MockEngine) {
+            setupWithContentNegotiation {
+                register(ContentType.Application.Json, TestContentConverter())
+                acceptHeaderMergeStrategy = ContentTypeMergeStrategy.SkipIfPresent
+            }
+
+            test { client ->
+                client.get("https://test.com/") {
+                    accept(ContentType.Application.OctetStream)
+                }.apply {
+                    val sentHeaders = call.request.headers.getAll(HttpHeaders.Accept)
+                        ?.map { ContentType.parse(it) }
+                        ?: emptyList()
+
+                    assertEquals(1, sentHeaders.size)
+                    assertContains(sentHeaders, ContentType.Application.OctetStream)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun addsAcceptHeadersWhenNoUserHeaderPresentEvenIfOptionEnabled() {
+        testWithEngine(MockEngine) {
+            setupWithContentNegotiation {
+                register(ContentType.Application.Json, TestContentConverter())
+                acceptHeaderMergeStrategy = ContentTypeMergeStrategy.SkipIfPresent
+            }
+
+            test { client ->
+                client.get("https://test.com/").apply {
+                    val sentHeaders = call.request.headers.getAll(HttpHeaders.Accept)
+                        ?.map { ContentType.parse(it) }
+                        ?: emptyList()
+
+                    assertContains(sentHeaders, ContentType.Application.Json)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun testDefaultMergeStrategyWithMalformedAcceptHeader() {
+        testWithEngine(MockEngine) {
+            setupWithContentNegotiation {
+                register(ContentType.Application.Json, TestContentConverter())
+            }
+            test { client ->
+                client.get("https://test.com/") {
+                    header(HttpHeaders.Accept, "malformed-header-value-without-slash")
+                }.apply {
+                    val sentHeaders = call.request.headers.getAll(HttpHeaders.Accept)
+                        ?: emptyList()
+
+                    val containsJson = sentHeaders.any { it.contains("application/json") }
+                    assertTrue(
+                        containsJson,
+                        "It should inject application/json because the existing header is invalid."
+                    )
+                }
+            }
+        }
+    }
+
+    @Test
     fun testKeepsContentType() {
         testWithEngine(MockEngine) {
             setupWithContentNegotiation {

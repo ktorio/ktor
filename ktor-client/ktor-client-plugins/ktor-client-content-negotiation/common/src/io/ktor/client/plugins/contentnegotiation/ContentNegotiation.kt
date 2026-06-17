@@ -40,6 +40,59 @@ internal expect val DefaultIgnoredTypes: Set<KClass<*>>
 internal val ExcludedContentTypes: AttributeKey<List<ContentType>> = AttributeKey("ExcludedContentTypesAttr")
 
 /**
+ * Defines how registered content types are merged into the request's Accept header.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.contentnegotiation.ContentTypeMergeStrategy)
+ */
+public fun interface ContentTypeMergeStrategy {
+    /**
+     * Returns the content types that should be appended to the Accept header.
+     *
+     * @param registeredContentTypes the content types from all active converter registrations
+     * @param acceptHeaders the Accept header values already present on the request
+     */
+    public fun mergeContentTypes(
+        registeredContentTypes: List<ContentType>,
+        acceptHeaders: List<String>
+    ): Sequence<ContentType>
+
+    public companion object {
+        /**
+         * Default behavior: appends each registered content type that is not already
+         * represented in the existing Accept headers. Preserves backward compatibility.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.contentnegotiation.ContentTypeMergeStrategy.Default)
+         */
+        public val Default: ContentTypeMergeStrategy = ContentTypeMergeStrategy { registered, headers ->
+            registered.asSequence().filter { contentType ->
+                headers.none { h ->
+                    try {
+                        ContentType.parse(h).match(contentType)
+                    } catch (e: BadContentTypeFormatException) {
+                        false
+                    }
+                }
+            }
+        }
+
+        /**
+         * Skips Accept header injection entirely when at least one Accept header is already
+         * present on the request. Falls back to [Default] behavior when none are present.
+         * Useful when working with APIs that are strict about which Accept values they accept.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.contentnegotiation.ContentTypeMergeStrategy.SkipIfPresent)
+         */
+        public val SkipIfPresent: ContentTypeMergeStrategy = ContentTypeMergeStrategy { registered, headers ->
+            if (headers.isNotEmpty()) {
+                emptySequence()
+            } else {
+                Default.mergeContentTypes(registered, headers)
+            }
+        }
+    }
+}
+
+/**
  * A [ContentNegotiation] configuration that is used during installation.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.contentnegotiation.ContentNegotiationConfig)
@@ -65,6 +118,14 @@ public class ContentNegotiationConfig : Configuration {
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.contentnegotiation.ContentNegotiationConfig.defaultAcceptHeaderQValue)
      */
     public var defaultAcceptHeaderQValue: Double? = null
+
+    /**
+     * Controls how registered content types are merged into the Accept header.
+     * Defaults to [ContentTypeMergeStrategy.Default], which preserves backward-compatible behavior.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.contentnegotiation.ContentNegotiationConfig.acceptHeaderMergeStrategy)
+     */
+    public var acceptHeaderMergeStrategy: ContentTypeMergeStrategy = ContentTypeMergeStrategy.Default
 
     /**
      * Registers a [contentType] to a specified [converter] with an optional [configuration] script for a converter.
@@ -161,7 +222,7 @@ public class ContentNegotiationConfig : Configuration {
  * A plugin that serves two primary purposes:
  * - Negotiating media types between the client and server. For this, it uses the `Accept` and `Content-Type` headers.
  * - Serializing/deserializing the content in a specific format when sending requests and receiving responses.
- *    Ktor supports the following formats out-of-the-box: `JSON`, `XML`, and `CBOR`.
+ * Ktor supports the following formats out-of-the-box: `JSON`, `XML`, and `CBOR`.
  *
  * You can learn more from [Content negotiation and serialization](https://ktor.io/docs/serialization-client.html).
  *
@@ -184,18 +245,16 @@ public val ContentNegotiation: ClientPlugin<ContentNegotiationConfig> = createCl
         }
 
         val acceptHeaders = request.headers.getAll(HttpHeaders.Accept).orEmpty()
-        requestRegistrations.forEach {
-            if (acceptHeaders.none { h -> ContentType.parse(h).match(it.contentTypeToSend) }) {
-                // automatically added headers get a lower content type priority, so user-specified accept headers
-                //  with higher q or implicit q=1 will take precedence
+        pluginConfig.acceptHeaderMergeStrategy
+            .mergeContentTypes(requestRegistrations.map { it.contentTypeToSend }, acceptHeaders)
+            .forEach { contentType ->
                 val contentTypeToSend = when (val qValue = pluginConfig.defaultAcceptHeaderQValue) {
-                    null -> it.contentTypeToSend
-                    else -> it.contentTypeToSend.withParameter("q", qValue.toString())
+                    null -> contentType
+                    else -> contentType.withParameter("q", qValue.toString())
                 }
                 LOGGER.trace("Adding Accept=$contentTypeToSend header for ${request.url}")
                 request.accept(contentTypeToSend)
             }
-        }
 
         if (body is OutgoingContent || ignoredTypes.any { it.isInstance(body) }) {
             LOGGER.trace(
