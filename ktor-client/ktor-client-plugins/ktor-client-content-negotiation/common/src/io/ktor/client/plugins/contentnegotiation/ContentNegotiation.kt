@@ -65,7 +65,13 @@ public fun interface ContentTypeMergeStrategy {
          */
         public val Default: ContentTypeMergeStrategy = ContentTypeMergeStrategy { registered, headers ->
             registered.asSequence().filter { contentType ->
-                headers.none { h -> ContentType.parse(h).match(contentType) }
+                headers.none { h ->
+                    try {
+                        ContentType.parse(h).match(contentType)
+                    } catch (e: BadContentTypeFormatException) {
+                        false
+                    }
+                }
             }
         }
 
