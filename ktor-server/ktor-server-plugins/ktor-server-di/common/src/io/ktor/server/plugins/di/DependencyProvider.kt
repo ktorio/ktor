@@ -90,13 +90,19 @@ internal class MapDependencyProvider(
     private fun trySet(key: DependencyKey, newFunction: DependencyInitializer) {
         map[key] = when (val previous = map[key]) {
             null -> newFunction
+
             is DependencyInitializer.Missing -> newFunction.also(previous::provide)
+
             else -> when (val result = resolveConflict(previous, newFunction)) {
                 Ambiguous ->
                     DependencyInitializer.Ambiguous.of(key, previous, newFunction)
+
                 Conflict -> onConflict(key)
+
                 KeepNew -> newFunction
+
                 KeepPrevious -> previous
+
                 is Replace -> result.function
             }
         }

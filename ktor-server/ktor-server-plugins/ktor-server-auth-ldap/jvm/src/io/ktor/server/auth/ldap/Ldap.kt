@@ -125,10 +125,18 @@ private val ESCAPE_CHARACTERS = charArrayOf(' ', '"', '#', '+', ',', ';', '<', '
 
 private fun Char.shouldEscape(): Boolean = this.code.let { codepoint ->
     when (codepoint) {
-        in 0x3f..0x7e -> codepoint == 0x5c // the only forbidden character is backslash
-        in 0x2d..0x3a -> false // minus, point, slash (allowed), digits + colon :
-        in 0x24..0x2a -> false // $%&'()*
-        0x21 -> false // exclamation
+        // the only forbidden character is backslash
+        in 0x3f..0x7e -> codepoint == 0x5c
+
+        // minus, point, slash (allowed), digits + colon :
+        in 0x2d..0x3a -> false
+
+        // $%&'()*
+        in 0x24..0x2a -> false
+
+        // exclamation
+        0x21 -> false
+
         else -> true
     }
 }

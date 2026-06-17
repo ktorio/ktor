@@ -78,7 +78,7 @@ internal fun PluginBuilder<CORSConfig>.buildPlugin() {
             }
     )
 
-    /**
+    /*
      * A plugin's [call] interceptor that does all the job. Usually there is no need to install it as it is done during
      * a plugin installation.
      */
@@ -115,6 +115,7 @@ internal fun PluginBuilder<CORSConfig>.buildPlugin() {
             }
 
             OriginCheckResult.SkipCORS -> return@onCall
+
             OriginCheckResult.Failed -> {
                 LOGGER.trace { "${call.request.id()}: CORS check fails because Origin $origin does not match" }
                 call.respondCorsFailed()
@@ -196,10 +197,12 @@ private fun checkOrigin(
         LOGGER.trace { "${request.id()}: Skip CORS handler because Origin $origin is malformed" }
         OriginCheckResult.SkipCORS
     }
+
     allowSameOrigin && isSameOrigin(origin, request.origin) -> {
         LOGGER.trace { "${request.id()}: Skip CORS handler because Origin $origin matches the server origin exactly" }
         OriginCheckResult.SkipCORS
     }
+
     !corsCheckOrigins(
         request,
         origin,

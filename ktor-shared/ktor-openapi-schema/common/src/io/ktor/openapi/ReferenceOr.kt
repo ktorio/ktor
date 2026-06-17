@@ -127,14 +127,17 @@ public sealed interface ReferenceOr<out A> {
                         when {
                             RefKey in entries ->
                                 Reference(entries[RefKey]!!.deserialize(String.serializer()))
+
                             DynamicRefKey in entries ->
                                 Reference(
                                     entries[DynamicRefKey]!!.deserialize(String.serializer()),
                                     isDynamic = true
                                 )
+
                             else -> Value(element.deserialize(dataSerializer))
                         }
                     }
+
                     else -> Value(element.deserialize(dataSerializer))
                 }
             }

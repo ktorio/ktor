@@ -104,6 +104,7 @@ internal class ByteChannelScanner(
                     bytesRead += input.transferTo(writeChannel.writeBuffer)
                     writeChannel.flushIfNeeded()
                 }
+
                 else -> {
                     checkBounds(nextMatch)
                     bytesRead += input.readAtMostTo(writeChannel.writeBuffer as Buffer, nextMatch)

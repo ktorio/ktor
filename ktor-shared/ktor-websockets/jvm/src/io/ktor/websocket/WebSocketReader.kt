@@ -108,11 +108,13 @@ public class WebSocketReader(
                         return
                     }
                 }
+
                 State.BODY -> {
                     collector.handle(buffer)
 
                     handleFrameIfProduced()
                 }
+
                 State.CLOSED -> return
             }
         }

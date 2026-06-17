@@ -150,6 +150,7 @@ private fun URLBuilder.parseFile(urlString: String, startIndex: Int, endIndex: I
             host = ""
             encodedPath = urlString.substring(startIndex, endIndex)
         }
+
         2 -> {
             val nextSlash = urlString.indexOf('/', startIndex)
             if (nextSlash == -1 || nextSlash == endIndex) {
@@ -160,10 +161,12 @@ private fun URLBuilder.parseFile(urlString: String, startIndex: Int, endIndex: I
             host = urlString.substring(startIndex, nextSlash)
             encodedPath = urlString.substring(nextSlash, endIndex)
         }
+
         3 -> {
             host = ""
             encodedPath = "/" + urlString.substring(startIndex, endIndex)
         }
+
         else -> throw IllegalArgumentException("Invalid file url: $urlString")
     }
 }

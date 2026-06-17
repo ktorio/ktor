@@ -21,11 +21,17 @@ import java.util.*
 
 internal fun Jwk.makeAlgorithm(): Algorithm = when (algorithm) {
     "RS256" -> Algorithm.RSA256(publicKey as RSAPublicKey, null)
+
     "RS384" -> Algorithm.RSA384(publicKey as RSAPublicKey, null)
+
     "RS512" -> Algorithm.RSA512(publicKey as RSAPublicKey, null)
+
     "ES256" -> Algorithm.ECDSA256(publicKey as ECPublicKey, null)
+
     "ES384" -> Algorithm.ECDSA384(publicKey as ECPublicKey, null)
+
     "ES512" -> Algorithm.ECDSA512(publicKey as ECPublicKey, null)
+
     null -> when (type) {
         "EC" -> {
             val ecKey = publicKey as ECPublicKey
@@ -36,8 +42,10 @@ internal fun Jwk.makeAlgorithm(): Algorithm = when (algorithm) {
                 else -> Algorithm.ECDSA256(ecKey, null)
             }
         }
+
         else -> Algorithm.RSA256(publicKey as RSAPublicKey, null)
     }
+
     else -> throw IllegalArgumentException("Unsupported algorithm $algorithm")
 }
 

@@ -59,12 +59,14 @@ public class Serializer {
                 }
                 frame.frameType.opcode
             }
+
             frame.frameType -> {
                 if (frame.fin) {
                     lastDataFrameType = null
                 }
                 0
             }
+
             else -> {
                 if (!frame.frameType.controlFrame) {
                     throw IllegalStateException("Can't continue with different data frame opcode")

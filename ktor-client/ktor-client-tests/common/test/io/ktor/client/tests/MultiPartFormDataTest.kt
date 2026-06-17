@@ -72,6 +72,7 @@ class MultiPartFormDataTest : ClientLoader() {
                         assertEquals("Hello, World!", part.value)
                         textFound = true
                     }
+
                     is PartData.FileItem -> {
                         assertEquals("file", part.name)
                         assertEquals("test.bin", part.originalFileName)
@@ -83,6 +84,7 @@ class MultiPartFormDataTest : ClientLoader() {
                         }
                         fileFound = true
                     }
+
                     else -> fail("Unexpected part type: ${part::class.simpleName}")
                 }
                 part.release()

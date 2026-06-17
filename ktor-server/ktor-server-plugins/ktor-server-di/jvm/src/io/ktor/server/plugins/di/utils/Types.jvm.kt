@@ -175,6 +175,7 @@ private fun KType.hierarchy(): Sequence<KType> {
                     val index = currentTypeClassifier.typeParameters.indexOf(typeParameter)
                     if (index >= 0) currentTypeArguments[index] else KTypeProjection.STAR
                 }
+
                 else -> projection // Keep as-is for non-parameter types
             }
         }

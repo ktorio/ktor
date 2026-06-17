@@ -37,6 +37,7 @@ public class RoutingPath private constructor(public val parts: List<RoutingPathS
                         segment,
                         RoutingPathSegmentKind.Parameter
                     )
+
                     else -> RoutingPathSegment(segment.decodeURLPart(), RoutingPathSegmentKind.Constant)
                 }
             }

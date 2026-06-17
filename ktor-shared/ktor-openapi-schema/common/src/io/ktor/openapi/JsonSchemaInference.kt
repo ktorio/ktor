@@ -46,16 +46,23 @@ public val KotlinxJsonSchemaInference: JsonSchemaInference get() = KotlinxSerial
 public val KotlinxSerializerDefaultFormats: (SerialDescriptor) -> String? = { type ->
     when (type.nonNullSerialName) {
         "kotlin.uuid.Uuid" -> "uuid"
+
         "kotlinx.datetime.LocalDate" -> "date"
+
         "kotlinx.datetime.LocalTime" -> "time"
+
         "kotlinx.datetime.TimeZone" -> "time-zone"
+
         "kotlinx.datetime.UtcOffset" -> "utc-offset"
+
         "kotlin.time.Instant",
         "kotlinx.datetime.Instant",
         "kotlinx.datetime.LocalDateTime" -> "date-time"
+
         "kotlin.time.Duration",
         "kotlinx.datetime.DatePeriod",
         "kotlinx.datetime.DateTimePeriod" -> "duration"
+
         else -> null
     }
 }
@@ -475,11 +482,13 @@ public fun JsonSchema.wrapIfNullable(isNullable: Boolean): JsonSchema =
     } else {
         when (val schemaType = type) {
             is JsonType -> copy(type = schemaType.wrapIfNullable(true))
+
             is SchemaType.AnyOf -> if (JsonType.NULL in schemaType.types) {
                 this
             } else {
                 copy(type = SchemaType.AnyOf(schemaType.types + JsonType.NULL))
             }
+
             null -> JsonSchema(
                 oneOf = listOf(
                     Value(this),

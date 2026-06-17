@@ -616,7 +616,7 @@ class HttpRequestRetryTest {
             }
         }
 
-        /**
+        /*
          * This is testing for a bug specific to using Int.MAX_VALUE as the
          * maxRetriesCount value.
          * No need to actually test retry behavior, as the bug happens

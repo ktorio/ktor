@@ -89,6 +89,7 @@ internal class DatagramSocketNative(
 
             when (bytesRead) {
                 0L -> throw IOException("Failed reading from closed socket")
+
                 -1L -> {
                     val error = getSocketError()
                     if (isWouldBlockError(error)) return null

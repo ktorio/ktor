@@ -704,7 +704,9 @@ private suspend fun ByteReadChannel.internalReadLineTo(
             // Subtract 1 from remaining to ignore the last byte,
             // when RC might be part of a CRLF sequence split into two buffers
             -1L -> minOf(limitLeft, remaining - 1)
+
             0L -> 0
+
             // Subtract 1 from lfIndex to ignore the case when CR is part of the CRLF sequence
             else -> lfIndex - 1
         }

@@ -122,6 +122,7 @@ public class CallLoggingConfig {
                 "${call.request.toLogStringWithColors()} -> ${call.response.headers[HttpHeaders.Location]}"
 
             "Unhandled" -> "${colored(status, Ansi.Color.RED)}: ${call.request.toLogStringWithColors()}"
+
             else -> "${colored(status as HttpStatusCode)}: ${call.request.toLogStringWithColors()}"
         }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.plugins.ratelimit
@@ -10,14 +10,11 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.util.collections.*
 import io.ktor.util.date.*
-import io.ktor.util.pipeline.*
 import kotlinx.coroutines.*
 
-private object BeforeCall : Hook<suspend (ApplicationCall) -> Unit> {
+private object PluginsPhase : Hook<suspend (ApplicationCall) -> Unit> {
     override fun install(pipeline: ApplicationCallPipeline, handler: suspend (ApplicationCall) -> Unit) {
-        val beforeCallPhase = PipelinePhase("BeforeCall")
-        pipeline.insertPhaseBefore(ApplicationCallPipeline.Call, beforeCallPhase)
-        pipeline.intercept(beforeCallPhase) { handler(call) }
+        pipeline.intercept(ApplicationCallPipeline.Plugins) { handler(call) }
     }
 }
 
@@ -43,7 +40,7 @@ private fun PluginBuilder<RateLimitInterceptorsConfig>.rateLimiterPluginBuilder(
     val registry = application.attributes.computeIfAbsent(RateLimiterInstancesRegistryKey) { ConcurrentMap() }
     val clearOnRefillJobs = ConcurrentMap<ProviderKey, Job>()
 
-    on(BeforeCall) { call ->
+    on(PluginsPhase) { call ->
         providers.forEach { provider ->
             if (call.isHandled) return@on
 

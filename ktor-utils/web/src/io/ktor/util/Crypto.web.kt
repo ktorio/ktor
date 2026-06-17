@@ -117,14 +117,17 @@ internal fun md5(input: ByteArray): ArrayBuffer {
                     f = (bb and cc) or (bb.inv() and dd)
                     g = i
                 }
+
                 i < 32 -> {
                     f = (dd and bb) or (dd.inv() and cc)
                     g = (5 * i + 1) % 16
                 }
+
                 i < 48 -> {
                     f = bb xor cc xor dd
                     g = (3 * i + 5) % 16
                 }
+
                 else -> {
                     f = cc xor (bb or dd.inv())
                     g = (7 * i) % 16

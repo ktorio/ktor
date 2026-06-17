@@ -107,8 +107,12 @@ public open class DependencyReflectionJvm : DependencyReflection {
                 resolve(parameter)
             } catch (cause: Exception) {
                 when {
-                    parameter.isOptional -> return@mapNotNull null // ignore
-                    parameter.type.isMarkedNullable -> null // let value = null
+                    // ignore
+                    parameter.isOptional -> return@mapNotNull null
+
+                    // let value = null
+                    parameter.type.isMarkedNullable -> null
+
                     else -> throw cause
                 }
             }

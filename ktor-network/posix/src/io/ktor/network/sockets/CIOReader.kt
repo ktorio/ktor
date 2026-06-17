@@ -30,6 +30,7 @@ internal fun CoroutineScope.attachForReadingImpl(
 
                     when (bytesRead) {
                         0 -> close = true
+
                         -1 -> {
                             val error = getSocketError()
                             if (isWouldBlockError(error)) return@write 0

@@ -107,18 +107,31 @@ public sealed class PosixException(public val errno: Int, message: String) : Exc
                 EWOULDBLOCK, EAGAIN -> TryAgainException(errno, message)
 
                 EBADMSG -> BadMessageException(message)
+
                 EINTR -> InterruptedException(message)
+
                 EINVAL -> InvalidArgumentException(message)
+
                 ECONNREFUSED -> ConnectionRefusedException(message)
+
                 ECONNABORTED -> ConnectionAbortedException(message)
+
                 ECONNRESET -> ConnectionResetException(message)
+
                 ENOTCONN -> NotConnectedException(message)
+
                 ETIMEDOUT -> TimeoutIOException(message)
+
                 EOVERFLOW -> OverflowException(message)
+
                 ENOMEM -> NoMemoryException(message)
+
                 ENOTSOCK -> NotSocketException(message)
+
                 EADDRINUSE -> AddressAlreadyInUseException(message)
+
                 ENOENT -> NoSuchFileException(message)
+
                 else -> PosixErrnoException(errno, message)
             }
         }

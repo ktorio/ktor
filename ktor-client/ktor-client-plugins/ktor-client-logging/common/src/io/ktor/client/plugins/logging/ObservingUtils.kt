@@ -15,6 +15,7 @@ internal suspend fun OutgoingContent.observe(log: ByteWriteChannel): OutgoingCon
         log.flushAndClose()
         this
     }
+
     is OutgoingContent.ReadChannelContent -> {
         val responseChannel = ByteChannel()
         val content = readFrom()
@@ -22,13 +23,16 @@ internal suspend fun OutgoingContent.observe(log: ByteWriteChannel): OutgoingCon
         content.copyToBoth(log, responseChannel)
         LoggedContent(this, responseChannel)
     }
+
     is OutgoingContent.WriteChannelContent -> {
         val responseChannel = ByteChannel()
         val content = toReadChannel()
         content.copyToBoth(log, responseChannel)
         LoggedContent(this, responseChannel)
     }
+
     is OutgoingContent.ContentWrapper -> copy(delegate().observe(log))
+
     is OutgoingContent.NoContent, is OutgoingContent.ProtocolUpgrade -> {
         log.flushAndClose()
         this
