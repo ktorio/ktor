@@ -109,7 +109,7 @@ public class DefaultRequest private constructor(private val block: DefaultReques
                         }
                         !in context.attributes -> {
                             @Suppress("UNCHECKED_CAST")
-                            context.attributes.put(it as AttributeKey<Any>, defaultRequest.attributes[it])
+                            context.attributes.put(key as AttributeKey<Any>, defaultRequest.attributes[key])
                         }
                     }
                 }
