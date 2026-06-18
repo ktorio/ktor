@@ -416,7 +416,6 @@ class DefaultRequestTest {
                 get() = job
 
             override fun close() {}
-
         }) {
             defaultRequest {
                 unixSocket("engine.sock")
