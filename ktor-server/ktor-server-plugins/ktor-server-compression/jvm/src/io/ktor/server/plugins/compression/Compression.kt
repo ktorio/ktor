@@ -216,16 +216,13 @@ private suspend fun ContentDecoding.Context.decode(
     }
 }
 
+private class AcceptedEncoder(val config: CompressionEncoderConfig, val quality: Double)
+
 private fun ContentEncoding.Context.encode(call: PipelineCall, options: CompressionOptions) {
     if (call.response.isSSEResponse()) {
         LOGGER.trace("Skip compression for sse response ${call.request.uri} ")
         return
     }
-
-    val comparator = compareBy<Pair<CompressionEncoderConfig, HeaderValue>>(
-        { it.second.quality },
-        { it.first.priority }
-    ).reversed()
 
     val acceptEncodingRaw = call.request.acceptEncoding()
     if (acceptEncodingRaw == null) {
@@ -238,16 +235,18 @@ private fun ContentEncoding.Context.encode(call: PipelineCall, options: Compress
         return
     }
 
-    val encoders = parseHeaderValue(acceptEncodingRaw)
-        .filter { it.value == "*" || it.value in options.encoders }
-        .flatMap { header ->
-            when (header.value) {
-                "*" -> options.encoders.values.map { it to header }
-                else -> options.encoders[header.value]?.let { listOf(it to header) } ?: emptyList()
-            }
+    // Each encoder's effective quality comes from its most specific Accept-Encoding entry: an
+    // explicit name overrides a `*` wildcard (RFC 7231 5.3.4). A quality of 0 means "not acceptable".
+    val acceptedEncodings = parseHeaderValue(acceptEncodingRaw)
+    val wildcardQuality = acceptedEncodings.firstOrNull { it.value == "*" }?.quality
+    val encoders = options.encoders.values
+        .mapNotNull { config ->
+            val explicit = acceptedEncodings.firstOrNull { it.value.equals(config.encoder.name, ignoreCase = true) }
+            val quality = (explicit?.quality ?: wildcardQuality)?.takeIf { it > 0.0 }
+            quality?.let { AcceptedEncoder(config, it) }
         }
-        .sortedWith(comparator)
-        .map { it.first }
+        .sortedWith(compareByDescending(AcceptedEncoder::quality).thenByDescending { it.config.priority })
+        .map(AcceptedEncoder::config)
 
     if (encoders.isEmpty()) {
         LOGGER.trace("Skip compression for ${call.request.uri} because no encoders provided.")
