@@ -7,20 +7,10 @@ package io.ktor.network.sockets.nodejs
 import io.ktor.network.sockets.*
 import org.khronos.webgl.*
 
-// js.Error
-internal external interface JsError : JsAny {
-    val message: String?
-}
-
-internal expect fun JsError.toThrowable(): Throwable
-internal expect fun Throwable.toJsError(): JsError?
-
 internal external interface NodeNet : JsAny {
     fun createConnection(options: CreateConnectionOptions): Socket
     fun createServer(options: CreateServerOptions): Server
 }
-
-internal expect suspend fun loadNodeNet(): NodeNet
 
 internal fun CreateConnectionOptions(
     remoteAddress: SocketAddress,
@@ -176,8 +166,3 @@ internal fun ServerLocalAddressInfo.toSocketAddress(): SocketAddress = when (jsT
         InetSocketAddress(info.address, info.port)
     }
 }
-
-internal expect fun jsTypeOf(a: JsAny): String
-
-private fun <T : JsAny> createJsObject(): T = js("({})")
-private fun <T : JsAny> createJsObject(block: T.() -> Unit): T = createJsObject<T>().apply(block)
