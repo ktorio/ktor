@@ -7,6 +7,7 @@ package io.ktor.client.webrtc
 import dev.onvoid.webrtc.RTCDataChannel
 import dev.onvoid.webrtc.RTCDataChannelBuffer
 import dev.onvoid.webrtc.RTCDataChannelObserver
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.launch
@@ -27,8 +28,10 @@ public class JvmWebRtcDataChannel(
     override val label: String
         get() = inner.label
 
+    private val closed = atomic(false)
+
     override val state: WebRtc.DataChannel.State
-        get() = inner.state.toKtor()
+        get() = if (closed.value) WebRtc.DataChannel.State.CLOSED else inner.state.toKtor()
 
     override val bufferedAmount: Long
         get() = inner.bufferedAmount
@@ -72,10 +75,14 @@ public class JvmWebRtcDataChannel(
     }
 
     override fun closeTransport() {
+        stopReceivingMessages()
         inner.close()
     }
 
     override fun close() {
+        if (!closed.compareAndSet(expect = false, update = true)) {
+            return
+        }
         super.close()
         inner.dispose()
     }

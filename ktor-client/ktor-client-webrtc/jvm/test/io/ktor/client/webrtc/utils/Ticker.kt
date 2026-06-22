@@ -31,13 +31,7 @@ class Ticker(
     private val onTick: suspend () -> Unit,
 ) {
     private val scope = CoroutineScope(context = SupervisorJob() + Dispatchers.IO)
-    private var isActiveAtomic = atomic(false)
-
-    /**
-     * Whether the ticker is currently running.
-     */
-    val isActive: Boolean
-        get() = isActiveAtomic.value
+    private val isActiveAtomic = atomic(false)
 
     init {
         require(interval.isPositive()) { "Interval must be positive" }

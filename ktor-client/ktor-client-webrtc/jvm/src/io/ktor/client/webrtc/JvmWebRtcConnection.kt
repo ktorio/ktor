@@ -18,8 +18,7 @@ import dev.onvoid.webrtc.RTCRtpReceiver
 import dev.onvoid.webrtc.RTCSignalingState
 import dev.onvoid.webrtc.media.MediaStream
 import io.ktor.client.webrtc.media.JvmMediaTrack
-import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.resume
@@ -43,11 +42,6 @@ public class JvmWebRtcConnection(
 
     override val remoteDescription: WebRtc.SessionDescription?
         get() = inner.remoteDescription?.toKtor()
-
-    private inline fun runInConnectionScope(crossinline block: () -> Unit) {
-        // Runs a `block` in the coroutine of the peer connection not to lose possible exceptions.
-        coroutineScope.launch(start = CoroutineStart.UNDISPATCHED) { block() }
-    }
 
     private fun createObserver() = object : PeerConnectionObserver {
         override fun onConnectionChange(state: RTCPeerConnectionState?) = runInConnectionScope {
@@ -144,7 +138,9 @@ public class JvmWebRtcConnection(
 
     private inline fun withSdpException(message: String, block: () -> Unit): Unit = try {
         block()
-    } catch (cause: Throwable) {
+    } catch (cause: CancellationException) {
+        throw cause
+    } catch (cause: Error) {
         throw WebRtc.SdpException(message, cause)
     }
 
@@ -167,7 +163,7 @@ public class JvmWebRtcConnection(
     override suspend fun addIceCandidate(candidate: WebRtc.IceCandidate) {
         try {
             inner.addIceCandidate(candidate.toJvm())
-        } catch (cause: Throwable) {
+        } catch (cause: Error) {
             throw WebRtc.IceException("Failed to add ICE candidate", cause)
         }
     }

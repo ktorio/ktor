@@ -13,7 +13,7 @@ import kotlin.coroutines.resumeWithException
 
 internal fun WebRtc.IceServer.toJvm(): RTCIceServer =
     RTCIceServer().also { server ->
-        server.urls = urls.split(",")
+        server.urls = urls
         username?.let { server.username = it }
         credential?.let { server.password = it }
     }

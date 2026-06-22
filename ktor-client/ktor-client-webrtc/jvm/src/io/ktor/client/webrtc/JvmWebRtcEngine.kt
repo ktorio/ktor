@@ -49,7 +49,7 @@ public class JvmWebRtcEngine(
         return JvmWebRtcConnection(coroutineContext, config) { observer ->
             localFactory.createPeerConnection(rtcConfig, observer)
                 ?: error("Failed to create peer connection.")
-        }
+        }.also { it.startFetchingStatistics() }
     }
 }
 
