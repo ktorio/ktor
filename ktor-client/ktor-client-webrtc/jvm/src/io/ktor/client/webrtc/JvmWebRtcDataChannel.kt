@@ -54,20 +54,29 @@ public class JvmWebRtcDataChannel(
     override val protocol: String
         get() = inner.protocol ?: ""
 
+    private fun requireOpen() {
+        if (state == WebRtc.DataChannel.State.OPEN) return
+        throw WebRtc.DataChannelClosedException("Can't send a message when the channel is not open.")
+    }
+
     override suspend fun send(text: String) {
-        require(state == WebRtc.DataChannel.State.OPEN) {
-            "Can't send a message when the channel is not open."
-        }
+        requireOpen()
         val data = ByteBuffer.wrap(text.encodeToByteArray())
-        inner.send(RTCDataChannelBuffer(data, false))
+        try {
+            inner.send(RTCDataChannelBuffer(data, false))
+        } catch (cause: Exception) {
+            throw WebRtc.IOException("Failed to send text message", cause)
+        }
     }
 
     override suspend fun send(bytes: ByteArray) {
-        require(state == WebRtc.DataChannel.State.OPEN) {
-            "Can't send a message when the channel is not open."
-        }
+        requireOpen()
         val data = ByteBuffer.wrap(bytes)
-        inner.send(RTCDataChannelBuffer(data, true))
+        try {
+            inner.send(RTCDataChannelBuffer(data, true))
+        } catch (cause: Exception) {
+            throw WebRtc.IOException("Failed to send binary message", cause)
+        }
     }
 
     override fun setBufferedAmountLowThreshold(threshold: Long) {
@@ -108,8 +117,11 @@ public class JvmWebRtcDataChannel(
             override fun onStateChange() = runInConnectionScope {
                 val event = when (state) {
                     WebRtc.DataChannel.State.CONNECTING -> null
+
                     WebRtc.DataChannel.State.OPEN -> DataChannelEvent.Open(this@JvmWebRtcDataChannel)
+
                     WebRtc.DataChannel.State.CLOSING -> DataChannelEvent.Closing(this@JvmWebRtcDataChannel)
+
                     WebRtc.DataChannel.State.CLOSED -> {
                         stopReceivingMessages()
                         DataChannelEvent.Closed(this@JvmWebRtcDataChannel)
