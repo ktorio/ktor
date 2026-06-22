@@ -196,6 +196,10 @@ private fun checkOrigin(
     }
 
     allowSameOrigin && isSameOrigin(origin, request.origin) -> {
+        if (request.isCorsPreflightRequest()) {
+            LOGGER.trace { "${request.id()}: Handle same-origin CORS preflight" }
+            return OriginCheckResult.OK
+        }
         LOGGER.trace { "${request.id()}: Skip CORS handler because Origin $origin matches the server origin exactly" }
         OriginCheckResult.SkipCORS
     }
