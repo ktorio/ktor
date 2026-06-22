@@ -62,6 +62,8 @@ public class KotlinxSerializationConverter(
             return ext.deserialize(charset, typeInfo, ByteReadChannel(contentPacket)) ?: continue
         }
 
+        if (contentPacket.exhausted()) return null
+
         val serializer = format.serializersModule.serializerForTypeInfo(typeInfo)
 
         try {
