@@ -1,5 +1,7 @@
 # Custom toolchain using Konan configuration
-if(DEFINED ENV{TOOLCHAIN_LLVM_HOME})
+if(DEFINED ENV{TOOLCHAIN_LLVM_HOME} AND NOT _KONAN_MINGW_TOOLCHAIN)
+    set(_KONAN_MINGW_TOOLCHAIN 1)
+
     # Normalize path to avoid backslash escape issues on Windows
     file(TO_CMAKE_PATH "$ENV{TOOLCHAIN_LLVM_HOME}" LLVM_HOME)
 
@@ -16,8 +18,8 @@ if(DEFINED ENV{TOOLCHAIN_LLVM_HOME})
     if(DEFINED ENV{TOOLCHAIN_LINKER})
         file(TO_CMAKE_PATH "$ENV{TOOLCHAIN_LINKER}" LINKER_PATH)
         set(CMAKE_LINKER "${LINKER_PATH}")
-        string(APPEND CMAKE_EXE_LINKER_FLAGS " -fuse-ld=${LINKER_PATH}")
-        string(APPEND CMAKE_SHARED_LINKER_FLAGS " -fuse-ld=${LINKER_PATH}")
+        string(APPEND CMAKE_EXE_LINKER_FLAGS_INIT " -fuse-ld=${LINKER_PATH}")
+        string(APPEND CMAKE_SHARED_LINKER_FLAGS_INIT " -fuse-ld=${LINKER_PATH}")
     endif()
 endif()
 
