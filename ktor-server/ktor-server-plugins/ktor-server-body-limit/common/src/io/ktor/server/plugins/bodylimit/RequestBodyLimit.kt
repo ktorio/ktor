@@ -59,8 +59,9 @@ public val RequestBodyLimit: RouteScopedPlugin<RequestBodyLimitConfig> = createR
 }
 
 @OptIn(DelicateCoroutinesApi::class)
-internal fun ByteReadChannel.applyLimit(limit: Long): ByteReadChannel =
-    GlobalScope.writer {
+internal fun ByteReadChannel.applyLimit(limit: Long): ByteReadChannel {
+    if (isClosedForRead) return this
+    return GlobalScope.writer {
         var total = 0L
         ByteArrayPool.useInstance { array ->
             while (!isClosedForRead) {
@@ -77,6 +78,7 @@ internal fun ByteReadChannel.applyLimit(limit: Long): ByteReadChannel =
             closedCause?.let { throw it }
         }
     }.channel
+}
 
 private object BeforeReceive : Hook<(PipelineCall, ByteReadChannel) -> ByteReadChannel?> {
 
