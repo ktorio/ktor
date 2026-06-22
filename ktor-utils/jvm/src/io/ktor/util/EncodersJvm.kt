@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.util
@@ -10,6 +10,7 @@ import io.ktor.utils.io.core.*
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
+import kotlinx.io.EOFException
 import java.nio.ByteBuffer
 import java.util.zip.CRC32
 import java.util.zip.Checksum
@@ -139,7 +140,9 @@ private fun inflate(
         readBuffer.flip()
 
         while (!inflater.finished()) {
-            totalSize += inflater.inflateTo(channel, writeBuffer, checksum)
+            val inflated = inflater.inflateTo(channel, writeBuffer, checksum)
+            if (inflated == 0 && inflater.needsInput()) throw EOFException("Compressed input is incomplete.")
+            totalSize += inflated
             readBuffer.position(readBuffer.limit() - inflater.remaining)
         }
 
@@ -170,6 +173,7 @@ private suspend fun Inflater.inflateTo(channel: ByteWriteChannel, buffer: ByteBu
     buffer.clear()
 
     val inflated = inflate(buffer.array(), buffer.position(), buffer.remaining())
+    check(inflated > 0 || needsInput() || finished()) { "Inflater made no progress." }
     buffer.position(buffer.position() + inflated)
     buffer.flip()
 
