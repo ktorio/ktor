@@ -78,7 +78,7 @@ swagger-parser = "2.1.44"
 
 tomlj = "1.1.1"
 
-zstd-jni = "1.5.7-9"
+zstd-jni = "1.5.7-11"
 
 # Keep it in sync with build-settings-logic/settings.gradle.kts
 # TODO: Remove module 'develocity-patched' after updating Develocity plugin to 4.4+
