@@ -510,7 +510,7 @@ class DependencyInjectionTest {
 
     @Test
     fun cleanup() = runTest {
-        val closed = mutableSetOf<Any>()
+        val closed = mutableListOf<Any>()
         val closer1 = object : Closer {
             override fun closeMe() {
                 closed += this
@@ -556,7 +556,7 @@ class DependencyInjectionTest {
 
         assertEquals(
             listOf(closer2, closer1, autoCloseable),
-            closed.toList(),
+            closed,
             "Expected all dependencies to be closed in the correct order"
         )
     }

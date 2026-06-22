@@ -163,18 +163,23 @@ public val DI: ApplicationPlugin<DependencyInjectionConfig> =
             }
             monitor.subscribe(ApplicationStopping) {
                 for ((key, initializer) in dependencyMap.entries.reversed()) {
-                    if (initializer is DependencyInitializer.Ambiguous ||
-                        initializer is DependencyInitializer.Missing
-                    ) {
-                        continue
-                    }
-                    try {
-                        val instance = registry.getDeferred<Any?>(key).tryGetCompleted() ?: continue
-                        registry.shutdownHooks[key]?.invoke(instance)
-                        onShutdown(key, instance)
-                    } catch (e: Throwable) {
-                        if (e !is CancellationException) {
-                            environment.log.warn("Exception during cleanup for $key; continuing", e)
+                    when (initializer) {
+                        is DependencyInitializer.Ambiguous,
+                        is DependencyInitializer.Missing,
+                        is DependencyInitializer.Null,
+                        is DependencyInitializer.Implicit -> continue
+
+                        is DependencyInitializer.Explicit,
+                        is DependencyInitializer.Value -> {
+                            try {
+                                val instance = registry.getDeferred<Any?>(key).tryGetCompleted() ?: continue
+                                registry.shutdownHooks[key]?.invoke(instance)
+                                onShutdown(key, instance)
+                            } catch (e: Throwable) {
+                                if (e is CancellationException) throw e
+
+                                environment.log.warn("Exception during cleanup for $key; continuing", e)
+                            }
                         }
                     }
                 }
