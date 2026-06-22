@@ -42,7 +42,7 @@ jackson-annotations = "2.21"
 
 junit = "5.14.4"
 slf4j = "2.0.18"
-logback = "1.5.33"
+logback = "1.5.34"
 
 dropwizard = "4.2.39"
 micrometer = "1.16.5"
@@ -50,9 +50,7 @@ micrometer = "1.16.5"
 jansi = "2.4.3"
 typesafe = "1.4.8"
 
-# Version 1.14.6 is not compatible with Java 11.
-# Wait until https://github.com/mockk/mockk/issues/1433 is resolved.
-mockk = "1.14.9"
+mockk = "1.14.11"
 
 java-jwt = "4.5.2"
 
@@ -87,7 +85,7 @@ zstd-jni = "1.5.7-9"
 develocity = "4.3.2" # Should be compatible with our server: ge.jetbrains.com
 develocity-commonCustomUserData = "2.6.0"
 gradleDoctor = "0.12.1"
-mavenPublishing = "0.36.0"
+mavenPublishing = "0.37.0"
 
 android-compileSdk = "36"
 android-minSdk = "28"
@@ -262,4 +260,4 @@ kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 
 doctor = { id = "com.osacky.doctor", version.ref = "gradleDoctor" }
 
-buildconfig = { id = "com.github.gmazzo.buildconfig", version = "6.0.9" }
+buildconfig = { id = "com.github.gmazzo.buildconfig", version = "6.0.10" }
