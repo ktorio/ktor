@@ -18,6 +18,7 @@ kotlin {
         }
         jvmTest.dependencies {
             implementation(projects.ktorClientContentNegotiationTests)
+            implementation(projects.ktorServerBodyLimit)
         }
         commonTest.dependencies {
             implementation(projects.ktorSerializationKotlinxTests)

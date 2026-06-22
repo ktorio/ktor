@@ -58,7 +58,6 @@ public class KotlinxSerializationConverter(
         val contentPacket = content.readRemaining()
 
         for (ext in extensions) {
-            if (contentPacket.exhausted()) return null
             return ext.deserialize(charset, typeInfo, ByteReadChannel(contentPacket)) ?: continue
         }
 

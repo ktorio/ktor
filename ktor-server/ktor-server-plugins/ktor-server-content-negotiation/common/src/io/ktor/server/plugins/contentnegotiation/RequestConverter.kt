@@ -62,17 +62,16 @@ private suspend fun convertBody(
         return null
     }
 
-    val converter = registration.converter
+    val isEmpty = body.isClosedForRead || !body.awaitContent()
+    val isNullable = receiveType.kotlinType?.isMarkedNullable == true
+    if (isEmpty && isNullable) {
+        return NullBody
+    }
+
     val convertedBody = try {
-        converter.deserialize(charsets, receiveType, body)
+        registration.converter.deserialize(charsets, receiveType, body)
     } catch (cause: Throwable) {
         throw BadRequestException("Failed to convert request body to ${receiveType.type}", cause)
     }
-
-    return when {
-        convertedBody != null -> convertedBody
-        !body.isClosedForRead -> null
-        receiveType.kotlinType?.isMarkedNullable == true -> NullBody
-        else -> null
-    }
+    return convertedBody ?: if (isNullable) NullBody else null
 }

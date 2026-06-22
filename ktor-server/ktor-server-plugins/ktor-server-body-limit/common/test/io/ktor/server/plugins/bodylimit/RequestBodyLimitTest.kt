@@ -176,4 +176,10 @@ class RequestBodyLimitTest {
             .readLine()
         assertNull(actual)
     }
+
+    @Test
+    fun channelApplyLimitClosedSourceIsImmediatelyClosed() = runTest {
+        val limited = ByteReadChannel.Empty.applyLimit(10)
+        assertEquals(true, limited.isClosedForRead)
+    }
 }
