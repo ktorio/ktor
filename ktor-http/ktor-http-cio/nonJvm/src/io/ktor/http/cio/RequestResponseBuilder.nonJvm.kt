@@ -5,7 +5,6 @@
 package io.ktor.http.cio
 
 import io.ktor.http.*
-import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.io.*
 
@@ -14,6 +13,7 @@ import kotlinx.io.*
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.RequestResponseBuilder)
  */
+
 public actual class RequestResponseBuilder actual constructor() {
     private val packet = BytePacketBuilder()
 
@@ -95,7 +95,6 @@ public actual class RequestResponseBuilder actual constructor() {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.RequestResponseBuilder.build)
      */
-
     public actual fun build(): Source = packet.build()
 
     /**
@@ -103,7 +102,6 @@ public actual class RequestResponseBuilder actual constructor() {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.RequestResponseBuilder.release)
      */
-
     public actual fun release() {
         packet.close()
     }
