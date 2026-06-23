@@ -5,6 +5,7 @@
 package io.ktor.client.plugins.cache
 
 import io.ktor.client.call.*
+import io.ktor.client.plugins.cache.storage.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -30,14 +31,22 @@ public class HttpCacheEntry internal constructor(
     public val response: HttpResponse,
     public val body: ByteArray
 ) {
-    internal val responseHeaders: Headers = Headers.build {
-        appendAll(response.headers)
-    }
+    internal val responseHeaders: Headers = response.headers.filterForCacheStorage()
 
     internal fun produceResponse(): HttpResponse {
-        val currentClient = response.call.client
-        val call = SavedHttpCall(currentClient, response.call.request, response, body)
-        return call.response
+        val filteredResponse = object : HttpResponse() {
+            override val call: HttpClientCall get() = response.call
+            override val status: HttpStatusCode get() = response.status
+            override val version: HttpProtocolVersion get() = response.version
+            override val requestTime: GMTDate get() = response.requestTime
+            override val responseTime: GMTDate get() = response.responseTime
+            override val headers: Headers get() = responseHeaders
+            override val coroutineContext get() = response.coroutineContext
+
+            @OptIn(InternalAPI::class)
+            override val rawContent: ByteReadChannel get() = response.rawContent
+        }
+        return SavedHttpCall(response.call.client, response.call.request, filteredResponse, body).response
     }
 
     override fun equals(other: Any?): Boolean {

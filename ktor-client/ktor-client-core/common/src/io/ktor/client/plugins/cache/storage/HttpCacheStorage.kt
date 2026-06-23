@@ -161,7 +161,7 @@ public suspend fun CacheStorage.store(
         url = response.call.request.url,
         statusCode = response.status,
         requestTime = response.requestTime,
-        headers = response.headers,
+        headers = response.headers.filterForCacheStorage(),
         version = response.version,
         body = body,
         responseTime = response.responseTime,
@@ -242,21 +242,60 @@ public class CachedResponseData(
     )
 }
 
-private val mergeCacheExcludedHeaders = setOf(
-    HttpHeaders.ContentLength,
+// RFC 9110 §7.6.1 hop-by-hop headers; RFC 9111 §3.1 excepted from storage / §3.2 excepted from update.
+private val hopByHopHeaders = listOf(
     HttpHeaders.Connection,
+    HttpHeaders.TE,
+    HttpHeaders.TransferEncoding,
+    HttpHeaders.Upgrade,
+    HttpHeaders.ContentRange,
+    "Keep-Alive",
+    "Proxy-Connection",
+)
+
+private val proxyAuthHeaders = listOf(
     HttpHeaders.ProxyAuthenticate,
     HttpHeaders.ProxyAuthenticationInfo,
     HttpHeaders.ProxyAuthorization,
 )
 
+private val staticStorageExcludedHeaders = hopByHopHeaders + proxyAuthHeaders
+
+private val connectionOptionsWithoutFieldNames = listOf("close", "keep-alive", "upgrade")
+
+private fun Headers.connectionOptionFieldNames(): Set<String> {
+    val connection = this[HttpHeaders.Connection] ?: return emptySet()
+    return connection.split(',')
+        .map { it.trim() }
+        .filter { it.isNotEmpty() && it.lowercase() !in connectionOptionsWithoutFieldNames }
+        .toSet()
+}
+
+private fun Headers.excludedNamesForCacheStorage(): List<String> {
+    val names = connectionOptionFieldNames()
+    if (names.isEmpty()) return staticStorageExcludedHeaders
+    return staticStorageExcludedHeaders + names
+}
+
+private fun List<String>.containsIgnoreCase(element: String): Boolean =
+    any { it.equals(element, ignoreCase = true) }
+
+internal fun Headers.filterForCacheStorage(): Headers =
+    filterExcluded(excludedNamesForCacheStorage())
+
+private fun Headers.filterExcluded(excluded: List<String>): Headers = Headers.build {
+    for ((name, values) in this@filterExcluded.entries()) {
+        if (excluded.containsIgnoreCase(name)) continue
+        appendAll(name, values)
+    }
+}
+
 internal fun Headers.merge(other: Headers): Headers = Headers.build {
     appendAll(this@merge)
-    for (name in other.names()) {
-        if (mergeCacheExcludedHeaders.any { it.equals(name, ignoreCase = true) }) {
-            continue
-        }
+    val excluded = other.excludedNamesForCacheStorage() + HttpHeaders.ContentLength
+    for ((name, values) in other.entries()) {
+        if (excluded.containsIgnoreCase(name)) continue
         remove(name)
-        other.getAll(name)?.let { values -> appendAll(name, values) }
+        appendAll(name, values)
     }
 }
