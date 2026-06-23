@@ -16,7 +16,7 @@ internal actual suspend fun PipelineContext<Any, PipelineCall>.defaultPlatformTr
 ): Any? = null
 
 internal actual fun PipelineContext<*, PipelineCall>.multiPartData(rc: ByteReadChannel): MultiPartData =
-    error("Multipart is not supported in JS/Wasm")
+    error("Multipart is not supported on non JVM platforms")
 
 internal actual fun Source.readTextWithCustomCharset(charset: Charset): String =
-    error("Charset $charset is not supported in JS/Wasm")
+    error("Charset $charset is not supported on non JVM platforms")
