@@ -16,65 +16,61 @@ import io.ktor.server.response.*
 import io.ktor.utils.io.*
 import org.slf4j.Logger
 
-private const val AuthorizationHeaderLogLimit: Int = 96
+private const val HEADER_LOG_LIMIT: Int = 96
 
 @OptIn(InternalAPI::class)
-internal fun <P : Any> OidcProvider<P>.createBearerScheme(): OidcBearerScheme<P> {
+internal fun <P : Any> OidcProvider<P>.createBearerScheme(): DefaultAuthScheme<P, AuthenticatedContext<P>> {
     val extractor = bearerConfig.tokenExtractor
     return bearer(
         name = "$name-bearer",
         principalType = principalType,
-        contextFactory = { default -> OidcBearerContext(default, provider = this) },
+        contextFactory = { it },
     ) {
         description = "OpenID Connect Bearer"
 
-        authHeader { call -> call.extractBearerHeader(extractor, logger) }
+        authHeader { call -> call.extractBearerHeader(extractor, logger.takeIf { developmentMode }) }
 
         authenticate { credential ->
             runCatching {
                 val principal = verifyAccessToken(credential.token)
                 transformPrincipal(principal)
-            }.onFailure {
-                logger.trace("OpenID access token authentication failed {}", it.message)
+            }.onFailure { cause ->
+                logger.trace("OpenID access token authentication failed $cause")
             }.getOrNull()
         }
 
-        onUnauthorized = { _ ->
-            val challenge = HttpAuthHeader.Parameterized(
-                authScheme = AuthScheme.Bearer,
-                parameters = emptyMap(),
-            )
+        onUnauthorized = {
+            val challenge = HttpAuthHeader.Parameterized(AuthScheme.Bearer, parameters = emptyMap())
             call.respond(UnauthorizedResponse(challenge))
         }
     }
 }
 
-private fun ApplicationCall.extractBearerHeader(extractor: TokenExtractor?, logger: Logger): HttpAuthHeader? {
-    val token = if (extractor == null) {
-        val header = request.headers[HttpHeaders.Authorization] ?: return null
-        val parsed = runCatching {
-            parseAuthorizationHeader(headerValue = header)
-        }.onFailure { cause ->
-            logger.trace(
+private fun ApplicationCall.extractBearerHeader(extractor: TokenExtractor?, logger: Logger?): HttpAuthHeader? {
+    if (extractor != null) {
+        val blob = extractor(this) ?: return null
+        return HttpAuthHeader.Single(AuthScheme.Bearer, blob)
+    }
+    val header = request.headers[HttpHeaders.Authorization] ?: return null
+    val bearer = runCatching { parseAuthorizationHeader(header) }
+        .onFailure { cause ->
+            logger?.trace(
                 "Malformed OpenID Connect Authorization header ignored: '{}': {}",
                 header.truncateForLog(),
                 cause.message,
             )
         }.getOrNull()
-        val bearer = parsed as? HttpAuthHeader.Single
-        bearer?.takeIf { it.authScheme == AuthScheme.Bearer }?.blob
-    } else {
-        extractor(this)
+    if (bearer !is HttpAuthHeader.Single || bearer.authScheme != AuthScheme.Bearer) {
+        return null
     }
-    val blob = token?.takeIf { it.isNotBlank() } ?: return null
-    return HttpAuthHeader.Single(authScheme = AuthScheme.Bearer, blob = blob)
+    return HttpAuthHeader.Single(AuthScheme.Bearer, bearer.blob)
 }
 
 private fun String.truncateForLog(): String {
     val sanitized = replace('\r', ' ').replace('\n', ' ')
-    return if (sanitized.length <= AuthorizationHeaderLogLimit) {
+    return if (sanitized.length <= HEADER_LOG_LIMIT) {
         sanitized
     } else {
-        sanitized.take(AuthorizationHeaderLogLimit) + "..."
+        sanitized.take(HEADER_LOG_LIMIT) + "..."
     }
 }
