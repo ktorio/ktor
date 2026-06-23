@@ -127,9 +127,6 @@ public class OidcProviderConfig<P : Any> internal constructor(
     internal var accessTokenConfig: OidcAccessTokenConfig? = null
     internal var bearerConfig: OidcBearerConfig? = null
 
-    internal val accessTokenAllowed: Boolean
-        get() = accessTokenConfig != null
-
     /**
      * Configures JWT verification for JWT access tokens.
      */
@@ -270,7 +267,7 @@ public class OidcJwtConfig internal constructor() {
     /**
      * Configures rate limiting for JWKS endpoint requests.
      *
-     * @param bucketSize maximum number of requests allowed in the time window, defaults to 10.
+     * @param bucketSize the maximum number of requests allowed in the time window, defaults to 10.
      * @param refillDuration time window for the rate limit bucket, defaults to 1 minute.
      */
     public fun jwkRateLimit(bucketSize: Long = 10, refillDuration: Duration = 1.minutes) {
