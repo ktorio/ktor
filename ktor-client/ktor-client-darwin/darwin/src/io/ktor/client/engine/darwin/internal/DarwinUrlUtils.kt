@@ -10,13 +10,14 @@ import platform.Foundation.*
 
 // Old version of macOS/iOS might not allow semicolon ';' in path for
 // compatibility with RFC 1808 (obsolete). However, ';' is a valid character according to RFC-3986.
-private val pathAllowedCharacters = if (NSCharacterSet.URLPathAllowedCharacterSet.characterIsMember(';'.code.toUShort())) {
-    NSCharacterSet.URLPathAllowedCharacterSet
-} else {
-    (NSCharacterSet.URLPathAllowedCharacterSet.mutableCopy() as NSMutableCharacterSet).apply {
-        addCharactersInString(";")
+private val pathAllowedCharacters =
+    if (NSCharacterSet.URLPathAllowedCharacterSet.characterIsMember(';'.code.toUShort())) {
+        NSCharacterSet.URLPathAllowedCharacterSet
+    } else {
+        (NSCharacterSet.URLPathAllowedCharacterSet.mutableCopy() as NSMutableCharacterSet).apply {
+            addCharactersInString(";")
+        }
     }
-}
 
 internal fun Url.toNSUrl(): NSURL {
     val userEncoded = encodedUser.orEmpty().isEncoded(NSCharacterSet.URLUserAllowedCharacterSet)
