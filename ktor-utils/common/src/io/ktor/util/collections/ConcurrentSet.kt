@@ -20,7 +20,7 @@ public fun <Key : Any> ConcurrentSet(): MutableSet<Key> = object : MutableSet<Ke
     }
 
     override fun addAll(elements: Collection<Key>): Boolean =
-        fold(false) { modified, element -> add(element) || modified }
+        elements.fold(false) { modified, element -> add(element) || modified }
 
     override fun clear() {
         delegate.clear()
@@ -44,7 +44,7 @@ public fun <Key : Any> ConcurrentSet(): MutableSet<Key> = object : MutableSet<Ke
     override fun remove(element: Key): Boolean = delegate.remove(element) != null
 
     override fun removeAll(elements: Collection<Key>): Boolean =
-        fold(false) { modified, element -> remove(element) || modified }
+        elements.fold(false) { modified, element -> remove(element) || modified }
 
     override fun retainAll(elements: Collection<Key>): Boolean {
         val removeList = mutableSetOf<Key>()
