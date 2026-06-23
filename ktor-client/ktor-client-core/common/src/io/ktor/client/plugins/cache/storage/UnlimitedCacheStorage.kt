@@ -30,18 +30,9 @@ internal class UnlimitedCacheStorage : HttpCacheStorage() {
     override fun findByUrl(url: Url): Set<HttpCacheEntry> = store[url] ?: emptySet()
 
     internal fun remove(url: Url, varyKeys: Map<String, String>) =
-        store[url]?.remove(varyKeys) { it.varyKeys }
-}
-
-private inline fun <E> MutableSet<E>.remove(
-    varyKeys: Map<String, String>,
-    crossinline entryVaryKeys: (E) -> Map<String, String>
-) {
-    val entriesToRemove = filter { entry ->
-        val keys = entryVaryKeys(entry)
-        varyKeys.size == keys.size && varyKeys.all { (key, value) -> keys[key] == value }
-    }
-    entriesToRemove.forEach { remove(it) }
+        store[url]?.removeAll { entry ->
+            varyKeys.size == entry.varyKeys.size && varyKeys.all { (key, value) -> entry.varyKeys[key] == value }
+        }
 }
 
 internal class UnlimitedStorage : CacheStorage {
@@ -66,7 +57,9 @@ internal class UnlimitedStorage : CacheStorage {
     override suspend fun findAll(url: Url): Set<CachedResponseData> = store[url] ?: emptySet()
 
     override suspend fun remove(url: Url, varyKeys: Map<String, String>) {
-        store[url]?.remove(varyKeys) { it.varyKeys }
+        store[url]?.removeAll { entry ->
+            varyKeys.size == entry.varyKeys.size && varyKeys.all { (key, value) -> entry.varyKeys[key] == value }
+        }
     }
 
     override suspend fun removeAll(url: Url) {
