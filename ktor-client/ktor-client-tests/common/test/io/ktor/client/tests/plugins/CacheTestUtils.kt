@@ -410,7 +410,7 @@ internal suspend fun testMaxStaleScenario(cache: CacheTestFixtures, client: Http
     val staleMaxInt = client.get(url) {
         header(HttpHeaders.CacheControl, "max-stale=${Int.MAX_VALUE}")
     }
-    assertEquals("110", stale.headers[HttpHeaders.Warning])
+    assertEquals("110", staleMaxInt.headers[HttpHeaders.Warning])
     val staleMaxIntBody = staleMaxInt.body<String>()
     assertEquals(original, staleMaxIntBody)
 
@@ -521,7 +521,7 @@ internal suspend fun testPublicAndPrivateCacheScenario(cache: CacheTestFixtures,
     val firstPrivate = client.get(privateUrl).body<String>()
     assertEquals("private", firstPrivate)
     assertEquals(1, cache.privateEntries(privateUrl).size)
-    assertEquals(0, cache.publicEntries(publicUrl).size)
+    assertEquals(0, cache.publicEntries(privateUrl).size)
     val privateCacheEntry = cache.privateEntries(privateUrl).first().raw
 
     val firstPublic = client.get(publicUrl).body<String>()
