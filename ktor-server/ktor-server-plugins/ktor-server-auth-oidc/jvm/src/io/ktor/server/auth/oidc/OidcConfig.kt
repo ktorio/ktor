@@ -492,7 +492,21 @@ public class OidcOAuthConfig<P : Any> internal constructor(
      */
     public var stateEncryptionKey: OidcStateEncryptionKey? = null
 
-    internal var pkceEnabled: Boolean = true
+    /**
+     * Code challenge method used for PKCE (RFC 7636) during the authorization code flow.
+     *
+     * Only [CodeChallengeMethod.S256] is supported.
+     *
+     * When enabled, a per-request code verifier is generated and stored in the encrypted state cookie. The
+     * authorization request adds the `code_challenge` (the Base64URL-encoded, unpadded SHA-256 digest of the
+     * verifier) and `code_challenge_method` (`S256`) parameters, and the token exchange request adds the matching
+     * `code_verifier` parameter so the provider can verify the challenge.
+     *
+     * Set to `null` to disable PKCE. Use this only with legacy OpenID Providers that reject PKCE parameters.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcOAuthConfig.codeChallengeMethod)
+     */
+    public var codeChallengeMethod: CodeChallengeMethod? = CodeChallengeMethod.S256
 
     /**
      * Code challenge method used for PKCE (RFC 7636) during the authorization code flow.
@@ -533,17 +547,6 @@ public class OidcOAuthConfig<P : Any> internal constructor(
      * Called when OAuth, OpenID Connect verification, or principal mapping fails during the callback.
      */
     internal var onFailure: UnauthorizedHandler = { call.respond(HttpStatusCode.Unauthorized) }
-
-    /**
-     * Disables PKCE (RFC 7636).
-     *
-     * Use only with legacy OpenID Providers that reject PKCE parameters.
-     *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcOAuthConfig.disablePkce)
-     */
-    public fun disablePkce() {
-        pkceEnabled = false
-    }
 
     /**
      * Sets the handler called after a successful OAuth/OIDC login.
