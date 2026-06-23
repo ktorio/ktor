@@ -96,7 +96,7 @@ class OidcOAuthCallbackTest {
                 oauth {
                     clientId = "client-id"
                     clientSecret = "client-secret"
-                    disablePkce()
+                    codeChallengeMethod = null
                     onSuccess { principal ->
                         val idToken = principal as OidcToken.Id
                         call.respondText("signed in ${idToken.userInfo.subject}")

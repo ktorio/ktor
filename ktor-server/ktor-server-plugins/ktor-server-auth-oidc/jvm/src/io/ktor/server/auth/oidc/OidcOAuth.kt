@@ -23,7 +23,9 @@ internal fun <P : Any> Application.configureOAuthRoute(provider: OidcProvider<P>
         // Manual login redirect: generates per-request state + OIDC nonce and redirects to IDP.
         get(loginPath) {
             val oauthState = generateNonceSuspend()
-            val authorizationTransaction = call.createAuthorizationTransaction(provider.stateCodec, oauthState)
+            val codeChallengeMethod = config.codeChallengeMethod ?: CodeChallengeMethod.S256
+            val authorizationTransaction =
+                call.createAuthorizationTransaction(provider.stateCodec, codeChallengeMethod, oauthState)
 
             val redirectUriStr = call.request.oidcRedirectUri(config.redirectUri)
 
@@ -35,9 +37,9 @@ internal fun <P : Any> Application.configureOAuthRoute(provider: OidcProvider<P>
                 parameters.append("scope", config.scopes.joinToString(" "))
                 parameters.append("state", oauthState)
                 parameters.append("nonce", authorizationTransaction.nonce)
-                if (config.pkceEnabled) {
+                config.codeChallengeMethod?.let { method ->
                     parameters.append("code_challenge", authorizationTransaction.codeChallenge())
-                    parameters.append("code_challenge_method", PkceCodeChallengeMethod)
+                    parameters.append("code_challenge_method", method.name)
                 }
                 config.resourceIndicators.forEach { parameters.append("resource", it) }
             }.buildString()

@@ -12,9 +12,6 @@ import io.ktor.server.sessions.SameSite
 import io.ktor.util.*
 import kotlin.io.encoding.Base64
 
-private const val PkceCodeVerifierLength: Int = 64
-internal const val PkceCodeChallengeMethod: String = "S256"
-
 private val CookieMaxAgeSeconds = AuthorizationTransactionTtl.inWholeSeconds.toInt()
 internal const val OidcStateCookieName = "KTOR_OIDC_STATE"
 
@@ -45,10 +42,12 @@ private val ApplicationCall.secureCookie: Boolean
 
 internal suspend fun ApplicationCall.createAuthorizationTransaction(
     stateCodec: OidcStateCodec,
+    method: CodeChallengeMethod,
     state: String,
 ): OidcAuthorizationTransaction {
+    require(method is CodeChallengeMethod.S256) { "Only S256 code challenge method is supported" }
     val nonce = generateNonceSuspend()
-    val codeVerifier = generateNonceSuspend(length = PkceCodeVerifierLength)
+    val codeVerifier = generateNonceSuspend(CodeChallengeMethod.S256.VERIFIER_LENGTH)
     val transaction = OidcAuthorizationTransaction(nonce, codeVerifier)
     val cookie = stateCodec.encode(state, transaction).toOidcStateCookie(secureCookie)
     response.cookies.append(cookie)
