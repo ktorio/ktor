@@ -217,7 +217,7 @@ public class Oidc internal constructor(
     }
 
     private suspend fun <P : Any> discoverProvider(config: OidcProviderConfig<P>): OidcProvider<P> {
-        val provider = OidcProvider(config.name, client, config)
+        val provider = OidcProvider(config.name, client, config, application.developmentMode)
         val metadata = config.metadata ?: withContext(Dispatchers.IO) {
             discoverInitialMetadata(provider)
         }

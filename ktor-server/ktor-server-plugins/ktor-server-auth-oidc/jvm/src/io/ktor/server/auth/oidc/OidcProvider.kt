@@ -33,6 +33,7 @@ public class OidcProvider<P : Any> internal constructor(
     public val name: String,
     internal val client: HttpClient,
     internal val config: OidcProviderConfig<P>,
+    internal val developmentMode: Boolean = true
 ) {
     public val issuer: String = config.issuer
 
@@ -132,10 +133,10 @@ public class OidcProvider<P : Any> internal constructor(
      *
      * @throws IllegalStateException when the provider was not configured with `bearer { }`.
      */
-    public val bearer: OidcBearerScheme<P> by lazy { createBearerScheme() }
+    public val bearer: DefaultAuthScheme<P, AuthenticatedContext<P>> by lazy { createBearerScheme() }
 }
 
-private data class OidcProviderState(
+private class OidcProviderState(
     val metadata: OpenIdProviderMetadata,
     val jwkProvider: JwkProvider,
 )
