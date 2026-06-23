@@ -18,6 +18,11 @@ import io.ktor.util.network.*
  * @param url: proxy url address.
  */
 public actual class ProxyConfig(public val url: Url) {
+    @Deprecated("ProxyConfig should accept a url", level = DeprecationLevel.ERROR)
+    public constructor() : this(
+        error("ProxyConfig should accept a url")
+    )
+
     override fun toString(): String = buildString {
         url.apply {
             append(protocol.name)
