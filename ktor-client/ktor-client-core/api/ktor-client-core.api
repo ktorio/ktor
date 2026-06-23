@@ -1420,8 +1420,12 @@ public final class io/ktor/client/request/UnixSocketSettings {
 	public final fun getPath ()Ljava/lang/String;
 }
 
-public final class io/ktor/client/request/UnixSockets_jvmAndPosixKt {
+public final class io/ktor/client/request/UnixSocketsKt {
 	public static final fun unixSocket (Lio/ktor/client/request/HttpRequestBuilder;Ljava/lang/String;)V
+}
+
+public final class io/ktor/client/request/UnixSockets_jvmAndPosixKt {
+	public static final synthetic fun unixSocket (Lio/ktor/client/request/HttpRequestBuilder;Ljava/lang/String;)V
 }
 
 public final class io/ktor/client/request/UtilsKt {
