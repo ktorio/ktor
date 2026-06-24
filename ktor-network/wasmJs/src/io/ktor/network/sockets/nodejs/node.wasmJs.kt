@@ -9,7 +9,7 @@ internal actual fun Throwable.toJsError(): JsError? = jsError(message)
 
 private fun jsError(message: String?): JsError = js("(new Error(message))")
 
-internal actual fun jsTypeOf(a: JsAny): String = js("(typeof obj)")
+internal actual fun jsTypeOf(a: JsAny): String = js("(typeof a)")
 
 // modules
 
