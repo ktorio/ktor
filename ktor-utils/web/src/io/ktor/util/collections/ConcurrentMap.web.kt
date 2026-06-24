@@ -39,7 +39,7 @@ public actual class ConcurrentMap<Key, Value> public actual constructor(initialC
         get() = delegate.entries
 
     actual override val keys: MutableSet<Key>
-        get() = delegate.keys
+        get() = LinkedHashSet(delegate.keys)
 
     actual override val values: MutableCollection<Value>
         get() = delegate.values

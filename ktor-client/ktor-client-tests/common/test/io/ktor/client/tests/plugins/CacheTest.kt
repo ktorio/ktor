@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.tests.plugins
@@ -7,107 +7,42 @@ package io.ktor.client.tests.plugins
 import io.ktor.client.call.*
 import io.ktor.client.engine.mock.*
 import io.ktor.client.plugins.cache.*
-import io.ktor.client.plugins.cache.storage.*
 import io.ktor.client.plugins.logging.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.test.base.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
-import io.ktor.util.*
-import io.ktor.util.date.*
-import io.ktor.utils.io.*
-import kotlinx.coroutines.delay
 import kotlin.test.*
+import kotlin.time.Duration.Companion.milliseconds
 
 class CacheTest : ClientLoader() {
 
     @Test
     fun testNoStore() = clientTests {
-        val publicStorage = CacheStorage.Unlimited()
-        val privateStorage = CacheStorage.Unlimited()
-        config {
-            install(HttpCache) {
-                publicStorage(publicStorage)
-                privateStorage(privateStorage)
-            }
-        }
-
-        test { client ->
-            val url = Url("$TEST_SERVER/cache/no-store")
-
-            val first = client.get(url).body<String>()
-            assertTrue(privateStorage.findAll(url).isEmpty())
-            assertTrue(publicStorage.findAll(url).isEmpty())
-
-            val second = client.get(url).body<String>()
-            assertTrue(privateStorage.findAll(url).isEmpty())
-            assertTrue(publicStorage.findAll(url).isEmpty())
-
-            assertNotEquals(first, second)
-        }
+        val cache = CacheTestFixtures.modern()
+        config { install(cache) }
+        test { client -> testNoStoreScenario(cache, client, Url("$TEST_SERVER/cache/no-store")) }
     }
 
     @Test
     fun testNoCache() = clientTests {
-        val publicStorage = CacheStorage.Unlimited()
-        val privateStorage = CacheStorage.Unlimited()
-        config {
-            install(HttpCache) {
-                publicStorage(publicStorage)
-                privateStorage(privateStorage)
-            }
-        }
-
-        test { client ->
-            val url = Url("$TEST_SERVER/cache/no-cache")
-
-            val first = client.get(url).body<String>()
-            assertEquals(1, publicStorage.findAll(url).size)
-            assertEquals(0, privateStorage.findAll(url).size)
-
-            val second = client.get(url).body<String>()
-            assertEquals(1, publicStorage.findAll(url).size)
-            assertEquals(0, privateStorage.findAll(url).size)
-
-            assertNotEquals(first, second)
-        }
+        val cache = CacheTestFixtures.modern()
+        config { install(cache) }
+        test { client -> testNoCacheScenario(cache, client, Url("$TEST_SERVER/cache/no-cache")) }
     }
 
     @Test
     fun testETagCache() = clientTests(except("Js")) {
-        val publicStorage = CacheStorage.Unlimited()
-        val privateStorage = CacheStorage.Unlimited()
-        config {
-            install(HttpCache) {
-                publicStorage(publicStorage)
-                privateStorage(privateStorage)
-            }
-        }
-
-        test { client ->
-            val url = Url("$TEST_SERVER/cache/etag")
-
-            val first = client.get(url).body<String>()
-            assertEquals(1, publicStorage.findAll(url).size)
-
-            val second = client.get(url).body<String>()
-            assertEquals(1, publicStorage.findAll(url).size)
-
-            assertEquals(first, second)
-        }
+        val cache = CacheTestFixtures.modern()
+        config { install(cache) }
+        test { client -> testETagCacheScenario(cache, client, Url("$TEST_SERVER/cache/etag")) }
     }
 
     @Test
     fun testReuseCacheStorage() = clientTests(except("Js")) {
-        val publicStorage = CacheStorage.Unlimited()
-        val privateStorage = CacheStorage.Unlimited()
-        config {
-            install(HttpCache) {
-                publicStorage(publicStorage)
-                privateStorage(privateStorage)
-            }
-        }
+        val cache = CacheTestFixtures.modern()
+        config { install(cache) }
 
         test { client ->
             val client1 = client.config { }
@@ -125,251 +60,45 @@ class CacheTest : ClientLoader() {
 
     @Test
     fun testLastModified() = clientTests(except("Js")) {
-        val publicStorage = CacheStorage.Unlimited()
-        val privateStorage = CacheStorage.Unlimited()
-        config {
-            install(HttpCache) {
-                publicStorage(publicStorage)
-                privateStorage(privateStorage)
-            }
-        }
-
-        test { client ->
-            val url = Url("$TEST_SERVER/cache/last-modified")
-
-            val first = client.get(url).body<String>()
-            assertEquals(1, publicStorage.findAll(url).size)
-
-            val second = client.get(url).body<String>()
-            assertEquals(1, publicStorage.findAll(url).size)
-
-            assertEquals(first, second)
-        }
+        val cache = CacheTestFixtures.modern()
+        config { install(cache) }
+        test { client -> testETagCacheScenario(cache, client, Url("$TEST_SERVER/cache/last-modified")) }
     }
 
     @Test
     fun testVary() = clientTests(except("Js")) {
-        val publicStorage = CacheStorage.Unlimited()
-        val privateStorage = CacheStorage.Unlimited()
-        config {
-            install(HttpCache) {
-                publicStorage(publicStorage)
-                privateStorage(privateStorage)
-            }
-        }
-
-        test { client ->
-            val url = Url("$TEST_SERVER/cache/vary")
-
-            // first header value from Vary
-            val first = client.get(url) {
-                header(HttpHeaders.ContentLanguage, "en")
-            }.body<String>()
-
-            val second = client.get(url) {
-                header(HttpHeaders.ContentLanguage, "en")
-            }.body<String>()
-
-            assertEquals(first, second)
-
-            // second header value from Vary
-            val third = client.get(url) {
-                header(HttpHeaders.ContentLanguage, "ru")
-            }.body<String>()
-
-            assertNotEquals(third, second)
-
-            val fourth = client.get(url) {
-                header(HttpHeaders.ContentLanguage, "ru")
-            }.body<String>()
-
-            assertEquals(third, fourth)
-
-            // first header value from Vary
-            val fifth = client.get(url) {
-                header(HttpHeaders.ContentLanguage, "en")
-            }.body<String>()
-
-            assertEquals(first, fifth)
-
-            // no header value from Vary
-            val sixth = client.get(url).body<String>()
-
-            assertNotEquals(sixth, second)
-            assertNotEquals(sixth, third)
-
-            val seventh = client.get(url).body<String>()
-
-            assertEquals(sixth, seventh)
-        }
+        val cache = CacheTestFixtures.modern()
+        config { install(cache) }
+        test { client -> testVaryScenario(client, Url("$TEST_SERVER/cache/vary")) }
     }
 
     @Test
     fun testVaryStale() = clientTests(except("Js")) {
-        val publicStorage = CacheStorage.Unlimited()
-        val privateStorage = CacheStorage.Unlimited()
-        config {
-            install(HttpCache) {
-                publicStorage(publicStorage)
-                privateStorage(privateStorage)
-            }
-        }
-
-        test { client ->
-            val url = Url("$TEST_SERVER/cache/vary-stale")
-
-            // first header value from Vary
-            val first = client.get(url) {
-                header(HttpHeaders.ContentLanguage, "en")
-            }.body<String>()
-
-            val second = client.get(url) {
-                header(HttpHeaders.ContentLanguage, "en")
-            }.body<String>()
-
-            assertEquals(first, second)
-
-            // second header value from Vary
-            val third = client.get(url) {
-                header(HttpHeaders.ContentLanguage, "ru")
-            }.body<String>()
-
-            assertNotEquals(third, second)
-
-            val fourth = client.get(url) {
-                header(HttpHeaders.ContentLanguage, "ru")
-            }.body<String>()
-
-            assertEquals(third, fourth)
-
-            // first header value from Vary
-            val fifth = client.get(url) {
-                header(HttpHeaders.ContentLanguage, "en")
-            }.body<String>()
-
-            assertEquals(first, fifth)
-
-            // no header value from Vary
-            val sixth = client.get(url).body<String>()
-
-            assertNotEquals(sixth, second)
-            assertNotEquals(sixth, third)
-
-            val seventh = client.get(url).body<String>()
-
-            assertEquals(sixth, seventh)
-        }
+        val cache = CacheTestFixtures.modern()
+        config { install(cache) }
+        test { client -> testVaryScenario(client, Url("$TEST_SERVER/cache/vary-stale")) }
     }
 
-    @OptIn(InternalAPI::class)
     @Test
     fun testNoVaryIn304() = clientTests(except("Js")) {
-        val publicStorage = CacheStorage.Unlimited()
-        val privateStorage = CacheStorage.Unlimited()
-        config {
-            install(HttpCache) {
-                publicStorage(publicStorage)
-                privateStorage(privateStorage)
-            }
-        }
-
-        test { client ->
-            client.receivePipeline.intercept(HttpReceivePipeline.Before) { response ->
-                if (response.status == HttpStatusCode.NotModified) {
-                    val headers = buildHeaders {
-                        response.headers
-                            .filter { name, _ ->
-                                !name.equals(HttpHeaders.Vary, ignoreCase = true)
-                            }
-                            .forEach(::appendAll)
-                    }
-                    proceedWith(
-                        object : HttpResponse() {
-                            override val call get() = response.call
-                            override val rawContent get() = response.rawContent
-                            override val coroutineContext get() = response.coroutineContext
-                            override val headers = headers
-                            override val requestTime get() = response.requestTime
-                            override val responseTime get() = response.responseTime
-                            override val status get() = response.status
-                            override val version get() = response.version
-                        }
-                    )
-                }
-            }
-
-            val url = Url("$TEST_SERVER/cache/vary-stale")
-
-            // first header value from Vary
-            val first = client.get(url) {
-                header(HttpHeaders.ContentLanguage, "en")
-            }.body<String>()
-
-            val second = client.get(url) {
-                header(HttpHeaders.ContentLanguage, "en")
-            }.body<String>()
-
-            assertEquals(first, second)
-
-            // second header value from Vary
-            val third = client.get(url) {
-                header(HttpHeaders.ContentLanguage, "ru")
-            }.body<String>()
-
-            assertNotEquals(third, second)
-
-            val fourth = client.get(url) {
-                header(HttpHeaders.ContentLanguage, "ru")
-            }.body<String>()
-
-            assertEquals(third, fourth)
-
-            // first header value from Vary
-            val fifth = client.get(url) {
-                header(HttpHeaders.ContentLanguage, "en")
-            }.body<String>()
-
-            assertEquals(first, fifth)
-
-            // no header value from Vary
-            val sixth = client.get(url).body<String>()
-
-            assertNotEquals(sixth, second)
-            assertNotEquals(sixth, third)
-
-            val seventh = client.get(url).body<String>()
-
-            assertEquals(sixth, seventh)
-        }
+        val cache = CacheTestFixtures.modern()
+        config { install(cache) }
+        test { client -> testNoVaryIn304Scenario(client, Url("$TEST_SERVER/cache/vary-stale")) }
     }
 
     @Test
     fun testSingleVaryAndMultipleVaryWithSameValues() = testWithEngine(MockEngine) {
-        class FakeResponse {
-            var content: String = ""
-            var status: HttpStatusCode = HttpStatusCode.OK
-            var headers: Headers = headersOf()
-        }
-
         val fakeResponse = FakeResponse()
-        val publicStorage = CacheStorage.Unlimited()
-        val privateStorage = CacheStorage.Unlimited()
+        val cache = CacheTestFixtures.modern()
         config {
-            install(HttpCache) {
-                publicStorage(publicStorage)
-                privateStorage(privateStorage)
-            }
-
+            install(cache)
             engine {
                 addHandler {
-                    respond(
-                        content = fakeResponse.content,
-                        status = fakeResponse.status,
-                        headers = buildHeaders {
-                            fakeResponse.headers.forEach(::appendAll)
-                            append(HttpHeaders.ETag, "W/\"ETAG\"")
-                        },
-                    )
+                    val headers = buildHeaders {
+                        fakeResponse.headers.forEach(::appendAll)
+                        append(HttpHeaders.ETag, "W/\"ETAG\"")
+                    }
+                    respond(fakeResponse.content, fakeResponse.status, headers)
                 }
             }
         }
@@ -378,70 +107,35 @@ class CacheTest : ClientLoader() {
             val url = Url("$TEST_SERVER/cache/vary-multiple")
             val vary = listOf(HttpHeaders.Origin, HttpHeaders.Accept)
 
-            // multiple Vary keys
             fakeResponse.content = "Cache"
             fakeResponse.status = HttpStatusCode.OK
             fakeResponse.headers = buildHeaders {
                 vary.forEach { append(HttpHeaders.Vary, it) }
             }
             val okBody = client.get(url).body<String>()
-            assertEquals(okBody, "Cache")
+            assertEquals("Cache", okBody)
 
-            // single Vary key with comma separated multiple values
             fakeResponse.content = ""
             fakeResponse.status = HttpStatusCode.NotModified
             fakeResponse.headers = headersOf(HttpHeaders.Vary, vary.joinToString(","))
             val notModifiedBody = client.get(url).body<String>()
-            assertEquals(notModifiedBody, okBody)
+            assertEquals(okBody, notModifiedBody)
         }
     }
 
     @Test
     fun testMaxAge() = clientTests {
-        val publicStorage = CacheStorage.Unlimited()
-        val privateStorage = CacheStorage.Unlimited()
-        config {
-            install(HttpCache) {
-                publicStorage(publicStorage)
-                privateStorage(privateStorage)
-            }
-        }
-
-        test { client ->
-            val url = Url("$TEST_SERVER/cache/max-age")
-
-            val first = client.get(url).body<String>()
-            val cache = publicStorage.findAll(url)
-            assertEquals(1, cache.size)
-
-            val second = client.get(url).body<String>()
-
-            assertEquals(first, second)
-            delay(2500)
-
-            val third = client.get(url).body<String>()
-            assertNotEquals(first, third)
-        }
+        val cache = CacheTestFixtures.modern()
+        config { install(cache) }
+        test { client -> testMaxAgeScenario(cache, client, Url("$TEST_SERVER/cache/max-age")) }
     }
 
     @Test
     fun testSMaxAgeWhenIsSharedTrue() = testWithEngine(MockEngine) {
-        class FakeResponse {
-            var content: String = ""
-            var status: HttpStatusCode = HttpStatusCode.OK
-        }
-
         val fakeResponse = FakeResponse()
-        val publicStorage = CacheStorage.Unlimited()
-        val privateStorage = CacheStorage.Unlimited()
+        val cache = CacheTestFixtures.modern()
         config {
-            install(HttpCache) {
-                publicStorage(publicStorage)
-                privateStorage(privateStorage)
-
-                isShared = true
-            }
-
+            install(cache) { isShared = true }
             engine {
                 addHandler {
                     respond(
@@ -462,349 +156,108 @@ class CacheTest : ClientLoader() {
             fakeResponse.content = "First"
             fakeResponse.status = HttpStatusCode.OK
             val firstBody = client.get(url).body<String>()
-            assertEquals(firstBody, "First")
+            assertEquals("First", firstBody)
 
-            // When isShared = true, s-maxage is in used as expiration.
-            // s-maxage doesn't expires yet, therefore this response should not be reflected.
             fakeResponse.content = "Second"
             fakeResponse.status = HttpStatusCode.OK
             val secondBody = client.get(url).body<String>()
-            assertEquals(secondBody, firstBody)
+            assertEquals(firstBody, secondBody)
         }
     }
 
     @Test
     fun testOnlyIfCached() = clientTests {
-        val publicStorage = CacheStorage.Unlimited()
-        val privateStorage = CacheStorage.Unlimited()
-        config {
-            install(HttpCache) {
-                publicStorage(publicStorage)
-                privateStorage(privateStorage)
-            }
-        }
-
-        test { client ->
-            val url = Url("$TEST_SERVER/cache/etag?max-age=10")
-
-            val responseNoCache = client.get(url) {
-                header(HttpHeaders.CacheControl, "only-if-cached")
-            }
-            assertEquals(HttpStatusCode.GatewayTimeout, responseNoCache.status)
-
-            val bodyOriginal = client.get(url).bodyAsText()
-
-            val responseCached = client.get(url) {
-                header(HttpHeaders.CacheControl, "only-if-cached")
-            }
-            val bodyCached = responseCached.bodyAsText()
-            assertEquals(HttpStatusCode.OK, responseCached.status)
-            assertEquals(bodyOriginal, bodyCached)
-        }
+        val cache = CacheTestFixtures.modern()
+        config { install(cache) }
+        test { client -> testOnlyIfCachedScenario(client, Url("$TEST_SERVER/cache/etag?max-age=10")) }
     }
 
     @Test
     fun testMaxStale() = clientTests {
-        val publicStorage = CacheStorage.Unlimited()
-        val privateStorage = CacheStorage.Unlimited()
-        config {
-            install(HttpCache) {
-                publicStorage(publicStorage)
-                privateStorage(privateStorage)
-            }
-        }
-
-        test { client ->
-            val url = Url("$TEST_SERVER/cache/max-age")
-
-            val original = client.get(url).body<String>()
-            val cache = publicStorage.findAll(url)
-            assertEquals(1, cache.size)
-
-            delay(2500)
-
-            val stale = client.get(url) {
-                header(HttpHeaders.CacheControl, "max-stale=4")
-            }
-            assertEquals("110", stale.headers[HttpHeaders.Warning])
-            val staleBody = stale.body<String>()
-            assertEquals(original, staleBody)
-
-            val staleMaxInt = client.get(url) {
-                header(HttpHeaders.CacheControl, "max-stale=${Int.MAX_VALUE}")
-            }
-            assertEquals("110", stale.headers[HttpHeaders.Warning])
-            val staleMaxIntBody = staleMaxInt.body<String>()
-            assertEquals(original, staleMaxIntBody)
-
-            val notStale = client.get(url)
-            val notStaleBody = notStale.body<String>()
-            assertNull(notStale.headers[HttpHeaders.Warning])
-            assertNotEquals(original, notStaleBody)
-        }
+        val cache = CacheTestFixtures.modern()
+        config { install(cache) }
+        test { client -> testMaxStaleScenario(cache, client, Url("$TEST_SERVER/cache/max-age")) }
     }
 
     @Test
     fun testNoStoreRequest() = clientTests(except("Js")) {
-        val publicStorage = CacheStorage.Unlimited()
-        val privateStorage = CacheStorage.Unlimited()
-        config {
-            install(HttpCache) {
-                publicStorage(publicStorage)
-                privateStorage(privateStorage)
-            }
-        }
-
-        test { client ->
-            val url = Url("$TEST_SERVER/cache/etag")
-
-            val first = client.get(url) {
-                header(HttpHeaders.CacheControl, "no-store")
-            }.body<String>()
-            assertEquals(0, publicStorage.findAll(url).size)
-
-            val second = client.get(url).body<String>()
-            assertEquals(1, publicStorage.findAll(url).size)
-
-            assertNotEquals(first, second)
-        }
+        val cache = CacheTestFixtures.modern()
+        config { install(cache) }
+        test { client -> testNoStoreRequestScenario(cache, client, Url("$TEST_SERVER/cache/etag")) }
     }
 
     @Test
     fun testNoCacheRequest() = clientTests(except("Js")) {
-        val publicStorage = CacheStorage.Unlimited()
-        val privateStorage = CacheStorage.Unlimited()
-        config {
-            install(HttpCache) {
-                publicStorage(publicStorage)
-                privateStorage(privateStorage)
-            }
-        }
-
-        test { client ->
-            var requestsCount = 0
-            client.sendPipeline.intercept(HttpSendPipeline.Engine) {
-                requestsCount++
-            }
-
-            val url = Url("$TEST_SERVER/cache/etag?max-age=30")
-
-            val first = client.get(url).body<String>()
-            assertEquals(1, publicStorage.findAll(url).size)
-
-            val second = client.get(url) {
-                header(HttpHeaders.CacheControl, "no-cache")
-            }.body<String>()
-            assertEquals(1, publicStorage.findAll(url).size)
-
-            assertEquals(2, requestsCount)
-            assertEquals(first, second)
-        }
+        val cache = CacheTestFixtures.modern()
+        config { install(cache) }
+        test { client -> testNoCacheRequestScenario(cache, client, Url("$TEST_SERVER/cache/etag?max-age=30")) }
     }
 
     @Test
     fun testRequestWithMaxAge0() = clientTests(except("Js")) {
-        val publicStorage = CacheStorage.Unlimited()
-        val privateStorage = CacheStorage.Unlimited()
-        config {
-            install(HttpCache) {
-                publicStorage(publicStorage)
-                privateStorage(privateStorage)
-            }
-        }
-
-        test { client ->
-            var requestsCount = 0
-            client.sendPipeline.intercept(HttpSendPipeline.Engine) {
-                requestsCount++
-            }
-
-            val url = Url("$TEST_SERVER/cache/etag?max-age=30")
-
-            val first = client.get(url).body<String>()
-            assertEquals(1, publicStorage.findAll(url).size)
-
-            val second = client.get(url) {
-                header(HttpHeaders.CacheControl, "max-age=0")
-            }.body<String>()
-            assertEquals(1, publicStorage.findAll(url).size)
-
-            assertEquals(2, requestsCount)
-            assertEquals(first, second)
-        }
+        val cache = CacheTestFixtures.modern()
+        config { install(cache) }
+        test { client -> testRequestWithMaxAge0Scenario(cache, client, Url("$TEST_SERVER/cache/etag?max-age=30")) }
     }
 
     @Test
     fun testExpires() = clientTests {
-        val publicStorage = CacheStorage.Unlimited()
-        val privateStorage = CacheStorage.Unlimited()
-        config {
-            install(HttpCache) {
-                publicStorage(publicStorage)
-                privateStorage(privateStorage)
-            }
-        }
-
+        val cache = CacheTestFixtures.modern()
+        config { install(cache) }
         test { client ->
-            val now = GMTDate() + 2000L
-            val url = Url("$TEST_SERVER/cache/expires")
-
-            suspend fun getWithHeader(expires: String): String {
-                delayGMTDate(1)
-
-                return client.get(url) {
-                    header("X-Expires", expires)
-                }.body()
-            }
-
-            val first = getWithHeader(now.toHttpDate())
-            val cache = publicStorage.findAll(url)
-            assertEquals(1, cache.size)
-
-            // this should be from the cache
-            val second = client.get(url).body<String>()
-
-            assertEquals(first, second)
-            delay(2500)
-
-            // now it should be already expired
-            val third = client.get(url).body<String>()
-            assertNotEquals(first, third)
-
-            // illegal values: broken, "0" and blank should be treated as already expired
-            // so shouldn't be cached
-            var previous = third
-            getWithHeader("broken-date").let { result ->
-                assertNotEquals(previous, result)
-                previous = result
-            }
-
-            getWithHeader("0").let { result ->
-                assertNotEquals(previous, result)
-                previous = result
-            }
-
-            getWithHeader(" ").let { result ->
-                assertNotEquals(previous, result)
-                previous = result
-            }
-
-            delayGMTDate(1)
-            val last = client.get(url).body<String>()
-            assertNotEquals(previous, last)
+            testExpiresScenario(
+                cache,
+                client,
+                Url("$TEST_SERVER/cache/expires"),
+                expiresOffset = 2000.milliseconds,
+                expireDelay = 2500.milliseconds,
+            )
         }
     }
 
     @Test
     fun testPublicAndPrivateCache() = clientTests {
-        val publicStorage = CacheStorage.Unlimited()
-        val privateStorage = CacheStorage.Unlimited()
-        config {
-            install(HttpCache) {
-                publicStorage(publicStorage)
-                privateStorage(privateStorage)
-            }
-        }
-
-        test { client ->
-            val privateUrl = Url("$TEST_SERVER/cache/private")
-            val publicUrl = Url("$TEST_SERVER/cache/public")
-
-            suspend fun publicCache() = publicStorage.findAll(publicUrl)
-            suspend fun privateCache() = privateStorage.findAll(privateUrl)
-
-            val firstPrivate = client.get(privateUrl).body<String>()
-            assertEquals(firstPrivate, "private")
-            assertEquals(1, privateCache().size)
-            assertEquals(0, publicCache().size)
-            val privateCacheEntry = privateCache().first()
-
-            val firstPublic = client.get(publicUrl).body<String>()
-            assertEquals(firstPublic, "public")
-            assertEquals(1, publicCache().size)
-            assertEquals(1, privateCache().size)
-            val publicCacheEntry = publicCache().first()
-
-            val secondPrivate = client.get(privateUrl).body<String>()
-            assertEquals(secondPrivate, "private")
-
-            assertSame(privateCacheEntry, privateCache().first())
-
-            // Public from cache.
-            val secondPublic = client.get(publicUrl).body<String>()
-            assertEquals(secondPublic, "public")
-
-            assertEquals(1, privateCache().size)
-            assertEquals(1, publicCache().size)
-
-            assertSame(publicCacheEntry, publicCache().first())
-        }
+        val cache = CacheTestFixtures.modern()
+        config { install(cache) }
+        test { client -> testPublicAndPrivateCacheScenario(cache, client) }
     }
 
     @Test
     fun testWithLogging() = clientTests {
-        val publicStorage = CacheStorage.Unlimited()
-        val privateStorage = CacheStorage.Unlimited()
+        val cache = CacheTestFixtures.modern()
         config {
             install(Logging) {
                 level = LogLevel.ALL
                 logger = Logger.EMPTY
             }
-            install(HttpCache) {
-                publicStorage(publicStorage)
-                privateStorage(privateStorage)
-            }
+            install(cache)
         }
-        test { client ->
-            client.receivePipeline.intercept(HttpReceivePipeline.State) { response ->
-                val savedResponse = response.call.save().response
-                proceedWith(savedResponse)
-            }
-            val result = client.get("$TEST_SERVER/content/chunked-data?size=5000").bodyAsText()
-            assertEquals(5000, result.length)
-        }
+        test { client -> testWithLoggingScenario(client) }
     }
 
     @Test
     fun testCachesPrivateByDefault() = clientTests {
-        val publicStorage = CacheStorage.Unlimited()
-        val privateStorage = CacheStorage.Unlimited()
-        config {
-            install(HttpCache) {
-                publicStorage(publicStorage)
-                privateStorage(privateStorage)
-            }
-        }
+        val cache = CacheTestFixtures.modern()
+        config { install(cache) }
         test { client ->
             val privateUrl = Url("$TEST_SERVER/cache/private")
 
-            suspend fun privateCache() = privateStorage.findAll(privateUrl)
-
             val firstPrivate = client.get(privateUrl).body<String>()
-            assertEquals(firstPrivate, "private")
-            assertEquals(1, privateCache().size)
+            assertEquals("private", firstPrivate)
+            assertEquals(1, cache.privateEntries(privateUrl).size)
         }
     }
 
     @Test
     fun testDoesntCachesPrivateWhenShared() = clientTests {
-        val publicStorage = CacheStorage.Unlimited()
-        val privateStorage = CacheStorage.Unlimited()
-        config {
-            install(HttpCache) {
-                publicStorage(publicStorage)
-                privateStorage(privateStorage)
-                isShared = true
-            }
-        }
+        val cache = CacheTestFixtures.modern()
+        config { install(cache) { isShared = true } }
         test { client ->
             val privateUrl = Url("$TEST_SERVER/cache/private")
 
-            suspend fun privateCache() = privateStorage.findAll(privateUrl)
-
             val firstPrivate = client.get(privateUrl).body<String>()
-            assertEquals(firstPrivate, "private")
-            assertEquals(0, privateCache().size)
+            assertEquals("private", firstPrivate)
+            assertEquals(0, cache.privateEntries(privateUrl).size)
         }
     }
 
@@ -837,12 +290,8 @@ class CacheTest : ClientLoader() {
 
     @Test
     fun testDifferentVaryHeaders() = clientTests {
-        val storage = CacheStorage.Unlimited()
-        config {
-            install(HttpCache) {
-                publicStorage(storage)
-            }
-        }
+        val cache = CacheTestFixtures.modern()
+        config { install(cache) }
 
         test { client ->
             val url = "$TEST_SERVER/cache/different-vary"
@@ -852,20 +301,168 @@ class CacheTest : ClientLoader() {
             val second = client.get(url)
 
             assertEquals(first.bodyAsText(), second.bodyAsText())
-            assertEquals(storage.findAll(Url("$TEST_SERVER/cache/different-vary")).size, 1)
+            assertEquals(1, cache.publicEntries(Url(url)).size)
+        }
+    }
+
+    @Test
+    fun test304WithNewlyAddedVaryHeader() = mockCacheTest(url = Url("https://example.com/x")) {
+        val etags = listOf(DEFAULT_ETAG)
+        revalidateHandler(
+            initialHeaders = headersOf(
+                HttpHeaders.ETag to etags,
+                HttpHeaders.CacheControl to listOf(REVALIDATE_CACHE_CONTROL),
+            ),
+            notModifiedHeaders = headersOf(
+                HttpHeaders.ETag to etags,
+                HttpHeaders.Vary to listOf("Origin"),
+            ),
+        )
+
+        testBody = { client ->
+            val first = client.get(url).bodyAsText()
+            assertEquals("body", first)
+
+            val second = client.get(url).bodyAsText()
+            assertEquals("body", second)
+
+            val cached = fixtures.publicEntries(url)
+            assertEquals(1, cached.size)
+            assertEquals(mapOf("origin" to ""), cached.single().varyKeys)
+            assertEquals("Origin", cached.single().headers[HttpHeaders.Vary])
+        }
+    }
+
+    @Test
+    fun test304HopByHopHeadersAreNotMerged() = mockCacheTest(url = Url("https://example.com/hop-by-hop")) {
+        revalidateHandler(
+            initialBody = "data",
+            initialHeaders = defaultRevalidateInitialHeaders(
+                extra = headersOf("X-Custom" to listOf("original")),
+            ),
+            notModifiedHeaders = hopByHop304Headers(),
+        )
+        testBody = { client ->
+            val first = client.get(url)
+            assertEquals("data", first.bodyAsText())
+            assertEquals(REVALIDATE_CACHE_CONTROL, first.headers[HttpHeaders.CacheControl])
+            assertEquals("original", first.headers["X-Custom"])
+
+            val second = client.get(url)
+            assertEquals("data", second.bodyAsText())
+            assertEquals("max-age=120", second.headers[HttpHeaders.CacheControl])
+            assertEquals("original", second.headers["X-Custom"])
+            assertHopByHopAbsent(second.headers)
+
+            val cached = fixtures.publicEntries(url)
+            assertEquals(1, cached.size)
+            assertEquals("max-age=120", cached.single().headers[HttpHeaders.CacheControl])
+            assertNull(cached.single().headers[HttpHeaders.Connection])
+            assertNull(cached.single().headers["Foo"])
+        }
+    }
+
+    @Test
+    fun testHopByHopHeadersAreNotStoredOnInitialCache() = mockCacheTest(
+        url = Url("https://example.com/store-hop-by-hop")
+    ) {
+        handler = {
+            respond(
+                "data",
+                HttpStatusCode.OK,
+                hopByHopOkHeaders(extra = headersOf("X-Custom" to listOf("original")), includeProxyAuth = true),
+            )
+        }
+        testBody = { client ->
+            val first = client.get(url)
+            assertEquals("data", first.bodyAsText())
+            assertEquals("original", first.headers["X-Custom"])
+            assertEquals("4", first.headers[HttpHeaders.ContentLength])
+            assertHopByHopAbsent(first.headers, includeProxyAuth = true)
+
+            val cached = fixtures.publicEntries(url)
+            assertEquals(1, cached.size)
+            assertEquals("original", cached.single().headers["X-Custom"])
+            assertEquals("4", cached.single().headers[HttpHeaders.ContentLength])
+            assertNull(cached.single().headers[HttpHeaders.Connection])
+            assertNull(cached.single().headers["Foo"])
+
+            val second = client.get(url)
+            assertEquals("data", second.bodyAsText())
+            assertNull(second.headers[HttpHeaders.Connection])
+            assertEquals("4", second.headers[HttpHeaders.ContentLength])
+        }
+    }
+
+    @Test
+    fun test304WithoutVaryMatchesByEtag() = mockCacheTest(url = Url("https://example.com/x")) {
+        revalidateHandler(
+            initialHeaders = defaultRevalidateInitialHeaders(
+                extra = headersOf(HttpHeaders.Vary to listOf("Origin")),
+            ),
+            notModifiedHeaders = headersOf(HttpHeaders.ETag, DEFAULT_ETAG),
+        )
+        testBody = { client -> test304WithoutVaryMatchesByEtagScenario(fixtures, client, url) }
+    }
+
+    @Test
+    fun test304WithoutValidatorMatchesSingleStoredResponse() = mockCacheTest(url = Url("https://example.com/x")) {
+        revalidateHandler(
+            match = RevalidationMatch.LastModified,
+            initialHeaders = defaultRevalidateInitialHeaders(match = RevalidationMatch.LastModified),
+            notModifiedHeaders = headersOf(HttpHeaders.CacheControl, "max-age=120"),
+        )
+        testBody = { client ->
+            val first = client.get(url)
+            assertEquals("body", first.bodyAsText())
+            assertEquals(REVALIDATE_CACHE_CONTROL, first.headers[HttpHeaders.CacheControl])
+
+            val second = client.get(url)
+            assertEquals("body", second.bodyAsText())
+            assertEquals("max-age=120", second.headers[HttpHeaders.CacheControl])
+
+            val cached = fixtures.publicEntries(url)
+            assertEquals(1, cached.size)
+            assertEquals("max-age=120", cached.single().headers[HttpHeaders.CacheControl])
+        }
+    }
+
+    @Test
+    fun test304WithoutValidatorIsNotMatchedWhenMultipleStoredResponses() = mockCacheTest(
+        url = Url("https://example.com/x")
+    ) {
+        handler = { request ->
+            if (HttpHeaders.IfModifiedSince !in request.headers) {
+                val variant = request.headers[HttpHeaders.AcceptLanguage] ?: "default"
+                val headers = headersOf(
+                    HttpHeaders.LastModified to listOf(DEFAULT_LAST_MODIFIED),
+                    HttpHeaders.Vary to listOf(HttpHeaders.AcceptLanguage),
+                    HttpHeaders.CacheControl to listOf(REVALIDATE_CACHE_CONTROL),
+                )
+                respond(variant, HttpStatusCode.OK, headers)
+            } else {
+                respond("", HttpStatusCode.NotModified)
+            }
+        }
+        testBody = { client ->
+            val en = client.get(url) { header(HttpHeaders.AcceptLanguage, "en") }.bodyAsText()
+            val es = client.get(url) { header(HttpHeaders.AcceptLanguage, "es") }.bodyAsText()
+            assertEquals("en", en)
+            assertEquals("es", es)
+            assertEquals(2, fixtures.publicEntries(url).size)
+
+            val enAgain = client.get(url) { header(HttpHeaders.AcceptLanguage, "en") }.bodyAsText()
+            assertEquals("en", enAgain)
+
+            val esAgain = client.get(url) { header(HttpHeaders.AcceptLanguage, "es") }.bodyAsText()
+            assertEquals("es", esAgain)
         }
     }
 
     @Test
     fun testVaryHeader() = clientTests {
-        val publicStorage = CacheStorage.Unlimited()
-        val privateStorage = CacheStorage.Unlimited()
-        config {
-            install(HttpCache) {
-                publicStorage(publicStorage)
-                privateStorage(privateStorage)
-            }
-        }
+        val cache = CacheTestFixtures.modern()
+        config { install(cache) }
 
         test { client ->
             val url = Url("$TEST_SERVER/cache/vary-header")
@@ -878,20 +475,13 @@ class CacheTest : ClientLoader() {
                 header("Accept", "application/cbor")
             }
 
-            assertEquals(2, publicStorage.findAll(url).size)
+            assertEquals(2, cache.publicEntries(url).size)
         }
     }
 
     @Test
     fun testCaseSensitiveInVary() = clientTests {
-        val publicStorage = CacheStorage.Unlimited()
-        val privateStorage = CacheStorage.Unlimited()
-        config {
-            install(HttpCache) {
-                publicStorage(publicStorage)
-                privateStorage(privateStorage)
-            }
-        }
+        config { install(cache = CacheTestFixtures.modern()) }
 
         test { client ->
             val url = Url("$TEST_SERVER/cache/vary-header-case-sensitive")
@@ -919,27 +509,5 @@ class CacheTest : ClientLoader() {
             assertEquals("2", response2)
             assertEquals("2", response3)
         }
-    }
-
-    /**
-     * Does delay and ensures that the [GMTDate] measurements report at least
-     * the specified number of [milliseconds].
-     * The reason why it's not the same is that on some platforms time granularity of GMTDate
-     * is not that high and could be even larger than a millisecond.
-     */
-    private suspend fun delayGMTDate(milliseconds: Long) {
-        var delayValue = milliseconds
-
-        do {
-            val start = GMTDate()
-            delay(delayValue)
-            val end = GMTDate()
-            if (end > start + milliseconds) {
-                break
-            }
-            if (delayValue != 1L) {
-                delayValue = 1L
-            }
-        } while (true)
     }
 }

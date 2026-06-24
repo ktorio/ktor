@@ -1,13 +1,15 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.plugins.cache
 
 import io.ktor.client.call.*
+import io.ktor.client.plugins.cache.storage.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import kotlinx.io.readByteArray
@@ -29,14 +31,22 @@ public class HttpCacheEntry internal constructor(
     public val response: HttpResponse,
     public val body: ByteArray
 ) {
-    internal val responseHeaders: Headers = Headers.build {
-        appendAll(response.headers)
-    }
+    internal val responseHeaders: Headers = response.headers.filterForCacheStorage()
 
     internal fun produceResponse(): HttpResponse {
-        val currentClient = response.call.client
-        val call = SavedHttpCall(currentClient, response.call.request, response, body)
-        return call.response
+        val filteredResponse = object : HttpResponse() {
+            override val call: HttpClientCall get() = response.call
+            override val status: HttpStatusCode get() = response.status
+            override val version: HttpProtocolVersion get() = response.version
+            override val requestTime: GMTDate get() = response.requestTime
+            override val responseTime: GMTDate get() = response.responseTime
+            override val headers: Headers get() = responseHeaders
+            override val coroutineContext get() = response.coroutineContext
+
+            @OptIn(InternalAPI::class)
+            override val rawContent: ByteReadChannel get() = response.rawContent
+        }
+        return SavedHttpCall(response.call.client, response.call.request, filteredResponse, body).response
     }
 
     override fun equals(other: Any?): Boolean {
@@ -86,7 +96,7 @@ internal fun HttpResponse.cacheExpires(isShared: Boolean, fallback: () -> GMTDat
 
         return try {
             it.fromHttpToGmtDate()
-        } catch (e: Throwable) {
+        } catch (_: Throwable) {
             fallback()
         }
     } ?: fallback()
@@ -144,4 +154,31 @@ internal enum class ValidateStatus {
     ShouldValidate,
     ShouldNotValidate,
     ShouldWarn,
+}
+
+internal fun etagMatches(cachedEtag: String, validationEtag: String): Boolean =
+    runCatching {
+        val cached = EntityTagVersion.parseSingle(cachedEtag)
+        val validation = EntityTagVersion.parseSingle(validationEtag)
+        return cached.noneMatch(listOf(validation)) == VersionCheckResult.NOT_MODIFIED
+    }.getOrDefault(false)
+
+internal fun HttpCacheEntry.withFreshenedMetadata(
+    expires: GMTDate,
+    varyKeys: Map<String, String>,
+    mergedHeaders: Headers,
+): HttpCacheEntry {
+    val freshenedResponse = object : HttpResponse() {
+        override val call: HttpClientCall get() = response.call
+        override val status: HttpStatusCode get() = response.status
+        override val version: HttpProtocolVersion get() = response.version
+        override val requestTime: GMTDate get() = response.requestTime
+        override val responseTime: GMTDate get() = response.responseTime
+        override val headers: Headers = mergedHeaders
+        override val coroutineContext get() = response.coroutineContext
+
+        @OptIn(InternalAPI::class)
+        override val rawContent: ByteReadChannel get() = response.rawContent
+    }
+    return HttpCacheEntry(expires, varyKeys, freshenedResponse, body)
 }
