@@ -116,9 +116,15 @@ private class DatagramSendChannel(
     override fun trySendImpl(element: Datagram): Boolean = false
 
     override suspend fun sendImpl(element: Datagram) {
+        val target = if (remote == null) {
+            require(element.address is InetSocketAddress) {
+                "Only `InetSocketAddress` is supported for datagram address, got: ${element.address}"
+            }
+            element.address
+        } else {
+            null
+        }
         suspendCancellableCoroutine { cont ->
-            val target = (element.address as InetSocketAddress).takeIf { remote == null }
-
             @OptIn(ExperimentalUnsignedTypes::class)
             val msg = element.packet.readByteArray().asUByteArray().toUint8Array()
             dgramSocket.send(
