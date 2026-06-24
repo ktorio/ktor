@@ -1497,6 +1497,7 @@ final fun (io.ktor.client.request/HttpRequestBuilder).io.ktor.client.request/par
 final fun (io.ktor.client.request/HttpRequestBuilder).io.ktor.client.request/setBody(kotlin/Any?, io.ktor.util.reflect/TypeInfo) // io.ktor.client.request/setBody|setBody@io.ktor.client.request.HttpRequestBuilder(kotlin.Any?;io.ktor.util.reflect.TypeInfo){}[0]
 final fun (io.ktor.client.request/HttpRequestBuilder).io.ktor.client.request/takeFrom(io.ktor.client.request/HttpRequest): io.ktor.client.request/HttpRequestBuilder // io.ktor.client.request/takeFrom|takeFrom@io.ktor.client.request.HttpRequestBuilder(io.ktor.client.request.HttpRequest){}[0]
 final fun (io.ktor.client.request/HttpRequestBuilder).io.ktor.client.request/takeFrom(io.ktor.client.request/HttpRequestData): io.ktor.client.request/HttpRequestBuilder // io.ktor.client.request/takeFrom|takeFrom@io.ktor.client.request.HttpRequestBuilder(io.ktor.client.request.HttpRequestData){}[0]
+final fun (io.ktor.client.request/HttpRequestBuilder).io.ktor.client.request/unixSocket(kotlin/String) // io.ktor.client.request/unixSocket|unixSocket@io.ktor.client.request.HttpRequestBuilder(kotlin.String){}[0]
 final fun (io.ktor.client.request/HttpRequestBuilder).io.ktor.client.request/url(io.ktor.http/Url) // io.ktor.client.request/url|url@io.ktor.client.request.HttpRequestBuilder(io.ktor.http.Url){}[0]
 final fun (io.ktor.client.request/HttpRequestBuilder).io.ktor.client.request/url(kotlin/Function1<io.ktor.http/URLBuilder, kotlin/Unit>) // io.ktor.client.request/url|url@io.ktor.client.request.HttpRequestBuilder(kotlin.Function1<io.ktor.http.URLBuilder,kotlin.Unit>){}[0]
 final fun (io.ktor.client.request/HttpRequestBuilder).io.ktor.client.request/url(kotlin/String) // io.ktor.client.request/url|url@io.ktor.client.request.HttpRequestBuilder(kotlin.String){}[0]
@@ -1693,9 +1694,6 @@ final suspend inline fun <#A: reified kotlin/Any?> (io.ktor.client.call/HttpClie
 final suspend inline fun <#A: reified kotlin/Any?> (io.ktor.client.plugins.websocket/DefaultClientWebSocketSession).io.ktor.client.plugins.websocket/receiveDeserialized(): #A // io.ktor.client.plugins.websocket/receiveDeserialized|receiveDeserialized@io.ktor.client.plugins.websocket.DefaultClientWebSocketSession(){0§<kotlin.Any?>}[0]
 final suspend inline fun <#A: reified kotlin/Any?> (io.ktor.client.plugins.websocket/DefaultClientWebSocketSession).io.ktor.client.plugins.websocket/sendSerialized(#A) // io.ktor.client.plugins.websocket/sendSerialized|sendSerialized@io.ktor.client.plugins.websocket.DefaultClientWebSocketSession(0:0){0§<kotlin.Any?>}[0]
 final suspend inline fun <#A: reified kotlin/Any?> (io.ktor.client.statement/HttpResponse).io.ktor.client.call/body(): #A // io.ktor.client.call/body|body@io.ktor.client.statement.HttpResponse(){0§<kotlin.Any?>}[0]
-
-// Targets: [native]
-final fun (io.ktor.client.request/HttpRequestBuilder).io.ktor.client.request/unixSocket(kotlin/String) // io.ktor.client.request/unixSocket|unixSocket@io.ktor.client.request.HttpRequestBuilder(kotlin.String){}[0]
 
 // Targets: [js, wasmJs]
 abstract interface io.ktor.client.fetch/AbortSignal : io.ktor.client.fetch/EventTarget { // io.ktor.client.fetch/AbortSignal|null[0]
