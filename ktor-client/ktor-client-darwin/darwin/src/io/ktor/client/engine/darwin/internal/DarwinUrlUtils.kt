@@ -8,11 +8,22 @@ import io.ktor.http.*
 import io.ktor.util.*
 import platform.Foundation.*
 
+// Old version of macOS/iOS might not allow semicolon ';' in path for
+// compatibility with RFC 1808 (obsolete). However, ';' is a valid character according to RFC-3986.
+private val pathAllowedCharacters =
+    if (NSCharacterSet.URLPathAllowedCharacterSet.characterIsMember(';'.code.toUShort())) {
+        NSCharacterSet.URLPathAllowedCharacterSet
+    } else {
+        (NSCharacterSet.URLPathAllowedCharacterSet.mutableCopy() as NSMutableCharacterSet).apply {
+            addCharactersInString(";")
+        }
+    }
+
 internal fun Url.toNSUrl(): NSURL {
     val userEncoded = encodedUser.orEmpty().isEncoded(NSCharacterSet.URLUserAllowedCharacterSet)
     val passwordEncoded = encodedPassword.orEmpty().isEncoded(NSCharacterSet.URLUserAllowedCharacterSet)
     val hostEncoded = host.isEncoded(NSCharacterSet.URLHostAllowedCharacterSet)
-    val pathEncoded = encodedPath.isEncoded(NSCharacterSet.URLPathAllowedCharacterSet)
+    val pathEncoded = encodedPath.isEncoded(pathAllowedCharacters)
     val queryEncoded = encodedQuery.isEncoded(NSCharacterSet.URLQueryAllowedCharacterSet)
     val fragmentEncoded = encodedFragment.isEncoded(NSCharacterSet.URLFragmentAllowedCharacterSet)
     if (userEncoded && passwordEncoded && hostEncoded && pathEncoded && queryEncoded && fragmentEncoded) {
@@ -43,7 +54,7 @@ internal fun Url.toNSUrl(): NSURL {
 
         components.percentEncodedPath = when {
             pathEncoded -> encodedPath
-            else -> rawSegments.joinToString("/").sanitize(NSCharacterSet.URLPathAllowedCharacterSet)
+            else -> rawSegments.joinToString("/").sanitize(pathAllowedCharacters)
         }
 
         when {

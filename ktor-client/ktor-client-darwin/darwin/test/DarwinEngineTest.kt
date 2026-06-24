@@ -100,6 +100,10 @@ class DarwinEngineTest : ClientEngineTest<DarwinClientEngineConfig>(Darwin) {
         assertTrue(
             stringToNSUrlString("http://привет.привет/") in possibleResults
         )
+        assertEquals(
+            "https://example.com/path;param=my%3Bvalue/segment",
+            stringToNSUrlString("https://example.com/path;param=my%3Bvalue/segment")
+        )
     }
 
     @Test
