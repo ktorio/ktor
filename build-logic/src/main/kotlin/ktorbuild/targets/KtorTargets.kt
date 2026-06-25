@@ -96,6 +96,7 @@ abstract class KtorTargets @Inject internal constructor(
     val hasJvm: Boolean get() = isEnabled("jvm")
     val hasJs: Boolean get() = isEnabled("js")
     val hasWasmJs: Boolean get() = isEnabled("wasmJs")
+    val hasWasmWasi: Boolean get() = isEnabled("wasmWasi")
     val hasAndroidJvm: Boolean get() = isEnabled("android")
 
     val hasWeb: Boolean get() = hasJs || hasWasmJs
@@ -203,9 +204,16 @@ abstract class KtorTargets @Inject internal constructor(
                     withWasmJs()
                 }
 
+                // has `runBlocking` and IO
                 group("jvmAndPosix") {
                     withJvm()
                     group("posix")
+                }
+
+                // no `runBlocking` and IO
+                group("nonJvmAndPosix") {
+                    withWasmWasi()
+                    group("web")
                 }
 
                 group("desktop") {
@@ -215,6 +223,7 @@ abstract class KtorTargets @Inject internal constructor(
                 }
 
                 group("nonJvm") {
+                    withWasmWasi()
                     group("posix")
                     group("web")
                 }
@@ -257,6 +266,8 @@ internal fun KotlinMultiplatformExtension.addTargets(targets: KtorTargets, isCI:
     }
     @OptIn(ExperimentalWasmDsl::class)
     if (targets.hasWasmJs) wasmJs { addSubTargets(targets) }
+    @OptIn(ExperimentalWasmDsl::class)
+    if (targets.hasWasmWasi) wasmWasi { nodejs() }
 
     // Native targets
     // See: https://kotlinlang.org/docs/native-target-support.html
