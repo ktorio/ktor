@@ -16,17 +16,19 @@ internal fun Application.configureProtectedResourceRoute(
     config: ProtectedResourceMetadataConfig,
     providers: () -> List<OidcProviderConfig<*>>,
 ) = routing {
-    install(ContentNegotiation) {
-        val format = Json {
-            explicitNulls = false
-            encodeDefaults = true
-        }
-        json(format)
-    }
-
     val metadata by lazy { buildProtectedResourceMetadata(config, providers()) }
     val path = buildResourceMetadataRoutePath(config.resource)
-    get(path) { call.respond(metadata) }
+    route(path) {
+        install(ContentNegotiation) {
+            val format = Json {
+                explicitNulls = false
+                encodeDefaults = true
+            }
+            json(format)
+        }
+
+        get { call.respond(metadata) }
+    }
 }
 
 internal fun buildProtectedResourceMetadata(
