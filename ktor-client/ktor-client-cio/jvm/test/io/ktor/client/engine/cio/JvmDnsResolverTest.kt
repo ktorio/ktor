@@ -4,6 +4,7 @@
 
 package io.ktor.client.engine.cio
 
+import io.ktor.test.dispatcher.*
 import kotlinx.coroutines.*
 import java.net.*
 import kotlin.random.*
@@ -15,7 +16,7 @@ import kotlin.time.Duration.Companion.seconds
 class JvmDnsResolverTest {
 
     @Test
-    fun testJvmDnsResolverResolvesLocalhost() = runBlocking {
+    fun testJvmDnsResolverResolvesLocalhost() = runTestWithRealTime {
         val ips = JvmDnsResolver().invoke("localhost")
         assertTrue(ips.isNotEmpty(), "localhost must resolve to at least one address")
         assertTrue(
@@ -25,7 +26,7 @@ class JvmDnsResolverTest {
     }
 
     @Test
-    fun testJvmDnsResolverIsCooperativelyCancellable() = runBlocking {
+    fun testJvmDnsResolverIsCooperativelyCancellable() = runTestWithRealTime {
         // Smoke test only. A strong test for `runInterruptible` interrupting an in-flight blocking
         // `InetAddress.getAllByName` call would need a hostname whose DNS lookup blocks for tens of
         // seconds, which is not portable across CI environments. This test merely verifies that the

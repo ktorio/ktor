@@ -6,10 +6,9 @@ package io.ktor.client.engine.cio
 
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
-import io.ktor.test.*
+import io.ktor.test.dispatcher.*
 import io.ktor.utils.io.core.buildPacket
 import kotlinx.coroutines.*
-import kotlinx.coroutines.test.TestResult
 import kotlinx.io.*
 import kotlin.test.*
 import kotlin.time.Duration.Companion.milliseconds
@@ -17,15 +16,8 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.use
 
 class CioDnsResolverTest {
-
-    private fun runTestWithNoDelaySkipping(testBody: suspend CoroutineScope.() -> Unit): TestResult = runTest {
-        withContext(Dispatchers.Default.limitedParallelism(1)) {
-            testBody()
-        }
-    }
-
     @Test
-    fun testCioDnsResolverParsesAResponse() = runTestWithNoDelaySkipping {
+    fun testCioDnsResolverParsesAResponse() = runTestWithRealTime {
         withFakeDnsServer { server, port ->
             val resolved = async {
                 CioDnsResolver(server = "127.0.0.1", port = port, timeout = 2.seconds)
@@ -38,7 +30,7 @@ class CioDnsResolverTest {
     }
 
     @Test
-    fun testCioDnsResolverReturnsAaaaOnlyForIpv6OnlyHost() = runTestWithNoDelaySkipping {
+    fun testCioDnsResolverReturnsAaaaOnlyForIpv6OnlyHost() = runTestWithRealTime {
         withFakeDnsServer { server, port ->
             val resolved = async {
                 CioDnsResolver(server = "127.0.0.1", port = port, timeout = 2.seconds)
@@ -51,7 +43,7 @@ class CioDnsResolverTest {
     }
 
     @Test
-    fun testCioDnsResolverReturnsEmptyOnNxDomain() = runTestWithNoDelaySkipping {
+    fun testCioDnsResolverReturnsEmptyOnNxDomain() = runTestWithRealTime {
         withFakeDnsServer { server, port ->
             val resolved = async {
                 CioDnsResolver(server = "127.0.0.1", port = port, timeout = 2.seconds)
@@ -64,7 +56,7 @@ class CioDnsResolverTest {
     }
 
     @Test
-    fun testCioDnsResolverHappyEyeballsPrefersIpv6() = runTestWithNoDelaySkipping {
+    fun testCioDnsResolverHappyEyeballsPrefersIpv6() = runTestWithRealTime {
         withFakeDnsServer { server, port ->
             val resolved = async {
                 CioDnsResolver(server = "127.0.0.1", port = port, timeout = 2.seconds)
@@ -77,7 +69,7 @@ class CioDnsResolverTest {
     }
 
     @Test
-    fun testCioDnsResolverThrowsWhenAllQueriesTimeOut() = runTestWithNoDelaySkipping {
+    fun testCioDnsResolverThrowsWhenAllQueriesTimeOut() = runTestWithRealTime {
         SelectorManager().use { selector ->
             aSocket(selector).udp().bind(InetSocketAddress("127.0.0.1", 0)).use { server ->
                 val port = (server.localAddress as InetSocketAddress).port
@@ -93,7 +85,7 @@ class CioDnsResolverTest {
     }
 
     @Test
-    fun testCioDnsResolverRejectsEmptyHostname() = runTestWithNoDelaySkipping {
+    fun testCioDnsResolverRejectsEmptyHostname() = runTestWithRealTime {
         val failure = assertFailsWith<IllegalArgumentException> {
             CioDnsResolver(server = "127.0.0.1").invoke("")
         }
@@ -101,7 +93,7 @@ class CioDnsResolverTest {
     }
 
     @Test
-    fun testCioDnsResolverAcceptsFqdnWithTrailingDot() = runTestWithNoDelaySkipping {
+    fun testCioDnsResolverAcceptsFqdnWithTrailingDot() = runTestWithRealTime {
         withFakeDnsServer { server, port ->
             val resolved = async {
                 CioDnsResolver(server = "127.0.0.1", port = port, timeout = 2.seconds)
