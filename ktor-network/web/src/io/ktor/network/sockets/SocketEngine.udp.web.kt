@@ -46,8 +46,6 @@ private suspend fun udpSetup(
         val incomingDatagrams: Channel<Datagram> = Channel(Channel.UNLIMITED)
 
         cont.invokeOnCancellation {
-            socket.close()
-            incomingDatagrams.cancel()
             socketContext.cancel()
         }
         socketContext.invokeOnCompletion {
