@@ -2,7 +2,7 @@
  * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-@file:OptIn(InternalAPI::class)
+@file:OptIn(ExperimentalKtorApi::class, InternalAPI::class)
 
 package io.ktor.server.auth.typesafe
 
@@ -34,28 +34,20 @@ public typealias SessionContextFactory<S, P, C> = (SessionContext<S, P>) -> C
  *
  * @param S the stored session type.
  * @param P the principal type exposed to authenticated routes.
- * @param C the authenticated route context type.
  */
-public open class SessionAuthScheme<S : Any, P : Any, C : SessionAuthenticatedContext<S, P>> internal constructor(
+public open class SessionAuthScheme<S : Any, P : Any> internal constructor(
     name: String,
     principalType: KClass<P>,
     internal val sessionKey: AttributeKey<S>,
     internal val sessionType: KClass<S>,
     internal val sessionTypeInfo: TypeInfo,
-    private val config: TypedSessionAuthConfig<S, P, C>,
-) : DefaultAuthScheme<P, SessionAuthenticatedContext<S, P>>(
+    private val config: TypedSessionAuthConfig<S, P>,
+) : DefaultAuthScheme<P, SessionContext<S, P>>(
     name = name,
     principalType = principalType,
     provider = config.buildProvider(name, sessionType, sessionKey),
     onUnauthorized = config.onUnauthorized,
-    contextFactory = { base ->
-        val default = SessionContext(
-            base = base,
-            sessionKey = sessionKey,
-            sessionProviderName = name
-        )
-        checkNotNull(config.contextFactory)(default)
-    }
+    contextFactory = { base -> SessionContext(base, sessionKey, sessionProviderName = name) }
 ) {
 
     /**
@@ -68,13 +60,19 @@ public open class SessionAuthScheme<S : Any, P : Any, C : SessionAuthenticatedCo
      * @throws IllegalStateException when no transport configuration was provided.
      */
     public fun installSessionsPlugin(route: Route) {
-        val sessionsStorage = config.sessionsPluginConfig ?: run {
+        val transport = config.transport ?: run {
             val message = "Typed session auth scheme `$name` requires Sessions to be installed before " +
-                "authenticateWith. Install it with install(Sessions) { cookie(auth) } before the typed route."
+                "authenticateWith. Set transport = SessionTransport.Cookie() on the session auth config, or install " +
+                "Sessions manually with install(Sessions) { cookie(auth) } before the typed route."
             error(message)
         }
-        route.install(Sessions) config@{
-            sessionsStorage(this@config, this@SessionAuthScheme)
+        route.install(Sessions) {
+            when (transport) {
+                is SessionTransport.Cookie -> cookie(this@SessionAuthScheme, transport.block)
+                is SessionTransport.CookieId -> cookie(this@SessionAuthScheme, transport.storage, transport.block)
+                is SessionTransport.Header -> header(this@SessionAuthScheme, transport.block)
+                is SessionTransport.HeaderId -> header(this@SessionAuthScheme, transport.storage, transport.block)
+            }
         }
     }
 
@@ -93,8 +91,8 @@ public open class SessionAuthScheme<S : Any, P : Any, C : SessionAuthenticatedCo
         val provider = providers.firstOrNull { it.name == name }
             ?: error(
                 "Typed session auth scheme `$name` requires a Sessions provider named `$name` " +
-                    "for session type `$sessionType`. Install it with install(Sessions) { cookie(auth) } " +
-                    "before authenticateWith."
+                    "for session type `$sessionType`. Set transport = SessionTransport.Cookie() on the session auth " +
+                    "config, or install Sessions manually with install(Sessions) { cookie(auth) } before authenticateWith."
             )
 
         check(provider.type == sessionType) {
@@ -107,12 +105,12 @@ public open class SessionAuthScheme<S : Any, P : Any, C : SessionAuthenticatedCo
 
     public companion object {
         @PublishedApi
-        internal fun <S : Any, P : Any, C : SessionAuthenticatedContext<S, P>> from(
+        internal fun <S : Any, P : Any> from(
             name: String,
             sessionTypeInfo: TypeInfo,
             principalType: KClass<P>,
-            config: TypedSessionAuthConfig<S, P, C>
-        ): SessionAuthScheme<S, P, C> {
+            config: TypedSessionAuthConfig<S, P>
+        ): SessionAuthScheme<S, P> {
             @Suppress("UNCHECKED_CAST")
             val sessionType = sessionTypeInfo.type as KClass<S>
 
