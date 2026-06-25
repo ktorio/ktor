@@ -6,6 +6,3 @@ package io.ktor.util
 
 internal actual val PlatformUtils.isDevelopmentMode: Boolean
     get() = false
-
-public actual val PlatformUtils.platform: Platform
-    get() = Platform.Native

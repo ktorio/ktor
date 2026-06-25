@@ -1,22 +1,22 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.util
 
-import io.ktor.util.collections.*
-
-private const val ATTRIBUTES_INITIAL_CAPACITY = 32
+import kotlin.js.*
 
 /**
- * Create native specific attributes instance.
+ * Create ES specific [Attributes] instance.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.Attributes)
  */
-public actual fun Attributes(concurrent: Boolean): Attributes = AttributesNative()
+@JsName("AttributesJsFn")
+public actual fun Attributes(concurrent: Boolean): Attributes = HashMapAttributes()
 
-private class AttributesNative : Attributes {
-    private val map = ConcurrentMap<AttributeKey<*>, Any>(ATTRIBUTES_INITIAL_CAPACITY)
+@Deprecated("Use `Attributes` function", level = DeprecationLevel.WARNING)
+public class AttributesJs : Attributes {
+    private val map = mutableMapOf<AttributeKey<*>, Any?>()
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : Any> getOrNull(key: AttributeKey<T>): T? = map[key] as T?
@@ -33,7 +33,10 @@ private class AttributesNative : Attributes {
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : Any> computeIfAbsent(key: AttributeKey<T>, block: () -> T): T {
-        return map.computeIfAbsent(key, block) as T
+        map[key]?.let { return it as T }
+        return block().also { result ->
+            map[key] = result
+        }
     }
 
     override val allKeys: List<AttributeKey<*>>

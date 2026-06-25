@@ -6,16 +6,13 @@ package io.ktor.util
 
 import kotlin.reflect.*
 
-@Suppress("UNUSED")
 internal actual interface CoroutineStackFrame {
     actual val callerFrame: CoroutineStackFrame?
     actual fun getStackTraceElement(): StackTraceElement?
 }
 
-@Suppress("ACTUAL_WITHOUT_EXPECT")
 internal actual typealias StackTraceElement = Any
 
-@Suppress("FunctionName")
 internal actual fun createStackTraceElement(
     kClass: KClass<*>,
     methodName: String,

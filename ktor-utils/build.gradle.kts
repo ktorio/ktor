@@ -27,6 +27,9 @@ kotlin {
         commonMain.dependencies {
             api(projects.ktorIo)
             api(libs.kotlinx.serialization.core)
+
+            // TODO: for wasm-wasi only, but for some reason it doesn't work if we add it to `wasmWasiMain`...
+            implementation(libs.kotlinx.datetime)
         }
         commonTest.dependencies {
             implementation(projects.ktorTestBase)
