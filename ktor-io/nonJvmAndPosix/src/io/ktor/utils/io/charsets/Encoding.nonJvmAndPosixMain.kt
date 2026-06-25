@@ -76,25 +76,6 @@ public actual fun CharsetEncoder.encodeToByteArray(
 
 public actual abstract class CharsetDecoder(internal val _charset: Charset)
 
-@OptIn(InternalIoApi::class)
-public actual fun CharsetDecoder.decode(
-    input: Source,
-    dst: Appendable,
-    max: Int
-): Int {
-    val decoder = Decoder(charset.name, true)
-
-    val count = minOf(input.buffer.size, max.toLong())
-    val array = input.readByteArray(count.toInt())
-    val result = try {
-        decoder.decode(array)
-    } catch (cause: Throwable) {
-        throw MalformedInputException("Failed to decode bytes: ${cause.message ?: "no cause provided"}")
-    }
-    dst.append(result)
-    return result.length
-}
-
 private class CharsetImpl(name: String) : Charset(name) {
     override fun newEncoder(): CharsetEncoder = object : CharsetEncoder(this) {}
     override fun newDecoder(): CharsetDecoder = object : CharsetDecoder(this) {}
@@ -116,9 +97,9 @@ internal actual fun CharsetEncoder.encodeImpl(
 ): Int {
     require(fromIndex <= toIndex)
     return when (charset) {
-        Charsets.ISO_8859_1 -> encodeISO88591(input, fromIndex, toIndex, dst)
         Charsets.UTF_8 -> encodeUTF8(input, fromIndex, toIndex, dst)
-        else -> error { "Only UTF-8 encoding is supported in JS" }
+        Charsets.ISO_8859_1 -> encodeISO88591(input, fromIndex, toIndex, dst)
+        else -> error("Only UTF-8 and ISO_8859_1 encoding are supported")
     }
 }
 

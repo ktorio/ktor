@@ -1,8 +1,11 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.utils.io.charsets
+
+import io.ktor.utils.io.core.*
+import kotlinx.io.*
 
 /**
  * Mapping for non-ascii characters for Windows-1252 encoding.
@@ -139,3 +142,47 @@ internal val WIN1252_TABLE = intArrayOf(
     0x00FE,
     0x00FF
 )
+
+internal fun encodeISO88591(input: CharSequence, fromIndex: Int, toIndex: Int, dst: Sink): Int {
+    if (fromIndex >= toIndex) return 0
+
+    for (index in fromIndex until toIndex) {
+        val character = input[index].code
+        if (character > 0xff) {
+            failedToMapError(character)
+        }
+        dst.writeByte(character.toByte())
+    }
+    return toIndex - fromIndex
+}
+
+private fun failedToMapError(ch: Int): Nothing {
+    throw MalformedInputException("The character with unicode point $ch couldn't be mapped to ISO-8859-1 character")
+}
+
+internal fun decodeISO88591(bytes: ByteArray): String = buildPacket {
+    for (element in bytes) {
+        val point: Int = element.toCodePoint()
+
+        if (point < 0) {
+            error("Invalid character: $point")
+        }
+
+        if (point > 0xFF) {
+            writeByte((point shr 8).toByte())
+        }
+
+        writeByte((point and 0xFF).toByte())
+    }
+}.readByteArray().decodeToString()
+
+private fun Byte.toCodePoint(): Int {
+    val value = toInt() and 0xFF
+    if (value.isASCII()) {
+        return value
+    }
+
+    return WIN1252_TABLE[value - 0x80]
+}
+
+private fun Int.isASCII(): Boolean = this in 0..0x7F
