@@ -25,6 +25,6 @@ internal actual class TestHttpClientEngineBridge actual constructor(
         content: OutgoingContent,
         callContext: CoroutineContext
     ): Pair<TestApplicationCall, WebSocketSession> {
-        throw NotImplementedError("Websockets for js/wasm are not supported")
+        throw NotImplementedError("Websockets are not supported on non JVM platforms")
     }
 }
