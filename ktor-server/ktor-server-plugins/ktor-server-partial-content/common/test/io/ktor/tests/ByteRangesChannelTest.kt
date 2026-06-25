@@ -5,18 +5,15 @@
 package io.ktor.tests
 
 import io.ktor.server.plugins.partialcontent.*
+import io.ktor.test.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.jvm.javaio.*
-import kotlinx.coroutines.*
-import kotlin.coroutines.*
+import io.ktor.utils.io.charsets.*
+import io.ktor.utils.io.core.*
 import kotlin.test.*
 
-class ByteRangesChannelTest : CoroutineScope {
-    override val coroutineContext: CoroutineContext
-        get() = Dispatchers.Unconfined
-
+class ByteRangesChannelTest {
     @Test
-    fun testAscendingNoLength() {
+    fun testAscendingNoLength() = runTest {
         val source = asyncOf("0123456789abcdef")
         val result = writeMultipleRangesImpl(
             source,
@@ -46,7 +43,7 @@ class ByteRangesChannelTest : CoroutineScope {
     }
 
     @Test
-    fun testAscendingWithLength() {
+    fun testAscendingWithLength() = runTest {
         val source = asyncOf("0123456789abcdef")
         val ranges = writeMultipleRangesImpl(source, listOf(1L..3L, 5L..6L), 99L, "boundary-1", "text/plain")
 
@@ -70,7 +67,7 @@ class ByteRangesChannelTest : CoroutineScope {
     }
 
     @Test
-    fun testNonAscendingNoLength() {
+    fun testNonAscendingNoLength() = runTest {
         val source = asyncOf("0123456789abcdef")
         val ranges = writeMultipleRangesImpl(
             source,
@@ -105,7 +102,9 @@ class ByteRangesChannelTest : CoroutineScope {
     }
 
     private fun String.replaceEndlines() = replace("\r\n", "\n")
-    private fun ByteReadChannel.readText(): String = toInputStream().reader(Charsets.ISO_8859_1).readText()
+    private suspend fun ByteReadChannel.readText(): String {
+        return Charsets.ISO_8859_1.newDecoder().decode(readRemaining())
+    }
 
     private fun asyncOf(text: String): (LongRange) -> ByteReadChannel = { range ->
         ByteReadChannel(
