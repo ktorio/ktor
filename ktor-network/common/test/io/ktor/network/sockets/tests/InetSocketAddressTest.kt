@@ -18,7 +18,7 @@ class InetSocketAddressTest {
     @Test
     fun testResolveAddress() {
         // Address resolving is not supported on JS and WASM platforms
-        if (PlatformUtils.IS_JS || PlatformUtils.IS_WASM_JS) return
+        if (PlatformUtils.IS_JS || PlatformUtils.IS_WASM_JS || PlatformUtils.IS_WASM_WASI) return
 
         val testCases = listOf(
             "127.0.0.1" to byteArrayOf(127, 0, 0, 1),
@@ -35,7 +35,7 @@ class InetSocketAddressTest {
     @Test
     fun `construct from IPv4 byte array`() {
         // Address resolving is not supported on JS and WASM platforms
-        if (PlatformUtils.IS_JS || PlatformUtils.IS_WASM_JS) return
+        if (PlatformUtils.IS_JS || PlatformUtils.IS_WASM_JS || PlatformUtils.IS_WASM_WASI) return
 
         val bytes = byteArrayOf(127, 0, 0, 1)
         val address = InetSocketAddress(bytes, 8080)
@@ -47,7 +47,7 @@ class InetSocketAddressTest {
     @Test
     fun `construct from IPv6 byte array`() {
         // Address resolving is not supported on JS and WASM platforms
-        if (PlatformUtils.IS_JS || PlatformUtils.IS_WASM_JS) return
+        if (PlatformUtils.IS_JS || PlatformUtils.IS_WASM_JS || PlatformUtils.IS_WASM_WASI) return
 
         val bytes = byteArrayOf(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1)
         val address = InetSocketAddress(bytes, 8080)
