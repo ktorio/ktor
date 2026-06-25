@@ -14,25 +14,27 @@ internal actual fun jsTypeOf(a: JsAny): String = kotlin.js.jsTypeOf(a)
 
 // modules
 
-internal actual suspend fun loadNodeNet(): NodeNet = nodeNetPromise.await()
+internal actual suspend fun loadNodeNet(): NodeNet = nodeNetPromise.await()?.unsafeCast<NodeNet>()
     ?: throw UnsupportedOperationException("Module node:net is not available. Please verify that you are using Node.js")
 
-internal actual suspend fun loadNodeDgram(): NodeDgram = nodeDgramPromise.await()
+internal actual suspend fun loadNodeDgram(): NodeDgram = nodeDgramPromise.await()?.unsafeCast<NodeDgram>()
     ?: throw UnsupportedOperationException(
         "Module node:dgram is not available. Please verify that you are using Node.js"
     )
 
-private val nodeNetPromise: Promise<NodeNet?> by lazy(::loadNodeNetModule)
-private val nodeDgramPromise: Promise<NodeDgram?> by lazy(::loadNodeGramModule)
+private val nodeNetPromise: Promise<Any?> by lazy {
+    loadNodeModule(nodeNetModuleName())
+}
+private val nodeDgramPromise: Promise<Any?> by lazy {
+    loadNodeModule(nodeDgramModuleName())
+}
+
+// Keep module names behind a function so browser bundlers don't resolve `node:` modules statically.
+private fun nodeNetModuleName() = "node:net"
+private fun nodeDgramModuleName() = "node:dgram"
 
 @JsFun(
     "moduleName => ((typeof process !== 'undefined') && process.release.name === 'node')" +
-        " ? import(/* webpackIgnore: true */'node:net') : Promise.resolve(null)"
+        " ? import(moduleName) : Promise.resolve(null)"
 )
-private external fun loadNodeNetModule(): Promise<NodeNet?>
-
-@JsFun(
-    "moduleName => ((typeof process !== 'undefined') && process.release.name === 'node')" +
-        " ? import(/* webpackIgnore: true */'node:dgram') : Promise.resolve(null)"
-)
-private external fun loadNodeGramModule(): Promise<NodeDgram?>
+private external fun loadNodeModule(moduleName: String): Promise<Any?>
