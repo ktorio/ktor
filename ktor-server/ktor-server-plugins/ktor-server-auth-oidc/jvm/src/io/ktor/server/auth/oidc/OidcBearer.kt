@@ -162,7 +162,7 @@ private fun OidcProvider<*>.oauthServerSettings(): OAuthServerSettings.OAuth2Ser
             transaction?.let { listOf("code_verifier" to it.codeVerifier) }.orEmpty()
         },
         onStateCreated = { call, state ->
-            val method = checkNotNull(config.codeChallengeMethod) { "PKCE is disabled" }
+            val method = config.codeChallengeMethod ?: CodeChallengeMethod.S256
             call.createAuthorizationTransaction(stateCodec, method, state)
         },
     )

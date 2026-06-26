@@ -73,6 +73,28 @@ class OidcSessionRoutesTest {
     }
 
     @Test
+    fun `auto refresh shares completed refresh for same refresh token`() = testApplication {
+        val keys = testRsaKeys
+        val idTokensByState = ConcurrentHashMap<String, String>()
+        val refreshCalls = AtomicInteger()
+
+        openIdRefreshProvider(idTokensByState) {
+            respondRefreshedIdToken(keys, refreshCalls = refreshCalls)
+        }
+        installSessionTestApp(keys) {
+            tokenRefreshStrategy = OidcTokenRefreshStrategy.Auto(beforeExpiry = 30.seconds)
+        }
+
+        val browser = noRedirectsClient()
+        val cookie = browser.signInWithIdToken(idTokensByState, keys, expiresIn = 10.seconds)
+
+        browser.assertMe(cookie, HttpStatusCode.OK, "refreshed-user")
+        browser.assertMe(cookie, HttpStatusCode.OK, "refreshed-user")
+
+        assertEquals(1, refreshCalls.get())
+    }
+
+    @Test
     fun `auto refresh keeps session when token is outside refresh window`() = testApplication {
         val keys = testRsaKeys
         val idTokensByState = ConcurrentHashMap<String, String>()

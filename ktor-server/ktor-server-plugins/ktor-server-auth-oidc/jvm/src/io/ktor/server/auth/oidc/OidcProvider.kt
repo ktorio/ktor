@@ -17,10 +17,20 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.net.URI
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import kotlin.reflect.KClass
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
 import kotlin.time.toJavaDuration
+
+private val TokenRefreshResultTtl = 1.seconds
+private const val TokenRefreshCacheMaxSize = 1024
+private val TokenRefreshCacheEvictor = Executors.newSingleThreadScheduledExecutor { task ->
+    Thread(task, "ktor-oidc-token-refresh-cache").apply {
+        isDaemon = true
+    }
+}
 
 /**
  * Typed authentication capabilities for one configured OpenID Connect provider.
@@ -167,6 +177,8 @@ public class OidcProvider<P : Any> internal constructor(
      * @throws IllegalArgumentException when OAuth is not enabled.
      */
     public suspend fun refreshToken(refreshToken: String): OidcTokenRefreshResult {
+        pruneCompletedTokenRefreshes()
+
         var existing = true
         val pending = tokenRefreshes.computeIfAbsent(refreshToken) {
             existing = false
@@ -180,12 +192,41 @@ public class OidcProvider<P : Any> internal constructor(
         try {
             val result = refreshTokenInternal(refreshToken)
             pending.complete(result)
+            scheduleTokenRefreshEviction(refreshToken, pending)
             return result
-        } catch (cause: Exception) {
+        } catch (cause: Throwable) {
             pending.completeExceptionally(cause)
-            throw cause
-        } finally {
             tokenRefreshes.remove(refreshToken, pending)
+            throw cause
+        }
+    }
+
+    private fun scheduleTokenRefreshEviction(
+        refreshToken: String,
+        pending: CompletableDeferred<OidcTokenRefreshResult>
+    ) {
+        TokenRefreshCacheEvictor.schedule(
+            { tokenRefreshes.remove(refreshToken, pending) },
+            TokenRefreshResultTtl.inWholeMilliseconds,
+            TimeUnit.MILLISECONDS
+        )
+        pruneCompletedTokenRefreshes()
+    }
+
+    private fun pruneCompletedTokenRefreshes() {
+        val excess = tokenRefreshes.size - TokenRefreshCacheMaxSize
+        if (excess <= 0) {
+            return
+        }
+
+        var removed = 0
+        val entries = tokenRefreshes.entries.iterator()
+        while (entries.hasNext() && removed < excess) {
+            val entry = entries.next()
+            if (entry.value.isCompleted) {
+                entries.remove()
+                removed++
+            }
         }
     }
 

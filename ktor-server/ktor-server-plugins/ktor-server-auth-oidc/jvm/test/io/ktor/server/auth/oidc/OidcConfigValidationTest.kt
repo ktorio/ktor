@@ -127,6 +127,24 @@ class OidcConfigValidationTest {
     }
 
     @Test
+    fun `session oauth requires openid when access token is configured`() {
+        val failure = assertProviderValidationFails {
+            accessToken {
+                audiences = setOf("api")
+            }
+            sessions()
+            oauth {
+                clientId = "client-id"
+                clientSecret = "client-secret"
+                scopes = listOf("profile")
+            }
+        }
+
+        assertContains(failure.message.orEmpty(), "openid")
+        assertContains(failure.message.orEmpty(), "without sessions")
+    }
+
+    @Test
     fun `session config stores routes names storage and csrf settings`() {
         val customStorage = SessionStorageMemory()
 

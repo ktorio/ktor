@@ -23,9 +23,10 @@ internal fun <P : Any> Application.configureOAuthRoute(provider: OidcProvider<P>
         // Manual login redirect: generates per-request state + OIDC nonce and redirects to IDP.
         get(loginPath) {
             val oauthState = generateNonceSuspend()
-            val codeChallengeMethod = config.codeChallengeMethod ?: CodeChallengeMethod.S256
+            val configuredCodeChallengeMethod = config.codeChallengeMethod
+            val transactionCodeChallengeMethod = configuredCodeChallengeMethod ?: CodeChallengeMethod.S256
             val authorizationTransaction =
-                call.createAuthorizationTransaction(provider.stateCodec, codeChallengeMethod, oauthState)
+                call.createAuthorizationTransaction(provider.stateCodec, transactionCodeChallengeMethod, oauthState)
 
             val redirectUriStr = call.request.oidcRedirectUri(config.redirectUri)
 
@@ -37,7 +38,7 @@ internal fun <P : Any> Application.configureOAuthRoute(provider: OidcProvider<P>
                 parameters.append("scope", config.scopes.joinToString(" "))
                 parameters.append("state", oauthState)
                 parameters.append("nonce", authorizationTransaction.nonce)
-                config.codeChallengeMethod?.let { method ->
+                configuredCodeChallengeMethod?.let { method ->
                     parameters.append("code_challenge", authorizationTransaction.codeChallenge())
                     parameters.append("code_challenge_method", method.name)
                 }
@@ -71,12 +72,14 @@ internal fun <P : Any> Application.configureOAuthRoute(provider: OidcProvider<P>
                     return@post call.respond(HttpStatusCode.Unauthorized)
                 }
 
-                val refreshResult = runCatching {
+                val refreshResult = try {
                     provider.refreshToken(refreshToken)
-                }.onFailure {
-                    if (it is CancellationException) throw it
-                    provider.logger.debug("Failed to refresh token $it")
-                }.getOrNull()
+                } catch (cause: CancellationException) {
+                    throw cause
+                } catch (cause: Exception) {
+                    provider.logger.debug("Failed to refresh token", cause)
+                    null
+                }
 
                 if (refreshResult == null) {
                     return@post call.respond(HttpStatusCode.Unauthorized)

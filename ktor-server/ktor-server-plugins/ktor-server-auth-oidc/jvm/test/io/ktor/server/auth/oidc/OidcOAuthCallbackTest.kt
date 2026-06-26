@@ -127,6 +127,29 @@ class OidcOAuthCallbackTest {
     }
 
     @Test
+    fun `oauth challenge with pkce disabled still creates state transaction`() = testApplication {
+        application {
+            val oidc = openIdConnect { }
+            oidc.provider("auth0") {
+                testIssuer()
+                oauth {
+                    clientId = "client-id"
+                    clientSecret = "client-secret"
+                    codeChallengeMethod = null
+                }
+            }
+        }
+
+        val challenge = noRedirectsClient().get("/oidc/auth0/callback")
+        assertEquals(HttpStatusCode.Found, challenge.status)
+        assertNotNull(challenge.oidcStateCookieHeader())
+        val authorizeUrl = Url(assertNotNull(challenge.headers[HttpHeaders.Location]))
+        assertNotNull(authorizeUrl.parameters["state"])
+        assertNull(authorizeUrl.parameters["code_challenge"])
+        assertNull(authorizeUrl.parameters["code_challenge_method"])
+    }
+
+    @Test
     fun `oauth state cookie works across provider instances sharing key`() {
         val keys = testRsaKeys
         val idTokensByState = ConcurrentHashMap<String, String>()

@@ -190,7 +190,7 @@ public class OidcProviderConfig<P : Any> internal constructor(
         }
         jwtConfig.validate()
         accessTokenConfig?.validate()
-        oauthConfig?.validate(accessTokenAllowed = accessTokenConfig != null)
+        oauthConfig?.validate(accessTokenOnlyAllowed = accessTokenConfig != null && sessionConfig == null)
     }
 }
 
@@ -593,15 +593,15 @@ public class OidcOAuthConfig<P : Any> internal constructor(
         onFailure = block
     }
 
-    internal fun validate(accessTokenAllowed: Boolean) {
+    internal fun validate(accessTokenOnlyAllowed: Boolean) {
         require(::clientId.isInitialized) {
             "clientId must be configured"
         }
         require(::clientSecret.isInitialized) {
             "clientSecret must be configured"
         }
-        require(accessTokenAllowed || "openid" in scopes) {
-            "OAuth scopes for OpenID Connect must include openid unless accessToken { audiences = ... } is configured"
+        require(accessTokenOnlyAllowed || "openid" in scopes) {
+            "OAuth scopes for OpenID Connect must include openid unless accessToken-only OAuth is configured without sessions"
         }
         idTokenAudience?.let { audience ->
             require(audience.isNotBlank()) {
