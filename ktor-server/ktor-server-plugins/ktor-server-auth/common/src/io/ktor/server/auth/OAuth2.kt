@@ -13,7 +13,6 @@ import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
-import io.ktor.util.*
 import io.ktor.util.internal.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
@@ -69,6 +68,10 @@ internal suspend fun ApplicationCall.oauth2RequestAccessToken(
     callbackResponse: OAuthCallback.TokenSingle,
     configure: (HttpRequestBuilder.() -> Unit)? = null
 ): OAuthAccessTokenResponse.OAuth2 {
+    if (!settings.verifyState(this, callbackResponse.state)) {
+        throw OAuth2Exception.InvalidNonce()
+    }
+
     val interceptor: HttpRequestBuilder.() -> Unit = when (configure) {
         null -> settings.accessTokenInterceptor
         else -> fun HttpRequestBuilder.() {
@@ -90,8 +93,6 @@ internal suspend fun ApplicationCall.oauth2RequestAccessToken(
         extraParameters = tokenParameters,
         configure = interceptor,
         useBasicAuth = settings.accessTokenRequiresBasicAuth,
-        nonceManager = settings.nonceManager,
-        stateVerifier = { state -> settings.verifyState(this, state) },
         passParamsInURL = settings.passParamsInURL
     )
 }
@@ -134,15 +135,9 @@ private suspend fun oauth2RequestAccessToken(
     extraParameters: List<Pair<String, String>> = emptyList(),
     configure: HttpRequestBuilder.() -> Unit = {},
     useBasicAuth: Boolean = false,
-    nonceManager: NonceManager,
-    stateVerifier: suspend (String?) -> Boolean = { nonceManager.verifyNonce(it.orEmpty()) },
     passParamsInURL: Boolean = false,
     grantType: String = OAuthGrantTypes.AuthorizationCode
 ): OAuthAccessTokenResponse.OAuth2 {
-    if (!stateVerifier(state)) {
-        throw OAuth2Exception.InvalidNonce()
-    }
-
     val request = HttpRequestBuilder()
     request.url.takeFrom(baseUrl)
 
@@ -283,8 +278,13 @@ public suspend fun verifyWithOAuth2(
     client: HttpClient,
     settings: OAuthServerSettings.OAuth2ServerSettings
 ): OAuthAccessTokenResponse.OAuth2 {
+    val nonce = "" // because state is null
+    if (!settings.nonceManager.verifyNonce(nonce)) {
+        throw OAuth2Exception.InvalidNonce()
+    }
     return oauth2RequestAccessToken(
-        client, HttpMethod.Post,
+        client = client,
+        method = HttpMethod.Post,
         usedRedirectUrl = null,
         baseUrl = settings.accessTokenUrl,
         clientId = settings.clientId,
@@ -297,7 +297,6 @@ public suspend fun verifyWithOAuth2(
             OAuth2RequestParameters.Password to credential.password
         ),
         useBasicAuth = true,
-        nonceManager = settings.nonceManager,
         passParamsInURL = settings.passParamsInURL,
         grantType = OAuthGrantTypes.Password
     )

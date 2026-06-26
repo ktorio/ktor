@@ -777,6 +777,49 @@ class OAuth2Test {
     }
 
     @Test
+    fun testDynamicExtraTokenParamsSkippedWhenStateInvalid() = testApplication {
+        var extraTokenParametersProviderInvoked = false
+        var tokenEndpointRequests = 0
+
+        install(Authentication) {
+            oauth("login") {
+                client = this@testApplication.client
+                urlProvider = { "http://localhost/login" }
+                settings = OAuthServerSettings.OAuth2ServerSettings(
+                    name = "oauth2",
+                    authorizeUrl = "http://localhost/authorize",
+                    accessTokenUrl = "http://localhost/oauth/access_token",
+                    clientId = "clientId1",
+                    clientSecret = "clientSecret1",
+                    requestMethod = HttpMethod.Post,
+                    verifyState = { _, state -> state == "valid-state" },
+                    extraTokenParametersProvider = { _, _ ->
+                        extraTokenParametersProviderInvoked = true
+                        listOf("dynamic" to "value")
+                    }
+                )
+            }
+        }
+        routing {
+            post("/oauth/access_token") {
+                tokenEndpointRequests++
+                call.respondText("access_token=a_token", ContentType.Application.FormUrlEncoded)
+            }
+            authenticate("login") {
+                get("/login") {
+                    call.respond("We're in.")
+                }
+            }
+        }
+
+        client.get("/login?code=code&state=invalid-state").also {
+            assertEquals(HttpStatusCode.Unauthorized, it.status)
+        }
+        assertFalse(extraTokenParametersProviderInvoked)
+        assertEquals(0, tokenEndpointRequests)
+    }
+
+    @Test
     fun testFailedNonce() = retryTest(retries = 3) {
         testApplication {
             var tokenEndpointRequests = 0
