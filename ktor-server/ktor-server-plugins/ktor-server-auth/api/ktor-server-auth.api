@@ -686,7 +686,6 @@ public class io/ktor/server/auth/typesafe/OAuth2SessionsConfig : io/ktor/server/
 	public final fun getSessionCreator ()Lkotlin/jvm/functions/Function3;
 	public final fun setName (Ljava/lang/String;)V
 	public final fun setSessionCreator (Lkotlin/jvm/functions/Function3;)V
-	public fun validate (Ljava/lang/String;)V
 }
 
 public class io/ktor/server/auth/typesafe/OAuthFlow {
@@ -699,7 +698,6 @@ public final class io/ktor/server/auth/typesafe/OAuthFlow$Companion {
 
 public final class io/ktor/server/auth/typesafe/OAuthFlowConfig : io/ktor/server/auth/typesafe/OAuthFlowConfigBase {
 	public final fun callback (Ljava/lang/String;Lkotlin/jvm/functions/Function3;)V
-	public fun validate (Ljava/lang/String;)V
 }
 
 public abstract class io/ktor/server/auth/typesafe/OAuthFlowConfigBase {
@@ -715,7 +713,6 @@ public abstract class io/ktor/server/auth/typesafe/OAuthFlowConfigBase {
 	public final fun setOnUnauthorized (Lkotlin/jvm/functions/Function3;)V
 	public final fun setProviderLookup (Lkotlin/jvm/functions/Function2;)V
 	public final fun setSettings (Lio/ktor/server/auth/OAuthServerSettings$OAuth2ServerSettings;)V
-	public fun validate (Ljava/lang/String;)V
 }
 
 public final class io/ktor/server/auth/typesafe/OAuthFlowKt {
@@ -733,7 +730,6 @@ public final class io/ktor/server/auth/typesafe/OAuthSessionFlowConfig : io/ktor
 	public final fun getSessionsConfig ()Lio/ktor/server/auth/typesafe/OAuth2SessionsConfig;
 	public final fun sessions (Lkotlin/jvm/functions/Function1;)V
 	public final fun setSessionsConfig (Lio/ktor/server/auth/typesafe/OAuth2SessionsConfig;)V
-	public fun validate (Ljava/lang/String;)V
 }
 
 public final class io/ktor/server/auth/typesafe/OptionalAuthScheme : io/ktor/server/auth/typesafe/AuthScheme {

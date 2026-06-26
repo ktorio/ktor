@@ -100,7 +100,7 @@ public abstract class OAuthFlowConfigBase internal constructor() {
         return URLBuilder().apply(builder).encodedPath
     }
 
-    public open fun validate(flowName: String) {
+    internal open fun validate(flowName: String) {
         require(client != null) {
             "OAuth flow '$flowName' requires an HTTP client"
         }
@@ -150,7 +150,7 @@ public class OAuthFlowConfig internal constructor() : OAuthFlowConfigBase() {
         callback = OAuthCallback.Basic(path, onSuccess)
     }
 
-    public override fun validate(flowName: String) {
+    override fun validate(flowName: String) {
         super.validate(flowName)
         requireNotNull(callback) {
             "OAuth flow '$flowName' requires a callback route. Set callback(\"/callback\") { ... }."
@@ -201,7 +201,7 @@ public class OAuthSessionFlowConfig<S : Any, P : Any> @PublishedApi internal con
         sessionsConfig = OAuth2SessionsConfig<S, P>().apply(configure)
     }
 
-    public override fun validate(flowName: String) {
+    override fun validate(flowName: String) {
         super.validate(flowName)
         requireNotNull(callback) {
             "OAuth session flow '$flowName' requires a callback route. Set callback(\"/callback\") { ... }."
@@ -242,7 +242,7 @@ public open class OAuth2SessionsConfig<S : Any, P : Any> internal constructor() 
      */
     public var sessionCreator: (suspend RoutingContext.(OAuthAccessTokenResponse.OAuth2) -> S?)? = null
 
-    public open fun validate(flowName: String) {
+    internal open fun validate(flowName: String) {
         requireNotNull(sessionCreator) {
             "OAuth session flow '$flowName' requires sessionCreator in sessions { ... }"
         }
@@ -404,7 +404,6 @@ public inline fun <reified P : Any, reified S : Any> oauth2SessionFlow(
     configure: OAuthSessionFlowConfig<S, P>.() -> Unit,
 ): OAuth2SessionFlow<S, P> {
     val config = OAuthSessionFlowConfig<S, P>().apply(configure)
-    config.validate(name)
     return OAuth2SessionFlow.from(
         name = name,
         config = config,
@@ -427,10 +426,12 @@ public fun Route.install(flow: OAuthFlow) {
     val scheme = flow.oauthScheme
     val route = installOAuthAuthRoute(scheme)
     with(scheme.install(route, onUnauthorized = null)) {
-        route.get(flow.callback.path) {
+        val callbackHandler: RoutingHandler = {
             val response = call.principal
             flow.callback.successHandler(this, response)
         }
+        route.get(flow.callback.path, callbackHandler)
+        route.post(flow.callback.path, callbackHandler)
     }
     flow.loginUriPath?.let { loginPath ->
         route.installOAuthLoginRoute(scheme, loginPath)
@@ -453,19 +454,19 @@ public fun <S : Any, P : Any> Route.install(flow: OAuth2SessionFlow<S, P>) {
     flow.oauthScheme.install(route, onUnauthorized = null)
 
     val callback = flow.callback
-    route.get(callback.path) callback@{
+    val callbackHandler: RoutingHandler = callback@{
         try {
             val token = call.attributes[flow.oauthScheme.principalKey]
             val session = flow.sessionCreator(this, token) ?: run {
                 val error = AuthenticationFailedCause.Error("Failed to create OAuth session")
                 return@callback callback.failureHandler(this, error)
             }
-            call.sessions.set(flow.sessions, session)
 
             val principal = flow.principalResolver(this, session) ?: run {
                 val error = AuthenticationFailedCause.Error("Failed to create OAuth principal")
                 return@callback callback.failureHandler(this, error)
             }
+            call.sessions.set(flow.sessions, session)
             call.attributes.put(flow.sessions.sessionKey, session)
             flow.sessions.capture(call, principal)
 
@@ -487,6 +488,8 @@ public fun <S : Any, P : Any> Route.install(flow: OAuth2SessionFlow<S, P>) {
             return@callback
         }
     }
+    route.get(callback.path, callbackHandler)
+    route.post(callback.path, callbackHandler)
 
     flow.loginUriPath?.let { loginPath ->
         route.installOAuthLoginRoute(scheme = flow.oauthScheme, path = loginPath)

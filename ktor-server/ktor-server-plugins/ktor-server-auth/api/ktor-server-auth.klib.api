@@ -68,8 +68,6 @@ abstract class io.ktor.server.auth.typesafe/OAuthFlowConfigBase { // io.ktor.ser
     final var settings // io.ktor.server.auth.typesafe/OAuthFlowConfigBase.settings|{}settings[0]
         final fun <get-settings>(): io.ktor.server.auth/OAuthServerSettings.OAuth2ServerSettings? // io.ktor.server.auth.typesafe/OAuthFlowConfigBase.settings.<get-settings>|<get-settings>(){}[0]
         final fun <set-settings>(io.ktor.server.auth/OAuthServerSettings.OAuth2ServerSettings?) // io.ktor.server.auth.typesafe/OAuthFlowConfigBase.settings.<set-settings>|<set-settings>(io.ktor.server.auth.OAuthServerSettings.OAuth2ServerSettings?){}[0]
-
-    open fun validate(kotlin/String) // io.ktor.server.auth.typesafe/OAuthFlowConfigBase.validate|validate(kotlin.String){}[0]
 }
 
 abstract class io.ktor.server.auth/AuthenticationProvider { // io.ktor.server.auth/AuthenticationProvider|null[0]
@@ -139,7 +137,6 @@ final class <#A: kotlin/Any, #B: kotlin/Any> io.ktor.server.auth.typesafe/OAuthS
 
     final fun callback(kotlin/String, kotlin.coroutines/SuspendFunction2<io.ktor.server.routing/RoutingContext, io.ktor.server.auth/AuthenticationFailedCause, kotlin/Unit> = ..., kotlin.coroutines/SuspendFunction2<io.ktor.server.auth.typesafe/SessionContext<#A, #B>, io.ktor.server.routing/RoutingContext, kotlin/Unit>) // io.ktor.server.auth.typesafe/OAuthSessionFlowConfig.callback|callback(kotlin.String;kotlin.coroutines.SuspendFunction2<io.ktor.server.routing.RoutingContext,io.ktor.server.auth.AuthenticationFailedCause,kotlin.Unit>;kotlin.coroutines.SuspendFunction2<io.ktor.server.auth.typesafe.SessionContext<1:0,1:1>,io.ktor.server.routing.RoutingContext,kotlin.Unit>){}[0]
     final fun sessions(kotlin/Function1<io.ktor.server.auth.typesafe/OAuth2SessionsConfig<#A, #B>, kotlin/Unit>) // io.ktor.server.auth.typesafe/OAuthSessionFlowConfig.sessions|sessions(kotlin.Function1<io.ktor.server.auth.typesafe.OAuth2SessionsConfig<1:0,1:1>,kotlin.Unit>){}[0]
-    final fun validate(kotlin/String) // io.ktor.server.auth.typesafe/OAuthSessionFlowConfig.validate|validate(kotlin.String){}[0]
 }
 
 final class <#A: kotlin/Any, #B: kotlin/Any> io.ktor.server.auth.typesafe/SessionContext : io.ktor.server.auth.typesafe/AuthenticatedContext<#B> { // io.ktor.server.auth.typesafe/SessionContext|null[0]
@@ -247,7 +244,6 @@ final class <#A: kotlin/Any> io.ktor.server.auth/SessionAuthenticationProvider :
 
 final class io.ktor.server.auth.typesafe/OAuthFlowConfig : io.ktor.server.auth.typesafe/OAuthFlowConfigBase { // io.ktor.server.auth.typesafe/OAuthFlowConfig|null[0]
     final fun callback(kotlin/String, kotlin.coroutines/SuspendFunction2<io.ktor.server.routing/RoutingContext, io.ktor.server.auth/OAuthAccessTokenResponse, kotlin/Unit>) // io.ktor.server.auth.typesafe/OAuthFlowConfig.callback|callback(kotlin.String;kotlin.coroutines.SuspendFunction2<io.ktor.server.routing.RoutingContext,io.ktor.server.auth.OAuthAccessTokenResponse,kotlin.Unit>){}[0]
-    final fun validate(kotlin/String) // io.ktor.server.auth.typesafe/OAuthFlowConfig.validate|validate(kotlin.String){}[0]
 }
 
 final class io.ktor.server.auth/AuthenticateProvidersRegistration { // io.ktor.server.auth/AuthenticateProvidersRegistration|null[0]
@@ -537,8 +533,6 @@ open class <#A: kotlin/Any, #B: kotlin/Any> io.ktor.server.auth.typesafe/OAuth2S
     final var sessionCreator // io.ktor.server.auth.typesafe/OAuth2SessionsConfig.sessionCreator|{}sessionCreator[0]
         final fun <get-sessionCreator>(): kotlin.coroutines/SuspendFunction2<io.ktor.server.routing/RoutingContext, io.ktor.server.auth/OAuthAccessTokenResponse.OAuth2, #A?>? // io.ktor.server.auth.typesafe/OAuth2SessionsConfig.sessionCreator.<get-sessionCreator>|<get-sessionCreator>(){}[0]
         final fun <set-sessionCreator>(kotlin.coroutines/SuspendFunction2<io.ktor.server.routing/RoutingContext, io.ktor.server.auth/OAuthAccessTokenResponse.OAuth2, #A?>?) // io.ktor.server.auth.typesafe/OAuth2SessionsConfig.sessionCreator.<set-sessionCreator>|<set-sessionCreator>(kotlin.coroutines.SuspendFunction2<io.ktor.server.routing.RoutingContext,io.ktor.server.auth.OAuthAccessTokenResponse.OAuth2,1:0?>?){}[0]
-
-    open fun validate(kotlin/String) // io.ktor.server.auth.typesafe/OAuth2SessionsConfig.validate|validate(kotlin.String){}[0]
 }
 
 open class <#A: kotlin/Any, #B: kotlin/Any> io.ktor.server.auth.typesafe/SessionAuthScheme : io.ktor.server.auth.typesafe/DefaultAuthScheme<#B, io.ktor.server.auth.typesafe/SessionContext<#A, #B>> { // io.ktor.server.auth.typesafe/SessionAuthScheme|null[0]

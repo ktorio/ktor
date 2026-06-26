@@ -298,4 +298,81 @@ class OAuthFlowTest {
         }
         assertContains(failure.message.orEmpty(), "OAuth flow 'google' requires a callback route")
     }
+
+    @Test
+    fun `oauth form_post callback succeeds`() = testApplication {
+        val testClient = createClient { install(HttpCookies) }
+        val scheme = oauth2Flow(name = "test-oauth") {
+            client = testClient
+            settings = OAuthServerSettings.OAuth2ServerSettings(
+                name = "test-provider",
+                authorizeUrl = "http://oauth.test/authorize",
+                accessTokenUrl = "http://oauth.test/token",
+                clientId = "test-client-id",
+                clientSecret = "test-client-secret",
+                requestMethod = HttpMethod.Post,
+            )
+            callback("/callback") { call.respondText("form_post") }
+        }
+        mockOAuthServices()
+
+        routing {
+            install(scheme)
+        }
+
+        val authorizeResponse = testClient.get("/callback")
+        assertEquals(HttpStatusCode.OK, authorizeResponse.status)
+        val params = parseQueryString(authorizeResponse.bodyAsText())
+        assertEquals("test_code", params["code"])
+
+        val response = testClient.post("/callback") {
+            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+            setBody(
+                listOf(
+                    OAuth2RequestParameters.Code to params["code"]!!,
+                    OAuth2RequestParameters.State to params["state"]!!,
+                ).formUrlEncode()
+            )
+        }
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals("form_post", response.bodyAsText())
+    }
+
+    @Test
+    fun `oauth callback does not persist session when principal resolution fails`() = testApplication {
+        val testClient = createClient { install(HttpCookies) }
+        val scheme = oauth2SessionFlow<OAuthPrincipal, OAuthSession>("test-oauth") {
+            client = testClient
+            settings = OAuthServerSettings.OAuth2ServerSettings(
+                name = "test-provider",
+                authorizeUrl = "http://oauth.test/authorize",
+                accessTokenUrl = "http://oauth.test/token",
+                clientId = "test-client-id",
+                clientSecret = "test-client-secret",
+                requestMethod = HttpMethod.Post,
+            )
+            callback("/callback", onFailure = { call.respondText("failed") }) {
+                call.respondText("success")
+            }
+            sessions {
+                transport = SessionTransport.Cookie()
+                sessionCreator = { OAuthSession(it.accessToken) }
+                validate { null }
+            }
+        }
+        mockOAuthServices()
+
+        routing {
+            install(scheme)
+            authenticateWith(scheme.sessions) {
+                get("/protected") { call.respondText(call.principal.token) }
+            }
+        }
+
+        val authResponse = performOAuthFlow(testClient)
+        assertEquals(HttpStatusCode.OK, authResponse.status)
+        assertEquals("failed", authResponse.bodyAsText())
+
+        assertEquals(HttpStatusCode.Unauthorized, testClient.get("/protected").status)
+    }
 }
