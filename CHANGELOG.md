@@ -1,3 +1,56 @@
+# 3.5.1
+> Published 25 June 2026
+
+### Improvements
+* [KTOR-9492](https://youtrack.jetbrains.com/issue/KTOR-9492) OpenAPI plugin: handle requireXxx functions in compiler plugin
+* [KTOR-9569](https://youtrack.jetbrains.com/issue/KTOR-9569) Add more details for KDoc of BearerAuthConfig.sendWithoutRequest
+* [KTOR-9571](https://youtrack.jetbrains.com/issue/KTOR-9571) Add KDoc for BearerAuthConfig.realm
+* [KTOR-9570](https://youtrack.jetbrains.com/issue/KTOR-9570) Add Kdoc for BearerAuthConfig.refreshTokens
+
+### Bugfixes
+* [KTOR-9646](https://youtrack.jetbrains.com/issue/KTOR-9646) Fix Kotlin 2.4.0 compiler plugin breaking changes
+* [KTOR-9585](https://youtrack.jetbrains.com/issue/KTOR-9585) OpenAPI: JsonSchema title is truncated when it contains a dot
+* [KTOR-9591](https://youtrack.jetbrains.com/issue/KTOR-9591) OpenAPI: `@JsonClassDiscriminator` on sealed types is ignored when generating OpenAPI discriminator schema
+* [KTOR-9597](https://youtrack.jetbrains.com/issue/KTOR-9597) OpenAPI: Schema name collisions because`@SerialName` of sealed subtypes is used as `components.schemas` key
+* [KTOR-9601](https://youtrack.jetbrains.com/issue/KTOR-9601) OpenAPI: nullable @JvmInline value class loses nullability in generated schema
+* [KTOR-9620](https://youtrack.jetbrains.com/issue/KTOR-9620) Some issues related to digest authentication in 3.5.0
+* [KTOR-9623](https://youtrack.jetbrains.com/issue/KTOR-9623) Digest Auth: server must respond with one WWW-Authenticate header for each supported algorithm
+* [KTOR-9624](https://youtrack.jetbrains.com/issue/KTOR-9624) Digest Auth: "Unsupported charset in digest authentication header" for a charset name in lowercase
+* [KTOR-9630](https://youtrack.jetbrains.com/issue/KTOR-9630) Digest Auth: The plugin sends incorrect nonce when server responds with multiple WWW-Authenticate headers
+* [KTOR-9565](https://youtrack.jetbrains.com/issue/KTOR-9565) WebRTC: Peer stops receiving messages after a while on iOS
+* [KTOR-9610](https://youtrack.jetbrains.com/issue/KTOR-9610) WebRtcPeerConnection::close causes ClosedReceiveChannelException for other peer
+* [KTOR-9633](https://youtrack.jetbrains.com/issue/KTOR-9633) WebRTC statistics fetching race condition
+* [KTOR-9603](https://youtrack.jetbrains.com/issue/KTOR-9603) Structured concurrency is violated in WebRTC tests
+* [KTOR-9671](https://youtrack.jetbrains.com/issue/KTOR-9671) Darwin: Semicolons in URL path are sanitized
+* [KTOR-9639](https://youtrack.jetbrains.com/issue/KTOR-9639) Darwin: WebSocket client crashes the process when a PONG arrives after the session is closed
+* [KTOR-9575](https://youtrack.jetbrains.com/issue/KTOR-9575) Darwin: findCharset("UTF-16") maps to NSUTF16LittleEndianStringEncoding causing decoding failure for UTF-16 content with BOM
+* [KTOR-9661](https://youtrack.jetbrains.com/issue/KTOR-9661) HttpCache: InvalidCacheStateException is thrown on 304 when no cached entry matches varyKeys
+* [KTOR-9673](https://youtrack.jetbrains.com/issue/KTOR-9673) Caching always missing with Content Negotiation
+* [KTOR-9596](https://youtrack.jetbrains.com/issue/KTOR-9596) HttpTimeout: HttpRequestTimeoutException on any request with runTest and request timeout defined since 3.5.0
+* [KTOR-9632](https://youtrack.jetbrains.com/issue/KTOR-9632) HttpRequestBuilder.timeout call removes capabilities set in DefaultRequest
+* [KTOR-9252](https://youtrack.jetbrains.com/issue/KTOR-9252) ContentEncoding: Incomplete gzip response causes client/server to hang indefinitely
+* [KTOR-9670](https://youtrack.jetbrains.com/issue/KTOR-9670) Compression: The plugin ignores Accept-Encoding q=0 and most-specific matching
+* [KTOR-9614](https://youtrack.jetbrains.com/issue/KTOR-9614) Zstd Compression: "Destination buffer is too small" exception for a particular sequence of bytes
+* [KTOR-9636](https://youtrack.jetbrains.com/issue/KTOR-9636) CORS plugin drops OPTIONS preflight requests when allowSameOrigin is on
+* [KTOR-9659](https://youtrack.jetbrains.com/issue/KTOR-9659) CORS is skipped when the Origin header contains an IPv6 address
+* [KTOR-9574](https://youtrack.jetbrains.com/issue/KTOR-9574) ContentNegotiation: The charset of `Accept-Charset` header is used for response deserialization
+* [KTOR-9606](https://youtrack.jetbrains.com/issue/KTOR-9606) KotlinxSerializationConverter: it fails to deserialize an empty channel closed with a delay
+* [KTOR-9617](https://youtrack.jetbrains.com/issue/KTOR-9617) OutputStreamContent and WriterContent can exhaust Dispatchers.IO
+* [KTOR-9629](https://youtrack.jetbrains.com/issue/KTOR-9629) RawSourceChannel: coroutine cancellation is not propagated to the RawSource
+* [KTOR-8870](https://youtrack.jetbrains.com/issue/KTOR-8870) File.readChannel: do not close a non-opened file and ignore closing exceptions
+* [KTOR-9460](https://youtrack.jetbrains.com/issue/KTOR-9460) Curl: Can't build shared library with Ktor 3.4.2
+* [KTOR-9607](https://youtrack.jetbrains.com/issue/KTOR-9607) Crash on Android 7: NoSuchMethodError getInstanceStrong() since 3.5.0
+* [KTOR-9595](https://youtrack.jetbrains.com/issue/KTOR-9595) CIO: The engine imports `node:net` statically and breaks wasmJsBrowser webpack build
+* [KTOR-9615](https://youtrack.jetbrains.com/issue/KTOR-9615) Apache5: The underlying request is not aborted when coroutine Job is cancelled
+* [KTOR-8443](https://youtrack.jetbrains.com/issue/KTOR-8443) RoutingBuilder.contentType does not use parameters when matching
+* [KTOR-9425](https://youtrack.jetbrains.com/issue/KTOR-9425) SessionTransportTransformerEncrypt init block uses wrong IV size for AES-256 (regression of KTOR-661)
+* [KTOR-9621](https://youtrack.jetbrains.com/issue/KTOR-9621) RateLimit plugin is bypassed when the nested authenticate block rejects the request
+* [KTOR-8766](https://youtrack.jetbrains.com/issue/KTOR-8766) DI: The close method is called twice on cleanup of AutoCloseable
+* [KTOR-8695](https://youtrack.jetbrains.com/issue/KTOR-8695) GMTDate() being offset by 369 years on Windows
+* [KTOR-9589](https://youtrack.jetbrains.com/issue/KTOR-9589) Duplicate PROPERTY_SETTER target in @InternalAPI annotation
+* [KTOR-9602](https://youtrack.jetbrains.com/issue/KTOR-9602) Gradle plugin environment variable is not included in the image
+
+
 # 3.5.0
 > Published 14 May 2026
 
