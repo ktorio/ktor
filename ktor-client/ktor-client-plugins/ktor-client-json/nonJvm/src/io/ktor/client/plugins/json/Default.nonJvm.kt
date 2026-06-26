@@ -15,7 +15,11 @@ import io.ktor.utils.io.*
  */
 @OptIn(InternalAPI::class)
 public actual fun defaultSerializer(): JsonSerializer =
-    serializersStore.first()
+    serializers.first()
 
 @InternalAPI
-public val serializersStore: MutableList<JsonSerializer> = mutableListOf()
+public val serializers: MutableList<JsonSerializer> = mutableListOf()
+
+@Deprecated("Use serializers instead.", ReplaceWith("serializers"), level = DeprecationLevel.ERROR)
+@InternalAPI
+public val serializersStore: MutableList<JsonSerializer> get() = serializers
