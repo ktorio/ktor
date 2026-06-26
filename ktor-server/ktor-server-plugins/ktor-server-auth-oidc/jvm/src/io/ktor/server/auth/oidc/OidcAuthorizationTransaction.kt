@@ -5,10 +5,12 @@
 package io.ktor.server.auth.oidc
 
 import io.ktor.http.*
+import io.ktor.http.auth.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.origin
 import io.ktor.server.sessions.SameSite
 import io.ktor.util.*
+import kotlin.io.encoding.Base64
 
 private val CookieMaxAgeSeconds = AuthorizationTransactionTtl.inWholeSeconds.toInt()
 internal const val OidcStateCookieName = "KTOR_OIDC_STATE"
@@ -26,17 +28,27 @@ internal fun String.toOidcStateCookie(secure: Boolean, maxAge: Int = CookieMaxAg
 
 internal class OidcAuthorizationTransaction(
     val nonce: String,
-)
+    val codeVerifier: String,
+) {
+    fun codeChallenge(): String {
+        val digester = DigestAlgorithm.SHA_256.toDigester()
+        val digest = digester.digest(codeVerifier.toByteArray(Charsets.US_ASCII))
+        return Base64.UrlSafe.withPadding(Base64.PaddingOption.ABSENT).encode(digest)
+    }
+}
 
 private val ApplicationCall.secureCookie: Boolean
     get() = request.origin.scheme == "https"
 
 internal suspend fun ApplicationCall.createAuthorizationTransaction(
     stateCodec: OidcStateCodec,
+    method: CodeChallengeMethod,
     state: String,
 ): OidcAuthorizationTransaction {
+    require(method is CodeChallengeMethod.S256) { "Only S256 code challenge method is supported" }
     val nonce = generateNonceSuspend()
-    val transaction = OidcAuthorizationTransaction(nonce)
+    val codeVerifier = generateNonceSuspend(CodeChallengeMethod.S256.VERIFIER_LENGTH)
+    val transaction = OidcAuthorizationTransaction(nonce, codeVerifier)
     val cookie = stateCodec.encode(state, transaction).toOidcStateCookie(secureCookie)
     response.cookies.append(cookie)
     return transaction

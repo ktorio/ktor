@@ -1,3 +1,12 @@
+public abstract class io/ktor/server/auth/oidc/CodeChallengeMethod {
+	public abstract fun getName ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/auth/oidc/CodeChallengeMethod$S256 : io/ktor/server/auth/oidc/CodeChallengeMethod {
+	public static final field INSTANCE Lio/ktor/server/auth/oidc/CodeChallengeMethod$S256;
+	public fun getName ()Ljava/lang/String;
+}
+
 public final class io/ktor/server/auth/oidc/Oidc {
 	public static final field Companion Lio/ktor/server/auth/oidc/Oidc$Companion;
 	public final fun provider (Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -17,18 +26,9 @@ public final class io/ktor/server/auth/oidc/OidcAccessTokenConfig {
 	public final fun setOpaqueToken (Lio/ktor/server/auth/oidc/OpaqueTokenStrategy;)V
 }
 
-public final class io/ktor/server/auth/oidc/OidcAuthenticatedContextKt {
-	public static final fun getProvider (Lio/ktor/server/auth/oidc/OidcProviderContext;)Lio/ktor/server/auth/oidc/OidcProvider;
-}
-
 public final class io/ktor/server/auth/oidc/OidcBearerConfig {
 	public final fun getTokenExtractor ()Lkotlin/jvm/functions/Function1;
 	public final fun setTokenExtractor (Lkotlin/jvm/functions/Function1;)V
-}
-
-public final class io/ktor/server/auth/oidc/OidcBearerContext : io/ktor/server/auth/oidc/OidcProviderContext, io/ktor/server/auth/typesafe/AuthenticatedContext {
-	public fun principal (Lio/ktor/server/routing/RoutingContext;)Ljava/lang/Object;
-	public fun provider ()Lio/ktor/server/auth/oidc/OidcProvider;
 }
 
 public final class io/ktor/server/auth/oidc/OidcJwtConfig {
@@ -68,6 +68,7 @@ public final class io/ktor/server/auth/oidc/OidcOAuthConfig {
 	public field clientSecret Ljava/lang/String;
 	public final fun getClientId ()Ljava/lang/String;
 	public final fun getClientSecret ()Ljava/lang/String;
+	public final fun getCodeChallengeMethod ()Lio/ktor/server/auth/oidc/CodeChallengeMethod;
 	public final fun getFetchUserInfo ()Z
 	public final fun getIdTokenAudience ()Ljava/lang/String;
 	public final fun getLoginUri ()Lkotlin/jvm/functions/Function1;
@@ -79,6 +80,7 @@ public final class io/ktor/server/auth/oidc/OidcOAuthConfig {
 	public final fun onSuccess (Lkotlin/jvm/functions/Function3;)V
 	public final fun setClientId (Ljava/lang/String;)V
 	public final fun setClientSecret (Ljava/lang/String;)V
+	public final fun setCodeChallengeMethod (Lio/ktor/server/auth/oidc/CodeChallengeMethod;)V
 	public final fun setFetchUserInfo (Z)V
 	public final fun setIdTokenAudience (Ljava/lang/String;)V
 	public final fun setLoginUri (Lkotlin/jvm/functions/Function1;)V
@@ -124,10 +126,6 @@ public final class io/ktor/server/auth/oidc/OidcProviderConfig {
 	public static synthetic fun oauth$default (Lio/ktor/server/auth/oidc/OidcProviderConfig;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 	public final fun setIssuer (Ljava/lang/String;)V
 	public final fun setMetadata (Lio/ktor/server/auth/oidc/OpenIdProviderMetadata;)V
-}
-
-public abstract interface class io/ktor/server/auth/oidc/OidcProviderContext {
-	public abstract fun provider ()Lio/ktor/server/auth/oidc/OidcProvider;
 }
 
 public final class io/ktor/server/auth/oidc/OidcStateEncryptionKey {

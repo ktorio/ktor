@@ -60,6 +60,8 @@ class OidcOAuthCallbackTest {
         val stateCookie = assertNotNull(login.oidcStateCookieHeader())
         val state = assertNotNull(authorizeUrl.parameters["state"])
         val nonce = assertNotNull(authorizeUrl.parameters["nonce"])
+        assertNotNull(authorizeUrl.parameters["code_challenge"])
+        assertEquals("S256", authorizeUrl.parameters["code_challenge_method"])
         idTokensByState[state] = keys.idToken(subject = "callback-user") {
             audience = "client-id"
             this.nonce = nonce
@@ -73,6 +75,55 @@ class OidcOAuthCallbackTest {
 
         assertEquals(HttpStatusCode.NotFound, browser.post("/oidc/auth0/refresh").status)
         assertEquals(HttpStatusCode.NotFound, browser.post("/oidc/auth0/logout").status)
+    }
+
+    @Test
+    fun `oauth login can disable pkce parameters`() = testApplication {
+        val keys = testRsaKeys
+        val idTokensByState = ConcurrentHashMap<String, String>()
+
+        openIdProvider(keys, idTokensByState, expectPkce = false)
+
+        val openIdClient = openIdHttpClient()
+        application {
+            val oidc = openIdConnect {
+                httpClient = openIdClient
+                discoveryRefreshInterval = ZERO
+            }
+            oidc.provider("auth0") {
+                testIssuer()
+                jwt(keys)
+                oauth {
+                    clientId = "client-id"
+                    clientSecret = "client-secret"
+                    codeChallengeMethod = null
+                    onSuccess { principal ->
+                        val idToken = principal as OidcToken.Id
+                        call.respondText("signed in ${idToken.userInfo.subject}")
+                    }
+                }
+            }
+        }
+
+        val browser = noRedirectsClient()
+        val login = browser.get("/oidc/auth0/login")
+        assertEquals(HttpStatusCode.Found, login.status)
+        val authorizeUrl = Url(assertNotNull(login.headers[HttpHeaders.Location]))
+        val stateCookie = assertNotNull(login.oidcStateCookieHeader())
+        val state = assertNotNull(authorizeUrl.parameters["state"])
+        val nonce = assertNotNull(authorizeUrl.parameters["nonce"])
+        assertNull(authorizeUrl.parameters["code_challenge"])
+        assertNull(authorizeUrl.parameters["code_challenge_method"])
+        idTokensByState[state] = keys.idToken(subject = "callback-user") {
+            audience = "client-id"
+            this.nonce = nonce
+        }
+
+        val callback = browser.get("/oidc/auth0/callback?code=login-code&state=$state") {
+            header(HttpHeaders.Cookie, stateCookie)
+        }
+        assertEquals(HttpStatusCode.OK, callback.status)
+        assertEquals("signed in callback-user", callback.bodyAsText())
     }
 
     @Test

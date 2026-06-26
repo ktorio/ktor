@@ -79,13 +79,26 @@ private fun OidcProvider<*>.oauthServerSettings(): OAuthServerSettings.OAuth2Ser
                 request.call.readAuthorizationTransaction(stateCodec, it)
             } ?: return@authorize
             parameters.append("nonce", transaction.nonce)
+            config.codeChallengeMethod?.let { method ->
+                parameters.append("code_challenge", transaction.codeChallenge())
+                parameters.append("code_challenge_method", method.name)
+            }
         },
         verifyState = { call, state ->
             call.validateAuthorizationResponseIssuer(currentMetadata())
             state != null && call.readAuthorizationTransaction(stateCodec, state) != null
         },
-        extraTokenParametersProvider = { _, _ -> emptyList() },
-        onStateCreated = { call, state -> call.createAuthorizationTransaction(stateCodec, state) },
+        extraTokenParametersProvider = provider@{ call, callback ->
+            if (config.codeChallengeMethod == null) {
+                return@provider emptyList()
+            }
+            val transaction = call.readAuthorizationTransaction(stateCodec, callback.state)
+            transaction?.let { listOf("code_verifier" to it.codeVerifier) }.orEmpty()
+        },
+        onStateCreated = { call, state ->
+            val method = checkNotNull(config.codeChallengeMethod) { "PKCE is disabled" }
+            call.createAuthorizationTransaction(stateCodec, method, state)
+        },
     )
 }
 

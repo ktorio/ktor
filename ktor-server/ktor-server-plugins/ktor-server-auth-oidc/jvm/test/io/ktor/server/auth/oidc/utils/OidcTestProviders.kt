@@ -12,6 +12,7 @@ import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 
 internal val openIdProviderMetadata: OpenIdProviderMetadata = OpenIdProviderMetadata(
     issuer = ISSUER_URL,
@@ -42,6 +43,7 @@ internal fun <P : Any> OidcProviderConfig<P>.testIssuer(
 internal fun TestApplicationBuilder.openIdProvider(
     keys: OpenIdTestKeys,
     idTokensByState: Map<String, String>,
+    expectPkce: Boolean = true,
     tokenType: String? = "Bearer",
 ) {
     externalServices {
@@ -55,6 +57,7 @@ internal fun TestApplicationBuilder.openIdProvider(
                         accessToken = keys.accessToken {
                             subject = "token-user"
                         },
+                        expectPkce = expectPkce,
                         tokenType = tokenType,
                     )
                 }
@@ -68,9 +71,10 @@ internal suspend fun RoutingContext.respondAuthorizationCodeWithIdToken(
     idTokensByState: Map<String, String>,
     accessToken: String,
     refreshToken: String? = "refresh-token-1",
+    expectPkce: Boolean = true,
     tokenType: String? = "Bearer",
 ) {
-    assertAuthorizationCodeRequest(parameters)
+    assertAuthorizationCodeRequest(parameters, expectPkce)
     val state = assertNotNull(parameters["state"])
 
     val responseParameters = buildList {
@@ -83,10 +87,15 @@ internal suspend fun RoutingContext.respondAuthorizationCodeWithIdToken(
     call.respondText(responseParameters.formUrlEncode(), ContentType.Application.FormUrlEncoded)
 }
 
-internal fun assertAuthorizationCodeRequest(parameters: Parameters) {
+internal fun assertAuthorizationCodeRequest(parameters: Parameters, expectPkce: Boolean = true) {
     assertEquals("authorization_code", parameters["grant_type"])
     assertEquals("login-code", parameters["code"])
     assertEquals("client-id", parameters["client_id"])
     assertEquals("client-secret", parameters["client_secret"])
+    if (expectPkce) {
+        assertValidPkceCodeVerifier(assertNotNull(parameters["code_verifier"]))
+    } else {
+        assertNull(parameters["code_verifier"])
+    }
     assertNotNull(parameters["state"])
 }

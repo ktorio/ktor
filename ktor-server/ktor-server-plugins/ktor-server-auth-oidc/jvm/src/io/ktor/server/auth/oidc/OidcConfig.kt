@@ -424,6 +424,16 @@ public class OidcBearerConfig internal constructor() {
     public var tokenExtractor: TokenExtractor? = null
 }
 
+public sealed class CodeChallengeMethod {
+    public abstract val name: String
+
+    public object S256 : CodeChallengeMethod() {
+        override val name: String = "S256"
+
+        internal const val VERIFIER_LENGTH = 64
+    }
+}
+
 /**
  * OAuth/OpenID Connect configuration.
  *
@@ -473,14 +483,30 @@ public class OidcOAuthConfig<P : Any> internal constructor(
     public var fetchUserInfo: Boolean = false
 
     /**
-     * Symmetric key used to encrypt the in-flight OAuth state cookie carrying `state` and `nonce`
-     * between the login redirect and the callback.
+     * Symmetric key used to encrypt the in-flight OAuth state cookie carrying `state`, `nonce`, and the PKCE code
+     * verifier between the login redirect and the callback.
      *
      * Required in production. In development mode an ephemeral key is generated when not set.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcOAuthConfig.stateEncryptionKey)
      */
     public var stateEncryptionKey: OidcStateEncryptionKey? = null
+
+    /**
+     * Code challenge method used for PKCE (RFC 7636) during the authorization code flow.
+     *
+     * Only [CodeChallengeMethod.S256] is supported.
+     *
+     * When enabled, a per-request code verifier is generated and stored in the encrypted state cookie. The
+     * authorization request adds the `code_challenge` (the Base64URL-encoded, unpadded SHA-256 digest of the
+     * verifier) and `code_challenge_method` (`S256`) parameters, and the token exchange request adds the matching
+     * `code_verifier` parameter so the provider can verify the challenge.
+     *
+     * Set to `null` to disable PKCE. Use this only with legacy OpenID Providers that reject PKCE parameters.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcOAuthConfig.codeChallengeMethod)
+     */
+    public var codeChallengeMethod: CodeChallengeMethod? = CodeChallengeMethod.S256
 
     /**
      * Configures the OAuth callback route URI.
