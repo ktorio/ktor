@@ -1,6 +1,5 @@
 // Klib ABI Dump
 // Targets: [androidNativeArm32, androidNativeArm64, androidNativeX64, androidNativeX86, iosArm64, iosSimulatorArm64, iosX64, js, linuxArm64, linuxX64, macosArm64, macosX64, mingwX64, tvosArm64, tvosSimulatorArm64, tvosX64, wasmJs, watchosArm32, watchosArm64, watchosDeviceArm64, watchosSimulatorArm64, watchosX64]
-// Alias: native => [androidNativeArm32, androidNativeArm64, androidNativeX64, androidNativeX86, iosArm64, iosSimulatorArm64, iosX64, linuxArm64, linuxX64, macosArm64, macosX64, mingwX64, tvosArm64, tvosSimulatorArm64, tvosX64, watchosArm32, watchosArm64, watchosDeviceArm64, watchosSimulatorArm64, watchosX64]
 // Rendering settings:
 // - Signature version: 2
 // - Show manifest properties: true
@@ -349,18 +348,13 @@ final class io.ktor.client.engine/ClientEngineClosedException : kotlin/IllegalSt
 }
 
 final class io.ktor.client.engine/ProxyConfig { // io.ktor.client.engine/ProxyConfig|null[0]
-    // Targets: [native]
+    constructor <init>() // io.ktor.client.engine/ProxyConfig.<init>|<init>(){}[0]
     constructor <init>(io.ktor.http/Url) // io.ktor.client.engine/ProxyConfig.<init>|<init>(io.ktor.http.Url){}[0]
 
-    // Targets: [native]
     final val url // io.ktor.client.engine/ProxyConfig.url|{}url[0]
         final fun <get-url>(): io.ktor.http/Url // io.ktor.client.engine/ProxyConfig.url.<get-url>|<get-url>(){}[0]
 
-    // Targets: [native]
     final fun toString(): kotlin/String // io.ktor.client.engine/ProxyConfig.toString|toString(){}[0]
-
-    // Targets: [js, wasmJs]
-    constructor <init>() // io.ktor.client.engine/ProxyConfig.<init>|<init>(){}[0]
 }
 
 final class io.ktor.client.network.sockets/ConnectTimeoutException : kotlinx.io/IOException { // io.ktor.client.network.sockets/ConnectTimeoutException|null[0]
