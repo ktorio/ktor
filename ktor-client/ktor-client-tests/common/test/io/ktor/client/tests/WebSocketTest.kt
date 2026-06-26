@@ -63,6 +63,7 @@ class WebSocketTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
         }
     }
 
+    @WasmWasiIgnore // there is no client engine yet
     @Test
     fun testExceptionIfWebsocketIsNotInstalled() = runTest {
         val client = HttpClient()

@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.single
 import kotlin.test.*
 import kotlin.time.Duration.Companion.seconds
 
+@WasmWasiIgnore // sockets are not supported yet
 class CIOEngineTest : ClientEngineTest<CIOEngineConfig>(CIO) {
 
     @Test

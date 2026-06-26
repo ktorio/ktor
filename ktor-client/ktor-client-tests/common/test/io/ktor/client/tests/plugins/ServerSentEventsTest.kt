@@ -18,6 +18,7 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.sse.*
+import io.ktor.test.WasmWasiIgnore
 import io.ktor.test.runTest
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
@@ -37,6 +38,7 @@ import kotlin.time.Duration.Companion.seconds
 
 class ServerSentEventsTest : ClientLoader() {
 
+    @WasmWasiIgnore // there is no client engine yet
     @Test
     fun testExceptionIfSseIsNotInstalled() = runTest {
         val client = HttpClient()
