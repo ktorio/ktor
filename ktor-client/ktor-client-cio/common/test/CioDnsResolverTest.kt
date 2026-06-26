@@ -6,30 +6,18 @@ package io.ktor.client.engine.cio
 
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
+import io.ktor.test.dispatcher.*
 import io.ktor.utils.io.core.buildPacket
 import kotlinx.coroutines.*
 import kotlinx.io.*
-import java.net.UnknownHostException
-import kotlin.random.Random
 import kotlin.test.*
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
-import kotlin.time.measureTime
+import kotlin.use
 
-class DnsResolverTest {
-
+class CioDnsResolverTest {
     @Test
-    fun testJvmDnsResolverResolvesLocalhost() = runBlocking {
-        val ips = JvmDnsResolver().invoke("localhost")
-        assertTrue(ips.isNotEmpty(), "localhost must resolve to at least one address")
-        assertTrue(
-            ips.any { it == "127.0.0.1" || it == "0:0:0:0:0:0:0:1" || it == "::1" },
-            "expected loopback in $ips",
-        )
-    }
-
-    @Test
-    fun testCioDnsResolverParsesAResponse() = runBlocking {
+    fun testCioDnsResolverParsesAResponse() = runTestWithRealTime {
         withFakeDnsServer { server, port ->
             val resolved = async {
                 CioDnsResolver(server = "127.0.0.1", port = port, timeout = 2.seconds)
@@ -42,7 +30,7 @@ class DnsResolverTest {
     }
 
     @Test
-    fun testCioDnsResolverReturnsAaaaOnlyForIpv6OnlyHost() = runBlocking {
+    fun testCioDnsResolverReturnsAaaaOnlyForIpv6OnlyHost() = runTestWithRealTime {
         withFakeDnsServer { server, port ->
             val resolved = async {
                 CioDnsResolver(server = "127.0.0.1", port = port, timeout = 2.seconds)
@@ -55,7 +43,7 @@ class DnsResolverTest {
     }
 
     @Test
-    fun testCioDnsResolverReturnsEmptyOnNxDomain() = runBlocking {
+    fun testCioDnsResolverReturnsEmptyOnNxDomain() = runTestWithRealTime {
         withFakeDnsServer { server, port ->
             val resolved = async {
                 CioDnsResolver(server = "127.0.0.1", port = port, timeout = 2.seconds)
@@ -68,7 +56,7 @@ class DnsResolverTest {
     }
 
     @Test
-    fun testCioDnsResolverHappyEyeballsPrefersIpv6() = runBlocking {
+    fun testCioDnsResolverHappyEyeballsPrefersIpv6() = runTestWithRealTime {
         withFakeDnsServer { server, port ->
             val resolved = async {
                 CioDnsResolver(server = "127.0.0.1", port = port, timeout = 2.seconds)
@@ -81,7 +69,7 @@ class DnsResolverTest {
     }
 
     @Test
-    fun testCioDnsResolverThrowsWhenAllQueriesTimeOut() = runBlocking<Unit> {
+    fun testCioDnsResolverThrowsWhenAllQueriesTimeOut() = runTestWithRealTime {
         SelectorManager().use { selector ->
             aSocket(selector).udp().bind(InetSocketAddress("127.0.0.1", 0)).use { server ->
                 val port = (server.localAddress as InetSocketAddress).port
@@ -97,7 +85,7 @@ class DnsResolverTest {
     }
 
     @Test
-    fun testCioDnsResolverRejectsEmptyHostname() = runBlocking<Unit> {
+    fun testCioDnsResolverRejectsEmptyHostname() = runTestWithRealTime {
         val failure = assertFailsWith<IllegalArgumentException> {
             CioDnsResolver(server = "127.0.0.1").invoke("")
         }
@@ -105,7 +93,7 @@ class DnsResolverTest {
     }
 
     @Test
-    fun testCioDnsResolverAcceptsFqdnWithTrailingDot() = runBlocking {
+    fun testCioDnsResolverAcceptsFqdnWithTrailingDot() = runTestWithRealTime {
         withFakeDnsServer { server, port ->
             val resolved = async {
                 CioDnsResolver(server = "127.0.0.1", port = port, timeout = 2.seconds)
@@ -115,27 +103,6 @@ class DnsResolverTest {
             server.replyEmpty()
             assertEquals(listOf("203.0.113.99"), resolved.await())
         }
-    }
-
-    @Test
-    fun testJvmDnsResolverIsCooperativelyCancellable() = runBlocking<Unit> {
-        // Smoke test only. A strong test for `runInterruptible` interrupting an in-flight blocking
-        // `InetAddress.getAllByName` call would need a hostname whose DNS lookup blocks for tens of
-        // seconds, which is not portable across CI environments. This test merely verifies that the
-        // resolver returns control on cancellation within a generous bound.
-        val resolver = JvmDnsResolver()
-        val job = launch {
-            while (isActive) {
-                try {
-                    resolver.invoke("nonexistent-${Random.nextInt()}.invalid")
-                } catch (_: UnknownHostException) {
-                    // expected — `.invalid` TLD is reserved as guaranteed-non-resolving (RFC 6761)
-                }
-            }
-        }
-        delay(50)
-        val elapsed = measureTime { job.cancelAndJoin() }
-        assertTrue(elapsed < 5.seconds, "cancellation took $elapsed; expected runInterruptible to bound it")
     }
 
     @Test

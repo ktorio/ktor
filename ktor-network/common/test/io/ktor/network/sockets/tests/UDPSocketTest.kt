@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.network.sockets.tests
@@ -47,6 +47,11 @@ class UDPSocketTest {
 
                 // PosixException (WSAEACCES)
                 cause.message?.contains("10013", ignoreCase = true) == true -> {
+                    denied = true
+                }
+
+                // nodejs
+                cause.cause?.message?.contains("EACCES") == true -> {
                     denied = true
                 }
 
@@ -260,16 +265,12 @@ class UDPSocketTest {
 
     @Test
     fun testUdpConnect() = testSockets { selector ->
-        val server = aSocket(selector)
-            .udp()
-            .bind()
-
-        val remoteAddress = InetSocketAddress("127.0.0.1", (server.localAddress as InetSocketAddress).port)
-        val socket = aSocket(selector).udp().connect(remoteAddress)
-
-        socket.send(Datagram(buildPacket { writeText("hello") }, remoteAddress))
-        assertEquals("hello", server.receive().packet.readText())
+        aSocket(selector).udp().bind().use { server ->
+            val remoteAddress = InetSocketAddress("127.0.0.1", (server.localAddress as InetSocketAddress).port)
+            aSocket(selector).udp().connect(remoteAddress).use { socket ->
+                socket.send(Datagram(buildPacket { writeText("hello") }, remoteAddress))
+                assertEquals("hello", server.receive().packet.readText())
+            }
+        }
     }
 }
-
-expect fun isJvmWindows(): Boolean

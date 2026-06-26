@@ -28,7 +28,7 @@ class UnixSocketTest {
                 server.accept()
             }
 
-            val clientConnection = tcp.connect(UnixSocketAddress(socketPath))
+            val clientConnection = tcp.connect(server.localAddress)
             val serverConnection = serverConnectionPromise.await()
 
             val clientOutput = clientConnection.openWriteChannel()
