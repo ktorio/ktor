@@ -1,6 +1,5 @@
 // Klib ABI Dump
-// Targets: [androidNativeArm32, androidNativeArm64, androidNativeX64, androidNativeX86, iosArm64, iosSimulatorArm64, iosX64, js, linuxArm64, linuxX64, macosArm64, macosX64, mingwX64, tvosArm64, tvosSimulatorArm64, tvosX64, wasmJs, watchosArm32, watchosArm64, watchosDeviceArm64, watchosSimulatorArm64, watchosX64]
-// Alias: native => [androidNativeArm32, androidNativeArm64, androidNativeX64, androidNativeX86, iosArm64, iosSimulatorArm64, iosX64, linuxArm64, linuxX64, macosArm64, macosX64, mingwX64, tvosArm64, tvosSimulatorArm64, tvosX64, watchosArm32, watchosArm64, watchosDeviceArm64, watchosSimulatorArm64, watchosX64]
+// Targets: [androidNativeArm32, androidNativeArm64, androidNativeX64, androidNativeX86, iosArm64, iosSimulatorArm64, iosX64, js, linuxArm64, linuxX64, macosArm64, macosX64, mingwX64, tvosArm64, tvosSimulatorArm64, tvosX64, wasmJs, wasmWasi, watchosArm32, watchosArm64, watchosDeviceArm64, watchosSimulatorArm64, watchosX64]
 // Rendering settings:
 // - Signature version: 2
 // - Show manifest properties: true
@@ -50,13 +49,10 @@ final class io.ktor.client.plugins.json/JsonPlugin { // io.ktor.client.plugins.j
     }
 }
 
-final fun (io.ktor.client/HttpClientConfig<*>).io.ktor.client.plugins.json/Json(kotlin/Function1<io.ktor.client.plugins.json/JsonPlugin.Config, kotlin/Unit>) // io.ktor.client.plugins.json/Json|Json@io.ktor.client.HttpClientConfig<*>(kotlin.Function1<io.ktor.client.plugins.json.JsonPlugin.Config,kotlin.Unit>){}[0]
-final fun io.ktor.client.plugins.json/defaultSerializer(): io.ktor.client.plugins.json/JsonSerializer // io.ktor.client.plugins.json/defaultSerializer|defaultSerializer(){}[0]
-
-// Targets: [native]
 final val io.ktor.client.plugins.json/serializers // io.ktor.client.plugins.json/serializers|{}serializers[0]
     final fun <get-serializers>(): kotlin.collections/MutableList<io.ktor.client.plugins.json/JsonSerializer> // io.ktor.client.plugins.json/serializers.<get-serializers>|<get-serializers>(){}[0]
-
-// Targets: [js, wasmJs]
 final val io.ktor.client.plugins.json/serializersStore // io.ktor.client.plugins.json/serializersStore|{}serializersStore[0]
     final fun <get-serializersStore>(): kotlin.collections/MutableList<io.ktor.client.plugins.json/JsonSerializer> // io.ktor.client.plugins.json/serializersStore.<get-serializersStore>|<get-serializersStore>(){}[0]
+
+final fun (io.ktor.client/HttpClientConfig<*>).io.ktor.client.plugins.json/Json(kotlin/Function1<io.ktor.client.plugins.json/JsonPlugin.Config, kotlin/Unit>) // io.ktor.client.plugins.json/Json|Json@io.ktor.client.HttpClientConfig<*>(kotlin.Function1<io.ktor.client.plugins.json.JsonPlugin.Config,kotlin.Unit>){}[0]
+final fun io.ktor.client.plugins.json/defaultSerializer(): io.ktor.client.plugins.json/JsonSerializer // io.ktor.client.plugins.json/defaultSerializer|defaultSerializer(){}[0]
