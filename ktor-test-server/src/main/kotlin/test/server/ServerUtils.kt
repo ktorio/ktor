@@ -1,18 +1,18 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package test.server
 
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.io.readByteArray
+import kotlin.io.encoding.Base64
 
 fun makeArray(size: Int): ByteArray = ByteArray(size) { it.toByte() }
 
-fun makeString(size: Int): String = CharArray(size) { it.toChar() }.concatToString().encodeBase64().take(size)
+fun makeString(size: Int): String = Base64.encode(ByteArray(size) { it.toChar().code.toByte() }).take(size)
 
 suspend fun PartData.makeString(): String = buildString {
     val part = this@makeString
