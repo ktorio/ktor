@@ -23,9 +23,10 @@ internal fun <P : Any> Application.configureOAuthRoute(provider: OidcProvider<P>
         // Manual login redirect: generates per-request state + OIDC nonce and redirects to IDP.
         get(loginPath) {
             val oauthState = generateNonceSuspend()
-            val codeChallengeMethod = config.codeChallengeMethod ?: CodeChallengeMethod.S256
+            val configuredCodeChallengeMethod = config.codeChallengeMethod
+            val transactionCodeChallengeMethod = configuredCodeChallengeMethod ?: CodeChallengeMethod.S256
             val authorizationTransaction =
-                call.createAuthorizationTransaction(provider.stateCodec, codeChallengeMethod, oauthState)
+                call.createAuthorizationTransaction(provider.stateCodec, transactionCodeChallengeMethod, oauthState)
 
             val redirectUriStr = call.request.oidcRedirectUri(config.redirectUri)
 
@@ -37,7 +38,7 @@ internal fun <P : Any> Application.configureOAuthRoute(provider: OidcProvider<P>
                 parameters.append("scope", config.scopes.joinToString(" "))
                 parameters.append("state", oauthState)
                 parameters.append("nonce", authorizationTransaction.nonce)
-                config.codeChallengeMethod?.let { method ->
+                configuredCodeChallengeMethod?.let { method ->
                     parameters.append("code_challenge", authorizationTransaction.codeChallenge())
                     parameters.append("code_challenge_method", method.name)
                 }
@@ -47,11 +48,68 @@ internal fun <P : Any> Application.configureOAuthRoute(provider: OidcProvider<P>
             call.respondRedirect(authorizeUrl)
         }
 
+        val sessionsDisabled = provider.config.sessionConfig == null
+        if (sessionsDisabled) {
+            oauthCallback(
+                flow = provider.oauthFlow,
+                path = redirectPath,
+                onSuccess = { provider.handleOAuthCallbackSuccess(response = principal) }
+            )
+            return@routing
+        }
+
         oauthCallback(
-            flow = provider.oauthFlow,
+            flow = provider.oauthSessionFlow,
             path = redirectPath,
-            onSuccess = { provider.handleOAuthCallbackSuccess(response = principal) }
+            onFailure = config.onFailure,
+            onSuccess = { config.onSuccess(this, principal) }
         )
+
+        authenticateWith(provider.sessions) {
+            post(provider.sessionRefreshPath) {
+                val refreshToken = session.refreshToken ?: run {
+                    provider.logger.debug("Session has no refresh token, cannot refresh")
+                    return@post call.respond(HttpStatusCode.Unauthorized)
+                }
+
+                val refreshResult = try {
+                    provider.refreshToken(refreshToken)
+                } catch (cause: CancellationException) {
+                    throw cause
+                } catch (cause: Exception) {
+                    provider.logger.debug("Failed to refresh token", cause)
+                    null
+                }
+
+                if (refreshResult == null) {
+                    return@post call.respond(HttpStatusCode.Unauthorized)
+                }
+
+                val refreshedPrincipal = refreshResult.idToken
+                    ?: return@post call.respond(HttpStatusCode.Unauthorized)
+
+                session = refreshedPrincipal
+                call.respond(HttpStatusCode.OK)
+            }
+
+            post(provider.sessionLogoutPath) {
+                val postLogoutRedirectUri = call.request.oidcRedirectUri(config.postLogoutRedirectUri)
+                val idTokenHint = session.value
+                clearSession()
+
+                val logoutUrl = runCatching {
+                    provider.buildLogoutUrl(idTokenHint, postLogoutRedirectUri)
+                }.onFailure {
+                    provider.logger.debug(
+                        "Failed to build provider logout URL, redirecting to postLogoutRedirectUri instead",
+                        it
+                    )
+                }.getOrDefault(postLogoutRedirectUri)
+
+                call.response.headers.append(HttpHeaders.Location, logoutUrl)
+                call.respond(HttpStatusCode.SeeOther)
+            }
+        }
     }
 }
 

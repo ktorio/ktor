@@ -82,6 +82,93 @@ class OidcEnvironmentConfigTest {
     }
 
     @Test
+    fun `typed environment provider can be extended in code`() = testApplication {
+        val keys = testRsaKeys
+        val idTokensByState = ConcurrentHashMap<String, String>()
+
+        environment {
+            config = oidcEnvironmentConfig(providerName = "google", withScopes = true)
+        }
+        externalServices {
+            hosts(ISSUER_URL) {
+                routing {
+                    post("/token") {
+                        respondAuthorizationCodeWithIdToken(
+                            parameters = call.receiveParameters(),
+                            idTokensByState = idTokensByState,
+                            accessToken = "access-token",
+                        )
+                    }
+                }
+            }
+        }
+
+        val openIdClient = openIdHttpClient()
+        application {
+            val oidc = openIdConnect {
+                httpClient = openIdClient
+                discoveryRefreshInterval = ZERO
+            }
+            val google = oidc.provider<UserIdPrincipal>(
+                name = "google",
+                transformPrincipal = { principal ->
+                    val idToken = principal as? OidcToken.Id
+                    idToken?.userInfo?.subject?.let(::UserIdPrincipal)
+                }
+            ) {
+                metadata = testOpenIdProviderMetadata(issuer)
+                jwt(keys)
+                sessions {
+                    name = OIDC_TEST_SESSION_NAME
+                    cookie {
+                        cookie.secure = false
+                    }
+                    disableCsrfProtection()
+                }
+                oauth {
+                    loginUri = { path("google", "login") }
+                    onSuccess { principal ->
+                        call.respondText(principal.name)
+                    }
+                    onFailure = {
+                    }
+                }
+            }
+
+            routing {
+                authenticateWith(google.sessions) {
+                    get("/typed") {
+                        call.respondText(principal.name)
+                    }
+                }
+            }
+        }
+
+        val browser = noRedirectsClient()
+        val login = browser.prepareOidcLogin("google") {
+            url { path("google", "login") }
+        }
+        assertEquals("/authorize", login.authorizeUrl.encodedPath)
+        assertEquals("client-id", login.authorizeUrl.parameters["client_id"])
+        assertEquals("openid profile", login.authorizeUrl.parameters["scope"])
+        idTokensByState[login.state] = keys.idToken(subject = "env-typed-user") {
+            audience = "client-id"
+            nonce = login.nonce
+        }
+
+        val callback = browser.completeOidcCallback(login, providerName = "google")
+        assertEquals(HttpStatusCode.OK, callback.status)
+        assertEquals("env-typed-user", callback.bodyAsText())
+        val cookie = assertNotNull(callback.oidcSessionCookieHeader())
+
+        val typed = browser.get("/typed") {
+            header(HttpHeaders.Cookie, cookie)
+        }
+        assertEquals(HttpStatusCode.OK, typed.status)
+        assertEquals("env-typed-user", typed.bodyAsText())
+    }
+
+    @Test
     fun `failed provider configuration does not consume environment provider config`() = testApplication {
         environment {
             config = oidcEnvironmentConfig(withScopes = true)

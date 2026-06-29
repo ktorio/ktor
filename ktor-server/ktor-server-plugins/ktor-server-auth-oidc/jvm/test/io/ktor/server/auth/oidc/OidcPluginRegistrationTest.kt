@@ -76,6 +76,7 @@ class OidcPluginRegistrationTest {
             },
         )
         assertFailsWith<IllegalStateException> { providerWithoutSchemes.bearer }
+        assertFailsWith<IllegalStateException> { providerWithoutSchemes.sessions }
 
         startApplication()
     }
@@ -142,6 +143,52 @@ class OidcPluginRegistrationTest {
                 assertContains(failure.message.orEmpty(), "already configured")
             }
         }
+    }
+
+    @Test
+    fun `typed route registration rejects derived scheme name collisions`() {
+        val secondIssuer = "https://okta.example.com"
+        val failure = assertFailsWith<IllegalArgumentException> {
+            testApplication {
+                application {
+                    val oidc = openIdConnect { }
+                    val auth0 = oidc.provider("auth0") {
+                        testIssuer()
+                        accessToken {
+                            audiences = setOf("api")
+                        }
+                        bearer()
+                    }
+                    val okta = oidc.provider("okta") {
+                        testIssuer(secondIssuer)
+                        sessions {
+                            name = "auth0-bearer"
+                        }
+                        oauth {
+                            clientId = "client-id"
+                            clientSecret = "client-secret"
+                        }
+                    }
+
+                    routing {
+                        authenticateWith(auth0.bearer) {
+                            get("/auth0") {
+                                call.respondText("auth0")
+                            }
+                        }
+                        authenticateWith(okta.sessions) {
+                            get("/okta") {
+                                call.respondText("okta")
+                            }
+                        }
+                    }
+                }
+                startApplication()
+            }
+        }
+
+        assertContains(failure.message.orEmpty(), "auth0-bearer")
+        assertContains(failure.message.orEmpty(), "already registered")
     }
 
     private fun assertConcurrentDuplicateRegistrations(

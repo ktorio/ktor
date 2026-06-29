@@ -30,6 +30,7 @@ import kotlinx.serialization.json.JsonObject
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
@@ -55,6 +56,43 @@ private enum class JwtTokenType {
 
 private val hmacAlgorithms = setOf("HS256", "HS384", "HS512")
 private const val BEARER_TOKEN_TYPE = "Bearer"
+
+internal suspend fun OidcProvider<*>.refreshTokenInternal(refreshToken: String): OidcTokenRefreshResult {
+    val config = oauthConfig
+    val response = client.submitForm(
+        url = currentMetadata().tokenEndpoint,
+        formParameters = Parameters.build {
+            append("grant_type", "refresh_token")
+            append("refresh_token", refreshToken)
+            append("client_id", config.clientId)
+            append("client_secret", config.clientSecret)
+            config.resourceIndicators.forEach { append("resource", it) }
+        }
+    ).body<TokenRefreshResponse>()
+
+    val effectiveRefreshToken = response.refreshToken ?: refreshToken
+
+    val idToken = response.idToken?.let { token ->
+        requireBearerTokenType(response.tokenType)
+        buildIdToken(
+            idToken = token,
+            accessToken = response.accessToken,
+            refreshToken = effectiveRefreshToken,
+            expectedAudience = config.idTokenAudience ?: config.clientId,
+            requireNonceAbsent = true,
+            fetchUserInfo = config.fetchUserInfo,
+        )
+    }
+
+    return OidcTokenRefreshResult(
+        accessToken = response.accessToken,
+        refreshToken = response.refreshToken,
+        expiresIn = response.expiresIn?.seconds,
+        tokenType = response.tokenType,
+        scope = response.scope,
+        idToken = idToken,
+    )
+}
 
 internal suspend fun OidcProvider<*>.buildOAuthToken(
     response: OAuthAccessTokenResponse.OAuth2,
@@ -174,8 +212,6 @@ private suspend fun HttpClient.introspectOpaqueToken(
                 basicAuth(username = strategy.clientId, password = strategy.clientSecret)
             }
         }.body<JsonObject>().toOpaqueTokenIntrospection()
-    } catch (e: CancellationException) {
-        throw e
     } catch (e: SerializationException) {
         rejectToken(e.message)
     }
@@ -381,4 +417,26 @@ private fun DecodedJWT.validateAtHash(accessToken: String?) {
     requireToken(actual == expected) {
         "ID token at_hash does not match the access token"
     }
+}
+
+internal fun OidcProvider<*>.buildLogoutUrlInternal(
+    idTokenHint: String,
+    postLogoutRedirectUri: String?,
+): String {
+    require(idTokenHint.isNotBlank()) {
+        "idTokenHint must not be blank"
+    }
+    val endSessionEndpoint = requireNotNull(currentMetadata().endSessionEndpoint) {
+        "endSessionEndpoint is not provided"
+    }
+    val builder = URLBuilder(endSessionEndpoint).apply {
+        parameters.append("id_token_hint", idTokenHint)
+        config.oauthConfig?.clientId?.let { clientId ->
+            parameters.append("client_id", clientId)
+        }
+        postLogoutRedirectUri?.let { uri ->
+            parameters.append("post_logout_redirect_uri", uri)
+        }
+    }
+    return builder.buildString()
 }

@@ -11,6 +11,7 @@ import io.ktor.events.EventDefinition
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.config.*
+import io.ktor.server.sessions.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
@@ -30,8 +31,10 @@ private val ProviderNameRegex = Regex("[a-z0-9]+(?:-[a-z0-9]+)*")
  * - Bearer token authentication (`bearer { }`) that validates JWT access tokens issued by the provider.
  *   Use [OidcProvider.bearer] with `authenticateWith`.
  * - **OAuth 2.0 / OIDC login flow** (`oauth { }`) — handles the authorization code flow,
- *   including login and redirect routes.
- *   Registered internally as `"$name-oauth"` and used only for the auto-registered routes.
+ *   including login and redirect routes. Session storage is opt-in via `sessions { }`, which also
+ *   enables plugin-managed refresh and logout routes.
+ *   Registered internally as `"$name-oauth"` and used only for the auto-registered routes;
+ *   browser session authentication is exposed as [OidcProvider.sessions].
  *
  * This plugin implements the Authorization Code Flow with PKCE (RFC 6749 §4.1, OIDC Core §3.1) and resource-server
  * Bearer / RFC 7662 introspection. Implicit and Hybrid flows are not supported.
@@ -94,6 +97,13 @@ private val ProviderNameRegex = Regex("[a-z0-9]+(?:-[a-z0-9]+)*")
  *             call.respondRedirect("/dashboard")
  *         }
  *     }
+ *
+ *     // Browser sessions are opt-in. When enabled, callbacks store the verified
+ *     // ID-token principal in the session and plugin-managed refresh/logout routes
+ *     // are installed.
+ *     sessions {
+ *         name = "GOOGLE_SESSION"
+ *     }
  * }
  *
  * // Protect routes using typed provider capabilities.
@@ -108,6 +118,13 @@ private val ProviderNameRegex = Regex("[a-z0-9]+(?:-[a-z0-9]+)*")
  *     authenticateWith(google.bearer) {
  *         get("/api/me") {
  *             val user = principal as OidcToken.Access
+ *             call.respond(user.userInfo)
+ *         }
+ *     }
+ *
+ *     authenticateWith(google.sessions) {
+ *         get("/me") {
+ *             val user = principal as OidcToken.Id
  *             call.respond(user.userInfo)
  *         }
  *     }
@@ -294,6 +311,17 @@ public class Oidc internal constructor(
 
     private fun checkProductionEnvironment(provider: OidcProvider<*>) {
         val devMode = application.developmentMode
+
+        // check production session storage is not in-memory
+        provider.config.sessionConfig?.let { sessionConfig ->
+            if (!devMode && sessionConfig.storage is SessionStorageMemory) {
+                provider.logger.warn(
+                    "OpenID Connect is using in-memory session storage (SessionStorageMemory). " +
+                        "Sessions will not be shared among application instances and will be lost when the " +
+                        "application terminates. Configure shared SessionStorage for production deployments."
+                )
+            }
+        }
 
         // ensure production stateEncryptionKey is configured
         val oauthConfig = provider.config.oauthConfig
