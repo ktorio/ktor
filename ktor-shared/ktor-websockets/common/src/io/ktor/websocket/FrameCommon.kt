@@ -103,6 +103,9 @@ public expect sealed class Frame private constructor(
      * Represents a low-level level close frame. It could be sent to indicate WebSocket session end.
      * Usually there is no need to send/handle it unless you have a RAW WebSocket session.
      *
+     * Note: a control frame payload must not exceed 125 bytes (RFC 6455 §5.5);
+     * constructing a larger one throws [IllegalArgumentException].
+     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.Frame.Close)
      */
     public class Close(data: ByteArray) : Frame {
@@ -115,6 +118,9 @@ public expect sealed class Frame private constructor(
      * Represents a low-level ping frame. Could be sent to test connection (peer should reply with [Pong]).
      * Usually there is no need to send/handle it unless you have a RAW WebSocket session.
      *
+     * Note: a control frame payload must not exceed 125 bytes (RFC 6455 §5.5);
+     * constructing a larger one throws [IllegalArgumentException].
+     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.Frame.Ping)
      */
     public class Ping(data: ByteArray) : Frame {
@@ -124,6 +130,9 @@ public expect sealed class Frame private constructor(
     /**
      * Represents a low-level pong frame. Should be sent in reply to a [Ping] frame.
      * Usually there is no need to send/handle it unless you have a RAW WebSocket session.
+     *
+     * Note: a control frame payload must not exceed 125 bytes (RFC 6455 §5.5);
+     * constructing a larger one throws [IllegalArgumentException].
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.Frame.Pong)
      */
