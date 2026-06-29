@@ -16,7 +16,6 @@ internal fun Application.configureProtectedResourceRoute(
     config: ProtectedResourceMetadataConfig,
     providers: () -> List<OidcProviderConfig<*>>,
 ) = routing {
-    val metadata by lazy { buildProtectedResourceMetadata(config, providers()) }
     val path = buildResourceMetadataRoutePath(config.resource)
     route(path) {
         install(ContentNegotiation) {
@@ -27,7 +26,7 @@ internal fun Application.configureProtectedResourceRoute(
             json(format)
         }
 
-        get { call.respond(metadata) }
+        get { call.respond(buildProtectedResourceMetadata(config, providers())) }
     }
 }
 
@@ -35,11 +34,13 @@ internal fun buildProtectedResourceMetadata(
     config: ProtectedResourceMetadataConfig,
     providers: Collection<OidcProviderConfig<*>>,
 ): ProtectedResourceMetadata {
+    val bearerProviders = providers.filter { it.bearerConfig != null }
+
     val authorizationServers = config.authorizationServers
-        ?: providers.map { it.issuer }.distinct().ifEmpty { null }
+        ?: bearerProviders.map { it.issuer }.distinct().ifEmpty { null }
 
     val scopesSupported = config.scopesSupported
-        ?: providers
+        ?: bearerProviders
             .mapNotNull { it.oauthConfig?.scopes }
             .flatten()
             .distinct()
@@ -74,8 +75,14 @@ internal fun buildProtectedResourceMetadata(
 internal fun buildResourceMetadataUrl(resource: String): String {
     val uri = parseProtectedResourceUri(resource)
     val port = if (uri.port == -1) "" else ":${uri.port}"
+    val authority = uri.hostAuthorityWithoutPort()
     val resourcePath = uri.path?.trimEnd('/') ?: ""
-    return "${uri.scheme}://${uri.host}$port/.well-known/oauth-protected-resource$resourcePath"
+    return "${uri.scheme}://$authority$port/.well-known/oauth-protected-resource$resourcePath"
+}
+
+private fun URI.hostAuthorityWithoutPort(): String {
+    val authority = rawAuthority?.substringAfter('@') ?: host
+    return if (port == -1) authority else authority.removeSuffix(":$port")
 }
 
 private fun buildResourceMetadataRoutePath(resource: String): String {

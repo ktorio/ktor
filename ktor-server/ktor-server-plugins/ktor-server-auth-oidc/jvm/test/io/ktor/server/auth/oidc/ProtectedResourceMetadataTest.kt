@@ -67,6 +67,36 @@ class ProtectedResourceMetadataTest {
     }
 
     @Test
+    fun `protected resource metadata reflects providers registered after first request`() = testApplication {
+        lateinit var oidc: Oidc
+        application {
+            oidc = openIdConnect {
+                protectedResource("https://api.example.com")
+            }
+        }
+
+        val firstMetadata = discoveryJson.decodeFromString<ProtectedResourceMetadata>(
+            client.get("/.well-known/oauth-protected-resource").bodyAsText()
+        )
+        assertNull(firstMetadata.authorizationServers)
+        assertNull(firstMetadata.bearerMethodsSupported)
+
+        oidc.provider("auth0") {
+            testIssuer()
+            accessToken {
+                audiences = setOf("api")
+            }
+            bearer()
+        }
+
+        val secondMetadata = discoveryJson.decodeFromString<ProtectedResourceMetadata>(
+            client.get("/.well-known/oauth-protected-resource").bodyAsText()
+        )
+        assertEquals(listOf(ISSUER_URL), secondMetadata.authorizationServers)
+        assertEquals(listOf("header"), secondMetadata.bearerMethodsSupported)
+    }
+
+    @Test
     fun `protected resource metadata supports explicit scopes`() = testApplication {
         application {
             val oidc = openIdConnect {
@@ -109,6 +139,41 @@ class ProtectedResourceMetadataTest {
         assertEquals(listOf("https://custom-as.example.com"), metadata.authorizationServers)
         assertEquals(listOf("read", "write"), metadata.scopesSupported)
     }
+
+    @Test
+    fun `protected resource metadata derives authorization servers and scopes from bearer providers only`() =
+        testApplication {
+            application {
+                val oidc = openIdConnect {
+                    protectedResource("https://api.example.com")
+                }
+                oidc.provider("browser") {
+                    testIssuer("https://login.example.com")
+                    oauth {
+                        clientId = "browser-client"
+                        clientSecret = "browser-secret"
+                        scopes = listOf("openid", "browser")
+                    }
+                }
+                oidc.provider("api") {
+                    testIssuer("https://issuer.example.com")
+                    accessToken {
+                        audiences = setOf("api")
+                    }
+                    bearer()
+                    oauth {
+                        clientId = "api-client"
+                        clientSecret = "api-secret"
+                        scopes = listOf("openid", "api.read")
+                    }
+                }
+            }
+
+            val response = client.get("/.well-known/oauth-protected-resource")
+            val metadata = discoveryJson.decodeFromString<ProtectedResourceMetadata>(response.bodyAsText())
+            assertEquals(listOf("https://issuer.example.com"), metadata.authorizationServers)
+            assertEquals(listOf("openid", "api.read"), metadata.scopesSupported)
+        }
 
     @Test
     fun `protected resource metadata disabled by default`() = testApplication {
@@ -206,6 +271,14 @@ class ProtectedResourceMetadataTest {
                 }
             }
         }
+    }
+
+    @Test
+    fun `protected resource metadata URL preserves IPv6 brackets`() {
+        assertEquals(
+            "https://[::1]:8443/.well-known/oauth-protected-resource/v1",
+            buildResourceMetadataUrl("https://[::1]:8443/v1")
+        )
     }
 
     @Test
