@@ -31,6 +31,8 @@ import kotlin.time.Duration.Companion.seconds
  */
 @KtorDsl
 public class OidcPluginConfig {
+    internal var protectedResourceConfig: ProtectedResourceMetadataConfig? = null
+
     /**
      * Optional HTTP client used for discovery and userinfo requests.
      * If not configured, the plugin installs an internal client.
@@ -66,6 +68,28 @@ public class OidcPluginConfig {
      * The delay is applied only between attempts. It is not used after the final failed attempt.
      */
     public var initialDiscoveryRetryDelay: Duration = 5.seconds
+
+    /**
+     * Configures OAuth 2.0 Protected Resource Metadata (RFC 9728) with defaults.
+     *
+     * When configured, the plugin serves a `/.well-known/oauth-protected-resource` endpoint with
+     * metadata for this resource and includes a `resource_metadata` parameter in `WWW-Authenticate`
+     * headers on Bearer authentication failures.
+     */
+    public fun protectedResource(resource: String) {
+        protectedResource(resource) {}
+    }
+
+    /**
+     * Configures OAuth 2.0 Protected Resource Metadata (RFC 9728).
+     *
+     * When configured, the plugin serves a `/.well-known/oauth-protected-resource` endpoint with
+     * metadata for this resource and includes a `resource_metadata` parameter in `WWW-Authenticate`
+     * headers on Bearer authentication failures.
+     */
+    public fun protectedResource(resource: String, configure: ProtectedResourceMetadataConfig.() -> Unit) {
+        protectedResourceConfig = ProtectedResourceMetadataConfig(resource).apply(configure)
+    }
 
     internal fun validate() {
         require(initialDiscoveryAttempts >= 1) {

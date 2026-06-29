@@ -1,3 +1,12 @@
+public abstract class io/ktor/server/auth/oidc/CodeChallengeMethod {
+	public abstract fun getName ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/auth/oidc/CodeChallengeMethod$S256 : io/ktor/server/auth/oidc/CodeChallengeMethod {
+	public static final field INSTANCE Lio/ktor/server/auth/oidc/CodeChallengeMethod$S256;
+	public fun getName ()Ljava/lang/String;
+}
+
 public final class io/ktor/server/auth/oidc/Oidc {
 	public static final field Companion Lio/ktor/server/auth/oidc/Oidc$Companion;
 	public final fun provider (Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -17,18 +26,9 @@ public final class io/ktor/server/auth/oidc/OidcAccessTokenConfig {
 	public final fun setOpaqueToken (Lio/ktor/server/auth/oidc/OpaqueTokenStrategy;)V
 }
 
-public final class io/ktor/server/auth/oidc/OidcAuthenticatedContextKt {
-	public static final fun getProvider (Lio/ktor/server/auth/oidc/OidcProviderContext;)Lio/ktor/server/auth/oidc/OidcProvider;
-}
-
 public final class io/ktor/server/auth/oidc/OidcBearerConfig {
 	public final fun getTokenExtractor ()Lkotlin/jvm/functions/Function1;
 	public final fun setTokenExtractor (Lkotlin/jvm/functions/Function1;)V
-}
-
-public final class io/ktor/server/auth/oidc/OidcBearerContext : io/ktor/server/auth/oidc/OidcProviderContext, io/ktor/server/auth/typesafe/AuthenticatedContext {
-	public fun principal (Lio/ktor/server/routing/RoutingContext;)Ljava/lang/Object;
-	public fun provider ()Lio/ktor/server/auth/oidc/OidcProvider;
 }
 
 public final class io/ktor/server/auth/oidc/OidcJwtConfig {
@@ -66,9 +66,9 @@ public final class io/ktor/server/auth/oidc/OidcMetadataRefreshFailure {
 public final class io/ktor/server/auth/oidc/OidcOAuthConfig {
 	public field clientId Ljava/lang/String;
 	public field clientSecret Ljava/lang/String;
-	public final fun disablePkce ()V
 	public final fun getClientId ()Ljava/lang/String;
 	public final fun getClientSecret ()Ljava/lang/String;
+	public final fun getCodeChallengeMethod ()Lio/ktor/server/auth/oidc/CodeChallengeMethod;
 	public final fun getFetchUserInfo ()Z
 	public final fun getIdTokenAudience ()Ljava/lang/String;
 	public final fun getLoginUri ()Lkotlin/jvm/functions/Function1;
@@ -81,6 +81,7 @@ public final class io/ktor/server/auth/oidc/OidcOAuthConfig {
 	public final fun onSuccess (Lkotlin/jvm/functions/Function3;)V
 	public final fun setClientId (Ljava/lang/String;)V
 	public final fun setClientSecret (Ljava/lang/String;)V
+	public final fun setCodeChallengeMethod (Lio/ktor/server/auth/oidc/CodeChallengeMethod;)V
 	public final fun setFetchUserInfo (Z)V
 	public final fun setIdTokenAudience (Ljava/lang/String;)V
 	public final fun setLoginUri (Lkotlin/jvm/functions/Function1;)V
@@ -98,6 +99,8 @@ public final class io/ktor/server/auth/oidc/OidcPluginConfig {
 	public final fun getHttpClient ()Lio/ktor/client/HttpClient;
 	public final fun getInitialDiscoveryAttempts ()I
 	public final fun getInitialDiscoveryRetryDelay-UwyO8pc ()J
+	public final fun protectedResource (Ljava/lang/String;)V
+	public final fun protectedResource (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
 	public final fun setDiscoveryRefreshFailureDelay-LRDsOJo (J)V
 	public final fun setDiscoveryRefreshInterval-LRDsOJo (J)V
 	public final fun setHttpClient (Lio/ktor/client/HttpClient;)V
@@ -134,10 +137,6 @@ public final class io/ktor/server/auth/oidc/OidcProviderConfig {
 	public final fun setMetadata (Lio/ktor/server/auth/oidc/OpenIdProviderMetadata;)V
 }
 
-public abstract interface class io/ktor/server/auth/oidc/OidcProviderContext {
-	public abstract fun provider ()Lio/ktor/server/auth/oidc/OidcProvider;
-}
-
 public final class io/ktor/server/auth/oidc/OidcSessionConfig {
 	public final fun cookie (Lkotlin/jvm/functions/Function1;)V
 	public final fun csrfProtection (Lkotlin/jvm/functions/Function1;)V
@@ -152,18 +151,6 @@ public final class io/ktor/server/auth/oidc/OidcSessionConfig {
 	public final fun setRefreshUri (Lkotlin/jvm/functions/Function1;)V
 	public final fun setStorage (Lio/ktor/server/sessions/SessionStorage;)V
 	public final fun setTokenRefreshStrategy (Lio/ktor/server/auth/oidc/OidcTokenRefreshStrategy;)V
-}
-
-public final class io/ktor/server/auth/oidc/OidcSessionsContext : io/ktor/server/auth/oidc/OidcProviderContext, io/ktor/server/auth/typesafe/SessionAuthenticatedContext {
-	public fun clearSession (Lio/ktor/server/routing/RoutingContext;)V
-	public fun principal (Lio/ktor/server/routing/RoutingContext;)Ljava/lang/Object;
-	public fun provider ()Lio/ktor/server/auth/oidc/OidcProvider;
-	public fun session (Lio/ktor/server/routing/RoutingContext;)Lio/ktor/server/auth/oidc/OidcToken$Id;
-	public synthetic fun session (Lio/ktor/server/routing/RoutingContext;)Ljava/lang/Object;
-	public fun setSession (Lio/ktor/server/routing/RoutingContext;Lio/ktor/server/auth/oidc/OidcToken$Id;)V
-	public synthetic fun setSession (Lio/ktor/server/routing/RoutingContext;Ljava/lang/Object;)V
-	public fun updateSession (Lio/ktor/server/routing/RoutingContext;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/auth/oidc/OidcToken$Id;
-	public synthetic fun updateSession (Lio/ktor/server/routing/RoutingContext;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
 }
 
 public final class io/ktor/server/auth/oidc/OidcStateEncryptionKey {
@@ -500,6 +487,71 @@ public abstract class io/ktor/server/auth/oidc/OpenIdTestTokenBuilder {
 	public final fun setName (Ljava/lang/String;)V
 	public final fun setNotBefore (Lkotlin/time/Instant;)V
 	public final fun setSubject (Ljava/lang/String;)V
+}
+
+public final class io/ktor/server/auth/oidc/ProtectedResourceMetadata {
+	public static final field Companion Lio/ktor/server/auth/oidc/ProtectedResourceMetadata$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;Ljava/util/List;Ljava/util/List;Ljava/lang/Boolean;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;Ljava/util/List;Ljava/util/List;Ljava/lang/Boolean;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getAuthorizationDetailsTypesSupported ()Ljava/util/List;
+	public final fun getAuthorizationServers ()Ljava/util/List;
+	public final fun getBearerMethodsSupported ()Ljava/util/List;
+	public final fun getDpopBoundAccessTokensRequired ()Ljava/lang/Boolean;
+	public final fun getDpopSigningAlgValuesSupported ()Ljava/util/List;
+	public final fun getJwksUri ()Ljava/lang/String;
+	public final fun getResource ()Ljava/lang/String;
+	public final fun getResourceDocumentation ()Ljava/lang/String;
+	public final fun getResourceName ()Ljava/lang/String;
+	public final fun getResourcePolicyUri ()Ljava/lang/String;
+	public final fun getResourceSigningAlgValuesSupported ()Ljava/util/List;
+	public final fun getResourceTosUri ()Ljava/lang/String;
+	public final fun getScopesSupported ()Ljava/util/List;
+	public final fun getTlsClientCertificateBoundAccessTokens ()Ljava/lang/Boolean;
+}
+
+public final synthetic class io/ktor/server/auth/oidc/ProtectedResourceMetadata$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/ktor/server/auth/oidc/ProtectedResourceMetadata$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/server/auth/oidc/ProtectedResourceMetadata;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/ktor/server/auth/oidc/ProtectedResourceMetadata;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/ktor/server/auth/oidc/ProtectedResourceMetadata$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/ktor/server/auth/oidc/ProtectedResourceMetadataConfig {
+	public final fun getAuthorizationDetailsTypesSupported ()Ljava/util/List;
+	public final fun getAuthorizationServers ()Ljava/util/List;
+	public final fun getBearerMethodsSupported ()Ljava/util/List;
+	public final fun getDpopBoundAccessTokensRequired ()Ljava/lang/Boolean;
+	public final fun getDpopSigningAlgValuesSupported ()Ljava/util/List;
+	public final fun getJwksUri ()Ljava/lang/String;
+	public final fun getResource ()Ljava/lang/String;
+	public final fun getResourceDocumentation ()Ljava/lang/String;
+	public final fun getResourceName ()Ljava/lang/String;
+	public final fun getResourcePolicyUri ()Ljava/lang/String;
+	public final fun getResourceSigningAlgValuesSupported ()Ljava/util/List;
+	public final fun getResourceTosUri ()Ljava/lang/String;
+	public final fun getScopesSupported ()Ljava/util/List;
+	public final fun getTlsClientCertificateBoundAccessTokens ()Ljava/lang/Boolean;
+	public final fun setAuthorizationDetailsTypesSupported (Ljava/util/List;)V
+	public final fun setAuthorizationServers (Ljava/util/List;)V
+	public final fun setBearerMethodsSupported (Ljava/util/List;)V
+	public final fun setDpopBoundAccessTokensRequired (Ljava/lang/Boolean;)V
+	public final fun setDpopSigningAlgValuesSupported (Ljava/util/List;)V
+	public final fun setJwksUri (Ljava/lang/String;)V
+	public final fun setResourceDocumentation (Ljava/lang/String;)V
+	public final fun setResourceName (Ljava/lang/String;)V
+	public final fun setResourcePolicyUri (Ljava/lang/String;)V
+	public final fun setResourceSigningAlgValuesSupported (Ljava/util/List;)V
+	public final fun setResourceTosUri (Ljava/lang/String;)V
+	public final fun setScopesSupported (Ljava/util/List;)V
+	public final fun setTlsClientCertificateBoundAccessTokens (Ljava/lang/Boolean;)V
 }
 
 public final class io/ktor/server/auth/oidc/TokenClaims {
