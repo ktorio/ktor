@@ -6,28 +6,18 @@ package io.ktor.server.auth.oidc
 
 import io.ktor.http.*
 import io.ktor.http.auth.*
-import io.ktor.serialization.kotlinx.json.*
-import io.ktor.server.application.*
-import io.ktor.server.auth.oidc.utils.discoveryClient
-import io.ktor.server.auth.oidc.utils.discoveryJson
-import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.server.auth.oidc.utils.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 class FetchOpenIdProviderMetadataTest {
 
     private fun TestApplicationBuilder.configService(config: OpenIdProviderMetadata) {
         externalServices {
             hosts("http://localhost") {
-                install(ContentNegotiation) {
-                    json(discoveryJson)
-                }
+                installDiscoveryContentNegotiation()
                 routing {
                     get("/.well-known/openid-configuration") {
                         call.respond(config)

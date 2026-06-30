@@ -31,8 +31,7 @@ internal class CapturedLogEvents(
 }
 
 internal fun captureProviderLogs(providerName: String, level: Level): CapturedLogEvents {
-    val logger = LoggerFactory.getLogger(
-        "io.ktor.server.auth.oidc.OidcProvider[$providerName]"
-    ) as ch.qos.logback.classic.Logger
+    val name = "io.ktor.server.auth.oidc.OidcProvider[$providerName]"
+    val logger = LoggerFactory.getLogger(name) as ch.qos.logback.classic.Logger
     return CapturedLogEvents(logger, level)
 }

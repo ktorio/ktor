@@ -160,6 +160,39 @@ public class OpaqueTokenIntrospection(
     public val claims: JsonObject = JsonObject(emptyMap()),
 )
 
+internal fun JsonObject.toOpaqueTokenIntrospection(): OpaqueTokenIntrospection =
+    OpaqueTokenIntrospection(
+        active = boolean("active") ?: false,
+        scope = string("scope"),
+        clientId = string("client_id"),
+        username = string("username"),
+        tokenType = string("token_type"),
+        expiresAt = long("exp"),
+        issuedAt = long("iat"),
+        notBefore = long("nbf"),
+        subject = string("sub"),
+        audience = audience("aud"),
+        issuer = string("iss"),
+        jwtId = string("jti"),
+        claims = this,
+    )
+
+private fun JsonObject.string(name: String): String? =
+    this[name]?.jsonPrimitive?.takeIf { it.isString }?.contentOrNull
+
+private fun JsonObject.boolean(name: String): Boolean? =
+    this[name]?.jsonPrimitive?.booleanOrNull
+
+private fun JsonObject.long(name: String): Long? =
+    this[name]?.jsonPrimitive?.longOrNull
+
+private fun JsonObject.audience(name: String): List<String> =
+    when (val value = this[name]) {
+        is JsonArray -> value.mapNotNull { it.jsonPrimitive.takeIf { primitive -> primitive.isString }?.contentOrNull }
+        is JsonPrimitive -> value.contentOrNull?.let(::listOf).orEmpty()
+        else -> emptyList()
+    }
+
 internal fun Payload.extractUserInfo(): OidcToken.UserInfo {
     require(!subject.isNullOrBlank()) {
         "subject claim is missing from the JWT payload"
@@ -175,6 +208,3 @@ internal fun Payload.extractUserInfo(): OidcToken.UserInfo {
         preferredUsername = getClaim("preferred_username").asString(),
     )
 }
-
-internal fun Payload.extractUserInfoOrNull(): OidcToken.UserInfo? =
-    if (subject.isNullOrBlank()) null else extractUserInfo()
