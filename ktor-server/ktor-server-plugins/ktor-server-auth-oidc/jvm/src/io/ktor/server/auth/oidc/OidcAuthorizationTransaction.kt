@@ -15,10 +15,10 @@ import kotlin.io.encoding.Base64
 private val CookieMaxAgeSeconds = AuthorizationTransactionTtl.inWholeSeconds.toInt()
 internal const val OidcStateCookieName = "KTOR_OIDC_STATE"
 
-internal fun String.toOidcStateCookie(secure: Boolean, maxAge: Int = CookieMaxAgeSeconds): Cookie =
+internal fun createOidcStateCookie(value: String, secure: Boolean, maxAge: Int = CookieMaxAgeSeconds): Cookie =
     Cookie(
         name = OidcStateCookieName,
-        value = this,
+        value = value,
         maxAge = maxAge,
         path = "/",
         httpOnly = true,
@@ -49,7 +49,7 @@ internal suspend fun ApplicationCall.createAuthorizationTransaction(
     val nonce = generateNonceSuspend()
     val codeVerifier = generateNonceSuspend(CodeChallengeMethod.S256.VERIFIER_LENGTH)
     val transaction = OidcAuthorizationTransaction(nonce, codeVerifier)
-    val cookie = stateCodec.encode(state, transaction).toOidcStateCookie(secureCookie)
+    val cookie = createOidcStateCookie(value = stateCodec.encode(state, transaction), secure = secureCookie)
     response.cookies.append(cookie)
     return transaction
 }
@@ -59,7 +59,7 @@ internal fun ApplicationCall.consumeAuthorizationTransaction(
     state: String,
 ): OidcAuthorizationTransaction? {
     val transaction = readAuthorizationTransaction(stateCodec, state) ?: return null
-    response.cookies.append("".toOidcStateCookie(secureCookie, maxAge = 0))
+    response.cookies.append(createOidcStateCookie(value = "", secure = secureCookie, maxAge = 0))
     return transaction
 }
 
