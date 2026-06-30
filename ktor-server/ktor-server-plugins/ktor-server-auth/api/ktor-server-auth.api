@@ -897,6 +897,7 @@ public class io/ktor/server/auth/typesafe/TypedSessionAuthConfig {
 	public final fun getContextFactory ()Lkotlin/jvm/functions/Function1;
 	public final fun setContextFactory (Lkotlin/jvm/functions/Function1;)V
 	public final fun storage (Lkotlin/jvm/functions/Function2;)V
+	public final fun transformSession (Lkotlin/jvm/functions/Function3;)V
 	public final fun validate (Lkotlin/jvm/functions/Function3;)V
 }
 
