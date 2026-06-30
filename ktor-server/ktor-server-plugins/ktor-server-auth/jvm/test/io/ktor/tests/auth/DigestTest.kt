@@ -26,6 +26,7 @@ class DigestTest {
             intercept(ApplicationCallPipeline.Plugins) {
                 call.respond(
                     UnauthorizedResponse(
+                        @Suppress("DEPRECATION")
                         HttpAuthHeader.digestAuthChallenge(
                             realm = "testrealm@host.com",
                             nonce = "dcd98b7102dd2f0e8b11d0f600bfb0c093",

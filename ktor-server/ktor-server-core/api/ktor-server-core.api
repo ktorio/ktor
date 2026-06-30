@@ -1847,6 +1847,7 @@ public final class io/ktor/server/routing/RoutingNodeKt {
 	public static final fun intercept (Lio/ktor/server/routing/Route;Lio/ktor/util/pipeline/PipelinePhase;Lkotlin/jvm/functions/Function3;)V
 	public static final fun path (Lio/ktor/server/routing/Route;Lio/ktor/server/routing/RoutePathFormat;)Ljava/lang/String;
 	public static synthetic fun path$default (Lio/ktor/server/routing/Route;Lio/ktor/server/routing/RoutePathFormat;ILjava/lang/Object;)Ljava/lang/String;
+	public static final fun toRoutingContext (Lio/ktor/server/application/ApplicationCall;)Lio/ktor/server/routing/RoutingContext;
 }
 
 public final class io/ktor/server/routing/RoutingPath {

@@ -1,0 +1,574 @@
+public abstract class io/ktor/server/auth/oidc/CodeChallengeMethod {
+	public abstract fun getName ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/auth/oidc/CodeChallengeMethod$S256 : io/ktor/server/auth/oidc/CodeChallengeMethod {
+	public static final field INSTANCE Lio/ktor/server/auth/oidc/CodeChallengeMethod$S256;
+	public fun getName ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/auth/oidc/Oidc {
+	public static final field Companion Lio/ktor/server/auth/oidc/Oidc$Companion;
+	public final fun provider (Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun provider (Ljava/lang/String;Lkotlin/reflect/KClass;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/server/auth/oidc/Oidc$Companion : io/ktor/server/application/BaseApplicationPlugin {
+	public fun getKey ()Lio/ktor/util/AttributeKey;
+	public fun install (Lio/ktor/server/application/Application;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/auth/oidc/Oidc;
+	public synthetic fun install (Lio/ktor/util/pipeline/Pipeline;Lkotlin/jvm/functions/Function1;)Ljava/lang/Object;
+}
+
+public final class io/ktor/server/auth/oidc/OidcAccessTokenConfig {
+	public final fun getAudiences ()Ljava/util/Set;
+	public final fun getOpaqueToken ()Lio/ktor/server/auth/oidc/OpaqueTokenStrategy;
+	public final fun setAudiences (Ljava/util/Set;)V
+	public final fun setOpaqueToken (Lio/ktor/server/auth/oidc/OpaqueTokenStrategy;)V
+}
+
+public final class io/ktor/server/auth/oidc/OidcBearerConfig {
+	public final fun getTokenExtractor ()Lkotlin/jvm/functions/Function1;
+	public final fun setTokenExtractor (Lkotlin/jvm/functions/Function1;)V
+}
+
+public final class io/ktor/server/auth/oidc/OidcJwtConfig {
+	public final fun disableJwkCache ()V
+	public final fun disableJwkRateLimit ()V
+	public final fun getAllowedAlgorithms ()Ljava/util/Set;
+	public final fun getClockSkew-UwyO8pc ()J
+	public final fun getJwkBuilder ()Lkotlin/jvm/functions/Function1;
+	public final fun getJwkProviderFactory ()Lkotlin/jvm/functions/Function1;
+	public final fun jwkCache-HG0u8IE (JJ)V
+	public static synthetic fun jwkCache-HG0u8IE$default (Lio/ktor/server/auth/oidc/OidcJwtConfig;JJILjava/lang/Object;)V
+	public final fun jwkRateLimit-HG0u8IE (JJ)V
+	public static synthetic fun jwkRateLimit-HG0u8IE$default (Lio/ktor/server/auth/oidc/OidcJwtConfig;JJILjava/lang/Object;)V
+	public final fun setAllowedAlgorithms (Ljava/util/Set;)V
+	public final fun setClockSkew-LRDsOJo (J)V
+	public final fun setJwkBuilder (Lkotlin/jvm/functions/Function1;)V
+	public final fun setJwkProviderFactory (Lkotlin/jvm/functions/Function1;)V
+}
+
+public final class io/ktor/server/auth/oidc/OidcKt {
+	public static final fun getOidcMetadataRefreshFailed ()Lio/ktor/events/EventDefinition;
+	public static final fun openIdConnect (Lio/ktor/server/application/Application;)Lio/ktor/server/auth/oidc/Oidc;
+	public static final fun openIdConnect (Lio/ktor/server/application/Application;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/auth/oidc/Oidc;
+	public static synthetic fun openIdConnect$default (Lio/ktor/server/application/Application;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/server/auth/oidc/Oidc;
+}
+
+public final class io/ktor/server/auth/oidc/OidcMetadataRefreshFailure {
+	public fun <init> (Lio/ktor/server/auth/oidc/OidcProvider;ILjava/lang/Throwable;)V
+	public final fun getCause ()Ljava/lang/Throwable;
+	public final fun getCausedByValidation ()Z
+	public final fun getConsecutiveFailures ()I
+	public final fun getProvider ()Lio/ktor/server/auth/oidc/OidcProvider;
+}
+
+public final class io/ktor/server/auth/oidc/OidcOAuthConfig {
+	public field clientId Ljava/lang/String;
+	public field clientSecret Ljava/lang/String;
+	public final fun getClientId ()Ljava/lang/String;
+	public final fun getClientSecret ()Ljava/lang/String;
+	public final fun getCodeChallengeMethod ()Lio/ktor/server/auth/oidc/CodeChallengeMethod;
+	public final fun getFetchUserInfo ()Z
+	public final fun getIdTokenAudience ()Ljava/lang/String;
+	public final fun getLoginUri ()Lkotlin/jvm/functions/Function1;
+	public final fun getPostLogoutRedirectUri ()Lkotlin/jvm/functions/Function1;
+	public final fun getRedirectUri ()Lkotlin/jvm/functions/Function1;
+	public final fun getResourceIndicators ()Ljava/util/List;
+	public final fun getScopes ()Ljava/util/List;
+	public final fun getStateEncryptionKey-aaX1N3g ()Ljava/util/List;
+	public final fun onFailure (Lkotlin/jvm/functions/Function3;)V
+	public final fun onSuccess (Lkotlin/jvm/functions/Function3;)V
+	public final fun setClientId (Ljava/lang/String;)V
+	public final fun setClientSecret (Ljava/lang/String;)V
+	public final fun setCodeChallengeMethod (Lio/ktor/server/auth/oidc/CodeChallengeMethod;)V
+	public final fun setFetchUserInfo (Z)V
+	public final fun setIdTokenAudience (Ljava/lang/String;)V
+	public final fun setLoginUri (Lkotlin/jvm/functions/Function1;)V
+	public final fun setPostLogoutRedirectUri (Lkotlin/jvm/functions/Function1;)V
+	public final fun setRedirectUri (Lkotlin/jvm/functions/Function1;)V
+	public final fun setResourceIndicators (Ljava/util/List;)V
+	public final fun setScopes (Ljava/util/List;)V
+	public final fun setStateEncryptionKey-HcXpOzs (Ljava/util/List;)V
+}
+
+public final class io/ktor/server/auth/oidc/OidcPluginConfig {
+	public fun <init> ()V
+	public final fun getDiscoveryRefreshFailureDelay-UwyO8pc ()J
+	public final fun getDiscoveryRefreshInterval-UwyO8pc ()J
+	public final fun getHttpClient ()Lio/ktor/client/HttpClient;
+	public final fun getInitialDiscoveryAttempts ()I
+	public final fun getInitialDiscoveryRetryDelay-UwyO8pc ()J
+	public final fun protectedResource (Ljava/lang/String;)V
+	public final fun protectedResource (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
+	public final fun setDiscoveryRefreshFailureDelay-LRDsOJo (J)V
+	public final fun setDiscoveryRefreshInterval-LRDsOJo (J)V
+	public final fun setHttpClient (Lio/ktor/client/HttpClient;)V
+	public final fun setInitialDiscoveryAttempts (I)V
+	public final fun setInitialDiscoveryRetryDelay-LRDsOJo (J)V
+}
+
+public final class io/ktor/server/auth/oidc/OidcProvider {
+	public final fun buildLogoutUrl (Ljava/lang/String;Ljava/lang/String;)Ljava/lang/String;
+	public final fun currentJwkProvider ()Lcom/auth0/jwk/JwkProvider;
+	public final fun currentMetadata ()Lio/ktor/server/auth/oidc/OpenIdProviderMetadata;
+	public final fun getBearer ()Lio/ktor/server/auth/typesafe/DefaultAuthScheme;
+	public final fun getIssuer ()Ljava/lang/String;
+	public final fun getName ()Ljava/lang/String;
+	public final fun getSessions ()Lio/ktor/server/auth/typesafe/SessionAuthScheme;
+	public final fun refreshToken (Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/server/auth/oidc/OidcProviderConfig {
+	public field issuer Ljava/lang/String;
+	public final fun accessToken (Lkotlin/jvm/functions/Function1;)V
+	public final fun bearer (Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun bearer$default (Lio/ktor/server/auth/oidc/OidcProviderConfig;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public final fun getIssuer ()Ljava/lang/String;
+	public final fun getMetadata ()Lio/ktor/server/auth/oidc/OpenIdProviderMetadata;
+	public final fun getName ()Ljava/lang/String;
+	public final fun jwt (Lio/ktor/server/auth/oidc/OpenIdTestKeys;)V
+	public final fun jwt (Lkotlin/jvm/functions/Function1;)V
+	public final fun oauth (Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun oauth$default (Lio/ktor/server/auth/oidc/OidcProviderConfig;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public final fun sessions (Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun sessions$default (Lio/ktor/server/auth/oidc/OidcProviderConfig;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public final fun setIssuer (Ljava/lang/String;)V
+	public final fun setMetadata (Lio/ktor/server/auth/oidc/OpenIdProviderMetadata;)V
+}
+
+public final class io/ktor/server/auth/oidc/OidcSessionConfig {
+	public final fun cookie (Lkotlin/jvm/functions/Function1;)V
+	public final fun csrfProtection (Lkotlin/jvm/functions/Function1;)V
+	public final fun disableCsrfProtection ()V
+	public final fun getLogoutUri ()Lkotlin/jvm/functions/Function1;
+	public final fun getName ()Ljava/lang/String;
+	public final fun getRefreshUri ()Lkotlin/jvm/functions/Function1;
+	public final fun getStorage ()Lio/ktor/server/sessions/SessionStorage;
+	public final fun getTokenRefreshStrategy ()Lio/ktor/server/auth/oidc/OidcTokenRefreshStrategy;
+	public final fun setLogoutUri (Lkotlin/jvm/functions/Function1;)V
+	public final fun setName (Ljava/lang/String;)V
+	public final fun setRefreshUri (Lkotlin/jvm/functions/Function1;)V
+	public final fun setStorage (Lio/ktor/server/sessions/SessionStorage;)V
+	public final fun setTokenRefreshStrategy (Lio/ktor/server/auth/oidc/OidcTokenRefreshStrategy;)V
+}
+
+public final class io/ktor/server/auth/oidc/OidcStateEncryptionKey {
+	public static final field Companion Lio/ktor/server/auth/oidc/OidcStateEncryptionKey$Companion;
+	public static final field KEY_SIZE I
+	public static final synthetic fun box-impl (Ljava/util/List;)Lio/ktor/server/auth/oidc/OidcStateEncryptionKey;
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl (Ljava/util/List;Ljava/lang/Object;)Z
+	public static final fun equals-impl0 (Ljava/util/List;Ljava/util/List;)Z
+	public fun hashCode ()I
+	public static fun hashCode-impl (Ljava/util/List;)I
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl (Ljava/util/List;)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()Ljava/util/List;
+}
+
+public final class io/ktor/server/auth/oidc/OidcStateEncryptionKey$Companion {
+	public final fun of-DSUPm1Q ([B)Ljava/util/List;
+	public final fun random-sNEp4Nk ()Ljava/util/List;
+	public final fun rotating-yHTCmOs ([B[B)Ljava/util/List;
+}
+
+public abstract class io/ktor/server/auth/oidc/OidcToken {
+	public static final field Companion Lio/ktor/server/auth/oidc/OidcToken$Companion;
+	public synthetic fun <init> (ILkotlinx/serialization/internal/SerializationConstructorMarker;)V
+	public static final synthetic fun write$Self (Lio/ktor/server/auth/oidc/OidcToken;Lkotlinx/serialization/encoding/CompositeEncoder;Lkotlinx/serialization/descriptors/SerialDescriptor;)V
+}
+
+public final class io/ktor/server/auth/oidc/OidcToken$Access : io/ktor/server/auth/oidc/OidcToken {
+	public static final field Companion Lio/ktor/server/auth/oidc/OidcToken$Access$Companion;
+	public final fun getClaims ()Lio/ktor/server/auth/oidc/TokenClaims;
+	public final fun getClientId ()Ljava/lang/String;
+	public final fun getUserInfo ()Lio/ktor/server/auth/oidc/OidcToken$UserInfo;
+	public final fun getValue ()Ljava/lang/String;
+}
+
+public final synthetic class io/ktor/server/auth/oidc/OidcToken$Access$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/ktor/server/auth/oidc/OidcToken$Access$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/server/auth/oidc/OidcToken$Access;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/ktor/server/auth/oidc/OidcToken$Access;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/ktor/server/auth/oidc/OidcToken$Access$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/ktor/server/auth/oidc/OidcToken$Companion {
+	public final fun getSerializersModule ()Lkotlinx/serialization/modules/SerializersModule;
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/ktor/server/auth/oidc/OidcToken$Id : io/ktor/server/auth/oidc/OidcToken {
+	public static final field Companion Lio/ktor/server/auth/oidc/OidcToken$Id$Companion;
+	public final fun getAccessToken ()Ljava/lang/String;
+	public final fun getAccessTokenClaims ()Lio/ktor/server/auth/oidc/TokenClaims;
+	public final fun getClaims ()Lio/ktor/server/auth/oidc/TokenClaims;
+	public final fun getRefreshToken ()Ljava/lang/String;
+	public final fun getUserInfo ()Lio/ktor/server/auth/oidc/OidcToken$UserInfo;
+	public final fun getValue ()Ljava/lang/String;
+}
+
+public final synthetic class io/ktor/server/auth/oidc/OidcToken$Id$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/ktor/server/auth/oidc/OidcToken$Id$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/server/auth/oidc/OidcToken$Id;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/ktor/server/auth/oidc/OidcToken$Id;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/ktor/server/auth/oidc/OidcToken$Id$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/ktor/server/auth/oidc/OidcToken$Opaque : io/ktor/server/auth/oidc/OidcToken {
+	public static final field Companion Lio/ktor/server/auth/oidc/OidcToken$Opaque$Companion;
+	public final fun getIntrospection ()Lio/ktor/server/auth/oidc/OpaqueTokenIntrospection;
+	public final fun getValue ()Ljava/lang/String;
+}
+
+public final synthetic class io/ktor/server/auth/oidc/OidcToken$Opaque$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/ktor/server/auth/oidc/OidcToken$Opaque$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/server/auth/oidc/OidcToken$Opaque;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/ktor/server/auth/oidc/OidcToken$Opaque;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/ktor/server/auth/oidc/OidcToken$Opaque$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/ktor/server/auth/oidc/OidcToken$UserInfo {
+	public static final field Companion Lio/ktor/server/auth/oidc/OidcToken$UserInfo$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getEmail ()Ljava/lang/String;
+	public final fun getEmailVerified ()Ljava/lang/Boolean;
+	public final fun getFamilyName ()Ljava/lang/String;
+	public final fun getGivenName ()Ljava/lang/String;
+	public final fun getName ()Ljava/lang/String;
+	public final fun getPicture ()Ljava/lang/String;
+	public final fun getPreferredUsername ()Ljava/lang/String;
+	public final fun getSubject ()Ljava/lang/String;
+}
+
+public final synthetic class io/ktor/server/auth/oidc/OidcToken$UserInfo$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/ktor/server/auth/oidc/OidcToken$UserInfo$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/server/auth/oidc/OidcToken$UserInfo;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/ktor/server/auth/oidc/OidcToken$UserInfo;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/ktor/server/auth/oidc/OidcToken$UserInfo$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/ktor/server/auth/oidc/OidcTokenRefreshResult {
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Lkotlin/time/Duration;Ljava/lang/String;Ljava/lang/String;Lio/ktor/server/auth/oidc/OidcToken$Id;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Lkotlin/time/Duration;Ljava/lang/String;Ljava/lang/String;Lio/ktor/server/auth/oidc/OidcToken$Id;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getAccessToken ()Ljava/lang/String;
+	public final fun getExpiresIn-FghU774 ()Lkotlin/time/Duration;
+	public final fun getIdToken ()Lio/ktor/server/auth/oidc/OidcToken$Id;
+	public final fun getRefreshToken ()Ljava/lang/String;
+	public final fun getScope ()Ljava/lang/String;
+	public final fun getTokenType ()Ljava/lang/String;
+}
+
+public abstract interface class io/ktor/server/auth/oidc/OidcTokenRefreshStrategy {
+}
+
+public final class io/ktor/server/auth/oidc/OidcTokenRefreshStrategy$Auto : io/ktor/server/auth/oidc/OidcTokenRefreshStrategy {
+	public synthetic fun <init> (JILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (JLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getBeforeExpiry-UwyO8pc ()J
+}
+
+public abstract interface class io/ktor/server/auth/oidc/OidcTokenRefreshStrategy$Custom : io/ktor/server/auth/oidc/OidcTokenRefreshStrategy {
+	public abstract fun refresh (Lio/ktor/server/auth/oidc/OidcProvider;Lio/ktor/server/auth/oidc/OidcToken$Id;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/server/auth/oidc/OidcTokenRefreshStrategy$Disabled : io/ktor/server/auth/oidc/OidcTokenRefreshStrategy {
+	public static final field INSTANCE Lio/ktor/server/auth/oidc/OidcTokenRefreshStrategy$Disabled;
+}
+
+public final class io/ktor/server/auth/oidc/OpaqueTokenIntrospection {
+	public static final field Companion Lio/ktor/server/auth/oidc/OpaqueTokenIntrospection$Companion;
+	public fun <init> (ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/Long;Ljava/lang/Long;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;)V
+	public synthetic fun <init> (ZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Long;Ljava/lang/Long;Ljava/lang/Long;Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Lkotlinx/serialization/json/JsonObject;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getActive ()Z
+	public final fun getAudience ()Ljava/util/List;
+	public final fun getClaims ()Lkotlinx/serialization/json/JsonObject;
+	public final fun getClientId ()Ljava/lang/String;
+	public final fun getExpiresAt ()Ljava/lang/Long;
+	public final fun getIssuedAt ()Ljava/lang/Long;
+	public final fun getIssuer ()Ljava/lang/String;
+	public final fun getJwtId ()Ljava/lang/String;
+	public final fun getNotBefore ()Ljava/lang/Long;
+	public final fun getScope ()Ljava/lang/String;
+	public final fun getSubject ()Ljava/lang/String;
+	public final fun getTokenType ()Ljava/lang/String;
+	public final fun getUsername ()Ljava/lang/String;
+}
+
+public final synthetic class io/ktor/server/auth/oidc/OpaqueTokenIntrospection$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/ktor/server/auth/oidc/OpaqueTokenIntrospection$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/server/auth/oidc/OpaqueTokenIntrospection;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/ktor/server/auth/oidc/OpaqueTokenIntrospection;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/ktor/server/auth/oidc/OpaqueTokenIntrospection$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/ktor/server/auth/oidc/OpaqueTokenIntrospectionAuthMethod : java/lang/Enum {
+	public static final field ClientSecretBasic Lio/ktor/server/auth/oidc/OpaqueTokenIntrospectionAuthMethod;
+	public static final field ClientSecretPost Lio/ktor/server/auth/oidc/OpaqueTokenIntrospectionAuthMethod;
+	public static fun getEntries ()Lkotlin/enums/EnumEntries;
+	public static fun valueOf (Ljava/lang/String;)Lio/ktor/server/auth/oidc/OpaqueTokenIntrospectionAuthMethod;
+	public static fun values ()[Lio/ktor/server/auth/oidc/OpaqueTokenIntrospectionAuthMethod;
+}
+
+public abstract class io/ktor/server/auth/oidc/OpaqueTokenStrategy {
+}
+
+public final class io/ktor/server/auth/oidc/OpaqueTokenStrategy$Introspect : io/ktor/server/auth/oidc/OpaqueTokenStrategy {
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lio/ktor/server/auth/oidc/OpaqueTokenIntrospectionAuthMethod;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lio/ktor/server/auth/oidc/OpaqueTokenIntrospectionAuthMethod;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getAuthMethod ()Lio/ktor/server/auth/oidc/OpaqueTokenIntrospectionAuthMethod;
+	public final fun getClientId ()Ljava/lang/String;
+	public final fun getClientSecret ()Ljava/lang/String;
+	public final fun getEndpoint ()Ljava/lang/String;
+}
+
+public final class io/ktor/server/auth/oidc/OpaqueTokenStrategy$Reject : io/ktor/server/auth/oidc/OpaqueTokenStrategy {
+	public static final field INSTANCE Lio/ktor/server/auth/oidc/OpaqueTokenStrategy$Reject;
+}
+
+public final class io/ktor/server/auth/oidc/OpenIdDiscoveryException : java/lang/RuntimeException {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
+public final class io/ktor/server/auth/oidc/OpenIdProviderMetadata {
+	public static final field Companion Lio/ktor/server/auth/oidc/OpenIdProviderMetadata$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;IILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getAcrValuesSupported ()Ljava/util/List;
+	public final fun getAuthorizationEndpoint ()Ljava/lang/String;
+	public final fun getAuthorizationResponseIssParameterSupported ()Ljava/lang/Boolean;
+	public final fun getCheckSessionIframe ()Ljava/lang/String;
+	public final fun getClaimTypesSupported ()Ljava/util/List;
+	public final fun getClaimsLocalesSupported ()Ljava/util/List;
+	public final fun getClaimsParameterSupported ()Ljava/lang/Boolean;
+	public final fun getClaimsSupported ()Ljava/util/List;
+	public final fun getDisplayValuesSupported ()Ljava/util/List;
+	public final fun getEndSessionEndpoint ()Ljava/lang/String;
+	public final fun getGrantTypesSupported ()Ljava/util/List;
+	public final fun getIdTokenEncryptionAlgValuesSupported ()Ljava/util/List;
+	public final fun getIdTokenEncryptionEncValuesSupported ()Ljava/util/List;
+	public final fun getIdTokenSigningAlgValuesSupported ()Ljava/util/List;
+	public final fun getIssuer ()Ljava/lang/String;
+	public final fun getJwksUri ()Ljava/lang/String;
+	public final fun getOpPolicyUri ()Ljava/lang/String;
+	public final fun getOpTosUri ()Ljava/lang/String;
+	public final fun getRegistrationEndpoint ()Ljava/lang/String;
+	public final fun getRequestObjectEncryptionAlgValuesSupported ()Ljava/util/List;
+	public final fun getRequestObjectEncryptionEncValuesSupported ()Ljava/util/List;
+	public final fun getRequestObjectSigningAlgValuesSupported ()Ljava/util/List;
+	public final fun getRequestParameterSupported ()Ljava/lang/Boolean;
+	public final fun getRequestUriParameterSupported ()Ljava/lang/Boolean;
+	public final fun getRequireRequestUriRegistration ()Ljava/lang/Boolean;
+	public final fun getResponseModesSupported ()Ljava/util/List;
+	public final fun getResponseTypesSupported ()Ljava/util/List;
+	public final fun getScopesSupported ()Ljava/util/List;
+	public final fun getSubjectTypesSupported ()Ljava/util/List;
+	public final fun getTokenEndpoint ()Ljava/lang/String;
+	public final fun getTokenEndpointAuthMethodsSupported ()Ljava/util/List;
+	public final fun getTokenEndpointAuthSigningAlgValuesSupported ()Ljava/util/List;
+	public final fun getUiLocalesSupported ()Ljava/util/List;
+	public final fun getUserInfoEndpoint ()Ljava/lang/String;
+	public final fun getUserinfoEncryptionAlgValuesSupported ()Ljava/util/List;
+	public final fun getUserinfoEncryptionEncValuesSupported ()Ljava/util/List;
+	public final fun getUserinfoSigningAlgValuesSupported ()Ljava/util/List;
+}
+
+public final synthetic class io/ktor/server/auth/oidc/OpenIdProviderMetadata$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/ktor/server/auth/oidc/OpenIdProviderMetadata$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/server/auth/oidc/OpenIdProviderMetadata;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/ktor/server/auth/oidc/OpenIdProviderMetadata;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/ktor/server/auth/oidc/OpenIdProviderMetadata$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/ktor/server/auth/oidc/OpenIdProviderMetadataKt {
+	public static final fun fetchOpenIdMetadata (Lio/ktor/client/HttpClient;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/server/auth/oidc/OpenIdTestAccessTokenBuilder : io/ktor/server/auth/oidc/OpenIdTestTokenBuilder {
+	public final fun getClientId ()Ljava/lang/String;
+	public final fun setClientId (Ljava/lang/String;)V
+}
+
+public final class io/ktor/server/auth/oidc/OpenIdTestIdTokenBuilder : io/ktor/server/auth/oidc/OpenIdTestTokenBuilder {
+	public final fun getAtHash ()Ljava/lang/String;
+	public final fun getNonce ()Ljava/lang/String;
+	public final fun setAtHash (Ljava/lang/String;)V
+	public final fun setNonce (Ljava/lang/String;)V
+}
+
+public final class io/ktor/server/auth/oidc/OpenIdTestKeys {
+	public static final field Companion Lio/ktor/server/auth/oidc/OpenIdTestKeys$Companion;
+	public final fun accessToken (Lkotlin/jvm/functions/Function1;)Ljava/lang/String;
+	public static synthetic fun accessToken$default (Lio/ktor/server/auth/oidc/OpenIdTestKeys;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ljava/lang/String;
+	public final fun getAlgorithm ()Lio/ktor/http/auth/SignatureAlgorithm;
+	public final fun getJwkProvider ()Lcom/auth0/jwk/JwkProvider;
+	public final fun getKeyId ()Ljava/lang/String;
+	public final fun idToken (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Ljava/lang/String;
+	public static synthetic fun idToken$default (Lio/ktor/server/auth/oidc/OpenIdTestKeys;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ljava/lang/String;
+}
+
+public final class io/ktor/server/auth/oidc/OpenIdTestKeys$Companion {
+	public final fun ec (Ljava/lang/String;Lio/ktor/http/auth/SignatureAlgorithm;Ljava/lang/String;Ljava/lang/String;)Lio/ktor/server/auth/oidc/OpenIdTestKeys;
+	public static synthetic fun ec$default (Lio/ktor/server/auth/oidc/OpenIdTestKeys$Companion;Ljava/lang/String;Lio/ktor/http/auth/SignatureAlgorithm;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lio/ktor/server/auth/oidc/OpenIdTestKeys;
+	public final fun rsa (Ljava/lang/String;Lio/ktor/http/auth/SignatureAlgorithm;Ljava/lang/String;Ljava/lang/String;)Lio/ktor/server/auth/oidc/OpenIdTestKeys;
+	public static synthetic fun rsa$default (Lio/ktor/server/auth/oidc/OpenIdTestKeys$Companion;Ljava/lang/String;Lio/ktor/http/auth/SignatureAlgorithm;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lio/ktor/server/auth/oidc/OpenIdTestKeys;
+}
+
+public abstract class io/ktor/server/auth/oidc/OpenIdTestTokenBuilder {
+	public final fun claim (Ljava/lang/String;Ljava/lang/Object;)V
+	public final fun getAudience ()Ljava/lang/String;
+	public final fun getEmail ()Ljava/lang/String;
+	public final fun getExpiresAt ()Lkotlin/time/Instant;
+	public final fun getIssuedAt ()Lkotlin/time/Instant;
+	public final fun getIssuer ()Ljava/lang/String;
+	public final fun getJwtId ()Ljava/lang/String;
+	public final fun getKeyId ()Ljava/lang/String;
+	public final fun getName ()Ljava/lang/String;
+	public final fun getNotBefore ()Lkotlin/time/Instant;
+	public final fun getSubject ()Ljava/lang/String;
+	public final fun setAudience (Ljava/lang/String;)V
+	public final fun setEmail (Ljava/lang/String;)V
+	public final fun setExpiresAt (Lkotlin/time/Instant;)V
+	public final fun setIssuedAt (Lkotlin/time/Instant;)V
+	public final fun setIssuer (Ljava/lang/String;)V
+	public final fun setJwtId (Ljava/lang/String;)V
+	public final fun setKeyId (Ljava/lang/String;)V
+	public final fun setName (Ljava/lang/String;)V
+	public final fun setNotBefore (Lkotlin/time/Instant;)V
+	public final fun setSubject (Ljava/lang/String;)V
+}
+
+public final class io/ktor/server/auth/oidc/ProtectedResourceMetadata {
+	public static final field Companion Lio/ktor/server/auth/oidc/ProtectedResourceMetadata$Companion;
+	public fun <init> (Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;Ljava/util/List;Ljava/util/List;Ljava/lang/Boolean;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/util/List;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Boolean;Ljava/util/List;Ljava/util/List;Ljava/lang/Boolean;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getAuthorizationDetailsTypesSupported ()Ljava/util/List;
+	public final fun getAuthorizationServers ()Ljava/util/List;
+	public final fun getBearerMethodsSupported ()Ljava/util/List;
+	public final fun getDpopBoundAccessTokensRequired ()Ljava/lang/Boolean;
+	public final fun getDpopSigningAlgValuesSupported ()Ljava/util/List;
+	public final fun getJwksUri ()Ljava/lang/String;
+	public final fun getResource ()Ljava/lang/String;
+	public final fun getResourceDocumentation ()Ljava/lang/String;
+	public final fun getResourceName ()Ljava/lang/String;
+	public final fun getResourcePolicyUri ()Ljava/lang/String;
+	public final fun getResourceSigningAlgValuesSupported ()Ljava/util/List;
+	public final fun getResourceTosUri ()Ljava/lang/String;
+	public final fun getScopesSupported ()Ljava/util/List;
+	public final fun getTlsClientCertificateBoundAccessTokens ()Ljava/lang/Boolean;
+}
+
+public final synthetic class io/ktor/server/auth/oidc/ProtectedResourceMetadata$$serializer : kotlinx/serialization/internal/GeneratedSerializer {
+	public static final field INSTANCE Lio/ktor/server/auth/oidc/ProtectedResourceMetadata$$serializer;
+	public final fun childSerializers ()[Lkotlinx/serialization/KSerializer;
+	public final fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Lio/ktor/server/auth/oidc/ProtectedResourceMetadata;
+	public synthetic fun deserialize (Lkotlinx/serialization/encoding/Decoder;)Ljava/lang/Object;
+	public final fun getDescriptor ()Lkotlinx/serialization/descriptors/SerialDescriptor;
+	public final fun serialize (Lkotlinx/serialization/encoding/Encoder;Lio/ktor/server/auth/oidc/ProtectedResourceMetadata;)V
+	public synthetic fun serialize (Lkotlinx/serialization/encoding/Encoder;Ljava/lang/Object;)V
+	public fun typeParametersSerializers ()[Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/ktor/server/auth/oidc/ProtectedResourceMetadata$Companion {
+	public final fun serializer ()Lkotlinx/serialization/KSerializer;
+}
+
+public final class io/ktor/server/auth/oidc/ProtectedResourceMetadataConfig {
+	public final fun getAuthorizationDetailsTypesSupported ()Ljava/util/List;
+	public final fun getAuthorizationServers ()Ljava/util/List;
+	public final fun getBearerMethodsSupported ()Ljava/util/List;
+	public final fun getDpopBoundAccessTokensRequired ()Ljava/lang/Boolean;
+	public final fun getDpopSigningAlgValuesSupported ()Ljava/util/List;
+	public final fun getJwksUri ()Ljava/lang/String;
+	public final fun getResource ()Ljava/lang/String;
+	public final fun getResourceDocumentation ()Ljava/lang/String;
+	public final fun getResourceName ()Ljava/lang/String;
+	public final fun getResourcePolicyUri ()Ljava/lang/String;
+	public final fun getResourceSigningAlgValuesSupported ()Ljava/util/List;
+	public final fun getResourceTosUri ()Ljava/lang/String;
+	public final fun getScopesSupported ()Ljava/util/List;
+	public final fun getTlsClientCertificateBoundAccessTokens ()Ljava/lang/Boolean;
+	public final fun setAuthorizationDetailsTypesSupported (Ljava/util/List;)V
+	public final fun setAuthorizationServers (Ljava/util/List;)V
+	public final fun setBearerMethodsSupported (Ljava/util/List;)V
+	public final fun setDpopBoundAccessTokensRequired (Ljava/lang/Boolean;)V
+	public final fun setDpopSigningAlgValuesSupported (Ljava/util/List;)V
+	public final fun setJwksUri (Ljava/lang/String;)V
+	public final fun setResourceDocumentation (Ljava/lang/String;)V
+	public final fun setResourceName (Ljava/lang/String;)V
+	public final fun setResourcePolicyUri (Ljava/lang/String;)V
+	public final fun setResourceSigningAlgValuesSupported (Ljava/util/List;)V
+	public final fun setResourceTosUri (Ljava/lang/String;)V
+	public final fun setScopesSupported (Ljava/util/List;)V
+	public final fun setTlsClientCertificateBoundAccessTokens (Ljava/lang/Boolean;)V
+}
+
+public final class io/ktor/server/auth/oidc/TokenClaims {
+	public final fun claim (Ljava/lang/String;)Lkotlinx/serialization/json/JsonElement;
+	public final fun claimString (Ljava/lang/String;)Ljava/lang/String;
+	public final fun getAlgorithm ()Ljava/lang/String;
+	public final fun getAudience ()Ljava/util/List;
+	public final fun getExpiresAt ()Lkotlin/time/Instant;
+	public final fun getHeader ()Lkotlinx/serialization/json/JsonObject;
+	public final fun getIssuedAt ()Lkotlin/time/Instant;
+	public final fun getIssuer ()Ljava/lang/String;
+	public final fun getJwtId ()Ljava/lang/String;
+	public final fun getKeyId ()Ljava/lang/String;
+	public final fun getNotBefore ()Lkotlin/time/Instant;
+	public final fun getPayload ()Lkotlinx/serialization/json/JsonObject;
+	public final fun getSubject ()Ljava/lang/String;
+	public final fun getType ()Ljava/lang/String;
+	public final fun headerString (Ljava/lang/String;)Ljava/lang/String;
+}
+

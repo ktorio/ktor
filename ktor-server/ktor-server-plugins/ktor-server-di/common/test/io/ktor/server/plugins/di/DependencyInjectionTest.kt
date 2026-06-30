@@ -22,6 +22,7 @@ import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.Serializable
 import kotlin.reflect.KClass
+import kotlin.reflect.KFunction
 import kotlin.test.*
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -457,6 +458,11 @@ class DependencyInjectionTest {
                 GreetingService::class -> GreetingServiceImpl() as T
                 else -> fail("Unexpected class $kClass")
             }
+
+            override suspend fun <T> call(
+                kFunction: KFunction<T>,
+                init: suspend (DependencyKey) -> Any
+            ): T = fail("Not allowed")
         }
     }) {
         val service: GreetingService = dependencies.create()
