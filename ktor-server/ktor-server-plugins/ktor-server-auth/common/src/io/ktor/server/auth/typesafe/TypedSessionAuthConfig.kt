@@ -29,20 +29,11 @@ public typealias SessionPrincipalResolver<S, P> = suspend RoutingContext.(S) -> 
 public typealias SessionTransformer<S> = suspend RoutingContext.(S) -> S?
 
 /**
- * Configures the [Sessions] plugin for a typed session authentication scheme.
- *
- * @param S stored session type.
- * @param P route principal type.
- * @param C authenticated route context type.
- */
-@KtorDsl
-public typealias SessionsPluginConfig<S, P, C> = SessionsConfig.(SessionAuthScheme<S, P, C>) -> Unit
-
-/**
  * Configures a typed Session authentication scheme.
  *
  * Unlike [SessionAuthenticationProvider.Config], [validate] returns [P] from a stored session value [S], so routes
- * protected by [authenticateWith] can read [ApplicationCall.principal] as [P] and [ApplicationCall.session] as [S].
+ * protected by [authenticateWith] can read [io.ktor.server.application.ApplicationCall.principal] as [P] and
+ * [io.ktor.server.application.ApplicationCall.session] as [S].
  *
  * This config does not expose provider-level `challenge`. Set [onUnauthorized] or pass `onUnauthorized` to
  * [authenticateWith] to customize failure responses.
@@ -56,11 +47,7 @@ public typealias SessionsPluginConfig<S, P, C> = SessionsConfig.(SessionAuthSche
  * @param P the principal type exposed to authenticated routes.
  */
 @KtorDsl
-public open class TypedSessionAuthConfig<
-    S : Any,
-    P : Any,
-    C : SessionAuthenticatedContext<S, P>
-    > @PublishedApi internal constructor() {
+public open class TypedSessionAuthConfig<S : Any, P : Any> @PublishedApi internal constructor() {
     /**
      * Human-readable description of this authentication scheme.
      *
@@ -84,15 +71,18 @@ public open class TypedSessionAuthConfig<
 
     internal var csrfConfig: (CSRFConfig.() -> Unit)? = null
 
-    internal var sessionsPluginConfig: SessionsPluginConfig<S, P, *>? = null
-
     /**
-     * Creates the authenticated route context from the default session context.
+     * Configures how the typed session scheme installs the [io.ktor.server.sessions.Sessions] plugin.
      *
-     * This internal API is intended for integrations that need provider-bound helpers in typed route bodies.
+     * Assign one [SessionTransport] variant, for example `SessionTransport.Cookie()` or
+     * `SessionTransport.HeaderId(storage)`. Only one transport applies per scheme.
+     *
+     * When `null`, integrations that auto-install [io.ktor.server.sessions.Sessions] fail at installation time.
+     * Manual setups can omit this and call `install(Sessions) { cookie(auth) }` instead.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedSessionAuthConfig.transport)
      */
-    @InternalAPI
-    public var contextFactory: ((SessionContext<S, P>) -> C)? = null
+    public var transport: SessionTransport<S>? = null
 
     /**
      * Sets a validation function for the session value.
@@ -133,15 +123,6 @@ public open class TypedSessionAuthConfig<
      */
     public fun csrfProtection(config: CSRFConfig.() -> Unit) {
         csrfConfig = config
-    }
-
-    /**
-     * Configures how the typed session scheme installs the [io.ktor.server.sessions.Sessions] plugin.
-     *
-     * @param config session plugin configuration block.
-     */
-    public fun transport(config: SessionsPluginConfig<S, P, *>) {
-        sessionsPluginConfig = config
     }
 
     @PublishedApi

@@ -7,7 +7,6 @@ package io.ktor.server.auth.typesafe
 import io.ktor.server.application.*
 import io.ktor.server.sessions.*
 import io.ktor.util.*
-import io.ktor.utils.io.*
 
 /**
  * Provides typed access to an authenticated principal captured for a typed authentication route.
@@ -65,37 +64,6 @@ public class RoleBasedContext<P : Any, R : AuthRole> internal constructor(
 }
 
 /**
- * Typed authentication context that exposes a stored session and the principal derived from it.
- *
- * @param S the stored session type.
- * @param P the principal type.
- */
-public interface SessionAuthenticatedContext<S : Any, P : Any> : AuthenticatedContext<P> {
-
-    /**
-     * Returns the session value captured for [call].
-     */
-    public fun getSession(call: ApplicationCall): S
-
-    /**
-     * Stores [value] as the current session for [call].
-     */
-    public fun setSession(call: ApplicationCall, value: S)
-
-    /**
-     * Replaces the current session for [call] with the value returned by [transform].
-     *
-     * @return the updated session value.
-     */
-    public fun updateSession(call: ApplicationCall, transform: (S) -> S): S
-
-    /**
-     * Clears the current session for [call].
-     */
-    public fun clearSession(call: ApplicationCall)
-}
-
-/**
  * Typed authentication context used by Session authentication.
  *
  * The context exposes the authenticated [ApplicationCall.principal], the session value that passed authentication,
@@ -110,13 +78,13 @@ public class SessionContext<S : Any, P : Any>(
     base: PrincipalContext<P>,
     private val sessionKey: AttributeKey<S>,
     private val sessionProviderName: String,
-) : SessionAuthenticatedContext<S, P>, AuthenticatedContext<P> by base {
+) : AuthenticatedContext<P> by base {
     /**
      * Returns the session value that passed authentication for [call].
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.SessionAuthenticatedContext.session)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.SessionContext.getSession)
      */
-    override fun getSession(call: ApplicationCall): S {
+    public fun getSession(call: ApplicationCall): S {
         return checkNotNull(call.attributes.getOrNull(sessionKey)) {
             "Session not found. This should not happen inside a session authenticateWith block."
         }
@@ -127,9 +95,9 @@ public class SessionContext<S : Any, P : Any>(
      *
      * The captured route session is updated as well, so later reads of [getSession] in the same handler see [value].
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.SessionAuthenticatedContext.setSession)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.SessionContext.setSession)
      */
-    override fun setSession(call: ApplicationCall, value: S) {
+    public fun setSession(call: ApplicationCall, value: S) {
         call.sessions.set(sessionProviderName, value)
         call.attributes.put(sessionKey, value)
     }
@@ -137,9 +105,9 @@ public class SessionContext<S : Any, P : Any>(
     /**
      * Clears the authenticated session for [call].
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.SessionAuthenticatedContext.clearSession)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.SessionContext.clearSession)
      */
-    override fun clearSession(call: ApplicationCall) {
+    public fun clearSession(call: ApplicationCall) {
         call.sessions.clear(sessionProviderName)
         call.attributes.remove(sessionKey)
     }
@@ -147,11 +115,11 @@ public class SessionContext<S : Any, P : Any>(
     /**
      * Replaces the authenticated session with the value returned by [transform].
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.SessionAuthenticatedContext.updateSession)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.SessionContext.updateSession)
      *
      * @return the updated session value.
      */
-    override fun updateSession(call: ApplicationCall, transform: (S) -> S): S {
+    public fun updateSession(call: ApplicationCall, transform: (S) -> S): S {
         val updated = transform(getSession(call))
         setSession(call, updated)
         return updated
@@ -198,7 +166,7 @@ public val <P> ApplicationCall.principal: P
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.session)
  */
-context(authCtx: SessionAuthenticatedContext<S, *>)
+context(authCtx: SessionContext<S, *>)
 public var <S : Any> ApplicationCall.session: S
     get() = authCtx.getSession(call = this)
     set(value) {
@@ -212,7 +180,7 @@ public var <S : Any> ApplicationCall.session: S
  *
  * @return the updated session value.
  */
-context(authCtx: SessionAuthenticatedContext<S, *>)
+context(authCtx: SessionContext<S, *>)
 public fun <S : Any> ApplicationCall.updateSession(transform: (S) -> S): S {
     return authCtx.updateSession(call = this, transform)
 }
@@ -222,7 +190,7 @@ public fun <S : Any> ApplicationCall.updateSession(transform: (S) -> S): S {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.clearSession)
  */
-context(authCtx: SessionAuthenticatedContext<S, *>)
+context(authCtx: SessionContext<S, *>)
 public fun <S : Any> ApplicationCall.clearSession() {
     authCtx.clearSession(call = this)
 }
