@@ -5,20 +5,23 @@
 package io.ktor.http.auth
 
 /**
- * Represents a hash algorithm as defined in RFC 7616 and XML Signature.
+ * Represents a hash algorithm used by HTTP Digest Authentication (RFC 7616) and XML Signature.
  *
- * Each algorithm defines the hash function used for computing digests in HTTP Digest Authentication.
- * Session variants (those ending with `-sess`) modify the HA1 calculation to include the nonce and cnonce,
- * providing additional security by binding the session to specific client entropy.
+ * HTTP Digest Authentication algorithms are available as companion constants and can be resolved
+ * by algorithm name via [from]. Session variants (those ending with `-sess`) modify the HA1 calculation
+ * to include the nonce and cnonce, providing additional security by binding the session to specific
+ * client entropy.
  *
- * **Security Recommendation**: Use [SHA_512_256] or [SHA_512_256_SESS] for new implementations.
+ * [SHA_256], [SHA_384], and [SHA_512] also expose an XML Signature digest [uri] that can be resolved via [fromUri].
+ *
+ * **Security Recommendation**: Use [SHA_512_256] or [SHA_512_256_SESS] for new HTTP Digest implementations.
  * These provide the strongest security properties. MD5 variants are deprecated and should only
  * be used for backward compatibility with legacy systems.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.auth.DigestAlgorithm)
  *
- * @property name The name of the algorithm as it appears in HTTP headers (e.g., "MD5", "SHA-256-sess")
- * @property hashName The Java Security algorithm name used for MessageDigest (e.g., "MD5", "SHA-256")
+ * @property name The algorithm name; for HTTP Digest Authentication this is the value of the `algorithm` parameter
+ * @property hashName The platform digest algorithm name (e.g., "MD5", "SHA-256", "SHA-512/256")
  * @property isSession Whether this is a session variant that incorporates nonce and cnonce into HA1
  * @property uri The XML Signature digest algorithm URI, if this algorithm has one
  */
@@ -28,6 +31,9 @@ public class DigestAlgorithm(
     public val isSession: Boolean,
     public val uri: String?,
 ) {
+    /**
+     * Creates a [DigestAlgorithm] without an XML Signature [uri].
+     */
     public constructor(
         name: String,
         hashName: String,
@@ -70,7 +76,11 @@ public class DigestAlgorithm(
          */
         public val SHA_256_SESS: DigestAlgorithm = DigestAlgorithm("SHA-256-sess", "SHA-256", isSession = true)
 
-        /** SHA-384 algorithm */
+        /**
+         * SHA-384 digest algorithm used with XML Signature.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.auth.DigestAlgorithm.Companion.SHA_384)
+         */
         public val SHA_384: DigestAlgorithm = DigestAlgorithm(
             name = "SHA-384",
             hashName = "SHA-384",
@@ -78,7 +88,11 @@ public class DigestAlgorithm(
             uri = "http://www.w3.org/2001/04/xmldsig-more#sha384"
         )
 
-        /** SHA-512 algorithm */
+        /**
+         * SHA-512 digest algorithm used with XML Signature.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.auth.DigestAlgorithm.Companion.SHA_512)
+         */
         public val SHA_512: DigestAlgorithm = DigestAlgorithm(
             name = "SHA-512",
             hashName = "SHA-512",
@@ -106,12 +120,12 @@ public class DigestAlgorithm(
             listOf(SHA_512_256, SHA_512_256_SESS, SHA_256, SHA_256_SESS, MD5, MD5_SESS)
 
         /**
-         * Parses an algorithm name string into a [DigestAlgorithm].
+         * Parses an HTTP Digest Authentication algorithm name into a [DigestAlgorithm].
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.auth.DigestAlgorithm.Companion.from)
          *
          * @param name The algorithm name (case-insensitive), e.g., "MD5", "SHA-256", "SHA-256-sess"
-         * @return The corresponding [DigestAlgorithm] or null if not recognized
+         * @return The corresponding [DigestAlgorithm], or `null` if not recognized
          */
         public fun from(name: String): DigestAlgorithm? {
             return DEFAULT_ALGORITHMS.find { it.name.equals(other = name, ignoreCase = true) }
@@ -120,8 +134,10 @@ public class DigestAlgorithm(
         /**
          * Parses an XML Signature digest algorithm URI into a [DigestAlgorithm].
          *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.auth.DigestAlgorithm.Companion.fromUri)
+         *
          * @param uri The XML Signature digest algorithm URI
-         * @return The corresponding [DigestAlgorithm] or null if not recognized
+         * @return The corresponding [DigestAlgorithm], or `null` if not recognized
          */
         public fun fromUri(uri: String): DigestAlgorithm? {
             return XML_DIGEST_ALGORITHMS.find { it.uri == uri }
