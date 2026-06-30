@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.auth
@@ -197,7 +197,7 @@ private suspend fun OAuthAuthenticationProvider.oauth2RequestToken(
     token: OAuthCallback.TokenSingle,
     context: AuthenticationContext
 ) = try {
-    val accessToken = oauth2RequestAccessToken(client, provider, callbackRedirectUrl, token)
+    val accessToken = context.call.oauth2RequestAccessToken(client, provider, callbackRedirectUrl, token)
     context.principal(authProviderName, accessToken)
     null
 } catch (cause: OAuth2Exception.InvalidGrant) {

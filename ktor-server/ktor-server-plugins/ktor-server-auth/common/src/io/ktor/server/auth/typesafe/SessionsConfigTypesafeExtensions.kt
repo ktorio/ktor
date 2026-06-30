@@ -17,7 +17,7 @@ import io.ktor.utils.io.*
  */
 @ExperimentalKtorApi
 public fun <S : Any, P : Any> SessionsConfig.cookie(
-    scheme: SessionAuthScheme<S, P, *>,
+    scheme: SessionAuthScheme<S, P>,
     block: CookieSessionBuilder<S>.() -> Unit = {}
 ) {
     cookie(scheme.name, scheme.sessionTypeInfo, block)
@@ -34,7 +34,7 @@ public fun <S : Any, P : Any> SessionsConfig.cookie(
  */
 @ExperimentalKtorApi
 public fun <S : Any, P : Any> SessionsConfig.cookie(
-    scheme: SessionAuthScheme<S, P, *>,
+    scheme: SessionAuthScheme<S, P>,
     storage: SessionStorage,
     block: CookieIdSessionBuilder<S>.() -> Unit = {}
 ) {
@@ -51,7 +51,7 @@ public fun <S : Any, P : Any> SessionsConfig.cookie(
  */
 @ExperimentalKtorApi
 public fun <S : Any, P : Any> SessionsConfig.header(
-    scheme: SessionAuthScheme<S, P, *>,
+    scheme: SessionAuthScheme<S, P>,
     block: HeaderSessionBuilder<S>.() -> Unit = {}
 ) {
     header(scheme.name, scheme.sessionTypeInfo, block)
@@ -68,7 +68,7 @@ public fun <S : Any, P : Any> SessionsConfig.header(
  */
 @ExperimentalKtorApi
 public fun <S : Any, P : Any> SessionsConfig.header(
-    scheme: SessionAuthScheme<S, P, *>,
+    scheme: SessionAuthScheme<S, P>,
     storage: SessionStorage,
     block: HeaderIdSessionBuilder<S>.() -> Unit = {}
 ) {
@@ -85,6 +85,6 @@ public fun <S : Any, P : Any> SessionsConfig.header(
  * @throws IllegalStateException if no session provider is registered for [scheme].
  */
 @ExperimentalKtorApi
-public fun <S : Any, P : Any> CurrentSession.set(scheme: SessionAuthScheme<S, P, *>, value: S) {
+public fun <S : Any, P : Any> CurrentSession.set(scheme: SessionAuthScheme<S, P>, value: S) {
     set(scheme.name, value)
 }

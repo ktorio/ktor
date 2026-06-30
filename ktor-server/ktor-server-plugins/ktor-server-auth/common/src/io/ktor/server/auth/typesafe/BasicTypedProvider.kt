@@ -89,11 +89,9 @@ public inline fun <reified P : Any> form(
 @JvmName("sessionWithPrincipal")
 public inline fun <reified S : Any, reified P : Any> session(
     name: String,
-    configure: TypedSessionAuthConfig<S, P, SessionContext<S, P>>.() -> Unit
-): SessionAuthScheme<S, P, SessionContext<S, P>> {
-    val config = TypedSessionAuthConfig<S, P, SessionContext<S, P>>().apply(configure)
-    check(config.contextFactory == null)
-    config.contextFactory = { it }
+    configure: TypedSessionAuthConfig<S, P>.() -> Unit
+): SessionAuthScheme<S, P> {
+    val config = TypedSessionAuthConfig<S, P>().apply(configure)
     return SessionAuthScheme.from(
         name = name,
         sessionTypeInfo = typeInfo<S>(),
@@ -117,6 +115,5 @@ public inline fun <reified S : Any, reified P : Any> session(
 @ExperimentalKtorApi
 public inline fun <reified P : Any> session(
     name: String,
-    noinline configure: TypedSessionAuthConfig<P, P, SessionContext<P, P>>.() -> Unit
-): SessionAuthScheme<P, P, SessionContext<P, P>> =
-    session<P, P>(name, configure)
+    noinline configure: TypedSessionAuthConfig<P, P>.() -> Unit
+): SessionAuthScheme<P, P> = session<P, P>(name, configure)
