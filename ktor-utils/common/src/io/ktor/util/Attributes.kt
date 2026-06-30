@@ -4,9 +4,9 @@
 
 package io.ktor.util
 
+import io.ktor.util.collections.ConcurrentMap
 import io.ktor.util.reflect.*
 import kotlin.jvm.*
-import kotlin.reflect.*
 
 /**
  * Specifies a key for an attribute in [Attributes]
@@ -151,5 +151,54 @@ public fun Attributes.putAll(other: Attributes) {
     other.allKeys.forEach {
         @Suppress("UNCHECKED_CAST")
         put(it as AttributeKey<Any>, other[it])
+    }
+}
+
+private const val ATTRIBUTES_INITIAL_CAPACITY = 32
+
+internal abstract class BaseAttributes : Attributes {
+    protected abstract val map: MutableMap<AttributeKey<*>, Any>
+
+    @Suppress("UNCHECKED_CAST")
+    final override fun <T : Any> getOrNull(key: AttributeKey<T>): T? = map[key] as T?
+
+    final override operator fun contains(key: AttributeKey<*>): Boolean = map.containsKey(key)
+
+    final override fun <T : Any> put(key: AttributeKey<T>, value: T) {
+        map[key] = value
+    }
+
+    final override fun <T : Any> remove(key: AttributeKey<T>) {
+        map.remove(key)
+    }
+
+    final override val allKeys: List<AttributeKey<*>>
+        get() = map.keys.toList()
+}
+
+// attributes implementations
+internal class ConcurrentAttributes : BaseAttributes() {
+    override val map = ConcurrentMap<AttributeKey<*>, Any>(ATTRIBUTES_INITIAL_CAPACITY)
+
+    @Suppress("UNCHECKED_CAST")
+    override fun <T : Any> computeIfAbsent(key: AttributeKey<T>, block: () -> T): T {
+        return map.computeIfAbsent(key, block) as T
+    }
+}
+
+internal class HashMapAttributes : BaseAttributes() {
+    override val map: MutableMap<AttributeKey<*>, Any> = HashMap()
+
+    /**
+     * Gets a value of the attribute for the specified [key], or calls supplied [block] to compute its value.
+     * Note: [block] could be eventually evaluated twice for the same key.
+     * TODO: To be discussed. Workaround for android < API 24.
+     */
+    override fun <T : Any> computeIfAbsent(key: AttributeKey<T>, block: () -> T): T {
+        @Suppress("UNCHECKED_CAST")
+        map[key]?.let { return it as T }
+        val result = block()
+        @Suppress("UNCHECKED_CAST")
+        return (map.put(key, result) ?: result) as T
     }
 }

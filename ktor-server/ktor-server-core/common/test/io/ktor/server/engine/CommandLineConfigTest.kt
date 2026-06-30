@@ -4,8 +4,10 @@
 
 package io.ktor.server.engine
 
+import io.ktor.test.*
 import kotlin.test.*
 
+@WasmWasiIgnore // no ENV support yet
 class CommandLineConfigTest {
     @Test
     fun testPropertyConfig() {

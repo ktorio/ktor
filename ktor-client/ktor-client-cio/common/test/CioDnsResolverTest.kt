@@ -6,6 +6,7 @@ package io.ktor.client.engine.cio
 
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
+import io.ktor.test.WasmWasiIgnore
 import io.ktor.test.dispatcher.*
 import io.ktor.utils.io.core.buildPacket
 import kotlinx.coroutines.*
@@ -15,6 +16,7 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.use
 
+@WasmWasiIgnore // sockets are not supported yet
 class CioDnsResolverTest {
     @Test
     fun testCioDnsResolverParsesAResponse() = runTestWithRealTime {

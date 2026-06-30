@@ -4,9 +4,11 @@
 
 package io.ktor.server.engine
 
+import io.ktor.test.WasmWasiIgnore
 import kotlin.test.Test
 import kotlin.test.assertTrue
 
+@WasmWasiIgnore // no ENV support yet
 class EnvironmentUtilsTest {
 
     @Test

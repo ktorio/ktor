@@ -8,7 +8,16 @@ import org.khronos.webgl.*
 
 private fun toJsArrayImpl(vararg x: Byte): Int8Array = js("new Int8Array(x)")
 
+@Deprecated(
+    "Use toInt8Array from kotlinx.browser instead",
+    ReplaceWith("toInt8Array()", "org.khronos.webgl.toInt8Array"),
+    level = DeprecationLevel.ERROR
+)
 public fun ByteArray.toJsArray(): Int8Array = toJsArrayImpl(*this)
 
-public fun Int8Array.toByteArray(): ByteArray =
-    ByteArray(this.length) { this[it] }
+@Deprecated(
+    "Use toByteArray from kotlinx.browser instead",
+    ReplaceWith("toByteArray()", "org.khronos.webgl.toByteArray"),
+    level = DeprecationLevel.ERROR
+)
+public fun Int8Array.toByteArray(): ByteArray = ByteArray(this.length) { this[it] }

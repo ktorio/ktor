@@ -5,6 +5,7 @@
 package io.ktor.network.sockets.tests
 
 import io.ktor.network.sockets.*
+import io.ktor.test.WasmWasiIgnore
 import io.ktor.utils.io.core.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
@@ -13,6 +14,7 @@ import kotlin.random.*
 import kotlin.test.*
 import kotlin.use
 
+@WasmWasiIgnore // sockets are not supported yet
 class UDPSocketTest {
 
     private val done = atomic(0)

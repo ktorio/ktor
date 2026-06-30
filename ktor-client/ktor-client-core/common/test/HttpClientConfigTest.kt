@@ -16,6 +16,7 @@ import kotlin.test.*
 
 class HttpClientConfigTest {
 
+    @WasmWasiIgnore // there is no client engine yet
     @Test
     fun testPluginInstalledTwice() {
         var configuration = 0

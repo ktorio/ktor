@@ -6,11 +6,13 @@ package io.ktor.client.engine.cio
 
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
+import io.ktor.test.WasmWasiIgnore
 import io.ktor.test.dispatcher.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlin.test.*
 
+@WasmWasiIgnore // sockets are not supported yet
 class ConnectionFactoryTest {
 
     private lateinit var selectorManager: SelectorManager

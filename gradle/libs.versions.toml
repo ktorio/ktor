@@ -96,7 +96,7 @@ ios-deploymentTarget = "13.0"
 ios-webrtc-sdk = "137.7151.04"
 
 # JS versions
-node = "22.22.2"
+node = "24.16.0"
 yarn = "1.22.22"
 ws = "8.20.1"
 puppeteer = "25.0.4"

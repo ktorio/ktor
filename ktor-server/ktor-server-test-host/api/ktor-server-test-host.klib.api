@@ -1,5 +1,5 @@
 // Klib ABI Dump
-// Targets: [androidNativeArm32, androidNativeArm64, androidNativeX64, androidNativeX86, iosArm64, iosSimulatorArm64, iosX64, js, linuxArm64, linuxX64, macosArm64, macosX64, mingwX64, tvosArm64, tvosSimulatorArm64, tvosX64, wasmJs, watchosArm32, watchosArm64, watchosDeviceArm64, watchosSimulatorArm64, watchosX64]
+// Targets: [androidNativeArm32, androidNativeArm64, androidNativeX64, androidNativeX86, iosArm64, iosSimulatorArm64, iosX64, js, linuxArm64, linuxX64, macosArm64, macosX64, mingwX64, tvosArm64, tvosSimulatorArm64, tvosX64, wasmJs, wasmWasi, watchosArm32, watchosArm64, watchosDeviceArm64, watchosSimulatorArm64, watchosX64]
 // Alias: native => [androidNativeArm32, androidNativeArm64, androidNativeX64, androidNativeX86, iosArm64, iosSimulatorArm64, iosX64, linuxArm64, linuxX64, macosArm64, macosX64, mingwX64, tvosArm64, tvosSimulatorArm64, tvosX64, watchosArm32, watchosArm64, watchosDeviceArm64, watchosSimulatorArm64, watchosX64]
 // Rendering settings:
 // - Signature version: 2
@@ -203,10 +203,10 @@ final inline fun (io.ktor.server.testing/On).io.ktor.server.testing/it(kotlin/St
 final inline fun io.ktor.server.testing/on(kotlin/String, kotlin/Function1<io.ktor.server.testing/On, kotlin/Unit>) // io.ktor.server.testing/on|on(kotlin.String;kotlin.Function1<io.ktor.server.testing.On,kotlin.Unit>){}[0]
 final suspend fun io.ktor.server.testing/runTestApplication(kotlin.coroutines/CoroutineContext = ..., kotlin.coroutines/SuspendFunction1<io.ktor.server.testing/ApplicationTestBuilder, kotlin/Unit>) // io.ktor.server.testing/runTestApplication|runTestApplication(kotlin.coroutines.CoroutineContext;kotlin.coroutines.SuspendFunction1<io.ktor.server.testing.ApplicationTestBuilder,kotlin.Unit>){}[0]
 
-// Targets: [native]
+// Targets: [native, wasmWasi]
 final fun io.ktor.server.testing/testApplication(kotlin.coroutines/CoroutineContext = ..., kotlin.coroutines/SuspendFunction1<io.ktor.server.testing/ApplicationTestBuilder, kotlin/Unit>) // io.ktor.server.testing/testApplication|testApplication(kotlin.coroutines.CoroutineContext;kotlin.coroutines.SuspendFunction1<io.ktor.server.testing.ApplicationTestBuilder,kotlin.Unit>){}[0]
 
-// Targets: [native]
+// Targets: [native, wasmWasi]
 final fun io.ktor.server.testing/testApplication(kotlin.coroutines/SuspendFunction1<io.ktor.server.testing/ApplicationTestBuilder, kotlin/Unit>) // io.ktor.server.testing/testApplication|testApplication(kotlin.coroutines.SuspendFunction1<io.ktor.server.testing.ApplicationTestBuilder,kotlin.Unit>){}[0]
 
 // Targets: [js, wasmJs]

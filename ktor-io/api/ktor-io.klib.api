@@ -1,5 +1,5 @@
 // Klib ABI Dump
-// Targets: [androidNativeArm32, androidNativeArm64, androidNativeX64, androidNativeX86, iosArm64, iosSimulatorArm64, iosX64, js, linuxArm64, linuxX64, macosArm64, macosX64, mingwX64, tvosArm64, tvosSimulatorArm64, tvosX64, wasmJs, watchosArm32, watchosArm64, watchosDeviceArm64, watchosSimulatorArm64, watchosX64]
+// Targets: [androidNativeArm32, androidNativeArm64, androidNativeX64, androidNativeX86, iosArm64, iosSimulatorArm64, iosX64, js, linuxArm64, linuxX64, macosArm64, macosX64, mingwX64, tvosArm64, tvosSimulatorArm64, tvosX64, wasmJs, wasmWasi, watchosArm32, watchosArm64, watchosDeviceArm64, watchosSimulatorArm64, watchosX64]
 // Alias: native => [androidNativeArm32, androidNativeArm64, androidNativeX64, androidNativeX86, iosArm64, iosSimulatorArm64, iosX64, linuxArm64, linuxX64, macosArm64, macosX64, mingwX64, tvosArm64, tvosSimulatorArm64, tvosX64, watchosArm32, watchosArm64, watchosDeviceArm64, watchosSimulatorArm64, watchosX64]
 // Alias: apple => [iosArm64, iosSimulatorArm64, iosX64, macosArm64, macosX64, tvosArm64, tvosSimulatorArm64, tvosX64, watchosArm32, watchosArm64, watchosDeviceArm64, watchosSimulatorArm64, watchosX64]
 // Alias: linux => [linuxArm64, linuxX64]
@@ -706,7 +706,7 @@ final suspend fun (io.ktor.utils.io/ByteWriteChannel).io.ktor.utils.io/writeFull
 // Targets: [native]
 final suspend fun (io.ktor.utils.io/ByteWriteChannel).io.ktor.utils.io/writeFully(kotlinx.cinterop/CPointer<kotlinx.cinterop/ByteVarOf<kotlin/Byte>>, kotlin/Long, kotlin/Long) // io.ktor.utils.io/writeFully|writeFully@io.ktor.utils.io.ByteWriteChannel(kotlinx.cinterop.CPointer<kotlinx.cinterop.ByteVarOf<kotlin.Byte>>;kotlin.Long;kotlin.Long){}[0]
 
-// Targets: [js, wasmJs]
+// Targets: [js, wasmJs, wasmWasi]
 final class io.ktor.utils.io.locks/ReentrantLock { // io.ktor.utils.io.locks/ReentrantLock|null[0]
     constructor <init>() // io.ktor.utils.io.locks/ReentrantLock.<init>|<init>(){}[0]
 
@@ -715,17 +715,17 @@ final class io.ktor.utils.io.locks/ReentrantLock { // io.ktor.utils.io.locks/Ree
     final inline fun unlock() // io.ktor.utils.io.locks/ReentrantLock.unlock|unlock(){}[0]
 }
 
-// Targets: [js, wasmJs]
+// Targets: [js, wasmJs, wasmWasi]
 final val io.ktor.utils.io.locks/Lock // io.ktor.utils.io.locks/Lock|{}Lock[0]
     final fun <get-Lock>(): io.ktor.utils.io.locks/ReentrantLock // io.ktor.utils.io.locks/Lock.<get-Lock>|<get-Lock>(){}[0]
 
-// Targets: [js, wasmJs]
+// Targets: [js, wasmJs, wasmWasi]
 final inline fun <#A: kotlin/Any?> (io.ktor.utils.io.locks/ReentrantLock).io.ktor.utils.io.locks/withLock(kotlin/Function0<#A>): #A // io.ktor.utils.io.locks/withLock|withLock@io.ktor.utils.io.locks.ReentrantLock(kotlin.Function0<0:0>){0§<kotlin.Any?>}[0]
 
-// Targets: [js, wasmJs]
+// Targets: [js, wasmJs, wasmWasi]
 final inline fun <#A: kotlin/Any?> io.ktor.utils.io.locks/synchronized(kotlin/Any, kotlin/Function0<#A>): #A // io.ktor.utils.io.locks/synchronized|synchronized(kotlin.Any;kotlin.Function0<0:0>){0§<kotlin.Any?>}[0]
 
-// Targets: [js, wasmJs]
+// Targets: [js, wasmJs, wasmWasi]
 final inline fun io.ktor.utils.io.locks/reentrantLock(): io.ktor.utils.io.locks/ReentrantLock // io.ktor.utils.io.locks/reentrantLock|reentrantLock(){}[0]
 
 // Targets: [wasmJs]

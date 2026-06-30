@@ -18,6 +18,7 @@ public object PlatformUtils {
 
     public val IS_JS: Boolean = platform is Platform.Js
     public val IS_WASM_JS: Boolean = platform is Platform.WasmJs
+    public val IS_WASM_WASI: Boolean = platform is Platform.WasmWasi
     public val IS_JVM: Boolean = platform == Platform.Jvm
     public val IS_NATIVE: Boolean = platform == Platform.Native
 
@@ -40,6 +41,7 @@ public sealed class Platform {
     public data object Native : Platform()
     public data class Js(val jsPlatform: JsPlatform) : Platform()
     public data class WasmJs(val jsPlatform: JsPlatform) : Platform()
+    public data object WasmWasi : Platform()
 
     public enum class JsPlatform { Browser, Node }
 }

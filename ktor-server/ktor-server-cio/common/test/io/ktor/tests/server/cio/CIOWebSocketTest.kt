@@ -6,7 +6,9 @@ package io.ktor.tests.server.cio
 
 import io.ktor.server.cio.*
 import io.ktor.server.testing.suites.*
+import io.ktor.test.WasmWasiIgnore
 
+@WasmWasiIgnore // sockets are not supported yet
 class CIOWebSocketTest : WebSocketEngineSuite<CIOApplicationEngine, CIOApplicationEngine.Configuration>(CIO) {
     init {
         enableSsl = false

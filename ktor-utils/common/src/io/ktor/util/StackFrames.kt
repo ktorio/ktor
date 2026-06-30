@@ -8,7 +8,6 @@ import kotlin.reflect.*
 
 internal expect class StackTraceElement
 
-@Suppress("FunctionName")
 internal expect fun createStackTraceElement(
     kClass: KClass<*>,
     methodName: String,

@@ -6,9 +6,6 @@ package io.ktor.util
 
 import kotlin.js.*
 
-internal actual val PlatformUtils.isDevelopmentMode: Boolean
-    get() = false
-
 internal fun hasNodeApi(): Boolean = js(
 """
 (typeof process !== 'undefined' 

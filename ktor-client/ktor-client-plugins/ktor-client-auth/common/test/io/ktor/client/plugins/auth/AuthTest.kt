@@ -102,8 +102,9 @@ class AuthTest : ClientLoader() {
     @Test
     fun `digest client selects nonce from the challenge matching its configured algorithm`() =
         testWithEngine(MockEngine) {
+            val supportsDigest = !PlatformUtils.IS_NATIVE && !PlatformUtils.IS_WASM_WASI
             config {
-                if (!PlatformUtils.IS_NATIVE) {
+                if (supportsDigest) {
                     install(Auth) {
                         digest {
                             credentials { DigestAuthCredentials(username = "jetbrains", password = "foobar") }
@@ -136,7 +137,7 @@ class AuthTest : ClientLoader() {
                 }
             }
 
-            if (PlatformUtils.IS_NATIVE) return@testWithEngine
+            if (!supportsDigest) return@testWithEngine
 
             test { client ->
                 val response = client.get("/")

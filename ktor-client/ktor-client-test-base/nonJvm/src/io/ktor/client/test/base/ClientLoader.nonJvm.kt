@@ -4,6 +4,21 @@
 
 package io.ktor.client.test.base
 
+import io.ktor.client.engine.*
+import io.ktor.util.*
+import io.ktor.utils.io.*
+
+@OptIn(InternalAPI::class)
+internal actual val enginesToTest: Iterable<HttpClientEngineFactory<HttpClientEngineConfig>> get() = engines
+internal actual val platformName: String by lazy {
+    when (PlatformUtils.platform) {
+        is Platform.Js, is Platform.WasmJs -> "web"
+        Platform.Native -> "native"
+        Platform.WasmWasi -> "wasi"
+        else -> "unknown"
+    }
+}
+
 // supported only on JVM
 internal actual fun platformDumpCoroutines() {}
 internal actual fun platformWaitForAllCoroutines() {}

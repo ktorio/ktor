@@ -6,6 +6,7 @@ package io.ktor.network.sockets.tests
 
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
+import io.ktor.test.WasmWasiIgnore
 import io.ktor.utils.io.*
 import io.ktor.utils.io.CancellationException
 import kotlinx.coroutines.*
@@ -32,6 +33,7 @@ private val testArrays = testSize.map {
 
 private fun makeArray(size: Int): ByteArray = ByteArray(size) { it.toByte() }
 
+@WasmWasiIgnore // sockets are not supported yet
 class TCPSocketTest {
 
     @Test
