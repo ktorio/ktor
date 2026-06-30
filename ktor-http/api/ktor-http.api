@@ -1243,18 +1243,23 @@ public final class io/ktor/http/auth/AuthScheme {
 public final class io/ktor/http/auth/DigestAlgorithm {
 	public static final field Companion Lio/ktor/http/auth/DigestAlgorithm$Companion;
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Z)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/String;ZLjava/lang/String;)V
 	public final fun getHashName ()Ljava/lang/String;
 	public final fun getName ()Ljava/lang/String;
+	public final fun getUri ()Ljava/lang/String;
 	public final fun isSession ()Z
 }
 
 public final class io/ktor/http/auth/DigestAlgorithm$Companion {
 	public final fun from (Ljava/lang/String;)Lio/ktor/http/auth/DigestAlgorithm;
+	public final fun fromUri (Ljava/lang/String;)Lio/ktor/http/auth/DigestAlgorithm;
 	public final fun getDEFAULT_ALGORITHMS ()Ljava/util/List;
 	public final fun getMD5 ()Lio/ktor/http/auth/DigestAlgorithm;
 	public final fun getMD5_SESS ()Lio/ktor/http/auth/DigestAlgorithm;
 	public final fun getSHA_256 ()Lio/ktor/http/auth/DigestAlgorithm;
 	public final fun getSHA_256_SESS ()Lio/ktor/http/auth/DigestAlgorithm;
+	public final fun getSHA_384 ()Lio/ktor/http/auth/DigestAlgorithm;
+	public final fun getSHA_512 ()Lio/ktor/http/auth/DigestAlgorithm;
 	public final fun getSHA_512_256 ()Lio/ktor/http/auth/DigestAlgorithm;
 	public final fun getSHA_512_256_SESS ()Lio/ktor/http/auth/DigestAlgorithm;
 }
@@ -1349,6 +1354,57 @@ public final class io/ktor/http/auth/HttpAuthHeader$Single : io/ktor/http/auth/H
 public final class io/ktor/http/auth/HttpAuthHeaderKt {
 	public static final fun parseAuthorizationHeader (Ljava/lang/String;)Lio/ktor/http/auth/HttpAuthHeader;
 	public static final fun parseAuthorizationHeaders (Ljava/lang/String;)Ljava/util/List;
+}
+
+public final class io/ktor/http/auth/KeyAlgorithm {
+	public static final field Companion Lio/ktor/http/auth/KeyAlgorithm$Companion;
+	public static final synthetic fun box-impl (Ljava/lang/String;)Lio/ktor/http/auth/KeyAlgorithm;
+	public static fun constructor-impl (Ljava/lang/String;)Ljava/lang/String;
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl (Ljava/lang/String;Ljava/lang/Object;)Z
+	public static final fun equals-impl0 (Ljava/lang/String;Ljava/lang/String;)Z
+	public final fun getName ()Ljava/lang/String;
+	public fun hashCode ()I
+	public static fun hashCode-impl (Ljava/lang/String;)I
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl (Ljava/lang/String;)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()Ljava/lang/String;
+}
+
+public final class io/ktor/http/auth/KeyAlgorithm$Companion {
+	public final fun getEC-GYfFmDM ()Ljava/lang/String;
+	public final fun getHMAC-GYfFmDM ()Ljava/lang/String;
+	public final fun getOKP-GYfFmDM ()Ljava/lang/String;
+	public final fun getRSA-GYfFmDM ()Ljava/lang/String;
+}
+
+public final class io/ktor/http/auth/SignatureAlgorithm {
+	public static final field Companion Lio/ktor/http/auth/SignatureAlgorithm$Companion;
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/auth/DigestAlgorithm;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/auth/DigestAlgorithm;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun equals (Ljava/lang/Object;)Z
+	public final fun getDigestAlgorithm ()Lio/ktor/http/auth/DigestAlgorithm;
+	public final fun getJcaAlgorithm ()Ljava/lang/String;
+	public final fun getJwaName ()Ljava/lang/String;
+	public final fun getKeyAlgorithm-GYfFmDM ()Ljava/lang/String;
+	public final fun getName ()Ljava/lang/String;
+	public final fun getXmlUri ()Ljava/lang/String;
+	public fun hashCode ()I
+}
+
+public final class io/ktor/http/auth/SignatureAlgorithm$Companion {
+	public final fun fromJwaName (Ljava/lang/String;)Lio/ktor/http/auth/SignatureAlgorithm;
+	public final fun fromXmlUri (Ljava/lang/String;)Lio/ktor/http/auth/SignatureAlgorithm;
+	public final fun getECDSA_SHA_256 ()Lio/ktor/http/auth/SignatureAlgorithm;
+	public final fun getECDSA_SHA_384 ()Lio/ktor/http/auth/SignatureAlgorithm;
+	public final fun getECDSA_SHA_512 ()Lio/ktor/http/auth/SignatureAlgorithm;
+	public final fun getRSA_SHA_256 ()Lio/ktor/http/auth/SignatureAlgorithm;
+	public final fun getRSA_SHA_384 ()Lio/ktor/http/auth/SignatureAlgorithm;
+	public final fun getRSA_SHA_512 ()Lio/ktor/http/auth/SignatureAlgorithm;
+}
+
+public final class io/ktor/http/auth/SignatureAlgorithm_jvmKt {
+	public static final fun toJcaSignature (Lio/ktor/http/auth/SignatureAlgorithm;)Ljava/security/Signature;
 }
 
 public final class io/ktor/http/content/ByteArrayContent : io/ktor/http/content/OutgoingContent$ByteArrayContent {
