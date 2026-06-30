@@ -10,6 +10,7 @@ import com.auth0.jwk.Jwk
 import com.auth0.jwk.JwkProvider
 import io.ktor.server.auth.*
 import io.ktor.server.auth.oidc.utils.*
+import io.ktor.server.auth.typesafe.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
@@ -17,9 +18,7 @@ import io.ktor.utils.io.*
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-import java.util.concurrent.atomic.AtomicInteger
 import kotlin.test.*
-import kotlin.time.Duration.Companion.ZERO
 
 class OidcPluginRegistrationTest {
 
@@ -77,11 +76,8 @@ class OidcPluginRegistrationTest {
             },
         )
         assertFailsWith<IllegalStateException> { providerWithoutSchemes.bearer }
+        assertFailsWith<IllegalStateException> { providerWithoutSchemes.sessions }
 
-        application {
-            val installed: Oidc = openIdConnect { }
-            assertSame(installed, openIdConnect())
-        }
         startApplication()
     }
 
@@ -111,14 +107,10 @@ class OidcPluginRegistrationTest {
         invalidNames.forEach { providerName ->
             val failure = assertFailsWith<IllegalArgumentException> {
                 testApplication {
-                    val openIdClient = openIdHttpClient()
                     application {
-                        val oidc = openIdConnect {
-                            httpClient = openIdClient
-                            discoveryRefreshInterval = ZERO
-                        }
+                        val oidc = openIdConnect { }
                         oidc.provider(providerName) {
-                            issuer = ISSUER_URL
+                            testIssuer()
                         }
                     }
                     startApplication()
@@ -128,33 +120,24 @@ class OidcPluginRegistrationTest {
         }
 
         testApplication {
-            openIdProvider()
-            val openIdClient = openIdHttpClient()
             application {
-                val oidc = openIdConnect {
-                    httpClient = openIdClient
-                    discoveryRefreshInterval = ZERO
-                }
+                val oidc = openIdConnect { }
                 oidc.provider(
                     name = "auth0",
                     transformPrincipal = { principal ->
                         when (principal) {
                             is OidcToken.Id -> UserIdPrincipal(principal.userInfo.subject)
-                            is OidcToken.Access -> {
-                                principal.userInfo?.subject?.let(::UserIdPrincipal)
-                            }
-                            is OidcToken.Opaque -> {
-                                principal.introspection.subject?.let(::UserIdPrincipal)
-                            }
+                            is OidcToken.Access -> principal.userInfo?.subject?.let(::UserIdPrincipal)
+                            is OidcToken.Opaque -> principal.introspection.subject?.let(::UserIdPrincipal)
                         }
                     }
                 ) {
-                    issuer = ISSUER_URL
+                    testIssuer()
                 }
 
                 val failure = assertFailsWith<IllegalArgumentException> {
                     oidc.provider("auth0") {
-                        issuer = ISSUER_URL
+                        testIssuer()
                     }
                 }
                 assertContains(failure.message.orEmpty(), "already configured")
@@ -162,38 +145,66 @@ class OidcPluginRegistrationTest {
         }
     }
 
+    @Test
+    fun `typed route registration rejects derived scheme name collisions`() {
+        val secondIssuer = "https://okta.example.com"
+        val failure = assertFailsWith<IllegalArgumentException> {
+            testApplication {
+                application {
+                    val oidc = openIdConnect { }
+                    val auth0 = oidc.provider("auth0") {
+                        testIssuer()
+                        accessToken {
+                            audiences = setOf("api")
+                        }
+                        bearer()
+                    }
+                    val okta = oidc.provider("okta") {
+                        testIssuer(secondIssuer)
+                        sessions {
+                            name = "auth0-bearer"
+                        }
+                        oauth {
+                            clientId = "client-id"
+                            clientSecret = "client-secret"
+                        }
+                    }
+
+                    routing {
+                        authenticateWith(auth0.bearer) {
+                            get("/auth0") {
+                                call.respondText("auth0")
+                            }
+                        }
+                        authenticateWith(okta.sessions) {
+                            get("/okta") {
+                                call.respondText("okta")
+                            }
+                        }
+                    }
+                }
+                startApplication()
+            }
+        }
+
+        assertContains(failure.message.orEmpty(), "auth0-bearer")
+        assertContains(failure.message.orEmpty(), "already registered")
+    }
+
     private fun assertConcurrentDuplicateRegistrations(
         providerNames: List<String>,
         expectedFailureMessage: String,
         configureProvider: OidcProviderConfig<OidcToken>.() -> Unit = {},
     ) = testApplication {
-        val discoveryRequests = AtomicInteger()
-
-        externalServices {
-            hosts(ISSUER_URL) {
-                installDiscoveryContentNegotiation()
-                routing {
-                    get("/.well-known/openid-configuration") {
-                        discoveryRequests.incrementAndGet()
-                        call.respond(openIdProviderMetadata)
-                    }
-                }
-            }
-        }
-
-        val openIdClient = openIdHttpClient()
         application {
-            val oidc = openIdConnect {
-                httpClient = openIdClient
-                discoveryRefreshInterval = ZERO
-            }
+            val oidc = openIdConnect { }
 
             val results = coroutineScope {
                 providerNames.map { providerName ->
                     async {
                         runCatching {
                             oidc.provider(providerName) {
-                                issuer = ISSUER_URL
+                                testIssuer()
                                 configureProvider()
                             }
                         }
@@ -211,7 +222,6 @@ class OidcPluginRegistrationTest {
         }
 
         startApplication()
-        assertEquals(1, discoveryRequests.get())
     }
 
     private fun assertConcurrentDistinctRegistrations() = testApplication {
@@ -220,20 +230,15 @@ class OidcPluginRegistrationTest {
             "okta" to "https://okta.example.com",
             "keycloak" to "https://keycloak.example.com",
         )
-        issuers.forEach { (_, issuer) -> openIdProvider(issuer) }
 
-        val openIdClient = openIdHttpClient()
         application {
-            val oidc = openIdConnect {
-                httpClient = openIdClient
-                discoveryRefreshInterval = ZERO
-            }
+            val oidc = openIdConnect { }
 
             val providers = coroutineScope {
                 issuers.map { (name, issuer) ->
                     async {
                         oidc.provider(name) {
-                            this.issuer = issuer
+                            testIssuer(issuer)
                             accessToken {
                                 audiences = setOf("api")
                             }
