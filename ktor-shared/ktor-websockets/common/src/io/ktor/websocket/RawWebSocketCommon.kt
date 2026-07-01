@@ -105,11 +105,13 @@ internal class RawWebSocketCommon(
                 }
             } catch (cause: FrameTooBigException) {
                 _incoming.close(cause)
-                outgoing.send(Frame.Close(CloseReason(CloseReason.Codes.TOO_BIG, cause.message)))
+                val reason = CloseReason.truncated(CloseReason.Codes.TOO_BIG, cause.message)
+                outgoing.send(Frame.Close(reason))
             } catch (cause: ProtocolViolationException) {
                 // same as above
                 _incoming.close(cause)
-                outgoing.send(Frame.Close(CloseReason(CloseReason.Codes.PROTOCOL_ERROR, cause.message)))
+                val reason = CloseReason.truncated(CloseReason.Codes.PROTOCOL_ERROR, cause.message)
+                outgoing.send(Frame.Close(reason))
             } catch (_: CancellationException) {
                 _incoming.cancel()
             } catch (_: EOFException) {
@@ -250,8 +252,8 @@ public suspend fun ByteReadChannel.readFrame(maxFrameSize: Long, lastOpcode: Int
         127 -> readLong()
         else -> length.toLong()
     }
-    if (frameType.controlFrame && length > 125) {
-        throw ProtocolViolationException("control frames can't be larger than 125 bytes")
+    if (frameType.controlFrame && length > MAX_CONTROL_FRAME_PAYLOAD_SIZE) {
+        throw ProtocolViolationException("control frames can't be larger than $MAX_CONTROL_FRAME_PAYLOAD_SIZE bytes")
     }
 
     val maskKey = when (maskAndLength and 0x80 != 0) {

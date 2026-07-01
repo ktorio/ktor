@@ -30,6 +30,10 @@ public actual sealed class Frame actual constructor(
     public actual val rsv2: Boolean,
     public actual val rsv3: Boolean
 ) {
+    init {
+        validateSize()
+    }
+
     /**
      * Frame content
      *

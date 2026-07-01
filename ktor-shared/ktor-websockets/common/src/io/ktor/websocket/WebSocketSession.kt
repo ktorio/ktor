@@ -173,12 +173,17 @@ public suspend fun WebSocketSession.close(cause: Throwable?) {
 /**
  * Closes a session with normal or error close reason, depending on whether [cause] is cancellation or not.
  *
+ * The [cause] message is truncated if needed so that the resulting close frame stays within the
+ * WebSocket control-frame size limit.
+ *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.closeExceptionally)
  */
 public suspend fun WebSocketSession.closeExceptionally(cause: Throwable) {
-    val reason = when (cause) {
-        is CancellationException -> CloseReason(CloseReason.Codes.NORMAL, "")
-        else -> CloseReason(CloseReason.Codes.INTERNAL_ERROR, cause.toString())
+    val reason = if (cause is CancellationException) {
+        CloseReason(CloseReason.Codes.NORMAL, "")
+    } else {
+        val message = cause.toString().utf8Truncate(MAX_CLOSE_REASON_MESSAGE_SIZE)
+        CloseReason(CloseReason.Codes.INTERNAL_ERROR, message)
     }
 
     close(reason)

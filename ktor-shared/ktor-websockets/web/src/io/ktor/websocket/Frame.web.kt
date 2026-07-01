@@ -28,6 +28,10 @@ public actual sealed class Frame actual constructor(
     public actual val rsv2: Boolean,
     public actual val rsv3: Boolean
 ) {
+    init {
+        validateSize()
+    }
+
     /**
      * Represents an application level binary frame.
      * In a RAW web socket session a big text frame could be fragmented
