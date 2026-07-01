@@ -6,6 +6,7 @@ package io.ktor.client.engine
 
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
+import kotlin.coroutines.CoroutineContext
 
 /**
  * Base configuration for [HttpClientEngine].
@@ -31,6 +32,13 @@ public open class HttpClientEngineConfig {
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.HttpClientEngineConfig.dispatcher)
      */
     public var dispatcher: CoroutineDispatcher? = null
+
+    /**
+     * Allow preservation of additional context after processing operations.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.HttpClientEngineConfig.context)
+     */
+    public var contextProvider: (() -> CoroutineContext)? = null
 
     /**
      * Enables HTTP pipelining advice.
