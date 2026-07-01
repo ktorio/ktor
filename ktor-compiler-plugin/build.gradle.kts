@@ -14,8 +14,8 @@ plugins {
 
 description = "Ktor Compiler Plugin"
 
-val testSamples by configurations.creating
-val testData by sourceSets.creating {
+val testSamples = configurations.create("testSamples")
+sourceSets.create("testData") {
     java.setSrcDirs(listOf("testData"))
     compileClasspath += testSamples
     runtimeClasspath += testSamples
@@ -121,19 +121,19 @@ tasks {
     // The rest of the repository — and CI — follows the KMP convention of running `:module:jvmTest`.
     // Register a `jvmTest` alias that depends on `test` so this module participates in the standard
     // CI test suite and matches the conventions documented in AGENTS.md.
-    val jvmTest by registering {
+    val jvmTest = register("jvmTest") {
         group = "verification"
         description = "Alias for the `test` task to match the KMP `jvmTest` convention used across the repository."
         dependsOn(test)
     }
 
-    val updateSnapshots by registering(Test::class) {
+    val updateSnapshots = register<Test>("updateSnapshots") {
         group = "verification"
         configureCompilerPluginTest()
         systemProperty("testSamples.replaceSnapshots", "true")
     }
 
-    val generateTests by registering(JavaExec::class) {
+    val generateTests = register<JavaExec>("generateTests") {
         inputs
             .dir(layout.projectDirectory.dir("testData"))
             .withPropertyName("testData")
