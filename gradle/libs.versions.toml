@@ -58,7 +58,6 @@ mockk = "1.14.9"
 java-jwt = "4.5.2"
 
 jwks-rsa = "0.24.1"
-jwks-rsa = "0.23.0"
 
 # OpenSAML 5.x for SAML 2.0 authentication
 opensaml = "5.1.2"
