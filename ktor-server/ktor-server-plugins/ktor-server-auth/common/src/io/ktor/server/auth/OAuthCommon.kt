@@ -72,6 +72,9 @@ public sealed class OAuthServerSettings(public val name: String, public val vers
      * @property extraAuthParameters extra parameters to send during authentication
      * @property extraTokenParameters extra parameters to send with getting access token call
      * @property accessTokenInterceptor an interceptor function to customize the access token request
+     * @property onStateCreated a callback invoked when a new state is generated
+     * @property verifyState verifies the callback state before the access token request
+     * @property extraTokenParametersProvider produces extra parameters to send with the access token request
      */
     public class OAuth2ServerSettings(
         name: String,
@@ -91,8 +94,60 @@ public sealed class OAuthServerSettings(public val name: String, public val vers
         public val extraAuthParameters: List<Pair<String, String>> = emptyList(),
         public val extraTokenParameters: List<Pair<String, String>> = emptyList(),
         public val accessTokenInterceptor: HttpRequestBuilder.() -> Unit = {},
-        public val onStateCreated: suspend (call: ApplicationCall, state: String) -> Unit = { _, _ -> }
+        public val onStateCreated: suspend (call: ApplicationCall, state: String) -> Unit = { _, _ -> },
+        public val verifyState: suspend (call: ApplicationCall, state: String?) -> Boolean = { _, state ->
+            nonceManager.verifyNonce(state.orEmpty())
+        },
+        public val extraTokenParametersProvider: suspend (
+            call: ApplicationCall,
+            callback: OAuthCallback.TokenSingle
+        ) -> List<Pair<String, String>> = { _, _ -> emptyList() }
     ) : OAuthServerSettings(name, OAuthVersion.V20) {
+
+        /**
+         * Constructor kept for binary compatibility.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuthServerSettings.OAuth2ServerSettings.OAuth2ServerSettings)
+         */
+        public constructor(
+            name: String,
+            authorizeUrl: String,
+            accessTokenUrl: String,
+            refreshUrl: String? = null,
+            requestMethod: HttpMethod = HttpMethod.Get,
+            clientId: String,
+            clientSecret: String,
+            defaultScopes: List<String> = emptyList(),
+            defaultScopeDescriptions: Map<String, String> = emptyMap(),
+            accessTokenRequiresBasicAuth: Boolean = false,
+            nonceManager: NonceManager = GenerateOnlyNonceManager,
+            authorizeUrlInterceptor: URLBuilder.(ApplicationRequest) -> Unit = {},
+            passParamsInURL: Boolean = false,
+            extraAuthParameters: List<Pair<String, String>> = emptyList(),
+            extraTokenParameters: List<Pair<String, String>> = emptyList(),
+            accessTokenInterceptor: HttpRequestBuilder.() -> Unit = {},
+            onStateCreated: suspend (call: ApplicationCall, state: String) -> Unit = { _, _ -> }
+        ) : this(
+            name,
+            authorizeUrl,
+            accessTokenUrl,
+            refreshUrl,
+            requestMethod,
+            clientId,
+            clientSecret,
+            defaultScopes,
+            defaultScopeDescriptions,
+            accessTokenRequiresBasicAuth,
+            nonceManager,
+            authorizeUrlInterceptor,
+            passParamsInURL,
+            extraAuthParameters,
+            extraTokenParameters,
+            accessTokenInterceptor,
+            onStateCreated,
+            verifyState = { _, state -> nonceManager.verifyNonce(state.orEmpty()) },
+            extraTokenParametersProvider = { _, _ -> emptyList() }
+        )
 
         /**
          * Constructor that accepts the old style authorizeUrlInterceptor for backward compatibility
@@ -133,7 +188,9 @@ public sealed class OAuthServerSettings(public val name: String, public val vers
             extraAuthParameters,
             extraTokenParameters,
             accessTokenInterceptor,
-            onStateCreated
+            onStateCreated,
+            verifyState = { _, state -> nonceManager.verifyNonce(state.orEmpty()) },
+            extraTokenParametersProvider = { _, _ -> emptyList() }
         )
     }
 }

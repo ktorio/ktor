@@ -265,6 +265,13 @@ public class RoutingContext(
     public val call: RoutingCall
 )
 
+@OptIn(InternalAPI::class)
+public fun ApplicationCall.toRoutingContext(): RoutingContext = when (this) {
+    is RoutingCall -> RoutingContext(call = this)
+    is RoutingPipelineCall -> RoutingContext(call = RoutingCall(this))
+    else -> error("Expected a routing call, but got ${this::class.simpleName}")
+}
+
 /**
  * A function that handles a [RoutingCall].
  *
