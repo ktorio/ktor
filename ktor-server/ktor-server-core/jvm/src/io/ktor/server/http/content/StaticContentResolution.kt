@@ -49,6 +49,25 @@ public fun ApplicationCall.resolveResource(
 private val resourceCache by lazy { ConcurrentHashMap<String, URL>() }
 
 @OptIn(InternalAPI::class)
+internal fun Application.resolveResourceURL(
+    path: String,
+    resourcePackage: String? = null,
+    classLoader: ClassLoader = environment.classLoader
+): URL? {
+    if (path.endsWith("/") || path.endsWith("\\")) {
+        return null
+    }
+
+    val normalizedPath = normalisedPath(resourcePackage, path)
+    val cacheKey = "${classLoader.hashCode()}/$normalizedPath"
+    return resourceCache[cacheKey]
+        ?: classLoader.getResources(normalizedPath).asSequence()
+            .firstOrNull()?.also { url ->
+                resourceCache[cacheKey] = url
+            }
+}
+
+@OptIn(InternalAPI::class)
 internal fun Application.resolveResource(
     path: String,
     resourcePackage: String? = null,
