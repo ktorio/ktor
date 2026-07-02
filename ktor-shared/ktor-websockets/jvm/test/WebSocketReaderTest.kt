@@ -28,8 +28,11 @@ class WebSocketReaderTest {
         val channel = ByteChannel(true)
         runBlocking {
             val reader = WebSocketReader(channel, coroutineContext, 1000)
-            val frame = Frame.Ping(ByteArray(126))
-            writeFrame(channel, frame)
+            channel.write { buffer: ByteBuffer ->
+                buffer.put(0x89.toByte())
+                buffer.put(0x7E.toByte())
+            }
+            channel.flush()
             assertFailsWith<ProtocolViolationException> {
                 reader.incoming.receive()
             }

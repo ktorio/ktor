@@ -353,7 +353,7 @@ public val ContentNegotiation: ClientPlugin<ContentNegotiationConfig> = createCl
 
     transformResponseBody { response, body, info ->
         val contentType = response.contentType() ?: return@transformResponseBody null
-        val charset = response.request.headers.suitableCharset()
+        val charset = contentType.charset() ?: Charsets.UTF_8
 
         convertResponse(response.request.url, info, body, contentType, charset)
     }

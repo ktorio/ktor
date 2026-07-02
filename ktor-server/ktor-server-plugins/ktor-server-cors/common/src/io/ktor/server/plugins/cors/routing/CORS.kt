@@ -12,6 +12,9 @@ import io.ktor.server.routing.options
  * A plugin that allows you to configure handling cross-origin requests.
  * This plugin allows you to configure allowed hosts, HTTP methods, headers set by the client, and so on.
  *
+ * CORS preflight requests (`OPTIONS` with an `Access-Control-Request-Method` header) are intercepted by the plugin
+ * and answered before routing, including when the request origin matches the server origin.
+ *
  * The configuration below allows requests from the specified address and allows sending the `Content-Type` header:
  * ```kotlin
  * install(CORS) {

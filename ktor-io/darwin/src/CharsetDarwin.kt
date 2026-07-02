@@ -1,13 +1,16 @@
 /*
- * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.utils.io.charsets
 
 import kotlinx.cinterop.*
-import kotlinx.io.*
+import kotlinx.io.IOException
+import kotlinx.io.Sink
+import kotlinx.io.Source
+import kotlinx.io.readByteArray
 import platform.Foundation.*
-import platform.posix.*
+import platform.posix.memcpy
 
 public actual object Charsets {
     public actual val UTF_8: Charset = CharsetDarwin("UTF-8")
@@ -24,6 +27,7 @@ internal actual fun findCharset(name: String): Charset {
 }
 
 private class CharsetDarwin(name: String) : Charset(name) {
+    @OptIn(UnsafeNumber::class)
     val encoding: NSStringEncoding = when (name.uppercase()) {
         "UTF-8" -> NSUTF8StringEncoding
         "ISO-8859-1" -> NSISOLatin1StringEncoding
@@ -47,6 +51,7 @@ private class CharsetDarwin(name: String) : Charset(name) {
     }
 }
 
+@OptIn(UnsafeNumber::class)
 internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: Int, toIndex: Int, dst: Sink): Int {
     val charset = _charset as? CharsetDarwin ?: error("Charset $this is not supported by Darwin.")
 
@@ -62,7 +67,7 @@ internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: In
 }
 
 @Suppress("CAST_NEVER_SUCCEEDS")
-@OptIn(BetaInteropApi::class)
+@OptIn(UnsafeNumber::class, BetaInteropApi::class)
 public actual fun CharsetDecoder.decode(input: Source, dst: Appendable, max: Int): Int {
     if (max != Int.MAX_VALUE) {
         throw IOException("Max argument is deprecated")
@@ -79,6 +84,7 @@ public actual fun CharsetDecoder.decode(input: Source, dst: Appendable, max: Int
     return content.length
 }
 
+@OptIn(UnsafeNumber::class)
 internal actual fun CharsetEncoder.encodeToByteArrayImpl(
     input: CharSequence,
     fromIndex: Int,
@@ -94,7 +100,7 @@ internal actual fun CharsetEncoder.encodeToByteArrayImpl(
         ?: throw MalformedInputException("Failed to convert String to Bytes using $charset")
 }
 
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
 private fun ByteArray.toNSData(): NSData = NSMutableData().apply {
     if (isEmpty()) return@apply
     this@toNSData.usePinned {
@@ -102,7 +108,7 @@ private fun ByteArray.toNSData(): NSData = NSMutableData().apply {
     }
 }
 
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
 private fun NSData.toByteArray(): ByteArray {
     val result = ByteArray(length.toInt())
     if (result.isEmpty()) return result

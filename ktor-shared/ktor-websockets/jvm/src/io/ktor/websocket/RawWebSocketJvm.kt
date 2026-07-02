@@ -108,10 +108,12 @@ internal class RawWebSocketJvm(
                     filtered.send(frame)
                 }
             } catch (cause: FrameTooBigException) {
-                outgoing.trySend(Frame.Close(CloseReason(CloseReason.Codes.TOO_BIG, cause.message)))
+                val reason = CloseReason.truncated(CloseReason.Codes.TOO_BIG, cause.message)
+                outgoing.trySend(Frame.Close(reason))
                 filtered.close(cause)
             } catch (cause: ProtocolViolationException) {
-                outgoing.trySend(Frame.Close(CloseReason(CloseReason.Codes.PROTOCOL_ERROR, cause.message)))
+                val reason = CloseReason.truncated(CloseReason.Codes.PROTOCOL_ERROR, cause.message)
+                outgoing.trySend(Frame.Close(reason))
                 filtered.close(cause)
             } catch (cause: CancellationException) {
                 reader.incoming.cancel(cause)

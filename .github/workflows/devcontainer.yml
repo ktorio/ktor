@@ -40,7 +40,7 @@ jobs:
       PUSH_IMAGE: ${{ github.event_name != 'pull_request' }}
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v4

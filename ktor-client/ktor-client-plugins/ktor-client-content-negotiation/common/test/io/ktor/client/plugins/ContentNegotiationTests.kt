@@ -14,6 +14,7 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import kotlin.test.*
 
@@ -454,6 +455,37 @@ class ContentNegotiationTests {
                     }
                 }
             }
+        }
+    }
+
+    @Test
+    fun responseContentTypeCharsetUsedForResponseDeserialization() = testWithEngine(MockEngine) {
+        val responseContentType = ContentType.Application.Xml.withCharset(Charsets.ISO_8859_1)
+        val responseBody = "<response>café</response>"
+
+        config {
+            install(ContentNegotiation) {
+                register(ContentType.Application.Xml, TestContentConverter()) {
+                    deserializeFn = { charset, _, body ->
+                        assertEquals(Charsets.ISO_8859_1, charset)
+                        StringWrapper(body.readRemaining().readText(charset = charset))
+                    }
+                }
+            }
+            engine {
+                addHandler {
+                    respond(
+                        content = ByteReadChannel(responseBody.toByteArray(Charsets.ISO_8859_1)),
+                        headers = headersOf(HttpHeaders.ContentType, responseContentType.toString())
+                    )
+                }
+            }
+        }
+
+        test { client ->
+            val response = client.get("https://test.com/").body<StringWrapper>()
+
+            assertEquals(StringWrapper(responseBody), response)
         }
     }
 

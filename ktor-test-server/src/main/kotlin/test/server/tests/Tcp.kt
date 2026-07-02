@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package test.server.tests
@@ -23,21 +23,21 @@ internal suspend fun tcpServerHandler(socket: Socket) {
     val input = socket.openReadChannel()
     val output = socket.openWriteChannel()
 
-    var statusLine = input.readUTF8Line()
+    var statusLine = input.readLineStrict()
     val requestData = StringBuilder()
     requestData.append(statusLine).append("\n")
     while (true) {
-        val line = input.readUTF8Line().orEmpty()
-        requestData.append(line).append("\n")
+        val readBytes = input.readLineStrictTo(requestData)
+        requestData.append("\n")
 
-        if (line.isNotEmpty()) continue
+        if (readBytes > 0) continue
         if (statusLine == null || !statusLine.startsWith("CONNECT ")) break
 
         if (handleProxyTunnel(statusLine, input, output)) {
             return
         }
 
-        statusLine = input.readUTF8Line()
+        statusLine = input.readLineStrict()
         requestData.clear()
         requestData.append(statusLine).append("\n")
     }
@@ -45,7 +45,7 @@ internal suspend fun tcpServerHandler(socket: Socket) {
     output.writeProxyResponse(statusLine, requestData.toString())
 
     while (!input.isClosedForRead) {
-        input.readUTF8Line()
+        input.readLineStrict()
     }
 
     input.closedCause?.let { throw it }
@@ -195,11 +195,11 @@ private object Socks {
      * Uses the shared buildProxyResponse function.
      */
     private suspend fun handleProxiedHttpRequest(input: ByteReadChannel, output: ByteWriteChannel) {
-        val requestLine = input.readUTF8Line() ?: return
+        val requestLine = input.readLineStrict() ?: return
 
         // Skip headers until empty line
         while (true) {
-            val line = input.readUTF8Line().orEmpty()
+            val line = input.readLineStrict() ?: return
             if (line.isEmpty()) break
         }
 

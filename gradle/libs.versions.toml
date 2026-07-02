@@ -5,7 +5,7 @@ android-gradlePlugin = "9.2.1"
 androidx-test = "1.7.0"
 kotlinx-html = "0.12.0"
 kotlinx-datetime = "0.6.2"
-kotlinx-io = "0.9.0"
+kotlinx-io = "0.9.1"
 coroutines = "1.11.0"
 atomicfu = "0.32.1"
 serialization = "1.11.0"
@@ -14,8 +14,8 @@ kover = "0.9.8"
 kotlinter = "5.5.0"
 kotlinx-browser = "0.5.0"
 
-netty = "4.2.14.Final"
-netty-tcnative = "2.0.77.Final"
+netty = "4.2.15.Final"
+netty-tcnative = "2.0.79.Final"
 
 jetty = "9.4.58.v20250814"
 jetty-jakarta = "12.0.35"
@@ -43,24 +43,22 @@ jackson-annotations = "2.21"
 
 junit = "5.14.4"
 slf4j = "2.0.18"
-logback = "1.5.33"
+logback = "1.5.34"
 
 dropwizard = "4.2.39"
 micrometer = "1.16.5"
 
 jansi = "2.4.3"
-typesafe = "1.4.8"
+typesafe = "1.4.9"
 
-# Version 1.14.6 is not compatible with Java 11.
-# Wait until https://github.com/mockk/mockk/issues/1433 is resolved.
-mockk = "1.14.9"
+mockk = "1.14.11"
 
 java-jwt = "4.5.2"
 
 jwks-rsa = "0.24.1"
 mustache = "0.9.14"
 freemarker = "2.3.34"
-pebble = "4.1.1"
+pebble = "4.1.2"
 velocity = "2.4.1"
 velocity-tools = "3.1"
 webjars-locator = "0.59"
@@ -77,18 +75,18 @@ kaml = "0.79.0"
 
 swagger-codegen = "3.0.81"
 swagger-codegen-generators = "1.0.62"
-swagger-parser = "2.1.43"
+swagger-parser = "2.1.44"
 
 tomlj = "1.1.1"
 
-zstd-jni = "1.5.7-9"
+zstd-jni = "1.5.7-11"
 
 # Keep it in sync with build-settings-logic/settings.gradle.kts
 # TODO: Remove module 'develocity-patched' after updating Develocity plugin to 4.4+
 develocity = "4.3.2" # Should be compatible with our server: ge.jetbrains.com
 develocity-commonCustomUserData = "2.6.0"
 gradleDoctor = "0.12.1"
-mavenPublishing = "0.36.0"
+mavenPublishing = "0.37.0"
 
 android-compileSdk = "36"
 android-minSdk = "28"
@@ -265,4 +263,4 @@ kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 
 doctor = { id = "com.osacky.doctor", version.ref = "gradleDoctor" }
 
-buildconfig = { id = "com.github.gmazzo.buildconfig", version = "6.0.9" }
+buildconfig = { id = "com.github.gmazzo.buildconfig", version = "6.0.10" }

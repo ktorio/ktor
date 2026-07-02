@@ -14,22 +14,37 @@ public fun <Key : Any> ConcurrentSet(): MutableSet<Key> = object : MutableSet<Ke
     private val delegate = ConcurrentMap<Key, Unit>()
 
     override fun add(element: Key): Boolean {
-        if (delegate.containsKey(element)) return false
-        delegate[element] = Unit
-        return true
+        var added = false
+        delegate.computeIfAbsent(element) { added = true }
+        return added
     }
 
-    override fun addAll(elements: Collection<Key>): Boolean = elements.all { add(it) }
+    override fun addAll(elements: Collection<Key>): Boolean =
+        elements.fold(false) { modified, element -> add(element) || modified }
 
     override fun clear() {
         delegate.clear()
     }
 
-    override fun iterator(): MutableIterator<Key> = delegate.keys.iterator()
+    override fun iterator(): MutableIterator<Key> = object : MutableIterator<Key> {
+        private val keys = delegate.keys.iterator()
+        private var current: Key? = null
+
+        override fun hasNext(): Boolean = keys.hasNext()
+
+        override fun next(): Key = keys.next().also { current = it }
+
+        override fun remove() {
+            val key = current ?: error("next() has not been called")
+            delegate.remove(key)
+            current = null
+        }
+    }
 
     override fun remove(element: Key): Boolean = delegate.remove(element) != null
 
-    override fun removeAll(elements: Collection<Key>): Boolean = elements.all { remove(it) }
+    override fun removeAll(elements: Collection<Key>): Boolean =
+        elements.fold(false) { modified, element -> remove(element) || modified }
 
     override fun retainAll(elements: Collection<Key>): Boolean {
         val removeList = mutableSetOf<Key>()
@@ -45,7 +60,7 @@ public fun <Key : Any> ConcurrentSet(): MutableSet<Key> = object : MutableSet<Ke
 
     override fun contains(element: Key): Boolean = delegate.containsKey(element)
 
-    override fun containsAll(elements: Collection<Key>): Boolean = elements.containsAll(delegate.keys)
+    override fun containsAll(elements: Collection<Key>): Boolean = elements.all { contains(it) }
 
     override fun isEmpty(): Boolean = delegate.isEmpty()
 }
