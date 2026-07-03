@@ -435,6 +435,47 @@ class OAuth2Test {
     }
 
     @Test
+    fun testFallbackCalledOnInvalidGrant() = testApplication {
+        var fallbackCalled = false
+        install(Authentication) {
+            oauth("login") {
+                client = this@testApplication.client
+                urlProvider = { "http://localhost/login" }
+                settings = OAuthServerSettings.OAuth2ServerSettings(
+                    name = "oauth2",
+                    authorizeUrl = "http://localhost/authorize",
+                    accessTokenUrl = "http://localhost/access_token",
+                    clientId = "clientId1",
+                    clientSecret = "clientSecret1",
+                    requestMethod = HttpMethod.Post,
+                    passParamsInURL = true
+                )
+                fallback = { _ ->
+                    fallbackCalled = true
+                    respond(HttpStatusCode.Forbidden, "Invalid grant")
+                }
+            }
+        }
+
+        routing {
+            post("/access_token") {
+                call.respondText(
+                    "error=invalid_grant&error_description=Token+has+expired",
+                    ContentType.Application.FormUrlEncoded
+                )
+            }
+            authenticate("login") {
+                get("/login") { }
+            }
+        }
+
+        noRedirectsClient().get("/login?code=code&state=state").apply {
+            assertEquals(HttpStatusCode.Forbidden, status)
+            assertTrue(fallbackCalled, "Fallback should be called when OAuth2Exception.InvalidGrant is thrown")
+        }
+    }
+
+    @Test
     fun testRequestToken() = testApplication {
         application { module() }
         val result = client.get(

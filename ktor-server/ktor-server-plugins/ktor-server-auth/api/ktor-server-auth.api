@@ -358,6 +358,11 @@ public final class io/ktor/server/auth/OAuth2Exception$UnsupportedGrantType : io
 	public final fun getGrantType ()Ljava/lang/String;
 }
 
+public final class io/ktor/server/auth/OAuth2InvalidGrantError : io/ktor/server/auth/AuthenticationFailedCause$Error {
+	public fun <init> (Lio/ktor/server/auth/OAuth2Exception$InvalidGrant;)V
+	public final fun getCause ()Lio/ktor/server/auth/OAuth2Exception$InvalidGrant;
+}
+
 public final class io/ktor/server/auth/OAuth2Kt {
 	public static final fun verifyWithOAuth2 (Lio/ktor/server/auth/UserPasswordCredential;Lio/ktor/client/HttpClient;Lio/ktor/server/auth/OAuthServerSettings$OAuth2ServerSettings;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
