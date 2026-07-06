@@ -165,8 +165,8 @@ public data class CertificatePinner(
         }
 
         val certCount = SecTrustGetCertificateCount(trust)
-        val certificates = (0 until certCount).mapNotNull { index ->
-            SecTrustGetCertificateAtIndex(trust, index)
+        val certificates = (0 until certCount.toInt()).mapNotNull { index ->
+            SecTrustGetCertificateAtIndex(trust, index.convert<support.AppleSSizeT>())
         }
 
         if (certificates.size != certCount.toInt()) {
@@ -261,9 +261,9 @@ public data class CertificatePinner(
         var isValid = false
 
         val version = cValue<NSOperatingSystemVersion> {
-            majorVersion = 12
-            minorVersion = 0
-            patchVersion = 0
+            majorVersion = 12.convert<support.AppleSSizeT>()
+            minorVersion = 0.convert<support.AppleSSizeT>()
+            patchVersion = 0.convert<support.AppleSSizeT>()
         }
         if (NSProcessInfo().isOperatingSystemAtLeastVersion(version)) {
             // https://developer.apple.com/documentation/security/2980705-sectrustevaluatewitherror
@@ -368,7 +368,7 @@ public data class CertificatePinner(
             }
         }
 
-        return digest.toByteArray().toNSData().base64EncodedStringWithOptions(0u)
+        return digest.toByteArray().toNSData().base64EncodedStringWithOptions(0u.convert<support.AppleSizeT>())
     }
 
     /**
@@ -383,7 +383,7 @@ public data class CertificatePinner(
                 CC_SHA1(inputPinned.addressOf(0), this.size.convert(), digestPinned.addressOf(0))
             }
         }
-        return digest.toByteArray().toNSData().base64EncodedStringWithOptions(0u)
+        return digest.toByteArray().toNSData().base64EncodedStringWithOptions(0u.convert<support.AppleSizeT>())
     }
 
     /**

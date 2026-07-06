@@ -28,7 +28,7 @@ internal actual fun ktor_recvfrom(
     __addr: CValuesRef<sockaddr>?,
     __addr_len: CPointer<UIntVar>?
 ): Int {
-    return recvfrom(__fd, __buf, __n.convert(), __flags, __addr, __addr_len).convert()
+    return recvfrom(__fd, __buf, __n.convert(), __flags, __addr, __addr_len).toInt()
 }
 
 @OptIn(ExperimentalForeignApi::class)

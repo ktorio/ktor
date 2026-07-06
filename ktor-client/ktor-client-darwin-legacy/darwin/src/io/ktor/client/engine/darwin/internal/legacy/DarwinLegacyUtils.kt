@@ -40,7 +40,7 @@ internal fun ByteArray.toNSData(): NSData = NSMutableData().apply {
 
 @OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
 internal fun NSData.toByteArray(): ByteArray {
-    val result = ByteArray(length.toInt())
+    val result = ByteArray(length.toULong().toInt())
     if (result.isEmpty()) return result
 
     result.usePinned {
@@ -56,7 +56,7 @@ internal fun NSData.toByteArray(): ByteArray {
  */
 @OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
 internal suspend fun ByteWriteChannel.writeFully(data: NSData) {
-    val length = data.length.toLong()
+    val length = data.length.toULong().toLong()
     if (length == 0L) return
 
     val bytes = data.bytes ?: return

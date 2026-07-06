@@ -116,8 +116,8 @@ private class KotlinHierarchyTrackerImpl(
     override fun withJs() = addTarget("js")
     override fun withJvm() = addTarget("jvm")
 
-    @Deprecated("Renamed to 'withWasmJs'", replaceWith = ReplaceWith("withWasmJs()"))
-    override fun withWasm() = withWasmJs()
+//    @Deprecated("Renamed to 'withWasmJs'", replaceWith = ReplaceWith("withWasmJs()"))
+//    override fun withWasm() = withWasmJs()
     override fun withWasmJs() = addTarget("wasmJs")
     override fun withWasmWasi() = addTarget("wasmWasi")
     override fun withAndroidTarget() = addTarget("android")

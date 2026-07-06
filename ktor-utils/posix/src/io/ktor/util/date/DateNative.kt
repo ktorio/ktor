@@ -6,6 +6,7 @@ package io.ktor.util.date
 
 import kotlinx.cinterop.*
 import platform.posix.*
+import support.NativeSSizeTVarOfSupport.value
 
 /**
  * Create new gmt date from the [timestamp].
@@ -18,7 +19,7 @@ import platform.posix.*
 public actual fun GMTDate(timestamp: Long?): GMTDate = memScoped {
     val timeHolder = alloc<time_tVar>()
     val current: Long = if (timestamp == null) {
-        val millis = getTimeMillis()
+        val millis = getTimeMillis() // Long
         timeHolder.value = (millis / 1000).convert()
         millis
     } else {
