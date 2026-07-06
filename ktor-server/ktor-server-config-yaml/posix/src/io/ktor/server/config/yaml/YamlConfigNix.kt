@@ -73,7 +73,7 @@ private fun CPointer<FILE>.readFileChunk(
     size: Int
 ): Int = bytes.usePinned { pinned ->
     fread(pinned.addressOf(0), 1.convert(), size.convert(), this)
-}.convert()
+}.toUInt().toInt()
 
 @OptIn(ExperimentalForeignApi::class)
 internal actual fun getSystemPropertyOrEnvironmentVariable(key: String): String? = getenv(key)?.toKString()

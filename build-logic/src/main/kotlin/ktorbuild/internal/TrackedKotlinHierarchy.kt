@@ -127,17 +127,17 @@ private class KotlinHierarchyTrackerImpl(
     override fun withIosX64() = addTarget("iosX64")
     override fun withIosSimulatorArm64() = addTarget("iosSimulatorArm64")
     override fun withWatchosArm64() = addTarget("watchosArm64")
-    override fun withWatchosX64() = addTarget("watchosX64")
+    override fun withWatchosX64() {} // = addTarget("watchosX64")
     override fun withWatchosSimulatorArm64() = addTarget("watchosSimulatorArm64")
     override fun withWatchosDeviceArm64() = addTarget("watchosDeviceArm64")
     override fun withTvosArm64() = addTarget("tvosArm64")
-    override fun withTvosX64() = addTarget("tvosX64")
+    override fun withTvosX64() {} // = addTarget("tvosX64")
     override fun withTvosSimulatorArm64() = addTarget("tvosSimulatorArm64")
 
     override fun withLinuxArm64() = addTarget("linuxArm64")
     override fun withLinuxX64() = addTarget("linuxX64")
     override fun withMacosArm64() = addTarget("macosArm64")
-    override fun withMacosX64() = addTarget("macosX64")
+    override fun withMacosX64() {} // = addTarget("macosX64")
     override fun withMingwX64() = addTarget("mingwX64")
     //endregion
 

@@ -13,9 +13,21 @@ pluginManagement {
         // Should be in sync with ktorsettings.kotlin-user-project
         val kotlinRepoUrl = providers.gradleProperty("kotlin_repo_url").orNull
         if (kotlinRepoUrl != null) maven(kotlinRepoUrl) { name = "KotlinDev" }
+
+        mavenCentral()
+        maven("file:///Users/Nikolay.Lunyak/Documents/Projects/kotlin-worktrees/kotlin-platform-type-commonized-to-different-types/build/repo")
     }
 
     includeBuild("build-settings-logic")
+}
+
+dependencyResolutionManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+        google()
+        maven("file:///Users/Nikolay.Lunyak/Documents/Projects/kotlin-worktrees/kotlin-platform-type-commonized-to-different-types/build/repo")
+    }
 }
 
 plugins {

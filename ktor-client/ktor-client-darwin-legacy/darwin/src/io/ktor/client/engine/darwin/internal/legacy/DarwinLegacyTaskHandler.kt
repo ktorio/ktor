@@ -72,7 +72,7 @@ internal class DarwinLegacyTaskHandler(
 
     @OptIn(UnsafeNumber::class, ExperimentalForeignApi::class, InternalAPI::class)
     fun NSHTTPURLResponse.toResponseData(requestData: HttpRequestData): HttpResponseData {
-        val status = HttpStatusCode.fromValue(statusCode.convert())
+        val status = HttpStatusCode.fromValue(statusCode.toInt())
         val headers = readHeaders(requestData.method, requestData.attributes)
         val responseBody: Any = requestData.attributes.getOrNull(ResponseAdapterAttributeKey)
             ?.adapt(requestData, status, headers, body, requestData.body, callContext)

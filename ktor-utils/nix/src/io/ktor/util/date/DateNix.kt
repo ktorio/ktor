@@ -9,7 +9,7 @@ import platform.posix.*
 
 @Suppress("FunctionName")
 @OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
-internal actual fun system_time(tm: CValuesRef<tm>?): Long = timegm(tm).convert()
+internal actual fun system_time(tm: CValuesRef<tm>?): Long = timegm(tm).toLong()
 
 /**
  * Gets current system time in milliseconds since a certain moment in the past,
