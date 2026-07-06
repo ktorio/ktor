@@ -45,11 +45,11 @@ private fun addrinfo?.toIpList(): List<NativeSocketAddress> {
 }
 
 @OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
-internal actual fun sockaddr.toNativeSocketAddress(): NativeSocketAddress = when (sa_family.toInt()) {
+internal actual fun sockaddr.toNativeSocketAddress(): NativeSocketAddress = when (sa_family.toUShort().toInt()) {
     AF_INET -> {
         val address = ptr.reinterpret<sockaddr_in>().pointed
         NativeIPv4SocketAddress(
-            address.sin_family.convert(),
+            address.sin_family.toUByte(),
             address.sin_addr,
             networkToHostOrder(address.sin_port).toInt()
         )
@@ -58,7 +58,7 @@ internal actual fun sockaddr.toNativeSocketAddress(): NativeSocketAddress = when
     AF_INET6 -> {
         val address = ptr.reinterpret<sockaddr_in6>().pointed
         NativeIPv6SocketAddress(
-            address.sin6_family.convert(),
+            address.sin6_family.toUByte(),
             address.sin6_addr.readValue(),
             networkToHostOrder(address.sin6_port).toInt(),
             address.sin6_flowinfo,
@@ -98,12 +98,12 @@ internal actual fun signalIgnoreSigpipe() {
 
 @OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
 internal actual fun ktor_send(socket: Int, buf: CValuesRef<ByteVar>?, len: Int, flags: Int): Int {
-    return send(socket, buf, len.convert(), flags).convert()
+    return send(socket, buf, len.convert(), flags).toInt()
 }
 
 @OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
 internal actual fun ktor_recv(socket: Int, buf: CValuesRef<ByteVar>?, len: Int, flags: Int): Int {
-    return recv(socket, buf, len.convert(), flags).convert()
+    return recv(socket, buf, len.convert(), flags).toInt()
 }
 
 @OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
@@ -115,7 +115,7 @@ internal actual fun ktor_sendto(
     __addr: CValuesRef<sockaddr>?,
     __addr_len: UInt
 ): Int {
-    return sendto(__fd, __buf, __n.convert(), __flags, __addr, __addr_len.convert()).convert()
+    return sendto(__fd, __buf, __n.convert(), __flags, __addr, __addr_len.convert()).toInt()
 }
 
 internal actual fun ktor_socket(__domain: Int, __type: Int, __protocol: Int): Int {

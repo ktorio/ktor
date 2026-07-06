@@ -3,18 +3,16 @@
  */
 @file:OptIn(ExperimentalAbiValidation::class)
 
-import ktorbuild.internal.abiValidation
+//import ktorbuild.internal.abiValidation
 import org.jetbrains.kotlin.gradle.dsl.abi.*
 import org.jetbrains.kotlin.gradle.dsl.kotlinExtension
 
-kotlinExtension.abiValidation {
-    enabled = true
-}
+//kotlinExtension.abiValidation {}
 
-// The property 'enabled' is not a part of the AbiValidationVariantSpec, so we need this bridge-method to unify enabling
-private val AbiValidationVariantSpec.enabled: Property<Boolean>
-    get() = when (this) {
-        is AbiValidationMultiplatformExtension -> this.enabled
-        is AbiValidationExtension -> this.enabled
-        else -> error("Unexpected type: ${this::class.qualifiedName}")
-    }
+//// The property 'enabled' is not a part of the AbiValidationVariantSpec, so we need this bridge-method to unify enabling
+//private val AbiValidationVariantSpec.enabled: Property<Boolean>
+//    get() = when (this) {
+//        is AbiValidationMultiplatformExtension -> this.enabled
+//        is AbiValidationExtension -> this.enabled
+//        else -> error("Unexpected type: ${this::class.qualifiedName}")
+//    }

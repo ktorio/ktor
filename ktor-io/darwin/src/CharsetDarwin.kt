@@ -107,7 +107,7 @@ private fun ByteArray.toNSData(): NSData = NSMutableData().apply {
 
 @OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
 private fun NSData.toByteArray(): ByteArray {
-    val result = ByteArray(length.toInt())
+    val result = ByteArray(length.toULong().toInt())
     if (result.isEmpty()) return result
 
     result.usePinned {

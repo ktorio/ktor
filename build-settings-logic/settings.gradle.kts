@@ -10,6 +10,9 @@ pluginManagement {
         // Consistent with dependencyResolutionManagement
         val kotlinRepoUrl = providers.gradleProperty("kotlin_repo_url").orNull
         if (kotlinRepoUrl != null) maven(kotlinRepoUrl) { name = "KotlinDev" }
+
+        mavenCentral()
+        maven("https://packages.jetbrains.team/maven/p/kt/dev")
     }
 }
 
@@ -37,6 +40,11 @@ dependencyResolutionManagement {
         // Should be in sync with ktorsettings.kotlin-user-project
         val kotlinRepoUrl = providers.gradleProperty("kotlin_repo_url").orNull
         if (kotlinRepoUrl != null) maven(kotlinRepoUrl) { name = "KotlinDev" }
+
+        gradlePluginPortal()
+        mavenCentral()
+        google()
+        maven("https://packages.jetbrains.team/maven/p/kt/dev")
     }
 }
 

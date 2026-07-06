@@ -10,6 +10,8 @@ pluginManagement {
         // Should be in sync with ktorsettings.kotlin-user-project
         val kotlinRepoUrl = providers.gradleProperty("kotlin_repo_url").orNull
         if (kotlinRepoUrl != null) maven(kotlinRepoUrl) { name = "KotlinDev" }
+
+        maven("https://packages.jetbrains.team/maven/p/kt/dev")
     }
 
     includeBuild("../build-settings-logic")
@@ -24,6 +26,9 @@ dependencyResolutionManagement {
     @Suppress("UnstableApiUsage")
     repositories {
         gradlePluginPortal()
+        mavenCentral()
+        google()
+        maven("https://packages.jetbrains.team/maven/p/kt/dev")
     }
 }
 
