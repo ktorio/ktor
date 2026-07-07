@@ -3,9 +3,10 @@
   "extends": [
     "config:recommended",
     ":semanticCommitsDisabled",
-    ":label(dependencies)",
-    "schedule:automergeNonOfficeHours"
+    ":label(dependencies)"
   ],
+  "baseBranchPatterns": ["/^release\\/.*/"],
+  "dependencyDashboardApproval": true,
   "rebaseWhen": "conflicted",
   "packageRules": [
     {
