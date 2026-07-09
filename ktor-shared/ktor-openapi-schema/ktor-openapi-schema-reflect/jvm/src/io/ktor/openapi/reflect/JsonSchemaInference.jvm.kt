@@ -224,9 +224,6 @@ public class ReflectionJsonSchemaInference(
         try {
             if (kClass.isSealed) {
                 val sealedSubclasses = kClass.sealedSubclasses
-                val sealedSubclassSchema = sealedSubclasses.map {
-                    buildSchemaOrRef(it.starProjectedType, visiting)
-                }
                 val discriminatorMapping = sealedSubclasses
                     .filter { it.qualifiedName != null }
                     .associate { subclass ->
@@ -234,6 +231,14 @@ public class ReflectionJsonSchemaInference(
                     }
 
                 val discriminatorProperty = adapter.getDiscriminatorProperty(kClass)
+                val sealedSubclassSchema = sealedSubclasses.map {
+                    buildSealedSubclassSchema(
+                        type = it.starProjectedType,
+                        visiting = visiting,
+                        discriminatorProperty = discriminatorProperty,
+                        discriminatorValue = it.qualifiedName ?: it.simpleName.orEmpty(),
+                    )
+                }
                 return jsonSchemaFromAnnotations(
                     title = typeName,
                     annotations = includeAnnotations + kClass.annotations,
@@ -302,6 +307,32 @@ public class ReflectionJsonSchemaInference(
                 visiting.remove(name)
             }
         }
+    }
+
+    private fun buildSealedSubclassSchema(
+        type: KType,
+        visiting: MutableSet<String>,
+        discriminatorProperty: String,
+        discriminatorValue: String,
+    ): ReferenceOr<JsonSchema> {
+        val schema = buildSchemaOrRef(type, visiting)
+        if (schema !is ReferenceOr.Value) return schema
+
+        return ReferenceOr.Value(
+            schema.value.copy(
+                required = (listOf(discriminatorProperty) + schema.value.required.orEmpty()).distinct(),
+                properties =
+                mapOf(
+                    discriminatorProperty to ReferenceOr.Value(
+                        JsonSchema(
+                            type = JsonType.STRING,
+                            enum = listOf(GenericElement(discriminatorValue)),
+                        )
+                    )
+                ) +
+                    schema.value.properties.orEmpty(),
+            )
+        )
     }
 
     private fun KClass<*>.underlyingValueClassTypeOrNull(ownerType: KType): KType? {

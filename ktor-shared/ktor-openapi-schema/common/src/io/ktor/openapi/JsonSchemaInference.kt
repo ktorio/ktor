@@ -219,13 +219,14 @@ public class KotlinxSerializerJsonSchemaInference(
                                         subclassDescriptor = subclassDescriptor,
                                         serialName = serialName,
                                     )
-                            buildSchemaOrReference(
+                            buildSealedSubclassSchema(
+                                discriminatorProperty = discriminatorProperty,
+                                discriminatorValue = serialName,
                                 descriptor = subclassDescriptor,
-                                referenceName = componentName,
+                                componentName = componentName,
                                 visiting = visiting,
                                 annotations = sealedElementsDescriptor.getElementAnnotations(i),
                                 serializer = subclassSerializer,
-                                schemaTitleOverride = componentName,
                             )
                         }
                     val discriminatorMapping = (0..<sealedElementsDescriptor.elementsCount)
@@ -424,6 +425,43 @@ public class KotlinxSerializerJsonSchemaInference(
         } else {
             subclassName
         }
+    }
+
+    private fun buildSealedSubclassSchema(
+        discriminatorProperty: String,
+        discriminatorValue: String,
+        descriptor: SerialDescriptor,
+        componentName: String,
+        visiting: MutableSet<String>,
+        annotations: List<Annotation>,
+        serializer: KSerializer<*>?,
+    ): ReferenceOr<JsonSchema> {
+        val schema = buildSchemaOrReference(
+            descriptor = descriptor,
+            referenceName = componentName,
+            visiting = visiting,
+            annotations = annotations,
+            serializer = serializer,
+            schemaTitleOverride = componentName,
+        )
+
+        if (schema !is Value) return schema
+
+        return Value(
+            schema.value.copy(
+                required = (listOf(discriminatorProperty) + schema.value.required.orEmpty()).distinct(),
+                properties =
+                    mapOf(
+                        discriminatorProperty to Value(
+                            JsonSchema(
+                                type = JsonType.STRING,
+                                enum = listOf(GenericElement(discriminatorValue)),
+                            )
+                        )
+                    ) +
+                        schema.value.properties.orEmpty(),
+            )
+        )
     }
 }
 
