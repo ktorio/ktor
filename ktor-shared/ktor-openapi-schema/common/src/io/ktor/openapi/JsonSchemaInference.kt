@@ -451,15 +451,15 @@ public class KotlinxSerializerJsonSchemaInference(
             schema.value.copy(
                 required = (listOf(discriminatorProperty) + schema.value.required.orEmpty()).distinct(),
                 properties =
-                    mapOf(
-                        discriminatorProperty to Value(
-                            JsonSchema(
-                                type = JsonType.STRING,
-                                enum = listOf(GenericElement(discriminatorValue)),
-                            )
+                mapOf(
+                    discriminatorProperty to Value(
+                        JsonSchema(
+                            type = JsonType.STRING,
+                            enum = listOf(GenericElement(discriminatorValue)),
                         )
-                    ) +
-                        (schema.value.properties.orEmpty() - discriminatorProperty),
+                    )
+                ) +
+                    (schema.value.properties.orEmpty() - discriminatorProperty),
             )
         )
     }

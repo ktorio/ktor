@@ -54,11 +54,18 @@
         "type": "object",
         "title": "DM",
         "required": [
+          "type",
           "id",
           "content",
           "timestamp"
         ],
         "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "io.ktor.server.routing.openapi.Message.DM"
+            ]
+          },
           "id": {
             "type": "integer"
           },
@@ -74,11 +81,18 @@
         "type": "object",
         "title": "Post",
         "required": [
+          "type",
           "id",
           "content",
           "timestamp"
         ],
         "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "io.ktor.server.routing.openapi.Message.Post"
+            ]
+          },
           "id": {
             "type": "integer"
           },
