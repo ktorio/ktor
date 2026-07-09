@@ -27,6 +27,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonClassDiscriminator
 import kotlin.reflect.typeOf
@@ -227,9 +228,11 @@ class DescribeRouteTest {
         assertNotNull(okResponse, "OK response is missing")
         assertEquals("A list of messages", okResponse.description)
         assertEquals("child", okResponse.extensions?.get("x-bonus")?.deserialize(String.serializer()))
+        val actualOkSchema = okResponse.content?.get(ContentType.Application.Json)?.schema?.valueOrNull()
+        assertNotNull(actualOkSchema, "OK response schema is missing")
         assertEquals(
-            KotlinxJsonSchemaInference.jsonSchema<List<Message>>(),
-            okResponse.content?.get(ContentType.Application.Json)?.schema?.valueOrNull()
+            jsonFormat.encodeToString(KotlinxJsonSchemaInference.jsonSchema<List<Message>>()),
+            jsonFormat.encodeToString(actualOkSchema),
         )
         val badRequestResponse = responses.responses?.get(HttpStatusCode.BadRequest.value)?.valueOrNull()
         assertNotNull(badRequestResponse, "Bad request response is missing")
