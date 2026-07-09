@@ -12,6 +12,7 @@ import io.ktor.util.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
+import io.ktor.utils.io.core.*
 import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
@@ -54,7 +55,7 @@ public class GsonConverter(private val gson: Gson = Gson()) : ContentConverter {
         }
 
         try {
-            val text = String(content.toByteArray(), charset)
+            val text = content.readRemaining().readText(charset)
             return gson.fromJson(text, typeInfo.reifiedType)
         } catch (cause: JsonSyntaxException) {
             throw JsonConvertException("Illegal json parameter found: ${cause.message}", cause)
