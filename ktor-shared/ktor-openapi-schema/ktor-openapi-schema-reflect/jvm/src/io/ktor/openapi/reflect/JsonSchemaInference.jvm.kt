@@ -330,7 +330,7 @@ public class ReflectionJsonSchemaInference(
                         )
                     )
                 ) +
-                    schema.value.properties.orEmpty(),
+                    (schema.value.properties.orEmpty() - discriminatorProperty),
             )
         )
     }

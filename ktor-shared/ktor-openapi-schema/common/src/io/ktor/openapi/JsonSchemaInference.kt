@@ -459,7 +459,7 @@ public class KotlinxSerializerJsonSchemaInference(
                             )
                         )
                     ) +
-                        schema.value.properties.orEmpty(),
+                        (schema.value.properties.orEmpty() - discriminatorProperty),
             )
         )
     }
