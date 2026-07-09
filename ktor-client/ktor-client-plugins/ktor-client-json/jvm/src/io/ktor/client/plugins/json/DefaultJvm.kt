@@ -9,7 +9,7 @@ import io.ktor.utils.io.*
 
 @Suppress("DEPRECATION_ERROR")
 public actual fun defaultSerializer(): JsonSerializer {
-    return serializers.maxByOrNull { it::javaClass.name } ?: error(
+    return serializers.maxByOrNull { it.javaClass.name } ?: error(
         """
         Failed to find serializer. Consider adding one of the following dependencies: 
          - ktor-client-gson
