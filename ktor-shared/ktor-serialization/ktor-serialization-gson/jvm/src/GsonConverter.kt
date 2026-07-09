@@ -54,10 +54,8 @@ public class GsonConverter(private val gson: Gson = Gson()) : ContentConverter {
         }
 
         try {
-            return withContext(Dispatchers.IO) {
-                val reader = content.toInputStream().reader(charset)
-                gson.fromJson(reader, typeInfo.reifiedType)
-            }
+            val text = String(content.toByteArray(), charset)
+            return gson.fromJson(text, typeInfo.reifiedType)
         } catch (cause: JsonSyntaxException) {
             throw JsonConvertException("Illegal json parameter found: ${cause.message}", cause)
         }
