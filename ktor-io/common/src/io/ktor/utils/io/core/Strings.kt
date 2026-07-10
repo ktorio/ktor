@@ -64,15 +64,7 @@ public fun Source.readBytes(count: Int): ByteArray = readByteArray(count)
  * @return a decoded string
  */
 @OptIn(InternalIoApi::class)
-public fun Source.readText(charset: Charset = Charsets.UTF_8, max: Int = Int.MAX_VALUE): String {
-    if (charset == Charsets.UTF_8) {
-        if (max == Int.MAX_VALUE) return readString()
-        val count = min(buffer.size, max.toLong())
-        return readString(count)
-    }
-
-    return charset.newDecoder().decode(this, max)
-}
+public expect fun Source.readText(charset: Charset = Charsets.UTF_8, max: Int = Int.MAX_VALUE): String
 
 /**
  * Read exactly [n] characters interpreting bytes in the specified [charset].
