@@ -112,7 +112,14 @@ public suspend fun ByteReadChannel.readBuffer(): Buffer {
     return result
 }
 
-@Deprecated("Use Long parameter", ReplaceWith("readBuffer(Long)"), DeprecationLevel.HIDDEN)
+/**
+ * Reads data from the current [ByteReadChannel] into a new [Buffer] up to the specified maximum number of bytes.
+ * This function suspends until data becomes available or the channel is closed.
+ *
+ * @param max The maximum number of bytes to read from the channel.
+ * @return A [Buffer] containing the data read from the channel.
+ */
+@Deprecated("Use Long parameter", ReplaceWith("readBuffer(Long)"), DeprecationLevel.WARNING)
 @OptIn(InternalAPI::class)
 public suspend fun ByteReadChannel.readBuffer(max: Int): Buffer =
     readBuffer(max.toLong())
