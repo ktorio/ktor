@@ -119,7 +119,7 @@ public suspend fun ByteReadChannel.readBuffer(): Buffer {
  * @param max The maximum number of bytes to read from the channel.
  * @return A [Buffer] containing the data read from the channel.
  */
-@Deprecated("Use Long parameter", ReplaceWith("readBuffer(Long)"), DeprecationLevel.WARNING)
+@Deprecated("Use Long parameter", ReplaceWith("readBuffer(max.toLong())"), DeprecationLevel.WARNING)
 @OptIn(InternalAPI::class)
 public suspend fun ByteReadChannel.readBuffer(max: Int): Buffer =
     readBuffer(max.toLong())
@@ -141,7 +141,7 @@ public suspend fun ByteReadChannel.readBuffer(max: Long): Buffer {
 
         val size = minOf(remaining, readBuffer.remaining)
         result.write(readBuffer, size)
-        remaining -= size.toInt()
+        remaining -= size
     }
 
     return result
@@ -250,12 +250,12 @@ public suspend fun ByteReadChannel.readByteArray(count: Int): ByteArray = buildP
     }
 }.readByteArray()
 
-@Deprecated("Use readBuffer()", ReplaceWith("readBuffer(Long)"), DeprecationLevel.WARNING)
+@Deprecated("Use readBuffer()", ReplaceWith("readBuffer()"), DeprecationLevel.WARNING)
 @OptIn(InternalAPI::class, InternalIoApi::class)
 public suspend fun ByteReadChannel.readRemaining(): Source =
     readBuffer()
 
-@Deprecated("Use readBuffer(Long)", ReplaceWith("readBuffer(Long)"), DeprecationLevel.WARNING)
+@Deprecated("Use readBuffer(Long)", ReplaceWith("readBuffer(max)"), DeprecationLevel.WARNING)
 @OptIn(InternalAPI::class, InternalIoApi::class)
 public suspend fun ByteReadChannel.readRemaining(max: Long): Source =
     readBuffer(max)
