@@ -117,18 +117,18 @@ internal fun URLBuilder.takeFromUnsafe(urlString: String): URLBuilder {
 
     val pathEnd = urlString.indexOfAny("?#".toCharArray(), startIndex).takeIf { it > 0 } ?: endIndex
     if (pathEnd > startIndex) {
-        val rawPath = urlString.substring(startIndex, pathEnd)
+        val encodedPath = urlString.substring(startIndex, pathEnd).encodeURLPath(encodeEncoded = false)
         val basePath = when {
             encodedPathSegments.size == 1 && encodedPathSegments.first().isEmpty() -> emptyList()
             else -> encodedPathSegments
         }
 
-        val rawChunks = if (rawPath == "/") ROOT_PATH else rawPath.split('/')
+        val encodedChunks = if (encodedPath == "/") ROOT_PATH else encodedPath.split('/')
 
         val relativePath = when (slashCount) {
             1 -> ROOT_PATH
             else -> emptyList()
-        } + rawChunks
+        } + encodedChunks
 
         encodedPathSegments = basePath + relativePath
         startIndex = pathEnd
@@ -148,7 +148,7 @@ private fun URLBuilder.parseFile(urlString: String, startIndex: Int, endIndex: I
     when (slashCount) {
         1 -> {
             host = ""
-            encodedPath = urlString.substring(startIndex, endIndex)
+            encodedPath = urlString.substring(startIndex, endIndex).encodeURLPath(encodeEncoded = false)
         }
 
         2 -> {
@@ -159,12 +159,12 @@ private fun URLBuilder.parseFile(urlString: String, startIndex: Int, endIndex: I
             }
 
             host = urlString.substring(startIndex, nextSlash)
-            encodedPath = urlString.substring(nextSlash, endIndex)
+            encodedPath = urlString.substring(nextSlash, endIndex).encodeURLPath(encodeEncoded = false)
         }
 
         3 -> {
             host = ""
-            encodedPath = "/" + urlString.substring(startIndex, endIndex)
+            encodedPath = "/" + urlString.substring(startIndex, endIndex).encodeURLPath(encodeEncoded = false)
         }
 
         else -> throw IllegalArgumentException("Invalid file url: $urlString")
