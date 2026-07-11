@@ -206,7 +206,11 @@ private fun URLBuilder.parseFragment(urlString: String, startIndex: Int, endInde
 private fun URLBuilder.fillHost(urlString: String, startIndex: Int, endIndex: Int) {
     val colonIndex = urlString.indexOfColonInHostPort(startIndex, endIndex).takeIf { it > 0 } ?: endIndex
 
-    host = urlString.substring(startIndex, colonIndex)
+    val hostValue = urlString.substring(startIndex, colonIndex)
+    require(hostValue.none { it.isWhitespace() }) {
+        "Host cannot contain whitespace characters: \"$hostValue\""
+    }
+    host = hostValue
 
     port = if (colonIndex + 1 < endIndex) {
         urlString.substring(colonIndex + 1, endIndex).toInt()
