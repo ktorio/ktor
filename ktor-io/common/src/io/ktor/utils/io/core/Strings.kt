@@ -9,10 +9,15 @@ import kotlinx.io.*
 import kotlin.math.*
 
 public fun String.toByteArray(charset: Charset = Charsets.UTF_8): ByteArray {
-    if (charset == Charsets.UTF_8) return encodeToByteArray(throwOnInvalidSequence = true)
+    if (charset == Charsets.UTF_8) return encodeUtf8ToByteArray(this)
 
     return charset.newEncoder().encodeToByteArray(this, 0, length)
 }
+
+/**
+ * Encodes [text] to UTF-8 bytes, throwing on malformed input (unpaired surrogates).
+ */
+internal expect fun encodeUtf8ToByteArray(text: String): ByteArray
 
 /**
  * Create an instance of [String] from the specified [bytes] range starting at [offset] and bytes [length]
