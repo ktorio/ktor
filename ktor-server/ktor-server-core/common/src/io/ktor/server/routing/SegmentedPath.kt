@@ -83,14 +83,10 @@ public value class SegmentedPath internal constructor(
 
     override fun get(index: Int): String {
         if (index < 0) throw IndexOutOfBoundsException("Index $index is out of bounds")
-        var result: String? = null
         forEachSegmentRange { i, start, end ->
-            if (i == index) {
-                result = decodeSegment(start, end)
-                return@forEachSegmentRange
-            }
+            if (i == index) return decodeSegment(start, end)
         }
-        return result ?: throw IndexOutOfBoundsException("Index $index is out of bounds")
+        throw IndexOutOfBoundsException("Index $index is out of bounds")
     }
 
     override fun contains(element: String): Boolean = indexOf(element) >= 0
@@ -98,11 +94,10 @@ public value class SegmentedPath internal constructor(
     override fun containsAll(elements: Collection<String>): Boolean = elements.all { contains(it) }
 
     override fun indexOf(element: String): Int {
-        var result = -1
         forEachSegment { i, segment ->
-            if (result == -1 && segment == element) result = i
+            if (segment == element) return i
         }
-        return result
+        return -1
     }
 
     override fun lastIndexOf(element: String): Int {
@@ -129,16 +124,12 @@ public value class SegmentedPath internal constructor(
 
     override fun subList(fromIndex: Int, toIndex: Int): List<String> {
         require(fromIndex in 0..toIndex) { "fromIndex=$fromIndex, toIndex=$toIndex" }
-        return buildList {
-            forEachSegment { i, string ->
-                if (i >= toIndex) {
-                    return@forEachSegment
-                }
-                if (i >= fromIndex) {
-                    add(string)
-                }
-            }
+        val result = ArrayList<String>()
+        forEachSegment { i, string ->
+            if (i >= toIndex) return result
+            if (i >= fromIndex) result.add(string)
         }
+        return result
     }
 
     /**

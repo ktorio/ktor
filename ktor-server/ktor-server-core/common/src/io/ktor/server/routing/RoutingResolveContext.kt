@@ -84,13 +84,9 @@ public class RoutingResolveContext(
         // sequences) surface as a single `BadRequestException` instead of being lazily
         // detected per-segment by the routing fast path or selectors.
         path.decodeURLPart()
-        // [SegmentedPath] tolerates a leading '/' (empty leading segments are skipped during
-        // iteration), so we can hand it the path string as-is and avoid an extra substring
-        // allocation in the common case. We only allocate a substring when [ignoreTrailingSlash]
-        // is enabled AND the path actually ends with '/' — otherwise SegmentedPath would emit a
-        // bogus trailing empty segment.
+        // Ensure paths ignore trailing slashes
         if (call.ignoreTrailingSlash && path.length > 1 && path[path.length - 1] == '/') {
-            return SegmentedPath(path.substring(0, path.length - 1))
+            return SegmentedPath(path.trim('/'))
         }
         return SegmentedPath(path)
     }
