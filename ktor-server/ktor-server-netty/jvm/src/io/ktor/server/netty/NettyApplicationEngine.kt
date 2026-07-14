@@ -312,26 +312,36 @@ public class NettyApplicationEngine(
         // Netty's EventLoopGroup accepts new tasks during the gracePeriod
         // and always waits at least gracePeriod, even if there are no tasks to complete.
         val noQuietPeriod = 0L
-        val timeoutMillis = (timeoutMillis - channelsCloseTime).coerceAtLeast(gracePeriodMillis)
-        val shutdownConnections = connectionEventGroup.shutdownGracefully(
-            noQuietPeriod,
-            timeoutMillis,
-            TimeUnit.MILLISECONDS
-        )
-        val shutdownWorkers = workerEventGroup.shutdownGracefully(
-            gracePeriodMillis,
-            timeoutMillis,
-            TimeUnit.MILLISECONDS
-        )
-        val workersShutdownTime = measureTimeMillis {
-            withStopException { shutdownConnections.sync() }
-            withStopException { shutdownWorkers.sync() }
+
+        var remainingTimeoutMillis = (timeoutMillis - channelsCloseTime).coerceAtLeast(100L)
+
+        val connectionsShutdownTime = measureTimeMillis {
+            withStopException {
+                connectionEventGroup.shutdownGracefully(
+                    noQuietPeriod,
+                    remainingTimeoutMillis,
+                    TimeUnit.MILLISECONDS
+                ).sync()
+            }
         }
+
+        remainingTimeoutMillis = (remainingTimeoutMillis - connectionsShutdownTime).coerceAtLeast(100L)
+
+        val workersShutdownTime = measureTimeMillis {
+            withStopException {
+                workerEventGroup.shutdownGracefully(
+                    gracePeriodMillis.coerceAtMost(remainingTimeoutMillis),
+                    remainingTimeoutMillis,
+                    TimeUnit.MILLISECONDS
+                ).sync()
+            }
+        }
+
         if (!configuration.shareWorkGroup) {
             withStopException {
                 // There should be no new tasks to be scheduled at this point; no quiet period is needed.
-                val timeoutMillis = (timeoutMillis - workersShutdownTime).coerceAtLeast(100L)
-                callEventGroup.shutdownGracefully(noQuietPeriod, timeoutMillis, TimeUnit.MILLISECONDS).sync()
+                remainingTimeoutMillis = (remainingTimeoutMillis - workersShutdownTime).coerceAtLeast(100L)
+                callEventGroup.shutdownGracefully(noQuietPeriod, remainingTimeoutMillis, TimeUnit.MILLISECONDS).sync()
             }
         }
     }
