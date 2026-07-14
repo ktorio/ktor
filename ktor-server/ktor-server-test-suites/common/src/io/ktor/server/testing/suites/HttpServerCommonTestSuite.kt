@@ -345,8 +345,6 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
-    // Fix [KTOR-7883](https://youtrack.jetbrains.com/issue/KTOR-7883/Fix-flaky-testStatusCodeViaResponseObject)
-    @Ignore
     fun testStatusCodeViaResponseObject() = runTest {
         var completed = false
         createAndStartServer {
