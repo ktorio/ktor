@@ -17,6 +17,3 @@ internal actual suspend fun PipelineContext<Any, PipelineCall>.defaultPlatformTr
 
 internal actual fun PipelineContext<*, PipelineCall>.multiPartData(rc: ByteReadChannel): MultiPartData =
     error("Multipart is not supported in native")
-
-internal actual fun Source.readTextWithCustomCharset(charset: Charset): String =
-    error("Charset $charset is not supported in native")

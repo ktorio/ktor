@@ -2,11 +2,16 @@
  * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+// For ABI compatibility
+@file:JvmMultifileClass
+@file:JvmName("StringsKt")
+
 package io.ktor.utils.io.core
 
 import io.ktor.utils.io.charsets.*
 import kotlinx.io.*
-import kotlin.math.*
+import kotlin.jvm.JvmMultifileClass
+import kotlin.jvm.JvmName
 
 public fun String.toByteArray(charset: Charset = Charsets.UTF_8): ByteArray {
     if (charset == Charsets.UTF_8) return encodeToByteArray(throwOnInvalidSequence = true)
@@ -64,15 +69,7 @@ public fun Source.readBytes(count: Int): ByteArray = readByteArray(count)
  * @return a decoded string
  */
 @OptIn(InternalIoApi::class)
-public fun Source.readText(charset: Charset = Charsets.UTF_8, max: Int = Int.MAX_VALUE): String {
-    if (charset == Charsets.UTF_8) {
-        if (max == Int.MAX_VALUE) return readString()
-        val count = min(buffer.size, max.toLong())
-        return readString(count)
-    }
-
-    return charset.newDecoder().decode(this, max)
-}
+public expect fun Source.readText(charset: Charset = Charsets.UTF_8, max: Int = Int.MAX_VALUE): String
 
 /**
  * Read exactly [n] characters interpreting bytes in the specified [charset].

@@ -110,23 +110,5 @@ internal inline fun <R> withContentType(call: PipelineCall, block: () -> R): R =
     )
 }
 
-internal suspend fun ByteReadChannel.readText(
-    charset: Charset
-): String {
-    val content = readRemaining(Long.MAX_VALUE)
-    if (content.exhausted()) {
-        return ""
-    }
-
-    return try {
-        if (charset == Charsets.UTF_8 || charset == Charsets.ISO_8859_1) {
-            content.readText()
-        } else {
-            content.readTextWithCustomCharset(charset)
-        }
-    } finally {
-        content.close()
-    }
-}
-
-internal expect fun Source.readTextWithCustomCharset(charset: Charset): String
+internal suspend fun ByteReadChannel.readText(charset: Charset): String =
+    readBuffer().readText(charset)

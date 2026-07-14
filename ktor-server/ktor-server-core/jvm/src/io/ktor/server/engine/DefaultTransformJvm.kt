@@ -52,9 +52,6 @@ internal actual fun PipelineContext<*, PipelineCall>.multiPartData(rc: ByteReadC
     }
 }
 
-internal actual fun Source.readTextWithCustomCharset(charset: Charset): String =
-    inputStream().reader(charset).readText()
-
 private fun receiveGuardedInputStream(channel: ByteReadChannel): InputStream {
     return channel.toInputStream()
 }
