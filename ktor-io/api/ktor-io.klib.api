@@ -497,6 +497,7 @@ final suspend fun (io.ktor.utils.io/ByteReadChannel).io.ktor.utils.io/peek(kotli
 final suspend fun (io.ktor.utils.io/ByteReadChannel).io.ktor.utils.io/readAvailable(kotlin/ByteArray, kotlin/Int = ..., kotlin/Int = ...): kotlin/Int // io.ktor.utils.io/readAvailable|readAvailable@io.ktor.utils.io.ByteReadChannel(kotlin.ByteArray;kotlin.Int;kotlin.Int){}[0]
 final suspend fun (io.ktor.utils.io/ByteReadChannel).io.ktor.utils.io/readBuffer(): kotlinx.io/Buffer // io.ktor.utils.io/readBuffer|readBuffer@io.ktor.utils.io.ByteReadChannel(){}[0]
 final suspend fun (io.ktor.utils.io/ByteReadChannel).io.ktor.utils.io/readBuffer(kotlin/Int): kotlinx.io/Buffer // io.ktor.utils.io/readBuffer|readBuffer@io.ktor.utils.io.ByteReadChannel(kotlin.Int){}[0]
+final suspend fun (io.ktor.utils.io/ByteReadChannel).io.ktor.utils.io/readBuffer(kotlin/Long): kotlinx.io/Buffer // io.ktor.utils.io/readBuffer|readBuffer@io.ktor.utils.io.ByteReadChannel(kotlin.Long){}[0]
 final suspend fun (io.ktor.utils.io/ByteReadChannel).io.ktor.utils.io/readByte(): kotlin/Byte // io.ktor.utils.io/readByte|readByte@io.ktor.utils.io.ByteReadChannel(){}[0]
 final suspend fun (io.ktor.utils.io/ByteReadChannel).io.ktor.utils.io/readByteArray(kotlin/Int): kotlin/ByteArray // io.ktor.utils.io/readByteArray|readByteArray@io.ktor.utils.io.ByteReadChannel(kotlin.Int){}[0]
 final suspend fun (io.ktor.utils.io/ByteReadChannel).io.ktor.utils.io/readDouble(): kotlin/Double // io.ktor.utils.io/readDouble|readDouble@io.ktor.utils.io.ByteReadChannel(){}[0]

@@ -94,30 +94,54 @@ private suspend fun ByteReadChannel.awaitUntilReadable(numberOfBytes: Int) {
     }
 }
 
+/**
+ * Reads the entire channel to an in-memory [Buffer].
+ * This function suspends until data becomes available or the channel is closed.
+ *
+ * @return the entire contents of the [ByteReadChannel]
+ */
 @OptIn(InternalAPI::class)
 public suspend fun ByteReadChannel.readBuffer(): Buffer {
     val result = Buffer()
     while (!isClosedForRead) {
+        if (readBuffer.exhausted()) awaitContent()
         result.transferFrom(readBuffer)
-        awaitContent()
     }
 
-    closedCause?.let { throw it }
-
+    rethrowCloseCauseIfNeeded()
     return result
 }
 
+/**
+ * Reads data from the current [ByteReadChannel] into a new [Buffer] up to the specified maximum number of bytes.
+ * This function suspends until data becomes available or the channel is closed.
+ *
+ * @param max The maximum number of bytes to read from the channel.
+ * @return A [Buffer] containing the data read from the channel.
+ */
+@Deprecated("Use Long parameter", ReplaceWith("readBuffer(max.toLong())"), DeprecationLevel.WARNING)
 @OptIn(InternalAPI::class)
-public suspend fun ByteReadChannel.readBuffer(max: Int): Buffer {
+public suspend fun ByteReadChannel.readBuffer(max: Int): Buffer =
+    readBuffer(max.toLong())
+
+/**
+ * Reads data from the current [ByteReadChannel] into a new [Buffer] up to the specified maximum number of bytes.
+ * This function suspends until data becomes available or the channel is closed.
+ *
+ * @param max The maximum number of bytes to read from the channel.
+ * @return A [Buffer] containing the data read from the channel.
+ */
+@OptIn(InternalAPI::class)
+public suspend fun ByteReadChannel.readBuffer(max: Long): Buffer {
     val result = Buffer()
     var remaining = max
 
     while (remaining > 0 && !isClosedForRead) {
         if (readBuffer.exhausted()) awaitContent()
 
-        val size = minOf(remaining.toLong(), readBuffer.remaining)
-        readBuffer.readTo(result, size)
-        remaining -= size.toInt()
+        val size = minOf(remaining, readBuffer.remaining)
+        result.write(readBuffer, size)
+        remaining -= size
     }
 
     return result
@@ -226,36 +250,15 @@ public suspend fun ByteReadChannel.readByteArray(count: Int): ByteArray = buildP
     }
 }.readByteArray()
 
+@Deprecated("Use readBuffer()", ReplaceWith("readBuffer()"), DeprecationLevel.WARNING)
 @OptIn(InternalAPI::class, InternalIoApi::class)
-public suspend fun ByteReadChannel.readRemaining(): Source {
-    val result = BytePacketBuilder()
-    while (!isClosedForRead) {
-        result.transferFrom(readBuffer)
-        awaitContent()
-    }
+public suspend fun ByteReadChannel.readRemaining(): Source =
+    readBuffer()
 
-    rethrowCloseCauseIfNeeded()
-    return result.buffer
-}
-
+@Deprecated("Use readBuffer(Long)", ReplaceWith("readBuffer(max)"), DeprecationLevel.WARNING)
 @OptIn(InternalAPI::class, InternalIoApi::class)
-public suspend fun ByteReadChannel.readRemaining(max: Long): Source {
-    val result = BytePacketBuilder()
-    var remaining = max
-    while (!isClosedForRead && remaining > 0) {
-        if (remaining >= readBuffer.remaining) {
-            remaining -= readBuffer.remaining
-            readBuffer.transferTo(result)
-        } else {
-            readBuffer.readTo(result, remaining)
-            remaining = 0
-        }
-
-        awaitContent()
-    }
-
-    return result.buffer
-}
+public suspend fun ByteReadChannel.readRemaining(max: Long): Source =
+    readBuffer(max)
 
 /**
  * Reads all available bytes to [buffer] and returns immediately or suspends if no bytes available
