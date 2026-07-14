@@ -9,6 +9,7 @@ import io.ktor.server.engine.*
 import io.ktor.server.http.*
 import io.ktor.server.netty.*
 import io.ktor.server.netty.NettyApplicationCallHandler.CallHandlerCoroutineName
+import io.ktor.server.netty.NettyDispatcher.CurrentContext
 import io.ktor.server.netty.cio.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
@@ -22,6 +23,7 @@ import kotlinx.coroutines.*
 import java.io.IOException
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.cancellation.CancellationException
 
 internal class NettyHttp1Handler(
@@ -44,6 +46,13 @@ internal class NettyHttp1Handler(
     private val activeCalls = ConcurrentLinkedQueue<NettyHttp1ApplicationCall>()
 
     private var activated = false
+
+    // Per-channel cache of the connection-stable portion of the per-call coroutine context.
+    // The dispatcher, user context, application context, and coroutine name are reused across
+    // all requests on this connection, so we build them once and combine only with the per-call
+    // [Job] on each request.
+    private var channelApplication: Application? = null
+    private var channelCoroutineContext: CoroutineContext = EmptyCoroutineContext
 
     override fun channelActive(context: ChannelHandlerContext) {
         // channelActive may be fired more than once on this handler (for example, when the pipeline is
@@ -155,14 +164,28 @@ internal class NettyHttp1Handler(
     }
 
     private fun handleRequest(context: ChannelHandlerContext, message: HttpRequest) {
-        val userAppContext = applicationProvider().coroutineContext + userContext
-        val callJob = Job(parent = userAppContext[Job])
-
         val callExecutor = pinnedCallExecutor(context, callEventGroup)
-        val callContext = userAppContext +
-            NettyDispatcher.CurrentContext(context, callExecutor) +
-            callJob +
-            CallHandlerCoroutineName
+        val application = applicationProvider()
+        // Building the coroutine context is quite expensive, so we cache most of the elements.
+        val baseContext = when {
+            application === channelApplication && channelCoroutineContext !== EmptyCoroutineContext ->
+                channelCoroutineContext
+
+            else -> {
+                val newContext = application.coroutineContext +
+                    userContext +
+                    CurrentContext(context, callExecutor) +
+                    CallHandlerCoroutineName
+                channelApplication = application
+                channelCoroutineContext = newContext
+                newContext
+            }
+        }
+        val callJob = Job(parent = baseContext[Job])
+
+        // Only the per-call [Job] is combined per request; the rest of the context is cached on the
+        // handler instance and reused across all calls on this connection.
+        val callContext = baseContext + callJob
         val call = prepareCallFromRequest(context, message, callContext = callContext)
         activeCalls.add(call)
 

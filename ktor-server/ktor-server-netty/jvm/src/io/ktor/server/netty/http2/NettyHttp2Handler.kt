@@ -34,7 +34,17 @@ internal class NettyHttp2Handler(
     private val userCoroutineContext: CoroutineContext,
     runningLimit: Int
 ) : ChannelInboundHandlerAdapter() {
-    private val handlerJob = SupervisorJob(userCoroutineContext[Job])
+    // Parent [Job] for per-call [Job]s. Cached to avoid re-running `userCoroutineContext[Job]` per request.
+    private val parentJob: Job? = userCoroutineContext[Job]
+
+    private val handlerJob = SupervisorJob(parentJob)
+
+    // Connection-stable portion of the per-call coroutine context. Cached at construction so each
+    // request only needs to combine it with the per-stream dispatcher and the per-call [Job].
+    private val staticCallContext: CoroutineContext = userCoroutineContext + CallHandlerCoroutineName
+
+    // Engine context exposed on the [NettyHttp2ApplicationCall]. Constant per handler instance.
+    private val callEngineContext: CoroutineContext = handlerJob + Dispatchers.Unconfined
 
     private val state = NettyHttpHandlerState(runningLimit)
     private lateinit var responseWriter: NettyHttpResponsePipeline
@@ -114,18 +124,18 @@ internal class NettyHttp2Handler(
     }
 
     private fun startHttp2(context: ChannelHandlerContext, headers: Http2Headers) {
-        val callJob = Job(parent = userCoroutineContext[Job])
+        val callJob = Job(parent = parentJob)
         val callExecutor = pinnedCallExecutor(context, callEventGroup)
-        val callContext = userCoroutineContext +
+        // Combine the cached static context with the per-stream dispatcher and per-call [Job] only.
+        val callContext = staticCallContext +
             NettyDispatcher.CurrentContext(context, callExecutor) +
-            callJob +
-            CallHandlerCoroutineName
+            callJob
         val call = NettyHttp2ApplicationCall(
             application = application,
             context = context,
             headers = headers,
             handler = this@NettyHttp2Handler,
-            engineContext = handlerJob + Dispatchers.Unconfined,
+            engineContext = callEngineContext,
             coroutineContext = callContext
         )
         context.applicationCall = call
