@@ -34,14 +34,14 @@ internal class NettyHttp2Handler(
     private val userCoroutineContext: CoroutineContext,
     runningLimit: Int
 ) : ChannelInboundHandlerAdapter() {
-    private val handlerJob = SupervisorJob(userCoroutineContext[Job])
+    // Parent [Job] for per-call [Job]s. Cached to avoid re-running `userCoroutineContext[Job]` per request.
+    private val parentJob: Job? = userCoroutineContext[Job]
+
+    private val handlerJob = SupervisorJob(parentJob)
 
     // Connection-stable portion of the per-call coroutine context. Cached at construction so each
     // request only needs to combine it with the per-stream dispatcher and the per-call [Job].
     private val staticCallContext: CoroutineContext = userCoroutineContext + CallHandlerCoroutineName
-
-    // Parent [Job] for per-call [Job]s. Cached to avoid re-running `userCoroutineContext[Job]` per request.
-    private val parentJob: Job? = userCoroutineContext[Job]
 
     // Engine context exposed on the [NettyHttp2ApplicationCall]. Constant per handler instance.
     private val callEngineContext: CoroutineContext = handlerJob + Dispatchers.Unconfined
