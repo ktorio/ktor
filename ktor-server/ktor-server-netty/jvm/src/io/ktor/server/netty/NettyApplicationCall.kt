@@ -29,7 +29,35 @@ public abstract class NettyApplicationCall(
      */
     internal lateinit var finishedEvent: ChannelPromise
 
-    public val responseWriteJob: Job = Job()
+    /**
+     * Tracks the lifetime of the response write on the Netty I/O thread.
+     *
+     * This Job is a child of the call's coroutine [Job] (see [coroutineContext]), so the call's
+     * coroutine remains "completing" — and is awaited by the parent application Job during graceful
+     * shutdown — until the response is fully written. This removes the need to suspend on
+     * [Job.join] from the application thread at the end of each call (for example, the
+     * [io.ktor.server.netty.NettyApplicationEngine] AFTER_CALL_PHASE interceptor).
+     *
+     * Initialized via [initResponseWriteJob] on the Netty I/O thread synchronously after call
+     * construction (from `processResponse`) and before the user handler coroutine is launched.
+     * The deferred initialization is required because subclasses bind [coroutineContext] in their
+     * own primary constructor, after the base class constructor has finished.
+     */
+    public lateinit var responseWriteJob: Job
+        private set
+
+    /**
+     * Initializes [responseWriteJob] as a child of the call's coroutine [Job]. Called synchronously
+     * on the Netty I/O thread right after the call is constructed and before the user handler
+     * coroutine is launched, so the field is safely published to all subsequent readers via the
+     * handler-dispatch happens-before edge.
+     */
+    internal fun initResponseWriteJob() {
+        val callJob = coroutineContext[Job]
+        val job = Job(parent = callJob)
+        job.invokeOnCompletion { onResponseWriteCompleted() }
+        responseWriteJob = job
+    }
 
     private val messageReleased = atomic(false)
 
@@ -62,39 +90,32 @@ public abstract class NettyApplicationCall(
 
     internal abstract fun isContextCloseRequired(): Boolean
 
-    internal suspend fun finish() {
+    /**
+     * Marks the call as ready to finish, without suspending the calling coroutine.
+     *
+     * The response writer runs on the Netty I/O thread and signals completion through
+     * [responseWriteJob]; because that job is a child of the call's coroutine [Job], the call
+     * naturally remains "completing" until the write finishes — there is no need to join here.
+     * Per-call cleanup (request close + request message release) is performed by
+     * [onResponseWriteCompleted] when [responseWriteJob] completes (registered as an
+     * `invokeOnCompletion` handler in [initResponseWriteJob]).
+     *
+     * Throws if [NettyApplicationResponse.ensureResponseSent] fails. In that case the failure is
+     * propagated through [finishedEvent] and the response write job is cancelled so cleanup still
+     * runs via the registered completion handler.
+     */
+    internal fun finish() {
         try {
             response.ensureResponseSent()
         } catch (cause: Throwable) {
             finishedEvent.setFailure(cause)
-            finishComplete()
+            // Cancelling the job drives `onResponseWriteCompleted` via invokeOnCompletion.
+            responseWriteJob.cancel()
             throw cause
         }
-
-        if (responseWriteJob.isCompleted) {
-            finishComplete()
-            return
-        }
-
-        return finishSuspend()
     }
 
-    private suspend fun finishSuspend() {
-        try {
-            responseWriteJob.join()
-        } finally {
-            finishComplete()
-        }
-    }
-
-    private fun finishComplete() {
-        // Avoid allocating JobCancellationException on the happy path (responseWriteJob already
-        // completed via finish() or finishSuspend()). On error paths — ensureResponseSent() failure
-        // or outer-coroutine cancellation during join() — the job may still be active and must be
-        // cancelled to release its resources.
-        if (!responseWriteJob.isCompleted) {
-            responseWriteJob.cancel()
-        }
+    private fun onResponseWriteCompleted() {
         request.close()
         releaseRequestMessage()
     }

@@ -69,6 +69,8 @@ internal class NettyHttpResponsePipeline(
         call.finishedEvent = context.newPromise()
         previousCallHandled = call.finishedEvent
 
+        call.initResponseWriteJob()
+
         processElement(call)
     }
 

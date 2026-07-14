@@ -25,7 +25,17 @@ internal class NettyHttp3Handler(
     private val userCoroutineContext: CoroutineContext,
     runningLimit: Int
 ) : Http3RequestStreamInboundHandler(), CoroutineScope {
-    private val handlerJob = SupervisorJob(userCoroutineContext[Job])
+    // Parent [Job] for per-call [Job]s. Cached to avoid re-running `userCoroutineContext[Job]` per request.
+    private val parentJob: Job? = userCoroutineContext[Job]
+
+    private val handlerJob = SupervisorJob(parentJob)
+
+    // Connection-stable portion of the per-call coroutine context. Cached so each request only needs
+    // to combine it with the per-stream dispatcher and the per-call [Job].
+    private val staticCallContext: CoroutineContext = userCoroutineContext + CallHandlerCoroutineName
+
+    // Engine context exposed on the [NettyHttp3ApplicationCall]. Constant per handler instance.
+    private val callEngineContext: CoroutineContext = handlerJob + Dispatchers.Unconfined
 
     private val state = NettyHttpHandlerState(runningLimit)
     private lateinit var responseWriter: NettyHttpResponsePipeline
@@ -87,14 +97,14 @@ internal class NettyHttp3Handler(
     }
 
     private fun startHttp3(context: ChannelHandlerContext, headers: Http3Headers) {
-        val callJob = Job(parent = userCoroutineContext[Job])
-        val callContext =
-            userCoroutineContext + NettyDispatcher.CurrentContext(context) + callJob + CallHandlerCoroutineName
+        val callJob = Job(parent = parentJob)
+        // Combine the cached static context with the per-stream dispatcher and per-call [Job] only.
+        val callContext = staticCallContext + NettyDispatcher.CurrentContext(context) + callJob
         val call = NettyHttp3ApplicationCall(
             application,
             context,
             headers,
-            handlerJob + Dispatchers.Unconfined,
+            callEngineContext,
             callContext
         )
         context.applicationCall = call
