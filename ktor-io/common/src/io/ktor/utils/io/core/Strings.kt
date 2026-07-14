@@ -9,9 +9,6 @@ import kotlinx.io.*
 import kotlin.math.*
 
 public fun String.toByteArray(charset: Charset = Charsets.UTF_8): ByteArray {
-    // Non-validating on purpose: unpaired surrogates are replaced instead of throwing,
-    // matching the decode direction, and on the JVM the argument-less overload compiles
-    // to the intrinsic-accelerated String.getBytes (KTOR-9704).
     if (charset == Charsets.UTF_8) return encodeToByteArray()
 
     return charset.newEncoder().encodeToByteArray(this, 0, length)
