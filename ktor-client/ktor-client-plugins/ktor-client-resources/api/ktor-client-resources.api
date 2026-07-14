@@ -1,4 +1,5 @@
 public final class io/ktor/client/plugins/resources/BuildersKt {
+	public static final fun getRESOURCE ()Lio/ktor/util/AttributeKey;
 	public static final fun resources (Lio/ktor/client/HttpClient;)Lio/ktor/resources/Resources;
 }
 
