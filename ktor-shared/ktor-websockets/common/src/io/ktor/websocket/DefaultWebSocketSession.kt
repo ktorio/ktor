@@ -146,7 +146,7 @@ internal class DefaultWebSocketSessionImpl(
     private val pinger = atomic<SendChannel<Frame.Pong>?>(null)
     private val closeReasonRef = CompletableDeferred<CloseReason>()
 
-    private val context = Job(raw.coroutineContext.job)
+    private val context = Job(raw.coroutineContext[Job])
     override val coroutineContext: CoroutineContext =
         raw.coroutineContext + context + CoroutineName("ws-default")
 
