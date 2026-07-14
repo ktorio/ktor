@@ -43,13 +43,23 @@ internal val SaveBody: ClientPlugin<Unit> = createClientPlugin("SaveBody") {
         val savedResponse = try {
             LOGGER.trace { "Saving body for ${call.request.url}" }
             call.save().response
+        } catch (e: Throwable) {
+            response.tryCancelBody(e)
+            throw e
         } finally {
-            runCatching { response.rawContent.cancel() }
-                .onFailure { LOGGER.debug("Failed to cancel response body", it) }
+            response.tryCancelBody()
         }
 
         attributes.put(RESPONSE_BODY_SAVED, Unit)
         proceedWith(savedResponse)
+    }
+}
+
+@OptIn(InternalAPI::class)
+internal fun HttpResponse.tryCancelBody(e: Throwable? = null) {
+    if (!rawContent.isClosedForRead) {
+        runCatching { rawContent.cancel(e) }
+            .onFailure { LOGGER.debug("Failed to cancel response body", it) }
     }
 }
 
