@@ -21,6 +21,9 @@ public actual class TLSConfigBuilder {
      *
      * The Chain will be used only if the first certificate in the chain is issued by server's certificate.
      *
+     * **Note:** ECDSA certificates are currently not supported for client authentication
+     * (only RSA and DSA are supported). See [KTOR-5391].
+     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.TLSConfigBuilder.certificates)
      */
     public val certificates: MutableList<CertificateAndKey> = mutableListOf()
@@ -97,6 +100,9 @@ public actual fun TLSConfigBuilder.takeFrom(other: TLSConfigBuilder) {
  *
  * It will be used only if the first certificate in the chain is issued by server's certificate.
  *
+ * **Note:** ECDSA certificates are currently not supported for client authentication
+ * (only RSA and DSA are supported). See [KTOR-5391].
+ *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.addCertificateChain)
  */
 public fun TLSConfigBuilder.addCertificateChain(chain: Array<X509Certificate>, key: PrivateKey) {
@@ -106,6 +112,9 @@ public fun TLSConfigBuilder.addCertificateChain(chain: Array<X509Certificate>, k
 /**
  * Add client certificates from [store] by using the certificate with specific [alias]
  * or all certificates, if [alias] is null.
+ *
+ * **Note:** ECDSA certificates are currently not supported for client authentication
+ * (only RSA and DSA are supported). See [KTOR-5391].
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.addKeyStore)
  */
