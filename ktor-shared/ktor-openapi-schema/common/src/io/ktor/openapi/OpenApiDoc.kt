@@ -66,9 +66,11 @@ public interface OpenApiDocDsl {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.OpenApiDocDsl.tag)
      *
-     * @param tag The tag name.
+     * @param name The tag name.
+     * @param description The tag description.
+     * @param externalDocs Any external documentation.
      */
-    public fun tag(tag: String)
+    public fun tag(name: String, description: String? = null, externalDocs: ExternalDocs? = null)
 
     /**
      * Optional reusable components for the document (schemas, responses, parameters, request bodies, etc.).
@@ -186,7 +188,7 @@ public data class OpenApiDoc(
         override val extensions: MutableMap<String, GenericElement> = linkedMapOf()
 
         private val _servers = mutableListOf<Server>()
-        private val _tags = mutableListOf<String>()
+        private val _tags = mutableListOf<Tag>()
         private val _securityRequirements = mutableListOf<Map<String, List<String>>>()
 
         /**
@@ -201,7 +203,7 @@ public data class OpenApiDoc(
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.OpenApiDoc.Builder.tags)
          */
-        public val tags: List<String> get() = _tags
+        public val tags: List<Tag> get() = _tags
 
         /**
          * A list of security requirements configured for this API.
@@ -218,8 +220,8 @@ public data class OpenApiDoc(
             Security.Builder().apply(configure).build().requirements.forEach { _securityRequirements.add(it) }
         }
 
-        override fun tag(tag: String) {
-            _tags.add(tag)
+        override fun tag(name: String, description: String?, externalDocs: ExternalDocs?) {
+            _tags.add(Tag(name, description, externalDocs))
         }
 
         /**
@@ -251,7 +253,7 @@ public data class OpenApiDoc(
                 webhooks = emptyMap(),
                 components = components,
                 security = _securityRequirements.ifEmpty { null },
-                tags = _tags.distinct().map(::Tag).ifEmpty { null },
+                tags = _tags.distinctBy { it.name }.ifEmpty { null },
                 externalDocs = externalDocs,
                 extensions = extensions.ifEmpty { null },
             )

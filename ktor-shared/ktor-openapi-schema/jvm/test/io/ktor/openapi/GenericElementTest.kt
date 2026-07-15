@@ -14,7 +14,6 @@ import kotlin.test.assertEquals
 
 class GenericElementTest {
 
-    @OptIn(ExperimentalSerializationApi::class)
     private val jsonFormat = Json {
         encodeDefaults = false
         prettyPrint = true
