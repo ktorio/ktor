@@ -91,7 +91,7 @@ class NettyHttp3MultipleConnectionsTest :
             }
             println("[probe] $label: connected in ${ms}ms")
             return H3Conn(group, udp, quic)
-        } catch (cause: TimeoutException) {
+        } catch (ignored: TimeoutException) {
             println("[probe] $label: CONNECT TIMED OUT after 5s")
             group.shutdownGracefully(0, 500, TimeUnit.MILLISECONDS)
             return null
@@ -145,26 +145,31 @@ class NettyHttp3MultipleConnectionsTest :
             }
         }
 
-        val conn1 = assertNotNull(openConn("conn1 (fresh listener)"), "first connection must connect")
-        assertEquals("ok", get(conn1, "conn1"))
+        val connections = mutableListOf<H3Conn>()
+        try {
+            val conn1 = assertNotNull(openConn("conn1 (fresh listener)"), "first connection must connect")
+            connections += conn1
+            assertEquals("ok", get(conn1, "conn1"))
 
-        val conn2 = assertNotNull(
-            openConn("conn2 (while conn1 still open)"),
-            "a second concurrent QUIC connection must be accepted"
-        )
-        assertEquals("ok", get(conn2, "conn2"))
+            val conn2 = assertNotNull(
+                openConn("conn2 (while conn1 still open)"),
+                "a second concurrent QUIC connection must be accepted"
+            )
+            connections += conn2
+            assertEquals("ok", get(conn2, "conn2"))
 
-        conn1.close()
-        println("[probe] conn1 closed")
+            conn1.close()
+            println("[probe] conn1 closed")
 
-        val conn3 = assertNotNull(
-            openConn("conn3 (after conn1 closed)"),
-            "a new QUIC connection after a previous one closed must be accepted"
-        )
-        assertEquals("ok", get(conn3, "conn3"))
-
-        conn2.close()
-        conn3.close()
-        println("[probe] done")
+            val conn3 = assertNotNull(
+                openConn("conn3 (after conn1 closed)"),
+                "a new QUIC connection after a previous one closed must be accepted"
+            )
+            connections += conn3
+            assertEquals("ok", get(conn3, "conn3"))
+            println("[probe] done")
+        } finally {
+            connections.asReversed().forEach { it.close() }
+        }
     }
 }
