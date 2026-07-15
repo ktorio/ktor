@@ -42,7 +42,6 @@ class DescribeRouteTest {
 
     val testMessage = Message.DM(1L, "Hello, world!", 16777216000)
 
-    @OptIn(ExperimentalSerializationApi::class)
     val jsonFormat = Json {
         encodeDefaults = false
         prettyPrint = true
@@ -862,10 +861,10 @@ class DescribeRouteTest {
         val openApiSpec = jsonFormat.decodeFromString<OpenApiDoc>(responseText)
         val schemas = openApiSpec.components?.schemas ?: fail("Schema components should be defined")
 
-        val nodeSchema = schemas["Node"] ?: fail("Node schema should be present: ${schemas.keys}")
+        val nodeSchema = schemas["RecursiveResponse.Node"] ?: fail("Node schema should be present: ${schemas.keys}")
         val nextSchema = nodeSchema.properties?.get("next")?.valueOrNull() ?: fail("Expected nullable next schema")
         assertEquals(
-            "#/components/schemas/Node",
+            "#/components/schemas/RecursiveResponse.Node",
             (nextSchema.oneOf?.firstOrNull() as? ReferenceOr.Reference)?.ref,
             "Unexpected recursive subtype schema in final OpenAPI: $nodeSchema",
         )
@@ -901,10 +900,10 @@ class DescribeRouteTest {
         val openApiSpec = jsonFormat.decodeFromString<OpenApiDoc>(responseText)
         val schemas = openApiSpec.components?.schemas ?: fail("Schema components should be defined")
 
-        val nodeSchema = schemas["Node"] ?: fail("Node schema should be present: ${schemas.keys}")
+        val nodeSchema = schemas["RecursiveListResponse.Node"] ?: fail("Node schema should be present: ${schemas.keys}")
         val childrenSchema = nodeSchema.properties?.get("children")?.valueOrNull() ?: fail("Expected children schema")
         assertEquals(
-            "#/components/schemas/Node",
+            "#/components/schemas/RecursiveListResponse.Node",
             (childrenSchema.items as? ReferenceOr.Reference)?.ref,
             "Unexpected recursive list subtype schema in final OpenAPI: $nodeSchema",
         )
@@ -1002,6 +1001,48 @@ class DescribeRouteTest {
             "https://example.com/schemas/shared_case",
             schema.discriminator?.mapping?.get("external"),
         )
+    }
+
+    @Test
+    fun `schema titles with dots are not truncated`() = testApplication {
+        install(ContentNegotiation) {
+            json(jsonFormat)
+        }
+        @OptIn(ExperimentalKtorApi::class)
+        routing {
+            get("/routes") {
+                call.respond(
+                    OpenApiDoc(info = OpenApiInfo("Test API", "1.0.0")) +
+                        call.application.routingRoot.descendants()
+                )
+            }.hide()
+
+            get("/test") {
+                call.respondText("ok")
+            }.describe {
+                responses {
+                    HttpStatusCode.OK {
+                        schema = jsonSchema<DotSerialNameDto>()
+                    }
+                    HttpStatusCode.Created {
+                        schema = jsonSchema<DotTitleDto>()
+                    }
+                }
+            }
+        }
+
+        val routesResponse = client.get("/routes")
+        val responseText = routesResponse.bodyAsText()
+        val openApiSpec = jsonFormat.decodeFromString<OpenApiDoc>(responseText)
+        val schemas = openApiSpec.components?.schemas ?: fail("Schema components should be defined")
+
+        assertFalse("Bar1" in schemas, "Schema title with dot should not be truncated to 'Bar1': ${schemas.keys}")
+        assertFalse("Bar2" in schemas, "Schema title with dot should not be truncated to 'Bar2': ${schemas.keys}")
+        assertTrue(
+            "DTO.Bar1" in schemas,
+            "Full dot-containing SerialName should be used as component key: ${schemas.keys}"
+        )
+        assertTrue("DTO.Bar2" in schemas, "Full dot-containing Title should be used as component key: ${schemas.keys}")
     }
 
     private inline fun <reified T : Any> componentName(): String =
@@ -1127,3 +1168,11 @@ data class AnnotatedSharedCaseLists(
     @JsonSchema.ItemsRef(SecondNested.SharedCase::class)
     val second: List<String>,
 )
+
+@Serializable
+@SerialName("DTO.Bar1")
+data class DotSerialNameDto(val value: String)
+
+@Serializable
+@JsonSchema.Title("DTO.Bar2")
+data class DotTitleDto(val value: String)

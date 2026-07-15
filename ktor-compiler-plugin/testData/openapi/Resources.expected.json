@@ -77,7 +77,7 @@
                         "content": {
                             "application/json": {
                                 "schema": {
-                                    "$ref": "#/components/schemas/Comments"
+                                    "$ref": "#/components/schemas/Articles.Id.Comments"
                                 }
                             }
                         }
@@ -251,9 +251,9 @@
                 "title": "Articles",
                 "properties": {}
             },
-            "Id": {
+            "Articles.Id": {
                 "type": "object",
-                "title": "Id",
+                "title": "Articles.Id",
                 "required": [
                     "parent",
                     "id"
@@ -267,15 +267,15 @@
                     }
                 }
             },
-            "Comments": {
+            "Articles.Id.Comments": {
                 "type": "object",
-                "title": "Comments",
+                "title": "Articles.Id.Comments",
                 "required": [
                     "parent"
                 ],
                 "properties": {
                     "parent": {
-                        "$ref": "#/components/schemas/Id"
+                        "$ref": "#/components/schemas/Articles.Id"
                     }
                 }
             }

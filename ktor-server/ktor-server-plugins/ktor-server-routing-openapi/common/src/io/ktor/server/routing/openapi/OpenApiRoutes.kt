@@ -12,6 +12,8 @@ import io.ktor.server.http.content.*
 import io.ktor.server.routing.*
 import io.ktor.utils.io.*
 
+private val packageQualifierRegex by lazy { Regex("\\b[a-z]\\w*\\.") }
+
 /**
  * Finds all [PathItem]s under the given [Route], and extracts object schema as references.
  *
@@ -26,7 +28,7 @@ public fun Sequence<Route>.mapToPathItemsAndSchema(): Pair<Map<String, PathItem>
     val pathItems = mapToPathItems(
         PopulateMediaTypeDefaults + CollectSchemaReferences { schema ->
             val title = schema.title ?: return@CollectSchemaReferences null
-            val unqualifiedTitle = title.substringAfterLast('.')
+            val unqualifiedTitle = title.replace(packageQualifierRegex, "")
             val existingQualifiedTitle = qualifiedNameMap[unqualifiedTitle] ?: title
             // if the shortened title is already in use by a different type, use the full title instead
             val componentName = if (existingQualifiedTitle != title) {
