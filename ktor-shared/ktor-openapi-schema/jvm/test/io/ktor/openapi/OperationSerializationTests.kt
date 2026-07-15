@@ -18,7 +18,6 @@ import kotlin.test.assertEquals
 
 class OperationSerializationTests {
 
-    @OptIn(ExperimentalSerializationApi::class)
     private val jsonFormat = Json {
         encodeDefaults = false
         prettyPrint = true
@@ -219,6 +218,7 @@ class OperationSerializationTests {
     fun `request body with extension properties`() {
         val operation = Operation.build {
             summary = "Create article"
+            tag("Articles", "Endpoints pertaining to articles")
 
             requestBody {
                 description = "Article data"
