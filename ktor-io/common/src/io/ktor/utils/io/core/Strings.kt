@@ -9,7 +9,7 @@ import kotlinx.io.*
 import kotlin.math.*
 
 public fun String.toByteArray(charset: Charset = Charsets.UTF_8): ByteArray {
-    if (charset == Charsets.UTF_8) return encodeToByteArray(throwOnInvalidSequence = true)
+    if (charset == Charsets.UTF_8) return encodeToByteArray()
 
     return charset.newEncoder().encodeToByteArray(this, 0, length)
 }
