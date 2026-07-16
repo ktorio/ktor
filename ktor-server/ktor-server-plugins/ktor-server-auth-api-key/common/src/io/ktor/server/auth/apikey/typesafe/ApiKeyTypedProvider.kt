@@ -6,8 +6,8 @@
 
 package io.ktor.server.auth.apikey.typesafe
 
-import io.ktor.server.auth.typesafe.DefaultAuthScheme
-import io.ktor.server.auth.typesafe.PrincipalContext
+import io.ktor.server.auth.typesafe.AuthenticationScheme
+import io.ktor.server.auth.typesafe.SimpleAuthenticationScheme
 import io.ktor.utils.io.*
 
 /**
@@ -26,11 +26,8 @@ import io.ktor.utils.io.*
 public inline fun <reified P : Any> apiKey(
     name: String,
     configure: TypedApiKeyAuthConfig<P>.() -> Unit
-): DefaultAuthScheme<P, PrincipalContext<P>> {
+): SimpleAuthenticationScheme<P> {
     val typedConfig = TypedApiKeyAuthConfig<P>().apply(configure)
-    return DefaultAuthScheme.withDefaultContext(
-        name,
-        typedConfig.buildProvider(name),
-        typedConfig.onUnauthorized
-    )
+    val provider = typedConfig.buildProvider(name)
+    return AuthenticationScheme.from(provider, typedConfig.onUnauthorized)
 }
