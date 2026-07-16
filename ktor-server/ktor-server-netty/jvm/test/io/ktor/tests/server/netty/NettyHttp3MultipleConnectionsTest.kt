@@ -109,9 +109,12 @@ class NettyHttp3MultipleConnectionsTest :
             override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
                 when (msg) {
                     is Http3HeadersFrame -> Unit
+
                     is Http3DataFrame -> {
-                        body.append(msg.content().toString(Charsets.UTF_8)); msg.release()
+                        body.append(msg.content().toString(Charsets.UTF_8))
+                        msg.release()
                     }
+
                     else -> super.channelRead(ctx, msg)
                 }
             }
@@ -124,7 +127,10 @@ class NettyHttp3MultipleConnectionsTest :
         return try {
             val stream = Http3.newRequestStream(conn.quic, handler).sync().getNow()
             val headers = DefaultHttp3Headers().apply {
-                method("GET"); path("/i"); scheme("https"); authority("localhost:$sslPort")
+                method("GET")
+                path("/i")
+                scheme("https")
+                authority("localhost:$sslPort")
             }
             stream.writeAndFlush(DefaultHttp3HeadersFrame(headers)).sync()
             stream.shutdownOutput().sync()
