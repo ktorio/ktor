@@ -55,6 +55,23 @@ internal class URLParserTest {
     }
 
     @Test
+    fun `parse query when relative URL has no path`() {
+        val url = URLBuilder("?key1=value1&key2=value2")
+
+        assertEquals("/", url.encodedPath)
+        assertEquals("value1", url.parameters["key1"])
+        assertEquals("value2", url.parameters["key2"])
+    }
+
+    @Test
+    fun `parse fragment when relative URL has no path`() {
+        val url = URLBuilder("https://example.com/root").takeFrom("#preview")
+
+        assertEquals("/root", url.encodedPath)
+        assertEquals("preview", url.encodedFragment)
+    }
+
+    @Test
     fun `encode unicode characters in file path`() {
         val urls = listOf(
             "file:/var/reports/annual–review.pdf" to "file:///var/reports/annual%E2%80%93review.pdf",
@@ -68,5 +85,19 @@ internal class URLParserTest {
             assertEquals("/var/reports/annual%E2%80%93review.pdf", url.encodedPath)
             assertEquals(expected, url.toString())
         }
+    }
+
+    @Test
+    fun `encode only path when file URL contains query and fragment`() {
+        val url = Url("file:///var/reports/annual\u2013review.pdf?download=true#preview")
+
+        assertEquals("/var/reports/annual%E2%80%93review.pdf", url.encodedPath)
+        assertEquals("download=true", url.encodedQuery)
+        assertEquals("true", url.parameters["download"])
+        assertEquals("preview", url.encodedFragment)
+        assertEquals(
+            "file:///var/reports/annual%E2%80%93review.pdf?download=true#preview",
+            url.toString()
+        )
     }
 }
