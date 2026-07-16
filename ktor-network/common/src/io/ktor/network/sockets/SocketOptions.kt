@@ -103,7 +103,7 @@ public sealed class SocketOptions(
     ) : SocketOptions(customOptions) {
 
         /**
-         * Socket ougoing buffer size (SO_SNDBUF), `-1` or `0` to make system decide
+         * Socket outgoing buffer size (SO_SNDBUF), `-1` or `0` to make system decide
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.SocketOptions.PeerSocketOptions.sendBufferSize)
          */
