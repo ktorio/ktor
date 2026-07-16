@@ -856,6 +856,7 @@ public final class io/ktor/http/HttpStatusCode$Companion {
 	public final fun getPaymentRequired ()Lio/ktor/http/HttpStatusCode;
 	public final fun getPermanentRedirect ()Lio/ktor/http/HttpStatusCode;
 	public final fun getPreconditionFailed ()Lio/ktor/http/HttpStatusCode;
+	public final fun getPreconditionRequired ()Lio/ktor/http/HttpStatusCode;
 	public final fun getProcessing ()Lio/ktor/http/HttpStatusCode;
 	public final fun getProxyAuthenticationRequired ()Lio/ktor/http/HttpStatusCode;
 	public final fun getRequestHeaderFieldTooLarge ()Lio/ktor/http/HttpStatusCode;
