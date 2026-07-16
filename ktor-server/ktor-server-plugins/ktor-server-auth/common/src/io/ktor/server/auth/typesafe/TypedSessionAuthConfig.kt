@@ -18,6 +18,8 @@ import kotlin.reflect.KClass
  * The resolver receives the current [RoutingContext] and the session value.
  *
  * Return `null` to reject the session.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.SessionPrincipalResolver)
  */
 public typealias SessionPrincipalResolver<S, P> = suspend RoutingContext.(S) -> P?
 
@@ -25,6 +27,8 @@ public typealias SessionPrincipalResolver<S, P> = suspend RoutingContext.(S) -> 
  * Transforms a session value before principal resolution.
  *
  * Return the session value that should be validated for the current call, or `null` to reject the session.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.SessionTransformer)
  */
 public typealias SessionTransformer<S> = suspend RoutingContext.(S) -> S?
 
@@ -46,6 +50,7 @@ public typealias SessionTransformer<S> = suspend RoutingContext.(S) -> S?
  * @param S the stored session type.
  * @param P the principal type exposed to authenticated routes.
  */
+@ExperimentalKtorApi
 @KtorDsl
 public open class TypedSessionAuthConfig<S : Any, P : Any> @PublishedApi internal constructor() {
     /**
@@ -53,7 +58,7 @@ public open class TypedSessionAuthConfig<S : Any, P : Any> @PublishedApi interna
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedSessionAuthConfig.description)
      */
-    internal var description: String? = null
+    public var description: String? = null
 
     /**
      * Default handler for authentication failures.
@@ -63,9 +68,10 @@ public open class TypedSessionAuthConfig<S : Any, P : Any> @PublishedApi interna
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedSessionAuthConfig.onUnauthorized)
      */
-    internal var onUnauthorized: UnauthorizedHandler? = null
+    public var onUnauthorized: UnauthorizedHandler? = null
 
-    internal var principalResolver: SessionPrincipalResolver<S, P>? = null
+    @InternalAPI
+    public var principalResolver: SessionPrincipalResolver<S, P>? = null
 
     internal var sessionTransformer: SessionTransformer<S>? = null
 
@@ -74,15 +80,15 @@ public open class TypedSessionAuthConfig<S : Any, P : Any> @PublishedApi interna
     /**
      * Configures how the typed session scheme installs the [io.ktor.server.sessions.Sessions] plugin.
      *
-     * Assign one [SessionTransport] variant, for example `SessionTransport.Cookie()` or
-     * `SessionTransport.HeaderId(storage)`. Only one transport applies per scheme.
+     * Assign one [SessionTransportType] variant, for example `SessionTransportType.Cookie()` or
+     * `SessionTransportType.HeaderId(storage)`. Only one transport applies per scheme.
      *
-     * When `null`, integrations that auto-install [io.ktor.server.sessions.Sessions] fail at installation time.
-     * Manual setups can omit this and call `install(Sessions) { cookie(auth) }` instead.
+     * Defaults to [SessionTransportType.Cookie]. Manual setups can call `install(Sessions) { cookie(auth) }` instead of
+     * configuring [transport].
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedSessionAuthConfig.transport)
      */
-    public var transport: SessionTransport<S>? = null
+    public var transport: SessionTransportType<S> = SessionTransportType.Cookie()
 
     /**
      * Sets a validation function for the session value.
@@ -94,6 +100,7 @@ public open class TypedSessionAuthConfig<S : Any, P : Any> @PublishedApi interna
      * @param body validation function called with the current routing context and session value read by the
      * [io.ktor.server.sessions.Sessions] plugin.
      */
+    @OptIn(InternalAPI::class)
     public fun validate(body: suspend RoutingContext.(S) -> P?) {
         principalResolver = body
     }
@@ -126,18 +133,21 @@ public open class TypedSessionAuthConfig<S : Any, P : Any> @PublishedApi interna
     }
 
     @PublishedApi
+    @InternalAPI
     internal fun buildProvider(
         name: String,
-        sessionType: KClass<S>,
-        sessionKey: AttributeKey<S>
+        sessionKey: AttributeKey<S>,
+        sessionType: KClass<S>
     ): SessionAuthenticationProvider<S> {
-        val config = SessionAuthenticationProvider.Config(name, description, sessionType)
+        val config = SessionAuthenticationProvider.Config(name, description, sessionType).apply {
+            sessionName = name
+        }
         val resolver = requireNotNull(principalResolver) { "Principal resolver cannot be null" }
         val transformer = sessionTransformer
         config.validate { session ->
             val routingContext = toRoutingContext()
             val effectiveSession = if (transformer != null) {
-                val updatedSession = routingContext.transformer(session) ?: return@validate null
+                val updatedSession = transformer(routingContext, session) ?: return@validate null
                 if (updatedSession != session) {
                     sessions.set(name, updatedSession)
                 }

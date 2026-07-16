@@ -17,8 +17,9 @@ import io.ktor.utils.io.*
 /**
  * Configures a typed JWT authentication scheme.
  *
- * Unlike [JWTAuthenticationProvider.Config], [validate] returns [P] so routes protected by [io.ktor.server.auth.typesafe.authenticateWith] can read
- * [io.ktor.server.auth.typesafe.principal] as the configured type.
+ * Unlike [JWTAuthenticationProvider.Config], [validate] returns [P] so routes protected by
+ * [io.ktor.server.auth.typesafe.authenticateWith] can read [io.ktor.server.application.ApplicationCall.principal]
+ * as the configured type.
  *
  * This config does not expose provider-level `challenge`. Set [onUnauthorized] or pass `onUnauthorized` to
  * [io.ktor.server.auth.typesafe.authenticateWith] to customize failure responses.
@@ -31,6 +32,7 @@ import io.ktor.utils.io.*
  *
  * @param P the principal type produced by this scheme.
  */
+@ExperimentalKtorApi
 @KtorDsl
 public class TypedJwtAuthConfig<P : Any> @PublishedApi internal constructor() {
     /**

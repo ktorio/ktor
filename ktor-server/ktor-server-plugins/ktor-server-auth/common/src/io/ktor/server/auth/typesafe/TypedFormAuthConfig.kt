@@ -12,7 +12,7 @@ import io.ktor.utils.io.*
  * Configures a typed Form authentication scheme.
  *
  * Unlike [FormAuthenticationProvider.Config], [validate] returns [P] so routes protected by [authenticateWith] can
- * read [ApplicationCall.principal] as the configured type.
+ * read [io.ktor.server.application.ApplicationCall.principal] as the configured type.
  *
  * This config does not expose provider-level `challenge`. Set [onUnauthorized] or pass `onUnauthorized` to
  * [authenticateWith] to customize failure responses.
@@ -24,6 +24,7 @@ import io.ktor.utils.io.*
  *
  * @param P the principal type produced by this scheme.
  */
+@ExperimentalKtorApi
 @KtorDsl
 public class TypedFormAuthConfig<P : Any> @PublishedApi internal constructor() {
     /**
@@ -78,7 +79,7 @@ public class TypedFormAuthConfig<P : Any> @PublishedApi internal constructor() {
         val config = FormAuthenticationProvider.Config(name, description)
         config.userParamName = usernameField
         config.passwordParamName = passwordField
-        validateFn?.let { fn -> config.validate { credential -> toRoutingContext().fn(credential) } }
+        validateFn?.let { fn -> config.validate { credential -> fn(toRoutingContext(), credential) } }
         return config.build()
     }
 }

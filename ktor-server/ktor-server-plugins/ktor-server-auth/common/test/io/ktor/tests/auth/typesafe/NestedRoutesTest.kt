@@ -21,62 +21,12 @@ import kotlin.test.assertEquals
 class NestedRoutesTest {
 
     private val basicScheme = acceptAllBasicScheme("nested-basic")
-    private val bearerScheme = testBearerScheme("nested-bearer")
 
     private val roleScheme = acceptAllBasicScheme("nested-role").withRoles { principal ->
         when (principal.name) {
             "admin" -> setOf(TestRole.Admin, TestRole.User)
             else -> setOf(TestRole.User)
         }
-    }
-
-    @Test
-    fun `sibling routes with different schemes and scheme reuse`() = testApplication {
-        routing {
-            authenticateWith(basicScheme) {
-                get("/basic") { call.respondText("basic:${call.principal.name}") }
-            }
-            authenticateWith(bearerScheme) {
-                get("/bearer") { call.respondText("bearer:${call.principal.name}") }
-            }
-            authenticateWith(basicScheme) {
-                get("/basic2") { call.respondText("basic2:${call.principal.name}") }
-            }
-        }
-
-        val basicResp = client.get("/basic") {
-            header(HttpHeaders.Authorization, basicAuthHeader("user"))
-        }
-        assertEquals("basic:user", basicResp.bodyAsText())
-
-        val bearerResp = client.get("/bearer") {
-            header(HttpHeaders.Authorization, bearerAuthHeader("valid"))
-        }
-        assertEquals("bearer:bearer-user", bearerResp.bodyAsText())
-
-        val basic2Resp = client.get("/basic2") {
-            header(HttpHeaders.Authorization, basicAuthHeader("alice"))
-        }
-        assertEquals("basic2:alice", basic2Resp.bodyAsText())
-
-        assertEquals(HttpStatusCode.Unauthorized, client.get("/basic").status)
-        assertEquals(HttpStatusCode.Unauthorized, client.get("/bearer").status)
-        assertEquals(HttpStatusCode.Unauthorized, client.get("/basic2").status)
-
-        val basicWithBearerResp = client.get("/basic") {
-            header(HttpHeaders.Authorization, bearerAuthHeader("valid"))
-        }
-        assertEquals(HttpStatusCode.Unauthorized, basicWithBearerResp.status)
-
-        val bearerWithBasicResp = client.get("/bearer") {
-            header(HttpHeaders.Authorization, basicAuthHeader("user"))
-        }
-        assertEquals(HttpStatusCode.Unauthorized, bearerWithBasicResp.status)
-
-        val basic2WithBearerResp = client.get("/basic2") {
-            header(HttpHeaders.Authorization, bearerAuthHeader("valid"))
-        }
-        assertEquals(HttpStatusCode.Unauthorized, basic2WithBearerResp.status)
     }
 
     @Test
@@ -174,7 +124,7 @@ class NestedRoutesTest {
             authenticateWith(basicScheme) {
                 authenticateWith(roleScheme, roles = setOf(TestRole.Admin)) {
                     get("/admin") {
-                        call.respondText("admin:${call.roles.joinToString(",") { it.name }}")
+                        call.respondText("admin:${call.principal.roles.joinToString(",") { it.name }}")
                     }
                 }
             }

@@ -6,8 +6,8 @@
 
 package io.ktor.server.auth.jwt.typesafe
 
-import io.ktor.server.auth.typesafe.DefaultAuthScheme
-import io.ktor.server.auth.typesafe.PrincipalContext
+import io.ktor.server.auth.typesafe.AuthenticationScheme
+import io.ktor.server.auth.typesafe.SimpleAuthenticationScheme
 import io.ktor.utils.io.*
 
 /**
@@ -26,10 +26,9 @@ import io.ktor.utils.io.*
 public inline fun <reified P : Any> jwt(
     name: String,
     configure: TypedJwtAuthConfig<P>.() -> Unit
-): DefaultAuthScheme<P, PrincipalContext<P>> {
+): SimpleAuthenticationScheme<P> {
     val typedConfig = TypedJwtAuthConfig<P>().apply(configure)
-    return DefaultAuthScheme.withDefaultContext(
-        name,
+    return AuthenticationScheme.from(
         typedConfig.buildProvider(name),
         typedConfig.onUnauthorized
     )

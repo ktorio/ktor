@@ -15,7 +15,9 @@ import io.ktor.server.routing.get
 import io.ktor.server.testing.*
 import io.ktor.utils.io.ExperimentalKtorApi
 import kotlin.test.Test
+import kotlin.test.assertContains
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 interface AnonTestIdentity
@@ -29,8 +31,8 @@ class OptionalAndAnonymousAuthTest {
     @Test
     fun `optional auth returns principal or null`() = testApplication {
         routing {
-            authenticateWith(baseScheme.optional()) {
-                get("/me") { call.respondText(call.principal?.email ?: "anonymous") }
+            authenticateWithOptional(baseScheme) {
+                get("/me") { call.respondText(call.principalOrNull?.email ?: "anonymous") }
             }
         }
 
@@ -86,5 +88,22 @@ class OptionalAndAnonymousAuthTest {
         }
         assertEquals(HttpStatusCode.Unauthorized, invalid.status)
         assertTrue(invalid.headers[HttpHeaders.WWWAuthenticate].orEmpty().contains("Basic"))
+    }
+
+    @Test
+    fun `authenticateWithOptional with orAnonymous fails at setup`() = testApplication {
+        val anonScheme = basic<AuthenticatedUser>("anon-optional-test") {
+            validate { null }
+        }.orAnonymous { GuestUser() }
+        routing {
+            authenticateWithOptional(anonScheme) {}
+        }
+        val failure = assertFailsWith<IllegalArgumentException> {
+            startApplication()
+        }
+        assertContains(
+            failure.message.orEmpty(),
+            "authenticateWithOptional cannot be used with orAnonymous schemes"
+        )
     }
 }

@@ -165,10 +165,9 @@ class UnauthorizedAndChallengesTest {
 
     @Test
     fun `authenticateWithAnyOf reports final failure per scheme`() = testApplication {
-        val scheme = DefaultAuthScheme.withDefaultContext<TestUser>(
-            name = "final-failure",
+        val scheme = AuthenticationScheme.from<TestUser>(
             provider = FailTwiceProvider("final-failure"),
-            onUnauthorized = null
+            onUnauthorized = null,
         )
 
         routing {

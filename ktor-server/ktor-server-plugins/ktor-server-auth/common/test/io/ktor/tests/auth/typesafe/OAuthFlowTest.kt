@@ -30,8 +30,8 @@ data class OAuthPrincipal(val token: String, val source: String)
 
 class OAuthFlowTest {
 
-    private fun createOAuthScheme(testClient: HttpClient) =
-        oauth2SessionFlow<OAuthPrincipal, OAuthSession>("test-oauth") {
+    private fun createOAuth(testClient: HttpClient) =
+        oauth2Session<OAuthPrincipal, OAuthSession>("test-oauth") {
             client = testClient
             settings = OAuthServerSettings.OAuth2ServerSettings(
                 name = "test-provider",
@@ -46,7 +46,7 @@ class OAuthFlowTest {
                 call.respondText(call.session.accessToken + ":" + user.token + ":" + user.source)
             }
             sessions {
-                transport = SessionTransport.Cookie()
+                transport = SessionTransportType.Cookie()
                 sessionCreator = { token ->
                     OAuthSession(token.accessToken)
                 }
@@ -91,7 +91,7 @@ class OAuthFlowTest {
     @Test
     fun `oauth redirects to provider`() = testApplication {
         val testClient = createClient { install(HttpCookies) }
-        val scheme = oauth2Flow(name = "test-oauth") {
+        val scheme = oauth2(name = "test-oauth") {
             client = testClient
             settings = OAuthServerSettings.OAuth2ServerSettings(
                 name = "test-provider",
@@ -118,7 +118,7 @@ class OAuthFlowTest {
     @Test
     fun `oauth error invokes onUnauthorized`() = testApplication {
         val testClient = createClient { install(HttpCookies) }
-        val scheme = oauth2Flow(name = "test-oauth") {
+        val scheme = oauth2(name = "test-oauth") {
             client = testClient
             settings = OAuthServerSettings.OAuth2ServerSettings(
                 name = "test-provider",
@@ -147,12 +147,12 @@ class OAuthFlowTest {
     @Test
     fun `oauth callback creates session and protects routes`() = testApplication {
         val testClient = createClient { install(HttpCookies) }
-        val scheme = createOAuthScheme(testClient)
+        val oauth = createOAuth(testClient)
         mockOAuthServices(accessToken = "my_token")
 
         routing {
-            install(scheme)
-            authenticateWith(scheme.sessions) {
+            install(oauth)
+            authenticateWith(oauth.sessions) {
                 get("/protected") {
                     val p = call.principal
                     call.respondText("${call.session.accessToken}:${p.token}:${p.source}")
@@ -171,7 +171,7 @@ class OAuthFlowTest {
     @Test
     fun `missing session returns 401`() = testApplication {
         val testClient = createClient { install(HttpCookies) }
-        val scheme = createOAuthScheme(testClient)
+        val scheme = createOAuth(testClient)
         mockOAuthServices()
 
         routing {
@@ -187,7 +187,7 @@ class OAuthFlowTest {
     @Test
     fun `loginUri completes oauth flow`() = testApplication {
         val testClient = createClient { install(HttpCookies) }
-        val scheme = oauth2Flow(name = "test-oauth") {
+        val scheme = oauth2(name = "test-oauth") {
             client = testClient
             settings = OAuthServerSettings.OAuth2ServerSettings(
                 name = "test-provider",
@@ -197,7 +197,7 @@ class OAuthFlowTest {
                 clientSecret = "test-client-secret",
                 requestMethod = HttpMethod.Post,
             )
-            loginUri = { path("custom", "login") }
+            loginPath = "/custom/login"
             callback("/callback") { call.respondText("done") }
         }
         mockOAuthServices()
@@ -218,7 +218,7 @@ class OAuthFlowTest {
     @Test
     fun `application install delegates to routing install`() = testApplication {
         val testClient = createClient { install(HttpCookies) }
-        val scheme = oauth2Flow(name = "test-oauth") {
+        val scheme = oauth2(name = "test-oauth") {
             client = testClient
             settings = OAuthServerSettings.OAuth2ServerSettings(
                 name = "test-provider",
@@ -245,7 +245,7 @@ class OAuthFlowTest {
     fun `missing sessionCreator throws`() {
         val failure = assertFailsWith<IllegalArgumentException> {
             HttpClient().use { c ->
-                oauth2SessionFlow<OAuthPrincipal, OAuthSession>("google") {
+                oauth2Session<OAuthPrincipal, OAuthSession>("google") {
                     client = c
                     providerLookup = { null }
                     callback("/callback", onFailure = {}) { call.respondText("done") }
@@ -263,7 +263,7 @@ class OAuthFlowTest {
     fun `missing validate throws`() {
         val failure = assertFailsWith<IllegalArgumentException> {
             HttpClient().use { c ->
-                oauth2SessionFlow<OAuthPrincipal, OAuthSession>(name = "google") {
+                oauth2Session<OAuthPrincipal, OAuthSession>(name = "google") {
                     client = c
                     providerLookup = { null }
                     callback("/callback", onFailure = {}) { call.respondText("done") }
@@ -283,7 +283,7 @@ class OAuthFlowTest {
     fun `missing callback throws`() {
         val failure = assertFailsWith<IllegalArgumentException> {
             HttpClient().use { c ->
-                oauth2Flow(name = "google") {
+                oauth2(name = "google") {
                     client = c
                     settings = OAuthServerSettings.OAuth2ServerSettings(
                         name = "test-provider",
@@ -302,7 +302,7 @@ class OAuthFlowTest {
     @Test
     fun `oauth form_post callback succeeds`() = testApplication {
         val testClient = createClient { install(HttpCookies) }
-        val scheme = oauth2Flow(name = "test-oauth") {
+        val scheme = oauth2(name = "test-oauth") {
             client = testClient
             settings = OAuthServerSettings.OAuth2ServerSettings(
                 name = "test-provider",
@@ -341,7 +341,7 @@ class OAuthFlowTest {
     @Test
     fun `oauth callback does not persist session when principal resolution fails`() = testApplication {
         val testClient = createClient { install(HttpCookies) }
-        val scheme = oauth2SessionFlow<OAuthPrincipal, OAuthSession>("test-oauth") {
+        val scheme = oauth2Session<OAuthPrincipal, OAuthSession>("test-oauth") {
             client = testClient
             settings = OAuthServerSettings.OAuth2ServerSettings(
                 name = "test-provider",
@@ -355,7 +355,7 @@ class OAuthFlowTest {
                 call.respondText("success")
             }
             sessions {
-                transport = SessionTransport.Cookie()
+                transport = SessionTransportType.Cookie()
                 sessionCreator = { OAuthSession(it.accessToken) }
                 validate { null }
             }

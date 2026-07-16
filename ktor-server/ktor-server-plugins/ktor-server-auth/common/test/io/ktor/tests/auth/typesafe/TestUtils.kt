@@ -12,7 +12,7 @@ import kotlin.io.encoding.Base64
 
 data class TestUser(val name: String, val email: String)
 
-enum class TestRole : AuthRole {
+enum class TestRole : AuthenticationRole {
     User,
     Admin,
     Moderator
