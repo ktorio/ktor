@@ -35,7 +35,6 @@ public class SessionAuthenticationProvider<T : Any> private constructor(
 
     override suspend fun onAuthenticate(context: AuthenticationContext) {
         val call = context.call
-        val sessionName = sessionName
         val session = if (sessionName == null) {
             call.sessions.get(type)
         } else {

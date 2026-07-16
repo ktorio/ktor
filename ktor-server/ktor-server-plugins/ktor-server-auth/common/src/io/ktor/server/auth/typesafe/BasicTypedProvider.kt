@@ -8,13 +8,13 @@ package io.ktor.server.auth.typesafe
 
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
-import kotlin.jvm.JvmName
 
 /**
  * Creates a typed Basic authentication scheme.
  *
- * The [validate][TypedBasicAuthConfig.validate] callback returns a principal of type [P]. Use the returned scheme
- * with [authenticateWith] to protect routes and access [ApplicationCall.principal] without casts.
+ * The [validate][TypedBasicAuthConfig.validate] callback returns a principal of type [P].
+ * Use the returned scheme with [authenticateWith] to protect routes and access
+ * [io.ktor.server.application.ApplicationCall.principal] without casts.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.basic)
  *
@@ -26,16 +26,17 @@ import kotlin.jvm.JvmName
 public inline fun <reified P : Any> basic(
     name: String,
     configure: TypedBasicAuthConfig<P>.() -> Unit
-): DefaultAuthScheme<P, PrincipalContext<P>> {
+): SimpleAuthenticationScheme<P> {
     val typedConfig = TypedBasicAuthConfig<P>().apply(configure)
-    return DefaultAuthScheme.withDefaultContext(name, typedConfig.buildProvider(name), typedConfig.onUnauthorized)
+    return AuthenticationScheme.from(typedConfig.buildProvider(name), typedConfig.onUnauthorized)
 }
 
 /**
  * Creates a typed Bearer authentication scheme.
  *
  * The [validate][TypedBearerAuthConfig.validate] callback returns a principal of type [P]. Use the returned
- * scheme with [authenticateWith] to protect routes and access [ApplicationCall.principal] without casts.
+ * scheme with [authenticateWith] to protect routes and access [io.ktor.server.application.ApplicationCall.principal]
+ * without casts.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.bearer)
  *
@@ -47,16 +48,16 @@ public inline fun <reified P : Any> basic(
 public inline fun <reified P : Any> bearer(
     name: String,
     configure: TypedBearerAuthConfig<P>.() -> Unit
-): DefaultAuthScheme<P, PrincipalContext<P>> {
+): SimpleAuthenticationScheme<P> {
     val typedConfig = TypedBearerAuthConfig<P>().apply(configure)
-    return DefaultAuthScheme.withDefaultContext(name, typedConfig.buildProvider(name), typedConfig.onUnauthorized)
+    return AuthenticationScheme.from(typedConfig.buildProvider(name), typedConfig.onUnauthorized)
 }
 
 /**
  * Creates a typed Form authentication scheme.
  *
  * The [validate][TypedFormAuthConfig.validate] callback returns a principal of type [P]. Use the returned scheme with
- * [authenticateWith] to protect routes and access [ApplicationCall.principal] without casts.
+ * [authenticateWith] to protect routes and access [io.ktor.server.application.ApplicationCall.principal] without casts.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.form)
  *
@@ -68,9 +69,9 @@ public inline fun <reified P : Any> bearer(
 public inline fun <reified P : Any> form(
     name: String,
     configure: TypedFormAuthConfig<P>.() -> Unit
-): DefaultAuthScheme<P, PrincipalContext<P>> {
+): SimpleAuthenticationScheme<P> {
     val typedConfig = TypedFormAuthConfig<P>().apply(configure)
-    return DefaultAuthScheme.withDefaultContext(name, typedConfig.buildProvider(name), typedConfig.onUnauthorized)
+    return AuthenticationScheme.from(typedConfig.buildProvider(name), typedConfig.onUnauthorized)
 }
 
 /**
@@ -86,34 +87,15 @@ public inline fun <reified P : Any> form(
  * @return a typed authentication scheme that produces principals of type [P].
  */
 @ExperimentalKtorApi
-@JvmName("sessionWithPrincipal")
 public inline fun <reified S : Any, reified P : Any> session(
     name: String,
     configure: TypedSessionAuthConfig<S, P>.() -> Unit
-): SessionAuthScheme<S, P> {
+): SessionAuthenticationScheme<S, P> {
     val config = TypedSessionAuthConfig<S, P>().apply(configure)
-    return SessionAuthScheme.from(
+    return SessionAuthenticationScheme.from(
         name = name,
         sessionTypeInfo = typeInfo<S>(),
         principalType = P::class,
         config = config
     )
 }
-
-/**
- * Creates a typed Session authentication scheme where the stored session is also the route principal.
- *
- * Use the returned route context to read, update, or clear the authenticated [ApplicationCall.session] value without
- * calling `call.sessions` directly.
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.session)
- *
- * @param name name that identifies the Session authentication scheme.
- * @param configure configures Session authentication for this scheme.
- * @return a typed authentication scheme that produces principals of type [P].
- */
-@ExperimentalKtorApi
-public inline fun <reified P : Any> session(
-    name: String,
-    noinline configure: TypedSessionAuthConfig<P, P>.() -> Unit
-): SessionAuthScheme<P, P> = session<P, P>(name, configure)

@@ -14,7 +14,8 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 import io.ktor.server.util.*
-import io.ktor.util.reflect.*
+import io.ktor.util.reflect.TypeInfo
+import io.ktor.util.reflect.typeInfo
 import io.ktor.utils.io.*
 import kotlin.reflect.KClass
 
@@ -84,7 +85,7 @@ public abstract class OAuthFlowConfigBase internal constructor() {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.OAuthFlowConfigBase.loginUri)
      */
-    public var loginUri: (URLBuilder.() -> Unit)? = null
+    public var loginPath: String? = null
 
     /**
      * Handles OAuth 2.0 errors such as authorization errors and token exchange failures.
@@ -94,11 +95,6 @@ public abstract class OAuthFlowConfigBase internal constructor() {
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.OAuthFlowConfigBase.onUnauthorized)
      */
     public var onUnauthorized: UnauthorizedHandler = {}
-
-    internal fun resolveLoginUriPath(): String? {
-        val builder = loginUri ?: return null
-        return URLBuilder().apply(builder).encodedPath
-    }
 
     internal open fun validate(flowName: String) {
         require(client != null) {
@@ -123,7 +119,7 @@ public abstract class OAuthFlowConfigBase internal constructor() {
 
 internal typealias CallbackSuccessHandler = suspend RoutingContext.(OAuthAccessTokenResponse) -> Unit
 
-internal typealias SessionCallbackSuccessHandler<S, P> = suspend context(SessionContext<S, P>)
+internal typealias SessionCallbackSuccessHandler<S, P> = suspend context(SessionContext<S, P>, RequiredContext)
 RoutingContext.() -> Unit
 
 /**
@@ -173,6 +169,11 @@ public class OAuthFlowConfig internal constructor() : OAuthFlowConfigBase() {
 public class OAuthSessionFlowConfig<S : Any, P : Any> @PublishedApi internal constructor() : OAuthFlowConfigBase() {
     internal var callback: OAuthCallback.Session<S, P>? = null
 
+    /**
+     * Session configuration set by [sessions].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.OAuthSessionFlowConfig.sessionsConfig)
+     */
     public var sessionsConfig: OAuth2SessionsConfig<S, P>? = null
 
     /**
@@ -242,6 +243,7 @@ public open class OAuth2SessionsConfig<S : Any, P : Any> internal constructor() 
      */
     public var sessionCreator: (suspend RoutingContext.(OAuthAccessTokenResponse.OAuth2) -> S?)? = null
 
+    @OptIn(InternalAPI::class)
     internal open fun validate(flowName: String) {
         requireNotNull(sessionCreator) {
             "OAuth session flow '$flowName' requires sessionCreator in sessions { ... }"
@@ -254,24 +256,26 @@ public open class OAuth2SessionsConfig<S : Any, P : Any> internal constructor() 
 
 /**
  * Typed OAuth 2.0 authentication scheme that exposes [OAuthAccessTokenResponse.OAuth2].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.OAuthScheme)
  */
-@OptIn(ExperimentalKtorApi::class)
-public typealias OAuthScheme = DefaultAuthenticatedScheme<OAuthAccessTokenResponse.OAuth2>
+public typealias OAuthScheme = SimpleAuthenticationScheme<OAuthAccessTokenResponse.OAuth2>
 
 /**
  * Typed OAuth 2.0 authorization-code flow.
  *
- * Install callback and optional login routes with [io.ktor.server.routing.Route.install]. Use [oauth2SessionFlow]
+ * Install callback and optional login routes with [Route.install]. Use [oauth2Session]
  * to add session-backed route authentication.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.OAuthFlow)
  */
 @ExperimentalKtorApi
+@SubclassOptInRequired
 public open class OAuthFlow internal constructor(
     internal val name: String,
     internal val oauthScheme: OAuthScheme,
     internal val callback: OAuthCallback.Basic,
-    internal val loginUriPath: String?,
+    internal val loginPath: String?,
 ) {
     public companion object {
 
@@ -289,9 +293,8 @@ public open class OAuthFlow internal constructor(
         public fun from(name: String, config: OAuthFlowConfig): OAuthFlow {
             config.validate(name)
             val oauthScheme = createOauthScheme(name, config)
-            val loginUriPath = config.resolveLoginUriPath()
             val callback = checkNotNull(config.callback)
-            return OAuthFlow(name, oauthScheme, callback, loginUriPath)
+            return OAuthFlow(name, oauthScheme, callback, config.loginPath)
         }
     }
 }
@@ -306,12 +309,10 @@ private fun createOauthScheme(name: String, config: OAuthFlowConfigBase): OAuthS
     require(callback != null) {
         "OAuth flow '$name' requires a callback route. Set callback(\"/callback\") { ... }."
     }
-    return DefaultAuthScheme(
-        name = providerName,
-        principalType = OAuthAccessTokenResponse.OAuth2::class,
+    @OptIn(InternalAPI::class)
+    return AuthenticationScheme.from(
         provider = config.buildProvider(providerName, callback.path),
         onUnauthorized = null,
-        contextFactory = { it }
     )
 }
 
@@ -331,13 +332,16 @@ private fun createOauthScheme(name: String, config: OAuthFlowConfigBase): OAuthS
 public class OAuth2SessionFlow<S : Any, P : Any> internal constructor(
     internal val name: String,
     internal val oauthScheme: OAuthScheme,
-    public val sessions: SessionAuthScheme<S, P>,
+    public val sessions: SessionAuthenticationScheme<S, P>,
     config: OAuthSessionFlowConfig<S, P>,
 ) {
     internal val callback = checkNotNull(config.callback)
-    internal val loginUriPath: String? = config.resolveLoginUriPath()
     internal val sessionCreator = checkNotNull(config.sessionsConfig?.sessionCreator)
+
+    @OptIn(InternalAPI::class)
     internal val principalResolver = checkNotNull(config.sessionsConfig?.principalResolver)
+
+    internal val loginPath = config.loginPath
 
     public companion object {
         /**
@@ -347,7 +351,6 @@ public class OAuth2SessionFlow<S : Any, P : Any> internal constructor(
          *
          * @param name flow name used to derive authentication provider names.
          * @param config OAuth session flow configuration.
-         * @param sessionTypeInfo stored session type information.
          * @param principalType route principal type.
          * @return OAuth 2.0 flow with typed session authentication.
          */
@@ -355,8 +358,8 @@ public class OAuth2SessionFlow<S : Any, P : Any> internal constructor(
         public fun <S : Any, P : Any> from(
             name: String,
             config: OAuthSessionFlowConfig<S, P>,
-            sessionTypeInfo: TypeInfo,
             principalType: KClass<P>,
+            sessionTypeInfo: TypeInfo
         ): OAuth2SessionFlow<S, P> {
             config.validate(name)
             val oauthScheme = createOauthScheme(name, config)
@@ -365,7 +368,8 @@ public class OAuth2SessionFlow<S : Any, P : Any> internal constructor(
             }
             sessionsConfig.validate(name)
             val providerName = sessionsConfig.name ?: (name.uppercase() + "_SESSION")
-            val sessionScheme = SessionAuthScheme.from(providerName, sessionTypeInfo, principalType, sessionsConfig)
+            val sessionScheme =
+                SessionAuthenticationScheme.from(providerName, principalType, sessionTypeInfo, sessionsConfig)
             return OAuth2SessionFlow(name, oauthScheme, sessionScheme, config)
         }
     }
@@ -375,7 +379,7 @@ public class OAuth2SessionFlow<S : Any, P : Any> internal constructor(
  * Creates a typed OAuth 2.0 authorization-code flow.
  *
  * Configure the callback route with [OAuthFlowConfig.callback] and install the flow with
- * [io.ktor.server.routing.Route.install].
+ * [Route.install].
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.oauth2Flow)
  *
@@ -385,7 +389,7 @@ public class OAuth2SessionFlow<S : Any, P : Any> internal constructor(
  */
 @ExperimentalKtorApi
 @OptIn(InternalAPI::class)
-public fun oauth2Flow(name: String, configure: OAuthFlowConfig.() -> Unit): OAuthFlow =
+public fun oauth2(name: String, configure: OAuthFlowConfig.() -> Unit): OAuthFlow =
     OAuthFlow.from(name, OAuthFlowConfig().apply(configure))
 
 /**
@@ -399,17 +403,12 @@ public fun oauth2Flow(name: String, configure: OAuthFlowConfig.() -> Unit): OAut
  */
 @ExperimentalKtorApi
 @OptIn(InternalAPI::class)
-public inline fun <reified P : Any, reified S : Any> oauth2SessionFlow(
+public inline fun <reified P : Any, reified S : Any> oauth2Session(
     name: String,
     configure: OAuthSessionFlowConfig<S, P>.() -> Unit,
 ): OAuth2SessionFlow<S, P> {
     val config = OAuthSessionFlowConfig<S, P>().apply(configure)
-    return OAuth2SessionFlow.from(
-        name = name,
-        config = config,
-        principalType = P::class,
-        sessionTypeInfo = typeInfo<S>(),
-    )
+    return OAuth2SessionFlow.from(name, config, principalType = P::class, sessionTypeInfo = typeInfo<S>())
 }
 
 /**
@@ -425,7 +424,10 @@ public inline fun <reified P : Any, reified S : Any> oauth2SessionFlow(
 public fun Route.install(flow: OAuthFlow) {
     val scheme = flow.oauthScheme
     val route = installOAuthAuthRoute(scheme)
-    with(scheme.install(route, onUnauthorized = null)) {
+    val plugin = scheme.createPlugin(isOptional = false, onUnauthorized = null)
+    route.install(plugin)
+
+    context(flow.oauthScheme.createContext(), RequiredContext) {
         val callbackHandler: RoutingHandler = {
             val response = call.principal
             flow.callback.successHandler(this, response)
@@ -433,7 +435,7 @@ public fun Route.install(flow: OAuthFlow) {
         route.get(flow.callback.path, callbackHandler)
         route.post(flow.callback.path, callbackHandler)
     }
-    flow.loginUriPath?.let { loginPath ->
+    flow.loginPath?.let { loginPath ->
         route.installOAuthLoginRoute(scheme, loginPath)
     }
 }
@@ -445,37 +447,37 @@ public fun Route.install(flow: OAuthFlow) {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.install)
  *
- * @param flow OAuth 2.0 flow with typed session authentication.
+ * @param oauth OAuth 2.0 flow with typed session authentication.
  */
 @ExperimentalKtorApi
-public fun <S : Any, P : Any> Route.install(flow: OAuth2SessionFlow<S, P>) {
-    val route = installOAuthAuthRoute(flow.oauthScheme)
-    flow.sessions.installSessionsPlugin(route)
-    flow.oauthScheme.install(route, onUnauthorized = null)
+public fun <S : Any, P : Any> Route.install(oauth: OAuth2SessionFlow<S, P>) {
+    val route = installOAuthAuthRoute(oauth.oauthScheme)
+    install(oauth.sessions)
+    val plugin = oauth.oauthScheme.createPlugin(
+        isOptional = false,
+        onUnauthorized = null // keep default OAuth redirect
+    )
+    route.install(plugin)
 
-    val callback = flow.callback
+    val callback = oauth.callback
     val callbackHandler: RoutingHandler = callback@{
         try {
-            val token = call.attributes[flow.oauthScheme.principalKey]
-            val session = flow.sessionCreator(this, token) ?: run {
+            val token = call.attributes[oauth.oauthScheme.principalKey]
+            val session = oauth.sessionCreator(this, token) ?: run {
                 val error = AuthenticationFailedCause.Error("Failed to create OAuth session")
                 return@callback callback.failureHandler(this, error)
             }
 
-            val principal = flow.principalResolver(this, session) ?: run {
+            val principal = oauth.principalResolver(this, session) ?: run {
                 val error = AuthenticationFailedCause.Error("Failed to create OAuth principal")
                 return@callback callback.failureHandler(this, error)
             }
-            call.sessions.set(flow.sessions, session)
-            call.attributes.put(flow.sessions.sessionKey, session)
-            flow.sessions.capture(call, principal)
+            val sessionsScheme = oauth.sessions
+            sessionsScheme.setSession(session)
+            call.attributes.put(sessionsScheme.sessionKey, session)
+            call.attributes.put(sessionsScheme.principalKey, principal)
 
-            val sessionContext = SessionContext(
-                base = PrincipalContext(flow.sessions.principalKey),
-                sessionKey = flow.sessions.sessionKey,
-                sessionProviderName = flow.sessions.name
-            )
-            with(sessionContext) {
+            context(sessionsScheme.createContext(), RequiredContext) {
                 callback.successHandler(this@callback)
             }
         } catch (e: CancellationException) {
@@ -491,8 +493,8 @@ public fun <S : Any, P : Any> Route.install(flow: OAuth2SessionFlow<S, P>) {
     route.get(callback.path, callbackHandler)
     route.post(callback.path, callbackHandler)
 
-    flow.loginUriPath?.let { loginPath ->
-        route.installOAuthLoginRoute(scheme = flow.oauthScheme, path = loginPath)
+    oauth.loginPath?.let { loginPath ->
+        route.installOAuthLoginRoute(scheme = oauth.oauthScheme, path = loginPath)
     }
 }
 
@@ -516,14 +518,14 @@ public fun Application.install(flow: OAuthFlow) {
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.install)
  */
 @ExperimentalKtorApi
-public fun Application.install(flow: OAuth2SessionFlow<*, *>) {
-    routing { install(flow) }
+public fun Application.install(oauth: OAuth2SessionFlow<*, *>) {
+    routing { install(oauth) }
 }
 
 private fun Route.installOAuthAuthRoute(scheme: OAuthScheme): Route {
     val route = createChild(AuthenticationRouteSelector(listOf(scheme.name)))
     route.install(createOAuthBodyCachePlugin())
-    scheme.preinstall(route)
+    scheme.preinstallAt(route)
     return route
 }
 

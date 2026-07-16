@@ -12,7 +12,8 @@ import io.ktor.utils.io.*
  * Creates a typed Digest authentication scheme.
  *
  * The [validate][TypedDigestAuthConfig.validate] callback returns a principal of type [P]. Use the returned scheme
- * with [authenticateWith] to protect routes and access [ApplicationCall.principal] without casts.
+ * with [authenticateWith] to protect routes and access [io.ktor.server.application.ApplicationCall.principal]
+ * without casts.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.digest)
  *
@@ -24,7 +25,7 @@ import io.ktor.utils.io.*
 public inline fun <reified P : Any> digest(
     name: String,
     configure: TypedDigestAuthConfig<P>.() -> Unit
-): DefaultAuthScheme<P, PrincipalContext<P>> {
+): SimpleAuthenticationScheme<P> {
     val typedConfig = TypedDigestAuthConfig<P>().apply(configure)
-    return DefaultAuthScheme.withDefaultContext(name, typedConfig.buildProvider(name), typedConfig.onUnauthorized)
+    return AuthenticationScheme.from(typedConfig.buildProvider(name), typedConfig.onUnauthorized)
 }

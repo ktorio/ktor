@@ -6,32 +6,23 @@
 
 package io.ktor.tests.auth.typesafe
 
-import io.ktor.client.plugins.cookies.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.server.application.ApplicationCall
+import io.ktor.server.application.*
 import io.ktor.server.auth.typesafe.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.server.sessions.*
 import io.ktor.server.testing.*
 import io.ktor.utils.io.*
 import kotlinx.serialization.Serializable
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertContains
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 @Serializable
 data class UserSession(val username: String, val visits: Int = 0)
-
-private class EmailContext(
-    defaultContext: PrincipalContext<TestUser>
-) : AuthenticatedContext<TestUser> by defaultContext {
-    fun email(call: ApplicationCall): String = getPrincipal(call).email
-}
-
-context(routingCtx: RoutingContext, authCtx: EmailContext)
-private val email: String
-    get() = authCtx.email(routingCtx.call)
 
 class BasicSchemesTest {
 
@@ -92,57 +83,45 @@ class BasicSchemesTest {
         val second = bearer<TestUser>("duplicate-bearer") {
             validate { TestUser("second", "second@test.com") }
         }
-
         routing {
-            authenticateWith(first) {
-                get("/first") {
-                    call.respondText(call.principal.name)
-                }
-            }
-            authenticateWith(second) {
-                get("/second") {
-                    call.respondText(call.principal.name)
-                }
-            }
+            authenticateWith(first) {}
+            authenticateWith(second) {}
         }
-
         val failure = assertFailsWith<IllegalArgumentException> {
             startApplication()
         }
-
         assertContains(failure.message.orEmpty(), "already registered")
     }
 
     @Test
-    fun `same typed scheme instance can protect multiple route blocks`() = testApplication {
-        val scheme = bearer<TestUser>("reused-bearer") {
-            validate { TestUser("user", "user@test.com") }
+    fun `multiple schemes can protect multiple route blocks`() = testApplication {
+        data class AdminPrincipal(val level: Int)
+
+        val userScheme = basic<TestUser>("user-scheme") {
+            validate { TestUser(it.name, "${it.name}@test.com") }
+        }
+        val adminScheme = bearer<AdminPrincipal>("admin-scheme") {
+            validate { AdminPrincipal(42) }
         }
 
         routing {
-            authenticateWith(scheme) {
-                get("/first") {
-                    call.respondText(call.principal.name)
-                }
+            authenticateWith(userScheme) {
+                get("/user") { call.respondText(call.principal.email) }
             }
-            authenticateWith(scheme) {
-                get("/second") {
-                    call.respondText(call.principal.name)
-                }
+            authenticateWith(adminScheme) {
+                get("/admin") { call.respondText("level=${call.principal.level}") }
             }
         }
 
-        val first = client.get("/first") {
-            header(HttpHeaders.Authorization, bearerAuthHeader("anything"))
+        val userResp = client.get("/user") {
+            header(HttpHeaders.Authorization, basicAuthHeader("Alice"))
         }
-        assertEquals(HttpStatusCode.OK, first.status)
-        assertEquals("user", first.bodyAsText())
+        assertEquals("Alice@test.com", userResp.bodyAsText())
 
-        val second = client.get("/second") {
-            header(HttpHeaders.Authorization, bearerAuthHeader("anything"))
+        val adminResp = client.get("/admin") {
+            header(HttpHeaders.Authorization, bearerAuthHeader("token"))
         }
-        assertEquals(HttpStatusCode.OK, second.status)
-        assertEquals("user", second.bodyAsText())
+        assertEquals("level=42", adminResp.bodyAsText())
     }
 
     @Test
@@ -180,324 +159,15 @@ class BasicSchemesTest {
     }
 
     @Test
-    fun `session scheme authenticates and rejects`() = testApplication {
-        val sessionScheme = session<UserSession>("test-session") {
-            validate { session -> session }
-        }
-
-        install(Sessions) {
-            cookie(sessionScheme)
-        }
-
-        routing {
-            get("/set-session") {
-                call.sessions.set(sessionScheme, UserSession("Alice"))
-                call.respondText("ok")
-            }
-            authenticateWith(sessionScheme) {
-                get("/protected") {
-                    call.respondText(call.principal.username)
-                }
-            }
-        }
-
-        // Missing session → 401
-        assertEquals(HttpStatusCode.Unauthorized, client.get("/protected").status)
-
-        // With session → 200
-        val cookieClient = createClient { install(HttpCookies) }
-        cookieClient.get("/set-session")
-        val response = cookieClient.get("/protected")
-        assertEquals(HttpStatusCode.OK, response.status)
-        assertEquals("Alice", response.bodyAsText())
-    }
-
-    @Test
-    fun `session scheme exposes stored session and mapped principal`() = testApplication {
-        val sessionScheme =
-            session<UserSession, TestUser>("test-session-principal") {
-                validate { session ->
-                    TestUser(session.username, "${session.username}@test.com")
-                }
-            }
-
-        install(Sessions) {
-            cookie(sessionScheme)
-        }
-
-        routing {
-            get("/set-session") {
-                call.sessions.set(sessionScheme, UserSession("Alice", visits = 3))
-                call.respondText("ok")
-            }
-            authenticateWith(sessionScheme) {
-                get("/protected") {
-                    call.respondText("${call.session.username}:${call.session.visits}:${call.principal.email}")
-                }
-            }
-        }
-
-        val cookieClient = createClient { install(HttpCookies) }
-        cookieClient.get("/set-session")
-        val response = cookieClient.get("/protected")
-        assertEquals(HttpStatusCode.OK, response.status)
-        assertEquals("Alice:3:Alice@test.com", response.bodyAsText())
-    }
-
-    @Test
-    fun `session scheme updates and clears typed session`() = testApplication {
-        val sessionScheme = session<UserSession, TestUser>("test-session-update") {
-            validate { session -> TestUser(session.username, "${session.username}@test.com") }
-        }
-
-        install(Sessions) {
-            cookie(sessionScheme)
-        }
-
-        routing {
-            get("/set-session") {
-                call.sessions.set(sessionScheme, UserSession("Alice"))
-                call.respondText("ok")
-            }
-            authenticateWith(sessionScheme) {
-                get("/touch") {
-                    val updated = call.updateSession { current -> current.copy(visits = current.visits + 1) }
-                    call.respondText("${call.principal.name}:${updated.visits}:${call.session.visits}")
-                }
-                get("/rename") {
-                    call.session = call.session.copy(username = "bob")
-                    call.respondText("${call.principal.name}:${call.session.username}")
-                }
-                get("/logout") {
-                    call.clearSession()
-                    call.respondText("bye")
-                }
-            }
-        }
-
-        val cookieClient = createClient { install(HttpCookies) }
-        cookieClient.get("/set-session")
-
-        val firstTouch = cookieClient.get("/touch")
-        assertEquals(HttpStatusCode.OK, firstTouch.status)
-        assertEquals("Alice:1:1", firstTouch.bodyAsText())
-
-        val secondTouch = cookieClient.get("/touch")
-        assertEquals(HttpStatusCode.OK, secondTouch.status)
-        assertEquals("Alice:2:2", secondTouch.bodyAsText())
-
-        val rename = cookieClient.get("/rename")
-        assertEquals(HttpStatusCode.OK, rename.status)
-        assertEquals("Alice:bob", rename.bodyAsText())
-
-        val afterRename = cookieClient.get("/touch")
-        assertEquals(HttpStatusCode.OK, afterRename.status)
-        assertEquals("bob:3:3", afterRename.bodyAsText())
-
-        val logout = cookieClient.get("/logout")
-        assertEquals(HttpStatusCode.OK, logout.status)
-        assertEquals("bye", logout.bodyAsText())
-        assertEquals(HttpStatusCode.Unauthorized, cookieClient.get("/touch").status)
-    }
-
-    @Test
-    fun `session scheme transforms session before principal resolution`() = testApplication {
-        val sessionName = "test-session-transform"
-        val sessionScheme = session<UserSession, TestUser>(sessionName) {
-            transformSession { session -> session.copy(visits = session.visits + 1) }
-            validate { session -> TestUser(session.username, "${session.username}-${session.visits}@test.com") }
-        }
-
-        install(Sessions) {
-            cookie(sessionScheme)
-        }
-
-        routing {
-            get("/set-session") {
-                call.sessions.set(sessionScheme, UserSession("Alice"))
-                call.respondText("ok")
-            }
-
-            authenticateWith(sessionScheme) {
-                get("/protected") {
-                    call.respondText("${call.session.username}:${call.session.visits}:${call.principal.email}")
-                }
-            }
-        }
-
-        val cookieClient = createClient { install(HttpCookies) }
-        cookieClient.get("/set-session")
-
-        val first = cookieClient.get("/protected")
-        assertEquals(HttpStatusCode.OK, first.status)
-        assertEquals("Alice:1:Alice-1@test.com", first.bodyAsText())
-
-        val second = cookieClient.get("/protected")
-        assertEquals(HttpStatusCode.OK, second.status)
-        assertEquals("Alice:2:Alice-2@test.com", second.bodyAsText())
-    }
-
-    @Test
-    fun `session scheme requires Sessions to be installed before typed route`() = testApplication {
-        val sessionScheme = session<UserSession>("missing-session") {
-            validate { session -> session }
-        }
-
-        routing {
-            authenticateWith(sessionScheme) {
-                get("/protected") {
-                    call.respondText(call.principal.username)
-                }
-            }
-        }
-
-        val failure = assertFailsWith<IllegalStateException> {
-            startApplication()
-        }
-
-        assertContains(failure.message.orEmpty(), "requires Sessions to be installed before authenticateWith")
-    }
-
-    @Test
-    fun `session scheme requires matching Sessions provider before typed route`() = testApplication {
-        val sessionScheme = session<UserSession>("missing-session-provider") {
-            validate { session -> session }
-        }
-
-        install(Sessions) {
-            cookie<UserSession>("other-session")
-        }
-
-        routing {
-            authenticateWith(sessionScheme) {
-                get("/protected") {
-                    call.respondText(call.principal.username)
-                }
-            }
-        }
-
-        val failure = assertFailsWith<IllegalStateException> {
-            startApplication()
-        }
-
-        assertContains(
-            failure.message.orEmpty(),
-            "requires a Sessions provider named `missing-session-provider`"
-        )
-    }
-
-    @Test
-    fun `session scheme requires Sessions before optional typed route`() = testApplication {
-        val sessionScheme = session<UserSession>("missing-optional-session") {
-            validate { session -> session }
-        }
-
-        routing {
-            authenticateWith(sessionScheme.optional()) {
-                get("/protected") {
-                    call.respondText(call.principal?.username.orEmpty())
-                }
-            }
-        }
-
-        val failure = assertFailsWith<IllegalStateException> {
-            startApplication()
-        }
-
-        assertContains(failure.message.orEmpty(), "requires Sessions to be installed before authenticateWith")
-    }
-
-    @Test
-    fun `session scheme requires Sessions before role typed route`() = testApplication {
-        val sessionScheme = session<UserSession>("missing-role-session") {
-            validate { session -> session }
-        }.withRoles {
-            setOf(TestRole.User)
-        }
-
-        routing {
-            authenticateWith(sessionScheme, roles = setOf(TestRole.User)) {
-                get("/protected") {
-                    call.respondText(call.principal.username)
-                }
-            }
-        }
-
-        val failure = assertFailsWith<IllegalStateException> {
-            startApplication()
-        }
-
-        assertContains(failure.message.orEmpty(), "requires Sessions to be installed before authenticateWith")
-    }
-
-    @Test
-    fun `session scheme requires Sessions before any-of typed route`() = testApplication {
-        val sessionScheme = session<UserSession>("missing-any-of-session") {
-            validate { session -> session }
-        }
-
-        routing {
-            authenticateWithAnyOf<UserSession>(sessionScheme) {
-                get("/protected") {
-                    call.respondText(call.principal.username)
-                }
-            }
-        }
-
-        val failure = assertFailsWith<IllegalStateException> {
-            startApplication()
-        }
-
-        assertContains(failure.message.orEmpty(), "requires Sessions to be installed before authenticateWith")
-    }
-
-    @Test
-    fun `different principal types on different routes are auto-inferred`() = testApplication {
-        data class AdminPrincipal(val level: Int)
-
-        val userScheme = basic<TestUser>("user-scheme") {
-            validate { TestUser(it.name, "${it.name}@test.com") }
-        }
-        val adminScheme = bearer<AdminPrincipal>("admin-scheme") {
-            validate { AdminPrincipal(42) }
-        }
-
-        routing {
-            authenticateWith(userScheme) {
-                get("/user") { call.respondText(call.principal.email) }
-            }
-            authenticateWith(adminScheme) {
-                get("/admin") { call.respondText("level=${call.principal.level}") }
-            }
-        }
-
-        val userResp = client.get("/user") {
-            header(HttpHeaders.Authorization, basicAuthHeader("Alice"))
-        }
-        assertEquals("Alice@test.com", userResp.bodyAsText())
-
-        val adminResp = client.get("/admin") {
-            header(HttpHeaders.Authorization, bearerAuthHeader("token"))
-        }
-        assertEquals("level=42", adminResp.bodyAsText())
-    }
-
-    @Test
     fun `custom auth context is available in authenticated route`() = testApplication {
-        val config = TypedBasicAuthConfig<TestUser>().apply {
+        val scheme = basic<TestUser>("custom-context") {
             validate { credentials -> TestUser(credentials.name, "${credentials.name}@test.com") }
         }
-        val scheme = DefaultAuthScheme(
-            name = "custom-context",
-            principalType = TestUser::class,
-            provider = config.buildProvider("custom-context"),
-            onUnauthorized = null,
-        ) { contextConfig -> EmailContext(contextConfig) }
 
         routing {
             authenticateWith(scheme) {
                 get("/custom") {
-                    call.respondText("$email:${call.principal.name}")
+                    call.respondText("${call.principal.email}:${call.principal.name}")
                 }
             }
         }
