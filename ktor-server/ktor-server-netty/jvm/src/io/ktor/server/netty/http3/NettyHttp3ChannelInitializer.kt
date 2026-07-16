@@ -10,6 +10,7 @@ import io.netty.channel.ChannelInitializer
 import io.netty.channel.socket.DatagramChannel
 import io.netty.handler.codec.http3.Http3
 import io.netty.handler.codec.http3.Http3ServerConnectionHandler
+import io.netty.handler.codec.quic.QuicChannel
 import io.netty.handler.codec.quic.QuicSslContext
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.CoroutineContext
@@ -17,6 +18,9 @@ import kotlin.coroutines.CoroutineContext
 /**
  * A [ChannelInitializer] for QUIC/HTTP3 that configures the [DatagramChannel] pipeline
  * with the QUIC server codec and HTTP/3 connection handler.
+ *
+ * [Http3ServerConnectionHandler] is created per incoming [QuicChannel], since HTTP/3
+ * connection handlers are not sharable.
  */
 internal class NettyHttp3ChannelInitializer(
     private val applicationProvider: () -> Application,
@@ -46,7 +50,12 @@ internal class NettyHttp3ChannelInitializer(
             .initialMaxStreamDataBidirectionalRemote(http3Configuration.quicInitialMaxStreamDataBidirectionalRemote)
             .initialMaxStreamsBidirectional(http3Configuration.quicInitialMaxStreamsBidirectional)
             .apply(http3Configuration.configureQuicServerCodec)
-            .handler(Http3ServerConnectionHandler(streamInitializer))
+            // Http3ServerConnectionHandler is not sharable: one instance per connection
+            .handler(object : ChannelInitializer<QuicChannel>() {
+                override fun initChannel(ch: QuicChannel) {
+                    ch.pipeline().addLast(Http3ServerConnectionHandler(streamInitializer))
+                }
+            })
             .build()
 
         ch.pipeline().addLast(quicServerCodec)
