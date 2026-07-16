@@ -12,6 +12,7 @@ import io.ktor.http.*
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
 import io.ktor.server.application.*
+import io.ktor.server.http.*
 import io.ktor.server.netty.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -19,6 +20,7 @@ import io.ktor.server.test.base.*
 import io.ktor.server.testing.suites.*
 import io.ktor.server.websocket.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.InternalAPI
 import io.ktor.websocket.*
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
@@ -31,6 +33,7 @@ import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.milliseconds
 
 class NettyCompressionTest : CompressionTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
     init {
@@ -464,7 +467,7 @@ class NettyH2cFlushTest :
                     // Wait for SSE DATA on the wire — once we receive it, the SSE's
                     // writeAndFlush on the child channel is complete and respondWithBigBody
                     // is suspended in awaitContent(). No more flushes from SSE.
-                    withTimeout(5_000) {
+                    withTimeout(5_000.milliseconds) {
                         waitForDataOnStream(reader, SSE_STREAM_ID)
                     }
 
@@ -475,11 +478,87 @@ class NettyH2cFlushTest :
                     // Without the fix, this hangs: the regular response is written to the
                     // channel but never flushed because flushIfNeeded() checks
                     // activeRequests == 0, which is false (SSE stream is still active).
-                    val regularData = withTimeout(3_000) {
+                    val regularData = withTimeout(3_000.milliseconds) {
                         readResponseForStream(reader, REGULAR_STREAM_ID)
                     }
 
                     assertEquals("ok", regularData)
+                }
+            }
+        } finally {
+            server.stop()
+        }
+    }
+
+    @OptIn(InternalAPI::class)
+    @Test
+    fun testH2RstStreamDoesNotPoisonConnection() = runTest {
+        val requestReceived = CompletableDeferred<Unit>()
+        // Completed by HttpRequestCloseHandlerKey when stream 3's channel becomes inactive
+        val stream3ChannelClosed = CompletableDeferred<Unit>()
+
+        val server = createServer {
+            routing {
+                get("/slow") {
+                    // Register a close callback so we know when the channel is truly gone
+                    @OptIn(InternalAPI::class)
+                    call.attributes.put(HttpRequestCloseHandlerKey) {
+                        stream3ChannelClosed.complete(Unit)
+                    }
+                    requestReceived.complete(Unit)
+                    // Suspend until the channel is closed (by the client's RST_STREAM), then attempt
+                    // to respond — this exercises the failure path in respondWithFailure.
+                    stream3ChannelClosed.await()
+                    runCatching { call.respondText("slow ok") }
+                }
+                get("/data") {
+                    call.respondText("data ok")
+                }
+            }
+        }
+        server.start(wait = false)
+
+        try {
+            SelectorManager().use { selector ->
+                aSocket(selector).tcp().connect("127.0.0.1", port).use { socket ->
+                    val writer = socket.openWriteChannel()
+                    val reader = socket.openReadChannel()
+
+                    writer.writeStringUtf8("PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n")
+                    writer.flush()
+                    writer.writeFully(h2Frame(null, Http2FrameTypes.SETTINGS, Http2Flags(), 0))
+                    writer.flush()
+
+                    val serverSettings = reader.readH2Frame()
+                    assertEquals(Http2FrameTypes.SETTINGS, serverSettings.frameType)
+                    val serverAck = reader.readH2Frame()
+                    assertEquals(Http2FrameTypes.SETTINGS, serverAck.frameType)
+                    assertTrue(serverAck.flags.ack())
+
+                    writer.writeFully(h2Frame(null, Http2FrameTypes.SETTINGS, Http2Flags().ack(true), 0))
+                    writer.flush()
+
+                    // Phase 1: send /slow, wait for the server to receive it, then cancel with RST_STREAM
+                    writer.writeFully(h2HeadersFrame("/slow", 3))
+                    writer.flush()
+                    withTimeout(5_000.milliseconds) { requestReceived.await() }
+
+                    val rstPayload = Unpooled.buffer(4)
+                    rstPayload.writeInt(Http2Error.CANCEL.code().toInt())
+                    writer.writeFully(h2Frame(rstPayload, Http2FrameTypes.RST_STREAM, Http2Flags(), 3))
+                    writer.flush()
+
+                    // Wait until stream 3's channel is fully closed server-side; at this point
+                    // the server handler resumes and will call respondWithFailure, decrementing
+                    // activeRequests back to zero.
+                    withTimeout(5_000.milliseconds) { stream3ChannelClosed.await() }
+
+                    // Phase 2: same connection must still work after the cancelled stream
+                    writer.writeFully(h2HeadersFrame("/data", 5))
+                    writer.flush()
+
+                    val body = withTimeout(3_000.milliseconds) { readResponseForStream(reader, 5) }
+                    assertEquals("data ok", body)
                 }
             }
         } finally {
