@@ -83,7 +83,7 @@ private fun Class<*>.findURLClassPathField(): Field? {
 }
 
 /**
- * This is auxillary classloader that is not used for loading classes. The purpose is just
+ * This is auxiliary classloader that is not used for loading classes. The purpose is just
  * to get access to [getPackages] function that is unfortunately protected.
  */
 private class ClassLoaderDelegate(delegate: ClassLoader) : ClassLoader(delegate) {
