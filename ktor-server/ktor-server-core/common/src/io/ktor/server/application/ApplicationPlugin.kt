@@ -246,7 +246,7 @@ public fun <P : RoutingNode, B : Any, F : Any> P.install(
  */
 @Deprecated(
     "This method is misleading and will be removed. " +
-        "If you have use case that requires this functionaity, please add it in KTOR-2696",
+        "If you have use case that requires this functionality, please add it in KTOR-2696",
     level = DeprecationLevel.ERROR
 )
 public fun <A : Pipeline<*, PipelineCall>> A.uninstallAllPlugins() {
@@ -264,7 +264,7 @@ public fun <A : Pipeline<*, PipelineCall>> A.uninstallAllPlugins() {
 @Suppress("DEPRECATION_ERROR")
 @Deprecated(
     "This method is misleading and will be removed. " +
-        "If you have use case that requires this functionaity, please add it in KTOR-2696",
+        "If you have use case that requires this functionality, please add it in KTOR-2696",
     level = DeprecationLevel.ERROR
 )
 public fun <A : Pipeline<*, PipelineCall>, B : Any, F : Any> A.uninstall(
