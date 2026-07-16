@@ -132,9 +132,10 @@ internal fun URLBuilder.takeFromUnsafe(urlString: String): URLBuilder {
 
         encodedPathSegments = basePath + relativePath
         startIndex = pathEnd
-    } else if (slashCount == 1 || (slashCount == 0 && encodedPathSegments.isEmpty())) {
+    } else if (slashCount == 0 && encodedPathSegments.isEmpty() && urlString[startIndex] == '?') {
+        // Query-only references without a base path target the root resource.
         encodedPathSegments = ROOT_PATH
-    } else if (slashCount > 1) {
+    } else if (slashCount > 0) {
         encodedPathSegments = emptyList()
     }
 

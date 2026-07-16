@@ -55,12 +55,22 @@ internal class URLParserTest {
     }
 
     @Test
-    fun `parse query when relative URL has no path`() {
-        val url = URLBuilder("?key1=value1&key2=value2")
+    fun `normalize query-only URL without base path to root`() {
+        val url = URLBuilder("http://localhost").takeFrom("?key1=value1&key2=value2")
 
         assertEquals("/", url.encodedPath)
         assertEquals("value1", url.parameters["key1"])
         assertEquals("value2", url.parameters["key2"])
+        assertEquals("http://localhost/?key1=value1&key2=value2", url.toString())
+    }
+
+    @Test
+    fun `preserve empty encoded path for root-relative query`() {
+        val url = URLBuilder("http://localhost/root").takeFrom("/?key=value")
+
+        assertEquals("", url.encodedPath)
+        assertEquals("value", url.parameters["key"])
+        assertEquals("http://localhost?key=value", url.toString())
     }
 
     @Test
