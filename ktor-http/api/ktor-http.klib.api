@@ -1012,6 +1012,8 @@ final class io.ktor.http/HttpStatusCode : kotlin/Comparable<io.ktor.http/HttpSta
             final fun <get-PermanentRedirect>(): io.ktor.http/HttpStatusCode // io.ktor.http/HttpStatusCode.Companion.PermanentRedirect.<get-PermanentRedirect>|<get-PermanentRedirect>(){}[0]
         final val PreconditionFailed // io.ktor.http/HttpStatusCode.Companion.PreconditionFailed|{}PreconditionFailed[0]
             final fun <get-PreconditionFailed>(): io.ktor.http/HttpStatusCode // io.ktor.http/HttpStatusCode.Companion.PreconditionFailed.<get-PreconditionFailed>|<get-PreconditionFailed>(){}[0]
+        final val PreconditionRequired // io.ktor.http/HttpStatusCode.Companion.PreconditionRequired|{}PreconditionRequired[0]
+            final fun <get-PreconditionRequired>(): io.ktor.http/HttpStatusCode // io.ktor.http/HttpStatusCode.Companion.PreconditionRequired.<get-PreconditionRequired>|<get-PreconditionRequired>(){}[0]
         final val Processing // io.ktor.http/HttpStatusCode.Companion.Processing|{}Processing[0]
             final fun <get-Processing>(): io.ktor.http/HttpStatusCode // io.ktor.http/HttpStatusCode.Companion.Processing.<get-Processing>|<get-Processing>(){}[0]
         final val ProxyAuthenticationRequired // io.ktor.http/HttpStatusCode.Companion.ProxyAuthenticationRequired|{}ProxyAuthenticationRequired[0]
