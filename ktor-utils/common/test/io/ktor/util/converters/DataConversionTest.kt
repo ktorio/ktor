@@ -76,7 +76,7 @@ class DataConversionTest {
     @OptIn(ExperimentalUuidApi::class)
     @Test
     fun testDefaultConversionUuid() {
-        val id = Uuid.random()
+        val id = Uuid.parse("a1b2c3d4-e5f6-7890-abcd-ef1234567890")
         val converted = DefaultConversionService.fromValues(listOf(id.toString()), typeInfo<Uuid>())
         assertEquals(id, converted)
 
