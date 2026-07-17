@@ -57,6 +57,7 @@ class SwaggerTest {
                     url: '/swagger/documentation.yaml',
                     dom_id: '#swagger-ui',
                     deepLinking: false,
+                    oauth2RedirectUrl: window.location.origin + '/swagger/oauth2-redirect.html',
                     presets: [
                         SwaggerUIBundle.presets.apis,
                         SwaggerUIStandalonePreset
@@ -99,6 +100,7 @@ class SwaggerTest {
                     url: '/swagger/documentation.yaml',
                     dom_id: '#swagger-ui',
                     deepLinking: true,
+                    oauth2RedirectUrl: window.location.origin + '/swagger/oauth2-redirect.html',
                     presets: [
                         SwaggerUIBundle.presets.apis,
                         SwaggerUIStandalonePreset
@@ -141,6 +143,7 @@ class SwaggerTest {
                     url: '/swagger/documentation.yaml',
                     dom_id: '#swagger-ui',
                     deepLinking: false,
+                    oauth2RedirectUrl: window.location.origin + '/swagger/oauth2-redirect.html',
                     presets: [
                         SwaggerUIBundle.presets.apis,
                         SwaggerUIStandalonePreset
@@ -184,6 +187,7 @@ class SwaggerTest {
                     url: '/swagger/documentation.yaml',
                     dom_id: '#swagger-ui',
                     deepLinking: false,
+                    oauth2RedirectUrl: window.location.origin + '/swagger/oauth2-redirect.html',
                     presets: [
                         SwaggerUIBundle.presets.apis,
                         SwaggerUIStandalonePreset
@@ -240,6 +244,7 @@ class SwaggerTest {
                     url: '/swagger/documentation.yaml',
                     dom_id: '#swagger-ui',
                     deepLinking: false,
+                    oauth2RedirectUrl: window.location.origin + '/swagger/oauth2-redirect.html',
                     presets: [
                         SwaggerUIBundle.presets.apis,
                         SwaggerUIStandalonePreset
@@ -320,6 +325,37 @@ class SwaggerTest {
                 assertContains(responseText, description, message = "Response should contain '$description'")
             }
         }
+    }
+
+    @Test
+    fun testSwaggerServesOauthRedirectPage() = testApplication {
+        routing {
+            swaggerUI("swagger")
+        }
+
+        val response = client.get("/swagger/oauth2-redirect.html").bodyAsText()
+        assertEquals(
+            """<!DOCTYPE html>
+<html>
+  <body>
+    <script src="https://unpkg.com/swagger-ui-dist@5.31.0/oauth2-redirect.js"></script>
+  </body>
+</html>
+""",
+            response
+        )
+    }
+
+    @Test
+    fun testSwaggerCustomOauth2RedirectUrl() = testApplication {
+        routing {
+            swaggerUI("swagger") {
+                oauth2RedirectUrl = "https://api.example.com/custom/oauth2-redirect.html"
+            }
+        }
+
+        val response = client.get("/swagger").bodyAsText()
+        assertContains(response, "oauth2RedirectUrl: 'https://api.example.com/custom/oauth2-redirect.html'")
     }
 }
 

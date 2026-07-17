@@ -72,6 +72,17 @@ public class SwaggerConfig private constructor(
     public var deepLinking: Boolean = false
 
     /**
+     * OAuth2 redirect URL passed to Swagger UI as `oauth2RedirectUrl`.
+     *
+     * When `null` (default), Swagger UI uses `window.location.origin + "{swaggerPath}/oauth2-redirect.html"`.
+     *
+     * Set an absolute URL when running behind a reverse proxy or using a custom redirect path.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.swagger.SwaggerConfig.oauth2RedirectUrl)
+     */
+    public var oauth2RedirectUrl: String? = null
+
+    /**
      * Swagger favicon location
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.swagger.SwaggerConfig.faviconLocation)

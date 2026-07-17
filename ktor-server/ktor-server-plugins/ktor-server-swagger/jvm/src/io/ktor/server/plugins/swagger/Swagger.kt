@@ -109,8 +109,18 @@ public fun Route.swaggerUI(
             call.respondText(doc.content, doc.contentType)
         }.hide()
 
+        get("oauth2-redirect.html") {
+            call.respondHtml {
+                body {
+                    script(src = "${config.packageLocation}@${config.version}/oauth2-redirect.js") {}
+                }
+            }
+        }.hide()
+
         get {
             val fullPath = call.request.path()
+            val oauth2RedirectUrlJs = config.oauth2RedirectUrl?.let { "'$it'" }
+                ?: "window.location.origin + '$fullPath/oauth2-redirect.html'"
             val docExpansion = runCatching {
                 call.request.queryParameters.getOrFail<String>("docExpansion")
             }.getOrNull()?.takeIf {
@@ -152,6 +162,7 @@ window.onload = function() {
         url: '$fullPath/$apiUrl',
         dom_id: '#swagger-ui',
         deepLinking: ${config.deepLinking},
+        oauth2RedirectUrl: $oauth2RedirectUrlJs,
         presets: [
             SwaggerUIBundle.presets.apis,
             SwaggerUIStandalonePreset
