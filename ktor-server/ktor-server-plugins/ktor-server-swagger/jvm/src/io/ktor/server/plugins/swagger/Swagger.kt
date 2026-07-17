@@ -5,7 +5,6 @@
 package io.ktor.server.plugins.swagger
 
 import io.ktor.http.*
-import io.ktor.server.application.*
 import io.ktor.server.html.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -84,88 +83,14 @@ public fun Route.swaggerUI(
                     title { +"Swagger UI: OAuth2 Redirect" }
                 }
                 body {
-                    script {
-                        unsafe {
-                            +"""
-'use strict';
-(function () {
-    function run () {
-        var oauth2 = window.opener.swaggerUIRedirectOauth2;
-        var sentState = oauth2.state;
-        var redirectUrl = oauth2.redirectUrl;
-        var isValid, qp, arr;
-
-        if (/code|token|error/.test(window.location.hash)) {
-            qp = window.location.hash.substring(1).replace('?', '&');
-        } else {
-            qp = location.search.substring(1);
-        }
-
-        arr = qp.split("&")
-        arr.forEach(function (v,i,_arr) { _arr[i] = '"' + v.replace('=', '":"') + '"';})
-        qp = qp ? JSON.parse('{' + arr.join() + '}',
-                function (key, value) {
-                    return key === "" ? value : decodeURIComponent(value)
-                }
-        ) : {}
-
-        isValid = qp.state === sentState
-
-        if ((
-          oauth2.auth.schema.get("flow") === "accessCode" ||
-          oauth2.auth.schema.get("flow") === "authorizationCode" ||
-          oauth2.auth.schema.get("flow") === "authorization_code"
-        ) && !oauth2.auth.code) {
-            if (!isValid) {
-                oauth2.errCb({
-                    authId: oauth2.auth.name,
-                    source: "auth",
-                    level: "warning",
-                    message: "Authorization may be unsafe, passed state was changed in server Passed state wasn't returned from auth server"
-                });
-            }
-
-            if (qp.code) {
-                delete oauth2.state;
-                oauth2.auth.code = qp.code;
-                oauth2.callback({auth: oauth2.auth, redirectUrl: redirectUrl});
-            } else {
-                let oauthErrorMsg
-                if (qp.error) {
-                    oauthErrorMsg = "["+qp.error+"]: " +
-                        (qp.error_description ? qp.error_description+ ". " : "no accessCode received from the server. ") +
-                        (qp.error_uri ? "More info: "+qp.error_uri : "");
-                }
-
-                oauth2.errCb({
-                    authId: oauth2.auth.name,
-                    source: "auth",
-                    level: "error",
-                    message: oauthErrorMsg || "[Authorization failed]: no accessCode received from the server"
-                });
-            }
-        } else {
-            oauth2.callback({auth: oauth2.auth, token: qp, isValid: isValid, redirectUrl: redirectUrl});
-        }
-        window.close();
-    }
-
-    if( document.readyState !== 'loading' ) {
-      run();
-    } else {
-      document.addEventListener('DOMContentLoaded', function () {
-        run();
-      });
-    }
-})();
-                            """.trimIndent()
-                        }
-                    }
+                    script(src = "${config.packageLocation}@${config.version}/oauth2-redirect.js") {}
                 }
             }
         }
         get {
             val fullPath = call.request.path()
+            val oauth2RedirectUrlJs = config.oauth2RedirectUrl?.let { "'$it'" }
+                ?: "window.location.origin + '$fullPath/oauth2-redirect.html'"
             val docExpansion = runCatching {
                 call.request.queryParameters.getOrFail<String>("docExpansion")
             }.getOrNull()
@@ -204,7 +129,7 @@ window.onload = function() {
         url: '$fullPath/$apiUrl',
         dom_id: '#swagger-ui',
         deepLinking: ${config.deepLinking},
-        oauth2RedirectUrl: window.location.origin + '$fullPath/oauth2-redirect.html',
+        oauth2RedirectUrl: $oauth2RedirectUrlJs,
         presets: [
             SwaggerUIBundle.presets.apis,
             SwaggerUIStandalonePreset
