@@ -18,7 +18,7 @@ import kotlin.time.Duration.Companion.seconds
 class RateLimitIntegrationTest {
 
     @Test
-    fun rateLimitRunsBeforeMockAuthWhenRateLimitWrapsAuthenticate() = testApplication {
+    fun `rate limit runs before authentication when rate limit wraps authenticate`() = testApplication {
         install(RateLimit) {
             register(RateLimitName("block-all")) {
                 rateLimiter(limit = 0, refillPeriod = 1.seconds)
@@ -44,7 +44,7 @@ class RateLimitIntegrationTest {
     }
 
     @Test
-    fun rateLimitRunsAfterMockAuthWhenAuthenticateWrapsRateLimit() = testApplication {
+    fun `rate limit runs after authentication when authenticate wraps rate limit`() = testApplication {
         install(RateLimit) {
             register(RateLimitName("block-all")) {
                 rateLimiter(limit = 0, refillPeriod = 1.seconds)
@@ -70,7 +70,7 @@ class RateLimitIntegrationTest {
     }
 
     @Test
-    fun rateLimitUsesPrincipalWhenAuthenticateWrapsRateLimit() = testApplication {
+    fun `rate limit uses principal when authenticate wraps rate limit`() = testApplication {
         install(RateLimit) {
             register(RateLimitName("MyRateLimit")) {
                 rateLimiter(limit = 10, refillPeriod = 1.seconds)
@@ -103,7 +103,7 @@ class RateLimitIntegrationTest {
     }
 
     @Test
-    fun rateLimitRunsBeforeAuthWhenRateLimitWrapsAuthenticate() = testApplication {
+    fun `rate limit runs before auth when rate limit wraps authenticate`() = testApplication {
         install(RateLimit) {
             register(RateLimitName("block-all")) {
                 rateLimiter(limit = 0, refillPeriod = 1.seconds)
