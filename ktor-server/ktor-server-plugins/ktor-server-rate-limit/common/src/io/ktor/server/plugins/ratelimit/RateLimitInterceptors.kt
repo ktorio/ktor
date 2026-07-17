@@ -11,10 +11,12 @@ import io.ktor.server.response.*
 import io.ktor.util.collections.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.*
+import kotlin.time.Duration.Companion.milliseconds
 
-private object GuardsPhase : Hook<suspend (ApplicationCall) -> Unit> {
+private object ValidatorsPhase : Hook<suspend (ApplicationCall) -> Unit> {
     override fun install(pipeline: ApplicationCallPipeline, handler: suspend (ApplicationCall) -> Unit) {
-        pipeline.intercept(ApplicationCallPipeline.Guards) { handler(call) }
+        @Suppress("INVISIBLE_REFERENCE")
+        pipeline.intercept(ApplicationCallPipeline.Validators) { handler(call) }
     }
 }
 
@@ -28,7 +30,7 @@ internal val RateLimitInterceptors = createRouteScopedPlugin(
     "RateLimitInterceptors",
     ::RateLimitInterceptorsConfig,
 ) {
-    rateLimiterPluginBuilder(GuardsPhase)
+    rateLimiterPluginBuilder(ValidatorsPhase)
 }
 internal val RateLimitApplicationInterceptors = createApplicationPlugin(
     "RateLimitApplicationInterceptors",
@@ -80,7 +82,8 @@ private fun PluginBuilder<RateLimitInterceptorsConfig>.rateLimiterPluginBuilder(
                     if (rateLimiterForCall != RateLimiter.Unlimited) {
                         clearOnRefillJobs[providerKey]?.cancel()
                         clearOnRefillJobs[providerKey] = application.launch {
-                            delay(state.refillAtTimeMillis - getTimeMillis())
+                            val duration = state.refillAtTimeMillis - getTimeMillis()
+                            delay(duration.milliseconds)
                             registry.remove(providerKey, rateLimiterForCall)
                             clearOnRefillJobs.remove(providerKey)
                         }

@@ -24,7 +24,8 @@ internal object AuthenticationHook : Hook<suspend (ApplicationCall) -> Unit> {
         pipeline: ApplicationCallPipeline,
         handler: suspend (ApplicationCall) -> Unit
     ) {
-        pipeline.intercept(ApplicationCallPipeline.Guards) { handler(call) }
+        @Suppress("INVISIBLE_REFERENCE")
+        pipeline.intercept(ApplicationCallPipeline.Validators) { handler(call) }
     }
 }
 
@@ -42,7 +43,8 @@ public object AuthenticationChecked : Hook<suspend (ApplicationCall) -> Unit> {
         pipeline: ApplicationCallPipeline,
         handler: suspend (ApplicationCall) -> Unit
     ) {
-        pipeline.insertPhaseAfter(ApplicationCallPipeline.Guards, AfterAuthenticationPhase)
+        @Suppress("INVISIBLE_REFERENCE")
+        pipeline.insertPhaseAfter(ApplicationCallPipeline.Validators, AfterAuthenticationPhase)
         pipeline.intercept(AfterAuthenticationPhase) { handler(call) }
     }
 }
@@ -77,7 +79,7 @@ public val AuthenticationInterceptors: RouteScopedPlugin<RouteAuthenticationConf
         if (call.attributes.contains(cacheOAuthFormReceiveKey) && call.receiveType == typeInfo<Parameters>()) {
             if (body is ByteReadChannel) {
                 try {
-                    val array = body.readRemaining().readByteArray()
+                    val array = body.readBuffer.readByteArray()
                     call.attributes.put(formCacheKey, array)
                     newBody = ByteReadChannel(array)
                 } finally {

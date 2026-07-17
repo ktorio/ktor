@@ -105,24 +105,24 @@ public abstract class PluginBuilder<PluginConfig : Any> internal constructor(
     }
 
     /**
-     * Specifies the [block] handler for every incoming [PipelineCall] in the [ApplicationCallPipeline.Guards] phase.
+     * Specifies the [block] handler for every incoming [PipelineCall] in the [ApplicationCallPipeline.Validators] phase.
      *
-     * Use this for route-scoped guard plugins such as authentication, rate limiting, CORS, and request body limits.
+     * Use this for route-scoped validator plugins such as authentication, rate limiting, CORS, and request body limits.
      * Interceptors registered in this phase on parent routes run before interceptors registered on child routes,
-     * so the relative order of guards follows route nesting.
+     * so the relative order of validators follows route nesting.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.PluginBuilder.onCallGuards)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.PluginBuilder.onCallValidators)
      *
      * @see [createRouteScopedPlugin]
      *
      * @param block An action that needs to be executed when your application receives an HTTP call.
      */
-    public fun onCallGuards(block: suspend OnCallContext<PluginConfig>.(call: PipelineCall) -> Unit) {
+    internal fun onCallValidators(block: suspend OnCallContext<PluginConfig>.(call: PipelineCall) -> Unit) {
         onDefaultPhase(
             callInterceptions,
-            ApplicationCallPipeline.Guards,
-            PHASE_ON_CALL_GUARDS,
-            ::OnCallContext
+            phase = ApplicationCallPipeline.Validators,
+            handlerName = PHASE_ON_CALL_VALIDATORS,
+            contextInit = ::OnCallContext
         ) { call, _ ->
             block(call)
         }
