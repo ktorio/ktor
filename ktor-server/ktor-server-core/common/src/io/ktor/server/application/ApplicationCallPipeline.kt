@@ -21,6 +21,7 @@ public open class ApplicationCallPipeline public constructor(
     Setup,
     Monitoring,
     Plugins,
+    Guards,
     Call,
     Fallback
 ) {
@@ -64,6 +65,15 @@ public open class ApplicationCallPipeline public constructor(
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ApplicationCallPipeline.ApplicationPhase.Plugins)
          */
         public val Plugins: PipelinePhase = PipelinePhase("Plugins")
+
+        /**
+         * Phase for route-scoped guard plugins such as authentication, rate limiting, CORS, and request body limits.
+         * Interceptors registered in this phase on parent routes run before interceptors
+         * registered on child routes, so the relative order of guards follows route nesting.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ApplicationCallPipeline.ApplicationPhase.Guards)
+         */
+        public val Guards: PipelinePhase = PipelinePhase("Guards")
 
         /**
          * Phase for processing a call and sending a response

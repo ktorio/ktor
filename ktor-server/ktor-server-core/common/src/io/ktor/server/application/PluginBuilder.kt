@@ -105,6 +105,30 @@ public abstract class PluginBuilder<PluginConfig : Any> internal constructor(
     }
 
     /**
+     * Specifies the [block] handler for every incoming [PipelineCall] in the [ApplicationCallPipeline.Guards] phase.
+     *
+     * Use this for route-scoped guard plugins such as authentication, rate limiting, CORS, and request body limits.
+     * Interceptors registered in this phase on parent routes run before interceptors registered on child routes,
+     * so the relative order of guards follows route nesting.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.PluginBuilder.onCallGuards)
+     *
+     * @see [createRouteScopedPlugin]
+     *
+     * @param block An action that needs to be executed when your application receives an HTTP call.
+     */
+    public fun onCallGuards(block: suspend OnCallContext<PluginConfig>.(call: PipelineCall) -> Unit) {
+        onDefaultPhase(
+            callInterceptions,
+            ApplicationCallPipeline.Guards,
+            PHASE_ON_CALL_GUARDS,
+            ::OnCallContext
+        ) { call, _ ->
+            block(call)
+        }
+    }
+
+    /**
      * Specifies the [block] handler that allows you to obtain and transform data received from the client.
      * This [block] is invoked for every attempt to receive the request body.
      *

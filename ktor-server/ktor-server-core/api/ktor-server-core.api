@@ -33,6 +33,7 @@ public final class io/ktor/server/application/ApplicationCallPipeline$Applicatio
 	public final fun getCall ()Lio/ktor/util/pipeline/PipelinePhase;
 	public final fun getFallback ()Lio/ktor/util/pipeline/PipelinePhase;
 	public final fun getFeatures ()Lio/ktor/util/pipeline/PipelinePhase;
+	public final fun getGuards ()Lio/ktor/util/pipeline/PipelinePhase;
 	public final fun getMonitoring ()Lio/ktor/util/pipeline/PipelinePhase;
 	public final fun getPlugins ()Lio/ktor/util/pipeline/PipelinePhase;
 	public final fun getSetup ()Lio/ktor/util/pipeline/PipelinePhase;
@@ -194,6 +195,7 @@ public abstract class io/ktor/server/application/PluginBuilder {
 	public abstract fun getPluginConfig ()Ljava/lang/Object;
 	public final fun on (Lio/ktor/server/application/Hook;Ljava/lang/Object;)V
 	public final fun onCall (Lkotlin/jvm/functions/Function3;)V
+	public final fun onCallGuards (Lkotlin/jvm/functions/Function3;)V
 	public final fun onCallReceive (Lkotlin/jvm/functions/Function3;)V
 	public final fun onCallReceive (Lkotlin/jvm/functions/Function4;)V
 	public final fun onCallRespond (Lkotlin/jvm/functions/Function3;)V

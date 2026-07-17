@@ -42,7 +42,7 @@ public val RequestBodyLimit: RouteScopedPlugin<RequestBodyLimitConfig> = createR
 
     val bodyLimit = pluginConfig.bodyLimit
 
-    onCall { call ->
+    onCallGuards { call ->
         val limit = bodyLimit(call)
         val contentLength = call.request.contentLength()
         if (contentLength != null && contentLength > limit) {

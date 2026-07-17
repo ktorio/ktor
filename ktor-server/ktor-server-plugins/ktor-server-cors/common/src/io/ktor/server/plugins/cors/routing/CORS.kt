@@ -29,7 +29,7 @@ import io.ktor.server.routing.options
  */
 public val CORS: RouteScopedPlugin<CORSConfig> = createRouteScopedPlugin("CORS", ::CORSConfig) {
     route?.options("{cors-options-wildcard...}") {
-        // Handled by an interceptor of the Call phase added in the plugin
+        // Handled by an interceptor of the Guards phase added in the plugin
     }
 
     buildPlugin()

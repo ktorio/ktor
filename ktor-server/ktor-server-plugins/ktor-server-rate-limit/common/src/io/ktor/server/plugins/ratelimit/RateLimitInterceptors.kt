@@ -12,6 +12,12 @@ import io.ktor.util.collections.*
 import io.ktor.util.date.*
 import kotlinx.coroutines.*
 
+private object GuardsPhase : Hook<suspend (ApplicationCall) -> Unit> {
+    override fun install(pipeline: ApplicationCallPipeline, handler: suspend (ApplicationCall) -> Unit) {
+        pipeline.intercept(ApplicationCallPipeline.Guards) { handler(call) }
+    }
+}
+
 private object PluginsPhase : Hook<suspend (ApplicationCall) -> Unit> {
     override fun install(pipeline: ApplicationCallPipeline, handler: suspend (ApplicationCall) -> Unit) {
         pipeline.intercept(ApplicationCallPipeline.Plugins) { handler(call) }
@@ -21,15 +27,19 @@ private object PluginsPhase : Hook<suspend (ApplicationCall) -> Unit> {
 internal val RateLimitInterceptors = createRouteScopedPlugin(
     "RateLimitInterceptors",
     ::RateLimitInterceptorsConfig,
-    PluginBuilder<RateLimitInterceptorsConfig>::rateLimiterPluginBuilder
-)
+) {
+    rateLimiterPluginBuilder(GuardsPhase)
+}
 internal val RateLimitApplicationInterceptors = createApplicationPlugin(
     "RateLimitApplicationInterceptors",
     ::RateLimitInterceptorsConfig,
-    PluginBuilder<RateLimitInterceptorsConfig>::rateLimiterPluginBuilder
-)
+) {
+    rateLimiterPluginBuilder(PluginsPhase)
+}
 
-private fun PluginBuilder<RateLimitInterceptorsConfig>.rateLimiterPluginBuilder() {
+private fun PluginBuilder<RateLimitInterceptorsConfig>.rateLimiterPluginBuilder(
+    hook: Hook<suspend (ApplicationCall) -> Unit>,
+) {
     val configs = application.attributes.getOrNull(RateLimiterConfigsRegistryKey) ?: emptyMap()
     val providers = pluginConfig.providerNames.map { name ->
         configs[name] ?: throw IllegalStateException(
@@ -40,7 +50,7 @@ private fun PluginBuilder<RateLimitInterceptorsConfig>.rateLimiterPluginBuilder(
     val registry = application.attributes.computeIfAbsent(RateLimiterInstancesRegistryKey) { ConcurrentMap() }
     val clearOnRefillJobs = ConcurrentMap<ProviderKey, Job>()
 
-    on(PluginsPhase) { call ->
+    on(hook) { call ->
         providers.forEach { provider ->
             if (call.isHandled) return@on
 

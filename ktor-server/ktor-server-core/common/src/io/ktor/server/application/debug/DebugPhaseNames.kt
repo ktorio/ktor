@@ -5,5 +5,6 @@
 package io.ktor.server.application.debug
 
 internal const val PHASE_ON_CALL = "onCall"
+internal const val PHASE_ON_CALL_GUARDS = "onCallGuards"
 internal const val PHASE_ON_CALL_RECEIVE = "onCallReceive"
 internal const val PHASE_ON_CALL_RESPOND = "onCallRespond"
