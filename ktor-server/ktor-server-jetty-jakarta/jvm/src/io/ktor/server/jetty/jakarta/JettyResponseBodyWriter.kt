@@ -14,6 +14,7 @@ import org.eclipse.jetty.util.Callback
 import org.eclipse.jetty.util.thread.Invocable
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 internal fun CoroutineScope.bodyWriter(response: Response): ReaderJob =
     reader(CoroutineName("jetty-response-writer")) {
@@ -25,7 +26,13 @@ internal fun CoroutineScope.bodyWriter(response: Response): ReaderJob =
                 continuation?.resume(Unit)
             }
             override fun failed(x: Throwable?) {
-                channel.cancel(x ?: IOException("Failed to write body"))
+                val cause = x ?: IOException("Failed to write body")
+                channel.cancel(cause)
+                // Resume the writer coroutine exceptionally, otherwise it stays suspended
+                // forever when the client aborts mid-write: the reader job never completes,
+                // and structured concurrency then retains the handler job, the application
+                // call, the Jetty exchange and the borrowed buffer for every aborted response.
+                continuation?.resumeWithException(cause)
             }
             override fun getInvocationType(): Invocable.InvocationType? =
                 Invocable.InvocationType.NON_BLOCKING
