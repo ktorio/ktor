@@ -4,20 +4,56 @@
 
 package io.ktor.server.plugins.swagger
 
+import io.ktor.http.*
+import io.ktor.server.application.*
 import io.ktor.server.html.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.server.routing.openapi.OpenApiDocSource
-import io.ktor.server.routing.openapi.hide
+import io.ktor.server.routing.openapi.*
 import io.ktor.server.util.*
-import io.ktor.utils.io.ExperimentalKtorApi
+import io.ktor.util.logging.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.async
 import kotlinx.html.*
 import java.io.File
 
 private val docExpansionValues = listOf("list", "full", "none")
+
+private val openApiVersionJsonRegex = Regex(""""openapi"\s*:\s*"([^"]+)"""")
+private val openApiVersionYamlRegex = Regex("""(?m)^openapi:\s*["']?([^"'#\s]+)["']?""")
+
+internal fun ContentType.isYaml(): Boolean {
+    return contentSubtype.equals("yaml", ignoreCase = true) || contentSubtype.equals("x-yaml", ignoreCase = true)
+}
+
+private fun OpenApiDocSource.Text.openApiVersion(): String? = when {
+    contentType.match(ContentType.Application.Json) ->
+        openApiVersionJsonRegex.find(content)?.groupValues?.get(1)
+
+    contentType.isYaml() ->
+        openApiVersionYamlRegex.find(content)?.groupValues?.get(1)
+
+    else -> null
+}
+
+/**
+ * Warns when an OpenAPI 3.1.x document is served with Swagger UI older than 5.x.
+ */
+internal fun Logger.warnIfIncompatibleOpenApiAndSwaggerUi(
+    document: OpenApiDocSource.Text,
+    swaggerUiVersion: String
+) {
+    val openApiVersion = document.openApiVersion() ?: return
+    if (!openApiVersion.startsWith("3.1")) return
+    val swaggerMajor = swaggerUiVersion.substringBefore('.').toIntOrNull() ?: return
+    if (swaggerMajor >= 5) return
+    warn(
+        "OpenAPI document version is $openApiVersion, but Swagger UI version $swaggerUiVersion " +
+            "does not support OpenAPI 3.1. Use Swagger UI 5.0.0+, or stick to an OpenAPI 3.0.x specification."
+    )
+}
 
 /**
  * Creates a `get` endpoint with [SwaggerUI] at [path] rendered from the OpenAPI file located at [swaggerFile].
@@ -83,6 +119,9 @@ public fun Route.swaggerUI(
 /**
  * Adds a Swagger UI endpoint to the current route.
  *
+ * OpenAPI 3.1.x specifications require Swagger UI 5.0.0 or later ([SwaggerConfig.version]). The default version is
+ * 5.31.0. Pinning a 4.x UI version only works reliably with OpenAPI 3.0.x specifications.
+ *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.swagger.swaggerUI)
  *
  * @param path The root path where the Swagger UI will be available.
@@ -95,10 +134,12 @@ public fun Route.swaggerUI(
     val config = SwaggerConfig().apply(block)
     val source = config.source
     val apiUrl = config.remotePath
+    val log = application.log
     val openApiDoc = with(application) {
         async(start = CoroutineStart.LAZY) {
-            source.read(this@with, config.buildBaseDoc())
+            val doc = source.read(this@with, config.buildBaseDoc())
                 ?: error("Failed to read OpenAPI document from $source")
+            doc.also { log.warnIfIncompatibleOpenApiAndSwaggerUi(document = it, swaggerUiVersion = config.version) }
         }
     }
 
