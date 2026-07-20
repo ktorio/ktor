@@ -7,3 +7,11 @@ description = "Rate Limit plugin for Ktor Server"
 plugins {
     id("ktorbuild.project.server-plugin")
 }
+
+kotlin {
+    sourceSets {
+        commonTest.dependencies {
+            implementation(projects.ktorServerAuth)
+        }
+    }
+}

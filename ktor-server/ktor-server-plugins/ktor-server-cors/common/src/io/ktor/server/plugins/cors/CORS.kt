@@ -79,9 +79,10 @@ internal fun PluginBuilder<CORSConfig>.buildPlugin() {
      * A plugin's [call] interceptor that does all the job. Usually there is no need to install it as it is done during
      * a plugin installation.
      */
-    onCall { call ->
+    @Suppress("INVISIBLE_REFERENCE")
+    onCallValidators { call ->
         if (call.response.isCommitted) {
-            return@onCall
+            return@onCallValidators
         }
 
         LOGGER.trace { "${call.request.id()}: Start handler" }
@@ -94,7 +95,7 @@ internal fun PluginBuilder<CORSConfig>.buildPlugin() {
 
         if (origin == null) {
             LOGGER.trace { "${call.request.id()}: Skip CORS handler because request lacks the Origin header" }
-            return@onCall
+            return@onCallValidators
         }
 
         val checkOrigin = checkOrigin(
@@ -111,12 +112,12 @@ internal fun PluginBuilder<CORSConfig>.buildPlugin() {
             OriginCheckResult.OK -> {
             }
 
-            OriginCheckResult.SkipCORS -> return@onCall
+            OriginCheckResult.SkipCORS -> return@onCallValidators
 
             OriginCheckResult.Failed -> {
                 LOGGER.trace { "${call.request.id()}: CORS check fails because Origin $origin does not match" }
                 call.respondCorsFailed()
-                return@onCall
+                return@onCallValidators
             }
         }
 
@@ -129,7 +130,7 @@ internal fun PluginBuilder<CORSConfig>.buildPlugin() {
                             "is not in the list of the only allowed simple types ${CORSConfig.CorsSimpleContentTypes}"
                     }
                     call.respondCorsFailed()
-                    return@onCall
+                    return@onCallValidators
                 }
             }
         }
@@ -147,7 +148,7 @@ internal fun PluginBuilder<CORSConfig>.buildPlugin() {
                 headerPredicates,
                 allHeadersSet
             )
-            return@onCall
+            return@onCallValidators
         }
 
         if (!call.corsCheckCurrentMethod(methods)) {
@@ -156,7 +157,7 @@ internal fun PluginBuilder<CORSConfig>.buildPlugin() {
                     "is not allowed. Allowed methods: $methods"
             }
             call.respondCorsFailed()
-            return@onCall
+            return@onCallValidators
         }
 
         LOGGER.trace { "${call.request.id()}: CORS check is succeeded" }

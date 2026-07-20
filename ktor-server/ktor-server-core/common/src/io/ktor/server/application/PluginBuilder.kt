@@ -105,6 +105,30 @@ public abstract class PluginBuilder<PluginConfig : Any> internal constructor(
     }
 
     /**
+     * Specifies the [block] handler for every incoming [PipelineCall] in the [ApplicationCallPipeline.Validators] phase.
+     *
+     * Use this for route-scoped validator plugins such as authentication, rate limiting, CORS, and request body limits.
+     * Interceptors registered in this phase on parent routes run before interceptors registered on child routes,
+     * so the relative order of validators follows route nesting.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.PluginBuilder.onCallValidators)
+     *
+     * @see [createRouteScopedPlugin]
+     *
+     * @param block An action that needs to be executed when your application receives an HTTP call.
+     */
+    internal fun onCallValidators(block: suspend OnCallContext<PluginConfig>.(call: PipelineCall) -> Unit) {
+        onDefaultPhase(
+            callInterceptions,
+            phase = ApplicationCallPipeline.Validators,
+            handlerName = PHASE_ON_CALL_VALIDATORS,
+            contextInit = ::OnCallContext
+        ) { call, _ ->
+            block(call)
+        }
+    }
+
+    /**
      * Specifies the [block] handler that allows you to obtain and transform data received from the client.
      * This [block] is invoked for every attempt to receive the request body.
      *
