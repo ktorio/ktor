@@ -149,7 +149,7 @@ actual constructor(
             // instantiateAndConfigureApplication() failed. Cancel those freshly-registered keys
             // (they belong to a class loader we are discarding) and restore the previous ones.
             for (watchKey in packageWatchKeys) {
-                if (watchKey !in previousWatchKeys) { // The WatchKey objects might be shared
+                if (watchKey !in previousWatchKeys) { // The WatchKey object might be shared
                     watchKey.cancel()
                 }
             }
@@ -168,7 +168,7 @@ actual constructor(
         }
 
         for (watchKey in previousWatchKeys) {
-            if (watchKey !in packageWatchKeys) { // The WatchKey objects might be shared
+            if (watchKey !in packageWatchKeys) { // The WatchKey object might be shared
                 watchKey.cancel()
             }
         }
