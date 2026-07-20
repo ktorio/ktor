@@ -91,19 +91,21 @@ internal fun ApplicationTestBuilder.installSessionTestApp(
         }
         val oidcProvider = oidc.provider("auth0") {
             testIssuer(metadata = browserFlowMetadata(endSessionEndpoint = endSessionEndpoint))
-            sessions {
-                name = OIDC_TEST_SESSION_NAME
-                cookie {
-                    cookie.secure = false
-                    cookie.httpOnly = true
-                }
-                disableCsrfProtection()
-                configureSessions()
-            }
             oauth {
                 clientId = "client-id"
                 clientSecret = "client-secret"
                 onSuccess { call.respondText("signed in") }
+                refresh()
+                logout()
+                sessions {
+                    name = OIDC_TEST_SESSION_NAME
+                    cookie {
+                        cookie.secure = false
+                        cookie.httpOnly = true
+                    }
+                    disableCsrfProtection()
+                    configureSessions()
+                }
             }
             configureProvider()
         }

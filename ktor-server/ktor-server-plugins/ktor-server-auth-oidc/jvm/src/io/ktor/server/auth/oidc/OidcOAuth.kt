@@ -12,6 +12,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.CancellationException
 
 @OptIn(ExperimentalKtorApi::class, InternalAPI::class)
 internal fun <P : Any> Application.configureOAuthRoute(provider: OidcProvider<P>) {
@@ -48,7 +49,7 @@ internal fun <P : Any> Application.configureOAuthRoute(provider: OidcProvider<P>
             call.respondRedirect(authorizeUrl)
         }
 
-        val sessionsDisabled = provider.config.sessionConfig == null
+        val sessionsDisabled = config.sessionConfig == null
         if (sessionsDisabled) {
             oauthCallback(
                 flow = provider.oauthFlow,
@@ -66,48 +67,58 @@ internal fun <P : Any> Application.configureOAuthRoute(provider: OidcProvider<P>
         )
 
         authenticateWith(provider.sessions) {
-            post(provider.sessionRefreshPath) {
-                val refreshToken = session.refreshToken ?: run {
-                    provider.logger.debug("Session has no refresh token, cannot refresh")
-                    return@post call.respond(HttpStatusCode.Unauthorized)
+            config.refreshPath?.let { path ->
+                post(path) {
+                    val refreshToken = session.refreshToken ?: run {
+                        provider.logger.debug("Session has no refresh token, cannot refresh")
+                        return@post call.respond(HttpStatusCode.Unauthorized)
+                    }
+
+                    val refreshResult = try {
+                        provider.refreshToken(refreshToken)
+                    } catch (cause: CancellationException) {
+                        throw cause
+                    } catch (cause: Exception) {
+                        provider.logger.debug("Failed to refresh token", cause)
+                        null
+                    }
+
+                    if (refreshResult == null) {
+                        return@post call.respond(HttpStatusCode.Unauthorized)
+                    }
+
+                    val refreshedPrincipal = refreshResult.idToken
+                        ?: return@post call.respond(HttpStatusCode.Unauthorized)
+
+                    session = refreshedPrincipal
+                    config.onRefresh(this)
+                    if (!call.isHandled) {
+                        call.respond(HttpStatusCode.OK)
+                    }
                 }
-
-                val refreshResult = try {
-                    provider.refreshToken(refreshToken)
-                } catch (cause: CancellationException) {
-                    throw cause
-                } catch (cause: Exception) {
-                    provider.logger.debug("Failed to refresh token", cause)
-                    null
-                }
-
-                if (refreshResult == null) {
-                    return@post call.respond(HttpStatusCode.Unauthorized)
-                }
-
-                val refreshedPrincipal = refreshResult.idToken
-                    ?: return@post call.respond(HttpStatusCode.Unauthorized)
-
-                session = refreshedPrincipal
-                call.respond(HttpStatusCode.OK)
             }
 
-            post(provider.sessionLogoutPath) {
-                val postLogoutRedirectUri = call.request.oidcRedirectUri(config.postLogoutRedirectUri)
-                val idTokenHint = session.value
-                clearSession()
+            config.logoutPath?.let { path ->
+                requireNotNull(provider.currentMetadata().endSessionEndpoint) {
+                    "Identity provider ${provider.name} doesn't support logout"
+                }
 
-                val logoutUrl = runCatching {
-                    provider.buildLogoutUrl(idTokenHint, postLogoutRedirectUri)
-                }.onFailure {
-                    provider.logger.debug(
-                        "Failed to build provider logout URL, redirecting to postLogoutRedirectUri instead",
-                        it
-                    )
-                }.getOrDefault(postLogoutRedirectUri)
+                post(path) {
+                    val postLogoutRedirectUri = config.postLogoutRedirectUri?.let { builder ->
+                        call.request.oidcRedirectUri(builder)
+                    }
+                    val idTokenHint = session.value
+                    clearSession()
 
-                call.response.headers.append(HttpHeaders.Location, logoutUrl)
-                call.respond(HttpStatusCode.SeeOther)
+                    config.onLogout(this)
+                    if (call.isHandled) {
+                        return@post
+                    }
+
+                    val logoutUrl = provider.buildLogoutUrl(idTokenHint, postLogoutRedirectUri)
+                    call.response.headers.append(HttpHeaders.Location, logoutUrl)
+                    call.respond(HttpStatusCode.SeeOther)
+                }
             }
         }
     }

@@ -50,15 +50,15 @@ class OidcTypedAuthenticationTest {
                     audiences = setOf("api")
                 }
                 bearer()
-                sessions {
-                    name = OIDC_TEST_SESSION_NAME
-                    cookie {
-                        cookie.secure = false
-                    }
-                }
                 oauth {
                     clientId = "client-id"
                     clientSecret = "client-secret"
+                    sessions {
+                        name = OIDC_TEST_SESSION_NAME
+                        cookie {
+                            cookie.secure = false
+                        }
+                    }
                 }
             }
 

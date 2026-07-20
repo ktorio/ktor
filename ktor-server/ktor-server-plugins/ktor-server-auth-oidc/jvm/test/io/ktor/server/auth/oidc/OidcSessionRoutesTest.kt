@@ -17,10 +17,8 @@ import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
+import kotlin.test.*
+import kotlin.time.Duration.Companion.ZERO
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
 
@@ -234,7 +232,7 @@ class OidcSessionRoutesTest {
             respondRefreshedIdToken(keys, refreshCalls = refreshCalls)
         }
         installSessionTestApp(keys) {
-            tokenRefreshStrategy = OidcTokenRefreshStrategy.Custom { provider, token ->
+            tokenRefreshStrategy = OidcTokenRefreshStrategy.Custom { provider, token, _ ->
                 when (keepCurrent.getAndIncrement()) {
                     0 -> token
                     1 -> provider.refreshToken(checkNotNull(token.refreshToken)).idToken
@@ -295,7 +293,7 @@ class OidcSessionRoutesTest {
     }
 
     @Test
-    fun `logout post_logout_redirect_uri reflects incoming request host`() = testApplication {
+    fun `logout omits post_logout_redirect_uri by default`() = testApplication {
         val keys = testRsaKeys
         val idTokensByState = ConcurrentHashMap<String, String>()
         openIdProvider(keys, idTokensByState)
@@ -303,6 +301,53 @@ class OidcSessionRoutesTest {
             keys = keys,
             meResponse = { call.respondText("ok") },
         )
+
+        val browser = noRedirectsClient()
+        val sessionCookie = browser.signInWithIdToken(idTokensByState, keys)
+
+        val logout = browser.post("/oidc/auth0/logout") {
+            header(HttpHeaders.Cookie, sessionCookie)
+            header(HttpHeaders.Host, "foodies.local")
+            header(HttpHeaders.Origin, "http://foodies.local")
+        }
+        assertEquals(HttpStatusCode.SeeOther, logout.status)
+        val logoutUrl = Url(assertNotNull(logout.headers[HttpHeaders.Location]))
+        assertNull(logoutUrl.parameters["post_logout_redirect_uri"])
+    }
+
+    @Test
+    fun `logout post_logout_redirect_uri reflects incoming request host when configured`() = testApplication {
+        val keys = testRsaKeys
+        val idTokensByState = ConcurrentHashMap<String, String>()
+        openIdProvider(keys, idTokensByState)
+        val openIdClient = openIdHttpClient()
+        application {
+            val oidc = openIdConnect {
+                httpClient = openIdClient
+                discoveryRefreshInterval = ZERO
+            }
+            oidc.provider("auth0") {
+                testIssuer(metadata = browserFlowMetadata())
+                jwt(keys)
+                oauth {
+                    clientId = "client-id"
+                    clientSecret = "client-secret"
+                    onSuccess { call.respondText("signed in") }
+                    sessions {
+                        name = OIDC_TEST_SESSION_NAME
+                        cookie {
+                            cookie.secure = false
+                            cookie.httpOnly = true
+                        }
+                        disableCsrfProtection()
+                    }
+                    logout(
+                        path = "/oidc/auth0/logout",
+                        postLogoutRedirectUri = { path("/") },
+                    )
+                }
+            }
+        }
 
         val browser = noRedirectsClient()
         val sessionCookie = browser.signInWithIdToken(idTokensByState, keys)
@@ -326,7 +371,6 @@ class OidcSessionRoutesTest {
                 installOAuthExternalProvider(caseName, keys, emptyMap())
                 installSessionTestApp(
                     keys = keys,
-                    endSessionEndpoint = null,
                     configureProvider = {
                         when (caseName) {
                             "access" -> {
@@ -366,27 +410,18 @@ class OidcSessionRoutesTest {
     }
 
     @Test
-    fun `logout redirects locally for id token session without OP logout`() = testApplication {
+    fun `logout route setup fails when IDP does not have end session`() = testApplication {
         val keys = testRsaKeys
         val idTokensByState = ConcurrentHashMap<String, String>()
         installOAuthExternalProvider("id-without-end-session", keys, idTokensByState)
-        installSessionTestApp(
-            keys = keys,
-            endSessionEndpoint = null,
-            meResponse = { idToken -> call.respondText("id:${idToken.userInfo.subject}") },
-        )
 
-        val browser = noRedirectsClient()
-        val cookie = browser.signInWithIdToken(idTokensByState, keys, subject = "id-token-user")
-
-        browser.assertMe(cookie, HttpStatusCode.OK, "id:id-token-user")
-
-        val logout = browser.post("/oidc/auth0/logout") {
-            header(HttpHeaders.Cookie, cookie)
+        val failure = assertFailsWith<IllegalArgumentException> {
+            installSessionTestApp(
+                keys = keys,
+                endSessionEndpoint = null,
+            )
+            startApplication()
         }
-        assertEquals(HttpStatusCode.SeeOther, logout.status)
-        assertEquals("http://localhost/", logout.headers[HttpHeaders.Location])
-
-        browser.assertMe(cookie, HttpStatusCode.Unauthorized)
+        assertContains(failure.message!!, "doesn't support logout")
     }
 }

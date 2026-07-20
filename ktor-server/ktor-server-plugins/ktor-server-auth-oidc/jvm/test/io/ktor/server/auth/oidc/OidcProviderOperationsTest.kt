@@ -216,7 +216,7 @@ class OidcProviderOperationsTest {
     @Test
     fun `buildLogoutUrl returns null when provider has no logout endpoint`() = testApplication {
         application {
-            val oidc = openIdConnect { }
+            val oidc = openIdConnect()
             val oidcProvider = oidc.provider("auth0") {
                 testIssuer(metadata = openIdProviderMetadata)
                 oauth {
@@ -234,7 +234,7 @@ class OidcProviderOperationsTest {
             }
         }
 
-        assertContains(client.get("/logout-url").bodyAsText(), "endSessionEndpoint")
+        assertContains(client.get("/logout-url").bodyAsText(), "RP-Initiated logout is not supported")
     }
 
     private fun TestApplicationBuilder.openIdProvider(keys: OpenIdTestKeys) {

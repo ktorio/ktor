@@ -132,11 +132,11 @@ class OidcConfigValidationTest {
             accessToken {
                 audiences = setOf("api")
             }
-            sessions()
             oauth {
                 clientId = "client-id"
                 clientSecret = "client-secret"
                 scopes = listOf("profile")
+                sessions()
             }
         }
 
@@ -145,33 +145,24 @@ class OidcConfigValidationTest {
     }
 
     @Test
-    fun `session config stores routes names storage and csrf settings`() {
-        val customStorage = SessionStorageMemory()
-
-        OidcProviderConfig("sessions", OidcToken::class).apply {
-            assertNull(sessionConfig)
-            sessions {
-                refreshUri = { path("custom", "refresh") }
-                logoutUri = { path("custom", "logout") }
-                name = "CUSTOM"
-                storage = customStorage
-                disableCsrfProtection()
+    fun `logout and refresh require sessions`() {
+        val logoutFailure = assertProviderValidationFails {
+            oauth {
+                clientId = "client-id"
+                clientSecret = "client-secret"
+                logout("/custom/logout")
             }
-            assertNotNull(sessionConfig!!.refreshUri)
-            assertNotNull(sessionConfig!!.logoutUri)
-            assertEquals("CUSTOM", sessionConfig!!.name)
-            assertSame(customStorage, sessionConfig!!.storage)
-            assertNull(sessionConfig!!.csrfConfigurer)
         }
+        assertContains(logoutFailure.message.orEmpty(), "sessions")
 
-        OidcProviderConfig("csrf", OidcToken::class).apply {
-            sessions {
-                csrfProtection {
-                    allowOrigin("https://example.com")
-                }
+        val refreshFailure = assertProviderValidationFails {
+            oauth {
+                clientId = "client-id"
+                clientSecret = "client-secret"
+                refresh("/custom/refresh")
             }
-            assertNotNull(sessionConfig!!.csrfConfigurer)
         }
+        assertContains(refreshFailure.message.orEmpty(), "sessions")
     }
 
     @Test
@@ -181,10 +172,14 @@ class OidcConfigValidationTest {
             assertNull(bearerConfig!!.tokenExtractor)
         }
         OidcProviderConfig("session", OidcToken::class).apply {
-            sessions()
+            oauth {
+                clientId = "client-id"
+                clientSecret = "client-secret"
+                sessions()
+                assertNotNull(sessionConfig!!.csrfConfigurer)
+            }
             bearer()
             assertNull(bearerConfig!!.tokenExtractor)
-            assertNotNull(sessionConfig!!.csrfConfigurer)
         }
         OidcProviderConfig("custom", OidcToken::class).apply {
             bearer {
@@ -206,12 +201,24 @@ class OidcConfigValidationTest {
             override suspend fun read(id: String): String = error("not used")
         }
 
-        assertSessionStorageWarning(providerName = "auth0", configure = { sessions() }) { events ->
+        assertSessionStorageWarning(providerName = "auth0", configure = {
+            oauth {
+                clientId = "client-id"
+                clientSecret = "client-secret"
+                stateEncryptionKey = testStateEncryptionKey()
+                sessions()
+            }
+        }) { events ->
             assertTrue(events.any { it.formattedMessage.contains("SessionStorageMemory") })
         }
         assertSessionStorageWarning(providerName = "custom-storage", configure = {
-            sessions {
-                storage = customStorage
+            oauth {
+                clientId = "client-id"
+                clientSecret = "client-secret"
+                stateEncryptionKey = testStateEncryptionKey()
+                sessions {
+                    storage = customStorage
+                }
             }
         }) { events ->
             assertTrue(events.none { it.formattedMessage.contains("SessionStorageMemory") })
@@ -219,49 +226,31 @@ class OidcConfigValidationTest {
     }
 
     @Test
-    fun `production oauth requires state encryption key`() {
-        val failure = assertFailsWith<IllegalStateException> {
-            testApplication {
-                serverConfig {
-                    developmentMode = false
-                }
-                application {
-                    val oidc = openIdConnect { }
-                    oidc.provider("auth0") {
-                        testIssuer()
-                        oauth {
-                            clientId = "client-id"
-                            clientSecret = "client-secret"
+    fun `oauth without state encryption key logs a warning and generates an ephemeral key`() {
+        listOf(true, false).forEach { developmentMode ->
+            captureProviderLogs("auth0", Level.WARN).use { logs ->
+                testApplication {
+                    serverConfig {
+                        this.developmentMode = developmentMode
+                    }
+                    application {
+                        val oidc = openIdConnect { }
+                        oidc.provider("auth0") {
+                            testIssuer()
+                            oauth {
+                                clientId = "client-id"
+                                clientSecret = "client-secret"
+                            }
                         }
                     }
+                    startApplication()
                 }
-                startApplication()
+
+                val warnings = logs.events.filter { it.formattedMessage.contains("stateEncryptionKey") }
+                assertEquals(1, warnings.size, "developmentMode=$developmentMode")
+                assertContains(warnings.single().formattedMessage, "ephemeral key")
+                assertContains(warnings.single().formattedMessage, "shared stateEncryptionKey")
             }
-        }
-
-        assertContains(failure.message.orEmpty(), "stateEncryptionKey")
-        assertContains(failure.message.orEmpty(), "production")
-    }
-
-    @Test
-    fun `development oauth without state encryption key logs one warning`() {
-        captureProviderLogs("auth0", Level.WARN).use { logs ->
-            testApplication {
-                application {
-                    val oidc = openIdConnect { }
-                    oidc.provider("auth0") {
-                        testIssuer()
-                        oauth {
-                            clientId = "client-id"
-                            clientSecret = "client-secret"
-                        }
-                    }
-                }
-                startApplication()
-            }
-
-            val warnings = logs.events.filter { it.formattedMessage.contains("stateEncryptionKey") }
-            assertEquals(1, warnings.size)
         }
     }
 
@@ -294,11 +283,6 @@ class OidcConfigValidationTest {
                     val oidc = openIdConnect { }
                     oidc.provider(providerName) {
                         testIssuer()
-                        oauth {
-                            clientId = "client-id"
-                            clientSecret = "client-secret"
-                            stateEncryptionKey = testStateEncryptionKey()
-                        }
                         configure()
                     }
                 }

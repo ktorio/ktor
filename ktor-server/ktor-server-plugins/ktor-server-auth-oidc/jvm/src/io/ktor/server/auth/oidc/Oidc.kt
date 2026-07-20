@@ -10,7 +10,6 @@ import io.ktor.events.*
 import io.ktor.events.EventDefinition
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
-import io.ktor.server.config.*
 import io.ktor.server.sessions.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
@@ -30,8 +29,8 @@ private val ProviderNameRegex = Regex("[a-z0-9]+(?:-[a-z0-9]+)*")
  * Installs per-provider support for:
  * - Bearer token authentication (`bearer { }`) that validates JWT access tokens issued by the provider.
  *   Use [OidcProvider.bearer] with `authenticateWith`.
- * - **OAuth 2.0 / OIDC login flow** (`oauth { }`) — handles the authorization code flow,
- *   including login and redirect routes. Session storage is opt-in via `sessions { }`, which also
+ * - **OAuth 2.0 / OIDC flow** (`oauth { }`) — handles the authorization code flow,
+ *   including login and redirect routes. Session storage is opt-in via `oauth { sessions { } }`, which also
  *   enables plugin-managed refresh and logout routes.
  *   Registered internally as `"$name-oauth"` and used only for the auto-registered routes;
  *   browser session authentication is exposed as [OidcProvider.sessions].
@@ -45,10 +44,8 @@ private val ProviderNameRegex = Regex("[a-z0-9]+(?:-[a-z0-9]+)*")
  * [OpenIdProviderMetadata].
  *
  * Initial discovery is part of provider registration. The suspend [provider] functions discover metadata, install
- * provider routes, and start periodic refresh before returning the registered provider. Environment-based
- * configuration is used only as default when a provider with the same name is registered in code; environment
- * entries that are not directly registered are ignored. After the final failed discovery attempt, registration
- * fails with a [OpenIdDiscoveryException]. Discovery work runs on [Dispatchers.IO].
+ * provider routes, and start periodic refresh before returning the registered provider. After the final failed
+ * discovery attempt, registration fails with a [OpenIdDiscoveryException]. Discovery work runs on [Dispatchers.IO].
  *
  * ## Full configuration example
  * The example below registers providers from a suspend application module because provider registration performs
@@ -97,13 +94,13 @@ private val ProviderNameRegex = Regex("[a-z0-9]+(?:-[a-z0-9]+)*")
  *         onSuccess {
  *             call.respondRedirect("/dashboard")
  *         }
- *     }
  *
- *     // Browser sessions are opt-in. When enabled, callbacks store the verified
- *     // ID-token principal in the session and plugin-managed refresh/logout routes
- *     // are installed.
- *     sessions {
- *         name = "GOOGLE_SESSION"
+ *         // Browser sessions are opt-in. When enabled, callbacks store the verified
+ *         // ID-token principal in the session and plugin-managed refresh/logout routes
+ *         // are installed.
+ *         sessions {
+ *             name = "GOOGLE_SESSION"
+ *         }
  *     }
  * }
  *
@@ -165,7 +162,7 @@ private val ProviderNameRegex = Regex("[a-z0-9]+(?:-[a-z0-9]+)*")
  *
  * ## Environment-based configuration
  *
- * Provider defaults can also be loaded from `application.conf` (or equivalent):
+ * Provider values can be stored in `application.conf` (or equivalent) and applied explicitly with [OidcEnvConfig]:
  * ```hocon
  * ktor.oidc.google {
  *     issuer = "https://accounts.google.com"
@@ -175,16 +172,24 @@ private val ProviderNameRegex = Regex("[a-z0-9]+(?:-[a-z0-9]+)*")
  * }
  * ```
  *
- * Environment-based entries are applied by declaring the same provider name on the installed [Oidc]
- * instance:
  * ```kotlin
+ * val env = environment.config
+ *     .property("ktor.oidc.google")
+ *     .getAs<OidcEnvConfig>()
+ *
  * val oidc = openIdConnect { }
  * val google = oidc.provider("google") {
+ *     issuer = env.issuer
  *     accessToken {
  *         audiences = setOf("api")
  *     }
  *     bearer()
- *     oauth()
+ *     oauth {
+ *         clientId = env.clientId
+ *         clientSecret = env.clientSecret
+ *         scopes = env.scopes
+ *         sessions()
+ *     }
  * }
  * ```
  *
@@ -195,8 +200,6 @@ public class Oidc internal constructor(
     private val config: OidcPluginConfig,
     private val client: HttpClient,
 ) {
-    private val environmentProviders = HashMap<String, EnvConfig>()
-
     @Volatile
     private var providers = HashMap<String, OidcProvider<*>>()
 
@@ -271,9 +274,7 @@ public class Oidc internal constructor(
         require(name !in providers && pendingProviderNames.add(name)) {
             "OpenID Connect provider $name is already configured"
         }
-        val providerConfig = OidcProviderConfig(name, principalType).apply {
-            environmentProviders[name]?.let { env -> applyEnvDefaults(env) }
-        }
+        val providerConfig = OidcProviderConfig(name, principalType)
         try {
             providerConfig.configure()
             providerConfig.validate()
@@ -322,16 +323,16 @@ public class Oidc internal constructor(
         }
         startRefreshingMetadata(provider)
         providers[provider.name] = provider
-        environmentProviders.remove(provider.name)
         pendingProviderNames.remove(provider.name)
         pendingProviderIssuers.remove(provider.issuer)
     }
 
     private fun checkProductionEnvironment(provider: OidcProvider<*>) {
         val devMode = application.developmentMode
+        val oauthConfig = provider.config.oauthConfig ?: return
 
         // check production session storage is not in-memory
-        provider.config.sessionConfig?.let { sessionConfig ->
+        oauthConfig.sessionConfig?.let { sessionConfig ->
             if (!devMode && sessionConfig.storage is SessionStorageMemory) {
                 provider.logger.warn(
                     "OpenID Connect is using in-memory session storage (SessionStorageMemory). " +
@@ -341,19 +342,15 @@ public class Oidc internal constructor(
             }
         }
 
-        // ensure production stateEncryptionKey is configured
-        val oauthConfig = provider.config.oauthConfig
-        if (oauthConfig == null || oauthConfig.stateEncryptionKey != null) {
+        if (oauthConfig.stateEncryptionKey != null) {
             return
         }
-        if (devMode) {
-            provider.logger.warn("OpenID Connect OAuth stateEncryptionKey is not configured.")
-            oauthConfig.stateEncryptionKey = OidcStateEncryptionKey.random()
-        } else {
-            error(
-                "OpenID Connect OAuth provider ${provider.name} cannot start in production without stateEncryptionKey"
-            )
-        }
+        provider.logger.warn(
+            "OpenID Connect OAuth stateEncryptionKey is not configured for provider ${provider.name}. " +
+                "An ephemeral key was generated for this process. In-flight OAuth logins will fail after restart " +
+                "and across application instances. Configure a shared stateEncryptionKey for production deployments."
+        )
+        oauthConfig.stateEncryptionKey = OidcStateEncryptionKey.random()
     }
 
     private suspend fun releaseProvider(name: String, issuer: String?) {
@@ -423,21 +420,6 @@ public class Oidc internal constructor(
         }
     }
 
-    private fun loadConfigFromEnvironment() {
-        val config = application.environment.config
-        if (config.propertyOrNull("ktor.oidc") == null) {
-            return
-        }
-        val root = config.config("ktor.oidc")
-        root.keys().map { it.substringBefore(".") }.distinct().forEach { providerName ->
-            val env = root.property(providerName).getAs<EnvConfig>()
-            require((env.clientId == null) == (env.clientSecret == null)) {
-                "OpenID Connect provider $providerName must configure both clientId and clientSecret, or neither"
-            }
-            environmentProviders[providerName] = env
-        }
-    }
-
     public companion object : BaseApplicationPlugin<Application, OidcPluginConfig, Oidc> {
         override val key: AttributeKey<Oidc> = AttributeKey("Oidc")
 
@@ -461,7 +443,6 @@ public class Oidc internal constructor(
                 config = config,
                 client = managedClient,
             )
-            plugin.loadConfigFromEnvironment()
             plugin.configureProtectedResourceRoute()
 
             pipeline.monitor.subscribe(ApplicationModulesLoaded) {
@@ -476,26 +457,45 @@ public class Oidc internal constructor(
 }
 
 /**
- * Represents a single configured OpenID Connect provider loaded from the environment.
+ * Serializable OpenID Connect provider values commonly stored in application configuration.
+ *
+ * The OIDC plugin does not load or merge these values automatically. Read them explicitly and apply them in
+ * [Oidc.provider]:
+ *
+ * ```hocon
+ * ktor.oidc.google {
+ *     issuer = "https://accounts.google.com"
+ *     clientId = ${GOOGLE_CLIENT_ID}
+ *     clientSecret = ${GOOGLE_CLIENT_SECRET}
+ *     scopes = ["openid", "profile", "email"]
+ * }
+ * ```
+ *
+ * ```kotlin
+ * val env = environment.config
+ *     .property("ktor.oidc.google")
+ *     .getAs<OidcEnvConfig>()
+ *
+ * oidc.provider("google") {
+ *     issuer = env.issuer
+ *     oauth {
+ *         clientId = env.clientId!!
+ *         clientSecret = env.clientSecret!!
+ *         scopes = env.scopes
+ *         sessions()
+ *     }
+ * }
+ * ```
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcEnvConfig)
  */
 @Serializable
-internal data class EnvConfig(
+public data class OidcEnvConfig(
     val issuer: String,
-    val clientId: String? = null,
-    val clientSecret: String? = null,
-    val scopes: List<String> = listOf("openid", "profile", "email"),
+    val clientId: String,
+    val clientSecret: String,
+    val scopes: List<String>,
 )
-
-private fun <P : Any> OidcProviderConfig<P>.applyEnvDefaults(env: EnvConfig) = apply {
-    issuer = env.issuer
-    env.clientId?.let { id ->
-        oauth {
-            clientId = id
-            clientSecret = env.clientSecret!!
-            scopes = env.scopes
-        }
-    }
-}
 
 /**
  * Details of a failed periodic OpenID Connect discovery metadata refresh.
@@ -544,7 +544,6 @@ public val OidcMetadataRefreshFailed: EventDefinition<OidcMetadataRefreshFailure
  *
  * @param configure Plugin configuration block.
  * @return Installed OpenID Connect provider registry.
- * @throws IllegalArgumentException when environment-based provider configuration is invalid.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.openIdConnect)
  */
@@ -552,16 +551,6 @@ public fun Application.openIdConnect(
     configure: OidcPluginConfig.() -> Unit = {},
 ): Oidc =
     install(Oidc, configure)
-
-/**
- * Returns the installed [Oidc] plugin instance.
- *
- * Convenience wrapper for `plugin(Oidc)`.
- *
- * @return Installed OpenID Connect plugin instance.
- * @throws MissingApplicationPluginException when [Oidc] is not installed.
- */
-public fun Application.openIdConnect(): Oidc = plugin(Oidc)
 
 private fun defaultOpenIdHttpClient(): HttpClient = HttpClient {
     install(ContentNegotiation) {

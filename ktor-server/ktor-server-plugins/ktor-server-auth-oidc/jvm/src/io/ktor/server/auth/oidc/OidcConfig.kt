@@ -135,7 +135,6 @@ public class OidcProviderConfig<P : Any> internal constructor(
     internal var accessTokenConfig: OidcAccessTokenConfig? = null
     internal var bearerConfig: OidcBearerConfig? = null
     internal var oauthConfig: OidcOAuthConfig<P>? = null
-    internal var sessionConfig: OidcSessionConfig<P>? = null
 
     /**
      * Configures JWT verification shared by ID-token and JWT access-token validation.
@@ -164,24 +163,10 @@ public class OidcProviderConfig<P : Any> internal constructor(
 
     /**
      * Configures access-token acceptance for Bearer authentication and OAuth callbacks without an ID token.
-     * Access-token-only OAuth callbacks are accepted only when [sessions] is not configured.
+     * Access-token-only OAuth callbacks are accepted only when OAuth [OidcOAuthConfig.sessions] is not configured.
      */
     public fun accessToken(configure: OidcAccessTokenConfig.() -> Unit) {
         accessTokenConfig = (accessTokenConfig ?: OidcAccessTokenConfig()).apply(configure)
-    }
-
-    /**
-     * Configures the OIDC session for this provider, including cookie transport and CSRF protection.
-     *
-     * Defaults to a cookie named `"${name.uppercase()}_SESSION"` with secure defaults
-     * (`httpOnly`, `secure` in production, `SameSite=lax`), and CSRF protection enabled
-     * with [CSRFConfig.originMatchesHost].
-     *
-     * Used by both the OAuth flow (login/refresh/logout routes) and typed session authentication
-     * (`authenticateWith(provider.sessions)`) to read/write the verified [OidcToken.Id] session.
-     */
-    public fun sessions(configure: OidcSessionConfig<P>.() -> Unit = {}) {
-        sessionConfig = OidcSessionConfig<P>(name).apply(configure)
     }
 
     /**
@@ -198,7 +183,7 @@ public class OidcProviderConfig<P : Any> internal constructor(
      * Configures the OAuth/OpenID Connect login flow for this provider.
      *
      * This installs provider-specific login and callback routes. The callback verifies the token response and passes
-     * [P] to the configured success handler.
+     * [P] to the configured success handler. Browser sessions, refresh, and logout are configured inside this block.
      */
     public fun oauth(configure: OidcOAuthConfig<P>.() -> Unit = {}) {
         oauthConfig = (oauthConfig ?: OidcOAuthConfig(name)).apply(configure)
@@ -214,7 +199,9 @@ public class OidcProviderConfig<P : Any> internal constructor(
         }
         jwtConfig.validate()
         accessTokenConfig?.validate()
-        oauthConfig?.validate(accessTokenOnlyAllowed = accessTokenConfig != null && sessionConfig == null)
+        oauthConfig?.let { oauth ->
+            oauth.validate(accessTokenOnlyAllowed = accessTokenConfig != null && oauth.sessionConfig == null)
+        }
     }
 }
 
@@ -466,10 +453,10 @@ public class OidcBearerConfig internal constructor() {
     public var tokenExtractor: TokenExtractor? = null
 }
 
-public sealed class CodeChallengeMethod {
-    public abstract val name: String
+public interface CodeChallengeMethod {
+    public val name: String
 
-    public object S256 : CodeChallengeMethod() {
+    public object S256 : CodeChallengeMethod {
         override val name: String = "S256"
 
         internal const val VERIFIER_LENGTH = 64
@@ -481,6 +468,8 @@ public sealed class CodeChallengeMethod {
  *
  * OAuth installs a provider-specific login route and callback route. The callback verifies the token response
  * and passes the transformed provider principal to [onSuccess].
+ *
+ * Browser sessions are opt-in via [sessions]. Plugin-managed [refresh] and [logout] routes require [sessions].
  *
  * @param P the typed principal exposed to [onSuccess].
  *
@@ -529,7 +518,8 @@ public class OidcOAuthConfig<P : Any> internal constructor(
      * Symmetric key used to encrypt the in-flight OAuth state cookie carrying `state`, `nonce`, and the PKCE code
      * verifier between the login redirect and the callback.
      *
-     * Required in production. In development mode an ephemeral key is generated when not set.
+     * When not set, an ephemeral key is generated and a warning is logged. Configure a shared key so OAuth state
+     * cookies remain valid across application restarts and instances.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcOAuthConfig.stateEncryptionKey)
      */
@@ -565,13 +555,15 @@ public class OidcOAuthConfig<P : Any> internal constructor(
      */
     public var loginUri: URLBuilder.() -> Unit = { path("oidc", providerName, "login") }
 
-    /**
-     * Configures the local redirect URI used after plugin-managed logout.
-     *
-     * Defaults to `/`. When the provider supports RP-initiated logout, this URI is also sent as
-     * `post_logout_redirect_uri` and must be registered with the OpenID Provider. Query parameters are not supported.
-     */
-    public var postLogoutRedirectUri: URLBuilder.() -> Unit = { path("/") }
+    internal var sessionConfig: OidcSessionConfig<P>? = null
+
+    internal var logoutPath: String? = null
+    internal var refreshPath: String? = null
+
+    internal var postLogoutRedirectUri: (URLBuilder.() -> Unit)? = null
+
+    internal var onLogout: suspend RoutingContext.() -> Unit = {}
+    internal var onRefresh: suspend RoutingContext.() -> Unit = {}
 
     /**
      * Called after a successful OAuth login.
@@ -582,6 +574,90 @@ public class OidcOAuthConfig<P : Any> internal constructor(
      * Called when OAuth, OpenID Connect verification, or principal mapping fails during the callback.
      */
     internal var onFailure: UnauthorizedHandler = { call.respond(HttpStatusCode.Unauthorized) }
+
+    /**
+     * Configures the OIDC session for this OAuth flow, including cookie transport and CSRF protection.
+     *
+     * Defaults to a cookie named `"${providerName.uppercase()}_SESSION"` with secure defaults
+     * (`httpOnly`, `secure` in production, `SameSite=lax`), and CSRF protection enabled
+     * with [CSRFConfig.originMatchesHost].
+     *
+     * When enabled, the OAuth callback stores the verified [OidcToken.Id] session and plugin-managed refresh/logout
+     * routes are installed. Use `authenticateWith(provider.sessions)` to protect routes with that session.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcOAuthConfig.sessions)
+     */
+    public fun sessions(configure: OidcSessionConfig<P>.() -> Unit = {}) {
+        sessionConfig = OidcSessionConfig<P>().apply(configure)
+    }
+
+    /**
+     * Configures the plugin-managed logout route.
+     *
+     * Requires [sessions]. When omitted, defaults to `POST /oidc/{providerName}/logout` with an empty [onLogout] hook
+     * and without sending `post_logout_redirect_uri` to the OpenID Provider.
+     *
+     * The [onLogout] hook runs after the local session is cleared and before the logout redirect.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcOAuthConfig.logout)
+     *
+     * @param path log out route path. Query parameters are not supported.
+     * @param onLogout hook invoked after the session is cleared.
+     */
+    public fun logout(
+        path: String = "/oidc/$providerName/logout",
+        onLogout: suspend RoutingContext.() -> Unit = {},
+    ) {
+        logoutPath = path
+        postLogoutRedirectUri = null
+        this.onLogout = onLogout
+    }
+
+    /**
+     * Configures the plugin-managed logout route and includes `post_logout_redirect_uri` in RP-initiated logout.
+     *
+     * Requires [sessions]. The [postLogoutRedirectUri] builder must not include query parameters and should be
+     * registered with the OpenID Provider when end-session is used.
+     *
+     * The [onLogout] hook runs after the local session is cleared and before the logout redirect.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcOAuthConfig.logout)
+     *
+     * @param path log out route path. Query parameters are not supported.
+     * @param postLogoutRedirectUri local redirect URI sent as `post_logout_redirect_uri` and used as fallback when
+     * end-session URL cannot be built.
+     * @param onLogout hook invoked after the session is cleared.
+     */
+    public fun logout(
+        path: String = "/oidc/$providerName/logout",
+        postLogoutRedirectUri: URLBuilder.() -> Unit,
+        onLogout: suspend RoutingContext.() -> Unit = {},
+    ) {
+        logoutPath = path
+        this.postLogoutRedirectUri = postLogoutRedirectUri
+        this.onLogout = onLogout
+    }
+
+    /**
+     * Configures the plugin-managed session refresh route.
+     *
+     * When omitted, defaults to `POST /oidc/{providerName}/refresh` with an empty [onRefresh] hook.
+     *
+     * The [onRefresh] hook runs after the session is updated with refreshed token material and before the `200 OK`
+     * response.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcOAuthConfig.refresh)
+     *
+     * @param path refresh route path.
+     * @param onRefresh hook invoked after the session is refreshed.
+     */
+    public fun refresh(
+        path: String = "/oidc/$providerName/refresh",
+        onRefresh: suspend RoutingContext.() -> Unit = {},
+    ) {
+        refreshPath = path
+        this.onRefresh = onRefresh
+    }
 
     /**
      * Sets the handler called after a successful OAuth/OIDC login.
@@ -616,6 +692,9 @@ public class OidcOAuthConfig<P : Any> internal constructor(
                 "idTokenAudience must not be blank"
             }
         }
+        require(sessionConfig != null || (logoutPath == null && refreshPath == null)) {
+            "logout { } and refresh { } require sessions { } to be configured"
+        }
     }
 }
 
@@ -628,12 +707,14 @@ public class OidcOAuthConfig<P : Any> internal constructor(
  * By default, sessions use cookie transport with secure defaults and CSRF protection is enabled with
  * [CSRFConfig.originMatchesHost].
  *
+ * Configure via [OidcOAuthConfig.sessions].
+ *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcSessionConfig)
  *
  * @param P provider principal type exposed to route handlers.
  */
 @KtorDsl
-public class OidcSessionConfig<P : Any> internal constructor(private val providerName: String) {
+public class OidcSessionConfig<P : Any> internal constructor() {
     /**
      * Cookie / session name.
      *
@@ -661,24 +742,6 @@ public class OidcSessionConfig<P : Any> internal constructor(private val provide
     internal var cookieConfigure: (CookieIdSessionBuilder<OidcToken.Id>.() -> Unit)? = null
 
     internal var csrfConfigurer: (CSRFConfig.() -> Unit)? = { originMatchesHost() }
-
-    /**
-     * Plugin-managed logout route URI.
-     *
-     * Defaults to `/oidc/{providerName}/logout`. The route is installed only when both
-     * [OidcProviderConfig.sessions] and [OidcProviderConfig.oauth] are configured.
-     * Query parameters are not supported.
-     */
-    public var logoutUri: (URLBuilder.() -> Unit) = { path("oidc", providerName, "logout") }
-
-    /**
-     * Plugin-managed refresh route URI.
-     *
-     * Defaults to `/oidc/{providerName}/refresh`. The route is installed only when both
-     * [OidcProviderConfig.sessions] and [OidcProviderConfig.oauth] are configured.
-     * Query parameters are not supported.
-     */
-    public var refreshUri: (URLBuilder.() -> Unit) = { path("oidc", providerName, "refresh") }
 
     /**
      * Configures cookie attributes for the session cookie.
@@ -717,12 +780,12 @@ internal fun oidcRoutePath(build: URLBuilder.() -> Unit): String {
     return url.encodedPath
 }
 
-internal fun ApplicationRequest.oidcRedirectUri(build: URLBuilder.() -> Unit): String {
-    val requestOrigin = origin
-    return URLBuilder().apply {
-        protocol = URLProtocol.createOrDefault(requestOrigin.scheme)
-        host = requestOrigin.serverHost
-        port = requestOrigin.serverPort
-        encodedPath = oidcRoutePath(build)
-    }.buildString()
-}
+internal fun ApplicationRequest.oidcRedirectUri(build: URLBuilder.() -> Unit): String =
+    URLBuilder()
+        .apply {
+            protocol = URLProtocol.createOrDefault(origin.scheme)
+            host = origin.serverHost
+            port = origin.serverPort
+        }
+        .apply(build)
+        .buildString()

@@ -22,6 +22,7 @@ import java.util.concurrent.atomic.AtomicReference
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class OidcBrowserFlowTest {
@@ -48,13 +49,6 @@ class OidcBrowserFlowTest {
                     audiences = setOf("api")
                 }
                 bearer()
-                sessions {
-                    name = OIDC_TEST_SESSION_NAME
-                    cookie {
-                        cookie.secure = false
-                        cookie.httpOnly = true
-                    }
-                }
                 oauth {
                     clientId = "client-id"
                     clientSecret = "client-secret"
@@ -62,6 +56,15 @@ class OidcBrowserFlowTest {
                     onSuccess { principal ->
                         val idToken = principal as OidcToken.Id
                         call.respondText("signed in ${idToken.userInfo.subject}")
+                    }
+                    refresh()
+                    logout()
+                    sessions {
+                        name = OIDC_TEST_SESSION_NAME
+                        cookie {
+                            cookie.secure = false
+                            cookie.httpOnly = true
+                        }
                     }
                 }
             }
@@ -202,7 +205,7 @@ class OidcBrowserFlowTest {
         val logoutUrl = Url(assertNotNull(logout.headers[HttpHeaders.Location]))
         assertEquals("/logout", logoutUrl.encodedPath)
         assertEquals(logoutUrl.parameters["id_token_hint"], refreshedIdToken.get())
-        assertEquals("http://localhost/", logoutUrl.parameters["post_logout_redirect_uri"])
+        assertNull(logoutUrl.parameters["post_logout_redirect_uri"])
         assertEquals("client-id", logoutUrl.parameters["client_id"])
 
         val afterLogout = browser.get("/me") {

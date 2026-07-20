@@ -418,25 +418,3 @@ private fun DecodedJWT.validateAtHash(accessToken: String?) {
         "ID token at_hash does not match the access token"
     }
 }
-
-internal fun OidcProvider<*>.buildLogoutUrlInternal(
-    idTokenHint: String,
-    postLogoutRedirectUri: String?,
-): String {
-    require(idTokenHint.isNotBlank()) {
-        "idTokenHint must not be blank"
-    }
-    val endSessionEndpoint = requireNotNull(currentMetadata().endSessionEndpoint) {
-        "endSessionEndpoint is not provided"
-    }
-    val builder = URLBuilder(endSessionEndpoint).apply {
-        parameters.append("id_token_hint", idTokenHint)
-        config.oauthConfig?.clientId?.let { clientId ->
-            parameters.append("client_id", clientId)
-        }
-        postLogoutRedirectUri?.let { uri ->
-            parameters.append("post_logout_redirect_uri", uri)
-        }
-    }
-    return builder.buildString()
-}
