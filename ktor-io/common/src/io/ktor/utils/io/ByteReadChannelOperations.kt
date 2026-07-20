@@ -760,6 +760,23 @@ private suspend fun ByteReadChannel.internalReadLineTo(
             transferString(1) // transfer the CR
         } else {
             // No new line separator
+            if (count in 1..4 && !isClosedForRead) {
+                val tempSource = readBuffer.peek()
+                val incompleteCp = try {
+                    tempSource.readCodePointValue()
+                    false
+                } catch (_: EOFException) {
+                    true
+                } finally {
+                    tempSource.close()
+                }
+
+                if (incompleteCp) {
+                    awaitContent((count + 1).toInt())
+                    continue
+                }
+            }
+
             transferString(count)
         }
 
