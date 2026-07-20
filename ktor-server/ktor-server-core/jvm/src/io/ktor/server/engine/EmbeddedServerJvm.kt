@@ -148,10 +148,12 @@ actual constructor(
             // createClassLoader -> watchUrls() may have already replaced packageWatchKeys before
             // instantiateAndConfigureApplication() failed. Cancel those freshly-registered keys
             // (they belong to a class loader we are discarding) and restore the previous ones.
-            if (packageWatchKeys !== previousWatchKeys) {
-                packageWatchKeys.forEach { it.cancel() }
-                packageWatchKeys = previousWatchKeys
+            for (watchKey in packageWatchKeys) {
+                if (watchKey !in previousWatchKeys) { // The WatchKey objects might be shared
+                    watchKey.cancel()
+                }
             }
+            packageWatchKeys = previousWatchKeys
             throw cause
         }
 
@@ -164,8 +166,11 @@ actual constructor(
             }
             safeRaiseEvent(ApplicationStopped, previousApplication)
         }
-        if (packageWatchKeys !== previousWatchKeys) {
-            previousWatchKeys.forEach { it.cancel() }
+
+        for (watchKey in previousWatchKeys) {
+            if (watchKey !in packageWatchKeys) { // The WatchKey objects might be shared
+                watchKey.cancel()
+            }
         }
 
         applicationInstance = newApplication
