@@ -6,6 +6,8 @@ import io.ktor.test.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.yield
 import kotlinx.io.EOFException
 import kotlin.test.*
 
@@ -325,5 +327,54 @@ class ReadLineTest {
             assertEquals(line, buffer.toString(), "Unexpected line content")
         }
         assertTrue(exhausted(), "Not all lines were read")
+    }
+
+    @Test
+    fun `code point boundary`() = runTest {
+        val channel = ByteChannel()
+        backgroundScope.launch {
+            channel.writeFully(byteArrayOf(0xE3.toByte(), 0x83.toByte()))
+            channel.flush()
+            yield()
+            channel.writeByte(0xB3.toByte())
+            channel.flush()
+            yield()
+            channel.writeByte('\n'.code.toByte())
+
+            channel.close()
+        }
+        assertEquals("ン", channel.readLine())
+    }
+
+    @Test
+    fun `incomplete code point boundary`() = runTest {
+        val channel = ByteChannel()
+        backgroundScope.launch {
+            channel.writeFully(byteArrayOf(0xE3.toByte(), 0x83.toByte()))
+            channel.flush()
+            yield()
+            channel.writeByte('\n'.code.toByte())
+
+            channel.close()
+        }
+        assertEquals("�", channel.readLine())
+    }
+
+    @Test
+    fun `4-byte code point boundary`() = runTest {
+        val channel = ByteChannel()
+        backgroundScope.launch {
+            channel.writeFully(byteArrayOf(0xF0.toByte(), 0x9F.toByte()))
+            channel.flush()
+            yield()
+            channel.writeByte(0x98.toByte())
+            channel.flush()
+            yield()
+            channel.writeFully(byteArrayOf(0x80.toByte(), '\n'.code.toByte()))
+            channel.flush()
+
+            channel.close()
+        }
+        assertEquals("\uD83D\uDE00", channel.readLine())
     }
 }
