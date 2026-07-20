@@ -40,8 +40,8 @@ internal class RoutingResolutionQualityTest {
         }
     }
 
-    @Test
-    fun staticRouteWinsOverParameterRoute_noAuthInvolved() = testApplication {
+    `@Test`
+    fun `static route wins over parameter route - no auth involved`() = testApplication {
         routing {
             get("/user") { call.respondText("static") }
             get("/{id}") { call.respondText("param") }
