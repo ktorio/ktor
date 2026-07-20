@@ -232,9 +232,33 @@ public class RoutingResolveContext(
             index2++
         }
 
+        // Every directly comparable (position-aligned, transparent-skipping) pair of qualities was
+        // equal, and one of the candidates ran out of entries first. Rather than preferring
+        // whichever candidate simply has more remaining entries - which would let a low-quality
+        // entry (e.g. a missing optional parameter) outrank a candidate that has none - prefer the
+        // candidate whose worst remaining entry has the higher quality. This mirrors how the final
+        // route quality itself is computed in [findBestRoute], by taking the minimum quality across
+        // all matched selectors.
+        val firstTailQuality = tailMinQuality(currentResolve, index1)
+        val secondTailQuality = tailMinQuality(new, index2)
+        if (firstTailQuality != secondTailQuality) {
+            return secondTailQuality > firstTailQuality
+        }
+
         val firstQuality = currentResolve.count { it.quality != RouteSelectorEvaluation.qualityTransparent }
         val secondQuality = new.count { it.quality != RouteSelectorEvaluation.qualityTransparent }
         return secondQuality > firstQuality
+    }
+
+    private fun tailMinQuality(resolve: List<RoutingResolveResult.Success>, fromIndex: Int): Double {
+        var minQuality = Double.MAX_VALUE
+        for (index in fromIndex..resolve.lastIndex) {
+            val quality = resolve[index].quality
+            if (quality != RouteSelectorEvaluation.qualityTransparent && quality < minQuality) {
+                minQuality = quality
+            }
+        }
+        return minQuality
     }
 
     private fun updateFailedEvaluation(
