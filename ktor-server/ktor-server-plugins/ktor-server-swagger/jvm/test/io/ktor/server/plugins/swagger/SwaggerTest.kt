@@ -4,6 +4,10 @@
 
 package io.ktor.server.plugins.swagger
 
+import ch.qos.logback.classic.Level
+import ch.qos.logback.classic.Logger
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.core.read.ListAppender
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -15,9 +19,8 @@ import io.ktor.server.routing.openapi.*
 import io.ktor.server.testing.*
 import io.ktor.utils.io.*
 import kotlinx.serialization.Serializable
-import kotlin.test.Test
-import kotlin.test.assertContains
-import kotlin.test.assertEquals
+import org.slf4j.LoggerFactory
+import kotlin.test.*
 
 class SwaggerTest {
 
@@ -357,6 +360,105 @@ class SwaggerTest {
         val response = client.get("/swagger").bodyAsText()
         assertContains(response, "oauth2RedirectUrl: 'https://api.example.com/custom/oauth2-redirect.html'")
     }
+
+    @Test
+    fun `warns when OpenAPI 3_1 document is served with Swagger UI below 5`() = testApplication {
+        val messages = captureTestLogMessages {
+            routing {
+                swaggerUI("swagger") {
+                    version = "4.15.5"
+                    source = OpenApiDocSource.Text(
+                        """
+                        openapi: "3.1.1"
+                        info:
+                          title: Sample
+                          version: "1.0.0"
+                        paths: {}
+                        """.trimIndent(),
+                        contentType = ContentType.Application.Yaml,
+                    )
+                }
+            }
+            client.get("/swagger/documentation.yaml")
+        }
+
+        assertTrue(
+            messages.any {
+                it.contains("3.1.1") && it.contains("4.15.5") && it.contains("does not support OpenAPI 3.1")
+            },
+            "Expected Swagger UI OpenAPI 3.1 warning, got: $messages"
+        )
+    }
+
+    @Test
+    fun `does not warn when OpenAPI 3_0 document is served with Swagger UI below 5`() = testApplication {
+        val messages = captureTestLogMessages {
+            routing {
+                swaggerUI("swagger") {
+                    version = "4.15.5"
+                    source = OpenApiDocSource.Text(
+                        """
+                        openapi: "3.0.3"
+                        info:
+                          title: Sample
+                          version: "1.0.0"
+                        paths: {}
+                        """.trimIndent(),
+                        contentType = ContentType.Application.Yaml,
+                    )
+                }
+            }
+            client.get("/swagger/documentation.yaml")
+        }
+
+        assertFalse(
+            messages.any { it.contains("does not support OpenAPI 3.1") },
+            "Did not expect Swagger UI OpenAPI 3.1 warning, got: $messages"
+        )
+    }
+
+    @Test
+    fun `does not warn when OpenAPI 3_1 document is served with Swagger UI 5 or later`() = testApplication {
+        val messages = captureTestLogMessages {
+            routing {
+                swaggerUI("swagger") {
+                    source = OpenApiDocSource.Text(
+                        """
+                        openapi: "3.1.1"
+                        info:
+                          title: Sample
+                          version: "1.0.0"
+                        paths: {}
+                        """.trimIndent(),
+                        contentType = ContentType.Application.Yaml,
+                    )
+                }
+            }
+            client.get("/swagger/documentation.yaml")
+        }
+
+        assertFalse(
+            messages.any { it.contains("does not support OpenAPI 3.1") },
+            "Did not expect Swagger UI OpenAPI 3.1 warning, got: $messages"
+        )
+    }
+}
+
+private inline fun captureTestLogMessages(block: () -> Unit): List<String> {
+    val logger = LoggerFactory.getLogger("io.ktor.test") as Logger
+    val previousLevel = logger.level
+    logger.level = Level.WARN
+    val listAppender = ListAppender<ILoggingEvent>()
+    logger.addAppender(listAppender)
+    listAppender.start()
+    try {
+        block()
+    } finally {
+        listAppender.stop()
+        logger.detachAppender(listAppender)
+        logger.level = previousLevel
+    }
+    return listAppender.list.map { it.message }
 }
 
 @Serializable
