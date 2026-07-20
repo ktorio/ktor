@@ -19,14 +19,13 @@ import kotlinx.io.readByteArray
 internal val LOGGER = KtorSimpleLogger("io.ktor.server.auth.Authentication")
 
 internal object AuthenticationHook : Hook<suspend (ApplicationCall) -> Unit> {
-    internal val AuthenticatePhase: PipelinePhase = PipelinePhase("Authenticate")
 
     override fun install(
         pipeline: ApplicationCallPipeline,
         handler: suspend (ApplicationCall) -> Unit
     ) {
-        pipeline.insertPhaseAfter(ApplicationCallPipeline.Plugins, AuthenticatePhase)
-        pipeline.intercept(AuthenticatePhase) { handler(call) }
+        @Suppress("INVISIBLE_REFERENCE")
+        pipeline.intercept(ApplicationCallPipeline.Validators) { handler(call) }
     }
 }
 
@@ -44,8 +43,8 @@ public object AuthenticationChecked : Hook<suspend (ApplicationCall) -> Unit> {
         pipeline: ApplicationCallPipeline,
         handler: suspend (ApplicationCall) -> Unit
     ) {
-        pipeline.insertPhaseAfter(ApplicationCallPipeline.Plugins, AuthenticationHook.AuthenticatePhase)
-        pipeline.insertPhaseAfter(AuthenticationHook.AuthenticatePhase, AfterAuthenticationPhase)
+        @Suppress("INVISIBLE_REFERENCE")
+        pipeline.insertPhaseAfter(ApplicationCallPipeline.Validators, AfterAuthenticationPhase)
         pipeline.intercept(AfterAuthenticationPhase) { handler(call) }
     }
 }
@@ -80,7 +79,7 @@ public val AuthenticationInterceptors: RouteScopedPlugin<RouteAuthenticationConf
         if (call.attributes.contains(cacheOAuthFormReceiveKey) && call.receiveType == typeInfo<Parameters>()) {
             if (body is ByteReadChannel) {
                 try {
-                    val array = body.readRemaining().readByteArray()
+                    val array = body.readBuffer.readByteArray()
                     call.attributes.put(formCacheKey, array)
                     newBody = ByteReadChannel(array)
                 } finally {
@@ -276,6 +275,11 @@ public fun Route.authenticate(
 /**
  * Creates a route that allows you to define authorization scope for application resources.
  * This function accepts names of authentication providers defined in the [Authentication] plugin configuration.
+ *
+ * When combined with other route-scoped guard plugins such as [io.ktor.server.plugins.ratelimit.rateLimit],
+ * the relative execution order follows route nesting: interceptors on parent routes run before interceptors
+ * on child routes. To use a principal in a rate limit [io.ktor.server.plugins.ratelimit.RateLimitProviderConfig.requestKey],
+ * nest [rateLimit] inside [authenticate].
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.authenticate)
  *
