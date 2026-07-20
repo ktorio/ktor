@@ -28,7 +28,7 @@ import kotlin.test.*
  * the authenticated branch. A 200 response (or, where noted, an intentional 401) confirms the
  * expected candidate was chosen by path quality first.
  */
-class RoutingResolutionQualityTest {
+internal class RoutingResolutionQualityTest {
 
     private fun ApplicationTestBuilder.installAlwaysFailingBasicAuth(vararg names: String) {
         install(Authentication) {
