@@ -161,12 +161,12 @@ class OidcPluginRegistrationTest {
                     }
                     val okta = oidc.provider("okta") {
                         testIssuer(secondIssuer)
-                        sessions {
-                            name = "auth0-bearer"
-                        }
                         oauth {
                             clientId = "client-id"
                             clientSecret = "client-secret"
+                            sessions {
+                                name = "auth0-bearer"
+                            }
                         }
                     }
 

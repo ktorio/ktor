@@ -2,10 +2,15 @@
  * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+@file:OptIn(ExperimentalTime::class)
+
 package io.ktor.server.auth.oidc
 
+import io.ktor.server.routing.RoutingContext
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
 /**
  * Strategy used to refresh OpenID Connect browser sessions.
@@ -56,9 +61,13 @@ public sealed interface OidcTokenRefreshStrategy<in P : Any> {
          * Return the current [token] to keep the session unchanged, a new [OidcToken.Id] to update stored
          * session material, or `null` to invalidate the session.
          *
-         * @param provider provider that authenticated the session.
          * @param token current ID-token session.
+         * @param now request time captured before the strategy runs; use this instead of reading the clock again.
          */
-        public suspend fun refresh(provider: OidcProvider<P>, token: OidcToken.Id): OidcToken.Id?
+        public suspend fun RoutingContext.refresh(
+            provider: OidcProvider<P>,
+            token: OidcToken.Id,
+            now: Instant
+        ): OidcToken.Id?
     }
 }

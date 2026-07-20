@@ -23,11 +23,13 @@ internal suspend fun <P : Any> OidcProvider<P>.refreshSessionIfNeeded(token: Oid
         return token
     }
     val now = Clock.System.now()
-    val sessionConfig = checkNotNull(config.sessionConfig)
+    val sessionConfig = checkNotNull(config.oauthConfig?.sessionConfig)
     return when (val strategy = sessionConfig.tokenRefreshStrategy) {
         is OidcTokenRefreshStrategy.Auto -> refreshSessionAutomatically(token, strategy.beforeExpiry, now)
         is OidcTokenRefreshStrategy.Disabled -> keepSessionIfNotExpired(token, now)
-        is OidcTokenRefreshStrategy.Custom -> refreshSession { strategy.refresh(provider = this, token) }
+        is OidcTokenRefreshStrategy.Custom -> refreshSession {
+            with(strategy) { ctx.refresh(provider = this@refreshSessionIfNeeded, token, now) }
+        }
     }
 }
 
@@ -94,6 +96,6 @@ private fun OidcProvider<*>.clearOidcSession() {
 context(ctx: RoutingContext)
 private fun OidcProvider<*>.managesRoute(): Boolean {
     val path = ctx.call.request.path()
-    val isManaged = path == sessionRefreshPath || path == sessionLogoutPath
+    val isManaged = path == oauthConfig.refreshPath || path == oauthConfig.logoutPath
     return ctx.call.request.httpMethod == HttpMethod.Post && isManaged
 }
