@@ -132,6 +132,13 @@ class ReadLineTest {
     }
 
     @Test
+    fun `limit - exact limit with LF immediately after unicode`() = runTest {
+        val channel = ByteReadChannel("привет\n")
+        val line = channel.readLineStrict(12)
+        assertEquals("привет", line)
+    }
+
+    @Test
     fun `limit - exact limit with CRLF immediately after`() = runTest {
         val channel = ByteReadChannel("12345\r\n")
         channel.assertLines("12345", limit = 5)
@@ -376,5 +383,37 @@ class ReadLineTest {
             channel.close()
         }
         assertEquals("\uD83D\uDE00", channel.readLine())
+    }
+
+    @Test
+    fun `1k chunk before code point boundary`() = runTest {
+        val channel = ByteChannel()
+        backgroundScope.launch {
+            channel.writeFully(ByteArray(1024) { 'a'.code.toByte() })
+            channel.writeFully(byteArrayOf(0xE3.toByte(), 0x83.toByte()))
+            channel.flush()
+            yield()
+            channel.writeFully(byteArrayOf(0xB3.toByte(), '\n'.code.toByte()))
+            channel.flush()
+
+            channel.close()
+        }
+        assertEquals("a".repeat(1024) + "ン", channel.readLine())
+    }
+
+    @Test
+    fun `4k chunk before code point boundary`() = runTest {
+        val channel = ByteChannel()
+        backgroundScope.launch {
+            channel.writeFully(ByteArray(4094) { 'b'.code.toByte() })
+            channel.writeFully(byteArrayOf(0xE3.toByte(), 0x83.toByte()))
+            channel.flush()
+            yield()
+            channel.writeFully(byteArrayOf(0xB3.toByte(), '\n'.code.toByte()))
+            channel.flush()
+
+            channel.close()
+        }
+        assertEquals("b".repeat(4094) + "ン", channel.readLine())
     }
 }
