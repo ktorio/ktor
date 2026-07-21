@@ -120,6 +120,16 @@ internal fun ensureNonceGeneratorRunning() {
     nonceGeneratorJob.start()
 }
 
+internal fun generateNonceSynchronously(length: Int): String = buildString(length) {
+    val random = lookupSecureRandom()
+    val bytes = ByteArray(NONCE_SIZE_IN_BYTES)
+    while (this.length < length) {
+        random.nextBytes(bytes)
+        val hex = bytes.toHexString()
+        append(hex, 0, (length - this.length).coerceAtMost(hex.length))
+    }
+}
+
 private fun lookupSecureRandom(): SecureRandom {
     System.getProperty("$SYSTEM_PROPERTY_PREFIX.random.provider")?.let { name ->
         getInstanceOrNull(name)?.let { return it }

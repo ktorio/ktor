@@ -2,13 +2,12 @@
 * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
 */
 
-@file:kotlin.jvm.JvmMultifileClass
-@file:kotlin.jvm.JvmName("CryptoKt")
+@file:JvmMultifileClass
+@file:JvmName("CryptoKt")
 @file:Suppress("FunctionName")
 
 package io.ktor.util
 
-import kotlinx.coroutines.*
 import java.security.*
 
 /**
@@ -84,21 +83,12 @@ public actual suspend fun generateNonceSuspend(length: Int): String {
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.generateNonceBlocking)
  */
 public actual fun generateNonceBlocking(length: Int): String {
-    val nonce = nonceChannel.tryReceive().getOrNull()
-
-    if (nonce != null && nonce.length >= length) {
-        return nonce.substring(0, length)
+    nonceChannel.tryReceive().getOrNull()?.let { nonce ->
+        if (nonce.length == length) return nonce
+        if (nonce.length > length) return nonce.substring(0, length)
     }
-
     ensureNonceGeneratorRunning()
-
-    return runBlocking {
-        if (length <= NONCE_SIZE_IN_CHARS) {
-            nonceChannel.receive().substring(0, length)
-        } else {
-            generateNonceLong(nonce, length)
-        }
-    }
+    return generateNonceSynchronously(length)
 }
 
 private suspend fun generateNonceLong(initial: CharSequence?, length: Int) = buildString(length) {
@@ -110,4 +100,4 @@ private suspend fun generateNonceLong(initial: CharSequence?, length: Int) = bui
         val toAppend = nonceChannel.receive()
         append(toAppend, 0, (length - this.length).coerceAtMost(toAppend.length))
     }
-}.substring(0, length)
+}

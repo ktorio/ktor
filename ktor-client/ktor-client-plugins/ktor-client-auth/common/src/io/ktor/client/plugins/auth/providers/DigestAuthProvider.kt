@@ -120,7 +120,7 @@ public class DigestAuthProvider(
 
     private val qop = atomic<String?>(null)
     private val opaque = atomic<String?>(null)
-    private val clientNonce = generateNonceBlocking()
+    private var clientNonce: String? = null
 
     private val requestCounter = atomic(0)
 
@@ -181,6 +181,7 @@ public class DigestAuthProvider(
         }
 
         val credentials = tokenHolder.loadToken() ?: return
+        val cnonce = clientNonce ?: generateNonceSuspend().also { clientNonce = it }
         val credential = makeDigest("${credentials.username}:$realm:${credentials.password}")
 
         val start = credential.toHexString()
@@ -188,7 +189,7 @@ public class DigestAuthProvider(
         val tokenSequence = if (actualQop == null) {
             listOf(start, nonce, end)
         } else {
-            listOf(start, nonce, nonceCount, clientNonce, actualQop, end)
+            listOf(start, nonce, nonceCount, cnonce, actualQop, end)
         }
 
         val token = makeDigest(tokenSequence.joinToString(":"))
@@ -200,7 +201,7 @@ public class DigestAuthProvider(
                 serverOpaque?.let { this["opaque"] = it.quote() }
                 this["username"] = credentials.username.quote()
                 this["nonce"] = nonce.quote()
-                this["cnonce"] = clientNonce.quote()
+                this["cnonce"] = cnonce.quote()
                 this["response"] = token.toHexString().quote()
                 this["uri"] = url.fullPath.quote()
                 actualQop?.let { this["qop"] = it }

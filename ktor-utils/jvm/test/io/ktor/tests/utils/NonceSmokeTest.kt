@@ -5,7 +5,11 @@
 package io.ktor.tests.utils
 
 import io.ktor.util.*
-import kotlin.test.*
+import kotlinx.coroutines.*
+import java.util.concurrent.CountDownLatch
+import kotlin.test.Test
+import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.seconds
 
 class NonceSmokeTest {
     @Test
@@ -17,5 +21,28 @@ class NonceSmokeTest {
         }
 
         assertTrue { nonceSet.size == 4096 }
+    }
+
+    @Test
+    fun `test generate nonce blocking does not deadlock when Default Dispatcher is saturated`() {
+        val processors = Runtime.getRuntime().availableProcessors()
+        val latch = CountDownLatch(processors)
+        val jobs = List(processors) {
+            @OptIn(DelicateCoroutinesApi::class)
+            GlobalScope.launch(Dispatchers.Default) {
+                latch.countDown()
+                Thread.sleep(10_000)
+            }
+        }
+        latch.await()
+        try {
+            runBlocking {
+                withTimeout(5.seconds) {
+                    generateNonceBlocking()
+                }
+            }
+        } finally {
+            jobs.forEach { it.cancel() }
+        }
     }
 }
