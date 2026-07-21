@@ -121,7 +121,7 @@ private class FileCacheStorage(
                 val path = Path(directoryPath, urlHex)
                 fileSystem.sink(path).buffered().use { output ->
                     launch {
-                    channel.writeInt(caches.size)
+                        channel.writeInt(caches.size)
                         for (cache in caches) {
                             writeCache(channel, cache)
                         }
