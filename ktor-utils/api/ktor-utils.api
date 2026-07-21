@@ -339,10 +339,14 @@ public final class io/ktor/util/RangesKt {
 }
 
 public final class io/ktor/util/StatelessHmacNonceManager : io/ktor/util/NonceManager {
-	public fun <init> (Ljavax/crypto/spec/SecretKeySpec;Ljava/lang/String;JLkotlin/jvm/functions/Function0;)V
+	public synthetic fun <init> (Ljavax/crypto/spec/SecretKeySpec;Ljava/lang/String;JLkotlin/jvm/functions/Function0;)V
 	public synthetic fun <init> (Ljavax/crypto/spec/SecretKeySpec;Ljava/lang/String;JLkotlin/jvm/functions/Function0;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun <init> ([BLjava/lang/String;JLkotlin/jvm/functions/Function0;)V
+	public fun <init> (Ljavax/crypto/spec/SecretKeySpec;Ljava/lang/String;JLkotlin/jvm/functions/Function1;)V
+	public synthetic fun <init> (Ljavax/crypto/spec/SecretKeySpec;Ljava/lang/String;JLkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> ([BLjava/lang/String;JLkotlin/jvm/functions/Function0;)V
 	public synthetic fun <init> ([BLjava/lang/String;JLkotlin/jvm/functions/Function0;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> ([BLjava/lang/String;JLkotlin/jvm/functions/Function1;)V
+	public synthetic fun <init> ([BLjava/lang/String;JLkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getAlgorithm ()Ljava/lang/String;
 	public final fun getKeySpec ()Ljavax/crypto/spec/SecretKeySpec;
 	public final fun getNonceGenerator ()Lkotlin/jvm/functions/Function0;

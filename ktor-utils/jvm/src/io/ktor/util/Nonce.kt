@@ -125,9 +125,11 @@ internal fun ensureNonceGeneratorRunning() {
     nonceGeneratorJob.start()
 }
 
+private val secureRandom: SecureRandom by lazy { lookupSecureRandom() }
+
 internal fun generateNonceSynchronously(acc: StringBuilder, length: Int): String {
-    val random = lookupSecureRandom()
     val bytes = ByteArray(NONCE_SIZE_IN_BYTES)
+    val random = secureRandom
     while (acc.length < length) {
         random.nextBytes(bytes)
         val hex = bytes.toHexString()
