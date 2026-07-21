@@ -5,6 +5,7 @@
 package io.ktor.http
 
 import io.ktor.util.*
+import io.ktor.utils.io.*
 
 /** Separator symbols listed in RFC https://tools.ietf.org/html/rfc2616#section-2.2 */
 private val HeaderFieldValueSeparators =
@@ -44,6 +45,7 @@ public abstract class HeaderValueWithParameters(
 
     override fun toString(): String = when {
         parameters.isEmpty() -> content
+
         else -> {
             val size = content.length + parameters.sumOf { it.name.length + it.value.length + 3 }
 
@@ -100,6 +102,7 @@ private inline fun String.escapeIfNeededTo(out: StringBuilder) {
     }
 }
 
+@OptIn(InternalAPI::class)
 private fun String.needQuotes(): Boolean {
     if (isEmpty()) return true
     if (isQuoted()) return false
@@ -111,7 +114,13 @@ private fun String.needQuotes(): Boolean {
     return false
 }
 
-private fun String.isQuoted(): Boolean {
+/**
+ * Returns `true` if the string is wrapped in double quotes with all inner double quotes properly escaped.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.isQuoted)
+ */
+@InternalAPI
+public fun String.isQuoted(): Boolean {
     if (length < 2) {
         return false
     }

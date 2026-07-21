@@ -30,7 +30,9 @@ public fun OutgoingContent.compressed(
         CompressedReadChannelResponse(this, { ByteReadChannel(bytes()) }, contentEncoder, coroutineContext)
 
     is OutgoingContent.NoContent -> null
+
     is OutgoingContent.ProtocolUpgrade -> null
+
     is OutgoingContent.ContentWrapper -> delegate().compressed(contentEncoder, coroutineContext)
 }
 

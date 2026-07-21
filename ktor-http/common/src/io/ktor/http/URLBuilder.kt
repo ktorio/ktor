@@ -152,7 +152,7 @@ private fun <A : Appendable> URLBuilder.appendTo(out: A): A {
     when (protocol.name) {
         "file" -> {
             out.appendFile(host, encodedPath)
-            return out
+            out.appendUrlFullPath("", encodedParameters, trailingQuery)
         }
 
         "mailto" -> {
@@ -174,12 +174,13 @@ private fun <A : Appendable> URLBuilder.appendTo(out: A): A {
             out.appendPayload(host)
             return out
         }
+
+        else -> {
+            out.append("://")
+            out.append(authority)
+            out.appendUrlFullPath(encodedPath, encodedParameters, trailingQuery)
+        }
     }
-
-    out.append("://")
-    out.append(authority)
-
-    out.appendUrlFullPath(encodedPath, encodedParameters, trailingQuery)
 
     if (encodedFragment.isNotEmpty()) {
         out.append('#')

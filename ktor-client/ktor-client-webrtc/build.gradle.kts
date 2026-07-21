@@ -1,11 +1,12 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 @file:OptIn(ExperimentalWasmDsl::class, ExperimentalKotlinGradlePluginApi::class)
 
 import ktorbuild.disableNativeCompileConfigurationCache
 import ktorbuild.targets.*
 import org.jetbrains.kotlin.gradle.*
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
 
 description = "Ktor WebRTC Client"
 
@@ -16,6 +17,24 @@ plugins {
     id("ktorbuild.project.library")
 }
 
+fun resolveWebRtcJavaClassifier(): String {
+    val osName = System.getProperty("os.name").lowercase()
+    val osArch = System.getProperty("os.arch").lowercase()
+    val platform = when {
+        osName.contains("mac") || osName.contains("darwin") -> "macos"
+        osName.contains("windows") -> "windows"
+        osName.contains("linux") -> "linux"
+        else -> error("Unsupported OS: $osName")
+    }
+    val arch = when {
+        osArch.contains("aarch64") || osArch.contains("arm64") -> "aarch64"
+        osArch.contains("amd64") || osArch.contains("x86_64") || osArch.contains("x64") -> "x86_64"
+        osArch.contains("x86") -> "x86"
+        else -> error("Unsupported architecture: $osArch")
+    }
+    return "$platform-$arch"
+}
+
 kotlin {
     jvmToolchain(17)
 
@@ -23,6 +42,13 @@ kotlin {
         namespace = "io.ktor.client.webrtc"
         compileSdk = libs.versions.android.compileSdk.get().toInt()
         minSdk = libs.versions.android.minSdk.get().toInt()
+
+        packaging {
+            // Both 'net.java.dev.jna:jna-platform' and 'net.java.dev.jna:jna' (5.9.0) provide these licenses,
+            // so we have to filter them out to resolve the conflict
+            resources.excludes.add("META-INF/AL2.0")
+            resources.excludes.add("META-INF/LGPL2.1")
+        }
     }
 
     optionalCocoapods {
@@ -55,23 +81,24 @@ kotlin {
             // using `atomicfu` as a library, but not a plugin
             // because its plugin is not compatible with Android KMP plugin
             implementation(libs.kotlinx.atomicfu)
-            api(project(":ktor-io"))
+            api(projects.ktorIo)
             api(libs.kotlinx.serialization.core)
         }
 
         commonTest.dependencies {
-            implementation(libs.kotlin.test)
-            implementation(project(":ktor-test-dispatcher"))
+            implementation(projects.ktorTestBase)
+        }
+
+        jvmMain.dependencies {
+            api(libs.webrtc.java)
+
+            // Gradle has issues resolving a native library with classifier, so we add it manually
+            val webRtcJavaNativeLib = libs.webrtc.java.get().toString() + ":" + resolveWebRtcJavaClassifier()
+            implementation(webRtcJavaNativeLib)
         }
 
         webMain.dependencies {
             api(kotlinWrappers.browser)
-        }
-
-        wasmJs {
-            compilerOptions {
-                freeCompilerArgs.add("-Xwasm-attach-js-exception")
-            }
         }
 
         optional.androidMain.dependencies {
@@ -80,4 +107,24 @@ kotlin {
     }
 
     disableNativeCompileConfigurationCache()
+}
+
+// Exclude JUnit 5 from Android device tests
+configurations.named { it.startsWith("androidDeviceTest") }.configureEach {
+    resolutionStrategy.dependencySubstitution {
+        substitute(module(libs.kotlin.test.junit5))
+            .using(module(libs.kotlin.test.junit))
+            .because("Junit 5 is not supported for Android device tests")
+    }
+
+    exclude(group = "org.junit.jupiter")
+    exclude(group = "org.junit.platform")
+}
+
+tasks.withType<KotlinCompilationTask<*>>().configureEach {
+    if (name.contains("Test", ignoreCase = true)) {
+        compilerOptions {
+            freeCompilerArgs.add("-Xcontext-parameters")
+        }
+    }
 }

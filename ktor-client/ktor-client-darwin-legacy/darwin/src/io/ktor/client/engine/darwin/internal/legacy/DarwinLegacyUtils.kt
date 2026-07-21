@@ -8,20 +8,30 @@ import io.ktor.client.call.*
 import io.ktor.http.content.*
 import io.ktor.utils.io.*
 import kotlinx.cinterop.*
-import kotlinx.coroutines.*
-import kotlinx.io.*
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.io.readByteArray
 import platform.Foundation.*
-import platform.posix.*
+import platform.posix.memcpy
+
+@OptIn(UnsafeNumber::class)
+internal val NSURLSessionTask.id: ULong get() = this.taskIdentifier.toULong()
 
 @OptIn(DelicateCoroutinesApi::class)
 internal suspend fun OutgoingContent.toNSData(): NSData? = when (this) {
     is OutgoingContent.ByteArrayContent -> bytes().toNSData()
+
     is OutgoingContent.WriteChannelContent -> GlobalScope.writer(Dispatchers.Unconfined) {
         writeTo(channel)
     }.channel.readRemaining().readByteArray().toNSData()
+
     is OutgoingContent.ReadChannelContent -> readFrom().readRemaining().readByteArray().toNSData()
+
     is OutgoingContent.NoContent -> null
+
     is OutgoingContent.ContentWrapper -> delegate().toNSData()
+
     is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(this)
 }
 
@@ -43,6 +53,20 @@ internal fun NSData.toByteArray(): ByteArray {
     }
 
     return result
+}
+
+/**
+ * Writes the entire content of [NSData] to this channel without intermediate allocations.
+ * Writes directly from NSData's byte pointer to avoid creating an intermediate ByteArray.
+ */
+@OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
+internal suspend fun ByteWriteChannel.writeFully(data: NSData) {
+    val length = data.length.toLong()
+    if (length == 0L) return
+
+    val bytes = data.bytes ?: return
+    @Suppress("UNCHECKED_CAST")
+    writeFully(bytes as CPointer<ByteVar>, 0, length)
 }
 
 /**

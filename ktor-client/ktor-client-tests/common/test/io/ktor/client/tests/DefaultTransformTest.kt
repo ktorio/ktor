@@ -9,8 +9,8 @@ import io.ktor.client.call.*
 import io.ktor.client.engine.mock.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import kotlinx.coroutines.test.runTest
-import kotlin.test.*
+import io.ktor.test.*
+import kotlin.test.Test
 
 class DefaultTransformTest {
 

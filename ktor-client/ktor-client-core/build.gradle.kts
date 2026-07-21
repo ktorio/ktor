@@ -31,9 +31,10 @@ kotlin {
         }
 
         commonTest.dependencies {
-            implementation(projects.ktorTestDispatcher)
+            implementation(projects.ktorTestBase)
             implementation(projects.ktorClientMock)
             implementation(projects.ktorServerTestHost)
+            implementation(projects.ktorClientContentNegotiation)
         }
     }
 }

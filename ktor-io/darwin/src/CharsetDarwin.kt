@@ -1,18 +1,21 @@
 /*
- * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.utils.io.charsets
 
 import kotlinx.cinterop.*
-import kotlinx.io.*
+import kotlinx.io.IOException
+import kotlinx.io.Sink
+import kotlinx.io.Source
+import kotlinx.io.readByteArray
 import platform.Foundation.*
-import platform.posix.*
+import platform.posix.memcpy
 
 public actual object Charsets {
     public actual val UTF_8: Charset = CharsetDarwin("UTF-8")
     public actual val ISO_8859_1: Charset = CharsetDarwin("ISO-8859-1")
-    internal val UTF_16: Charset = CharsetDarwin(platformUtf16)
+    internal val UTF_16: Charset = CharsetDarwin("UTF-16")
 }
 
 internal actual fun findCharset(name: String): Charset {
@@ -38,7 +41,7 @@ private class CharsetDarwin(name: String) : Charset(name) {
         "NEXTSTEP" -> NSNEXTSTEPStringEncoding
         "JAPANESE_EUC" -> NSJapaneseEUCStringEncoding
         "LATIN1" -> NSISOLatin1StringEncoding
-        else -> throw IllegalArgumentException("Charset $name is not supported by darwin.")
+        else -> throw IllegalArgumentException("Charset $name is not supported by Darwin.")
     }
 
     override fun newEncoder(): CharsetEncoder = object : CharsetEncoder(this) {
@@ -50,7 +53,7 @@ private class CharsetDarwin(name: String) : Charset(name) {
 
 @OptIn(UnsafeNumber::class)
 internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: Int, toIndex: Int, dst: Sink): Int {
-    val charset = _charset as? CharsetDarwin ?: error("Charset $this is not supported by darwin.")
+    val charset = _charset as? CharsetDarwin ?: error("Charset $this is not supported by Darwin.")
 
     @Suppress("CAST_NEVER_SUCCEEDS")
     val content = input.substring(fromIndex, toIndex) as? NSString ?: error("Failed to convert input to NSString.")
@@ -70,7 +73,7 @@ public actual fun CharsetDecoder.decode(input: Source, dst: Appendable, max: Int
         throw IOException("Max argument is deprecated")
     }
 
-    val charset = _charset as? CharsetDarwin ?: error("Charset $this is not supported by darwin.")
+    val charset = _charset as? CharsetDarwin ?: error("Charset $this is not supported by Darwin.")
     val source: ByteArray = input.readByteArray()
 
     val data = source.toNSData()
@@ -87,7 +90,7 @@ internal actual fun CharsetEncoder.encodeToByteArrayImpl(
     fromIndex: Int,
     toIndex: Int
 ): ByteArray {
-    val charset = _charset as? CharsetDarwin ?: error("Charset $this is not supported by darwin.")
+    val charset = _charset as? CharsetDarwin ?: error("Charset $this is not supported by Darwin.")
 
     @Suppress("CAST_NEVER_SUCCEEDS")
     val content = input.substring(fromIndex, toIndex) as? NSString ?: error("Failed to convert input to NSString.")

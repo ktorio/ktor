@@ -16,6 +16,7 @@ import io.ktor.server.engine.*
 import io.ktor.server.plugins.calllogging.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import io.ktor.test.*
 import io.ktor.test.junit.*
 import io.ktor.util.*
 import kotlinx.coroutines.*
@@ -42,7 +43,6 @@ import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
 actual abstract class EngineTestBase<
@@ -86,7 +86,7 @@ actual abstract class EngineTestBase<
     override val timeout: Duration = if (isUnderDebugger) {
         1_000_000.milliseconds
     } else {
-        System.getProperty("host.test.timeout.seconds")?.toLong()?.seconds ?: 4.minutes
+        System.getProperty("host.test.timeout.seconds")?.toLong()?.seconds ?: DEFAULT_TEST_TIMEOUT
     }
 
     override fun beforeTest() {
@@ -187,6 +187,7 @@ actual abstract class EngineTestBase<
             val failures = startServer(server)
             when {
                 failures.isEmpty() -> return server
+
                 failures.any { it.hasBindException() || it is TimeoutCancellationException } -> {
                     FreePorts.recycle(port)
                     FreePorts.recycle(sslPort)

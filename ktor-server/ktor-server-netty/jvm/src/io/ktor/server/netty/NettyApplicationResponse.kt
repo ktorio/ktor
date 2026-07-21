@@ -127,6 +127,7 @@ public abstract class NettyApplicationResponse(
             content.isClosedForRead -> {
                 responseMessage(chunked = false, data = EmptyByteArray)
             }
+
             else -> {
                 responseMessage(chunked, last = false)
             }
@@ -160,7 +161,7 @@ public abstract class NettyApplicationResponse(
     public fun cancel() {
         if (!responseMessageSent) {
             responseChannel = ByteReadChannel.Empty
-            responseReady.setFailure(CancellationException("Response was cancelled"))
+            responseReady.tryFailure(CancellationException("Response was cancelled"))
             responseMessageSent = true
         }
     }

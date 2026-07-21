@@ -61,6 +61,17 @@ public abstract class io/ktor/server/servlet/jakarta/KtorServlet : jakarta/servl
 	protected fun service (Ljakarta/servlet/http/HttpServletRequest;Ljakarta/servlet/http/HttpServletResponse;)V
 }
 
+public final class io/ktor/server/servlet/jakarta/KtorServletContainerInitializer : jakarta/servlet/ServletContainerInitializer {
+	public fun <init> ()V
+	public fun onStartup (Ljava/util/Set;Ljakarta/servlet/ServletContext;)V
+}
+
+public final class io/ktor/server/servlet/jakarta/KtorServletContextListener : jakarta/servlet/ServletContextListener {
+	public fun <init> ()V
+	public fun contextDestroyed (Ljakarta/servlet/ServletContextEvent;)V
+	public fun contextInitialized (Ljakarta/servlet/ServletContextEvent;)V
+}
+
 public final class io/ktor/server/servlet/jakarta/KtorServletKt {
 	public static final fun getServletContextAttribute ()Lio/ktor/util/AttributeKey;
 }
@@ -118,6 +129,7 @@ public abstract class io/ktor/server/servlet/jakarta/ServletApplicationResponse 
 	protected final fun getCompleted ()Z
 	public fun getHeaders ()Lio/ktor/server/response/ResponseHeaders;
 	protected final fun getServletResponse ()Ljakarta/servlet/http/HttpServletResponse;
+	protected fun respondWriteChannelContent (Lio/ktor/http/content/OutgoingContent$WriteChannelContent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun responseChannel (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	protected final fun setCompleted (Z)V
 	protected fun setStatus (Lio/ktor/http/HttpStatusCode;)V

@@ -151,6 +151,10 @@ public final class io/ktor/util/CryptoKt {
 	public static synthetic fun build$default (Lio/ktor/util/Digest;Ljava/lang/String;Ljava/nio/charset/Charset;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static final fun generateNonce ()Ljava/lang/String;
 	public static final fun generateNonce (I)[B
+	public static final fun generateNonceBlocking (I)Ljava/lang/String;
+	public static synthetic fun generateNonceBlocking$default (IILjava/lang/Object;)Ljava/lang/String;
+	public static final fun generateNonceSuspend (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun generateNonceSuspend$default (ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public static final fun getDigestFunction (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lkotlin/jvm/functions/Function1;
 	public static final fun hex (Ljava/lang/String;)[B
 	public static final fun hex ([B)Ljava/lang/String;

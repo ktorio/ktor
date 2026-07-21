@@ -118,6 +118,7 @@ internal fun ByteArray.toIpString(): String {
     }
     return when (size) {
         4 -> joinToString(".") { it.toUByte().toString() }
+
         else -> (0 until 8).joinToString(":") { i ->
             val value = ((this[i * 2].toInt() and 0xFF) shl 8) or (this[i * 2 + 1].toInt() and 0xFF)
             value.toString(16).padStart(4, '0')

@@ -6,6 +6,7 @@ package io.ktor.client.webrtc.utils
 
 import io.ktor.client.webrtc.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalKtorApi::class)
@@ -13,6 +14,9 @@ actual fun createTestWebRtcClient(): WebRtcClient {
     return WebRtcClient(IosWebRtc) {
         defaultConnectionConfig = {
             statsRefreshRate = 100.milliseconds
+            exceptionHandler = CoroutineExceptionHandler { _, e ->
+                throw e
+            }
         }
     }
 }

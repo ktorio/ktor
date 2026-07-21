@@ -5,8 +5,8 @@
 package io.ktor.client.engine.mock
 
 import io.ktor.http.content.*
+import io.ktor.test.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 

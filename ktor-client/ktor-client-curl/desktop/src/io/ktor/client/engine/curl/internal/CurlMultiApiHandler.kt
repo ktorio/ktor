@@ -42,7 +42,7 @@ internal class CurlMultiApiHandler : Closeable {
     private val easyHandlesToUnpause = mutableListOf<EasyHandle>()
 
     override fun close() {
-        if (activeHandles.isNotEmpty()) handleCompleted()
+        if (activeHandles.isNotEmpty() || cancelledHandles.isNotEmpty()) handleCompleted()
         for ((handle, holder) in activeHandles) {
             cleanupEasyHandle(handle)
             holder.dispose()
@@ -61,10 +61,11 @@ internal class CurlMultiApiHandler : Closeable {
             val wsConfig = request.attributes[WEBSOCKETS_KEY]
             CurlWebSocketResponseBody(
                 easyHandle,
-                wsConfig.channelsConfig.incoming
+                wsConfig.channelsConfig.incoming,
+                wsConfig.maxFrameSize,
             )
         } else {
-            CurlHttpResponseBody(request.executionContext) {
+            CurlHttpResponseBody(request.callContext) {
                 unpauseEasyHandle(easyHandle)
             }
         }
@@ -126,20 +127,34 @@ internal class CurlMultiApiHandler : Closeable {
     }
 
     private fun fixProxyUrl(url: String, proxyType: ProxyType): String {
-        return if (proxyType == ProxyType.SOCKS) url.replaceFirst("socks://", "socks5://") else url
+        return if (proxyType == ProxyType.SOCKS) url.replaceFirst("socks://", "socks5h://") else url
     }
 
     fun cancelRequest(easyHandle: EasyHandle, cause: Throwable) {
         cancelledHandles += Pair(easyHandle, cause)
     }
 
+    fun cancelWebSocket(websocket: CurlWebSocketResponseBody, cause: Throwable) {
+        val easyHandle = websocket.easyHandle
+        val handler = activeHandles[easyHandle] ?: return
+        if (handler.responseWrapper.get() !== websocket) return
+        removeEasyHandle(easyHandle, cause)
+    }
+
     fun perform(transfersRunning: IntVarOf<Int>) {
+        if (activeHandles.isEmpty()) return
+
+        // Process cancelled handles before performing to prevent them from blocking curl_multi_poll.
+        if (cancelledHandles.isNotEmpty()) {
+            handleCompleted()
+        }
+
         if (activeHandles.isEmpty()) return
 
         synchronized(easyHandlesToUnpauseLock) {
             var handle = easyHandlesToUnpause.removeFirstOrNull()
             while (handle != null) {
-                curl_easy_pause(handle, CURLPAUSE_CONT)
+                if (handle in activeHandles) curl_easy_pause(handle, CURLPAUSE_CONT)
                 handle = easyHandlesToUnpause.removeFirstOrNull()
             }
         }
@@ -189,7 +204,7 @@ internal class CurlMultiApiHandler : Closeable {
     private fun setupUploadContent(easyHandle: EasyHandle, request: CurlRequestData): COpaquePointer {
         val requestPointer = CurlRequestBodyData(
             body = request.content,
-            callContext = request.executionContext,
+            callContext = request.callContext,
             onUnpause = {
                 unpauseEasyHandle(easyHandle)
             }
@@ -203,11 +218,8 @@ internal class CurlMultiApiHandler : Closeable {
     }
 
     private fun handleCompleted() {
-        for (cancellation in cancelledHandles) {
-            val cancelled = processCancelledEasyHandle(cancellation.first, cancellation.second)
-            val handler = activeHandles.remove(cancellation.first)!!
-            handler.responseCompletable.completeExceptionally(cancelled.cause)
-            handler.dispose()
+        for ((easyHandle, cause) in cancelledHandles) {
+            removeEasyHandle(easyHandle, cause)
         }
         cancelledHandles.clear()
 
@@ -238,6 +250,16 @@ internal class CurlMultiApiHandler : Closeable {
         }
     }
 
+    private fun removeEasyHandle(easyHandle: EasyHandle, cause: Throwable) {
+        val handler = activeHandles.remove(easyHandle) ?: return
+        try {
+            processCancelledEasyHandle(easyHandle, cause)
+        } finally {
+            handler.responseCompletable.completeExceptionally(cause)
+            handler.dispose()
+        }
+    }
+
     private fun processCancelledEasyHandle(easyHandle: EasyHandle, cause: Throwable): CurlFail = memScoped {
         try {
             val responseDataRef = alloc<COpaquePointerVar>()
@@ -262,16 +284,23 @@ internal class CurlMultiApiHandler : Closeable {
         try {
             val responseDataRef = alloc<COpaquePointerVar>()
             val httpStatusCode = alloc<LongVar>()
+            val proxyCode = alloc<CURLproxycode.Var>()
 
             easyHandle.apply {
                 getInfo(CURLINFO_RESPONSE_CODE, httpStatusCode.ptr)
                 getInfo(CURLINFO_PRIVATE, responseDataRef.ptr)
+                getInfo(CURLINFO_PROXY_ERROR, proxyCode.ptr)
             }
 
             val responseBuilder = responseDataRef.value!!.fromCPointer<CurlResponseBuilder>()
             try {
-                collectFailedResponse(message, responseBuilder.request, result, httpStatusCode.value)
-                    ?: collectSuccessResponse(easyHandle)!!
+                collectFailedResponse(
+                    message = message,
+                    request = responseBuilder.request,
+                    result = result,
+                    httpStatusCode = httpStatusCode.value,
+                    proxyCode = proxyCode.value
+                ) ?: collectSuccessResponse(easyHandle)!!
             } finally {
                 responseBuilder.responseBody.close()
                 responseBuilder.headersBytes.close()
@@ -285,7 +314,8 @@ internal class CurlMultiApiHandler : Closeable {
         message: CURLMSG?,
         request: CurlRequestData,
         result: CURLcode,
-        httpStatusCode: Long
+        httpStatusCode: Long,
+        proxyCode: CURLproxycode,
     ): CurlFail? {
         curl_slist_free_all(request.headers)
 
@@ -303,13 +333,19 @@ internal class CurlMultiApiHandler : Closeable {
             return CurlFail(ConnectTimeoutException(request.url, request.connectTimeout))
         }
 
-        val errorMessage = curl_easy_strerror(result)?.toKStringFromUtf8()
+        val errorMessage = result.errorMessage
 
         if (result == CURLE_PEER_FAILED_VERIFICATION) {
             return CurlFail(
                 IllegalStateException(
                     "TLS verification failed for request: $request. Reason: $errorMessage"
                 )
+            )
+        }
+
+        if (result == CURLE_PROXY && proxyCode != CURLproxycode.CURLPX_OK) {
+            return CurlFail(
+                IllegalStateException("Proxy handshake error for request: $request. Reason: $proxyCode")
             )
         }
 
@@ -379,7 +415,7 @@ internal class CurlMultiApiHandler : Closeable {
 
                 val status = curl_ws_send(
                     curl = easyHandle,
-                    buffer = bufferStart,
+                    buffer_arg = bufferStart,
                     buflen = remaining.convert(),
                     sent = sent.ptr,
                     fragsize = 0,

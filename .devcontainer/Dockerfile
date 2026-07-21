@@ -4,7 +4,7 @@
 # Enforce linux/amd64 platform because of two reasons:
 # 1. Chrome doesn't provide arm64 binaries for Linux (https://issues.chromium.org/issues/374811603)
 # 2. Kotlin/Native doesn't support linux/arm64 as a host platform (KT-36871)
-FROM --platform=linux/amd64 eclipse-temurin:21.0.8_9-jdk-noble AS dev
+FROM --platform=linux/amd64 eclipse-temurin:21.0.11_10-jdk-noble AS dev
 
 ARG USERNAME=developer
 ARG USER_UID=1001
@@ -26,7 +26,7 @@ RUN <<EOT
 
   apt-get update
   apt-get install --yes --no-install-recommends \
-    git util-linux openssh-server \
+    git util-linux openssh-server pulseaudio \
     ca-certificates curl fonts-liberation \
     $(grep --invert-match '^#' /tmp/chrome-dependencies.txt | tr '\n' ' ') \
     temurin-8-jdk temurin-11-jdk temurin-17-jdk \
@@ -56,17 +56,23 @@ ENV PATH="$local_bin:$PATH"
 
 # Install Node.js
 ARG node_version="22"
-ARG nvm_version="0.40.3"
+ARG yarn_version="1.22.22"
+ARG nvm_version="0.40.4"
+
 ENV NVM_DIR="$HOME/.nvm"
+ENV NODE_VERSION="$node_version"
 
 RUN <<EOT
-  # Install NVM
-  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v$nvm_version/install.sh | bash
-  source $NVM_DIR/nvm.sh
+  : "${node_version:?node_version is empty}"
+  : "${yarn_version:?yarn_version is empty}"
 
-  # Install Node and Yarn Classic
-  nvm install "$node_version"
-  npm install -g yarn
+  # Install NVM and Node.js
+  # NVM automatically installs the Node.js version specified in the NODE_VERSION env variable
+  curl -o- "https://raw.githubusercontent.com/nvm-sh/nvm/v${nvm_version}/install.sh" | bash
+  source "$NVM_DIR/nvm.sh"
+
+  # Install Yarn Classic
+  npm install -g "yarn@$yarn_version"
 
   # Make Node.js binaries available without "source $NVM_DIR/nvm.sh"
   # This should be done *after* installation of Yarn
@@ -80,17 +86,25 @@ RUN <<EOT
 EOT
 
 # Install Chrome
+ARG puppeteer_version="25"
 ENV CHROME_BIN="$local_bin/chrome"
 
 RUN <<EOT
+  : "${puppeteer_version:?puppeteer_version is empty}"
+
   source $NVM_DIR/nvm.sh
   browsers_dir="$HOME/.cache/browsers"
 
-  npx @puppeteer/browsers install chrome@stable --path "$browsers_dir"
+  # Install Puppeteer temporarily to install the Chrome version pinned by Puppeteer
+  npm install -g "puppeteer@$puppeteer_version"
+  npx puppeteer browsers install chrome --path "$browsers_dir"
 
   # Make Chrome binary visible for Karma
-  chrome_bin_path=$(npx @puppeteer/browsers list --path "$browsers_dir" | head -n1 | sed 's/.* //')
+  chrome_bin_path=$(npx puppeteer browsers list --path "$browsers_dir" | head -n1 | sed 's/.* //')
   ln -s "$chrome_bin_path" "$CHROME_BIN"
+
+  npm uninstall -g puppeteer
+  npm cache clean --force
 EOT
 
 # Change shell back to bash from jshell

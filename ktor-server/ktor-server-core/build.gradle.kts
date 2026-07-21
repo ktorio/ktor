@@ -28,16 +28,14 @@ kotlin {
 
         jvmMain.dependencies {
             api(libs.typesafe.config)
-            implementation(libs.jansi)
         }
 
         commonTest.dependencies {
-            implementation(projects.ktorServerTestHost)
+            implementation(projects.ktorServerTestBase)
         }
 
         jvmTest.dependencies {
             implementation(projects.ktorServerConfigYaml)
-            implementation(projects.ktorServerTestBase)
             implementation(projects.ktorServerTestSuites)
 
             implementation(libs.mockk)

@@ -29,6 +29,8 @@ public class JsWebRtcEngine(
     override suspend fun createPeerConnection(config: WebRtcConnectionConfig): WebRtcPeerConnection {
         val nativePeerConnection = RTCPeerConnection(configuration = config.toJs())
         val coroutineContext = createConnectionContext(config.exceptionHandler)
-        return JsWebRtcPeerConnection(nativePeerConnection, coroutineContext, config)
+        val connection = JsWebRtcPeerConnection(nativePeerConnection, coroutineContext, config)
+        connection.startFetchingStatistics()
+        return connection
     }
 }

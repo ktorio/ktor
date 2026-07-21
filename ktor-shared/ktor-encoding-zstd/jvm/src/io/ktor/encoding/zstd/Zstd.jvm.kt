@@ -4,6 +4,7 @@
 
 package io.ktor.encoding.zstd
 
+import com.github.luben.zstd.EndDirective
 import com.github.luben.zstd.ZstdCompressCtx
 import com.github.luben.zstd.ZstdDecompressCtx
 import io.ktor.util.*
@@ -102,15 +103,26 @@ public class Zstd(private val compressionLevel: Int) : Encoder {
         try {
             while (!isClosedForRead) {
                 inputBuf.clear()
-                outputBuf.clear()
                 val bytesRead = readAvailable(inputBuf)
                 if (bytesRead <= 0) continue
                 inputBuf.flip()
 
-                ctx.compress(outputBuf, inputBuf)
-                outputBuf.flip()
-                destination.writeFully(outputBuf)
+                while (inputBuf.hasRemaining()) {
+                    outputBuf.clear()
+                    ctx.compressDirectByteBufferStream(outputBuf, inputBuf, EndDirective.CONTINUE)
+                    outputBuf.flip()
+                    if (outputBuf.hasRemaining()) destination.writeFully(outputBuf)
+                }
             }
+
+            inputBuf.clear()
+            inputBuf.flip()
+            do {
+                outputBuf.clear()
+                val finished = ctx.compressDirectByteBufferStream(outputBuf, inputBuf, EndDirective.END)
+                outputBuf.flip()
+                if (outputBuf.hasRemaining()) destination.writeFully(outputBuf)
+            } while (!finished)
         } finally {
             ctx.close()
             pool.recycle(inputBuf)

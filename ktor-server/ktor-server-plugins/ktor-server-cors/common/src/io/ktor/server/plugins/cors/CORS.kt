@@ -54,10 +54,7 @@ internal fun PluginBuilder<CORSConfig>.buildPlugin() {
     val allowNonSimpleContentTypes: Boolean = pluginConfig.allowNonSimpleContentTypes
     val headersList = pluginConfig.headers.filterNot { it in CORSConfig.CorsSimpleRequestHeaders }
         .let { if (allowNonSimpleContentTypes) it + HttpHeaders.ContentType else it }
-    val methodsListHeaderValue = methods.filterNot { it in CORSConfig.CorsDefaultMethods }
-        .map { it.value }
-        .sorted()
-        .joinToString(", ")
+    val methodsListHeaderValue = methods.map { it.value }.sorted().joinToString(", ")
     val maxAgeHeaderValue = pluginConfig.maxAgeInSeconds.let { if (it > 0) it.toString() else null }
     val exposedHeaders = when {
         pluginConfig.exposedHeaders.isNotEmpty() -> pluginConfig.exposedHeaders.sorted().joinToString(", ")
@@ -78,7 +75,7 @@ internal fun PluginBuilder<CORSConfig>.buildPlugin() {
             }
     )
 
-    /**
+    /*
      * A plugin's [call] interceptor that does all the job. Usually there is no need to install it as it is done during
      * a plugin installation.
      */
@@ -115,6 +112,7 @@ internal fun PluginBuilder<CORSConfig>.buildPlugin() {
             }
 
             OriginCheckResult.SkipCORS -> return@onCall
+
             OriginCheckResult.Failed -> {
                 LOGGER.trace { "${call.request.id()}: CORS check fails because Origin $origin does not match" }
                 call.respondCorsFailed()
@@ -196,10 +194,16 @@ private fun checkOrigin(
         LOGGER.trace { "${request.id()}: Skip CORS handler because Origin $origin is malformed" }
         OriginCheckResult.SkipCORS
     }
+
     allowSameOrigin && isSameOrigin(origin, request.origin) -> {
+        if (request.isCorsPreflightRequest()) {
+            LOGGER.trace { "${request.id()}: Handle same-origin CORS preflight" }
+            return OriginCheckResult.OK
+        }
         LOGGER.trace { "${request.id()}: Skip CORS handler because Origin $origin matches the server origin exactly" }
         OriginCheckResult.SkipCORS
     }
+
     !corsCheckOrigins(
         request,
         origin,

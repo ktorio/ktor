@@ -71,7 +71,9 @@ internal class JettyWebsocketConnection(
                     onFill.receive()
                     when (endpoint.fill(buffer.flip())) {
                         -1 -> break
+
                         0 -> continue
+
                         else -> {
                             channel.writeFully(buffer)
                             buffer.compact()

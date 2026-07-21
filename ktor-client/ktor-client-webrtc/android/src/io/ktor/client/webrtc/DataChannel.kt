@@ -4,6 +4,7 @@
 
 package io.ktor.client.webrtc
 
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.launch
@@ -25,11 +26,10 @@ public class AndroidWebRtcDataChannel(
     override val id: Int?
         get() = nativeChannel.id().let { if (it >= 0) it else null }
 
-    override val label: String
-        get() = nativeChannel.label()
+    override val label: String = nativeChannel.label()
 
     override val state: WebRtc.DataChannel.State
-        get() = nativeChannel.state().toKtor()
+        get() = if (closed.value) WebRtc.DataChannel.State.CLOSED else nativeChannel.state().toKtor()
 
     override val bufferedAmount: Long
         get() = nativeChannel.bufferedAmount()
@@ -52,6 +52,8 @@ public class AndroidWebRtcDataChannel(
     override val protocol: String
         get() = channelInit?.protocol ?: error("Protocol is not supported in WebRTC")
 
+    private val closed = atomic(false)
+
     private fun assertOpen() {
         if (!state.canSend()) {
             error("Data channel is closed.")
@@ -61,13 +63,17 @@ public class AndroidWebRtcDataChannel(
     override suspend fun send(text: String) {
         assertOpen()
         val buffer = DataChannel.Buffer(Charsets.UTF_8.encode(text), false)
-        nativeChannel.send(buffer)
+        if (!nativeChannel.send(buffer)) {
+            throw WebRtc.IOException("Failed to send text message over data channel '$label'.")
+        }
     }
 
     override suspend fun send(bytes: ByteArray) {
         assertOpen()
         val buffer = DataChannel.Buffer(ByteBuffer.wrap(bytes), true)
-        nativeChannel.send(buffer)
+        if (!nativeChannel.send(buffer)) {
+            throw WebRtc.IOException("Failed to send binary message over data channel '$label'.")
+        }
     }
 
     override fun setBufferedAmountLowThreshold(threshold: Long) {
@@ -75,11 +81,16 @@ public class AndroidWebRtcDataChannel(
     }
 
     override fun closeTransport() {
+        stopReceivingMessages()
         nativeChannel.close()
     }
 
     override fun close() {
+        if (!closed.compareAndSet(expect = false, update = true)) {
+            return
+        }
         super.close()
+        nativeChannel.unregisterObserver()
         nativeChannel.dispose()
     }
 
@@ -94,8 +105,11 @@ public class AndroidWebRtcDataChannel(
             override fun onStateChange() = runInConnectionScope {
                 val event = when (state) {
                     WebRtc.DataChannel.State.CONNECTING -> null
+
                     WebRtc.DataChannel.State.OPEN -> DataChannelEvent.Open(this@AndroidWebRtcDataChannel)
+
                     WebRtc.DataChannel.State.CLOSING -> DataChannelEvent.Closing(this@AndroidWebRtcDataChannel)
+
                     WebRtc.DataChannel.State.CLOSED -> {
                         stopReceivingMessages()
                         DataChannelEvent.Closed(this@AndroidWebRtcDataChannel)

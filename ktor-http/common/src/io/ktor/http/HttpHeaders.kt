@@ -138,6 +138,11 @@ public object HttpHeaders {
 
     public const val LastEventID: String = "Last-Event-ID"
 
+    // TDM (Text and Data Mining)
+    // https://www.w3.org/community/reports/tdmrep/CG-FINAL-tdmrep-20240510/
+    public const val TDMReservation: String = "TDM-Reservation"
+    public const val TDMPolicy: String = "TDM-Policy"
+
     /**
      * Check if [header] is unsafe. Header is unsafe if listed in [UnsafeHeadersList]
      *

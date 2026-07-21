@@ -20,6 +20,7 @@ kotlin {
         }
         jvmTest.dependencies {
             implementation(libs.kaml.serialization)
+            implementation(libs.kotlinx.serialization.json)
         }
     }
 }

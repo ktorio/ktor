@@ -31,8 +31,14 @@ public class IosWebRtcConnection(
 ) : WebRtcPeerConnection(coroutineContext, config) {
     internal val peerConnection: RTCPeerConnection
 
+    // Apple's `RTCPeerConnection.delegate` is `weak` — keep a strong reference on the
+    // Kotlin side so the anonymous delegate object stays alive for the connection's lifetime.
+    private var retainedDelegate: NSObject? = null
+
     init {
-        peerConnection = createConnection(createDelegate()) ?: error("Failed to create peer connection.")
+        val delegate = createDelegate()
+        retainedDelegate = delegate
+        peerConnection = createConnection(delegate) ?: error("Failed to create peer connection.")
     }
 
     override suspend fun getStatistics(): List<WebRtc.Stats> = suspendCancellableCoroutine { cont ->
@@ -91,7 +97,6 @@ public class IosWebRtcConnection(
                 receiveOptions = DataChannelReceiveOptions()
             )
             channel.setupEvents(events)
-            events.emitDataChannelEvent(event = DataChannelEvent.Open(channel))
         }
 
         override fun peerConnection(peerConnection: RTCPeerConnection, didRemoveIceCandidates: List<*>) {}
@@ -165,6 +170,15 @@ public class IosWebRtcConnection(
         label: String,
         options: WebRtcDataChannelOptions.() -> Unit
     ): WebRtcDataChannel {
+        return createDataChannelInternal(label, options).apply {
+            setupEvents(events)
+        }
+    }
+
+    internal suspend fun createDataChannelInternal(
+        label: String,
+        options: WebRtcDataChannelOptions.() -> Unit
+    ): IosWebRtcDataChannel {
         val options = WebRtcDataChannelOptions().apply(options)
         val configuration = RTCDataChannelConfiguration().apply {
             if (options.id != null) {
@@ -184,9 +198,7 @@ public class IosWebRtcConnection(
             "Failed to create data channel with label: $label"
         }
         val receiveOptions = DataChannelReceiveOptions().apply(options.receiveOptions)
-        return IosWebRtcDataChannel(nativeChannel, coroutineScope, receiveOptions).apply {
-            setupEvents(events)
-        }
+        return IosWebRtcDataChannel(nativeChannel, coroutineScope, receiveOptions)
     }
 
     override suspend fun setLocalDescription(description: WebRtc.SessionDescription): Unit =
@@ -236,6 +248,7 @@ public class IosWebRtcConnection(
     override fun close() {
         super.close()
         peerConnection.close()
+        retainedDelegate = null
     }
 }
 

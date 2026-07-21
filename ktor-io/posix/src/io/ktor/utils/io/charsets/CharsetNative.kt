@@ -27,11 +27,11 @@ public actual abstract class Charset(internal val _name: String) {
     public companion object {
         public fun forName(name: String): Charset = findCharset(name)
 
-        public fun isSupported(charset: String): Boolean = when (charset) {
-            "UTF-8", "utf-8", "UTF8", "utf8" -> true
-            "ISO-8859-1", "iso-8859-1" -> true
-            "UTF-16", "utf-16", "UTF16", "utf16" -> true
-            else -> false
+        public fun isSupported(charset: String): Boolean = try {
+            findCharset(charset)
+            true
+        } catch (_: IllegalArgumentException) {
+            false
         }
     }
 
@@ -72,7 +72,7 @@ internal data class CharsetDecoderImpl(private val charset: Charset) : CharsetDe
 public actual val CharsetDecoder.charset: Charset get() = _charset
 
 internal val platformUtf16: String =
-    if (ByteOrder.nativeOrder() == io.ktor.utils.io.core.ByteOrder.BIG_ENDIAN) "UTF-16BE" else "UTF-16LE"
+    if (ByteOrder.nativeOrder() == ByteOrder.BIG_ENDIAN) "UTF-16BE" else "UTF-16LE"
 
 // -----------------------------------------------------------
 public actual open class MalformedInputException actual constructor(message: String) : kotlinx.io.IOException(message)

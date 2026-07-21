@@ -1,6 +1,5 @@
 // Klib ABI Dump
 // Targets: [androidNativeArm32, androidNativeArm64, androidNativeX64, androidNativeX86, iosArm64, iosSimulatorArm64, iosX64, js, linuxArm64, linuxX64, macosArm64, macosX64, mingwX64, tvosArm64, tvosSimulatorArm64, tvosX64, wasmJs, watchosArm32, watchosArm64, watchosDeviceArm64, watchosSimulatorArm64, watchosX64]
-// Alias: native => [androidNativeArm32, androidNativeArm64, androidNativeX64, androidNativeX86, iosArm64, iosSimulatorArm64, iosX64, linuxArm64, linuxX64, macosArm64, macosX64, mingwX64, tvosArm64, tvosSimulatorArm64, tvosX64, watchosArm32, watchosArm64, watchosDeviceArm64, watchosSimulatorArm64, watchosX64]
 // Rendering settings:
 // - Signature version: 2
 // - Show manifest properties: true
@@ -349,18 +348,13 @@ final class io.ktor.client.engine/ClientEngineClosedException : kotlin/IllegalSt
 }
 
 final class io.ktor.client.engine/ProxyConfig { // io.ktor.client.engine/ProxyConfig|null[0]
-    // Targets: [native]
+    constructor <init>() // io.ktor.client.engine/ProxyConfig.<init>|<init>(){}[0]
     constructor <init>(io.ktor.http/Url) // io.ktor.client.engine/ProxyConfig.<init>|<init>(io.ktor.http.Url){}[0]
 
-    // Targets: [native]
     final val url // io.ktor.client.engine/ProxyConfig.url|{}url[0]
         final fun <get-url>(): io.ktor.http/Url // io.ktor.client.engine/ProxyConfig.url.<get-url>|<get-url>(){}[0]
 
-    // Targets: [native]
     final fun toString(): kotlin/String // io.ktor.client.engine/ProxyConfig.toString|toString(){}[0]
-
-    // Targets: [js, wasmJs]
-    constructor <init>() // io.ktor.client.engine/ProxyConfig.<init>|<init>(){}[0]
 }
 
 final class io.ktor.client.network.sockets/ConnectTimeoutException : kotlinx.io/IOException { // io.ktor.client.network.sockets/ConnectTimeoutException|null[0]
@@ -1497,6 +1491,7 @@ final fun (io.ktor.client.request/HttpRequestBuilder).io.ktor.client.request/par
 final fun (io.ktor.client.request/HttpRequestBuilder).io.ktor.client.request/setBody(kotlin/Any?, io.ktor.util.reflect/TypeInfo) // io.ktor.client.request/setBody|setBody@io.ktor.client.request.HttpRequestBuilder(kotlin.Any?;io.ktor.util.reflect.TypeInfo){}[0]
 final fun (io.ktor.client.request/HttpRequestBuilder).io.ktor.client.request/takeFrom(io.ktor.client.request/HttpRequest): io.ktor.client.request/HttpRequestBuilder // io.ktor.client.request/takeFrom|takeFrom@io.ktor.client.request.HttpRequestBuilder(io.ktor.client.request.HttpRequest){}[0]
 final fun (io.ktor.client.request/HttpRequestBuilder).io.ktor.client.request/takeFrom(io.ktor.client.request/HttpRequestData): io.ktor.client.request/HttpRequestBuilder // io.ktor.client.request/takeFrom|takeFrom@io.ktor.client.request.HttpRequestBuilder(io.ktor.client.request.HttpRequestData){}[0]
+final fun (io.ktor.client.request/HttpRequestBuilder).io.ktor.client.request/unixSocket(kotlin/String) // io.ktor.client.request/unixSocket|unixSocket@io.ktor.client.request.HttpRequestBuilder(kotlin.String){}[0]
 final fun (io.ktor.client.request/HttpRequestBuilder).io.ktor.client.request/url(io.ktor.http/Url) // io.ktor.client.request/url|url@io.ktor.client.request.HttpRequestBuilder(io.ktor.http.Url){}[0]
 final fun (io.ktor.client.request/HttpRequestBuilder).io.ktor.client.request/url(kotlin/Function1<io.ktor.http/URLBuilder, kotlin/Unit>) // io.ktor.client.request/url|url@io.ktor.client.request.HttpRequestBuilder(kotlin.Function1<io.ktor.http.URLBuilder,kotlin.Unit>){}[0]
 final fun (io.ktor.client.request/HttpRequestBuilder).io.ktor.client.request/url(kotlin/String) // io.ktor.client.request/url|url@io.ktor.client.request.HttpRequestBuilder(kotlin.String){}[0]
@@ -1693,9 +1688,6 @@ final suspend inline fun <#A: reified kotlin/Any?> (io.ktor.client.call/HttpClie
 final suspend inline fun <#A: reified kotlin/Any?> (io.ktor.client.plugins.websocket/DefaultClientWebSocketSession).io.ktor.client.plugins.websocket/receiveDeserialized(): #A // io.ktor.client.plugins.websocket/receiveDeserialized|receiveDeserialized@io.ktor.client.plugins.websocket.DefaultClientWebSocketSession(){0§<kotlin.Any?>}[0]
 final suspend inline fun <#A: reified kotlin/Any?> (io.ktor.client.plugins.websocket/DefaultClientWebSocketSession).io.ktor.client.plugins.websocket/sendSerialized(#A) // io.ktor.client.plugins.websocket/sendSerialized|sendSerialized@io.ktor.client.plugins.websocket.DefaultClientWebSocketSession(0:0){0§<kotlin.Any?>}[0]
 final suspend inline fun <#A: reified kotlin/Any?> (io.ktor.client.statement/HttpResponse).io.ktor.client.call/body(): #A // io.ktor.client.call/body|body@io.ktor.client.statement.HttpResponse(){0§<kotlin.Any?>}[0]
-
-// Targets: [native]
-final fun (io.ktor.client.request/HttpRequestBuilder).io.ktor.client.request/unixSocket(kotlin/String) // io.ktor.client.request/unixSocket|unixSocket@io.ktor.client.request.HttpRequestBuilder(kotlin.String){}[0]
 
 // Targets: [js, wasmJs]
 abstract interface io.ktor.client.fetch/AbortSignal : io.ktor.client.fetch/EventTarget { // io.ktor.client.fetch/AbortSignal|null[0]
@@ -1948,6 +1940,9 @@ final class io.ktor.client.engine.js/JsError : kotlin/Throwable { // io.ktor.cli
 open class io.ktor.client.engine.js/JsClientEngineConfig : io.ktor.client.engine/HttpClientEngineConfig { // io.ktor.client.engine.js/JsClientEngineConfig|null[0]
     constructor <init>() // io.ktor.client.engine.js/JsClientEngineConfig.<init>|<init>(){}[0]
 
+    final var fetch // io.ktor.client.engine.js/JsClientEngineConfig.fetch|{}fetch[0]
+        final fun <get-fetch>(): kotlin/Function2<kotlin/String, io.ktor.client.fetch/RequestInit?, kotlin.js/Promise<org.w3c.fetch/Response>> // io.ktor.client.engine.js/JsClientEngineConfig.fetch.<get-fetch>|<get-fetch>(){}[0]
+        final fun <set-fetch>(kotlin/Function2<kotlin/String, io.ktor.client.fetch/RequestInit?, kotlin.js/Promise<org.w3c.fetch/Response>>) // io.ktor.client.engine.js/JsClientEngineConfig.fetch.<set-fetch>|<set-fetch>(kotlin.Function2<kotlin.String,io.ktor.client.fetch.RequestInit?,kotlin.js.Promise<org.w3c.fetch.Response>>){}[0]
     final var nodeOptions // io.ktor.client.engine.js/JsClientEngineConfig.nodeOptions|{}nodeOptions[0]
         // Targets: [js]
         final fun <get-nodeOptions>(): dynamic // io.ktor.client.engine.js/JsClientEngineConfig.nodeOptions.<get-nodeOptions>|<get-nodeOptions>(){}[0]

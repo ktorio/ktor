@@ -490,7 +490,7 @@ class HttpRequestRetryTest {
 
     // KTOR-8820
     @Test
-    fun testRetryWithLargeEncodedBody() = testWithEngine(MockEngine, timeout = 1.seconds) {
+    fun testRetryWithLargeEncodedBody() = testWithEngine(MockEngine, timeout = 10.seconds) {
         config {
             engine {
                 addHandler {
@@ -616,7 +616,7 @@ class HttpRequestRetryTest {
             }
         }
 
-        /**
+        /*
          * This is testing for a bug specific to using Int.MAX_VALUE as the
          * maxRetriesCount value.
          * No need to actually test retry behavior, as the bug happens

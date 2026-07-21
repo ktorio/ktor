@@ -2,19 +2,13 @@
  * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-import io.ktor.utils.io.ByteReadChannel
-import io.ktor.utils.io.ReaderJob
-import io.ktor.utils.io.copyAndClose
-import io.ktor.utils.io.discard
-import io.ktor.utils.io.reader
-import io.ktor.utils.io.writeBuffer
+import io.ktor.test.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.runTest
 import kotlinx.io.RawSource
 import kotlinx.io.buffered
 import kotlinx.io.files.Path
-import kotlin.getValue
 import kotlin.test.Test
 
 private const val KB = 1024L

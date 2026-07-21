@@ -54,4 +54,12 @@ class EmbeddedServerTest {
 
         assertTrue(checkUrlMatches(url, pattern))
     }
+
+    @Test
+    fun `checkUrlMatches matches when URL path contains URL-encoded spaces`() {
+        val url = URI.create("file:///some/my%20project/build/classes/").toURL()
+        val pattern = "/some/my project/build"
+
+        assertTrue(checkUrlMatches(url, pattern))
+    }
 }

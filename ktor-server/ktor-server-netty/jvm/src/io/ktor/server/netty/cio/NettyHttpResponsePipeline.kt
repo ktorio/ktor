@@ -8,13 +8,21 @@ import io.ktor.http.*
 import io.ktor.server.netty.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
-import io.netty.channel.*
-import io.netty.handler.codec.http.*
-import io.netty.handler.codec.http2.*
-import kotlinx.atomicfu.*
-import kotlinx.coroutines.*
-import java.io.*
-import kotlin.coroutines.*
+import io.netty.channel.ChannelFuture
+import io.netty.channel.ChannelHandlerContext
+import io.netty.channel.ChannelPromise
+import io.netty.handler.codec.http.FullHttpResponse
+import io.netty.handler.codec.http.HttpResponse
+import io.netty.handler.codec.http2.Http2HeadersFrame
+import io.netty.handler.codec.http3.Http3HeadersFrame
+import kotlinx.atomicfu.AtomicBoolean
+import kotlinx.atomicfu.atomic
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.asCoroutineDispatcher
+import kotlinx.coroutines.launch
+import java.io.IOException
+import kotlin.coroutines.CoroutineContext
 
 private const val UNFLUSHED_LIMIT = 65536
 
@@ -60,6 +68,8 @@ internal class NettyHttpResponsePipeline(
         call.previousCallFinished = previousCallHandled
         call.finishedEvent = context.newPromise()
         previousCallHandled = call.finishedEvent
+
+        call.initResponseWriteJob()
 
         processElement(call)
     }
@@ -180,17 +190,6 @@ internal class NettyHttpResponsePipeline(
         val responseMessage = call.response.responseMessage
         val response = call.response
 
-        // Track streaming responses count
-        val contentType = when (responseMessage) {
-            is HttpResponse -> responseMessage.headers().get(HttpHeaders.ContentType)
-            is Http2HeadersFrame -> responseMessage.headers().get("content-type")?.toString()
-            else -> null
-        }
-        if (contentType?.contains("text/event-stream", ignoreCase = true) == true) {
-            call.isStreamingResponse = true
-            httpHandlerState.streamingResponses.incrementAndGet()
-        }
-
         val requestMessageFuture = if (response.isUpgradeResponse()) {
             respondWithUpgrade(call, responseMessage)
         } else {
@@ -208,8 +207,12 @@ internal class NettyHttpResponsePipeline(
             responseChannel === ByteReadChannel.Empty -> 0
             responseMessage is HttpResponse -> responseMessage.headers().getInt("Content-Length", -1)
             responseMessage is Http2HeadersFrame -> responseMessage.headers().getInt("content-length", -1)
+            responseMessage is Http3HeadersFrame -> responseMessage.headers().getInt("content-length", -1)
             else -> -1
         }
+
+        call.isStreamingResponse = true
+        httpHandlerState.streamingResponses.incrementAndGet()
 
         launch(context.executor().asCoroutineDispatcher(), start = CoroutineStart.UNDISPATCHED) {
             respondWithBodyAndTrailerMessage(

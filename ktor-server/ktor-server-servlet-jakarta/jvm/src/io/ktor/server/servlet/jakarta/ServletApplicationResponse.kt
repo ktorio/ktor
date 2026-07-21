@@ -5,6 +5,7 @@
 package io.ktor.server.servlet.jakarta
 
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.response.*
@@ -46,6 +47,15 @@ public abstract class ServletApplicationResponse(
 
     private val responseChannel = lazy {
         responseJob.value.channel
+    }
+
+    @OptIn(InternalAPI::class)
+    override suspend fun respondWriteChannelContent(content: OutgoingContent.WriteChannelContent) {
+        if (content is OutputStreamContent) {
+            content.writeTo(servletResponse.outputStream)
+            return
+        }
+        super.respondWriteChannelContent(content)
     }
 
     public final override suspend fun responseChannel(): ByteWriteChannel = responseChannel.value

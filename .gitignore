@@ -47,3 +47,4 @@ scan-journal.log
 
 # Generated from test
 ktor-server/ktor-server-plugins/ktor-server-openapi/docs
+*.actual.json

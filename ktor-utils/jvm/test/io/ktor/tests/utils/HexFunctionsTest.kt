@@ -7,6 +7,7 @@ package io.ktor.tests.utils
 import io.ktor.util.*
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 class HexFunctionsTest {
     @Test
     fun testEmpty() {

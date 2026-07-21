@@ -18,6 +18,7 @@ import kotlinx.io.EOFException
 import kotlinx.io.IOException
 import kotlinx.io.Source
 import kotlinx.io.bytestring.ByteString
+import kotlin.coroutines.cancellation.CancellationException
 
 /**
  * Represents a multipart content starting event. Every part need to be completely consumed or released via [release]
@@ -31,7 +32,15 @@ public sealed class MultipartEvent {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.MultipartEvent.release)
      */
+    @Deprecated("Use releaseSuspend instead", level = DeprecationLevel.WARNING)
     public abstract fun release()
+
+    /**
+     * Release underlying data/packet.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.MultipartEvent.releaseSuspend)
+     */
+    public abstract suspend fun releaseSuspend()
 
     /**
      * Represents a multipart content preamble. A multipart stream could have at most one preamble.
@@ -44,6 +53,9 @@ public sealed class MultipartEvent {
         public val body: Source
     ) : MultipartEvent() {
         override fun release() {
+            body.close()
+        }
+        override suspend fun releaseSuspend() {
             body.close()
         }
     }
@@ -63,15 +75,23 @@ public sealed class MultipartEvent {
         public val headers: Deferred<HttpHeadersMap>,
         public val body: ByteReadChannel
     ) : MultipartEvent() {
+        @Deprecated("Use releaseSuspend instead", level = DeprecationLevel.WARNING)
         @OptIn(ExperimentalCoroutinesApi::class)
         override fun release() {
             headers.invokeOnCompletion { t ->
-                if (t != null) {
+                if (t == null) {
                     headers.getCompleted().release()
                 }
             }
 
             body.discardBlocking()
+        }
+        override suspend fun releaseSuspend() {
+            try {
+                headers.await().release()
+            } finally {
+                body.discard()
+            }
         }
     }
 
@@ -86,6 +106,9 @@ public sealed class MultipartEvent {
         public val body: Source
     ) : MultipartEvent() {
         override fun release() {
+            body.close()
+        }
+        override suspend fun releaseSuspend() {
             body.close()
         }
     }
@@ -229,7 +252,7 @@ private fun CoroutineScope.parseMultipart(
             headersMap = parsePartHeadersImpl(countedInput)
             if (!headers.complete(headersMap)) {
                 headersMap.release()
-                throw kotlin.coroutines.cancellation.CancellationException(
+                throw CancellationException(
                     "Multipart processing has been cancelled"
                 )
             }
@@ -280,6 +303,7 @@ private fun findBoundary(contentType: CharSequence): Int {
                     paramNameCount = 0
                 }
             }
+
             1 -> {
                 if (ch == '=') {
                     state = 2
@@ -296,16 +320,20 @@ private fun findBoundary(contentType: CharSequence): Int {
                     paramNameCount++
                 }
             }
+
             2 -> {
                 when (ch) {
                     '"' -> state = 3
+
                     ',' -> state = 0
+
                     ';' -> {
                         state = 1
                         paramNameCount = 0
                     }
                 }
             }
+
             3 -> {
                 if (ch == '"') {
                     state = 1
@@ -314,6 +342,7 @@ private fun findBoundary(contentType: CharSequence): Int {
                     state = 4
                 }
             }
+
             4 -> {
                 state = 3
             }
@@ -369,18 +398,22 @@ internal fun parseBoundaryInternal(contentType: CharSequence): ByteArray {
                     ' ' -> {
                         // skip space
                     }
+
                     '"' -> {
                         state = 2 // start quoted string parsing
                     }
+
                     ';', ',' -> {
                         break@loop
                     }
+
                     else -> {
                         state = 1
                         put(v.toByte())
                     }
                 }
             }
+
             1 -> { // non-quoted string
                 if (ch == ' ' || ch == ',' || ch == ';') { // space, comma or semicolon (;)
                     break@loop
@@ -398,6 +431,7 @@ internal fun parseBoundaryInternal(contentType: CharSequence): ByteArray {
                     put(v.toByte())
                 }
             }
+
             3 -> {
                 put(v.toByte())
                 state = 2

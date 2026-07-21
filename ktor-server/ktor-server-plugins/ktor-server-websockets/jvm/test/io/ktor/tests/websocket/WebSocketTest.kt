@@ -13,7 +13,6 @@ import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.server.websocket.*
 import io.ktor.server.websocket.WebSockets
-import io.ktor.util.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
@@ -191,7 +190,7 @@ class WebSocketTest {
 
         client.webSocket("/receiveSize") {
             send("+".repeat(0xcdef))
-            assertEquals("0000cdef", hex(incoming.receive().readBytes()))
+            assertEquals("0000cdef", incoming.receive().readBytes().toHexString())
         }
     }
 

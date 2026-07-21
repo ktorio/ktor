@@ -40,7 +40,9 @@ class ErrorCollector : TestExecutionExceptionHandler, ParameterResolver, AfterEa
         errors.clear()
         when {
             currentErrors.isEmpty() -> {}
+
             currentErrors.size == 1 -> throw currentErrors.single()
+
             else -> {
                 for (e in currentErrors) {
                     e.printStackTrace()

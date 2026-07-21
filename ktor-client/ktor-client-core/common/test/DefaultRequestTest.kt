@@ -3,21 +3,30 @@
  */
 
 import io.ktor.client.*
+import io.ktor.client.engine.HttpClientEngine
+import io.ktor.client.engine.HttpClientEngineCapability
+import io.ktor.client.engine.HttpClientEngineConfig
 import io.ktor.client.engine.mock.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.test.dispatcher.*
 import io.ktor.util.*
+import io.ktor.util.date.GMTDate
+import io.ktor.utils.io.InternalAPI
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.job
 import kotlinx.coroutines.test.runTest
+import kotlin.coroutines.CoroutineContext
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class DefaultRequestTest {
 
     @Test
-    fun testDefaultPathWithDir() = testSuspend {
+    fun testDefaultPathWithDir() = runTest {
         val client = HttpClient(MockEngine) {
             engine {
                 addHandler {
@@ -38,7 +47,7 @@ class DefaultRequestTest {
     }
 
     @Test
-    fun testDefaultPathWithFile() = testSuspend {
+    fun testDefaultPathWithFile() = runTest {
         val client = HttpClient(MockEngine) {
             engine {
                 addHandler {
@@ -59,7 +68,7 @@ class DefaultRequestTest {
     }
 
     @Test
-    fun testDefaultWithoutUrl() = testSuspend {
+    fun testDefaultWithoutUrl() = runTest {
         val client = HttpClient(MockEngine) {
             engine {
                 addHandler {
@@ -78,7 +87,7 @@ class DefaultRequestTest {
     }
 
     @Test
-    fun testDefaultHostAndPort() = testSuspend {
+    fun testDefaultHostAndPort() = runTest {
         val client = HttpClient(MockEngine) {
             engine {
                 addHandler {
@@ -98,7 +107,7 @@ class DefaultRequestTest {
     }
 
     @Test
-    fun testDefaultProtocol() = testSuspend {
+    fun testDefaultProtocol() = runTest {
         val client = HttpClient(MockEngine) {
             engine {
                 addHandler {
@@ -126,7 +135,7 @@ class DefaultRequestTest {
     }
 
     @Test
-    fun testDefaultNoPortKeepsRequestPort() = testSuspend {
+    fun testDefaultNoPortKeepsRequestPort() = runTest {
         val client = HttpClient(MockEngine) {
             engine {
                 addHandler {
@@ -146,7 +155,7 @@ class DefaultRequestTest {
     }
 
     @Test
-    fun testDefaultHeader() = testSuspend {
+    fun testDefaultHeader() = runTest {
         val client = HttpClient(MockEngine) {
             engine {
                 addHandler {
@@ -173,7 +182,7 @@ class DefaultRequestTest {
     }
 
     @Test
-    fun testDefaultAttributes() = testSuspend {
+    fun testDefaultAttributes() = runTest {
         val client = HttpClient(MockEngine) {
             engine {
                 addHandler {
@@ -191,7 +200,7 @@ class DefaultRequestTest {
     }
 
     @Test
-    fun testDefaultQuery() = testSuspend {
+    fun testDefaultQuery() = runTest {
         val client = HttpClient(MockEngine) {
             engine {
                 addHandler {
@@ -209,7 +218,7 @@ class DefaultRequestTest {
     }
 
     @Test
-    fun testDefaultFragment() = testSuspend {
+    fun testDefaultFragment() = runTest {
         val client = HttpClient(MockEngine) {
             engine {
                 addHandler {
@@ -227,7 +236,7 @@ class DefaultRequestTest {
     }
 
     @Test
-    fun testCookieSentOnce() = testSuspend {
+    fun testCookieSentOnce() = runTest {
         val client = HttpClient(MockEngine) {
             engine {
                 addHandler {
@@ -253,7 +262,7 @@ class DefaultRequestTest {
     }
 
     @Test
-    fun testDefaultRequestConfigDoesntOverrideUserHeaders() = testSuspend {
+    fun testDefaultRequestConfigDoesntOverrideUserHeaders() = runTest {
         val client = HttpClient(MockEngine) {
             engine {
                 addHandler {
@@ -303,7 +312,7 @@ class DefaultRequestTest {
     }
 
     @Test
-    fun testHeadersBlockInDefaultRequest() = testSuspend {
+    fun testHeadersBlockInDefaultRequest() = runTest {
         val client = HttpClient(MockEngine) {
             engine {
                 addHandler {
@@ -330,7 +339,7 @@ class DefaultRequestTest {
     }
 
     @Test
-    fun testHeadersBlockWithMultipleAppends() = testSuspend {
+    fun testHeadersBlockWithMultipleAppends() = runTest {
         val client = HttpClient(MockEngine) {
             engine {
                 addHandler {
@@ -350,7 +359,7 @@ class DefaultRequestTest {
     }
 
     @Test
-    fun testHeadersBlockChainingInDefaultRequest() = testSuspend {
+    fun testHeadersBlockChainingInDefaultRequest() = runTest {
         val client = HttpClient(MockEngine) {
             engine {
                 addHandler {
@@ -371,6 +380,51 @@ class DefaultRequestTest {
         }
 
         assertEquals("first-value, second-value", client.get("/").bodyAsText())
+    }
+
+    @Test
+    fun testEngineCapabilitiesGetMerged() = runTest {
+        val job = Job(backgroundScope.coroutineContext.job)
+        HttpClient(object : HttpClientEngine {
+            override val supportedCapabilities: Set<HttpClientEngineCapability<*>>
+                get() = setOf(HttpTimeoutCapability, UnixSocketCapability)
+            override val dispatcher: CoroutineDispatcher
+                get() = error("Unused")
+            override val config: HttpClientEngineConfig
+                get() = HttpClientEngineConfig()
+
+            @InternalAPI
+            override suspend fun execute(data: HttpRequestData): HttpResponseData {
+                assertTrue(message = "Request must contain timeout capability") {
+                    data.requiredCapabilities.contains(HttpTimeoutCapability)
+                }
+                assertTrue(message = "Request must contain unix socket capability") {
+                    data.requiredCapabilities.contains(UnixSocketCapability)
+                }
+
+                return HttpResponseData(
+                    HttpStatusCode.OK,
+                    GMTDate.START,
+                    Headers.Empty,
+                    HttpProtocolVersion.HTTP_1_1,
+                    Unit,
+                    Job(backgroundScope.coroutineContext.job),
+                )
+            }
+
+            override val coroutineContext: CoroutineContext
+                get() = job
+
+            override fun close() {}
+        }) {
+            defaultRequest {
+                unixSocket("engine.sock")
+            }
+        }.preparePost("/") {
+            timeout {
+                requestTimeoutMillis = 10000
+            }
+        }.execute()
     }
 }
 

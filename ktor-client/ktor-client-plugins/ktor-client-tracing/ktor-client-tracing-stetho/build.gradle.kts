@@ -27,7 +27,7 @@ kotlin {
             dependencies {
                 implementation(projects.ktorClientCio)
                 implementation(libs.kotlin.test.junit5)
-                implementation("org.mockito:mockito-core:5.21.0")
+                implementation("org.mockito:mockito-core:5.23.0")
             }
         }
     }

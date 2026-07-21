@@ -1,10 +1,11 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.webrtc.rs
 
 import io.ktor.client.webrtc.*
+import io.ktor.utils.io.InternalAPI
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.launch
@@ -55,12 +56,21 @@ public class RustWebRtcDataChannel(
     override val protocol: String
         get() = inner.protocol()
 
-    override suspend fun send(text: String) {
-        inner.sendText(text)
+    private fun requireOpen() {
+        if (state.canSend()) return
+        throw WebRtc.DataChannelClosedException("Data channel '$label' cannot send.")
     }
 
+    @OptIn(InternalAPI::class)
+    override suspend fun send(text: String) {
+        requireOpen()
+        withIOException { inner.sendText(text) }
+    }
+
+    @OptIn(InternalAPI::class)
     override suspend fun send(bytes: ByteArray) {
-        inner.send(bytes)
+        requireOpen()
+        withIOException { inner.send(bytes) }
     }
 
     override fun setBufferedAmountLowThreshold(threshold: Long): Unit = runBlocking {
@@ -68,6 +78,7 @@ public class RustWebRtcDataChannel(
     }
 
     override fun closeTransport(): Unit = runBlocking {
+        stopReceivingMessages()
         inner.closeChannel()
     }
 

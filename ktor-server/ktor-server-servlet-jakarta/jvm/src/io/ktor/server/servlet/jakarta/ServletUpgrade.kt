@@ -84,13 +84,14 @@ public class ServletUpgradeHandler : HttpUpgradeHandler, CoroutineScope {
 
     override val coroutineContext: CoroutineContext get() = upgradeJob
 
+    @OptIn(InternalCoroutinesApi::class)
     override fun init(webConnection: WebConnection?) {
         if (webConnection == null) {
             throw IllegalArgumentException("Upgrade processing requires WebConnection instance")
         }
 
         upgradeJob = Job(up.engineContext[Job])
-        upgradeJob.invokeOnCompletion {
+        upgradeJob.invokeOnCompletion(onCancelling = true) {
             webConnection.close()
         }
 
@@ -99,6 +100,7 @@ public class ServletUpgradeHandler : HttpUpgradeHandler, CoroutineScope {
                 context = up.userContext + upgradeJob,
                 pool = KtorDefaultPool
             )
+
             else -> servletReader(webConnection.inputStream, Int.MAX_VALUE).channel
         }
 

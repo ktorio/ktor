@@ -2,6 +2,7 @@
  * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+import com.gradle.develocity.agent.gradle.scan.BuildScanConfiguration
 import java.util.*
 
 plugins {
@@ -58,6 +59,8 @@ develocity {
             .toBoolean()
 
         publishing.onlyIf { !skipBuildScans }
+
+        reportSyncMode(providers)
     }
 }
 
@@ -72,4 +75,11 @@ buildCache {
         isPush = isCIRun
         isEnabled = true
     }
+}
+
+private fun BuildScanConfiguration.reportSyncMode(providers: ProviderFactory) {
+    val isIdeaSync = providers.systemProperty("idea.sync.active").orNull == "true"
+    if (!isIdeaSync) return
+
+    value("Sync mode", providers.gradleProperty("ktorbuild.syncMode").getOrElse("light"))
 }

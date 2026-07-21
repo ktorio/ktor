@@ -11,7 +11,6 @@ import io.ktor.server.http.content.*
 import io.ktor.server.plugins.conditionalheaders.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
-import io.ktor.util.*
 import io.ktor.util.date.*
 import kotlin.coroutines.*
 import kotlin.random.*
@@ -98,6 +97,7 @@ internal suspend fun BodyTransformedHook.Context.processRange(
         }
 
         merged.size == 1 -> processSingleRange(content, merged.single(), length)
+
         else -> processMultiRange(content, merged, length)
     }
 }
@@ -116,7 +116,7 @@ internal suspend fun BodyTransformedHook.Context.processMultiRange(
     ranges: List<LongRange>,
     length: Long
 ) {
-    val boundary = "ktor-boundary-" + hex(Random.nextBytes(16))
+    val boundary = "ktor-boundary-" + Random.nextBytes(16).toHexString()
 
     call.suppressCompression() // multirange with compression is not supported yet (KTOR-5794)
 

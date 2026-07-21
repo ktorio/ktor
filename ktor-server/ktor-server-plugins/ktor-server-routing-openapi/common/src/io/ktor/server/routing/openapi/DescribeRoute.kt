@@ -7,6 +7,7 @@
 package io.ktor.server.routing.openapi
 
 import io.ktor.openapi.*
+import io.ktor.server.application.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
@@ -28,7 +29,13 @@ public val OperationHiddenAttributeKey: AttributeKey<Unit> =
     AttributeKey("OperationHidden")
 
 /**
- * Attribute key for [io.ktor.server.application.Application] JSON schema inference override.
+ * Attribute key for the JSON schema inference override.
+ *
+ * The value may be set either on [io.ktor.server.application.Application.attributes] to provide
+ * an application-wide default, or on any [Route]'s attributes to override the inference for a
+ * subtree of routes. When resolving the inference for a given route, the nearest ancestor that
+ * carries the attribute wins, falling back to the application-wide value and finally to
+ * [KotlinxSerializerJsonSchemaInference.Default].
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.openapi.JsonSchemaAttributeKey)
  */

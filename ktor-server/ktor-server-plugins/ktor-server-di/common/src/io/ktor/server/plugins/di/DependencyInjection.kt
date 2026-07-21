@@ -14,6 +14,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlin.reflect.KClass
+import kotlin.reflect.KFunction
 
 /**
  * A Ktor application plugin for managing the registration and resolution of module dependencies.
@@ -103,6 +104,7 @@ public val DI: ApplicationPlugin<DependencyInjectionConfig> =
                     DefaultKeyCovariance
                 }
             }
+
             else -> pluginConfig.keyMapping
         }
 
@@ -143,6 +145,7 @@ public val DI: ApplicationPlugin<DependencyInjectionConfig> =
                 }
                 when (exceptions.size) {
                     0 -> environment.log.debug("All dependencies resolved successfully")
+
                     else -> {
                         environment.log.error(
                             buildString {
@@ -160,18 +163,23 @@ public val DI: ApplicationPlugin<DependencyInjectionConfig> =
             }
             monitor.subscribe(ApplicationStopping) {
                 for ((key, initializer) in dependencyMap.entries.reversed()) {
-                    if (initializer is DependencyInitializer.Ambiguous ||
-                        initializer is DependencyInitializer.Missing
-                    ) {
-                        continue
-                    }
-                    try {
-                        val instance = registry.getDeferred<Any?>(key).tryGetCompleted() ?: continue
-                        registry.shutdownHooks[key]?.invoke(instance)
-                        onShutdown(key, instance)
-                    } catch (e: Throwable) {
-                        if (e !is CancellationException) {
-                            environment.log.warn("Exception during cleanup for $key; continuing", e)
+                    when (initializer) {
+                        is DependencyInitializer.Ambiguous,
+                        is DependencyInitializer.Missing,
+                        is DependencyInitializer.Null,
+                        is DependencyInitializer.Implicit -> continue
+
+                        is DependencyInitializer.Explicit,
+                        is DependencyInitializer.Value -> {
+                            try {
+                                val instance = registry.getDeferred<Any?>(key).tryGetCompleted() ?: continue
+                                registry.shutdownHooks[key]?.invoke(instance)
+                                onShutdown(key, instance)
+                            } catch (e: Throwable) {
+                                if (e is CancellationException) throw e
+
+                                environment.log.warn("Exception during cleanup for $key; continuing", e)
+                            }
                         }
                     }
                 }
@@ -212,6 +220,11 @@ internal expect fun loadMapExtensions(): List<DependencyMapExtension>
 public object NoReflection : DependencyReflection {
     override suspend fun <T : Any> create(kClass: KClass<T>, init: suspend (DependencyKey) -> Any): T =
         throw DependencyInjectionException("A call to create a new instance was attempted, but reflection is disabled")
+
+    override suspend fun <T> call(kFunction: KFunction<T>, init: suspend (DependencyKey) -> Any): T =
+        throw DependencyInjectionException(
+            "A dynamic call to function ${kFunction.name} was attempted, but reflection is disabled"
+        )
 }
 
 /**

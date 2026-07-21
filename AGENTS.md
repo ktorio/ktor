@@ -5,11 +5,12 @@ This file is the primary playbook for agentic coding tools working in this repos
 ## Critical Workflow Rule
 
 **NEVER return control to the user without ensuring:**
-1. Code compiles: `./gradlew :module-name:assemble`
-2. Tests pass: `./gradlew :module-name:jvmTest` (and other platforms if touched)
+1. Tests pass: `./gradlew :module-name:jvmTest` (and other platforms if touched)
+2. Code compiles: `./gradlew :module-name:assemble`
 3. Code is formatted and linting passes: run `./gradlew :module-name:formatKotlin`, then `./gradlew :module-name:lintKotlin`
 4. ABI validated: `./gradlew :module-name:updateKotlinAbi` (if public/protected API changed)
 
+Prefer this order to fail fast.
 Always prefer **module-specific** commands (`:module-name:task`) over project-wide commands.
 
 ## Project Requirements

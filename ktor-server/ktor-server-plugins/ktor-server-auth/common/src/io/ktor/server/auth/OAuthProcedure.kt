@@ -9,6 +9,7 @@ import io.ktor.server.application.*
 import io.ktor.util.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.InternalAPI
+import kotlinx.coroutines.CancellationException
 
 private val Logger: Logger = KtorSimpleLogger("io.ktor.auth.oauth")
 
@@ -80,8 +81,14 @@ public class OAuthAuthenticationProvider internal constructor(config: Config) : 
 
         /**
          * Specifies a fallback function invoked when OAuth flow fails
-         * with an [AuthenticationFailedCause.Error], e.g., a token exchange error, network/parse failure, etc.
-         * If call is not handled in the fallback, `401 Unauthorized` will be responded.
+         * with an [AuthenticationFailedCause.Error], e.g., a token exchange error, network/parse failure, or `invalid_grant` error.
+         *
+         * If `invalid_grant` occurs, this fallback is invoked. If the fallback handles the call (e.g., by responding),
+         * Ktor completes the authentication flow. If the fallback does not handle the call, Ktor falls back to
+         * the redirect challenge to try to automatically recover the authentication flow.
+         *
+         * For other errors, or if the fallback handles the call, Ktor will not execute the redirect challenge and
+         * will respond with `401 Unauthorized` if the call remains unhandled by the fallback.
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuthAuthenticationProvider.Config.fallback)
          */
@@ -140,6 +147,16 @@ public fun AuthenticationConfig.oauth(
 public class OAuth2RedirectError(public val error: String, public val errorDescription: String?) :
     AuthenticationFailedCause.Error(if (errorDescription == null) error else "$error: $errorDescription")
 
+/**
+ * Error container for when the token endpoint responds with an `invalid_grant` error.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuth2InvalidGrantError)
+ *
+ * @property cause the original [OAuth2Exception.InvalidGrant] exception thrown during token request.
+ */
+public class OAuth2InvalidGrantError(public val cause: OAuth2Exception.InvalidGrant) :
+    AuthenticationFailedCause.Error("Failed to request OAuth2 access token due to invalid_grant: ${cause.message}")
+
 internal suspend fun OAuthAuthenticationProvider.oauth2(authProviderName: String?, context: AuthenticationContext) {
     val call = context.call
     val provider = providerLookup?.invoke(call) ?: settings
@@ -155,13 +172,21 @@ internal suspend fun OAuthAuthenticationProvider.oauth2(authProviderName: String
             callbackResponse,
             context
         )
+
         is OAuthCallback.Error -> OAuth2RedirectError(callbackResponse.error, callbackResponse.errorDescription)
+
         else -> AuthenticationFailedCause.NoCredentials
     }
 
     cause ?: return
 
-    if (cause is AuthenticationFailedCause.Error) {
+    if (cause is OAuth2InvalidGrantError) {
+        this@oauth2.fallback.invoke(call, cause)
+        if (call.isHandled) {
+            context.error(OAuthKey, cause)
+            return
+        }
+    } else if (cause is AuthenticationFailedCause.Error) {
         this@oauth2.fallback.invoke(call, cause)
         context.error(OAuthKey, cause)
         return
@@ -200,7 +225,9 @@ private suspend fun OAuthAuthenticationProvider.oauth2RequestToken(
     null
 } catch (cause: OAuth2Exception.InvalidGrant) {
     Logger.trace("OAuth invalid grant reported: {}", cause)
-    AuthenticationFailedCause.InvalidCredentials
+    OAuth2InvalidGrantError(cause)
+} catch (cause: CancellationException) {
+    throw cause
 } catch (cause: Throwable) {
     Logger.trace("OAuth2 request access token failed", cause)
     AuthenticationFailedCause.Error("Failed to request OAuth2 access token due to $cause")

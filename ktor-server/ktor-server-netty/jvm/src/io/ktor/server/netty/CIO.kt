@@ -78,12 +78,11 @@ public suspend fun <T> Future<T>.suspendAwait(exception: (Throwable, Continuatio
  */
 internal object NettyDispatcher : CoroutineDispatcher() {
     override fun isDispatchNeeded(context: CoroutineContext): Boolean {
-        return !context[CurrentContextKey]!!.context.executor().inEventLoop()
+        return !context[CurrentContextKey]!!.executor.inEventLoop()
     }
 
     override fun dispatch(context: CoroutineContext, block: Runnable) {
-        val nettyContext = context[CurrentContextKey]!!.context
-        val executor = nettyContext.executor()
+        val executor = context[CurrentContextKey]!!.executor
         if (executor.isShuttingDown) {
             Dispatchers.IO.dispatch(context, block)
         } else {
@@ -95,7 +94,16 @@ internal object NettyDispatcher : CoroutineDispatcher() {
         }
     }
 
-    class CurrentContext(val context: ChannelHandlerContext) : AbstractCoroutineContextElement(CurrentContextKey)
+    /**
+     * Carries the Netty channel context for the current call along with the executor that should be used
+     * to dispatch coroutine continuations. When [executor] is not provided, the channel's own
+     * event-loop executor is used (which runs I/O work).
+     */
+    class CurrentContext(
+        val context: ChannelHandlerContext,
+        val executor: EventExecutor = context.executor()
+    ) : AbstractCoroutineContextElement(CurrentContextKey)
+
     object CurrentContextKey : CoroutineContext.Key<CurrentContext>
 }
 

@@ -37,8 +37,10 @@ internal class CurlWebSocketSession(
         set(_) {}
 
     override var maxFrameSize: Long
-        get() = Long.MAX_VALUE
-        set(_) {}
+        get() = websocket.maxFrameSize
+        set(value) {
+            websocket.maxFrameSize = value
+        }
 
     override val incoming: ReceiveChannel<Frame>
         get() = websocket.incoming
@@ -66,8 +68,11 @@ internal class CurlWebSocketSession(
         val flags = if (frame.fin) 0 else CURLWS_CONT
         when (frame.frameType) {
             FrameType.BINARY -> sendFrame(CURLWS_BINARY or flags, frame.data)
+
             FrameType.TEXT -> sendFrame(CURLWS_TEXT or flags, frame.data)
+
             FrameType.PING -> sendFrame(CURLWS_PING or flags, frame.data)
+
             FrameType.PONG -> sendFrame(CURLWS_PONG or flags, frame.data)
 
             FrameType.CLOSE -> {
@@ -102,5 +107,6 @@ internal class CurlWebSocketSession(
 
         websocket.close(cause)
         _outgoing.cancel()
+        curlProcessor.cancelWebSocket(websocket)
     }
 }

@@ -22,7 +22,7 @@ package io.ktor.utils.io
     AnnotationTarget.PROPERTY,
     AnnotationTarget.FIELD,
     AnnotationTarget.CONSTRUCTOR,
-    AnnotationTarget.PROPERTY_SETTER,
+    AnnotationTarget.PROPERTY_GETTER,
     AnnotationTarget.PROPERTY_SETTER
 )
 @Retention(AnnotationRetention.BINARY)

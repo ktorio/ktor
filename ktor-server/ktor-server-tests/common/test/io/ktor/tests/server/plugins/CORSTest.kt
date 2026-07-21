@@ -9,12 +9,12 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.application.hooks.*
-import io.ktor.server.plugins.cors.routing.CORS
-import io.ktor.server.request.httpMethod
+import io.ktor.server.plugins.cors.routing.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import kotlinx.coroutines.test.*
+import io.ktor.test.*
 import kotlin.test.*
 
 class CORSTest {
@@ -446,6 +446,21 @@ class CORSTest {
             header(HttpHeaders.Origin, "http://localhost:8080")
         }.let { call ->
             assertEquals(HttpStatusCode.Forbidden, call.status)
+        }
+
+        client.options("/") {
+            header(HttpHeaders.Origin, "http://localhost")
+            header(HttpHeaders.AccessControlRequestMethod, "GET")
+        }.let { call ->
+            assertEquals(HttpStatusCode.OK, call.status)
+            assertEquals("http://localhost", call.headers[HttpHeaders.AccessControlAllowOrigin])
+        }
+
+        // options without Access-Control-Request-Method just fall though, but there is no handler
+        client.options("/") {
+            header(HttpHeaders.Origin, "http://localhost")
+        }.let { call ->
+            assertEquals(HttpStatusCode.MethodNotAllowed, call.status)
         }
     }
 
@@ -978,6 +993,54 @@ class CORSTest {
             header(HttpHeaders.Origin, "http://localhost:3000")
         }.let {
             assertEquals(HttpStatusCode.Forbidden, it.status)
+        }
+    }
+
+    @Test
+    fun ipv6LiteralOriginIsAccepted() = testApplication {
+        install(CORS) {
+            anyHost()
+        }
+
+        routing {
+            get("/") {
+                call.respond("OK")
+            }
+        }
+
+        client.get("/") {
+            header(HttpHeaders.Origin, "http://[::1]:22222")
+        }.let { call ->
+            assertEquals(HttpStatusCode.OK, call.status)
+            assertEquals("*", call.headers[HttpHeaders.AccessControlAllowOrigin])
+        }
+
+        client.get("/") {
+            header(HttpHeaders.Origin, "http://[2001:db8::1]:8080")
+        }.let { call ->
+            assertEquals(HttpStatusCode.OK, call.status)
+            assertEquals("*", call.headers[HttpHeaders.AccessControlAllowOrigin])
+        }
+
+        client.get("/") {
+            header(HttpHeaders.Origin, "http://[::1]:22222/")
+        }.let { call ->
+            assertEquals(HttpStatusCode.OK, call.status)
+            assertEquals("*", call.headers[HttpHeaders.AccessControlAllowOrigin])
+        }
+
+        client.get("/") {
+            header(HttpHeaders.Origin, "http://[::1]:notaport")
+        }.let { call ->
+            assertEquals(HttpStatusCode.OK, call.status)
+            assertNull(call.headers[HttpHeaders.AccessControlAllowOrigin])
+        }
+
+        client.get("/") {
+            header(HttpHeaders.Origin, "http://[::1")
+        }.let { call ->
+            assertEquals(HttpStatusCode.OK, call.status)
+            assertNull(call.headers[HttpHeaders.AccessControlAllowOrigin])
         }
     }
 
@@ -1591,5 +1654,30 @@ class CORSTest {
         }.let { response ->
             assertEquals(response.status, HttpStatusCode.Forbidden)
         }
+    }
+
+    @Test
+    fun testDefaultMethodsIncludedInAllowMethodsHeader() = testApplication {
+        install(CORS) {
+            allowMethod(HttpMethod.Post)
+            anyHost()
+        }
+
+        routing {
+            post("/") {
+                call.respond("OK")
+            }
+        }
+
+        val response = client.options("/") {
+            header(HttpHeaders.Origin, "https://example.com")
+            header(HttpHeaders.AccessControlRequestMethod, "POST")
+        }
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        val allowMethodsHeader = response.headers[HttpHeaders.AccessControlAllowMethods]
+
+        assertNotNull(allowMethodsHeader, "Access-Control-Allow-Methods header should not be null")
+        assertEquals("GET, HEAD, POST", allowMethodsHeader)
     }
 }

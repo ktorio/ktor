@@ -35,7 +35,7 @@ public abstract class BaseApplicationResponse(
     final override var isSent: Boolean = false
         private set
 
-    override val cookies: ResponseCookies by lazy {
+    override val cookies: ResponseCookies by lazy(LazyThreadSafetyMode.NONE) {
         ResponseCookies(this)
     }
 
@@ -66,6 +66,7 @@ public abstract class BaseApplicationResponse(
         content.headers.forEach { name, values ->
             when (name) {
                 HttpHeaders.TransferEncoding -> transferEncodingSet = true
+
                 HttpHeaders.Upgrade -> {
                     if (content !is OutgoingContent.ProtocolUpgrade) {
                         throw InvalidHeaderForContent(HttpHeaders.Upgrade, "non-upgrading response")
@@ -95,6 +96,7 @@ public abstract class BaseApplicationResponse(
                     }
 
                     is OutgoingContent.NoContent -> headers.append(HttpHeaders.ContentLength, "0", safeOnly = false)
+
                     else -> headers.append(HttpHeaders.TransferEncoding, "chunked", safeOnly = false)
                 }
             }
@@ -358,6 +360,7 @@ public abstract class BaseApplicationResponse(
                     val message = cause.message
                     val content = when {
                         inDevMode -> ExceptionPageContent(call, cause)
+
                         message != null -> TextContent(
                             text = message,
                             contentType = ContentType.Text.Plain,

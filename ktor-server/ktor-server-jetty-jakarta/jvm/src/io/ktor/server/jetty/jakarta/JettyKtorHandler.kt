@@ -16,6 +16,7 @@ import org.eclipse.jetty.server.Request
 import org.eclipse.jetty.server.Response
 import org.eclipse.jetty.util.Callback
 import java.util.concurrent.*
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.coroutines.CoroutineContext
 
@@ -67,7 +68,15 @@ internal class JettyKtorHandler(
     ): Boolean {
         try {
             val application = applicationProvider()
-            application.launch(handlerContext) {
+
+            val callbackCompleted = AtomicBoolean(false)
+            fun completeCallback(action: () -> Unit) {
+                if (callbackCompleted.compareAndSet(false, true)) {
+                    action()
+                }
+            }
+
+            val job = application.launch(handlerContext) {
                 val call = JettyApplicationCall(
                     application,
                     request,
@@ -80,30 +89,22 @@ internal class JettyKtorHandler(
 
                 try {
                     pipeline.execute(call)
-                    callback.succeeded()
+                    completeCallback { callback.succeeded() }
                 } catch (cancelled: kotlinx.coroutines.CancellationException) {
-                    Response.writeError(request, response, callback, HttpStatus.GONE_410, cancelled.message, cancelled)
+                    completeCallback { tryWriteError(response, request, callback, cancelled) }
                 } catch (channelFailed: ChannelIOException) {
-                    callback.failed(channelFailed)
+                    completeCallback { callback.failed(channelFailed) }
                 } catch (error: Throwable) {
                     logError(call, error)
-                    if (!response.isCommitted) {
-                        try {
-                            Response.writeError(
-                                request,
-                                response,
-                                callback,
-                                HttpStatus.INTERNAL_SERVER_ERROR_500,
-                                error.message,
-                                error
-                            )
-                        } catch (_: Throwable) {
-                            callback.failed(error)
-                        }
-                    } else {
-                        callback.failed(error)
-                    }
+                    completeCallback { tryWriteError(response, request, callback, error) }
                 }
+            }
+
+            request.addIdleTimeoutListener { timeoutException ->
+                job.cancel(CancellationException("Jetty idle timeout expired", timeoutException))
+                completeCallback { tryWriteError(response, request, callback, timeoutException) }
+                // Returning true indicates that the idle timeout should be handled by the container as a fatal failure.
+                true
             }
         } catch (ex: Throwable) {
             environment.log.error("Application cannot fulfill the request", ex)
@@ -111,5 +112,26 @@ internal class JettyKtorHandler(
         }
 
         return true
+    }
+
+    private fun tryWriteError(
+        response: Response,
+        request: Request,
+        callback: Callback,
+        throwable: Throwable
+    ) {
+        if (response.isCommitted || runCatching {
+                Response.writeError(
+                    request,
+                    response,
+                    callback,
+                    HttpStatus.INTERNAL_SERVER_ERROR_500,
+                    throwable.message,
+                    throwable
+                )
+            }.isFailure
+        ) {
+            callback.failed(throwable)
+        }
     }
 }

@@ -15,12 +15,12 @@ kotlin {
             api(projects.ktorIo)
         }
 
-        jvmMain.dependencies {
-            api(projects.ktorNetwork)
+        commonTest.dependencies {
+            implementation(projects.ktorTestBase)
         }
 
-        jvmTest.dependencies {
-            implementation(libs.kotlinx.coroutines.test)
+        jvmMain.dependencies {
+            api(projects.ktorNetwork)
         }
     }
 }

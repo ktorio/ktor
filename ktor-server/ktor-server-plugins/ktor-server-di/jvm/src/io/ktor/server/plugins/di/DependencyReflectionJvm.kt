@@ -50,6 +50,20 @@ public open class DependencyReflectionJvm : DependencyReflection {
             )
     }
 
+    override suspend fun <T> call(
+        kFunction: KFunction<T>,
+        init: suspend (DependencyKey) -> Any
+    ): T {
+        val args = mapParameters(kFunction.parameters) { param ->
+            init(toDependencyKey(param))
+        }
+        return if (kFunction.isSuspend) {
+            kFunction.callSuspendBy(args)
+        } else {
+            kFunction.callBy(args)
+        }
+    }
+
     /**
      * List constructors of a class in order of preference.
      *
@@ -93,8 +107,12 @@ public open class DependencyReflectionJvm : DependencyReflection {
                 resolve(parameter)
             } catch (cause: Exception) {
                 when {
-                    parameter.isOptional -> return@mapNotNull null // ignore
-                    parameter.type.isMarkedNullable -> null // let value = null
+                    // ignore
+                    parameter.isOptional -> return@mapNotNull null
+
+                    // let value = null
+                    parameter.type.isMarkedNullable -> null
+
                     else -> throw cause
                 }
             }

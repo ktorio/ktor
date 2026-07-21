@@ -103,12 +103,17 @@ internal class WinHttpRequestProducer(
     @OptIn(DelicateCoroutinesApi::class)
     private suspend fun OutgoingContent.toByteChannel(): ByteReadChannel? = when (this) {
         is OutgoingContent.ByteArrayContent -> ByteReadChannel(bytes())
+
         is OutgoingContent.WriteChannelContent -> GlobalScope.writer(coroutineContext) {
             writeTo(channel)
         }.channel
+
         is OutgoingContent.ReadChannelContent -> readFrom()
+
         is OutgoingContent.NoContent -> null
+
         is OutgoingContent.ContentWrapper -> delegate().toByteChannel()
+
         is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(this)
     }
 

@@ -5,16 +5,19 @@
 package io.ktor.network.sockets.tests
 
 import io.ktor.network.sockets.*
+import io.ktor.util.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.async
-import kotlin.test.Test
-import kotlin.test.assertEquals
+import kotlinx.coroutines.*
+import kotlin.test.*
 
 class UnixSocketTest {
 
     @Test
     fun testEchoOverUnixSockets() = testSockets { selector ->
         if (!UnixSocketAddress.isSupported()) return@testSockets
+        // skipped because kotlinx-io is not compatible with ES modules on JS
+        // https://github.com/Kotlin/kotlinx-io/issues/345
+        if (PlatformUtils.IS_JS) return@testSockets
 
         val socketPath = createTempFilePath("ktor-echo-test")
         try {
@@ -25,7 +28,7 @@ class UnixSocketTest {
                 server.accept()
             }
 
-            val clientConnection = tcp.connect(UnixSocketAddress(socketPath))
+            val clientConnection = tcp.connect(server.localAddress)
             val serverConnection = serverConnectionPromise.await()
 
             val clientOutput = clientConnection.openWriteChannel()

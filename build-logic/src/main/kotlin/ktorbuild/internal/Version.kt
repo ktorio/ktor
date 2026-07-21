@@ -14,15 +14,17 @@ import org.gradle.api.Project
  * ```
  */
 internal fun Project.resolveVersion(): String {
-    val projectVersion = project.rootDir.resolve("VERSION").readText().trim()
-    val releaseVersion = providers.gradleProperty("releaseVersion").orNull
-    val eapVersion = providers.gradleProperty("eapVersion").orNull
-
-    return when {
-        releaseVersion != null -> releaseVersion
-        eapVersion != null -> "${projectVersion.removeSuffix("-SNAPSHOT")}-eap-$eapVersion"
-        else -> projectVersion
+    val projectVersion = providers.gradleProperty("version")
+        .orElse(providers.fileContents(layout.settingsDirectory.file("VERSION")).asText.map { it.trim() })
+    val releaseVersion = providers.gradleProperty("releaseVersion")
+    val eapVersion = projectVersion.zip(providers.gradleProperty("eapVersion")) { projectVersion, eapVersion ->
+        "${projectVersion.removeSuffix("-SNAPSHOT")}-eap-$eapVersion"
     }
+
+    return releaseVersion
+        .orElse(eapVersion)
+        .orElse(projectVersion)
+        .get()
 }
 
 private val stableVersionRegex = Regex("""^\d+\.\d+\.\d+$""")

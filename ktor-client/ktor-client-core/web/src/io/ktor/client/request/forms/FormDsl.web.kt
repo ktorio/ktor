@@ -63,7 +63,7 @@ public fun FormBuilder.appendBlob(
     contentType: ContentType? = null
 ) {
     val headersBuilder = HeadersBuilder()
-    headersBuilder[HttpHeaders.ContentDisposition] = "filename=${filename.escapeIfNeeded()}"
+    headersBuilder[HttpHeaders.ContentDisposition] = "filename=${filename.quoteForMultipart()}"
     contentType?.let { headersBuilder[HttpHeaders.ContentType] = it.toString() }
 
     append(key, blobChannelProvider(blob), headersBuilder.build())

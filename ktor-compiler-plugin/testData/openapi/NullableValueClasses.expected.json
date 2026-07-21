@@ -1,0 +1,113 @@
+{
+    "openapi": "3.1.1",
+    "info": {
+        "title": "OpenAPI Document",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/nullable-value-classes": {
+            "post": {
+                "summary": "",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/NullableValueClassRequest"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/NullableValueClassResponse"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "NullableValueClassRequest": {
+                "type": "object",
+                "title": "NullableValueClassRequest",
+                "required": [
+                    "token",
+                    "tokenWithNullableContent"
+                ],
+                "properties": {
+                    "nullableText": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "token": {
+                        "type": "string"
+                    },
+                    "optionalToken": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "tokenWithNullableContent": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "optionalCount": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    }
+                }
+            },
+            "NullableValueClassResponse": {
+                "type": "object",
+                "title": "NullableValueClassResponse",
+                "required": [
+                    "token",
+                    "tokenWithNullableContent"
+                ],
+                "properties": {
+                    "nullableText": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "token": {
+                        "type": "string"
+                    },
+                    "optionalToken": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "tokenWithNullableContent": {
+                        "type": [
+                            "string",
+                            "null"
+                        ]
+                    },
+                    "optionalCount": {
+                        "type": [
+                            "integer",
+                            "null"
+                        ]
+                    }
+                }
+            }
+        }
+    }
+}

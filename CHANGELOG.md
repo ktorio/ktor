@@ -1,3 +1,119 @@
+# 3.5.1
+> Published 25 June 2026
+
+### Improvements
+* [KTOR-9492](https://youtrack.jetbrains.com/issue/KTOR-9492) OpenAPI plugin: handle requireXxx functions in compiler plugin
+* [KTOR-9569](https://youtrack.jetbrains.com/issue/KTOR-9569) Add more details for KDoc of BearerAuthConfig.sendWithoutRequest
+* [KTOR-9571](https://youtrack.jetbrains.com/issue/KTOR-9571) Add KDoc for BearerAuthConfig.realm
+* [KTOR-9570](https://youtrack.jetbrains.com/issue/KTOR-9570) Add Kdoc for BearerAuthConfig.refreshTokens
+
+### Bugfixes
+* [KTOR-9646](https://youtrack.jetbrains.com/issue/KTOR-9646) Fix Kotlin 2.4.0 compiler plugin breaking changes
+* [KTOR-9585](https://youtrack.jetbrains.com/issue/KTOR-9585) OpenAPI: JsonSchema title is truncated when it contains a dot
+* [KTOR-9591](https://youtrack.jetbrains.com/issue/KTOR-9591) OpenAPI: `@JsonClassDiscriminator` on sealed types is ignored when generating OpenAPI discriminator schema
+* [KTOR-9597](https://youtrack.jetbrains.com/issue/KTOR-9597) OpenAPI: Schema name collisions because`@SerialName` of sealed subtypes is used as `components.schemas` key
+* [KTOR-9601](https://youtrack.jetbrains.com/issue/KTOR-9601) OpenAPI: nullable @JvmInline value class loses nullability in generated schema
+* [KTOR-9620](https://youtrack.jetbrains.com/issue/KTOR-9620) Some issues related to digest authentication in 3.5.0
+* [KTOR-9623](https://youtrack.jetbrains.com/issue/KTOR-9623) Digest Auth: server must respond with one WWW-Authenticate header for each supported algorithm
+* [KTOR-9624](https://youtrack.jetbrains.com/issue/KTOR-9624) Digest Auth: "Unsupported charset in digest authentication header" for a charset name in lowercase
+* [KTOR-9630](https://youtrack.jetbrains.com/issue/KTOR-9630) Digest Auth: The plugin sends incorrect nonce when server responds with multiple WWW-Authenticate headers
+* [KTOR-9565](https://youtrack.jetbrains.com/issue/KTOR-9565) WebRTC: Peer stops receiving messages after a while on iOS
+* [KTOR-9610](https://youtrack.jetbrains.com/issue/KTOR-9610) WebRtcPeerConnection::close causes ClosedReceiveChannelException for other peer
+* [KTOR-9633](https://youtrack.jetbrains.com/issue/KTOR-9633) WebRTC statistics fetching race condition
+* [KTOR-9603](https://youtrack.jetbrains.com/issue/KTOR-9603) Structured concurrency is violated in WebRTC tests
+* [KTOR-9671](https://youtrack.jetbrains.com/issue/KTOR-9671) Darwin: Semicolons in URL path are sanitized
+* [KTOR-9639](https://youtrack.jetbrains.com/issue/KTOR-9639) Darwin: WebSocket client crashes the process when a PONG arrives after the session is closed
+* [KTOR-9575](https://youtrack.jetbrains.com/issue/KTOR-9575) Darwin: findCharset("UTF-16") maps to NSUTF16LittleEndianStringEncoding causing decoding failure for UTF-16 content with BOM
+* [KTOR-9661](https://youtrack.jetbrains.com/issue/KTOR-9661) HttpCache: InvalidCacheStateException is thrown on 304 when no cached entry matches varyKeys
+* [KTOR-9673](https://youtrack.jetbrains.com/issue/KTOR-9673) Caching always missing with Content Negotiation
+* [KTOR-9596](https://youtrack.jetbrains.com/issue/KTOR-9596) HttpTimeout: HttpRequestTimeoutException on any request with runTest and request timeout defined since 3.5.0
+* [KTOR-9632](https://youtrack.jetbrains.com/issue/KTOR-9632) HttpRequestBuilder.timeout call removes capabilities set in DefaultRequest
+* [KTOR-9252](https://youtrack.jetbrains.com/issue/KTOR-9252) ContentEncoding: Incomplete gzip response causes client/server to hang indefinitely
+* [KTOR-9670](https://youtrack.jetbrains.com/issue/KTOR-9670) Compression: The plugin ignores Accept-Encoding q=0 and most-specific matching
+* [KTOR-9614](https://youtrack.jetbrains.com/issue/KTOR-9614) Zstd Compression: "Destination buffer is too small" exception for a particular sequence of bytes
+* [KTOR-9636](https://youtrack.jetbrains.com/issue/KTOR-9636) CORS plugin drops OPTIONS preflight requests when allowSameOrigin is on
+* [KTOR-9659](https://youtrack.jetbrains.com/issue/KTOR-9659) CORS is skipped when the Origin header contains an IPv6 address
+* [KTOR-9574](https://youtrack.jetbrains.com/issue/KTOR-9574) ContentNegotiation: The charset of `Accept-Charset` header is used for response deserialization
+* [KTOR-9606](https://youtrack.jetbrains.com/issue/KTOR-9606) KotlinxSerializationConverter: it fails to deserialize an empty channel closed with a delay
+* [KTOR-9617](https://youtrack.jetbrains.com/issue/KTOR-9617) OutputStreamContent and WriterContent can exhaust Dispatchers.IO
+* [KTOR-9629](https://youtrack.jetbrains.com/issue/KTOR-9629) RawSourceChannel: coroutine cancellation is not propagated to the RawSource
+* [KTOR-8870](https://youtrack.jetbrains.com/issue/KTOR-8870) File.readChannel: do not close a non-opened file and ignore closing exceptions
+* [KTOR-9460](https://youtrack.jetbrains.com/issue/KTOR-9460) Curl: Can't build shared library with Ktor 3.4.2
+* [KTOR-9607](https://youtrack.jetbrains.com/issue/KTOR-9607) Crash on Android 7: NoSuchMethodError getInstanceStrong() since 3.5.0
+* [KTOR-9595](https://youtrack.jetbrains.com/issue/KTOR-9595) CIO: The engine imports `node:net` statically and breaks wasmJsBrowser webpack build
+* [KTOR-9615](https://youtrack.jetbrains.com/issue/KTOR-9615) Apache5: The underlying request is not aborted when coroutine Job is cancelled
+* [KTOR-8443](https://youtrack.jetbrains.com/issue/KTOR-8443) RoutingBuilder.contentType does not use parameters when matching
+* [KTOR-9425](https://youtrack.jetbrains.com/issue/KTOR-9425) SessionTransportTransformerEncrypt init block uses wrong IV size for AES-256 (regression of KTOR-661)
+* [KTOR-9621](https://youtrack.jetbrains.com/issue/KTOR-9621) RateLimit plugin is bypassed when the nested authenticate block rejects the request
+* [KTOR-8766](https://youtrack.jetbrains.com/issue/KTOR-8766) DI: The close method is called twice on cleanup of AutoCloseable
+* [KTOR-8695](https://youtrack.jetbrains.com/issue/KTOR-8695) GMTDate() being offset by 369 years on Windows
+* [KTOR-9589](https://youtrack.jetbrains.com/issue/KTOR-9589) Duplicate PROPERTY_SETTER target in @InternalAPI annotation
+* [KTOR-9602](https://youtrack.jetbrains.com/issue/KTOR-9602) Gradle plugin environment variable is not included in the image
+
+
+# 3.5.0
+> Published 14 May 2026
+
+### Features
+* [KTOR-8421](https://youtrack.jetbrains.com/issue/KTOR-8421) Route.contentType should support multiple ContentType
+* [KTOR-7961](https://youtrack.jetbrains.com/issue/KTOR-7961) Add known TDM headers to the HttpHeaders object
+* [KTOR-9418](https://youtrack.jetbrains.com/issue/KTOR-9418) Support getAs from the root ApplicationConfig
+* [KTOR-9559](https://youtrack.jetbrains.com/issue/KTOR-9559) DNS configuration for the Apache5 client
+* [KTOR-9554](https://youtrack.jetbrains.com/issue/KTOR-9554) DNS configuration for OkHttp client engine
+* [KTOR-9555](https://youtrack.jetbrains.com/issue/KTOR-9555) Custom SSE heartbeat function
+* [KTOR-8914](https://youtrack.jetbrains.com/issue/KTOR-8914) Dependency injection: read annotations in function references
+* [KTOR-8300](https://youtrack.jetbrains.com/issue/KTOR-8300) Sessions: Add a way to create a user session shared for all user devices or look up sessions of the same user
+* [KTOR-9521](https://youtrack.jetbrains.com/issue/KTOR-9521) Upgrade to Kotlin 2.3.21
+* [KTOR-9276](https://youtrack.jetbrains.com/issue/KTOR-9276) Make DynamicProviderConfig.authenticateFunction suspend
+* [KTOR-9491](https://youtrack.jetbrains.com/issue/KTOR-9491) Provide parameter validation convenience functions
+* [KTOR-9506](https://youtrack.jetbrains.com/issue/KTOR-9506) OpenAPI: Support prefixItems in JsonSchema for tuple type definitions
+* [KTOR-470](https://youtrack.jetbrains.com/issue/KTOR-470) Add an option to not resend the session cookie if the session data wasn't changed.
+* [KTOR-9355](https://youtrack.jetbrains.com/issue/KTOR-9355) Deprecate HttpHeaders.AcceptCharset
+* [KTOR-7659](https://youtrack.jetbrains.com/issue/KTOR-7659) Make ktor-network compatible with ES modules for nodejs
+* [KTOR-9350](https://youtrack.jetbrains.com/issue/KTOR-9350) JS: Make ES2015 the default target for tests
+* [KTOR-7578](https://youtrack.jetbrains.com/issue/KTOR-7578) Update Digest authentication implementation according to RFC 7616
+
+### Improvements
+* [KTOR-9503](https://youtrack.jetbrains.com/issue/KTOR-9503) The JacksonConverter.streamRequestBody property name is confusing
+* [KTOR-9552](https://youtrack.jetbrains.com/issue/KTOR-9552) Deprecation notice for io.ktor.server.auth.Principal does not explain what to use instead
+* [KTOR-7458](https://youtrack.jetbrains.com/issue/KTOR-7458) Jetty Jakarta: Provide an easy way to disable SNI hostname validation
+* [KTOR-9354](https://youtrack.jetbrains.com/issue/KTOR-9354) Websockets: webSocket builder function should return a Route to be describable
+* [KTOR-9488](https://youtrack.jetbrains.com/issue/KTOR-9488) Nonce and hex function performance optimizations
+
+### Bugfixes
+* [KTOR-9524](https://youtrack.jetbrains.com/issue/KTOR-9524) Netty response hangs after connection lost
+* [KTOR-9542](https://youtrack.jetbrains.com/issue/KTOR-9542) Netty: The request handler runs on worker event loop instead of call event loop since 3.4.3
+* [KTOR-9531](https://youtrack.jetbrains.com/issue/KTOR-9531) Netty server intermittently drops requests after upgrading to 3.4.3
+* [KTOR-8151](https://youtrack.jetbrains.com/issue/KTOR-8151) MicrometerMetrics: "MeterFilters configured after a Meter has been registered" warning when a metric is registered before installing the plugin
+* [KTOR-9411](https://youtrack.jetbrains.com/issue/KTOR-9411) Darwin throws DarwinHttpRequestException instead of FrameTooBigException
+* [KTOR-8320](https://youtrack.jetbrains.com/issue/KTOR-8320) CallLogging: plugin usage in testApplication breaks console standard output
+* [KTOR-8906](https://youtrack.jetbrains.com/issue/KTOR-8906) Jackson, with request body streaming on, exhausts Dispatchers.IO
+* [KTOR-8709](https://youtrack.jetbrains.com/issue/KTOR-8709) Websockets: Unable to close session with a custom CloseReason
+* [KTOR-9567](https://youtrack.jetbrains.com/issue/KTOR-9567) Flaky UnixSockets on Windows: WSAEOPNOTSUPP from bind()
+* [KTOR-9183](https://youtrack.jetbrains.com/issue/KTOR-9183) A client call wrapped with `withTimeout` throws a generic CancellationException instead of TimeoutCancellationException
+* [KTOR-8199](https://youtrack.jetbrains.com/issue/KTOR-8199) Autoreloading: default watch patterns don't match anything when project path contain spaces
+* [KTOR-9549](https://youtrack.jetbrains.com/issue/KTOR-9549) Kotlin/JS: ktor-ktor-client-core.mjs is incompatible with Vite: toRaw naming conflict
+* [KTOR-9544](https://youtrack.jetbrains.com/issue/KTOR-9544) Apache: body channel not cancelled when caller scope is cancelled
+* [KTOR-9546](https://youtrack.jetbrains.com/issue/KTOR-9546) HttpClient: cancelling ByteReadChannel body does not propagate to engine
+* [KTOR-455](https://youtrack.jetbrains.com/issue/KTOR-455) Content-Disposition additional parameters should be inside quotes
+* [KTOR-9500](https://youtrack.jetbrains.com/issue/KTOR-9500) RawSourceChannel returns false positive on awaitContent
+* [KTOR-646](https://youtrack.jetbrains.com/issue/KTOR-646) Netty engine still print annoying exceptions
+* [KTOR-9527](https://youtrack.jetbrains.com/issue/KTOR-9527) Curl: Freeze when receiving large responses
+* [KTOR-9460](https://youtrack.jetbrains.com/issue/KTOR-9460) Curl: Can't build shared library with Ktor 3.4.2
+* [KTOR-9483](https://youtrack.jetbrains.com/issue/KTOR-9483) Curl: backpressure implementation is never used
+* [KTOR-9545](https://youtrack.jetbrains.com/issue/KTOR-9545) Curl: body channel not cancelled when caller scope is cancelled
+* [KTOR-9540](https://youtrack.jetbrains.com/issue/KTOR-9540) Curl: CancelWebSocket task may cancel a new HTTP request due to easy handle pointer reuse
+* [KTOR-9539](https://youtrack.jetbrains.com/issue/KTOR-9539) Curl: WebSocket bearer token refresh fails due to stale native handle reuse
+* [KTOR-9536](https://youtrack.jetbrains.com/issue/KTOR-9536) Netty call hang when channel becomes inactive before response is sent
+* [KTOR-4752](https://youtrack.jetbrains.com/issue/KTOR-4752) OkHttp: Websockets pinging doesn't work
+* [KTOR-9409](https://youtrack.jetbrains.com/issue/KTOR-9409) call.respond performance regression caused by transitive kotlin-reflect:2.3.0
+* [KTOR-9487](https://youtrack.jetbrains.com/issue/KTOR-9487) ZSTD decoder fails if the compressed frame is larger than 4096 bytes
+* [KTOR-8271](https://youtrack.jetbrains.com/issue/KTOR-8271) MockEngine, HttpTimeout: the virtual clock of kotlinx coroutines isn't respected
+* [KTOR-6683](https://youtrack.jetbrains.com/issue/KTOR-6683) Plugin onCallReceive/transformBody is not called for receive<ByteArray>()
+* [KTOR-7416](https://youtrack.jetbrains.com/issue/KTOR-7416) Jetty, Java: Custom Host header doesn't override the default value
+* [KTOR-9203](https://youtrack.jetbrains.com/issue/KTOR-9203) CIOMultipartDataBase: Call thread is blocked when releasing file parts
+
+
 # 3.4.3
 > Published 22 April 2026
 

@@ -21,5 +21,5 @@ oneOf:
 discriminator:
   propertyName: type
   mapping:
-    io.ktor.openapi.reflect.Shape.Circle: "#/components/schemas/Circle"
-    io.ktor.openapi.reflect.Shape.Rectangle: "#/components/schemas/Rectangle"
+    io.ktor.openapi.reflect.Shape.Circle: "#/components/schemas/io.ktor.openapi.reflect.Shape.Circle"
+    io.ktor.openapi.reflect.Shape.Rectangle: "#/components/schemas/io.ktor.openapi.reflect.Shape.Rectangle"

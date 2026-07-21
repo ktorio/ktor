@@ -13,11 +13,14 @@ import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import io.ktor.test.*
 import io.ktor.util.*
-import io.ktor.utils.io.InternalAPI
-import kotlinx.coroutines.test.*
-import java.security.*
-import kotlin.test.*
+import io.ktor.utils.io.*
+import java.security.MessageDigest
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 class DigestTest {
     @Test
@@ -127,7 +130,7 @@ class DigestTest {
 
         assertEquals(
             digest.response,
-            hex(digest.expectedDigest(HttpMethod.Get, digester, digest(digester, userNameRealmPassword)))
+            digest.expectedDigest(HttpMethod.Get, digester, digest(digester, userNameRealmPassword)).toHexString()
         )
         assertTrue(digest.verifier(HttpMethod.Get, digester) { user, realm -> digest(digester, "$user:$realm:$p") })
     }
@@ -377,7 +380,7 @@ class DigestTest {
             client.request("/") {
                 header(
                     HttpHeaders.Authorization,
-                    authHeader.withReplacedParameter("response", hex(expectedDigest)).render()
+                    authHeader.withReplacedParameter("response", expectedDigest.toHexString()).render()
                 )
             }.let { response ->
                 assertEquals(HttpStatusCode.OK, response.status)
@@ -386,7 +389,7 @@ class DigestTest {
             client.request("/") {
                 header(
                     HttpHeaders.Authorization,
-                    authHeader.withReplacedParameter("response", hex(expectedDigest)).withReplacedParameter(
+                    authHeader.withReplacedParameter("response", expectedDigest.toHexString()).withReplacedParameter(
                         "nonce",
                         flipLastHexDigit(nonce)
                     ).render()

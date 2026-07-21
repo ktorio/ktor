@@ -9,6 +9,7 @@ import io.ktor.server.application.hooks.*
 import io.ktor.server.http.content.*
 import io.ktor.util.*
 import io.ktor.util.date.*
+import org.fusesource.jansi.AnsiConsole
 import org.slf4j.event.*
 
 internal val CALL_START_TIME = AttributeKey<Long>("CallStartTime")
@@ -61,6 +62,22 @@ public val CallLogging: ApplicationPlugin<CallLoggingConfig> = createApplication
 
     on(CallSetup) { call ->
         call.attributes.put(CALL_START_TIME, clock())
+    }
+
+    var ansiInstalled = false
+    try {
+        if (pluginConfig.isColorsEnabled) {
+            AnsiConsole.systemInstall()
+            ansiInstalled = true
+        }
+    } catch (_: Throwable) {
+        pluginConfig.isColorsEnabled = false // ignore colors if console was not installed
+    }
+
+    if (ansiInstalled) {
+        application.monitor.subscribe(ApplicationStopped) {
+            AnsiConsole.systemUninstall()
+        }
     }
 
     if (pluginConfig.mdcEntries.isEmpty()) {

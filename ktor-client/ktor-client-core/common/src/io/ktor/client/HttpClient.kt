@@ -15,6 +15,7 @@ import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.atomicfu.atomic
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableJob
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -647,15 +648,7 @@ public fun <T : HttpClientEngineConfig> HttpClient(
 ): HttpClient {
     val config: HttpClientConfig<T> = HttpClientConfig<T>().apply(block)
     val engine = engineFactory.create(config.engineConfig)
-    val client = HttpClient(engine, config, manageEngine = true)
-
-    // If the engine was created using factory Ktor is responsible for its lifecycle management. Otherwise user has to
-    // close engine by themself.
-    client.coroutineContext[Job]!!.invokeOnCompletion {
-        engine.close()
-    }
-
-    return client
+    return HttpClient(engine, config, manageEngine = true)
 }
 
 /**
@@ -1292,6 +1285,26 @@ public class HttpClient(
         manageEngine: Boolean
     ) : this(engine, userConfig) {
         this.manageEngine = manageEngine
+
+        if (this.manageEngine) {
+            if (engine is HttpClientEngineBase) {
+                engine.clientRefCount.incrementAndGet()
+            }
+
+            coroutineContext[Job]!!.invokeOnCompletion { cause ->
+                val shouldClose = engine !is HttpClientEngineBase || engine.clientRefCount.decrementAndGet() <= 0
+
+                if (shouldClose) {
+                    if (cause == null) {
+                        engine.close()
+                    } else {
+                        engine.cancel(
+                            cause as? CancellationException ?: CancellationException("Client scope is canceled", cause)
+                        )
+                    }
+                }
+            }
+        }
     }
 
     private val closed = atomic(false)
@@ -1352,14 +1365,6 @@ public class HttpClient(
     internal val config = HttpClientConfig<HttpClientEngineConfig>()
 
     init {
-        if (manageEngine) {
-            clientJob.invokeOnCompletion {
-                if (it != null) {
-                    engine.cancel()
-                }
-            }
-        }
-
         engine.install(this)
 
         sendPipeline.intercept(HttpSendPipeline.Receive) { call ->
@@ -1483,9 +1488,6 @@ public class HttpClient(
         }
 
         clientJob.complete()
-        if (manageEngine) {
-            engine.close()
-        }
     }
 
     override fun toString(): String = "HttpClient[$engine]"

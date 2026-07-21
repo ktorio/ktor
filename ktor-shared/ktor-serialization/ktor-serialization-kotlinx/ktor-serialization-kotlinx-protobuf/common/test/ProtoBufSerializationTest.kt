@@ -8,6 +8,7 @@ import io.ktor.serialization.*
 import io.ktor.serialization.kotlinx.*
 import io.ktor.serialization.kotlinx.protobuf.*
 import io.ktor.test.dispatcher.*
+import io.ktor.test.runTest
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
@@ -27,7 +28,7 @@ data class WithList(val aList: List<String> = emptyList())
 class ProtoBufSerializationTest {
 
     @Test
-    fun testRegisterCustom() = testSuspend {
+    fun testRegisterCustom() = runTest {
         val serializer = KotlinxSerializationConverter(DefaultProtoBuf)
 
         val user = User(1, "user1")
@@ -37,7 +38,7 @@ class ProtoBufSerializationTest {
     }
 
     @Test
-    fun testEmptyList() = testSuspend {
+    fun testEmptyList() = runTest {
         val serializer = KotlinxSerializationConverter(DefaultProtoBuf)
 
         val item = WithList()
@@ -48,7 +49,7 @@ class ProtoBufSerializationTest {
     }
 
     @Test
-    fun testRegisterCustomList() = testSuspend {
+    fun testRegisterCustomList() = runTest {
         val serializer = KotlinxSerializationConverter(DefaultProtoBuf)
 
         val user = User(2, "login2")

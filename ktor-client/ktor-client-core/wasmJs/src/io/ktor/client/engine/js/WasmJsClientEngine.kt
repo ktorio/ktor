@@ -4,7 +4,7 @@
 
 package io.ktor.client.engine.js
 
-import io.ktor.client.FetchOptions
+import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.client.engine.js.compatibility.*
 import io.ktor.client.plugins.*
@@ -16,7 +16,6 @@ import io.ktor.http.*
 import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
-import io.ktor.websocket.ChannelConfig
 import kotlinx.coroutines.*
 import org.w3c.dom.WebSocket
 import org.w3c.dom.events.Event
@@ -90,6 +89,7 @@ internal class JsClientEngine(
         val protocols = protocolHeaderNames.mapNotNull { headers.getAll(it) }.flatten().toTypedArray()
         return when {
             PlatformUtils.IS_BROWSER -> createBrowserWebSocket(urlString, *protocols)
+
             else -> {
                 val ws_capturingHack = makeImport<JsAny>("ws").await<JsAny>().get("default")
                 val headers_capturingHack = makeJsObject<JsAny>()
@@ -141,31 +141,20 @@ internal class JsClientEngine(
 private suspend fun WebSocket.awaitConnection(): WebSocket = suspendCancellableCoroutine { continuation ->
     if (continuation.isCancelled) return@suspendCancellableCoroutine
 
-    val eventListener = { it: JsAny ->
-        val event: Event = it.unsafeCast()
+    val disposable = addEventListener<Event>("open", "error", once = true) { event ->
         when (event.type) {
             "open" -> continuation.resume(this)
-            "error" -> {
-                continuation.resumeWithException(WebSocketException(eventAsString(event)))
-            }
+            "error" -> continuation.resumeWithException(WebSocketException(event.asString()))
         }
     }
 
-    addEventListener("open", callback = eventListener)
-    addEventListener("error", callback = eventListener)
-
     continuation.invokeOnCancellation {
-        removeEventListener("open", callback = eventListener)
-        removeEventListener("error", callback = eventListener)
-
+        disposable.dispose()
         if (it != null) {
             this@awaitConnection.close()
         }
     }
 }
-
-private fun eventAsString(event: Event): String =
-    js("JSON.stringify(event, ['message', 'target', 'type', 'isTrusted'])")
 
 private fun getKeys(headers: org.w3c.fetch.Headers): JsArray<JsString> =
     js("Array.from(headers.keys())")

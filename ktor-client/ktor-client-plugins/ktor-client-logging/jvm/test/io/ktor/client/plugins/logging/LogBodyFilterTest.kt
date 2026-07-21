@@ -46,11 +46,14 @@ class LogBodyFilterTest {
                 bodyFilter = CommonLogBodyFilter { _, contentType, _, _ ->
                     when (contentType?.contentSubtype) {
                         "empty" -> BodyFilterResult.Empty
+
                         "skipped" -> BodyFilterResult.Skip("custom reason", 123L)
+
                         "buffered" -> {
                             val buffer = Buffer().also { it.writeString("filtered content") }
                             BodyFilterResult.BufferContent(buffer, Charsets.UTF_8)
                         }
+
                         else -> BodyFilterResult.Skip("unsupported")
                     }
                 }

@@ -1129,6 +1129,28 @@ class SessionTest {
         client.getWithCookie("/check", cookie3)
             .apply { assertEquals("alice", bodyAsText()) }
     }
+
+    @Test
+    fun `scoped session sends Set-Cookie header without explicit respond`() = testApplication {
+        routing {
+            route("/scoped") {
+                install(Sessions) {
+                    cookie<TestUserSession>(cookieName)
+                }
+                get("/set") {
+                    call.sessions.set(TestUserSession("id1", emptyList()))
+                    call.response.status(HttpStatusCode.OK)
+                }
+            }
+        }
+        client.get("/scoped/set").apply {
+            assertEquals(HttpStatusCode.OK, status)
+            assertNotNull(
+                cookies[cookieName],
+                "Session cookie should be set even without call.respond()"
+            )
+        }
+    }
 }
 
 @Serializable

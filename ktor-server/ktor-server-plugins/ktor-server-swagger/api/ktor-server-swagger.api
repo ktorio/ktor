@@ -24,7 +24,7 @@ public final class io/ktor/server/plugins/swagger/SwaggerConfig : io/ktor/openap
 	public final fun setRemotePath (Ljava/lang/String;)V
 	public final fun setSource (Lio/ktor/server/routing/openapi/OpenApiDocSource;)V
 	public final fun setVersion (Ljava/lang/String;)V
-	public fun tag (Ljava/lang/String;)V
+	public fun tag (Ljava/lang/String;Ljava/lang/String;Lio/ktor/openapi/ExternalDocs;)V
 }
 
 public final class io/ktor/server/plugins/swagger/SwaggerKt {

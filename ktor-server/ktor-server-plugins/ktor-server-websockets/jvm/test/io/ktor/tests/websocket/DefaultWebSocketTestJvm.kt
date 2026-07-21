@@ -4,11 +4,13 @@
 
 package io.ktor.tests.websocket
 
+import io.ktor.test.*
 import io.ktor.utils.io.*
 import io.ktor.websocket.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.test.*
-import kotlin.test.*
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class DefaultWebSocketTestJvm {
 

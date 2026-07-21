@@ -38,7 +38,7 @@ internal class CurlProcessor(coroutineContext: CoroutineContext) {
         }
 
         runEventLoop().invokeOnCompletion { cause ->
-            cause?.let { curlScope.cancel(cause = CancellationException(cause)) }
+            cause?.let { curlScope.cancel(cause = cause as? CancellationException ?: CancellationException(cause)) }
         }
     }
 
@@ -54,6 +54,19 @@ internal class CurlProcessor(coroutineContext: CoroutineContext) {
         taskQueue.send(SendWebSocketFrame(websocket, flags, data, result))
         curlApi!!.wakeup()
         result.join()
+    }
+
+    /**
+     * Cancels a WebSocket easy handle by enqueuing a cancellation task.
+     * Called when a WebSocket session is closed to ensure the curl easy handle
+     * is removed from the multi handle, preventing stale handles from blocking
+     * the event loop.
+     */
+    fun cancelWebSocket(websocket: CurlWebSocketResponseBody) {
+        val sent = taskQueue.trySend(CancelWebSocket(websocket))
+        if (sent.isSuccess) {
+            curlApi!!.wakeup()
+        }
     }
 
     @OptIn(DelicateCoroutinesApi::class)
@@ -78,8 +91,12 @@ internal class CurlProcessor(coroutineContext: CoroutineContext) {
 
             when (task) {
                 is SendRequest -> handleSendRequest(api, task)
+
                 is SendWebSocketFrame ->
                     api.sendWebSocketFrame(task.websocket, task.flags, task.data, task.completionHandler)
+
+                is CancelWebSocket ->
+                    api.cancelWebSocket(task.websocket, CancellationException("WebSocket session closed"))
             }
         }
     }
@@ -88,7 +105,7 @@ internal class CurlProcessor(coroutineContext: CoroutineContext) {
         val (requestData, completionHandler) = task
         val requestHandler = api.scheduleRequest(requestData, completionHandler)
 
-        val requestCleaner = requestData.executionContext.invokeOnCompletion { cause ->
+        val requestCleaner = requestData.callContext.invokeOnCompletion { cause ->
             if (cause == null) return@invokeOnCompletion
             cancelRequest(requestHandler, cause)
         }
@@ -132,5 +149,9 @@ private sealed interface CurlTask {
         val flags: Int,
         val data: ByteArray,
         val completionHandler: CompletableJob,
+    ) : CurlTask
+
+    class CancelWebSocket(
+        val websocket: CurlWebSocketResponseBody,
     ) : CurlTask
 }

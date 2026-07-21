@@ -6,6 +6,8 @@ package io.ktor.http.content
 
 import io.ktor.http.*
 import io.ktor.http.content.PartData.*
+import io.ktor.http.content.PartData.BinaryItem
+import io.ktor.http.content.PartData.FileItem
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.flow.*
@@ -15,10 +17,16 @@ import kotlinx.coroutines.flow.*
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.content.PartData)
  *
- * @property dispose to be invoked when this part is no longer needed
+ * @property dispose former blocking call to close the part; use release instead
  * @property headers of this part, could be inaccurate on some engines
+ * @property release to be invoked when this part is no longer needed
  */
-public sealed class PartData(public val dispose: () -> Unit, public val headers: Headers) {
+public sealed class PartData(
+    @Deprecated("Use release instead", level = DeprecationLevel.WARNING)
+    public val dispose: () -> Unit,
+    public val headers: Headers,
+    public val release: suspend () -> Unit,
+) {
     /**
      * Represents a multipart form item.
      *
@@ -26,8 +34,19 @@ public sealed class PartData(public val dispose: () -> Unit, public val headers:
      *
      * @property value of this field
      */
-    public class FormItem(public val value: String, dispose: () -> Unit, partHeaders: Headers) :
-        PartData(dispose, partHeaders)
+    public class FormItem(
+        public val value: String,
+        dispose: () -> Unit,
+        partHeaders: Headers,
+        release: suspend () -> Unit = {},
+    ) : PartData(dispose, partHeaders, release) {
+        @Deprecated("Binary compatibility", level = DeprecationLevel.HIDDEN)
+        public constructor(
+            value: String,
+            dispose: () -> Unit,
+            partHeaders: Headers
+        ) : this(value, dispose, partHeaders, {})
+    }
 
     /**
      * Represents a file item.
@@ -40,8 +59,16 @@ public sealed class PartData(public val dispose: () -> Unit, public val headers:
     public class FileItem(
         public val provider: () -> ByteReadChannel,
         dispose: () -> Unit,
-        partHeaders: Headers
-    ) : PartData(dispose, partHeaders) {
+        partHeaders: Headers,
+        release: suspend () -> Unit = {},
+    ) : PartData(dispose, partHeaders, release) {
+        @Deprecated("Binary compatability", level = DeprecationLevel.HIDDEN)
+        public constructor(
+            provider: () -> ByteReadChannel,
+            dispose: () -> Unit,
+            partHeaders: Headers
+        ) : this(provider, dispose, partHeaders, {})
+
         /**
          * Original file name if present
          *
@@ -61,8 +88,16 @@ public sealed class PartData(public val dispose: () -> Unit, public val headers:
     public class BinaryItem(
         public val provider: () -> Input,
         dispose: () -> Unit,
-        partHeaders: Headers
-    ) : PartData(dispose, partHeaders)
+        partHeaders: Headers,
+        release: suspend () -> Unit = {},
+    ) : PartData(dispose, partHeaders, release) {
+        @Deprecated("Binary compatability", level = DeprecationLevel.HIDDEN)
+        public constructor(
+            provider: () -> Input,
+            dispose: () -> Unit,
+            partHeaders: Headers
+        ) : this(provider, dispose, partHeaders, {})
+    }
 
     /**
      * Represents a binary part with a provider that supplies [ByteReadChannel].
@@ -73,8 +108,8 @@ public sealed class PartData(public val dispose: () -> Unit, public val headers:
      */
     public class BinaryChannelItem(
         public val provider: () -> ByteReadChannel,
-        partHeaders: Headers
-    ) : PartData({}, partHeaders)
+        partHeaders: Headers,
+    ) : PartData({}, partHeaders, {})
 
     /**
      * Parsed `Content-Disposition` header or `null` if missing.

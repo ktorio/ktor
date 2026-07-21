@@ -55,10 +55,12 @@ class CookiesAndRedirectMockedTest {
                         val expiredCookie = Cookie("SID", "", expires = GMTDate.START)
                         respondRedirectWithCookie("/example", expiredCookie)
                     }
+
                     "/example" -> {
                         assertEquals("SID=123", request.headers[HttpHeaders.Cookie])
                         respondOk("redirected")
                     }
+
                     else -> fail("Unexpected destination")
                 }
             }
@@ -115,10 +117,12 @@ class CookiesAndRedirectMockedTest {
                         val expiredCookie = Cookie("SID", "", expires = GMTDate.START)
                         respondRedirectWithCookie("/example", expiredCookie)
                     }
+
                     "/example" -> {
                         assertNull(request.headers[HttpHeaders.Cookie])
                         respondOk("redirected")
                     }
+
                     else -> fail("Unexpected destination")
                 }
             }
@@ -143,10 +147,12 @@ class CookiesAndRedirectMockedTest {
                         val expiredCookie = Cookie("SID", "", expires = GMTDate.START)
                         respondRedirectWithCookie("/example", expiredCookie)
                     }
+
                     "/example" -> {
                         assertNull(request.headers[HttpHeaders.Cookie])
                         respondOk("redirected")
                     }
+
                     else -> fail("Unexpected destination")
                 }
             }

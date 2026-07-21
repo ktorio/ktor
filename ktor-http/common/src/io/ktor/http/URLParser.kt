@@ -107,31 +107,36 @@ internal fun URLBuilder.takeFromUnsafe(urlString: String): URLBuilder {
         return this
     }
 
-    encodedPathSegments = if (slashCount == 0) {
-        // Relative path
-        // last item is either file name or empty string for directories
-        encodedPathSegments.dropLast(1)
-    } else {
-        emptyList()
-    }
-
-    val pathEnd = urlString.indexOfAny("?#".toCharArray(), startIndex).takeIf { it > 0 } ?: endIndex
+    val pathEnd = urlString.indexOfAny("?#".toCharArray(), startIndex).takeIf { it >= 0 } ?: endIndex
     if (pathEnd > startIndex) {
-        val rawPath = urlString.substring(startIndex, pathEnd)
+        encodedPathSegments = if (slashCount == 0) {
+            // Relative path
+            // last item is either file name or empty string for directories
+            encodedPathSegments.dropLast(1)
+        } else {
+            emptyList()
+        }
+
+        val encodedPath = urlString.substring(startIndex, pathEnd).encodeURLPath(encodeEncoded = false)
         val basePath = when {
             encodedPathSegments.size == 1 && encodedPathSegments.first().isEmpty() -> emptyList()
             else -> encodedPathSegments
         }
 
-        val rawChunks = if (rawPath == "/") ROOT_PATH else rawPath.split('/')
+        val encodedChunks = if (encodedPath == "/") ROOT_PATH else encodedPath.split('/')
 
         val relativePath = when (slashCount) {
             1 -> ROOT_PATH
             else -> emptyList()
-        } + rawChunks
+        } + encodedChunks
 
         encodedPathSegments = basePath + relativePath
         startIndex = pathEnd
+    } else if (slashCount == 0 && encodedPathSegments.isEmpty() && urlString[startIndex] == '?') {
+        // Query-only references without a base path target the root resource.
+        encodedPathSegments = ROOT_PATH
+    } else if (slashCount > 0) {
+        encodedPathSegments = emptyList()
     }
 
     // Query
@@ -145,27 +150,37 @@ internal fun URLBuilder.takeFromUnsafe(urlString: String): URLBuilder {
 }
 
 private fun URLBuilder.parseFile(urlString: String, startIndex: Int, endIndex: Int, slashCount: Int) {
-    when (slashCount) {
+    val pathStart = when (slashCount) {
         1 -> {
             host = ""
-            encodedPath = urlString.substring(startIndex, endIndex)
+            startIndex
         }
-        2 -> {
-            val nextSlash = urlString.indexOf('/', startIndex)
-            if (nextSlash == -1 || nextSlash == endIndex) {
-                host = urlString.substring(startIndex, endIndex)
-                return
-            }
 
-            host = urlString.substring(startIndex, nextSlash)
-            encodedPath = urlString.substring(nextSlash, endIndex)
+        2 -> {
+            val hostEnd = urlString.indexOfAny("/?#".toCharArray(), startIndex)
+                .takeIf { it in startIndex until endIndex }
+                ?: endIndex
+            host = urlString.substring(startIndex, hostEnd)
+            hostEnd
         }
+
         3 -> {
             host = ""
-            encodedPath = "/" + urlString.substring(startIndex, endIndex)
+            startIndex
         }
+
         else -> throw IllegalArgumentException("Invalid file url: $urlString")
     }
+
+    val pathEnd = urlString.indexOfAny("?#".toCharArray(), pathStart).takeIf { it >= 0 } ?: endIndex
+    val path = urlString.substring(pathStart, pathEnd).encodeURLPath(encodeEncoded = false)
+    encodedPath = if (slashCount == 3) "/$path" else path
+
+    var nextPartStart = pathEnd
+    if (nextPartStart < endIndex && urlString[nextPartStart] == '?') {
+        nextPartStart = parseQuery(urlString, nextPartStart, endIndex)
+    }
+    parseFragment(urlString, nextPartStart, endIndex)
 }
 
 private fun URLBuilder.parseMailto(urlString: String, startIndex: Int, endIndex: Int) {

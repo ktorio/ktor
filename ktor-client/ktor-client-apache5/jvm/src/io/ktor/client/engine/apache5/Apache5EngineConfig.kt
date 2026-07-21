@@ -5,6 +5,7 @@
 package io.ktor.client.engine.apache5
 
 import io.ktor.client.engine.*
+import org.apache.hc.client5.http.DnsResolver
 import org.apache.hc.client5.http.config.RequestConfig
 import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder
 import org.apache.hc.client5.http.impl.nio.PoolingAsyncClientConnectionManagerBuilder
@@ -78,6 +79,24 @@ public class Apache5EngineConfig : HttpClientEngineConfig() {
      * @see HostnameVerificationPolicy
      */
     public var sslHostnameVerificationPolicy: HostnameVerificationPolicy = HostnameVerificationPolicy.BOTH
+
+    /**
+     * Specifies the [DnsResolver] used by the Apache5 connection manager to look up IP addresses for hostnames.
+     * When `null`, Apache HttpClient's default resolver is used.
+     *
+     * Set this to inject a custom resolver, for example to enable DNS-over-HTTPS or
+     * to override host resolution in tests:
+     * ```kotlin
+     * install(Apache5) {
+     *     engine {
+     *         dnsResolver = SystemDefaultDnsResolver.INSTANCE
+     *     }
+     * }
+     * ```
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.apache5.Apache5EngineConfig.dnsResolver)
+     */
+    public var dnsResolver: DnsResolver? = null
 
     internal var customRequest: (RequestConfig.Builder.() -> RequestConfig.Builder) = { this }
 

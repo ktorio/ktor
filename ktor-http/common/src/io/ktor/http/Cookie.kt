@@ -122,12 +122,7 @@ public fun parseServerSetCookieHeader(cookiesHeader: String): Cookie {
 
 private val clientCookieHeaderPattern = """(^|;)\s*([^;=\{\}\s]+)\s*(=\s*("[^"]*"|[^;]*))?""".toRegex()
 
-/**
- * Parse client's `Cookie` header value
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.parseClientCookiesHeader)
- */
-public fun parseClientCookiesHeader(cookiesHeader: String, skipEscaped: Boolean = true): Map<String, String> =
+private fun clientCookies(cookiesHeader: String, skipEscaped: Boolean): Sequence<Pair<String, String>> =
     clientCookieHeaderPattern.findAll(cookiesHeader)
         .map { (it.groups[2]?.value ?: "") to (it.groups[4]?.value ?: "") }
         .filter { !skipEscaped || !it.first.startsWith("$") }
@@ -138,7 +133,29 @@ public fun parseClientCookiesHeader(cookiesHeader: String, skipEscaped: Boolean 
                 cookie
             }
         }
-        .toMap()
+
+/**
+ * Parse client's `Cookie` header value into a list of name/value pairs.
+ *
+ * Unlike [parseClientCookiesHeader], this variant preserves every cookie in the header,
+ * including multiple entries that share the same name (allowed by RFC 6265 section 5.4).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.parseClientCookies)
+ */
+public fun parseClientCookies(cookiesHeader: String, skipEscaped: Boolean = true): List<Pair<String, String>> =
+    clientCookies(cookiesHeader, skipEscaped).toList()
+
+/**
+ * Parse client's `Cookie` header value.
+ *
+ * Note that when the header contains multiple cookies with the same name, only the last
+ * value is retained. Use [parseClientCookies] to preserve all entries as required by
+ * RFC 6265 section 5.4.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.parseClientCookiesHeader)
+ */
+public fun parseClientCookiesHeader(cookiesHeader: String, skipEscaped: Boolean = true): Map<String, String> =
+    clientCookies(cookiesHeader, skipEscaped).toMap()
 
 /**
  * Format `Set-Cookie` header value
@@ -208,15 +225,20 @@ public fun renderSetCookieHeader(
  */
 public fun encodeCookieValue(value: String, encoding: CookieEncoding): String = when (encoding) {
     CookieEncoding.RAW -> value
+
     CookieEncoding.DQUOTES -> when {
         value.contains('"') -> throw IllegalArgumentException(
             "The cookie value contains characters that cannot be encoded in DQUOTES format. " +
                 "Consider URL_ENCODING mode"
         )
+
         value.any { it.shouldEscapeInCookies() } -> "\"$value\""
+
         else -> value
     }
+
     CookieEncoding.BASE64_ENCODING -> value.encodeBase64()
+
     CookieEncoding.URI_ENCODING -> value.encodeURLParameter(spaceToPlus = true)
 }
 
@@ -229,9 +251,12 @@ public fun decodeCookieValue(encodedValue: String, encoding: CookieEncoding): St
     CookieEncoding.RAW, CookieEncoding.DQUOTES -> when {
         encodedValue.trimStart().startsWith("\"") && encodedValue.trimEnd().endsWith("\"") ->
             encodedValue.trim().removeSurrounding("\"")
+
         else -> encodedValue
     }
+
     CookieEncoding.URI_ENCODING -> encodedValue.decodeURLQueryComponent(plusIsSpace = true)
+
     CookieEncoding.BASE64_ENCODING -> Base64.decode(encodedValue).decodeToString()
 }
 

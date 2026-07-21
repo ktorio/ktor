@@ -10,6 +10,8 @@ import web.canvas.CanvasRenderingContext2D
 import web.canvas.ID
 import web.dom.document
 import web.html.HTMLCanvasElement
+import kotlin.js.ExperimentalWasmJsInterop
+import kotlin.js.get
 
 object MockMediaTrackFactory : MediaTrackFactory {
     private var allowVideo = false
@@ -32,6 +34,7 @@ object MockMediaTrackFactory : MediaTrackFactory {
 }
 
 // Record silence as an audio track
+@OptIn(ExperimentalWasmJsInterop::class)
 fun makeDummyAudioStreamTrack(): WebRtcMedia.AudioTrack {
     val ctx = AudioContext()
     val oscillator = ctx.createOscillator()
@@ -44,6 +47,7 @@ fun makeDummyAudioStreamTrack(): WebRtcMedia.AudioTrack {
 }
 
 // Capture canvas as a video track
+@OptIn(ExperimentalWasmJsInterop::class)
 fun makeDummyVideoStreamTrack(width: Int, height: Int): WebRtcMedia.VideoTrack {
     val canvas = (document.createElement("canvas") as HTMLCanvasElement)
     canvas.width = width

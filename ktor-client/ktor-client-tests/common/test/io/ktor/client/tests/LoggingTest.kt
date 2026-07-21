@@ -568,10 +568,10 @@ class LoggingTest : ClientLoader() {
         after {
             val iter = lines.iterator()
 
-            assertEquals("--> GET /content/binary", iter.next())
+            assertEquals("--> GET http://127.0.0.1:8080/content/binary", iter.next())
             assertEquals("Accept: */*", iter.next())
             assertEquals("--> END GET", iter.next())
-            assertMatch(Regex("<-- 200 OK /content/binary \\(\\d+ms\\)"), iter.next())
+            assertMatch(Regex("<-- 200 OK http://127.0.0.1:8080/content/binary \\(\\d+ms\\)"), iter.next())
 
             val lastLine = lines.find { it.startsWith("<-- END HTTP") }
             assertNotNull(lastLine)

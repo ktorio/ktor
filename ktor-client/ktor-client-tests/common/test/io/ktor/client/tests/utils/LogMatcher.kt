@@ -41,9 +41,11 @@ internal class LogMatcher(
 
         when (val predicate = predicates[index++]) {
             is Changing -> return
+
             is Line -> if (predicate.value.lowercase() != value.lowercase()) {
                 fail("Line doesn't match")
             }
+
             is Optional -> {
                 if (predicate.value.lowercase() == value.lowercase()) return
                 matchLine(value)

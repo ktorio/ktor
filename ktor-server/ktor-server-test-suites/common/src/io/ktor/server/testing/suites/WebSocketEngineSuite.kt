@@ -12,16 +12,18 @@ import io.ktor.server.engine.*
 import io.ktor.server.routing.*
 import io.ktor.server.test.base.*
 import io.ktor.server.websocket.*
-import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.channels.*
-import kotlinx.io.*
-import kotlin.random.*
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.consumeEach
+import kotlinx.io.Source
+import kotlin.coroutines.AbstractCoroutineContextElement
+import kotlin.coroutines.CoroutineContext
+import kotlin.random.Random
 import kotlin.test.*
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
@@ -510,7 +512,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
     }
 
     @Test
-    fun testALotOfFrames() = runTest {
+    fun testALotOfFrames() = runTest(timeout = 1.minutes) {
         val expectedCount = 100000L
 
         createAndStartServer {
@@ -654,6 +656,62 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
     }
 
     @Test
+    fun testWebSocketSessionInheritsServerCoroutineContext() = runTest {
+        val result = CompletableDeferred<Boolean>()
+
+        val customElement = object : AbstractCoroutineContextElement(CustomTestElement) {}
+
+        createAndStartServer(parent = customElement) {
+            webSocket("/") {
+                val hasElement = coroutineContext[CustomTestElement] != null
+                result.complete(hasElement)
+            }
+        }
+
+        useSocket {
+            negotiateHttpWebSocket()
+
+            output.apply {
+                // close frame with code 1000
+                writeHex("0x88 0x02 0x03 0xe8")
+                flush()
+            }
+
+            assertCloseFrame()
+        }
+
+        assertTrue(result.await(), "WebSocket session should inherit custom coroutine context elements from server")
+    }
+
+    @Test
+    fun testWebSocketSessionCancelledOnServerStop() = runTest {
+        val sessionStarted = CompletableDeferred<Unit>()
+        val sessionCancelled = CompletableDeferred<Unit>()
+
+        createAndStartServer {
+            webSocket("/") {
+                sessionStarted.complete(Unit)
+                try {
+                    incoming.consumeEach {}
+                } finally {
+                    sessionCancelled.complete(Unit)
+                }
+            }
+        }
+
+        useSocket {
+            negotiateHttpWebSocket()
+
+            sessionStarted.await()
+            server!!.stopSuspend(0, 0)
+
+            withTimeout(5000) {
+                sessionCancelled.await()
+            }
+        }
+    }
+
+    @Test
     fun testCorruptFrameWithBadOpcode() = runTest {
         createAndStartServer {
             application.routing {
@@ -715,20 +773,21 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         while (true) {
             when (val frame = input.readFrame(Long.MAX_VALUE, 0)) {
                 is Frame.Ping -> continue@loop
+
                 is Frame.Close -> {
                     assertEquals(closeCode, frame.readReason()?.code)
                     if (replyCloseFrame) socket.close()
                     break@loop
                 }
 
-                else -> fail("Unexpected frame $frame: \n${hex(frame.data)}")
+                else -> fail("Unexpected frame $frame: \n${frame.data.toHexString()}")
             }
         }
     }
 
     private suspend fun ByteWriteChannel.writeHex(hex: String) = writeFully(fromHexDump(hex))
 
-    private fun fromHexDump(hex: String) = hex(hex.replace("0x", "").replace("\\s+".toRegex(), ""))
+    private fun fromHexDump(hex: String) = hex.replace("0x", "").replace("\\s+".toRegex(), "").hexToByteArray()
 
     //
     private suspend fun ByteReadChannel.parseStatus(): HttpStatusCode {
@@ -829,6 +888,8 @@ internal suspend fun ByteWriteChannel.writeFrameTest(frame: Frame, masking: Bool
 }
 
 internal fun Boolean.flagAt(at: Int) = if (this) 1 shl at else 0
+
+private object CustomTestElement : CoroutineContext.Key<AbstractCoroutineContextElement>
 
 private fun Source.mask(maskKey: Int): Source = withMemory(4) { maskMemory ->
     maskMemory.storeIntAt(0, maskKey)

@@ -98,11 +98,15 @@ public class IosRtpParameters(internal val nativeRtpParameters: RTCRtpParameters
     override val degradationPreference: WebRtc.DegradationPreference
         get() = when (nativeRtpParameters.degradationPreference?.longValue) {
             RTCDegradationPreference.RTCDegradationPreferenceBalanced.value -> WebRtc.DegradationPreference.BALANCED
+
             RTCDegradationPreference.RTCDegradationPreferenceDisabled.value -> WebRtc.DegradationPreference.DISABLED
+
             RTCDegradationPreference.RTCDegradationPreferenceMaintainFramerate.value ->
                 WebRtc.DegradationPreference.MAINTAIN_FRAMERATE
+
             RTCDegradationPreference.RTCDegradationPreferenceMaintainResolution.value ->
                 WebRtc.DegradationPreference.MAINTAIN_RESOLUTION
+
             else -> WebRtc.DegradationPreference.BALANCED
         }
 }

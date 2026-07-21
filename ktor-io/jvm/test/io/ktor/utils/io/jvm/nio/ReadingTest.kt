@@ -4,13 +4,15 @@
 
 package io.ktor.utils.io.jvm.nio
 
+import io.ktor.test.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.test.*
-import java.io.*
-import java.nio.channels.*
-import java.nio.file.*
-import kotlin.io.path.*
-import kotlin.test.*
+import java.io.ByteArrayInputStream
+import java.nio.channels.Channels
+import java.nio.file.Files
+import kotlin.io.path.writeText
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 
 class ReadingTest {
 

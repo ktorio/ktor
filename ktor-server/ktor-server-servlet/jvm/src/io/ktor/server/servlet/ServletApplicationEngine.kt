@@ -32,48 +32,33 @@ public open class ServletApplicationEngine : KtorServlet() {
             emptySet()
         }
 
-    private val embeddedServer: EmbeddedServer<ApplicationEngine, ApplicationEngine.Configuration>? by lazy {
-        servletContext.getAttribute(ApplicationAttributeKey)?.let {
-            return@lazy null
+    private val bootstrap: ServletApplicationBootstrap? by lazy {
+        // External injection mode: the embedded engine (Jetty/Tomcat) owns the application lifecycle.
+        if (servletContext.getAttribute(ApplicationAttributeKey) != null) return@lazy null
+
+        // Managed mode: KtorServletContainerInitializer already created and started the server at
+        // deployment time. Reuse that instance instead of bootstrapping (and starting) a second one.
+        servletContext.managedEmbeddedServer()?.let { server ->
+            return@lazy ServletApplicationBootstrap(
+                server,
+                servletContext.getAttribute(ApplicationEnginePipelineAttributeKey) as EnginePipeline
+            )
         }
 
-        val servletContext = servletContext
-        val servletConfig = servletConfig
+        // Fallback (no ServletContainerInitializer ran): self-bootstrap from servlet init parameters.
+        bootstrapServletApplication(servletContext, collectInitParameters())
+    }
 
-        val parameterNames = (
+    private val embeddedServer: ServletEmbeddedServer?
+        get() = bootstrap?.server
+
+    private fun collectInitParameters(): List<Pair<String, String>> {
+        val names = (
             servletContext.initParameterNames?.toList().orEmpty() +
                 servletConfig.initParameterNames?.toList().orEmpty()
-            ).filter { it.startsWith("io.ktor") }.distinct()
-        val parameters = parameterNames.map {
-            it.removePrefix("io.ktor.") to
-                (servletConfig.getInitParameter(it) ?: servletContext.getInitParameter(it))
-        }
-
-        val parametersConfig = MapApplicationConfig(parameters)
-        val configPath = "ktor.config"
-        val applicationIdPath = "ktor.application.id"
-
-        val combinedConfig = parametersConfig
-            .withFallback(load(parametersConfig.tryGetString(configPath)))
-
-        val applicationId = combinedConfig.tryGetString(applicationIdPath) ?: "Application"
-
-        val environment = applicationEnvironment {
-            config = combinedConfig
-            log = LoggerFactory.getLogger(applicationId)
-            classLoader = servletContext.classLoader
-        }
-        val applicationProperties = serverConfig(environment) {
-            rootPath = servletContext.contextPath ?: "/"
-        }
-        val server = EmbeddedServer(applicationProperties, EmptyEngineFactory)
-        server.apply {
-            monitor.subscribe(ApplicationStarting) {
-                it.receivePipeline.merge(enginePipeline.receivePipeline)
-                it.sendPipeline.merge(enginePipeline.sendPipeline)
-                it.receivePipeline.installDefaultTransformations()
-                it.sendPipeline.installDefaultTransformations()
-            }
+            ).distinct()
+        return names.mapNotNull { name ->
+            (servletConfig.getInitParameter(name) ?: servletContext.getInitParameter(name))?.let { name to it }
         }
     }
 
@@ -91,9 +76,7 @@ public open class ServletApplicationEngine : KtorServlet() {
     override val enginePipeline: EnginePipeline by lazy {
         servletContext.getAttribute(ApplicationEnginePipelineAttributeKey)?.let { return@lazy it as EnginePipeline }
 
-        defaultEnginePipeline(environment.config, application.developmentMode).also {
-            BaseApplicationResponse.setupSendPipeline(it.sendPipeline)
-        }
+        bootstrap!!.enginePipeline
     }
 
     override val upgrade: ServletUpgrade by lazy {
@@ -113,14 +96,24 @@ public open class ServletApplicationEngine : KtorServlet() {
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.servlet.ServletApplicationEngine.init)
      */
     override fun init() {
-        embeddedServer?.start()
+        // In managed mode the server is already started by KtorServletContainerInitializer at
+        // deployment time, so it must not be started again (a second start would recreate the app).
+        if (servletContext.managedEmbeddedServer() == null) {
+            embeddedServer?.start()
+        }
         super.init()
     }
 
     override fun destroy() {
-        application.monitor.raise(ApplicationStopPreparing, environment)
-        super.destroy()
-        embeddedServer?.stop()
+        // In managed mode the server is stopped by KtorServletContextListener on context destruction,
+        // which also guarantees the stop events fire even if no request was ever served.
+        if (servletContext.managedEmbeddedServer() == null) {
+            application.monitor.raise(ApplicationStopPreparing, environment)
+            super.destroy()
+            embeddedServer?.stop()
+        } else {
+            super.destroy()
+        }
     }
 
     public companion object {
@@ -176,3 +169,70 @@ private object EmptyEngineFactory : ApplicationEngineFactory<ApplicationEngine, 
 
 internal fun ServletContext.isTomcat() =
     getAttribute(ApplicationAttributeKey) == null && serverInfo.contains("tomcat", ignoreCase = true)
+
+/**
+ * Internal context attribute holding the listener-managed [EmbeddedServer].
+ *
+ * Kept separate from [ServletApplicationEngine.ApplicationAttributeKey] so it does not flip
+ * [ServletContext.isTomcat] detection.
+ */
+internal const val ManagedServerKey: String = "_ktor_managed_embedded_server"
+
+internal typealias ServletEmbeddedServer = EmbeddedServer<ApplicationEngine, ApplicationEngine.Configuration>
+
+@Suppress("UNCHECKED_CAST")
+internal fun ServletContext.managedEmbeddedServer(): ServletEmbeddedServer? =
+    getAttribute(ManagedServerKey) as? ServletEmbeddedServer
+
+internal class ServletApplicationBootstrap(
+    val server: ServletEmbeddedServer,
+    val enginePipeline: EnginePipeline
+)
+
+/**
+ * Builds (but does not start) an [EmbeddedServer] for a servlet-hosted Ktor application together with
+ * its [EnginePipeline], wiring the pipeline into the application on [ApplicationStarting].
+ *
+ * Shared by [ServletApplicationEngine] (the self-bootstrap fallback) and [KtorServletContainerInitializer]
+ * (the WAR deployment path) so the bootstrap logic lives in a single place.
+ *
+ * @param initParameters servlet/context init parameters as raw `name to value` pairs; only those
+ * prefixed with `io.ktor.` are considered, with the prefix stripped to form the configuration keys.
+ */
+internal fun bootstrapServletApplication(
+    servletContext: ServletContext,
+    initParameters: List<Pair<String, String>>
+): ServletApplicationBootstrap {
+    val parameters = initParameters
+        .filter { (name, _) -> name.startsWith("io.ktor.") }
+        .map { (name, value) -> name.removePrefix("io.ktor.") to value }
+
+    val parametersConfig = MapApplicationConfig(parameters)
+    val combinedConfig = parametersConfig
+        .withFallback(load(parametersConfig.tryGetString("ktor.config")))
+
+    val applicationId = combinedConfig.tryGetString("ktor.application.id") ?: "Application"
+
+    val environment = applicationEnvironment {
+        config = combinedConfig
+        log = LoggerFactory.getLogger(applicationId)
+        classLoader = servletContext.classLoader
+    }
+    val applicationProperties = serverConfig(environment) {
+        rootPath = servletContext.contextPath ?: "/"
+    }
+    val server = EmbeddedServer(applicationProperties, EmptyEngineFactory)
+
+    val enginePipeline = defaultEnginePipeline(environment.config, server.application.developmentMode).also {
+        BaseApplicationResponse.setupSendPipeline(it.sendPipeline)
+    }
+
+    server.monitor.subscribe(ApplicationStarting) {
+        it.receivePipeline.merge(enginePipeline.receivePipeline)
+        it.sendPipeline.merge(enginePipeline.sendPipeline)
+        it.receivePipeline.installDefaultTransformations()
+        it.sendPipeline.installDefaultTransformations()
+    }
+
+    return ServletApplicationBootstrap(server, enginePipeline)
+}

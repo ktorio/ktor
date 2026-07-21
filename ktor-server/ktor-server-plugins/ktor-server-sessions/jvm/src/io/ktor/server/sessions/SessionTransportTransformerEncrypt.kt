@@ -4,7 +4,6 @@
 
 package io.ktor.server.sessions
 
-import io.ktor.util.*
 import org.slf4j.*
 import java.security.*
 import javax.crypto.*
@@ -57,9 +56,16 @@ public class SessionTransportTransformerEncrypt(
      */
     public val encryptionKeySize: Int get() = encryptionKeySpec.encoded.size
 
+    // AES CBC IV length always equals the cipher block size (16 bytes for AES),
+    // regardless of the key length. Using encryptionKeySize here used to break AES-256.
+    private val ivSize: Int = when (encryptionKeySpec.algorithm.uppercase()) {
+        "AES" -> 16
+        else -> Cipher.getInstance("$encryptAlgorithm/CBC/PKCS5PADDING").blockSize
+    }
+
     // Check that input keys are right
     init {
-        encrypt(ivGenerator(encryptionKeySize), byteArrayOf())
+        encrypt(ivGenerator(ivSize), byteArrayOf())
         mac(byteArrayOf())
     }
 
@@ -81,16 +87,16 @@ public class SessionTransportTransformerEncrypt(
         try {
             val encryptedAndMac = transportValue.substringAfterLast('/', "")
             val macHex = encryptedAndMac.substringAfterLast(':', "")
-            val encrypted = hex(encryptedAndMac.substringBeforeLast(':'))
-            val macCheck = hex(mac(encrypted)) == macHex
+            val encrypted = encryptedAndMac.substringBeforeLast(':').hexToByteArray()
+            val macCheck = mac(encrypted).toHexString() == macHex
             if (!macCheck && !backwardCompatibleRead) {
                 return null
             }
 
-            val iv = hex(transportValue.substringBeforeLast('/'))
+            val iv = transportValue.substringBeforeLast('/').hexToByteArray()
             val decrypted = decrypt(iv, encrypted)
 
-            if (!macCheck && hex(mac(decrypted)) != macHex) {
+            if (!macCheck && mac(decrypted).toHexString() != macHex) {
                 return null
             }
 
@@ -106,11 +112,11 @@ public class SessionTransportTransformerEncrypt(
     }
 
     override fun transformWrite(transportValue: String): String {
-        val iv = ivGenerator(encryptionKeySize)
+        val iv = ivGenerator(ivSize)
         val decrypted = transportValue.toByteArray(charset)
         val encrypted = encrypt(iv, decrypted)
         val mac = mac(encrypted)
-        return "${hex(iv)}/${hex(encrypted)}:${hex(mac)}"
+        return "${iv.toHexString()}/${encrypted.toHexString()}:${mac.toHexString()}"
     }
 
     private fun encrypt(initVector: ByteArray, decrypted: ByteArray): ByteArray {

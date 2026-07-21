@@ -17,7 +17,7 @@ import kotlin.coroutines.*
  * in case of a shutdown during a TLS handshake). The context may also be used for cancellation.
  *
  * Note that the context passed here is rarely a child of the scope in which the method is called, because it is not
- * usually a decomposition of the parent task. If it is a child, errors may be propogated to the parent's coroutine
+ * usually a decomposition of the parent task. If it is a child, errors may be propagated to the parent's coroutine
  * exception handler rather than being caught and handled via a try-catch block.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.tls)
@@ -46,7 +46,7 @@ public actual suspend fun Socket.tls(
  * in case of a shutdown during a TLS handshake). The context may also be used for cancellation.
  *
  * Note that the context passed here is rarely a child of the scope in which the method is called, because it is not
- * usually a decomposition of the parent task. If it is a child, errors may be propogated to the parent's coroutine
+ * usually a decomposition of the parent task. If it is a child, errors may be propagated to the parent's coroutine
  * exception handler rather than being caught and handled via a try-catch block.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.tls)
@@ -71,7 +71,7 @@ public suspend fun Socket.tls(
  * in case of a shutdown during a TLS handshake). The context may also be used for cancellation.
  *
  * Note that the context passed here is rarely a child of the scope in which the method is called, because it is not
- * usually a decomposition of the parent task. If it is a child, errors may be propogated to the parent's coroutine
+ * usually a decomposition of the parent task. If it is a child, errors may be propagated to the parent's coroutine
  * exception handler rather than being caught and handled via a try-catch block.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.tls)

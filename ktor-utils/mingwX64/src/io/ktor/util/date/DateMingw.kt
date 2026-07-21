@@ -14,6 +14,10 @@ internal actual fun system_time(tm: CValuesRef<tm>?): Long {
     return _mkgmtime(tm).convert()
 }
 
+// Number of 100-nanosecond intervals between the Windows FILETIME epoch (1601-01-01 UTC)
+// and the Unix epoch (1970-01-01 UTC).
+private const val EPOCH_DIFFERENCE_100NS: ULong = 116444736000000000UL
+
 /**
  * Gets current system time in milliseconds since a certain moment in the past,
  * only delta between two subsequent calls makes sense.
@@ -27,5 +31,5 @@ public actual fun getTimeMillis(): Long = memScoped {
     val time = alloc<ULARGE_INTEGER>()
     time.HighPart = timeHolder.dwHighDateTime
     time.LowPart = timeHolder.dwLowDateTime
-    (time.QuadPart / 10000U).toLong()
+    ((time.QuadPart - EPOCH_DIFFERENCE_100NS) / 10000U).toLong()
 }

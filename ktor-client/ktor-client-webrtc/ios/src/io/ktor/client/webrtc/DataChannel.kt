@@ -25,6 +25,10 @@ public class IosWebRtcDataChannel(
     receiveOptions: DataChannelReceiveOptions
 ) : WebRtcDataChannel(receiveOptions) {
 
+    // Apple's `RTCDataChannel.delegate` is `weak` — keep a strong reference on the
+    // Kotlin side so the anonymous delegate object stays alive for the connection's lifetime.
+    private var retainedDelegate: NSObject? = null
+
     override val id: Int?
         get() = nativeChannel.channelId.let { if (it < 0) null else it }
 
@@ -55,23 +59,22 @@ public class IosWebRtcDataChannel(
     override val protocol: String
         get() = nativeChannel.protocol()
 
-    private fun assertOpen() {
-        if (!state.canSend()) {
-            error("Data channel is closed.")
-        }
+    private fun requireOpen() {
+        if (state.canSend()) return
+        throw WebRtc.DataChannelClosedException("Data channel '$label' cannot send.")
     }
 
     override suspend fun send(text: String) {
-        assertOpen()
+        requireOpen()
         if (!nativeChannel.sendData(data = text.toRTCDataBuffer())) {
-            error("Failed to send text message over DataChannel.")
+            throw WebRtc.IOException("Failed to send text message over data channel '$label'.")
         }
     }
 
     override suspend fun send(bytes: ByteArray) {
-        assertOpen()
+        requireOpen()
         if (!nativeChannel.sendData(data = bytes.toRTCDataBuffer())) {
-            error("Failed to send binary message over DataChannel.")
+            throw WebRtc.IOException("Failed to send binary message over data channel '$label'.")
         }
     }
 
@@ -80,6 +83,7 @@ public class IosWebRtcDataChannel(
     }
 
     override fun closeTransport() {
+        stopReceivingMessages()
         nativeChannel.close()
     }
 
@@ -88,7 +92,8 @@ public class IosWebRtcDataChannel(
     }
 
     internal fun setupEvents(eventsEmitter: WebRtcConnectionEventsEmitter) {
-        nativeChannel.setDelegate(object : RTCDataChannelDelegateProtocol, NSObject() {
+        check(retainedDelegate == null) { "setupEvents() must be called at most once per channel." }
+        val delegate = object : RTCDataChannelDelegateProtocol, NSObject() {
             override fun dataChannel(dataChannel: RTCDataChannel, didChangeBufferedAmount: ULong) =
                 runInConnectionScope {
                     // guard against duplicate events
@@ -105,8 +110,11 @@ public class IosWebRtcDataChannel(
             override fun dataChannelDidChangeState(dataChannel: RTCDataChannel) = runInConnectionScope {
                 val event = when (state) {
                     WebRtc.DataChannel.State.CONNECTING -> null
+
                     WebRtc.DataChannel.State.OPEN -> DataChannelEvent.Open(this@IosWebRtcDataChannel)
+
                     WebRtc.DataChannel.State.CLOSING -> DataChannelEvent.Closing(this@IosWebRtcDataChannel)
+
                     WebRtc.DataChannel.State.CLOSED -> {
                         stopReceivingMessages()
                         DataChannelEvent.Closed(this@IosWebRtcDataChannel)
@@ -123,7 +131,9 @@ public class IosWebRtcDataChannel(
             ) = runInConnectionScope {
                 emitMessage(didReceiveMessageWithBuffer.toKtor())
             }
-        })
+        }
+        retainedDelegate = delegate
+        nativeChannel.setDelegate(delegate)
     }
 }
 

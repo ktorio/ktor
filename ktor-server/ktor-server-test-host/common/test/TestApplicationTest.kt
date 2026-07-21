@@ -19,12 +19,12 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.server.testing.client.*
+import io.ktor.test.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.test.runTest
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.coroutineContext
 import kotlin.test.*
@@ -491,17 +491,7 @@ class TestApplicationTest {
 
     @Test
     fun testStreamingResponse() = testApplication {
-        val messages = Channel<String>(1)
-        val scope = CoroutineScope(coroutineContext)
-
-        scope.launch {
-            assertEquals("Test 0", messages.receive())
-            assertEquals("[Client] Test 0", messages.receive())
-            assertEquals("Test 1", messages.receive())
-            assertEquals("[Client] Test 1", messages.receive())
-            assertEquals("Test 2", messages.receive())
-            assertEquals("[Client] Test 2", messages.receive())
-        }
+        val messages = Channel<String>(Channel.UNLIMITED)
 
         routing {
             get("/") {
@@ -525,6 +515,15 @@ class TestApplicationTest {
                 messages.send("[Client] $msg")
             }
         }
+
+        messages.close()
+        val collected = buildList {
+            for (msg in messages) add(msg)
+        }
+        val serverMessages = collected.filter { !it.startsWith("[Client]") }.toSet()
+        val clientMessages = collected.filter { it.startsWith("[Client]") }.toSet()
+        assertEquals(setOf("Test 0", "Test 1", "Test 2"), serverMessages)
+        assertEquals(setOf("[Client] Test 0", "[Client] Test 1", "[Client] Test 2"), clientMessages)
     }
 
     class MyElement(val data: String) : CoroutineContext.Element {

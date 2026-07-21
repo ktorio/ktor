@@ -62,8 +62,11 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
     private val defaultContentType: (Resource) -> ContentType = {
         when (it) {
             is File -> ContentType.defaultForFile(it)
+
             is URL -> ContentType.defaultForFilePath(it.path)
+
             is Path -> ContentType.defaultForPath(it)
+
             else ->
                 throw IllegalArgumentException("Argument can be only of type File, Path or URL, but was ${it::class}")
         }

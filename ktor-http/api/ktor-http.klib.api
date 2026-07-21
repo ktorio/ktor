@@ -207,6 +207,7 @@ abstract class io.ktor.http/HeaderValueWithParameters { // io.ktor.http/HeaderVa
 
 final class io.ktor.http.auth/DigestAlgorithm { // io.ktor.http.auth/DigestAlgorithm|null[0]
     constructor <init>(kotlin/String, kotlin/String, kotlin/Boolean) // io.ktor.http.auth/DigestAlgorithm.<init>|<init>(kotlin.String;kotlin.String;kotlin.Boolean){}[0]
+    constructor <init>(kotlin/String, kotlin/String, kotlin/Boolean, kotlin/String?) // io.ktor.http.auth/DigestAlgorithm.<init>|<init>(kotlin.String;kotlin.String;kotlin.Boolean;kotlin.String?){}[0]
 
     final val hashName // io.ktor.http.auth/DigestAlgorithm.hashName|{}hashName[0]
         final fun <get-hashName>(): kotlin/String // io.ktor.http.auth/DigestAlgorithm.hashName.<get-hashName>|<get-hashName>(){}[0]
@@ -214,6 +215,8 @@ final class io.ktor.http.auth/DigestAlgorithm { // io.ktor.http.auth/DigestAlgor
         final fun <get-isSession>(): kotlin/Boolean // io.ktor.http.auth/DigestAlgorithm.isSession.<get-isSession>|<get-isSession>(){}[0]
     final val name // io.ktor.http.auth/DigestAlgorithm.name|{}name[0]
         final fun <get-name>(): kotlin/String // io.ktor.http.auth/DigestAlgorithm.name.<get-name>|<get-name>(){}[0]
+    final val uri // io.ktor.http.auth/DigestAlgorithm.uri|{}uri[0]
+        final fun <get-uri>(): kotlin/String? // io.ktor.http.auth/DigestAlgorithm.uri.<get-uri>|<get-uri>(){}[0]
 
     final object Companion { // io.ktor.http.auth/DigestAlgorithm.Companion|null[0]
         final val DEFAULT_ALGORITHMS // io.ktor.http.auth/DigestAlgorithm.Companion.DEFAULT_ALGORITHMS|{}DEFAULT_ALGORITHMS[0]
@@ -226,12 +229,17 @@ final class io.ktor.http.auth/DigestAlgorithm { // io.ktor.http.auth/DigestAlgor
             final fun <get-SHA_256>(): io.ktor.http.auth/DigestAlgorithm // io.ktor.http.auth/DigestAlgorithm.Companion.SHA_256.<get-SHA_256>|<get-SHA_256>(){}[0]
         final val SHA_256_SESS // io.ktor.http.auth/DigestAlgorithm.Companion.SHA_256_SESS|{}SHA_256_SESS[0]
             final fun <get-SHA_256_SESS>(): io.ktor.http.auth/DigestAlgorithm // io.ktor.http.auth/DigestAlgorithm.Companion.SHA_256_SESS.<get-SHA_256_SESS>|<get-SHA_256_SESS>(){}[0]
+        final val SHA_384 // io.ktor.http.auth/DigestAlgorithm.Companion.SHA_384|{}SHA_384[0]
+            final fun <get-SHA_384>(): io.ktor.http.auth/DigestAlgorithm // io.ktor.http.auth/DigestAlgorithm.Companion.SHA_384.<get-SHA_384>|<get-SHA_384>(){}[0]
+        final val SHA_512 // io.ktor.http.auth/DigestAlgorithm.Companion.SHA_512|{}SHA_512[0]
+            final fun <get-SHA_512>(): io.ktor.http.auth/DigestAlgorithm // io.ktor.http.auth/DigestAlgorithm.Companion.SHA_512.<get-SHA_512>|<get-SHA_512>(){}[0]
         final val SHA_512_256 // io.ktor.http.auth/DigestAlgorithm.Companion.SHA_512_256|{}SHA_512_256[0]
             final fun <get-SHA_512_256>(): io.ktor.http.auth/DigestAlgorithm // io.ktor.http.auth/DigestAlgorithm.Companion.SHA_512_256.<get-SHA_512_256>|<get-SHA_512_256>(){}[0]
         final val SHA_512_256_SESS // io.ktor.http.auth/DigestAlgorithm.Companion.SHA_512_256_SESS|{}SHA_512_256_SESS[0]
             final fun <get-SHA_512_256_SESS>(): io.ktor.http.auth/DigestAlgorithm // io.ktor.http.auth/DigestAlgorithm.Companion.SHA_512_256_SESS.<get-SHA_512_256_SESS>|<get-SHA_512_256_SESS>(){}[0]
 
         final fun from(kotlin/String): io.ktor.http.auth/DigestAlgorithm? // io.ktor.http.auth/DigestAlgorithm.Companion.from|from(kotlin.String){}[0]
+        final fun fromUri(kotlin/String): io.ktor.http.auth/DigestAlgorithm? // io.ktor.http.auth/DigestAlgorithm.Companion.fromUri|fromUri(kotlin.String){}[0]
     }
 }
 
@@ -250,6 +258,44 @@ final class io.ktor.http.auth/DigestQop { // io.ktor.http.auth/DigestQop|null[0]
             final fun <get-DEFAULT_QOPS>(): kotlin.collections/List<io.ktor.http.auth/DigestQop> // io.ktor.http.auth/DigestQop.Companion.DEFAULT_QOPS.<get-DEFAULT_QOPS>|<get-DEFAULT_QOPS>(){}[0]
 
         final fun from(kotlin/String): io.ktor.http.auth/DigestQop? // io.ktor.http.auth/DigestQop.Companion.from|from(kotlin.String){}[0]
+    }
+}
+
+final class io.ktor.http.auth/SignatureAlgorithm { // io.ktor.http.auth/SignatureAlgorithm|null[0]
+    constructor <init>(kotlin/String, kotlin/String, io.ktor.http.auth/DigestAlgorithm, io.ktor.http.auth/KeyAlgorithm, kotlin/String? = ..., kotlin/String? = ...) // io.ktor.http.auth/SignatureAlgorithm.<init>|<init>(kotlin.String;kotlin.String;io.ktor.http.auth.DigestAlgorithm;io.ktor.http.auth.KeyAlgorithm;kotlin.String?;kotlin.String?){}[0]
+
+    final val digestAlgorithm // io.ktor.http.auth/SignatureAlgorithm.digestAlgorithm|{}digestAlgorithm[0]
+        final fun <get-digestAlgorithm>(): io.ktor.http.auth/DigestAlgorithm // io.ktor.http.auth/SignatureAlgorithm.digestAlgorithm.<get-digestAlgorithm>|<get-digestAlgorithm>(){}[0]
+    final val jcaAlgorithm // io.ktor.http.auth/SignatureAlgorithm.jcaAlgorithm|{}jcaAlgorithm[0]
+        final fun <get-jcaAlgorithm>(): kotlin/String // io.ktor.http.auth/SignatureAlgorithm.jcaAlgorithm.<get-jcaAlgorithm>|<get-jcaAlgorithm>(){}[0]
+    final val jwaName // io.ktor.http.auth/SignatureAlgorithm.jwaName|{}jwaName[0]
+        final fun <get-jwaName>(): kotlin/String? // io.ktor.http.auth/SignatureAlgorithm.jwaName.<get-jwaName>|<get-jwaName>(){}[0]
+    final val keyAlgorithm // io.ktor.http.auth/SignatureAlgorithm.keyAlgorithm|{}keyAlgorithm[0]
+        final fun <get-keyAlgorithm>(): io.ktor.http.auth/KeyAlgorithm // io.ktor.http.auth/SignatureAlgorithm.keyAlgorithm.<get-keyAlgorithm>|<get-keyAlgorithm>(){}[0]
+    final val name // io.ktor.http.auth/SignatureAlgorithm.name|{}name[0]
+        final fun <get-name>(): kotlin/String // io.ktor.http.auth/SignatureAlgorithm.name.<get-name>|<get-name>(){}[0]
+    final val xmlUri // io.ktor.http.auth/SignatureAlgorithm.xmlUri|{}xmlUri[0]
+        final fun <get-xmlUri>(): kotlin/String? // io.ktor.http.auth/SignatureAlgorithm.xmlUri.<get-xmlUri>|<get-xmlUri>(){}[0]
+
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.http.auth/SignatureAlgorithm.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.ktor.http.auth/SignatureAlgorithm.hashCode|hashCode(){}[0]
+
+    final object Companion { // io.ktor.http.auth/SignatureAlgorithm.Companion|null[0]
+        final val ECDSA_SHA_256 // io.ktor.http.auth/SignatureAlgorithm.Companion.ECDSA_SHA_256|{}ECDSA_SHA_256[0]
+            final fun <get-ECDSA_SHA_256>(): io.ktor.http.auth/SignatureAlgorithm // io.ktor.http.auth/SignatureAlgorithm.Companion.ECDSA_SHA_256.<get-ECDSA_SHA_256>|<get-ECDSA_SHA_256>(){}[0]
+        final val ECDSA_SHA_384 // io.ktor.http.auth/SignatureAlgorithm.Companion.ECDSA_SHA_384|{}ECDSA_SHA_384[0]
+            final fun <get-ECDSA_SHA_384>(): io.ktor.http.auth/SignatureAlgorithm // io.ktor.http.auth/SignatureAlgorithm.Companion.ECDSA_SHA_384.<get-ECDSA_SHA_384>|<get-ECDSA_SHA_384>(){}[0]
+        final val ECDSA_SHA_512 // io.ktor.http.auth/SignatureAlgorithm.Companion.ECDSA_SHA_512|{}ECDSA_SHA_512[0]
+            final fun <get-ECDSA_SHA_512>(): io.ktor.http.auth/SignatureAlgorithm // io.ktor.http.auth/SignatureAlgorithm.Companion.ECDSA_SHA_512.<get-ECDSA_SHA_512>|<get-ECDSA_SHA_512>(){}[0]
+        final val RSA_SHA_256 // io.ktor.http.auth/SignatureAlgorithm.Companion.RSA_SHA_256|{}RSA_SHA_256[0]
+            final fun <get-RSA_SHA_256>(): io.ktor.http.auth/SignatureAlgorithm // io.ktor.http.auth/SignatureAlgorithm.Companion.RSA_SHA_256.<get-RSA_SHA_256>|<get-RSA_SHA_256>(){}[0]
+        final val RSA_SHA_384 // io.ktor.http.auth/SignatureAlgorithm.Companion.RSA_SHA_384|{}RSA_SHA_384[0]
+            final fun <get-RSA_SHA_384>(): io.ktor.http.auth/SignatureAlgorithm // io.ktor.http.auth/SignatureAlgorithm.Companion.RSA_SHA_384.<get-RSA_SHA_384>|<get-RSA_SHA_384>(){}[0]
+        final val RSA_SHA_512 // io.ktor.http.auth/SignatureAlgorithm.Companion.RSA_SHA_512|{}RSA_SHA_512[0]
+            final fun <get-RSA_SHA_512>(): io.ktor.http.auth/SignatureAlgorithm // io.ktor.http.auth/SignatureAlgorithm.Companion.RSA_SHA_512.<get-RSA_SHA_512>|<get-RSA_SHA_512>(){}[0]
+
+        final fun fromJwaName(kotlin/String): io.ktor.http.auth/SignatureAlgorithm? // io.ktor.http.auth/SignatureAlgorithm.Companion.fromJwaName|fromJwaName(kotlin.String){}[0]
+        final fun fromXmlUri(kotlin/String): io.ktor.http.auth/SignatureAlgorithm? // io.ktor.http.auth/SignatureAlgorithm.Companion.fromXmlUri|fromXmlUri(kotlin.String){}[0]
     }
 }
 
@@ -656,6 +702,8 @@ final class io.ktor.http/ContentType : io.ktor.http/HeaderValueWithParameters { 
             final fun <get-Html>(): io.ktor.http/ContentType // io.ktor.http/ContentType.Text.Html.<get-Html>|<get-Html>(){}[0]
         final val JavaScript // io.ktor.http/ContentType.Text.JavaScript|{}JavaScript[0]
             final fun <get-JavaScript>(): io.ktor.http/ContentType // io.ktor.http/ContentType.Text.JavaScript.<get-JavaScript>|<get-JavaScript>(){}[0]
+        final val Markdown // io.ktor.http/ContentType.Text.Markdown|{}Markdown[0]
+            final fun <get-Markdown>(): io.ktor.http/ContentType // io.ktor.http/ContentType.Text.Markdown.<get-Markdown>|<get-Markdown>(){}[0]
         final val Plain // io.ktor.http/ContentType.Text.Plain|{}Plain[0]
             final fun <get-Plain>(): io.ktor.http/ContentType // io.ktor.http/ContentType.Text.Plain.<get-Plain>|<get-Plain>(){}[0]
         final val VCard // io.ktor.http/ContentType.Text.VCard|{}VCard[0]
@@ -964,6 +1012,8 @@ final class io.ktor.http/HttpStatusCode : kotlin/Comparable<io.ktor.http/HttpSta
             final fun <get-PermanentRedirect>(): io.ktor.http/HttpStatusCode // io.ktor.http/HttpStatusCode.Companion.PermanentRedirect.<get-PermanentRedirect>|<get-PermanentRedirect>(){}[0]
         final val PreconditionFailed // io.ktor.http/HttpStatusCode.Companion.PreconditionFailed|{}PreconditionFailed[0]
             final fun <get-PreconditionFailed>(): io.ktor.http/HttpStatusCode // io.ktor.http/HttpStatusCode.Companion.PreconditionFailed.<get-PreconditionFailed>|<get-PreconditionFailed>(){}[0]
+        final val PreconditionRequired // io.ktor.http/HttpStatusCode.Companion.PreconditionRequired|{}PreconditionRequired[0]
+            final fun <get-PreconditionRequired>(): io.ktor.http/HttpStatusCode // io.ktor.http/HttpStatusCode.Companion.PreconditionRequired.<get-PreconditionRequired>|<get-PreconditionRequired>(){}[0]
         final val Processing // io.ktor.http/HttpStatusCode.Companion.Processing|{}Processing[0]
             final fun <get-Processing>(): io.ktor.http/HttpStatusCode // io.ktor.http/HttpStatusCode.Companion.Processing.<get-Processing>|<get-Processing>(){}[0]
         final val ProxyAuthenticationRequired // io.ktor.http/HttpStatusCode.Companion.ProxyAuthenticationRequired|{}ProxyAuthenticationRequired[0]
@@ -1263,6 +1313,28 @@ final class io.ktor.http/Url : io.ktor.utils.io/JvmSerializable { // io.ktor.htt
     }
 }
 
+final value class io.ktor.http.auth/KeyAlgorithm { // io.ktor.http.auth/KeyAlgorithm|null[0]
+    constructor <init>(kotlin/String) // io.ktor.http.auth/KeyAlgorithm.<init>|<init>(kotlin.String){}[0]
+
+    final val name // io.ktor.http.auth/KeyAlgorithm.name|{}name[0]
+        final fun <get-name>(): kotlin/String // io.ktor.http.auth/KeyAlgorithm.name.<get-name>|<get-name>(){}[0]
+
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.http.auth/KeyAlgorithm.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.ktor.http.auth/KeyAlgorithm.hashCode|hashCode(){}[0]
+    final fun toString(): kotlin/String // io.ktor.http.auth/KeyAlgorithm.toString|toString(){}[0]
+
+    final object Companion { // io.ktor.http.auth/KeyAlgorithm.Companion|null[0]
+        final val EC // io.ktor.http.auth/KeyAlgorithm.Companion.EC|{}EC[0]
+            final fun <get-EC>(): io.ktor.http.auth/KeyAlgorithm // io.ktor.http.auth/KeyAlgorithm.Companion.EC.<get-EC>|<get-EC>(){}[0]
+        final val HMAC // io.ktor.http.auth/KeyAlgorithm.Companion.HMAC|{}HMAC[0]
+            final fun <get-HMAC>(): io.ktor.http.auth/KeyAlgorithm // io.ktor.http.auth/KeyAlgorithm.Companion.HMAC.<get-HMAC>|<get-HMAC>(){}[0]
+        final val OKP // io.ktor.http.auth/KeyAlgorithm.Companion.OKP|{}OKP[0]
+            final fun <get-OKP>(): io.ktor.http.auth/KeyAlgorithm // io.ktor.http.auth/KeyAlgorithm.Companion.OKP.<get-OKP>|<get-OKP>(){}[0]
+        final val RSA // io.ktor.http.auth/KeyAlgorithm.Companion.RSA|{}RSA[0]
+            final fun <get-RSA>(): io.ktor.http.auth/KeyAlgorithm // io.ktor.http.auth/KeyAlgorithm.Companion.RSA.<get-RSA>|<get-RSA>(){}[0]
+    }
+}
+
 sealed class io.ktor.http.auth/HttpAuthHeader { // io.ktor.http.auth/HttpAuthHeader|null[0]
     final val authScheme // io.ktor.http.auth/HttpAuthHeader.authScheme|{}authScheme[0]
         final fun <get-authScheme>(): kotlin/String // io.ktor.http.auth/HttpAuthHeader.authScheme.<get-authScheme>|<get-authScheme>(){}[0]
@@ -1414,6 +1486,8 @@ sealed class io.ktor.http.content/PartData { // io.ktor.http.content/PartData|nu
         final fun <get-headers>(): io.ktor.http/Headers // io.ktor.http.content/PartData.headers.<get-headers>|<get-headers>(){}[0]
     final val name // io.ktor.http.content/PartData.name|{}name[0]
         final fun <get-name>(): kotlin/String? // io.ktor.http.content/PartData.name.<get-name>|<get-name>(){}[0]
+    final val release // io.ktor.http.content/PartData.release|{}release[0]
+        final fun <get-release>(): kotlin.coroutines/SuspendFunction0<kotlin/Unit> // io.ktor.http.content/PartData.release.<get-release>|<get-release>(){}[0]
 
     final class BinaryChannelItem : io.ktor.http.content/PartData { // io.ktor.http.content/PartData.BinaryChannelItem|null[0]
         constructor <init>(kotlin/Function0<io.ktor.utils.io/ByteReadChannel>, io.ktor.http/Headers) // io.ktor.http.content/PartData.BinaryChannelItem.<init>|<init>(kotlin.Function0<io.ktor.utils.io.ByteReadChannel>;io.ktor.http.Headers){}[0]
@@ -1424,6 +1498,7 @@ sealed class io.ktor.http.content/PartData { // io.ktor.http.content/PartData|nu
 
     final class BinaryItem : io.ktor.http.content/PartData { // io.ktor.http.content/PartData.BinaryItem|null[0]
         constructor <init>(kotlin/Function0<kotlinx.io/Source>, kotlin/Function0<kotlin/Unit>, io.ktor.http/Headers) // io.ktor.http.content/PartData.BinaryItem.<init>|<init>(kotlin.Function0<kotlinx.io.Source>;kotlin.Function0<kotlin.Unit>;io.ktor.http.Headers){}[0]
+        constructor <init>(kotlin/Function0<kotlinx.io/Source>, kotlin/Function0<kotlin/Unit>, io.ktor.http/Headers, kotlin.coroutines/SuspendFunction0<kotlin/Unit> = ...) // io.ktor.http.content/PartData.BinaryItem.<init>|<init>(kotlin.Function0<kotlinx.io.Source>;kotlin.Function0<kotlin.Unit>;io.ktor.http.Headers;kotlin.coroutines.SuspendFunction0<kotlin.Unit>){}[0]
 
         final val provider // io.ktor.http.content/PartData.BinaryItem.provider|{}provider[0]
             final fun <get-provider>(): kotlin/Function0<kotlinx.io/Source> // io.ktor.http.content/PartData.BinaryItem.provider.<get-provider>|<get-provider>(){}[0]
@@ -1431,6 +1506,7 @@ sealed class io.ktor.http.content/PartData { // io.ktor.http.content/PartData|nu
 
     final class FileItem : io.ktor.http.content/PartData { // io.ktor.http.content/PartData.FileItem|null[0]
         constructor <init>(kotlin/Function0<io.ktor.utils.io/ByteReadChannel>, kotlin/Function0<kotlin/Unit>, io.ktor.http/Headers) // io.ktor.http.content/PartData.FileItem.<init>|<init>(kotlin.Function0<io.ktor.utils.io.ByteReadChannel>;kotlin.Function0<kotlin.Unit>;io.ktor.http.Headers){}[0]
+        constructor <init>(kotlin/Function0<io.ktor.utils.io/ByteReadChannel>, kotlin/Function0<kotlin/Unit>, io.ktor.http/Headers, kotlin.coroutines/SuspendFunction0<kotlin/Unit> = ...) // io.ktor.http.content/PartData.FileItem.<init>|<init>(kotlin.Function0<io.ktor.utils.io.ByteReadChannel>;kotlin.Function0<kotlin.Unit>;io.ktor.http.Headers;kotlin.coroutines.SuspendFunction0<kotlin.Unit>){}[0]
 
         final val originalFileName // io.ktor.http.content/PartData.FileItem.originalFileName|{}originalFileName[0]
             final fun <get-originalFileName>(): kotlin/String? // io.ktor.http.content/PartData.FileItem.originalFileName.<get-originalFileName>|<get-originalFileName>(){}[0]
@@ -1440,6 +1516,7 @@ sealed class io.ktor.http.content/PartData { // io.ktor.http.content/PartData|nu
 
     final class FormItem : io.ktor.http.content/PartData { // io.ktor.http.content/PartData.FormItem|null[0]
         constructor <init>(kotlin/String, kotlin/Function0<kotlin/Unit>, io.ktor.http/Headers) // io.ktor.http.content/PartData.FormItem.<init>|<init>(kotlin.String;kotlin.Function0<kotlin.Unit>;io.ktor.http.Headers){}[0]
+        constructor <init>(kotlin/String, kotlin/Function0<kotlin/Unit>, io.ktor.http/Headers, kotlin.coroutines/SuspendFunction0<kotlin/Unit> = ...) // io.ktor.http.content/PartData.FormItem.<init>|<init>(kotlin.String;kotlin.Function0<kotlin.Unit>;io.ktor.http.Headers;kotlin.coroutines.SuspendFunction0<kotlin.Unit>){}[0]
 
         final val value // io.ktor.http.content/PartData.FormItem.value|{}value[0]
             final fun <get-value>(): kotlin/String // io.ktor.http.content/PartData.FormItem.value.<get-value>|<get-value>(){}[0]
@@ -1666,6 +1743,10 @@ final object io.ktor.http/HttpHeaders { // io.ktor.http/HttpHeaders|null[0]
         final fun <get-SetCookie>(): kotlin/String // io.ktor.http/HttpHeaders.SetCookie.<get-SetCookie>|<get-SetCookie>(){}[0]
     final const val StrictTransportSecurity // io.ktor.http/HttpHeaders.StrictTransportSecurity|{}StrictTransportSecurity[0]
         final fun <get-StrictTransportSecurity>(): kotlin/String // io.ktor.http/HttpHeaders.StrictTransportSecurity.<get-StrictTransportSecurity>|<get-StrictTransportSecurity>(){}[0]
+    final const val TDMPolicy // io.ktor.http/HttpHeaders.TDMPolicy|{}TDMPolicy[0]
+        final fun <get-TDMPolicy>(): kotlin/String // io.ktor.http/HttpHeaders.TDMPolicy.<get-TDMPolicy>|<get-TDMPolicy>(){}[0]
+    final const val TDMReservation // io.ktor.http/HttpHeaders.TDMReservation|{}TDMReservation[0]
+        final fun <get-TDMReservation>(): kotlin/String // io.ktor.http/HttpHeaders.TDMReservation.<get-TDMReservation>|<get-TDMReservation>(){}[0]
     final const val TE // io.ktor.http/HttpHeaders.TE|{}TE[0]
         final fun <get-TE>(): kotlin/String // io.ktor.http/HttpHeaders.TE.<get-TE>|<get-TE>(){}[0]
     final const val Timeout // io.ktor.http/HttpHeaders.Timeout|{}Timeout[0]
@@ -1930,6 +2011,7 @@ final fun (kotlin/String).io.ktor.http/encodeURLQueryComponent(kotlin/Boolean = 
 final fun (kotlin/String).io.ktor.http/escapeIfNeeded(): kotlin/String // io.ktor.http/escapeIfNeeded|escapeIfNeeded@kotlin.String(){}[0]
 final fun (kotlin/String).io.ktor.http/fromCookieToGmtDate(): io.ktor.util.date/GMTDate // io.ktor.http/fromCookieToGmtDate|fromCookieToGmtDate@kotlin.String(){}[0]
 final fun (kotlin/String).io.ktor.http/fromHttpToGmtDate(): io.ktor.util.date/GMTDate // io.ktor.http/fromHttpToGmtDate|fromHttpToGmtDate@kotlin.String(){}[0]
+final fun (kotlin/String).io.ktor.http/isQuoted(): kotlin/Boolean // io.ktor.http/isQuoted|isQuoted@kotlin.String(){}[0]
 final fun (kotlin/String).io.ktor.http/parseUrlEncodedParameters(io.ktor.utils.io.charsets/Charset = ..., kotlin/Int = ...): io.ktor.http/Parameters // io.ktor.http/parseUrlEncodedParameters|parseUrlEncodedParameters@kotlin.String(io.ktor.utils.io.charsets.Charset;kotlin.Int){}[0]
 final fun (kotlin/String).io.ktor.http/parseUrlEncodedParameters(io.ktor.utils.io.charsets/Charset = ..., kotlin/Int = ..., kotlin/Boolean = ...): io.ktor.http/Parameters // io.ktor.http/parseUrlEncodedParameters|parseUrlEncodedParameters@kotlin.String(io.ktor.utils.io.charsets.Charset;kotlin.Int;kotlin.Boolean){}[0]
 final fun (kotlin/String).io.ktor.http/quote(): kotlin/String // io.ktor.http/quote|quote@kotlin.String(){}[0]
@@ -1962,6 +2044,7 @@ final fun io.ktor.http/parametersOf(kotlin/String, kotlin.collections/List<kotli
 final fun io.ktor.http/parametersOf(kotlin/String, kotlin/String): io.ktor.http/Parameters // io.ktor.http/parametersOf|parametersOf(kotlin.String;kotlin.String){}[0]
 final fun io.ktor.http/parseAndSortContentTypeHeader(kotlin/String?): kotlin.collections/List<io.ktor.http/HeaderValue> // io.ktor.http/parseAndSortContentTypeHeader|parseAndSortContentTypeHeader(kotlin.String?){}[0]
 final fun io.ktor.http/parseAndSortHeader(kotlin/String?): kotlin.collections/List<io.ktor.http/HeaderValue> // io.ktor.http/parseAndSortHeader|parseAndSortHeader(kotlin.String?){}[0]
+final fun io.ktor.http/parseClientCookies(kotlin/String, kotlin/Boolean = ...): kotlin.collections/List<kotlin/Pair<kotlin/String, kotlin/String>> // io.ktor.http/parseClientCookies|parseClientCookies(kotlin.String;kotlin.Boolean){}[0]
 final fun io.ktor.http/parseClientCookiesHeader(kotlin/String, kotlin/Boolean = ...): kotlin.collections/Map<kotlin/String, kotlin/String> // io.ktor.http/parseClientCookiesHeader|parseClientCookiesHeader(kotlin.String;kotlin.Boolean){}[0]
 final fun io.ktor.http/parseHeaderValue(kotlin/String?): kotlin.collections/List<io.ktor.http/HeaderValue> // io.ktor.http/parseHeaderValue|parseHeaderValue(kotlin.String?){}[0]
 final fun io.ktor.http/parseHeaderValue(kotlin/String?, kotlin/Boolean): kotlin.collections/List<io.ktor.http/HeaderValue> // io.ktor.http/parseHeaderValue|parseHeaderValue(kotlin.String?;kotlin.Boolean){}[0]

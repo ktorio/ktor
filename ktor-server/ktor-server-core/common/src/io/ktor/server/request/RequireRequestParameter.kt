@@ -12,6 +12,8 @@ import io.ktor.server.routing.*
 /**
  * Get query parameter value associated with [name] or fail with [MissingRequestParameterException]
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.request.requireQueryParameter)
+ *
  * @throws MissingRequestParameterException if no query parameter with [name] is present
  */
 public fun ApplicationCall.requireQueryParameter(name: String): String {
@@ -21,6 +23,8 @@ public fun ApplicationCall.requireQueryParameter(name: String): String {
 /**
  * Get header value associated with [name] or fail with [MissingRequestParameterException]
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.request.requireHeader)
+ *
  * @throws MissingRequestParameterException if no header with [name] is present
  */
 public fun ApplicationCall.requireHeader(name: String): String {
@@ -29,6 +33,8 @@ public fun ApplicationCall.requireHeader(name: String): String {
 
 /**
  * Get cookie value associated with [name] or fail with [MissingRequestParameterException]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.request.requireCookie)
  *
  * @throws MissingRequestParameterException if no cookie with [name] is present
  */
@@ -41,6 +47,8 @@ public fun ApplicationCall.requireCookie(
 
 /**
  * Get path parameter value associated with [name] or fail with [MissingRequestParameterException]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.request.requirePathParameter)
  *
  * @throws MissingRequestParameterException if no path parameter with [name] is present
  */

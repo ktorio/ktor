@@ -120,6 +120,7 @@ internal suspend fun OutgoingContent.writeTo(
 ): Unit = stream.use { blockingOutput ->
     when (this) {
         is OutgoingContent.ByteArrayContent -> blockingOutput.write(bytes())
+
         is OutgoingContent.ReadChannelContent -> run {
             readFrom().copyTo(blockingOutput)
         }

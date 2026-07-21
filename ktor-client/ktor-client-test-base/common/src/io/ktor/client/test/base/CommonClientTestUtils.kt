@@ -9,7 +9,6 @@ import io.ktor.client.engine.*
 import io.ktor.test.*
 import kotlinx.coroutines.*
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.minutes
 
 /**
  * Web url for tests.
@@ -44,7 +43,7 @@ const val TCP_SERVER: String = "http://127.0.0.1:8082"
  */
 fun testWithEngine(
     engine: HttpClientEngine,
-    timeout: Duration = 1.minutes,
+    timeout: Duration = DEFAULT_TEST_TIMEOUT,
     retries: Int = DEFAULT_RETRIES,
     block: suspend TestClientBuilder<*>.() -> Unit
 ) = testWithClient(HttpClient(engine), timeout, retries, block)
@@ -82,7 +81,7 @@ private fun testWithClient(
 fun <T : HttpClientEngineConfig> testWithEngine(
     factory: HttpClientEngineFactory<T>,
     loader: ClientLoader? = null,
-    timeout: Duration = 1.minutes,
+    timeout: Duration = DEFAULT_TEST_TIMEOUT,
     retries: Int = DEFAULT_RETRIES,
     block: suspend TestClientBuilder<T>.() -> Unit
 ) = runTestWithData(listOf(factory), timeout = timeout, retries = retries) {

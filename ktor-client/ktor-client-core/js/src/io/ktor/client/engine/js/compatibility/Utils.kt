@@ -33,10 +33,11 @@ internal suspend fun commonFetch(
     callJob.invokeOnCompletion(onCancelling = true) { controller.abort() }
 
     val promise: Promise<org.w3c.fetch.Response> = when {
-        PlatformUtils.IS_BROWSER -> fetch(input, init)
+        PlatformUtils.IS_BROWSER -> config.fetch(input, init)
+
         else -> {
             val options = js("Object").assign(js("Object").create(null), init, config.nodeOptions)
-            fetch(input, options)
+            config.fetch(input, options)
         }
     }
 

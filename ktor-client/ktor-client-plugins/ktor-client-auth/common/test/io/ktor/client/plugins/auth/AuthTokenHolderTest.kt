@@ -5,9 +5,9 @@
 package io.ktor.client.plugins.auth
 
 import io.ktor.client.plugins.auth.providers.*
+import io.ktor.test.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.runTest
 import kotlin.coroutines.CoroutineContext
 import kotlin.test.*
 

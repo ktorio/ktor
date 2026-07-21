@@ -180,7 +180,9 @@ public final class io/ktor/websocket/FrameParser$State : java/lang/Enum {
 }
 
 public final class io/ktor/websocket/FrameTooBigException : java/lang/Exception, kotlinx/coroutines/CopyableThrowable {
-	public fun <init> (J)V
+	public synthetic fun <init> (J)V
+	public fun <init> (JLjava/lang/Throwable;)V
+	public synthetic fun <init> (JLjava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun createCopy ()Lio/ktor/websocket/FrameTooBigException;
 	public synthetic fun createCopy ()Ljava/lang/Throwable;
 	public final fun getFrameSize ()J

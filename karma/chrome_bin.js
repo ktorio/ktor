@@ -13,32 +13,27 @@ config.set({
                 "--no-sandbox",
                 "--disable-web-security",
                 "--disable-setuid-sandbox",
+                "--use-mock-keychain",
+                "--password-store=basic",
                 "--enable-logging",
                 "--v=1",
                 "--use-fake-device-for-media-stream",
                 "--use-fake-ui-for-media-stream"
             ]
         }
-    },
-    "client": {
-        captureConsole: true,
-        "mocha": {
-            // Disable timeout as we use individual timeouts for tests
-            timeout: 0
-        }
-    },
-    "webpack": {
-        // Workaround for Node.js built-in modules in browser tests.
-        // ktor-client-tests depends on ktor-network, which uses @JsModule("node:net") for Node.js socket support.
-        // Webpack cannot resolve the "node:" protocol in browser builds, so we stub it with an empty object.
-        // The Node.js socket code paths are not executed in browser tests anyway.
-        externals: {
-            'node:net': '{}'
-        }
     }
 });
 
 // CHROME_BIN might be already defined, otherwise use puppeteer to get the path
 if (!process.env.CHROME_BIN) {
-    process.env.CHROME_BIN = require('puppeteer').executablePath();
+    const path = require('path');
+    const os = require('os');
+    const puppeteer = require('puppeteer');
+    const { Browser, computeExecutablePath } = require('@puppeteer/browsers');
+
+    process.env.CHROME_BIN = computeExecutablePath({
+        browser: Browser.CHROME,
+        buildId: puppeteer.PUPPETEER_REVISIONS.chrome,
+        cacheDir: process.env.PUPPETEER_CACHE_DIR || path.join(os.homedir(), '.cache', 'puppeteer')
+    });
 }

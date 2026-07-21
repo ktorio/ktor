@@ -138,7 +138,7 @@ public fun resourceClasspathResource(
  * Examples:
  * - `jar:file:/dist/app.jar!/static/index.html`              → returns `/dist/app.jar`
  * - `jar:file:/dist/app.jar!`                                → returns `/dist/app.jar`
- * - `jar:file:/outer.jar!/lib/dep.jar!/x.css`                → throws IllegalArgumentException (nested)
+ * - `jar:file:/outer.jar!/lib/dep.jar!/x.css`                → returns `null` (nested local container)
  * - `jar:nested:/path/to/app.jar/!BOOT-INF/classes/!/static` → returns `null` (non-local container)
  */
 internal fun findContainingJarFile(url: String): File? {
@@ -150,8 +150,9 @@ internal fun findContainingJarFile(url: String): File? {
     }
     val nextJarSeparator = url.indexOf("!", startIndex = jarPathSeparator + 1)
     if (nextJarSeparator != -1) {
-        // KTOR-8883 Support nested jars in static resources
-        throw IllegalArgumentException("Only local jars are supported (jar:file:)")
+        // java.util.jar.JarFile only supports single-level archives, so let the caller
+        // fall back to URIFileContent (relies on a registered URL handler, e.g. Spring Boot 2.x).
+        return null
     }
 
     return File(url.substring(JAR_PREFIX.length, jarPathSeparator).decodeURLPart())

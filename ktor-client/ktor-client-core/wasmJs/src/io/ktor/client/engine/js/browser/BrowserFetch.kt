@@ -32,7 +32,7 @@ internal fun CoroutineScope.channelFromStream(
             channel.flush()
         }
     } catch (cause: Throwable) {
-        reader.cancel(cause.toJsReference()).catch { null }.await<Unit>()
+        reader.cancel(cause.toJsReference()).catch { _: JsAny? -> null }.await<JsAny?>()
         throw cause
     }
 }.channel

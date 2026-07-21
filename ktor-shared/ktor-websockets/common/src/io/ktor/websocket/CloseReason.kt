@@ -12,10 +12,19 @@ import kotlin.jvm.*
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.CloseReason)
  *
- * @property code - close reason code as per RFC 6455, recommended to be one of [CloseReason.Codes]
- * @property message - a close reason message, could be empty
+ * @property code - close reason code as per RFC 6455, recommended to be one of [Codes]
+ * @property message - a close reason message; could be empty
+ * @throws IllegalArgumentException if [message] is longer than 123 bytes when UTF-8-encoded
  */
 public data class CloseReason(val code: Short, val message: String) {
+    init {
+        val size = message.utf8Size()
+        require(size <= MAX_CLOSE_REASON_MESSAGE_SIZE) {
+            "Close reason message is too long: $size bytes, but must not exceed " +
+                "$MAX_CLOSE_REASON_MESSAGE_SIZE bytes when UTF-8-encoded"
+        }
+    }
+
     public constructor(code: Codes, message: String) : this(code.code, message)
 
     /**
@@ -78,5 +87,10 @@ public data class CloseReason(val code: Short, val message: String) {
              */
             public fun byCode(code: Short): Codes? = byCodeMap[code]
         }
+    }
+
+    internal companion object {
+        fun truncated(code: Codes, message: String): CloseReason =
+            CloseReason(code, message.utf8Truncate(MAX_CLOSE_REASON_MESSAGE_SIZE))
     }
 }

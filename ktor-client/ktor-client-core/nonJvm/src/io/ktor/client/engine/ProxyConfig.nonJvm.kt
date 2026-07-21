@@ -1,0 +1,98 @@
+/*
+ * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
+package io.ktor.client.engine
+
+import io.ktor.http.*
+import io.ktor.util.network.*
+
+/**
+ * Proxy configuration.
+ *
+ * See [ProxyBuilder] to create proxy.
+ *
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.ProxyConfig)
+ *
+ * @param url: proxy url address.
+ */
+public actual class ProxyConfig(public val url: Url) {
+    @Deprecated("ProxyConfig should accept a url", level = DeprecationLevel.ERROR)
+    public constructor() : this(
+        error("ProxyConfig should accept a url")
+    )
+
+    override fun toString(): String = buildString {
+        url.apply {
+            append(protocol.name)
+            append("://")
+            if (user != null) {
+                append(user!!.encodeURLParameter())
+                if (password != null) {
+                    append(':')
+                    append(password!!.encodeURLParameter())
+                }
+                append('@')
+            }
+
+            append(hostWithPort)
+        }
+    }
+}
+
+/**
+ * Resolve remote address of [ProxyConfig].
+ *
+ * This operation can block.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.resolveAddress)
+ */
+public actual fun ProxyConfig.resolveAddress(): NetworkAddress = NetworkAddress(url.host, url.port)
+
+/**
+ * [ProxyConfig] factory.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.ProxyBuilder)
+ */
+public actual object ProxyBuilder {
+    /**
+     * Create http proxy from [url].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.ProxyBuilder.http)
+     */
+    public actual fun http(url: Url): ProxyConfig {
+        require(url.protocol.name.equals(URLProtocol.HTTP.name, ignoreCase = true))
+
+        return ProxyConfig(url)
+    }
+
+    /**
+     * Create socks proxy from [host] and [port].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.ProxyBuilder.socks)
+     */
+    public actual fun socks(host: String, port: Int): ProxyConfig = ProxyConfig(
+        URLBuilder().apply {
+            protocol = URLProtocol.SOCKS
+
+            this.host = host
+            this.port = port
+        }.build()
+    )
+}
+
+/**
+ * Type of configured proxy.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.type)
+ */
+public actual val ProxyConfig.type: ProxyType
+    get() = when (url.protocol) {
+        URLProtocol.HTTP,
+        URLProtocol.HTTPS -> ProxyType.HTTP
+
+        URLProtocol.SOCKS -> ProxyType.SOCKS
+
+        else -> ProxyType.UNKNOWN
+    }

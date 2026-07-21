@@ -113,18 +113,21 @@ internal fun HttpRequestData.prepareHeadersFrame(): HeadersFrame {
 private fun sendRequestBody(request: JettyHttp2Request, content: OutgoingContent, callContext: CoroutineContext) {
     when (content) {
         is OutgoingContent.NoContent -> return
+
         is OutgoingContent.ByteArrayContent -> GlobalScope.launch(callContext) {
             request.write(ByteBuffer.wrap(content.bytes()))
             request.endBody()
         }
 
         is OutgoingContent.ReadChannelContent -> writeRequest(content.readFrom(), request, callContext)
+
         is OutgoingContent.WriteChannelContent -> {
             val source = GlobalScope.writer(callContext) { content.writeTo(channel) }.channel
             writeRequest(source, request, callContext)
         }
 
         is OutgoingContent.ProtocolUpgrade -> throw UnsupportedContentTypeException(content)
+
         is OutgoingContent.ContentWrapper -> sendRequestBody(request, content.delegate(), callContext)
     }
 }

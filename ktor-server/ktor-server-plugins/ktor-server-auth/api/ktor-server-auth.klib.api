@@ -251,6 +251,13 @@ final class io.ktor.server.auth/FormAuthenticationProvider : io.ktor.server.auth
     }
 }
 
+final class io.ktor.server.auth/OAuth2InvalidGrantError : io.ktor.server.auth/AuthenticationFailedCause.Error { // io.ktor.server.auth/OAuth2InvalidGrantError|null[0]
+    constructor <init>(io.ktor.server.auth/OAuth2Exception.InvalidGrant) // io.ktor.server.auth/OAuth2InvalidGrantError.<init>|<init>(io.ktor.server.auth.OAuth2Exception.InvalidGrant){}[0]
+
+    final val cause // io.ktor.server.auth/OAuth2InvalidGrantError.cause|{}cause[0]
+        final fun <get-cause>(): io.ktor.server.auth/OAuth2Exception.InvalidGrant // io.ktor.server.auth/OAuth2InvalidGrantError.cause.<get-cause>|<get-cause>(){}[0]
+}
+
 final class io.ktor.server.auth/OAuth2RedirectError : io.ktor.server.auth/AuthenticationFailedCause.Error { // io.ktor.server.auth/OAuth2RedirectError|null[0]
     constructor <init>(kotlin/String, kotlin/String?) // io.ktor.server.auth/OAuth2RedirectError.<init>|<init>(kotlin.String;kotlin.String?){}[0]
 

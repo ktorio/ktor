@@ -51,7 +51,7 @@ public open class WebRtcConnectionConfig {
     public var bundlePolicy: WebRtc.BundlePolicy = WebRtc.BundlePolicy.BALANCED
 
     /**
-     * A string which specifies the RTCP mux policy to use when gathering ICE candidates to support non-multiplexed RTCP.
+     * An enum that specifies the RTCP mux policy to use when gathering ICE candidates to support non-multiplexed RTCP.
      * Defaults to [WebRtc.RtcpMuxPolicy.REQUIRE].
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcConnectionConfig.rtcpMuxPolicy)
@@ -108,7 +108,7 @@ public open class WebRtcConnectionConfig {
 public open class WebRtcConfig {
     /**
      * Dispatcher that will be used for coroutines in the background (e.g., emit events).
-     * Defaults to [Dispatchers.IO] if available, or [Dispatchers.Default].
+     * Defaults to Dispatchers.IO if available, or [Dispatchers.Default].
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcConfig.dispatcher)
      */

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.engine
@@ -9,7 +9,6 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.http.content.*
-import io.ktor.server.plugins.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.date.*
@@ -113,18 +112,6 @@ private fun Application.installDefaultInterceptors() {
 }
 
 private fun Application.installDefaultTransformationChecker() {
-    // Respond with "415 Unsupported Media Type" if content cannot be transformed on receive
-    intercept(ApplicationCallPipeline.Plugins) {
-        try {
-            proceed()
-        } catch (e: CannotTransformContentToTypeException) {
-            when (val message = e.message) {
-                null -> call.respond(HttpStatusCode.UnsupportedMediaType)
-                else -> call.respond(HttpStatusCode.UnsupportedMediaType, message)
-            }
-        }
-    }
-
     val checkBodyPhase = PipelinePhase("BodyTransformationCheckPostRender")
     sendPipeline.insertPhaseAfter(ApplicationSendPipeline.Render, checkBodyPhase)
     sendPipeline.intercept(checkBodyPhase) { subject ->

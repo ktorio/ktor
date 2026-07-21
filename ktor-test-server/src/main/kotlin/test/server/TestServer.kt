@@ -10,10 +10,9 @@ import io.ktor.server.cio.*
 import io.ktor.server.engine.*
 import io.ktor.server.jetty.jakarta.*
 import io.ktor.server.netty.*
-import test.server.tests.CloseableGroup
+import kotlinx.coroutines.*
 import test.server.tests.socksServerHandler
 import test.server.tests.tcpServerHandler
-import java.io.Closeable
 import java.io.File
 
 const val TEST_SERVER: String = "http://127.0.0.1:8080"
@@ -24,30 +23,28 @@ private const val HTTP_PROXY_PORT: Int = 8082
 private const val SOCKS_PROXY_PORT: Int = 8083
 private const val HTTP2_SERVER_PORT: Int = 8084
 
-internal fun startServer(): Closeable {
-    val scope = CloseableGroup()
+internal fun startServer(scope: CoroutineScope, verbose: Boolean) {
+    TestTcpServer(HTTP_PROXY_PORT, scope, ::tcpServerHandler)
+    TestTcpServer(SOCKS_PROXY_PORT, scope, ::socksServerHandler)
 
-    fun CloseableGroup.use(server: EmbeddedServer<*, *>) {
-        server.start()
-        use { server.stop(gracePeriodMillis = 0, timeoutMillis = 0) }
+    val servers = listOf(
+        embeddedServer(CIO, DEFAULT_PORT, module = { tests(verbose) }),
+        setupHttp2Server(HTTP2_SERVER_PORT, module = { tests(verbose) }),
+        setupTLSServer(DEFAULT_TLS_PORT, module = Application::tlsTests),
+    )
+
+    scope.launch(CoroutineName("server-stopper")) {
+        try {
+            awaitCancellation()
+        } finally {
+            servers.forEach { it.stop(gracePeriodMillis = 0, timeoutMillis = 0) }
+        }
     }
 
-    try {
-        // Start HTTP and SOCKS proxy servers
-        scope.use(TestTcpServer(HTTP_PROXY_PORT, ::tcpServerHandler))
-        scope.use(TestTcpServer(SOCKS_PROXY_PORT, ::socksServerHandler))
-
-        scope.use(embeddedServer(CIO, DEFAULT_PORT, module = Application::tests))
-        scope.use(setupHttp2Server(HTTP2_SERVER_PORT, module = Application::tests))
-        scope.use(setupTLSServer(DEFAULT_TLS_PORT, module = Application::tlsTests))
-
-        Thread.sleep(1000)
-    } catch (cause: Throwable) {
-        scope.close()
-        throw cause
+    runBlocking {
+        servers.map { async { it.start() } }
+            .awaitAll()
     }
-
-    return scope
 }
 
 private fun setupTLSServer(

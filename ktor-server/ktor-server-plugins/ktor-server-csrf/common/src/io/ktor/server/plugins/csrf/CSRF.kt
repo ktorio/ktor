@@ -12,7 +12,7 @@ import io.ktor.server.request.*
  * This plugin provides mitigations for cross-site request forgery (CSRF).
  *
  * There are several ways to prevent CSRF attacks, each with different pros / cons depending on how
- * your website is structured.  The [OWASP cheatsheet](https://cheatsheetseries.owasp.org/cheatsheets/Cross_Site_Scripting_Prevention_Cheat_Sheet.html)
+ * your website is structured.  The [OWASP cheatsheet](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html)
  * enumerates the mitigations provided here.
  *
  * Example:

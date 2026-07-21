@@ -17,7 +17,7 @@ private const val DECODING_BUFFER_SIZE = 8192
 public actual object Charsets {
     public actual val UTF_8: Charset by lazy { CharsetIconv("UTF-8") }
     public actual val ISO_8859_1: Charset by lazy { CharsetIconv("ISO-8859-1") }
-    internal val UTF_16: Charset by lazy { CharsetIconv(platformUtf16) }
+    internal val UTF_16: Charset by lazy { CharsetIconv("UTF-16") }
 }
 
 internal actual fun findCharset(name: String): Charset {
@@ -40,10 +40,7 @@ private class CharsetIconv(name: String) : Charset(name) {
     override fun newDecoder(): CharsetDecoder = CharsetDecoderImpl(this)
 }
 
-internal fun iconvCharsetName(name: String) = when (name) {
-    "UTF-16" -> platformUtf16
-    else -> name
-}
+internal fun iconvCharsetName(name: String) = name
 
 @OptIn(ExperimentalForeignApi::class)
 private val negativePointer = (-1L).toCPointer<IntVar>()

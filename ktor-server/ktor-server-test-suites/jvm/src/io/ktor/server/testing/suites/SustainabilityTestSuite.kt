@@ -34,18 +34,14 @@ import org.slf4j.event.Level
 import org.slf4j.helpers.AbstractLogger
 import java.io.File
 import java.io.IOException
-import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.Proxy
 import java.net.URL
 import java.util.*
-import java.util.concurrent.CopyOnWriteArrayList
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.Executors
-import java.util.concurrent.LinkedBlockingQueue
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.*
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.test.*
+import kotlin.time.Duration.Companion.minutes
 
 abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
@@ -383,7 +379,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
 
     @OptIn(InternalAPI::class)
     @Test
-    fun testBigFile() = runTest {
+    fun testBigFile() = runTest(timeout = 1.minutes) {
         val file = File("build/large-file.dat")
         val rnd = Random()
 
@@ -407,7 +403,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         }
 
         withUrl("/file") {
-            val (actualChecksum, actualCount) = body<InputStream>().crcWithSize()
+            val (actualChecksum, actualCount) = rawContent.crcWithSize()
             assertEquals(fileCount, actualCount, "Response size differs from file")
             assertEquals(fileChecksum, actualChecksum, "Response checksum differs from file")
         }
@@ -796,7 +792,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         withUrl("/blocking/large") {
             assertEquals(HttpStatusCode.OK, status)
             assertEquals(ContentType.Text.Plain, contentType()?.withoutParameters())
-            val result = rawContent.toInputStream().crcWithSize()
+            val result = rawContent.crcWithSize()
             assertEquals(10000 * 13L, result.second)
         }
     }

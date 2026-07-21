@@ -5,6 +5,7 @@
 package io.ktor.server.auth
 
 import io.ktor.server.application.*
+import kotlinx.coroutines.CancellationException
 import kotlinx.io.IOException
 
 internal actual suspend fun OAuthAuthenticationProvider.oauth1a(
@@ -60,6 +61,8 @@ private suspend fun OAuthAuthenticationProvider.oauth1RequestToken(
     null
 } catch (_: OAuth1aException.MissingTokenException) {
     AuthenticationFailedCause.InvalidCredentials
+} catch (cause: CancellationException) {
+    throw cause
 } catch (cause: Throwable) {
     AuthenticationFailedCause.Error("OAuth1a failed to get OAuth1 access token due to $cause")
 }

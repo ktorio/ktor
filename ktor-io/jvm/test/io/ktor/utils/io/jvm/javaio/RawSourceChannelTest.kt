@@ -4,10 +4,13 @@
 
 package io.ktor.utils.io.jvm.javaio
 
+import io.ktor.test.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.test.*
-import kotlinx.io.*
-import kotlin.test.*
+import kotlinx.io.IOException
+import kotlin.test.Test
+import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 
 class RawSourceChannelTest {
 
@@ -41,7 +44,7 @@ class RawSourceChannelTest {
     fun `awaitContent throws when channel is cancelled`() = runTest {
         val channel = ByteArray(0).inputStream().toByteReadChannel()
         channel.cancel(IOException("test cancellation"))
-        assertFailsWith<IOException> {
+        assertFailsWith<CancellationException> {
             channel.awaitContent(1)
         }
     }

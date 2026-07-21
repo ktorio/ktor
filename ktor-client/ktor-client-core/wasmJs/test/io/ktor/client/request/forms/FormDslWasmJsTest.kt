@@ -5,12 +5,14 @@
 package io.ktor.client.request.forms
 
 import io.ktor.http.*
+import io.ktor.test.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.io.readByteArray
 import org.w3c.files.Blob
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertTrue
 
 @Suppress("UNUSED_PARAMETER")
 private fun createBlob(content: String, type: String): Blob =
@@ -29,7 +31,7 @@ class FormDslWasmJsTest {
         val data = MultiPartFormDataContent(parts, boundary = "boundary")
         val result = data.readString()
 
-        assertTrue(result.contains("Content-Disposition: form-data; name=file"))
+        assertTrue(result.contains("Content-Disposition: form-data; name=\"file\""))
         assertTrue(result.contains("hello world"))
     }
 
@@ -44,8 +46,8 @@ class FormDslWasmJsTest {
         val data = MultiPartFormDataContent(parts, boundary = "boundary")
         val result = data.readString()
 
-        assertTrue(result.contains("Content-Disposition: form-data; name=upload"))
-        assertTrue(result.contains("filename=test.txt"))
+        assertTrue(result.contains("Content-Disposition: form-data; name=\"upload\""))
+        assertTrue(result.contains("filename=\"test.txt\""))
         assertTrue(result.contains("Content-Type: text/plain"))
         assertTrue(result.contains("file content"))
     }

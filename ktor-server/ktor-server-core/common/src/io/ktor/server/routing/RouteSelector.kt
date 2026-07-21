@@ -553,6 +553,7 @@ public data class PathSegmentTailcardRouteSelector(
 
         val values = when {
             name.isEmpty() -> parametersOf()
+
             else -> parametersOf(
                 name,
                 segments.drop(segmentIndex).mapIndexed { index, segment ->
@@ -692,10 +693,10 @@ public data class HttpHeaderRouteSelector(
 
 /**
  * Evaluates a route against a `Content-Type` in the [HttpHeaders.ContentType] request header.
- * @param contentType is an instance of [ContentType]
+ * @param contentTypes a list of [ContentType]
  */
 internal data class ContentTypeHeaderRouteSelector(
-    val contentType: ContentType
+    val contentTypes: List<ContentType>
 ) : RouteSelector() {
 
     private val failedEvaluation = RouteSelectorEvaluation.Failure(
@@ -707,13 +708,14 @@ internal data class ContentTypeHeaderRouteSelector(
         val headers = context.call.request.header(HttpHeaders.ContentType)
         val parsedHeaders = parseAndSortContentTypeHeader(headers)
 
-        val header = parsedHeaders.firstOrNull { ContentType.parse(it.value).match(contentType) }
-            ?: return failedEvaluation
+        val header = parsedHeaders.firstOrNull { header ->
+            contentTypes.any { header.toContentType().match(it) }
+        } ?: return failedEvaluation
 
         return RouteSelectorEvaluation.Success(header.quality)
     }
 
-    override fun toString(): String = "(contentType = $contentType)"
+    override fun toString(): String = "(contentTypes = $contentTypes)"
 }
 
 /**
@@ -757,7 +759,7 @@ public data class HttpMultiAcceptRouteSelector(
             }
 
             val header = parsedHeaders.firstOrNull { header ->
-                contentTypes.any { it.isCompatibleWith(ContentType.parse(header.value)) }
+                contentTypes.any { it.isCompatibleWith(header.toContentType()) }
             }
             if (header != null) {
                 return RouteSelectorEvaluation.Success(header.quality)
@@ -783,7 +785,9 @@ internal fun evaluatePathSegmentParameter(
     fun failedEvaluation(failedPart: String?): RouteSelectorEvaluation {
         return when {
             !isOptional -> RouteSelectorEvaluation.FailedPath
+
             failedPart == null -> RouteSelectorEvaluation.Missing
+
             failedPart.isEmpty() -> // trailing slash
                 RouteSelectorEvaluation.Success(RouteSelectorEvaluation.qualityMissing, segmentIncrement = 1)
 
@@ -826,4 +830,17 @@ private fun ContentType.isCompatibleWith(other: ContentType): Boolean = when {
     other.contentType == "*" && other.contentSubtype == "*" -> true
     this.contentSubtype == "*" -> other.match(this)
     else -> this.match(other)
+}
+
+private fun HeaderValue.toContentType(): ContentType {
+    val contentType = ContentType.parse(value)
+    return if (params.isEmpty()) {
+        contentType
+    } else {
+        ContentType(
+            contentType.contentType,
+            contentType.contentSubtype,
+            params.filter { it.name != "q" }
+        )
+    }
 }

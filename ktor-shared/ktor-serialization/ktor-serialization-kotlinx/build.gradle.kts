@@ -14,6 +14,11 @@ kotlin {
         commonMain.dependencies {
             api(projects.ktorSerialization)
             api(libs.kotlinx.serialization.core)
+            api(projects.ktorOpenapiSchema)
+        }
+        commonTest.dependencies {
+            implementation(projects.ktorSerializationKotlinxJson)
+            implementation(libs.kotlinx.coroutines.test)
         }
     }
 }

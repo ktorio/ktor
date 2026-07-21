@@ -4,10 +4,15 @@
 
 package io.ktor.server.testing.suites
 
-import java.io.*
+import io.ktor.utils.io.*
+import java.io.BufferedReader
+import java.io.File
+import java.io.InputStream
 import java.util.*
-import java.util.zip.*
-import kotlin.test.*
+import java.util.zip.CRC32
+import kotlin.test.assertNotEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 
 internal suspend fun assertFailsSuspend(block: suspend () -> Unit): Throwable {
     var exception: Throwable? = null
@@ -21,19 +26,22 @@ internal suspend fun assertFailsSuspend(block: suspend () -> Unit): Throwable {
     return exception
 }
 
-internal fun InputStream.crcWithSize(): Pair<Long, Long> {
+internal fun InputStream.crcWithSize(): Pair<Long, Long> = crcWithSize { read(it) }
+internal suspend fun ByteReadChannel.crcWithSize(): Pair<Long, Long> = crcWithSize { readAvailable(it) }
+
+private inline fun crcWithSize(readBytes: (ByteArray) -> Int): Pair<Long, Long> {
     val checksum = CRC32()
-    val bytes = ByteArray(8192)
+    val bytes = ByteArray(64 * 1024)
     var count = 0L
 
-    do {
-        val rc = read(bytes)
-        if (rc == -1) {
-            break
-        }
+    while (true) {
+        val rc = readBytes(bytes)
+        if (rc == -1) break
+        if (rc == 0) continue
+
         count += rc
         checksum.update(bytes, 0, rc)
-    } while (true)
+    }
 
     return checksum.value to count
 }

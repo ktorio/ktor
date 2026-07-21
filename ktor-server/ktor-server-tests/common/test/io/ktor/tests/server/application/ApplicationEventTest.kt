@@ -6,8 +6,9 @@ package io.ktor.tests.server.application
 
 import io.ktor.server.application.*
 import io.ktor.server.testing.*
-import kotlinx.coroutines.test.*
-import kotlin.test.*
+import io.ktor.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class ApplicationEventTest {
     @Test

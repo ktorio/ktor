@@ -4,24 +4,23 @@
 
 package io.ktor.tests.utils
 
-import io.ktor.test.junit.*
+import io.ktor.test.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.test.runTest
-import org.junit.jupiter.api.*
-import org.junit.jupiter.api.extension.*
-import java.io.*
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
+import java.io.File
 import java.nio.file.Files
 import kotlin.test.*
-import kotlin.test.Test
 
 class FileChannelTest {
     private val sandbox = File("build/files")
     private lateinit var temp: File
 
-    @BeforeEach
+    @BeforeTest
     fun setUp() {
         if (!sandbox.mkdirs() && !sandbox.isDirectory) {
             fail()
@@ -128,5 +127,26 @@ class FileChannelTest {
         ch.flushAndClose()
         assertEquals(5, file.length())
         assertEquals("Hello", file.readText())
+    }
+
+    @Test
+    fun `readChannel on nonexistent file does not leak exception from completion handler`() = runBlocking {
+        val nonexistent = File(sandbox, "definitely-does-not-exist-${System.nanoTime()}")
+        assertFalse(nonexistent.exists())
+
+        val caught = mutableListOf<Throwable>()
+        val handler = CoroutineExceptionHandler { _, t -> caught.add(t) }
+
+        val channel = nonexistent.readChannel(coroutineContext = Dispatchers.IO + handler)
+        runCatching { channel.discard() }
+
+        delay(200)
+
+        assertTrue(
+            caught.isEmpty(),
+            "completion handler leaked: ${caught.map {
+                "${it.javaClass.simpleName}(cause=${it.cause?.javaClass?.simpleName})"
+            }}"
+        )
     }
 }

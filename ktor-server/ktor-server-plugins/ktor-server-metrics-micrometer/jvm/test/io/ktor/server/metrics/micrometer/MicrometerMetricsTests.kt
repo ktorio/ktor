@@ -228,6 +228,33 @@ class MicrometerMetricsTests {
     }
 
     @Test
+    fun `default percentiles are not applied when registerDistributionStatisticConfig is false`() = testApplication {
+        val testRegistry = SimpleMeterRegistry()
+
+        install(MicrometerMetrics) {
+            registry = testRegistry
+            registerDistributionStatisticConfig = false
+        }
+
+        routing {
+            get("/uri") {
+                call.respond("hello")
+            }
+        }
+
+        client.request("/uri")
+
+        val timers = testRegistry.find(requestTimeTimerName).timers()
+        assertEquals(1, timers.size)
+        val percentileValues = timers.first().takeSnapshot().percentileValues()
+        assertEquals(
+            0,
+            percentileValues.size,
+            "no percentiles should be configured by the plugin, but were: ${percentileValues.toList()}"
+        )
+    }
+
+    @Test
     fun `no handler results in status 404 and no exception by default`() = testApplication {
         val testRegistry = SimpleMeterRegistry()
 

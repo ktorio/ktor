@@ -4,6 +4,9 @@
 
 package io.ktor.openapi.reflect
 
+import io.ktor.openapi.*
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.json.JsonClassDiscriminator
 import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import kotlin.reflect.full.memberProperties
@@ -19,6 +22,11 @@ class ReflectionJsonSchemaInferenceTest : AbstractSchemaInferenceTest(
             val props = kClass.memberProperties.associateBy { it.name }
             return constructorParams.mapNotNull { props[it] }
         }
+
+        @OptIn(ExperimentalSerializationApi::class)
+        override fun getDiscriminatorProperty(kClass: KClass<*>): String =
+            kClass.annotations.filterIsInstance<JsonClassDiscriminator>().firstOrNull()?.discriminator
+                ?: super.getDiscriminatorProperty(kClass)
     }),
     "reflect"
 )

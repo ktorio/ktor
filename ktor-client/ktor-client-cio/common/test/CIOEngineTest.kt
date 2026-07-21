@@ -14,13 +14,13 @@ import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
+import io.ktor.test.*
 import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.single
-import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 import kotlin.time.Duration.Companion.seconds
 
@@ -168,6 +168,20 @@ class CIOEngineTest : ClientEngineTest<CIOEngineConfig>(CIO) {
                 assertTrue(newRequest.contains(body))
                 writeOkResponse(writeChannel)
             }
+        }
+    }
+
+    @Test
+    fun `close engine with active endpoints does not throw ConcurrentModificationException`() = testClient {
+        test { client ->
+            val jobs = (1..5).map { i ->
+                client.async {
+                    runCatching {
+                        client.get("$TEST_SERVER/content/hello?i=$i")
+                    }
+                }
+            }
+            jobs.forEach { it.await() }
         }
     }
 

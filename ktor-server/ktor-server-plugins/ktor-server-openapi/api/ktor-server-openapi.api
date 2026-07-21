@@ -25,7 +25,7 @@ public final class io/ktor/server/plugins/openapi/OpenAPIConfig : io/ktor/openap
 	public final fun setOutputPath (Ljava/lang/String;)V
 	public final fun setParser (Lio/swagger/parser/OpenAPIParser;)V
 	public final fun setSource (Lio/ktor/server/routing/openapi/OpenApiDocSource;)V
-	public fun tag (Ljava/lang/String;)V
+	public fun tag (Ljava/lang/String;Ljava/lang/String;Lio/ktor/openapi/ExternalDocs;)V
 }
 
 public final class io/ktor/server/plugins/openapi/OpenAPIKt {

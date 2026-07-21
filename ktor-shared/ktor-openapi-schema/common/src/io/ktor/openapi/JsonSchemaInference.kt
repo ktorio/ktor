@@ -11,17 +11,13 @@ import io.ktor.utils.io.*
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonClassDiscriminator
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.modules.EmptySerializersModule
 import kotlinx.serialization.modules.SerializersModule
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
 import kotlin.reflect.typeOf
-import kotlin.time.Duration
-import kotlin.time.ExperimentalTime
-import kotlin.time.Instant
-import kotlin.uuid.ExperimentalUuidApi
-import kotlin.uuid.Uuid
 
 /**
  * Context interface for creating schema from type metadata.
@@ -44,20 +40,26 @@ public fun interface JsonSchemaInference {
  */
 public val KotlinxJsonSchemaInference: JsonSchemaInference get() = KotlinxSerializerJsonSchemaInference.Default
 
-@OptIn(ExperimentalUuidApi::class, ExperimentalTime::class)
 public val KotlinxSerializerDefaultFormats: (SerialDescriptor) -> String? = { type ->
     when (type.nonNullSerialName) {
         "kotlin.uuid.Uuid" -> "uuid"
+
         "kotlinx.datetime.LocalDate" -> "date"
+
         "kotlinx.datetime.LocalTime" -> "time"
+
         "kotlinx.datetime.TimeZone" -> "time-zone"
+
         "kotlinx.datetime.UtcOffset" -> "utc-offset"
+
         "kotlin.time.Instant",
         "kotlinx.datetime.Instant",
         "kotlinx.datetime.LocalDateTime" -> "date-time"
+
         "kotlin.time.Duration",
         "kotlinx.datetime.DatePeriod",
         "kotlinx.datetime.DateTimePeriod" -> "duration"
+
         else -> null
     }
 }
@@ -76,31 +78,61 @@ public class KotlinxSerializerJsonSchemaInference(
     public companion object {
         /**
          * Default instance of KotlinxSerializerJsonSchemaInference using an empty serializers module.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.KotlinxSerializerJsonSchemaInference.Companion.Default)
          */
         public val Default: KotlinxSerializerJsonSchemaInference =
             KotlinxSerializerJsonSchemaInference(EmptySerializersModule())
     }
+    private val kTypeLookup = mutableMapOf<String, KType>()
 
     override fun buildSchema(type: KType): JsonSchema {
+        includeKType(type)
+        val serializer = module.serializer(type)
         return buildSchemaFromDescriptor(
-            module.serializer(type).descriptor,
+            serializer.descriptor,
             // parameterized types cannot be referenced from their serial name
             includeTitle = type.arguments.isEmpty(),
-            visiting = mutableSetOf()
+            visiting = mutableSetOf(),
+            serializer = serializer,
         )
     }
+
+    private fun includeKType(type: KType) {
+        // use toString() because qualifiedName is unavailable in web
+        val qualifiedName = type.toString().substringBefore('<')
+        if (qualifiedName in kTypeLookup) return
+        kTypeLookup[qualifiedName] = type
+        for (typeArg in type.arguments) {
+            typeArg.type?.let(::includeKType)
+        }
+    }
+
+    private fun SerialDescriptor.isParameterized(): Boolean =
+        kTypeLookup[nonNullSerialName]?.arguments?.isNotEmpty() == true
 
     @OptIn(ExperimentalSerializationApi::class, InternalAPI::class)
     internal fun buildSchemaFromDescriptor(
         descriptor: SerialDescriptor,
-        includeTitle: Boolean = true,
+        includeTitle: Boolean = !descriptor.isParameterized(),
         includeAnnotations: List<Annotation> = emptyList(),
         visiting: MutableSet<String>,
+        serializer: KSerializer<*>? = null,
+        titleOverride: String? = null,
+        visitingNameOverride: String? = null,
     ): JsonSchema {
         val reflectJsonSchema: KClass<*>.() -> ReferenceOr<JsonSchema> = {
+            val serializer = module.serializer(this, emptyList(), false)
+            val componentName = subclassComponentName(serializer)
             Value(
-                module.serializer(this, emptyList(), false)
-                    .descriptor.buildJsonSchema(includeTitle, visiting = visiting)
+                buildSchemaFromDescriptor(
+                    descriptor = serializer.descriptor,
+                    includeTitle = includeTitle,
+                    visiting = visiting,
+                    serializer = serializer,
+                    titleOverride = componentName,
+                    visitingNameOverride = componentName,
+                )
             )
         }
         val annotations = includeAnnotations + descriptor.annotations
@@ -108,16 +140,20 @@ public class KotlinxSerializerJsonSchemaInference(
 
         // For inline descriptors, use the delegate descriptor
         if (descriptor.isInline) {
-            return descriptor.getElementDescriptor(0)
-                .buildJsonSchema(
-                    visiting = visiting,
-                    includeAnnotations = includeAnnotations
-                )
+            return buildSchemaFromDescriptor(
+                descriptor = descriptor.getElementDescriptor(0),
+                includeAnnotations = includeAnnotations,
+                visiting = visiting,
+                serializer = nestedSerializerAt(serializer, 0),
+                titleOverride = titleOverride,
+                visitingNameOverride = visitingNameOverride,
+            ).wrapIfNullable(isNullable)
         }
 
         return when (descriptor.kind) {
             StructureKind.CLASS, StructureKind.OBJECT -> {
-                visiting += descriptor.nonNullSerialName
+                val visitingName = visitingNameOverride ?: descriptor.nonNullSerialName
+                visiting += visitingName
 
                 val properties = mutableMapOf<String, ReferenceOr<JsonSchema>>()
                 val required = mutableListOf<String>()
@@ -125,7 +161,13 @@ public class KotlinxSerializerJsonSchemaInference(
                 for (i in 0 until descriptor.elementsCount) {
                     val name = descriptor.getElementName(i)
                     val elementDescriptor = descriptor.getElementDescriptor(i)
-                    val elementName = elementDescriptor.nonNullSerialName
+                    val childSerializer = nestedSerializerAt(serializer, i)
+                    val elementReferenceName = referenceNameForChild(
+                        parentDescriptor = descriptor,
+                        childDescriptor = elementDescriptor,
+                        parentReferenceName = visitingName,
+                        childSerializer = childSerializer,
+                    )
                     val annotations = descriptor.getElementAnnotations(i)
                     if (annotations.any { it is Ignore }) continue
 
@@ -133,57 +175,73 @@ public class KotlinxSerializerJsonSchemaInference(
                         required.add(name)
                     }
 
-                    try {
-                        // recursion guard
-                        properties[name] = if (!visiting.add(elementName)) {
-                            ReferenceOr.schema(elementName)
-                                .nonNullable(elementDescriptor.isNullable)
-                        } else {
-                            Value(
-                                elementDescriptor.buildJsonSchema(
-                                    includeAnnotations = descriptor.getElementAnnotations(i),
-                                    visiting = visiting,
-                                )
-                            )
-                        }
-                    } finally {
-                        visiting.remove(elementName)
-                    }
+                    properties[name] = buildSchemaOrReference(
+                        elementDescriptor,
+                        elementReferenceName,
+                        visiting,
+                        descriptor.getElementAnnotations(i),
+                        serializer = childSerializer,
+                    )
                 }
-                visiting.remove(descriptor.nonNullSerialName)
+                visiting -= visitingName
 
                 jsonSchemaFromAnnotations(
                     annotations = annotations,
                     reflectSchema = reflectJsonSchema,
                     type = JsonType.OBJECT,
-                    title = descriptor.nonNullSerialName.takeIf { includeTitle },
+                    title = titleOverride ?: descriptor.nonNullSerialName.takeIf { includeTitle },
                     properties = properties,
                     required = required.takeIf { it.isNotEmpty() },
-                ).nonNullable(isNullable)
+                ).wrapIfNullable(isNullable)
             }
 
             PolymorphicKind.SEALED -> {
                 if (descriptor.elementsCount == 2) {
-                    val discriminatorProperty = descriptor.getElementName(0)
+                    val discriminatorProperty = descriptor.annotations
+                        .filterIsInstance<JsonClassDiscriminator>()
+                        .firstOrNull()?.discriminator
+                        ?: descriptor.getElementName(0)
                     val sealedElementsDescriptor = descriptor.getElementDescriptor(1)
+                    val sealedSubclassComponentNames = sealedSubclassComponentNameMapping(serializer)
                     val sealedElementsSchema = (0..<sealedElementsDescriptor.elementsCount)
                         .map { i ->
-                            Value(
-                                buildSchemaFromDescriptor(
-                                    sealedElementsDescriptor.getElementDescriptor(i),
-                                    includeTitle = true,
-                                    visiting = visiting,
-                                )
+                            val subclassDescriptor = sealedElementsDescriptor.getElementDescriptor(i)
+                            val serialName = sealedElementsDescriptor.getElementName(i)
+                            val subclassSerializer = nestedSerializerAt(serializer, i)
+                            val componentName =
+                                subclassComponentName(subclassSerializer)
+                                    ?: sealedSubclassComponentNames[serialName]
+                                    ?: fallbackSealedSubclassComponentName(
+                                        descriptor = descriptor,
+                                        subclassDescriptor = subclassDescriptor,
+                                        serialName = serialName,
+                                    )
+                            buildSchemaOrReference(
+                                descriptor = subclassDescriptor,
+                                referenceName = componentName,
+                                visiting = visiting,
+                                annotations = sealedElementsDescriptor.getElementAnnotations(i),
+                                serializer = subclassSerializer,
+                                schemaTitleOverride = componentName,
                             )
                         }
                     val discriminatorMapping = (0..<sealedElementsDescriptor.elementsCount)
-                        .map(sealedElementsDescriptor::getElementName)
-                        .associateWith { fqName -> ReferenceOr.schema(fqName.substringAfterLast('.')).ref }
+                        .associate { i ->
+                            val serialName = sealedElementsDescriptor.getElementName(i)
+                            val componentName = subclassComponentName(nestedSerializerAt(serializer, i))
+                                ?: sealedSubclassComponentNames[serialName]
+                                ?: fallbackSealedSubclassComponentName(
+                                    descriptor = descriptor,
+                                    subclassDescriptor = sealedElementsDescriptor.getElementDescriptor(i),
+                                    serialName = serialName,
+                                )
+                            serialName to ReferenceOr.schema(componentName).ref
+                        }
 
                     jsonSchemaFromAnnotations(
                         annotations = annotations,
                         reflectSchema = reflectJsonSchema,
-                        type = JsonType.OBJECT.orNullable(isNullable),
+                        type = JsonType.OBJECT.wrapIfNullable(isNullable),
                         title = descriptor.serialName.takeIf { includeTitle },
                         oneOf = sealedElementsSchema,
                         discriminator = JsonSchemaDiscriminator(discriminatorProperty, discriminatorMapping),
@@ -192,33 +250,57 @@ public class KotlinxSerializerJsonSchemaInference(
                     jsonSchemaFromAnnotations(
                         annotations = annotations,
                         reflectSchema = reflectJsonSchema,
-                        type = JsonType.OBJECT.orNullable(isNullable),
+                        type = JsonType.OBJECT.wrapIfNullable(isNullable),
                         title = descriptor.serialName.takeIf { includeTitle },
                     )
                 }
             }
 
             StructureKind.LIST -> {
+                val itemDescriptor = descriptor.getElementDescriptor(0)
+                val itemSchema = buildSchemaOrReference(
+                    descriptor = itemDescriptor,
+                    referenceName = referenceNameForChild(
+                        parentDescriptor = descriptor,
+                        childDescriptor = itemDescriptor,
+                        parentReferenceName = visitingNameOverride ?: descriptor.nonNullSerialName,
+                        childSerializer = nestedSerializerAt(serializer, 0),
+                    ),
+                    visiting = visiting,
+                    serializer = nestedSerializerAt(serializer, 0),
+                )
                 jsonSchemaFromAnnotations(
                     annotations = annotations,
                     reflectSchema = reflectJsonSchema,
-                    type = JsonType.ARRAY.orNullable(isNullable),
-                    items = Value(descriptor.getElementDescriptor(0).buildJsonSchema(visiting = visiting)),
+                    type = JsonType.ARRAY.wrapIfNullable(isNullable),
+                    items = itemSchema,
                 )
             }
 
             StructureKind.MAP -> {
+                val additionalProps = if (descriptor.elementsCount > 1) {
+                    val valueDescriptor = descriptor.getElementDescriptor(1)
+                    PSchema(
+                        buildSchemaOrReference(
+                            descriptor = valueDescriptor,
+                            referenceName = referenceNameForChild(
+                                parentDescriptor = descriptor,
+                                childDescriptor = valueDescriptor,
+                                parentReferenceName = visitingNameOverride ?: descriptor.nonNullSerialName,
+                                childSerializer = nestedSerializerAt(serializer, 1),
+                            ),
+                            visiting = visiting,
+                            serializer = nestedSerializerAt(serializer, 1),
+                        )
+                    )
+                } else {
+                    Allowed(true)
+                }
                 jsonSchemaFromAnnotations(
                     annotations = annotations,
                     reflectSchema = reflectJsonSchema,
-                    type = JsonType.OBJECT.orNullable(isNullable),
-                    additionalProperties = if (descriptor.elementsCount > 1) {
-                        PSchema(
-                            Value(descriptor.getElementDescriptor(1).buildJsonSchema(visiting = visiting))
-                        )
-                    } else {
-                        Allowed(true)
-                    },
+                    type = JsonType.OBJECT.wrapIfNullable(isNullable),
+                    additionalProperties = additionalProps,
                 )
             }
 
@@ -227,7 +309,7 @@ public class KotlinxSerializerJsonSchemaInference(
                 jsonSchemaFromAnnotations(
                     annotations = annotations,
                     reflectSchema = reflectJsonSchema,
-                    type = JsonType.STRING.orNullable(isNullable),
+                    type = JsonType.STRING.wrapIfNullable(isNullable),
                     format = descriptor.takeIf { it.nonNullSerialName != "kotlin.String" }?.let(formats)
                 )
 
@@ -235,41 +317,129 @@ public class KotlinxSerializerJsonSchemaInference(
                 jsonSchemaFromAnnotations(
                     annotations = annotations,
                     reflectSchema = reflectJsonSchema,
-                    type = JsonType.BOOLEAN.orNullable(isNullable),
+                    type = JsonType.BOOLEAN.wrapIfNullable(isNullable),
                 )
 
             PrimitiveKind.BYTE, PrimitiveKind.SHORT, PrimitiveKind.INT, PrimitiveKind.LONG ->
                 jsonSchemaFromAnnotations(
                     annotations = annotations,
                     reflectSchema = reflectJsonSchema,
-                    type = JsonType.INTEGER.orNullable(isNullable),
+                    type = JsonType.INTEGER.wrapIfNullable(isNullable),
                 )
 
             PrimitiveKind.FLOAT, PrimitiveKind.DOUBLE ->
                 jsonSchemaFromAnnotations(
                     annotations = annotations,
                     reflectSchema = reflectJsonSchema,
-                    type = JsonType.NUMBER.orNullable(isNullable),
+                    type = JsonType.NUMBER.wrapIfNullable(isNullable),
                 )
 
             SerialKind.ENUM -> {
                 jsonSchemaFromAnnotations(
                     annotations = annotations,
                     reflectSchema = reflectJsonSchema,
-                    type = JsonType.STRING.orNullable(isNullable),
+                    type = JsonType.STRING.wrapIfNullable(isNullable),
                     enum = List(descriptor.elementsCount) { i -> GenericElement<String>(descriptor.getElementName(i)) },
                 )
             }
 
-            PolymorphicKind.OPEN,
             SerialKind.CONTEXTUAL -> {
-                // For contextual serializers, we need to get the actual serializer from the context
+                // For contextual serializers, resolve the actual serializer from the module
+                // (if registered) and recurse into its descriptor so the schema reflects the
+                // concrete representation chosen by the caller.
+                val contextualDescriptor = descriptor.capturedKClass
+                    ?.let { kClass -> module.getContextual(kClass)?.descriptor }
+                if (contextualDescriptor != null) {
+                    buildSchemaFromDescriptor(
+                        descriptor = contextualDescriptor,
+                        includeTitle = includeTitle,
+                        includeAnnotations = includeAnnotations,
+                        visiting = visiting,
+                    ).wrapIfNullable(isNullable)
+                } else {
+                    jsonSchemaFromAnnotations(
+                        annotations = annotations,
+                        reflectSchema = reflectJsonSchema,
+                        type = JsonType.OBJECT.wrapIfNullable(isNullable),
+                    )
+                }
+            }
+
+            PolymorphicKind.OPEN -> {
                 jsonSchemaFromAnnotations(
                     annotations = annotations,
                     reflectSchema = reflectJsonSchema,
-                    type = JsonType.OBJECT.orNullable(isNullable),
+                    type = JsonType.OBJECT.wrapIfNullable(isNullable),
                 )
             }
+        }
+    }
+
+    /**
+     * Generally builds a schema for the given type, unless it is already being processed, in which case a reference is
+     * returned, so that we do not overflow the stack.
+     */
+    @OptIn(InternalAPI::class)
+    private fun buildSchemaOrReference(
+        descriptor: SerialDescriptor,
+        referenceName: String,
+        visiting: MutableSet<String>,
+        annotations: List<Annotation> = emptyList(),
+        serializer: KSerializer<*>? = null,
+        schemaTitleOverride: String? = null,
+    ): ReferenceOr<JsonSchema> =
+        if (!descriptor.isContainerType() && !visiting.add(referenceName)) {
+            ReferenceOr.schema(referenceName)
+                .wrapIfNullable(descriptor.isNullable)
+        } else {
+            try {
+                Value(
+                    buildSchemaFromDescriptor(
+                        descriptor = descriptor,
+                        includeAnnotations = annotations,
+                        visiting = visiting,
+                        serializer = serializer,
+                        titleOverride = schemaTitleOverride,
+                        visitingNameOverride = referenceName,
+                    )
+                )
+            } finally {
+                visiting.remove(referenceName)
+            }
+        }
+
+    private fun SerialDescriptor.isContainerType() =
+        kind == StructureKind.LIST || kind == StructureKind.MAP
+
+    private fun recursiveReferenceName(
+        parentDescriptor: SerialDescriptor,
+        childDescriptor: SerialDescriptor,
+        parentReferenceName: String,
+    ): String? = parentReferenceName.takeIf { parentDescriptor.nonNullSerialName == childDescriptor.nonNullSerialName }
+
+    private fun referenceNameForChild(
+        parentDescriptor: SerialDescriptor,
+        childDescriptor: SerialDescriptor,
+        parentReferenceName: String,
+        childSerializer: KSerializer<*>? = null,
+    ): String = subclassComponentName(childSerializer)
+        ?: recursiveReferenceName(
+            parentDescriptor = parentDescriptor,
+            childDescriptor = childDescriptor,
+            parentReferenceName = parentReferenceName,
+        )
+        ?: childDescriptor.nonNullSerialName
+
+    private fun fallbackSealedSubclassComponentName(
+        descriptor: SerialDescriptor,
+        subclassDescriptor: SerialDescriptor,
+        serialName: String,
+    ): String {
+        val subclassName = subclassDescriptor.nonNullSerialName
+        return if (subclassName == serialName) {
+            "${descriptor.nonNullSerialName}.$serialName"
+        } else {
+            subclassName
         }
     }
 }
@@ -308,13 +478,13 @@ public fun SerialDescriptor.buildJsonSchema(
 private val SerialDescriptor.nonNullSerialName get() = serialName.trimEnd('?')
 
 @InternalAPI
-public fun ReferenceOr<JsonSchema>.nonNullable(isNullable: Boolean): ReferenceOr<JsonSchema> =
+public fun ReferenceOr<JsonSchema>.wrapIfNullable(isNullable: Boolean): ReferenceOr<JsonSchema> =
     if (isNullable) {
         Value(
             JsonSchema(
                 oneOf = listOf(
                     this,
-                    Value(JsonSchema(type = JsonType.NULL),)
+                    Value(JsonSchema(type = JsonType.NULL))
                 )
             )
         )
@@ -323,20 +493,30 @@ public fun ReferenceOr<JsonSchema>.nonNullable(isNullable: Boolean): ReferenceOr
     }
 
 @InternalAPI
-public fun JsonSchema.nonNullable(isNullable: Boolean): JsonSchema =
-    if (isNullable) {
-        JsonSchema(
-            oneOf = listOf(
-                Value(this),
-                Value(JsonSchema(type = JsonType.NULL),)
-            )
-        )
-    } else {
+public fun JsonSchema.wrapIfNullable(isNullable: Boolean): JsonSchema =
+    if (!isNullable) {
         this
+    } else {
+        when (val schemaType = type) {
+            is JsonType -> copy(type = schemaType.wrapIfNullable(true))
+
+            is SchemaType.AnyOf -> if (JsonType.NULL in schemaType.types) {
+                this
+            } else {
+                copy(type = SchemaType.AnyOf(schemaType.types + JsonType.NULL))
+            }
+
+            null -> JsonSchema(
+                oneOf = listOf(
+                    Value(this),
+                    Value(JsonSchema(type = JsonType.NULL))
+                )
+            )
+        }
     }
 
 @InternalAPI
-public fun JsonType.orNullable(isNullable: Boolean): SchemaType =
+public fun JsonType.wrapIfNullable(isNullable: Boolean): SchemaType =
     if (isNullable) SchemaType.AnyOf(listOf(this, JsonType.NULL)) else this
 
 /**
@@ -407,7 +587,7 @@ public fun jsonSchemaFromAnnotations(
             JsonSchemaDiscriminator(
                 annotation.property,
                 annotation.mapping.associate {
-                    it.key to "#/components/schemas/${it.ref.simpleName}"
+                    it.key to "#/components/schemas/${typeName(it)}"
                 }
             )
         } ?: discriminator,
@@ -447,6 +627,11 @@ public fun jsonSchemaFromAnnotations(
             ?.takeIf { it.isNotEmpty() }?.takeIf { it.size > 1 },
     )
 }
+
+internal expect fun typeName(mapping: Discriminator.Mapping): String?
+internal expect fun sealedSubclassComponentNameMapping(serializer: KSerializer<*>?): Map<String, String>
+internal expect fun nestedSerializerAt(serializer: KSerializer<*>?, index: Int): KSerializer<*>?
+internal expect fun subclassComponentName(serializer: KSerializer<*>?): String?
 
 private inline fun <reified T : Annotation> List<Annotation>.firstInstanceOf(): T? =
     filterIsInstance<T>().firstOrNull()

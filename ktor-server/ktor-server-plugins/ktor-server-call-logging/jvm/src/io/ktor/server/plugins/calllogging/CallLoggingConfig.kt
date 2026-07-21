@@ -122,6 +122,7 @@ public class CallLoggingConfig {
                 "${call.request.toLogStringWithColors()} -> ${call.response.headers[HttpHeaders.Location]}"
 
             "Unhandled" -> "${colored(status, Ansi.Color.RED)}: ${call.request.toLogStringWithColors()}"
+
             else -> "${colored(status as HttpStatusCode)}: ${call.request.toLogStringWithColors()}"
         }
 
@@ -129,14 +130,6 @@ public class CallLoggingConfig {
         "${colored(httpMethod.value, Ansi.Color.CYAN)} - ${path()} in ${call.processingTimeMillis(clock)}ms"
 
     private fun colored(status: HttpStatusCode): String {
-        try {
-            if (isColorsEnabled && !AnsiConsole.isInstalled()) {
-                AnsiConsole.systemInstall()
-            }
-        } catch (cause: Throwable) {
-            isColorsEnabled = false // ignore colors if console was not installed
-        }
-
         return when (status) {
             HttpStatusCode.Found, HttpStatusCode.OK, HttpStatusCode.Accepted, HttpStatusCode.Created -> colored(
                 status,

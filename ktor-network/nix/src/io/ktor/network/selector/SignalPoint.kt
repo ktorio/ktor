@@ -75,7 +75,12 @@ internal class SignalPoint : Closeable {
             closed = true
 
             close(writeDescriptor)
-            readFromPipe()
+            try {
+                readFromPipe()
+            } catch (_: Exception) {
+                // Ignore errors during pipe teardown — the descriptor may have been
+                // externally closed and reassigned by the OS.
+            }
             close(readDescriptor)
         }
     }

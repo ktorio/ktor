@@ -567,6 +567,73 @@ class EmbeddedServerReloadingTests {
     }
 
     @Test
+    fun `auto-reload is disabled when classloader is not a URLClassLoader`() {
+        // Simulate a fat-JAR launcher classloader (e.g. Spring Boot LaunchedClassLoader),
+        // which is NOT a URLClassLoader. Using OverridingClassLoader in this case causes
+        // LinkageError / ClassCastException because it can't handle the custom URL scheme.
+        val realLoader = Thread.currentThread().contextClassLoader
+        val fatJarSimulator = object : ClassLoader(realLoader) {
+            override fun toString() = "FatJarSimulatorClassLoader"
+        }
+
+        var capturedClassLoader: ClassLoader? = null
+        val environment = applicationEnvironment {
+            classLoader = fatJarSimulator
+            config = HoconApplicationConfig(
+                ConfigFactory.parseMap(mapOf("ktor.deployment.watch" to listOf("ktor-server-core")))
+            )
+        }
+        val props = serverConfig(environment) {
+            developmentMode = true
+            module { capturedClassLoader = Thread.currentThread().contextClassLoader }
+        }
+        val server = EmbeddedServer(props, DummyEngineFactory)
+
+        server.start()
+        assertNotNull(server.application)
+
+        // When the base classloader is not a URLClassLoader, auto-reload must be disabled:
+        // the module must run under the original base classloader, not under OverridingClassLoader.
+        assertSame(
+            fatJarSimulator,
+            capturedClassLoader,
+            "Expected the original classloader. " +
+                "Auto-reload should be disabled for non-URLClassLoader environments (fat-JARs)."
+        )
+
+        server.stop()
+    }
+
+    @Test
+    fun `reload preserves previous application when module fails to load`() {
+        var moduleCallCount = 0
+        val props = serverConfig {
+            developmentMode = false
+            module {
+                val callIndex = moduleCallCount++
+                if (callIndex == 0) {
+                    attributes.put(TestKey, "first-load")
+                } else {
+                    error("Simulated reload failure on call #$callIndex")
+                }
+            }
+        }
+        val server = EmbeddedServer(props, DummyEngineFactory)
+
+        server.start()
+        val initialApp = server.application
+        assertEquals("first-load", initialApp.attributes[TestKey])
+
+        assertFailsWith<IllegalStateException> { server.reload() }
+        assertEquals(2, moduleCallCount)
+
+        val appAfterFailedReload = server.application
+        assertEquals("first-load", appAfterFailedReload.attributes[TestKey])
+
+        server.stop()
+    }
+
+    @Test
     fun `application is available before environment start`() {
         val env = dummyEnv()
         val props = serverConfig(env)

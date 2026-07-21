@@ -12,8 +12,8 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import io.ktor.test.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -175,5 +175,11 @@ class RequestBodyLimitTest {
             .applyLimit(10)
             .readLine()
         assertNull(actual)
+    }
+
+    @Test
+    fun channelApplyLimitClosedSourceIsImmediatelyClosed() = runTest {
+        val limited = ByteReadChannel.Empty.applyLimit(10)
+        assertEquals(true, limited.isClosedForRead)
     }
 }

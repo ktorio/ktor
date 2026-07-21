@@ -19,7 +19,8 @@ import platform.posix.size_t
 @OptIn(InternalAPI::class, ExperimentalForeignApi::class)
 internal class CurlWebSocketResponseBody(
     internal val easyHandle: EasyHandle,
-    incomingFramesConfig: ChannelConfig
+    incomingFramesConfig: ChannelConfig,
+    var maxFrameSize: Long,
 ) : CurlResponseBodyData {
 
     private val closed = atomic(false)
@@ -32,6 +33,11 @@ internal class CurlWebSocketResponseBody(
 
     val incoming: ReceiveChannel<Frame>
         get() = _incoming
+
+    /**
+     * Exception that occurred during frame processing, to be propagated when closing the channel.
+     */
+    private var pendingException: Throwable? = null
 
     /**
      * Buffer for collecting WebSocket frame data that libcurl splits across multiple write callbacks
@@ -69,6 +75,13 @@ internal class CurlWebSocketResponseBody(
         val offset = meta.offset
         val bytesLeft = meta.bytesleft
 
+        val totalFrameSize = offset + chunk.size + bytesLeft
+        if (totalFrameSize > maxFrameSize) {
+            frameDataBuffer = null
+            pendingException = FrameTooBigException(totalFrameSize)
+            return false
+        }
+
         // Fast path: complete frame in a single chunk
         if (offset == 0L && bytesLeft == 0L) {
             return handleIncomingFrame(dataFrame(chunk, flags))
@@ -99,7 +112,8 @@ internal class CurlWebSocketResponseBody(
     override fun close(cause: Throwable?) {
         if (!closed.compareAndSet(expect = false, update = true)) return
         frameDataBuffer = null
-        _incoming.close()
+        val actualCause = pendingException ?: cause
+        _incoming.close(actualCause)
     }
 }
 

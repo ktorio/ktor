@@ -4,10 +4,12 @@
 
 package io.ktor.test.dispatcher
 
-import kotlinx.coroutines.*
-import kotlinx.coroutines.test.*
-import kotlin.coroutines.*
-import kotlin.time.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.test.TestResult
+import kotlinx.coroutines.test.runTest
+import kotlin.coroutines.CoroutineContext
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 /**
  * Test runner for js suspend tests.

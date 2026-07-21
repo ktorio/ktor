@@ -5,6 +5,7 @@
 package io.ktor.network.sockets.tests
 
 import io.ktor.network.selector.*
+import io.ktor.test.*
 import io.ktor.test.dispatcher.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.test.TestResult
@@ -12,12 +13,11 @@ import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.files.SystemTemporaryDirectory
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.minutes
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
 internal fun testSockets(
-    timeout: Duration = 1.minutes,
+    timeout: Duration = DEFAULT_TEST_TIMEOUT,
     block: suspend CoroutineScope.(SelectorManager) -> Unit
 ): TestResult = runTestWithRealTime(timeout = timeout) {
     SelectorManager().use { selector ->
@@ -37,3 +37,5 @@ internal fun removeFile(path: String) {
 }
 
 internal expect fun initSocketsIfNeeded()
+
+internal expect fun isJvmWindows(): Boolean

@@ -7,11 +7,14 @@
 package io.ktor.tests.html
 
 import io.ktor.http.*
-import io.ktor.server.html.HtmlContent
+import io.ktor.server.html.*
+import io.ktor.test.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.test.*
-import kotlinx.html.*
-import kotlin.test.*
+import kotlinx.html.body
+import kotlinx.html.p
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class HtmlContentTest {
 

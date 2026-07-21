@@ -107,5 +107,5 @@ class ParserTest {
     }
 
     private fun String.trimHex() = replace("\\s+".toRegex(), "").replace("0x", "")
-    private fun bufferOf(hex: String) = ByteBuffer.wrap(hex(hex.trimHex()))
+    private fun bufferOf(hex: String) = ByteBuffer.wrap(hex.trimHex().hexToByteArray())
 }

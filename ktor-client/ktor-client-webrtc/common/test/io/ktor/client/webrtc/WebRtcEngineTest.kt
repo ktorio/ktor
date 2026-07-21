@@ -15,9 +15,8 @@ import kotlinx.coroutines.test.TestResult
 import kotlin.coroutines.CoroutineContext
 import kotlin.test.*
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
-@IgnoreJvm
-@IgnoreDesktop
 @OptIn(ExperimentalKtorApi::class)
 class WebRtcEngineTest {
 
@@ -25,10 +24,10 @@ class WebRtcEngineTest {
 
     private fun testConnection(
         realtime: Boolean = false,
-        block: suspend CoroutineScope.(WebRtcPeerConnection, MutableList<Job>) -> Unit
+        block: suspend BackgroundTasksScope.(WebRtcPeerConnection) -> Unit
     ): TestResult {
-        return runTestWithPermissions(audio = true, video = true, realtime) { jobs ->
-            client.createPeerConnection().use { block(it, jobs) }
+        return runTestWithPermissions(audio = true, video = true, realtime) {
+            client.createPeerConnection().use { block(it) }
         }
     }
 
@@ -43,12 +42,12 @@ class WebRtcEngineTest {
     }
 
     @Test
-    fun testCreatePeerConnection() = testConnection { peerConnection, _ ->
+    fun testCreatePeerConnection() = testConnection { peerConnection ->
         assertNotNull(peerConnection, "Peer connection should be created successfully")
     }
 
     @Test
-    fun testCreateOffer() = testConnection { peerConnection, _ ->
+    fun testCreateOffer() = testConnection { peerConnection ->
         val offer = peerConnection.createOffer()
 
         assertNotNull(offer, "Offer should be created successfully")
@@ -58,7 +57,7 @@ class WebRtcEngineTest {
     }
 
     @Test
-    fun testCreateAnswer() = testConnection(realtime = true) { offerPeerConnection, _ ->
+    fun testCreateAnswer() = testConnection(realtime = true) { offerPeerConnection ->
         client.createPeerConnection().use { answerPeerConnection ->
             // Create and set offer
             val offer = offerPeerConnection.createOffer()
@@ -78,8 +77,8 @@ class WebRtcEngineTest {
     }
 
     @Test
-    fun testIceCandidateCollection() = testConnection(realtime = true) { peerConnection, jobs ->
-        val receivedCandidates = peerConnection.iceCandidates.collectToChannel(this, jobs)
+    fun testIceCandidateCollection() = testConnection(realtime = true) { peerConnection ->
+        val receivedCandidates = peerConnection.iceCandidates.collectToChannel()
 
         client.createAudioTrack().use { audioTrack ->
             peerConnection.addTrack(audioTrack)
@@ -88,33 +87,33 @@ class WebRtcEngineTest {
             val offer = peerConnection.createOffer()
             peerConnection.setLocalDescription(offer)
 
-            withTimeout(5000) {
+            withTimeout(5.seconds) {
                 receivedCandidates.receive()
             }
         }
     }
 
     @Test
-    fun testEstablishPeerConnection() = testConnection(realtime = true) { pc1, jobs ->
+    fun testEstablishPeerConnection() = testConnection(realtime = true) { pc1 ->
         client.createPeerConnection().use { pc2 ->
 
             val cnt = atomic(0)
             val negotiationNeededCnt = Channel<Int>(Channel.CONFLATED)
             launch {
                 pc1.negotiationNeeded.collect { negotiationNeededCnt.send(cnt.incrementAndGet()) }
-            }.also { jobs.add(it) }
+            }
             launch {
                 pc2.negotiationNeeded.collect { negotiationNeededCnt.send(cnt.incrementAndGet()) }
-            }.also { jobs.add(it) }
+            }
 
-            val iceConnectionState1 = pc1.iceConnectionState.collectToChannel(this, jobs)
-            val iceConnectionState2 = pc2.iceConnectionState.collectToChannel(this, jobs)
-            val iceGatheringState1 = pc1.iceGatheringState.collectToChannel(this, jobs)
-            val iceGatheringState2 = pc2.iceGatheringState.collectToChannel(this, jobs)
-            val signalingState1 = pc1.signalingState.collectToChannel(this, jobs)
-            val signalingState2 = pc2.signalingState.collectToChannel(this, jobs)
-            val connectionState1 = pc1.state.collectToChannel(this, jobs)
-            val connectionState2 = pc2.state.collectToChannel(this, jobs)
+            val iceConnectionState1 = pc1.iceConnectionState.collectToChannel()
+            val iceConnectionState2 = pc2.iceConnectionState.collectToChannel()
+            val iceGatheringState1 = pc1.iceGatheringState.collectToChannel()
+            val iceGatheringState2 = pc2.iceGatheringState.collectToChannel()
+            val signalingState1 = pc1.signalingState.collectToChannel()
+            val signalingState2 = pc2.signalingState.collectToChannel()
+            val connectionState1 = pc1.state.collectToChannel()
+            val connectionState2 = pc2.state.collectToChannel()
 
             assertEquals(WebRtc.IceConnectionState.NEW, iceConnectionState1.receive())
             assertEquals(WebRtc.IceConnectionState.NEW, iceConnectionState2.receive())
@@ -125,7 +124,7 @@ class WebRtcEngineTest {
             assertEquals(WebRtc.ConnectionState.NEW, connectionState1.receive())
             assertEquals(WebRtc.ConnectionState.NEW, connectionState2.receive())
 
-            setupIceExchange(pc1, pc2, jobs)
+            setupIceExchange(pc1, pc2)
 
             // Add audio tracks for both connections
             pc1.addTrack(client.createAudioTrack())
@@ -141,7 +140,7 @@ class WebRtcEngineTest {
                     pc1.iceGatheringState.value == WebRtc.IceGatheringState.COMPLETE &&
                     pc2.iceGatheringState.value == WebRtc.IceGatheringState.COMPLETE
 
-            withTimeout(5000) {
+            withTimeout(5.seconds) {
                 // Exchange ICE candidates
                 while (!connectionEstablished()) {
                     select {
@@ -162,14 +161,14 @@ class WebRtcEngineTest {
             assertEquals(2, negotiationNeededCnt.receive())
             pc1.restartIce()
 
-            withTimeout(5000) {
+            withTimeout(5.seconds) {
                 negotiationNeededCnt.receive()
             }
         }
     }
 
     @Test
-    fun testInvalidIceCandidate() = testConnection { pc, _ ->
+    fun testInvalidIceCandidate() = testConnection { pc ->
         assertFailsWith<WebRtc.IceException> {
             val invalidCandidate = WebRtc.IceCandidate(
                 candidate = "invalid candidate string",
@@ -181,7 +180,7 @@ class WebRtcEngineTest {
     }
 
     @Test
-    fun testInvalidDescription() = testConnection { pc, _ ->
+    fun testInvalidDescription() = testConnection { pc ->
         assertFailsWith<WebRtc.SdpException> {
             val remote = WebRtc.SessionDescription(WebRtc.SessionDescriptionType.OFFER, "invalid description")
             pc.setRemoteDescription(remote)
@@ -195,14 +194,14 @@ class WebRtcEngineTest {
     }
 
     @Test
-    fun testStatsCollection() = testConnection(realtime = true) { peerConnection, jobs ->
+    fun testStatsCollection() = testConnection(realtime = true) { peerConnection ->
         client.createAudioTrack().use { audioTrack ->
             peerConnection.addTrack(audioTrack)
 
-            val stats = peerConnection.stats.collectToChannel(this, jobs)
+            val stats = peerConnection.stats.collectToChannel()
             assertNull(stats.tryReceive().getOrNull())
 
-            withTimeout(5000) {
+            withTimeout(5.seconds) {
                 val firstStats = stats.receive()
                 assertEquals(emptyList(), firstStats)
 
@@ -229,9 +228,8 @@ class WebRtcEngineTest {
             statsRefreshRate = delay.milliseconds
             exceptionHandler = CoroutineExceptionHandler { _, e -> throw e }
         }
-        val jobs = mutableListOf<Job>()
-        try {
-            val stats1 = connection1.stats.collectToChannel(scope = this, jobs)
+        withBackgroundTasks {
+            val stats1 = connection1.stats.collectToChannel()
             delay(duration = (delay * 1.5).milliseconds)
             stats1.assertOnlyOneReceived()
             client.close()
@@ -239,8 +237,6 @@ class WebRtcEngineTest {
             delay(duration = (delay * 5).milliseconds)
             // ensure no more elements are emitted after close
             assertNull(stats1.tryReceive().getOrNull())
-        } finally {
-            jobs.forEach { it.cancel() }
         }
     }
 
@@ -253,10 +249,9 @@ class WebRtcEngineTest {
         }
         val connection1 = client.createPeerConnection(config)
         val connection2 = client.createPeerConnection(config)
-        val jobs = mutableListOf<Job>()
-        try {
-            val stats1 = connection1.stats.collectToChannel(scope = this, jobs)
-            val stats2 = connection2.stats.collectToChannel(scope = this, jobs)
+        withBackgroundTasks {
+            val stats1 = connection1.stats.collectToChannel()
+            val stats2 = connection2.stats.collectToChannel()
             delay(duration = (delay * 1.5).milliseconds)
 
             stats1.assertOnlyOneReceived()
@@ -268,9 +263,7 @@ class WebRtcEngineTest {
             // ensure no more elements are emitted after close
             assertNull(stats1.tryReceive().getOrNull())
             // connection2 should still receive stats
-            withTimeout(1000) { stats2.receive() }
-        } finally {
-            jobs.forEach { it.cancel() }
+            withTimeout(1.seconds) { stats2.receive() }
         }
     }
 
@@ -285,7 +278,9 @@ class WebRtcEngineTest {
 
         val mockEngine = object : MockWebRtcEngine() {
             override suspend fun createPeerConnection(config: WebRtcConnectionConfig): WebRtcPeerConnection =
-                TestConnection(createConnectionContext(config.exceptionHandler), config)
+                TestConnection(createConnectionContext(config.exceptionHandler), config).also {
+                    it.startFetchingStatistics()
+                }
         }
 
         val channel = Channel<Throwable>(Channel.CONFLATED)
@@ -297,9 +292,47 @@ class WebRtcEngineTest {
             }
 
             connection.use {
-                withTimeout(1000) {
+                withTimeout(1.seconds) {
                     val exception = channel.receive()
                     assertEquals("Ktor is awesome!", exception.message)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun testFetchingStatisticsStartedAfterCreation() = runTestWithRealTime {
+        class TestConnection(context: CoroutineContext, config: WebRtcConnectionConfig) :
+            MockWebRtcConnection(context, config) {
+
+            val calls = atomic(0)
+            val calledAtLeastOnce = CompletableDeferred<Unit>()
+
+            override suspend fun getStatistics(): List<WebRtc.Stats> {
+                if (calls.incrementAndGet() == 1) {
+                    calledAtLeastOnce.complete(Unit)
+                }
+                return emptyList()
+            }
+        }
+
+        val refreshRate = 5.milliseconds
+
+        object : MockWebRtcEngine() {
+            override suspend fun createPeerConnection(config: WebRtcConnectionConfig): WebRtcPeerConnection {
+                val context = createConnectionContext(config.exceptionHandler)
+                val connection = TestConnection(context, config)
+                delay(duration = refreshRate * 10)
+                assertEquals(0, connection.calls.value, "Constructor must not start the stats loop")
+                return connection.also { it.startFetchingStatistics() }
+            }
+        }.use { engine ->
+            engine.createPeerConnection {
+                statsRefreshRate = refreshRate
+            }.use { pc ->
+                assertIs<TestConnection>(pc)
+                withTimeout(1.seconds) {
+                    pc.calledAtLeastOnce.await()
                 }
             }
         }

@@ -1,0 +1,23 @@
+{
+    "openapi": "3.1.1",
+    "info": {
+        "title": "OpenAPI Document",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/summary": {
+            "get": {
+                "summary": "Try less common route functions.",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "text/plain": {}
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {}
+}

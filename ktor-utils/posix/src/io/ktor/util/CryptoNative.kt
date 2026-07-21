@@ -5,14 +5,22 @@
 package io.ktor.util
 
 /**
- * Generates a nonce string 32 characters long. Could block if the system's entropy source is empty
+ * Generates a nonce string [length] characters long. Could suspend if the system's entropy source is empty.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.generateNonce)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.generateNonceSuspend)
  */
-public actual fun generateNonce(): String {
-    val bytes = ByteArray(16)
+public actual suspend fun generateNonceSuspend(length: Int): String = generateNonceBlocking(length)
+
+/**
+ * Generates a nonce string [length] characters long. Could block if the system's entropy source is empty.
+ *
+ * [Report a
+ * problem](https://ktor.io/feedback/?fqname=io.ktor.util.generateNonceBlocking)
+ */
+public actual fun generateNonceBlocking(length: Int): String {
+    val bytes = ByteArray(length / 2 + 1)
     secureRandom(bytes)
-    return hex(bytes)
+    return bytes.toHexString().substring(0, length)
 }
 
 internal expect fun secureRandom(bytes: ByteArray)

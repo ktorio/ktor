@@ -71,24 +71,32 @@ public class GMTDateParser(private val pattern: String) {
         SECONDS -> {
             seconds = chunk.toInt()
         }
+
         MINUTES -> {
             minutes = chunk.toInt()
         }
+
         HOURS -> {
             hours = chunk.toInt()
         }
+
         DAY_OF_MONTH -> {
             dayOfMonth = chunk.toInt()
         }
+
         MONTH -> {
             month = Month.from(chunk)
         }
+
         YEAR -> {
             year = chunk.toInt()
         }
+
         ZONE ->
             check(chunk == "GMT")
+
         ANY -> Unit
+
         else -> {
             check(chunk.all { it == type })
         }
