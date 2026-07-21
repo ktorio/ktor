@@ -11,19 +11,25 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.test.base.*
 import io.ktor.http.*
-import io.ktor.util.date.GMTDate
-import io.ktor.utils.io.core.toByteArray
-import java.nio.file.Files
+import io.ktor.util.date.*
+import io.ktor.utils.io.core.*
+import kotlinx.io.files.FileSystem
+import kotlinx.io.files.Path
+import kotlinx.io.files.SystemFileSystem
+import kotlinx.io.files.SystemTemporaryDirectory
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 class FileCacheTest : ClientLoader() {
-    private val publicStorage = FileStorage(Files.createTempDirectory("cache-test-public").toFile())
-    private val privateStorage = FileStorage(Files.createTempDirectory("cache-test-private").toFile())
+    private val tmpDirPath = temporaryDirectoryPath()
+    private val publicStorage = FileStorage(SystemFileSystem, Path(tmpDirPath, "cache-test-public"))
+    private val privateStorage = FileStorage(SystemFileSystem, Path(tmpDirPath, "cache-test-private"))
 
     @Test
-    fun testVaryHeader() = clientTests(except("Js")) {
+    fun testVaryHeader() = clientTests {
         config {
             install(HttpCache) {
                 publicStorage(this@FileCacheTest.publicStorage)
@@ -81,7 +87,7 @@ class FileCacheTest : ClientLoader() {
     }
 
     @Test
-    fun testReuseCacheStorage() = clientTests(except("Js")) {
+    fun testReuseCacheStorage() = clientTests {
         config {
             install(HttpCache) {
                 publicStorage(this@FileCacheTest.publicStorage)
@@ -119,8 +125,8 @@ class FileCacheTest : ClientLoader() {
 
     @Test
     fun testSkipCacheIfException() = clientTests {
-        val file = Files.createTempDirectory("cache-test-public-deleted").toFile()
-        val publicStorage = FileStorage(file)
+        val path = Path(SystemTemporaryDirectory, "cache-test-public-deleted")
+        val publicStorage = FileStorage(SystemFileSystem, path)
         config {
             install(HttpCache) {
                 publicStorage(publicStorage)
@@ -130,7 +136,7 @@ class FileCacheTest : ClientLoader() {
             val first = client.get(Url("$TEST_SERVER/cache/public")).bodyAsText()
             assertEquals("public", first)
 
-            file.deleteRecursively()
+            SystemFileSystem.deleteRecursively(path)
 
             val second = client.get("$TEST_SERVER/cache/cache_${"a".repeat(3000)}")
             assertEquals("abc", second.bodyAsText())
@@ -139,8 +145,8 @@ class FileCacheTest : ClientLoader() {
 
     @Test
     fun testUpgradeOldCacheVersionWithCaseSensitiveVary() = clientTests {
-        val file = Files.createTempDirectory("cache-test-public-upgrade").toFile()
-        val publicStorage = FileStorage(file)
+        val path = Path(SystemTemporaryDirectory, "cache-test-public-upgrade")
+        val publicStorage = FileStorage(SystemFileSystem, path)
         config {
             install(HttpCache) {
                 publicStorage(publicStorage)
@@ -176,6 +182,24 @@ class FileCacheTest : ClientLoader() {
             }.bodyAsText()
 
             assertEquals("OK", response)
+        }
+    }
+
+    companion object {
+        @OptIn(ExperimentalUuidApi::class)
+        private fun temporaryDirectoryPath(): Path {
+            return Path(SystemTemporaryDirectory, Uuid.random().toString())
+        }
+
+        private fun FileSystem.deleteRecursively(directory: Path) {
+            for (subPath in list(directory)) {
+                if (metadataOrNull(subPath)?.isDirectory == true) {
+                    deleteRecursively(subPath)
+                } else {
+                    delete(subPath)
+                }
+            }
+            delete(directory)
         }
     }
 }
