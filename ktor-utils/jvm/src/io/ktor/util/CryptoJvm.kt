@@ -8,7 +8,7 @@
 
 package io.ktor.util
 
-import java.security.*
+import java.security.MessageDigest
 
 /**
  * Create a digest function with the specified [algorithm] and [salt] provider.
@@ -62,18 +62,15 @@ private value class DigestImpl(val delegate: MessageDigest) : Digest {
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.generateNonceSuspend)
  */
 public actual suspend fun generateNonceSuspend(length: Int): String {
-    ensureNonceGeneratorRunning()
-
-    val nonce = nonceChannel.receive()
-
-    if (nonce.length >= length) {
-        return nonce.substring(0, length)
+    val nonce = tryGenerateNonceFromChannel(length)
+    if (nonce is String) {
+        return nonce
     }
-
-    return if (length <= NONCE_SIZE_IN_CHARS) {
+    ensureNonceGeneratorRunning()
+    return if (nonce == null) {
         nonceChannel.receive().substring(0, length)
     } else {
-        generateNonceLong(nonce, length)
+        generateNonceLong(nonce as StringBuilder, length)
     }
 }
 
@@ -83,21 +80,46 @@ public actual suspend fun generateNonceSuspend(length: Int): String {
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.generateNonceBlocking)
  */
 public actual fun generateNonceBlocking(length: Int): String {
-    nonceChannel.tryReceive().getOrNull()?.let { nonce ->
-        if (nonce.length == length) return nonce
-        if (nonce.length > length) return nonce.substring(0, length)
+    val nonce = tryGenerateNonceFromChannel(length)
+    if (nonce is String) {
+        return nonce
     }
     ensureNonceGeneratorRunning()
-    return generateNonceSynchronously(length)
+    val acc = if (nonce == null) StringBuilder(length) else nonce as StringBuilder
+    return generateNonceSynchronously(acc, length)
 }
 
-private suspend fun generateNonceLong(initial: CharSequence?, length: Int) = buildString(length) {
-    if (initial != null) {
-        append(initial)
+/**
+ * Attempts to read a nonce from [nonceChannel] without blocking or suspending.
+ *
+ * The return type is [Any] to avoid wrapper allocations on the hot path when [length]
+ * equals [NONCE_SIZE_IN_CHARS] and the channel contains a prefetched nonce.
+ *
+ * Return value semantics:
+ * - [String] — a complete nonce of the requested [length]; callers may return it directly.
+ * - `null` — only when [length] equals [NONCE_SIZE_IN_CHARS] and the channel is empty.
+ * - [StringBuilder] — for non-default lengths, a partial accumulation when the channel was drained
+ *   before [length] characters were collected; may be empty if nothing was received.
+ */
+private fun tryGenerateNonceFromChannel(length: Int): Any? {
+    if (length == NONCE_SIZE_IN_CHARS) {
+        return nonceChannel.tryReceive().getOrNull()
     }
+    val builder = StringBuilder(length)
+    while (true) {
+        val nonce = nonceChannel.tryReceive().getOrNull()
+            ?: return builder
+        builder.append(nonce, 0, (length - builder.length).coerceAtMost(nonce.length))
+        if (builder.length == length) {
+            return builder.toString()
+        }
+    }
+}
 
-    while (length > this.length) {
+private suspend fun generateNonceLong(acc: StringBuilder, length: Int): String {
+    while (length > acc.length) {
         val toAppend = nonceChannel.receive()
-        append(toAppend, 0, (length - this.length).coerceAtMost(toAppend.length))
+        acc.append(toAppend, 0, (length - acc.length).coerceAtMost(toAppend.length))
     }
+    return acc.toString()
 }

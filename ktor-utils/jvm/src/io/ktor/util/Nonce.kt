@@ -8,6 +8,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
 import org.slf4j.*
 import java.security.*
+import java.util.concurrent.Executors
 import kotlin.random.*
 
 private val logger = LoggerFactory.getLogger("io.ktor.util.random")
@@ -36,10 +37,14 @@ internal val nonceChannel: Channel<String> = Channel(getSystemPropertyInt("nonce
 
 private val NonceGeneratorCoroutineName = CoroutineName("nonce-generator")
 
+private val nonceGeneratorDispatcher = Executors.newSingleThreadExecutor { runnable ->
+    Thread(runnable, "ktor-nonce-generator").apply { isDaemon = true }
+}.asCoroutineDispatcher()
+
 @OptIn(DelicateCoroutinesApi::class)
 @Suppress("CoroutineContextWithJob")
 private val nonceGeneratorJob = GlobalScope.launch(
-    context = Dispatchers.Default + NonCancellable + NonceGeneratorCoroutineName,
+    context = nonceGeneratorDispatcher + NonCancellable + NonceGeneratorCoroutineName,
     start = CoroutineStart.LAZY
 ) {
     val nonceChannel = nonceChannel
@@ -120,14 +125,15 @@ internal fun ensureNonceGeneratorRunning() {
     nonceGeneratorJob.start()
 }
 
-internal fun generateNonceSynchronously(length: Int): String = buildString(length) {
+internal fun generateNonceSynchronously(acc: StringBuilder, length: Int): String {
     val random = lookupSecureRandom()
     val bytes = ByteArray(NONCE_SIZE_IN_BYTES)
-    while (this.length < length) {
+    while (acc.length < length) {
         random.nextBytes(bytes)
         val hex = bytes.toHexString()
-        append(hex, 0, (length - this.length).coerceAtMost(hex.length))
+        acc.append(hex, 0, (length - acc.length).coerceAtMost(hex.length))
     }
+    return acc.toString()
 }
 
 private fun lookupSecureRandom(): SecureRandom {

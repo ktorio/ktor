@@ -120,7 +120,7 @@ public class DigestAuthProvider(
 
     private val qop = atomic<String?>(null)
     private val opaque = atomic<String?>(null)
-    private var clientNonce: String? = null
+    private val clientNonce = atomic<String?>(null)
 
     private val requestCounter = atomic(0)
 
@@ -166,6 +166,13 @@ public class DigestAuthProvider(
         return true
     }
 
+    private suspend inline fun getNonce(): String {
+        clientNonce.value?.let { return it }
+        val newNonce = generateNonceSuspend()
+        val prevNonce = clientNonce.getAndSet(newNonce)
+        return prevNonce ?: newNonce
+    }
+
     override suspend fun addRequestHeaders(request: HttpRequestBuilder, authHeader: HttpAuthHeader?) {
         val nonceCount = requestCounter.incrementAndGet().toString(radix = 16).padStart(length = 8, padChar = '0')
         val methodName = request.method.value.uppercase()
@@ -181,7 +188,7 @@ public class DigestAuthProvider(
         }
 
         val credentials = tokenHolder.loadToken() ?: return
-        val cnonce = clientNonce ?: generateNonceSuspend().also { clientNonce = it }
+        val cnonce = getNonce()
         val credential = makeDigest("${credentials.username}:$realm:${credentials.password}")
 
         val start = credential.toHexString()
