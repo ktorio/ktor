@@ -13,16 +13,18 @@ import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlinx.io.Sink
+import kotlinx.io.Source
 import kotlinx.io.buffered
 import kotlinx.io.files.FileSystem
 import kotlinx.io.files.Path
+import kotlinx.io.readLineStrict
+import kotlinx.io.writeString
 
 /**
  * Creates storage that uses file system to store cache data.
@@ -115,26 +117,19 @@ private class FileCacheStorage(
     }
 
     private suspend fun writeCacheUnsafe(urlHex: String, caches: List<CachedResponseData>) {
-        val channel = ByteChannel()
         try {
-            coroutineScope {
+            withContext(dispatcher) {
                 val path = Path(directoryPath, urlHex)
                 fileSystem.sink(path).buffered().use { output ->
-                    launch {
-                        channel.writeInt(caches.size)
-                        for (cache in caches) {
-                            writeCache(channel, cache)
-                        }
-                        channel.close()
+                    output.writeInt(caches.size)
+                    for (cache in caches) {
+                        writeCache(output, cache)
                     }
-                    channel.copyTo(output)
                 }
             }
         } catch (cause: Exception) {
             if (cause is CancellationException) currentCoroutineContext().ensureActive()
             LOGGER.trace { "Exception during saving a cache to a file: ${cause.stackTraceToString()}" }
-        } finally {
-            channel.close()
         }
     }
 
@@ -142,80 +137,69 @@ private class FileCacheStorage(
         val path = Path(directoryPath, urlHex)
         if (!fileSystem.exists(path)) return emptySet()
 
-        try {
-            fileSystem.source(path).buffered().use { input ->
-                val channel = input.toByteReadChannel(dispatcher)
-                val requestsCount = channel.readInt()
-                val caches = mutableSetOf<CachedResponseData>()
-                for (i in 0 until requestsCount) {
-                    caches.add(readCache(channel))
+        return try {
+            withContext(dispatcher) {
+                fileSystem.source(path).buffered().use { input ->
+                    val requestsCount = input.readInt()
+                    buildSet {
+                        repeat(requestsCount) { add(readCache(input)) }
+                    }
                 }
-                channel.discard()
-                return caches
             }
         } catch (cause: Exception) {
             LOGGER.trace { "Exception during cache lookup in a file: ${cause.stackTraceToString()}" }
-            return emptySet()
+            emptySet()
         }
     }
 
-    private suspend fun writeCache(channel: ByteChannel, cache: CachedResponseData) {
-        channel.writeStringUtf8(cache.url.toString() + "\n")
-        channel.writeInt(cache.statusCode.value)
-        channel.writeStringUtf8(cache.statusCode.description + "\n")
-        channel.writeStringUtf8(cache.version.toString() + "\n")
+    private fun writeCache(sink: Sink, cache: CachedResponseData) {
+        sink.writeString(cache.url.toString() + "\n")
+        sink.writeInt(cache.statusCode.value)
+        sink.writeString(cache.statusCode.description + "\n")
+        sink.writeString(cache.version.toString() + "\n")
         val headers = cache.headers.flattenEntries()
-        channel.writeInt(headers.size)
+        sink.writeInt(headers.size)
         for ((key, value) in headers) {
-            channel.writeStringUtf8(key + "\n")
-            channel.writeStringUtf8(value + "\n")
+            sink.writeString(key + "\n")
+            sink.writeString(value + "\n")
         }
-        channel.writeLong(cache.requestTime.timestamp)
-        channel.writeLong(cache.responseTime.timestamp)
-        channel.writeLong(cache.expires.timestamp)
-        channel.writeInt(cache.varyKeys.size)
+        sink.writeLong(cache.requestTime.timestamp)
+        sink.writeLong(cache.responseTime.timestamp)
+        sink.writeLong(cache.expires.timestamp)
+        sink.writeInt(cache.varyKeys.size)
         for ((key, value) in cache.varyKeys) {
-            channel.writeStringUtf8(key + "\n")
-            channel.writeStringUtf8(value + "\n")
+            sink.writeString(key + "\n")
+            sink.writeString(value + "\n")
         }
-        channel.writeInt(cache.body.size)
-        channel.writeFully(cache.body)
+        sink.writeInt(cache.body.size)
+        sink.writeFully(cache.body)
     }
 
-    /**
-     * Deserialize a single [CachedResponseData] from the provided [ByteReadChannel].
-     *
-     * Reads the cached-entry fields in the stored binary format: request URL, HTTP status and version,
-     * headers, request/response/expiration timestamps, vary keys (converted to lowercase), and the body bytes.
-     *
-     * @param channel Source channel positioned at the start of a serialized cache entry.
-     * @return The reconstructed [CachedResponseData] instance.
-     */
-    private suspend fun readCache(channel: ByteReadChannel): CachedResponseData {
-        val url = channel.readLineStrict()!!
-        val status = HttpStatusCode(channel.readInt(), channel.readLineStrict()!!)
-        val version = HttpProtocolVersion.parse(channel.readLineStrict()!!)
-        val headersCount = channel.readInt()
+    private fun readCache(source: Source): CachedResponseData {
+        val url = source.readLineStrict()
+        val status = HttpStatusCode(source.readInt(), source.readLineStrict())
+        val version = HttpProtocolVersion.parse(source.readLineStrict())
+        val headersCount = source.readInt()
         val headers = HeadersBuilder()
         repeat(headersCount) {
-            val key = channel.readLineStrict()!!
-            val value = channel.readLineStrict()!!
+            val key = source.readLineStrict()
+            val value = source.readLineStrict()
             headers.append(key, value)
         }
-        val requestTime = GMTDate(channel.readLong())
-        val responseTime = GMTDate(channel.readLong())
-        val expirationTime = GMTDate(channel.readLong())
-        val varyKeysCount = channel.readInt()
+        val requestTime = GMTDate(source.readLong())
+        val responseTime = GMTDate(source.readLong())
+        val expirationTime = GMTDate(source.readLong())
+        val varyKeysCount = source.readInt()
         val varyKeys = buildMap {
             repeat(varyKeysCount) {
-                val key = channel.readLineStrict()!!.lowercase()
-                val value = channel.readLineStrict()!!
+                val key = source.readLineStrict().lowercase()
+                val value = source.readLineStrict()
                 put(key, value)
             }
         }
-        val bodyCount = channel.readInt()
+        val bodyCount = source.readInt()
         val body = ByteArray(bodyCount)
-        channel.readFully(body)
+        source.readFully(body)
         return CachedResponseData(
             url = Url(url),
             statusCode = status,

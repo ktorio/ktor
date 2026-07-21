@@ -97,10 +97,10 @@ class FileStorageTest {
 
     private fun data(varyKeys: Map<String, String> = emptyMap()) = CachedResponseData(
         Url("http://example.com"),
-        HttpStatusCode.Companion.OK,
+        HttpStatusCode.OK,
         GMTDate(),
         GMTDate(),
-        HttpProtocolVersion.Companion.HTTP_1_1,
+        HttpProtocolVersion.HTTP_1_1,
         GMTDate(),
         headersOf(),
         varyKeys,
@@ -110,7 +110,7 @@ class FileStorageTest {
     companion object {
         @OptIn(ExperimentalUuidApi::class)
         private fun temporaryDirectoryPath(): Path {
-            return Path(SystemTemporaryDirectory, Uuid.Companion.random().toString())
+            return Path(SystemTemporaryDirectory, Uuid.random().toString())
         }
 
         private fun FileSystem.deleteRecursively(directory: Path) {
