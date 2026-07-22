@@ -7,6 +7,10 @@
 // - Show declarations: true
 
 // Library unique name: <io.ktor:ktor-utils>
+open annotation class io.ktor.util.annotations/InternalKtorSubclassing : kotlin/Annotation { // io.ktor.util.annotations/InternalKtorSubclassing|null[0]
+    constructor <init>() // io.ktor.util.annotations/InternalKtorSubclassing.<init>|<init>(){}[0]
+}
+
 final enum class io.ktor.util.date/Month : kotlin/Enum<io.ktor.util.date/Month> { // io.ktor.util.date/Month|null[0]
     enum entry APRIL // io.ktor.util.date/Month.APRIL|null[0]
     enum entry AUGUST // io.ktor.util.date/Month.AUGUST|null[0]

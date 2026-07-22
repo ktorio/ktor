@@ -13,6 +13,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 import io.ktor.server.util.*
+import io.ktor.util.annotations.InternalKtorSubclassing
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import kotlin.reflect.KClass
@@ -111,7 +112,11 @@ public abstract class OAuthFlowConfigBase internal constructor() {
             config.settings = settings
             config.providerLookup = providerLookup?.let { lookup -> { toRoutingContext().lookup() } }
             config.urlProvider = { url { encodedPath = callbackPath } }
-            config.fallback = { cause -> toRoutingContext().onUnauthorized(cause) }
+            config.fallback = { cause ->
+                with(onUnauthorized) {
+                    toRoutingContext().onUnauthorized(cause)
+                }
+            }
         }.build()
     }
 }
@@ -292,7 +297,7 @@ public typealias OAuthScheme = SimpleAuthenticationScheme<OAuthAccessTokenRespon
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.OAuthFlow)
  */
 @ExperimentalKtorApi
-@SubclassOptInRequired
+@SubclassOptInRequired(InternalKtorSubclassing::class)
 public open class OAuth2Flow internal constructor(
     public val name: String,
     internal val oauthScheme: OAuthScheme,
@@ -577,12 +582,18 @@ public fun <S : Any, P : Any> Route.install(oauth: OAuth2SessionFlow<S, P>) {
             val token = call.attributes[oauth.oauthScheme.principalKey]
             val session = oauth.sessionCreator(this, token) ?: run {
                 val error = AuthenticationFailedCause.Error("Failed to create OAuth session")
-                return@callback callback.failureHandler(this, error)
+                with(callback.failureHandler) {
+                    onUnauthorized(error)
+                }
+                return@callback
             }
 
             val principal = oauth.principalResolver(this, session) ?: run {
                 val error = AuthenticationFailedCause.Error("Failed to create OAuth principal")
-                return@callback callback.failureHandler(this, error)
+                with(callback.failureHandler) {
+                    onUnauthorized(error)
+                }
+                return@callback
             }
             val sessionsScheme = oauth.session
             sessionsScheme.setSession(session)
@@ -595,10 +606,9 @@ public fun <S : Any, P : Any> Route.install(oauth: OAuth2SessionFlow<S, P>) {
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            callback.failureHandler(
-                this@callback,
-                AuthenticationFailedCause.Error(e.message ?: "Failed to create OAuth principal")
-            )
+            with(callback.failureHandler) {
+                onUnauthorized(AuthenticationFailedCause.Error(e.message ?: "Failed to create OAuth principal"))
+            }
             return@callback
         }
     }

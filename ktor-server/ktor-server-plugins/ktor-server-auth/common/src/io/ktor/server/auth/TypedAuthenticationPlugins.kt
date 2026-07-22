@@ -77,7 +77,9 @@ internal fun <P : Any> AuthenticationScheme<P, *>.createPlugin(
         provider.logAuthenticationFailed(call)
         val unauthorizedHandler = onUnauthorized ?: this@createPlugin.onUnauthorized
         if (unauthorizedHandler != null) {
-            unauthorizedHandler(call.toRoutingContext(), authContext.lastFailureOrNoCredentials())
+            with(unauthorizedHandler) {
+                call.toRoutingContext().onUnauthorized(cause = authContext.lastFailureOrNoCredentials())
+            }
             return@on
         }
         authContext.executeChallenges(call)
@@ -102,6 +104,7 @@ internal fun <P : Any> createMultiPlugin(
 ): RouteScopedPlugin<Unit> {
     val schemeNames = schemes.joinToString(",") { it.name }
     val name = typedAuthPluginName(schemeNames)
+    val schemeWithHandler = schemes.firstOrNull { it.onUnauthorized != null }
 
     return createRouteScopedPlugin(name) {
         on(AuthenticationHook) { call ->
@@ -132,12 +135,11 @@ internal fun <P : Any> createMultiPlugin(
                 return@on
             }
 
-            val schemeWithHandler = schemes.firstNotNullOfOrNull { scheme ->
-                scheme.onUnauthorized?.let { handler -> scheme to handler }
-            }
             if (schemeWithHandler != null) {
-                val (scheme, handler) = schemeWithHandler
-                handler(call.toRoutingContext(), failures.getValue(scheme.name))
+                with(checkNotNull(schemeWithHandler.onUnauthorized)) {
+                    val cause = failures.getValue(schemeWithHandler.name)
+                    call.toRoutingContext().onUnauthorized(cause)
+                }
                 return@on
             }
 

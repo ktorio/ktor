@@ -2,7 +2,7 @@
  * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-@file:OptIn(ExperimentalKtorApi::class, InternalAPI::class)
+@file:OptIn(ExperimentalKtorApi::class, InternalAPI::class, InternalKtorSubclassing::class)
 
 package io.ktor.server.auth
 
@@ -12,6 +12,7 @@ import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 import io.ktor.server.sessions.header
 import io.ktor.util.*
+import io.ktor.util.annotations.InternalKtorSubclassing
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import kotlin.reflect.KClass

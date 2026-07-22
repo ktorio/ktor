@@ -9,6 +9,7 @@ package io.ktor.server.auth
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
+import io.ktor.util.annotations.InternalKtorSubclassing
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.ExperimentalKtorApi
 import io.ktor.utils.io.InternalAPI
@@ -22,7 +23,9 @@ import kotlin.reflect.KClass
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.UnauthorizedHandler)
  */
-public typealias UnauthorizedHandler = suspend RoutingContext.(AuthenticationFailedCause) -> Unit
+public fun interface UnauthorizedHandler {
+    public suspend fun RoutingContext.onUnauthorized(cause: AuthenticationFailedCause)
+}
 
 private val RegisteredSchemesKey = AttributeKey<MutableMap<String, Any>>("TypesafeAuthRegisteredSchemes")
 
@@ -38,17 +41,18 @@ private val RegisteredSchemesKey = AttributeKey<MutableMap<String, Any>>("Typesa
  * @property onUnauthorized default failure handler for routes that use the scheme. A route-level handler passed to
  * [authenticateWith] overrides this value.
  */
-@SubclassOptInRequired
 @ExperimentalKtorApi
+@SubclassOptInRequired(InternalKtorSubclassing::class)
 public open class AuthenticationScheme<P, C> @PublishedApi internal constructor(
     @PublishedApi
     internal val provider: AuthenticationProvider,
     internal val principalType: KClass<P>,
     public val onUnauthorized: UnauthorizedHandler?,
-    internal val anonymousFactory: (suspend RoutingContext.() -> P)?,
+    internal val anonymousFactory: AnonymousFactory<P>?,
     @PublishedApi
     internal val contextFactory: (AuthenticatedContext<P>) -> C,
-) where P : Any,
+) where
+          P : Any,
           C : AuthenticatedContext<P> {
     public val name: String = checkNotNull(provider.name) {
         "Typed authentication schemes require a named AuthenticationProvider"
@@ -75,7 +79,11 @@ public open class AuthenticationScheme<P, C> @PublishedApi internal constructor(
         val principal = principal(provider = name, klass = principalType)
         return when {
             principal != null -> principal
-            failedWithNoCredentials() -> anonymousFactory?.invoke(call.toRoutingContext())
+
+            failedWithNoCredentials() && anonymousFactory != null -> with(anonymousFactory) {
+                call.toRoutingContext().createAnonymousPrincipal()
+            }
+
             else -> null
         }
     }
@@ -95,17 +103,12 @@ public open class AuthenticationScheme<P, C> @PublishedApi internal constructor(
          * Creates a [AuthenticationScheme] that exposes the authenticated principal through [AuthenticatedContext].
          *
          * Typed provider builders use this helper when they do not need a custom route context.
-         *
-         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.AuthenticationScheme.from)
-         *
-         * @param provider named provider implementation that authenticates requests for this scheme.
-         * @param onUnauthorized default failure handler for routes that use the scheme.
          */
         @InternalAPI
         public inline fun <reified P : Any> from(
             provider: AuthenticationProvider,
-            noinline onUnauthorized: UnauthorizedHandler?,
-            noinline fallback: (AnonymousFactory<P>)? = null,
+            onUnauthorized: UnauthorizedHandler?,
+            fallback: AnonymousFactory<P>? = null,
         ): SimpleAuthenticationScheme<P> {
             return AuthenticationScheme(
                 provider = provider,
@@ -125,7 +128,9 @@ public open class AuthenticationScheme<P, C> @PublishedApi internal constructor(
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.AnonymousFactory)
  */
-public typealias AnonymousFactory<P> = suspend RoutingContext.() -> P
+public fun interface AnonymousFactory<out P : Any> {
+    public suspend fun RoutingContext.createAnonymousPrincipal(): P
+}
 
 /**
  * Typed authentication scheme that exposes only [AuthenticatedContext].
@@ -156,10 +161,10 @@ public typealias SimpleAuthenticationScheme<P> = AuthenticationScheme<P, Authent
 @ExperimentalKtorApi
 @OptIn(InternalAPI::class)
 public inline fun <reified CP, P, AP> SimpleAuthenticationScheme<P>.orAnonymous(
-    noinline fallback: AnonymousFactory<AP>,
-): AuthenticationScheme<CP, AuthenticatedContext<CP>> where CP : Any,
-                                                            P : AP,
-                                                            AP : CP =
+    fallback: AnonymousFactory<AP>,
+): SimpleAuthenticationScheme<CP> where CP : Any,
+                                        P : AP,
+                                        AP : CP =
     AuthenticationScheme.from(provider, onUnauthorized, fallback)
 
 internal fun AuthenticationContext.lastFailureOrNoCredentials(): AuthenticationFailedCause =
