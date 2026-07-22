@@ -12,13 +12,14 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
-import io.ktor.server.auth.typesafe.*
+import io.ktor.server.auth.authenticateWith
+import io.ktor.server.auth.principal
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.utils.io.*
 import kotlin.test.*
-import io.ktor.server.auth.jwt.typesafe.jwt as typedJwt
+import io.ktor.server.auth.jwt.jwt as typedJwt
 
 class TypedJwtAuthTest {
 

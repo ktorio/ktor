@@ -9,19 +9,19 @@ package io.ktor.server.auth.apikey
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.server.auth.typesafe.*
+import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.utils.io.*
-import kotlin.test.*
-import io.ktor.server.auth.apikey.typesafe.apiKey as typedApiKey
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class TypedApiKeyAuthTest {
 
     @Test
     fun `api key scheme authenticates and rejects`() = testApplication {
-        val scheme = typedApiKey<ApiKeyPrincipal>("typed-api-key") {
+        val scheme = apiKey<ApiKeyPrincipal>("typed-api-key") {
             validate { apiKey ->
                 if (apiKey == "valid") ApiKeyPrincipal(apiKey) else null
             }
@@ -59,7 +59,7 @@ class TypedApiKeyAuthTest {
 
     @Test
     fun `api key scheme accepts configured header`() = testApplication {
-        val scheme = typedApiKey<ApiKeyPrincipal>("typed-api-key-header") {
+        val scheme = apiKey<ApiKeyPrincipal>("typed-api-key-header") {
             headerName = "X-Custom-Api-Key"
             validate { apiKey ->
                 if (apiKey == "custom") ApiKeyPrincipal(apiKey) else null
@@ -83,7 +83,7 @@ class TypedApiKeyAuthTest {
 
     @Test
     fun `api key onUnauthorized can be configured per scheme and route`() = testApplication {
-        val scheme = typedApiKey<ApiKeyPrincipal>("typed-api-key-unauthorized") {
+        val scheme = apiKey<ApiKeyPrincipal>("typed-api-key-unauthorized") {
             onUnauthorized = { cause ->
                 call.respondText("scheme:${cause::class.simpleName}", status = HttpStatusCode.Unauthorized)
             }
@@ -123,13 +123,13 @@ class TypedApiKeyAuthTest {
 
     @Test
     fun `api key any-of failures are tracked per typed scheme name`() = testApplication {
-        val primary = typedApiKey<ApiKeyPrincipal>("primary-api-key") {
+        val primary = apiKey<ApiKeyPrincipal>("primary-api-key") {
             headerName = "X-Primary-Api-Key"
             validate { apiKey ->
                 if (apiKey == "primary") ApiKeyPrincipal(apiKey) else null
             }
         }
-        val secondary = typedApiKey<ApiKeyPrincipal>("secondary-api-key") {
+        val secondary = apiKey<ApiKeyPrincipal>("secondary-api-key") {
             headerName = "X-Secondary-Api-Key"
             validate { apiKey ->
                 if (apiKey == "secondary") ApiKeyPrincipal(apiKey) else null
