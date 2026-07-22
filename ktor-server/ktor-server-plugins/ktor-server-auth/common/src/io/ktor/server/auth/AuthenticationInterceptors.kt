@@ -107,38 +107,38 @@ public val AuthenticationInterceptors: RouteScopedPlugin<RouteAuthenticationConf
         var count = 0
         for (provider in requiredProviders) {
             if (provider.skipWhen.any { skipCondition -> skipCondition(call) }) {
-                LOGGER.trace("Skipping authentication provider ${provider.name} for ${call.request.uri}")
+                LOGGER.trace { "Skipping authentication provider ${provider.name} for ${call.request.uri}" }
                 continue
             }
 
-            LOGGER.trace("Trying to authenticate ${call.request.uri} with required ${provider.name}")
+            LOGGER.trace { "Trying to authenticate ${call.request.uri} with required ${provider.name}" }
             provider.onAuthenticate(authenticationContext)
             count++
             if (authenticationContext._principal.principals.size < count) {
-                LOGGER.trace("Authentication failed for ${call.request.uri} with provider $provider")
+                LOGGER.trace { "Authentication failed for ${call.request.uri} with provider $provider" }
                 authenticationContext.executeChallenges(call)
                 return@on
             }
-            LOGGER.trace("Authentication succeeded for ${call.request.uri} with provider $provider")
+            LOGGER.trace { "Authentication succeeded for ${call.request.uri} with provider $provider" }
         }
 
         for (provider in notRequiredProviders) {
             if (authenticationContext._principal.principals.isNotEmpty()) {
-                LOGGER.trace("Authenticate for ${call.request.uri} succeed. Skipping other providers")
+                LOGGER.trace { "Authenticate for ${call.request.uri} succeed. Skipping other providers" }
                 break
             }
             if (provider.skipWhen.any { skipCondition -> skipCondition(call) }) {
-                LOGGER.trace("Skipping authentication provider ${provider.name} for ${call.request.uri}")
+                LOGGER.trace { "Skipping authentication provider ${provider.name} for ${call.request.uri}" }
                 continue
             }
 
-            LOGGER.trace("Trying to authenticate ${call.request.uri} with ${provider.name}")
+            LOGGER.trace { "Trying to authenticate ${call.request.uri} with ${provider.name}" }
             provider.onAuthenticate(authenticationContext)
 
             if (authenticationContext._principal.principals.isNotEmpty()) {
-                LOGGER.trace("Authentication succeeded for ${call.request.uri} with provider $provider")
+                LOGGER.trace { "Authentication succeeded for ${call.request.uri} with provider $provider" }
             } else {
-                LOGGER.trace("Authentication failed for ${call.request.uri} with provider $provider")
+                LOGGER.trace { "Authentication failed for ${call.request.uri} with provider $provider" }
             }
         }
 
@@ -149,7 +149,7 @@ public val AuthenticationInterceptors: RouteScopedPlugin<RouteAuthenticationConf
         val isNoInvalidCredentials = authenticationContext.allFailures
             .none { it == AuthenticationFailedCause.InvalidCredentials }
         if (isOptional && isNoInvalidCredentials) {
-            LOGGER.trace("Authentication is optional and no credentials were provided for ${call.request.uri}")
+            LOGGER.trace { "Authentication is optional and no credentials were provided for ${call.request.uri}" }
             return@on
         }
 
@@ -182,7 +182,7 @@ private suspend fun AuthenticationContext.executeChallenges(call: ApplicationCal
 
     for (error in allErrors) {
         if (!challenge.completed) {
-            LOGGER.trace("Authentication failed for ${call.request.uri} with error ${error.message}")
+            LOGGER.trace { "Authentication failed for ${call.request.uri} with error ${error.message}" }
             if (!call.isHandled) {
                 call.respond(UnauthorizedResponse())
             }

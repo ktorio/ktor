@@ -118,7 +118,7 @@ public class DefaultRequest private constructor(private val block: DefaultReques
                 context.headers.clear()
                 context.headers.appendAll(defaultRequest.headers.build())
 
-                LOGGER.trace("Applied DefaultRequest to $originalUrlString. New url: ${context.url}")
+                LOGGER.trace { "Applied DefaultRequest to $originalUrlString. New url: ${context.url}" }
             }
         }
 

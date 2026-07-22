@@ -252,38 +252,37 @@ public val ContentNegotiation: ClientPlugin<ContentNegotiationConfig> = createCl
                     null -> contentType
                     else -> contentType.withParameter("q", qValue.toString())
                 }
-                LOGGER.trace("Adding Accept=$contentTypeToSend header for ${request.url}")
+                LOGGER.trace { "Adding Accept=$contentTypeToSend header for ${request.url}" }
                 request.accept(contentTypeToSend)
             }
 
         if (body is OutgoingContent || ignoredTypes.any { it.isInstance(body) }) {
-            LOGGER.trace(
-                "Body type ${body::class} is in ignored types. " +
-                    "Skipping ContentNegotiation for ${request.url}."
-            )
+            LOGGER.trace {
+                "Body type ${body::class} is in ignored types. Skipping ContentNegotiation for ${request.url}."
+            }
             return null
         }
         val contentType = request.contentType() ?: run {
-            LOGGER.trace("Request doesn't have Content-Type header. Skipping ContentNegotiation for ${request.url}.")
+            LOGGER.trace { "Request doesn't have Content-Type header. Skipping ContentNegotiation for ${request.url}." }
             return null
         }
 
         if (body is Unit) {
-            LOGGER.trace("Sending empty body for ${request.url}")
+            LOGGER.trace { "Sending empty body for ${request.url}" }
             request.headers.remove(HttpHeaders.ContentType)
             return EmptyContent
         }
 
         val matchingRegistrations = registrations.filter { it.contentTypeMatcher.contains(contentType) }
             .takeIf { it.isNotEmpty() } ?: run {
-            LOGGER.trace(
+            LOGGER.trace {
                 "None of the registered converters match request Content-Type=$contentType. " +
                     "Skipping ContentNegotiation for ${request.url}."
-            )
+            }
             return null
         }
         if (request.bodyType == null) {
-            LOGGER.trace("Request has unknown body type. Skipping ContentNegotiation for ${request.url}.")
+            LOGGER.trace { "Request has unknown body type. Skipping ContentNegotiation for ${request.url}." }
             return null
         }
         request.headers.remove(HttpHeaders.ContentType)
@@ -297,7 +296,7 @@ public val ContentNegotiation: ClientPlugin<ContentNegotiationConfig> = createCl
                 body.takeIf { it != NullBody }
             )
             if (result != null) {
-                LOGGER.trace("Converted request body using ${registration.converter} for ${request.url}")
+                LOGGER.trace { "Converted request body using ${registration.converter} for ${request.url}" }
             }
             result
         } ?: throw ContentConverterException(
@@ -317,14 +316,13 @@ public val ContentNegotiation: ClientPlugin<ContentNegotiationConfig> = createCl
         charset: Charset = Charsets.UTF_8
     ): Any? {
         if (body !is ByteReadChannel) {
-            LOGGER.trace("Response body is already transformed. Skipping ContentNegotiation for $requestUrl.")
+            LOGGER.trace { "Response body is already transformed. Skipping ContentNegotiation for $requestUrl." }
             return null
         }
         if (info.type in ignoredTypes) {
-            LOGGER.trace(
-                "Response body type ${info.type} is in ignored types. " +
-                    "Skipping ContentNegotiation for $requestUrl."
-            )
+            LOGGER.trace {
+                "Response body type ${info.type} is in ignored types. Skipping ContentNegotiation for $requestUrl."
+            }
             return null
         }
 
@@ -333,15 +331,15 @@ public val ContentNegotiation: ClientPlugin<ContentNegotiationConfig> = createCl
             .map { it.converter }
             .takeIf { it.isNotEmpty() }
             ?: run {
-                LOGGER.trace(
+                LOGGER.trace {
                     "None of the registered converters match response with Content-Type=$responseContentType. " +
                         "Skipping ContentNegotiation for $requestUrl."
-                )
+                }
                 return null
             }
 
         val result = suitableConverters.deserialize(body, info, charset)
-        if (result !is ByteReadChannel) {
+        if (LOGGER.isTraceEnabled && result !is ByteReadChannel) {
             LOGGER.trace("Response body was converted to ${result::class} for $requestUrl.")
         }
         return result

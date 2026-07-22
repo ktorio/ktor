@@ -10,6 +10,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.util.collections.*
 import io.ktor.util.date.*
+import io.ktor.util.logging.*
 import kotlinx.coroutines.*
 
 private object PluginsPhase : Hook<suspend (ApplicationCall) -> Unit> {
@@ -44,10 +45,10 @@ private fun PluginBuilder<RateLimitInterceptorsConfig>.rateLimiterPluginBuilder(
         providers.forEach { provider ->
             if (call.isHandled) return@on
 
-            LOGGER.trace("Using rate limit ${provider.name} for ${call.request.uri}")
+            LOGGER.trace { "Using rate limit ${provider.name} for ${call.request.uri}" }
             val key = provider.requestKey(call)
             val weight = provider.requestWeight(call, key)
-            LOGGER.trace("Using key=$key and weight=$weight for ${call.request.uri}")
+            LOGGER.trace { "Using key=$key and weight=$weight for ${call.request.uri}" }
 
             val providerKey = ProviderKey(provider.name, key)
             val rateLimiterForCall = registry.computeIfAbsent(providerKey) {
@@ -62,7 +63,7 @@ private fun PluginBuilder<RateLimitInterceptorsConfig>.rateLimiterPluginBuilder(
             provider.modifyResponse(call, state)
             when (state) {
                 is RateLimiter.State.Exhausted -> {
-                    LOGGER.trace("Declining ${call.request.uri} because of too many requests")
+                    LOGGER.trace { "Declining ${call.request.uri} because of too many requests" }
                     call.respond(HttpStatusCode.TooManyRequests)
                 }
 
@@ -75,7 +76,7 @@ private fun PluginBuilder<RateLimitInterceptorsConfig>.rateLimiterPluginBuilder(
                             clearOnRefillJobs.remove(providerKey)
                         }
                     }
-                    LOGGER.trace("Allowing ${call.request.uri}")
+                    LOGGER.trace { "Allowing ${call.request.uri}" }
                 }
             }
         }
