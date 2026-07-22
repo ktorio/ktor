@@ -110,4 +110,64 @@ public class ResourcesFormat(
         val input = ParametersDecoder(serializersModule, parameters, emptyList())
         return input.decodeSerializableValue(deserializer)
     }
+
+    /**
+     * Builds a [T] resource instance from [url]
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.resources.serialization.ResourcesFormat.decodeFromUrl)
+     */
+    public fun <T> decodeFromUrl(deserializer: KSerializer<T>, url: Url): T {
+        val queryParameters = url.parameters
+        val segments = url.segments
+
+        val parametersBuilder = ParametersBuilder()
+
+        var endsWithOptionalParameterName: String? = null
+        var endsWithTrailingParameterName: String? = null
+        var consumedSegments = 0
+
+        var resourcesStart = segments.size
+        var current: SerialDescriptor? = deserializer.descriptor
+        while (current != null) {
+            val resourcesPath = current.annotations.filterIsInstance<Resource>().first().path
+            val resourcesSegments = resourcesPath.removePrefix("/").removeSuffix("/").split("/")
+            resourcesStart -= resourcesSegments.size
+            for ((index, resourcesSegment ) in resourcesSegments.withIndex()) {
+                if (resourcesSegment.startsWith('{') && resourcesSegment.endsWith('}')) {
+                    val parameterName = resourcesSegments[index].drop(1).dropLast(1)
+                    if (parameterName.endsWith('?')) {
+                        endsWithOptionalParameterName = parameterName.dropLast(1)
+                    } else if (parameterName.endsWith("...")) {
+                        endsWithTrailingParameterName = parameterName.dropLast(3)
+                    } else {
+                        val value = segments.getOrNull(resourcesStart + index) ?: throw SerializationException(
+                            "Parameter $parameterName not found in url $url"
+                        )
+                        parametersBuilder.append(parameterName, value)
+                        consumedSegments++
+                    }
+                } else {
+                    consumedSegments++
+                }
+            }
+
+            val membersWithAnnotations = current.elementDescriptors.filter { it.annotations.any { it is Resource } }
+            if (membersWithAnnotations.size > 1) {
+                throw ResourceSerializationException("There are multiple parents for resource ${current.serialName}")
+            }
+            current = membersWithAnnotations.firstOrNull()
+        }
+
+        if (endsWithOptionalParameterName != null && consumedSegments < segments.size) {
+            val value = segments.subList(consumedSegments, segments.size).joinToString("/")
+            parametersBuilder.append(endsWithOptionalParameterName, value)
+        } else if (endsWithTrailingParameterName != null && consumedSegments < segments.size) {
+            val values = segments.subList(consumedSegments, segments.size)
+            parametersBuilder.appendAll(endsWithTrailingParameterName, values)
+        }
+
+        parametersBuilder.appendAll(queryParameters)
+
+        return decodeFromParameters(deserializer, parametersBuilder.build())
+    }
 }
