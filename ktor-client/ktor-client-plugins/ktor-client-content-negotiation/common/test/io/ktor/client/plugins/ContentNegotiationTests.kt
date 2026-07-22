@@ -393,6 +393,152 @@ class ContentNegotiationTests {
     }
 
     @Test
+    fun matchContentTypeWithSuffixInResponsePipeline() = testWithEngine(MockEngine) {
+        val expectedResponse = StringWrapper("Deserialized by suffix")
+
+        setupWithContentNegotiation {
+            register(ContentType.Application.Json, TestContentConverter()) {
+                deserializeFn = { _, _, _ -> expectedResponse }
+            }
+        }
+
+        test { client ->
+            client.get("https://test.com/") {
+                header(XReturnAs, ContentType.Application.ProblemJson)
+            }.apply {
+                assertEquals(expectedResponse, body())
+            }
+        }
+    }
+
+    @Test
+    fun matchContentTypeWithSuffixIgnoringCase() = testWithEngine(MockEngine) {
+        val expectedResponse = StringWrapper("Deserialized by suffix")
+
+        setupWithContentNegotiation {
+            register(ContentType.Application.Json, TestContentConverter()) {
+                deserializeFn = { _, _, _ -> expectedResponse }
+            }
+        }
+
+        test { client ->
+            client.get("https://test.com/") {
+                header(XReturnAs, "application/PROBLEM+JSON")
+            }.apply {
+                assertEquals(expectedResponse, body())
+            }
+        }
+    }
+
+    @Test
+    fun matchContentTypeWithSuffixInRequestPipeline() = testWithEngine(MockEngine) {
+        val serializedContent = TextContent("SERIALIZED", ContentType.Application.ProblemJson)
+
+        setupWithContentNegotiation {
+            register(ContentType.Application.Json, TestContentConverter()) {
+                serializeFn = { _, _, _, _ -> serializedContent }
+            }
+        }
+
+        test { client ->
+            client.post("https://test.com/") {
+                setBody(Thing)
+                contentType(ContentType.Application.ProblemJson)
+            }.apply {
+                assertEquals(serializedContent, call.request.content)
+            }
+        }
+    }
+
+    @Test
+    fun matchSuffixWhenSuffixDiffersFromRegisteredSubtype() = testWithEngine(MockEngine) {
+        // The `+wbxml` suffix corresponds to `application/vnd.wap.wbxml`, not `application/wbxml`
+        val expectedResponse = StringWrapper("Deserialized by suffix")
+
+        setupWithContentNegotiation {
+            register(ContentType("application", "vnd.wap.wbxml"), TestContentConverter()) {
+                deserializeFn = { _, _, _ -> expectedResponse }
+            }
+        }
+
+        test { client ->
+            client.get("https://test.com/") {
+                header(XReturnAs, "application/vnd.syncml+wbxml")
+            }.apply {
+                assertEquals(expectedResponse, body())
+            }
+        }
+    }
+
+    @Test
+    fun matchSuffixWithDifferentTopLevelType() = testWithEngine(MockEngine) {
+        // RFC 6839 doesn't restrict suffixed types to the `application` top-level type
+        val expectedResponse = StringWrapper("Deserialized by suffix")
+
+        setupWithContentNegotiation {
+            register(ContentType.Application.Xml, TestContentConverter()) {
+                deserializeFn = { _, _, _ -> expectedResponse }
+            }
+        }
+
+        test { client ->
+            client.get("https://test.com/") {
+                header(XReturnAs, ContentType.Image.SVG)
+            }.apply {
+                assertEquals(expectedResponse, body())
+            }
+        }
+    }
+
+    @Test
+    fun dontMatchDifferentSuffix() = testWithEngine(MockEngine) {
+        setupWithContentNegotiation {
+            register(ContentType.Application.Json, TestContentConverter()) {
+                deserializeFn = { _, _, _ -> StringWrapper("Should not be deserialized") }
+            }
+        }
+
+        test { client ->
+            val response = client.get("https://test.com/") {
+                header(XReturnAs, ContentType.Application.ProblemXml)
+            }
+            assertFailsWith<NoTransformationFoundException> { response.body<StringWrapper>() }
+        }
+    }
+
+    @Test
+    fun dontMatchSuffixOfTypeNotRegisteredInRfc6839() = testWithEngine(MockEngine) {
+        setupWithContentNegotiation {
+            register(ContentType("testing", "a"), TestContentConverter()) {
+                deserializeFn = { _, _, _ -> StringWrapper("Should not be deserialized") }
+            }
+        }
+
+        test { client ->
+            val response = client.get("https://test.com/") {
+                header(XReturnAs, "testing/b+a")
+            }
+            assertFailsWith<NoTransformationFoundException> { response.body<StringWrapper>() }
+        }
+    }
+
+    @Test
+    fun dontMatchSuffixWhenSuffixedTypeIsRegistered() = testWithEngine(MockEngine) {
+        setupWithContentNegotiation {
+            register(ContentType.Application.ProblemJson, TestContentConverter()) {
+                deserializeFn = { _, _, _ -> StringWrapper("Should not be deserialized") }
+            }
+        }
+
+        test { client ->
+            val response = client.get("https://test.com/") {
+                header(XReturnAs, "application/other+json")
+            }
+            assertFailsWith<NoTransformationFoundException> { response.body<StringWrapper>() }
+        }
+    }
+
+    @Test
     fun responseContentTypeCharsetUsedForResponseDeserialization() = testWithEngine(MockEngine) {
         val responseContentType = ContentType.Application.Xml.withCharset(Charsets.ISO_8859_1)
         val responseBody = "<response>café</response>"
