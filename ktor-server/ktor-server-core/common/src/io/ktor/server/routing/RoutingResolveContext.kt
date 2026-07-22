@@ -179,7 +179,7 @@ public class RoutingResolveContext(
             }
         }
 
-        for (childIndex in 0..entry.children.lastIndex) {
+        for (childIndex in entry.children.indices) {
             val child = entry.children[childIndex]
             val childQuality = handleRouteSync(child, newIndex, trait, bestSucceedChildQuality)
                 ?: return null

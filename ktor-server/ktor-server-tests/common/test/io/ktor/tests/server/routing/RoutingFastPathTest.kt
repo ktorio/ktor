@@ -230,6 +230,137 @@ class RoutingFastPathTest {
         assertEquals("get", client.get("/test").bodyAsText())
     }
 
+    @Test
+    fun `constant route rejects trailing slash by default`() = testApplication {
+        // A constant route without a trailing-slash variant must not match a trailing-slash
+        // request under default (strict) routing — the fast path must defer to DFS.
+        routing {
+            get("/bar") { call.respondText("bar") }
+        }
+        assertEquals("bar", client.get("/bar").bodyAsText())
+        assertFalse(client.get("/bar/").status.isSuccess())
+    }
+
+    @Test
+    fun `constant route matches trailing slash when ignored`() = testApplication {
+        install(IgnoreTrailingSlash)
+        routing {
+            get("/bar") { call.respondText("bar") }
+        }
+        assertEquals("bar", client.get("/bar").bodyAsText())
+        assertEquals("bar", client.get("/bar/").bodyAsText())
+    }
+
+    @Test
+    fun `wildcard segment resolves via fast path`() = testApplication {
+        routing {
+            get("/files/*") { call.respondText("wild:${call.parameters.entries()}") }
+        }
+        // Wildcard matches a single segment and captures nothing.
+        assertEquals("wild:[]", client.get("/files/anything").bodyAsText())
+        assertEquals("wild:[]", client.get("/files/42").bodyAsText())
+    }
+
+    @Test
+    fun `wildcard does not match missing or extra segments`() = testApplication {
+        routing {
+            get("/files/*") { call.respondText("wild") }
+        }
+        // A single wildcard consumes exactly one segment.
+        assertEquals(HttpStatusCode.NotFound, client.get("/files").status)
+        assertEquals(HttpStatusCode.NotFound, client.get("/files/a/b").status)
+    }
+
+    @Test
+    fun `constant sibling takes precedence over wildcard`() = testApplication {
+        routing {
+            route("/files") {
+                get("/list") { call.respondText("list") }
+                get("/*") { call.respondText("wild") }
+            }
+        }
+        assertEquals("list", client.get("/files/list").bodyAsText())
+        assertEquals("wild", client.get("/files/other").bodyAsText())
+    }
+
+    @Test
+    fun `wildcard in the middle resolves via fast path`() = testApplication {
+        routing {
+            get("/a/*/b") { call.respondText("mid") }
+        }
+        assertEquals("mid", client.get("/a/x/b").bodyAsText())
+        assertEquals("mid", client.get("/a/anything/b").bodyAsText())
+        assertEquals(HttpStatusCode.NotFound, client.get("/a/x/c").status)
+    }
+
+    @Test
+    fun `tailcard captures remaining segments via fast path`() = testApplication {
+        routing {
+            get("/files/{path...}") { call.respondText("path=${call.parameters.getAll("path")}") }
+        }
+        assertEquals("path=[a, b, c]", client.get("/files/a/b/c").bodyAsText())
+        assertEquals("path=[only]", client.get("/files/only").bodyAsText())
+    }
+
+    @Test
+    fun `tailcard decodes percent encoded segments`() = testApplication {
+        routing {
+            get("/files/{path...}") { call.respondText("path=${call.parameters.getAll("path")}") }
+        }
+        assertEquals("path=[a b, c]", client.get("/files/a%20b/c").bodyAsText())
+    }
+
+    @Test
+    fun `anonymous tailcard captures nothing`() = testApplication {
+        routing {
+            get("/files/{...}") { call.respondText("anon:${call.parameters.entries()}") }
+        }
+        assertEquals("anon:[]", client.get("/files/a/b/c").bodyAsText())
+    }
+
+    @Test
+    fun `parameter and tailcard siblings defer to slow path`() = testApplication {
+        // Two competing non-constant matchers at the same node: the greedy tree must defer,
+        // but resolution must still be correct via DFS.
+        routing {
+            route("/x") {
+                get("/{id}") { call.respondText("id=${call.parameters["id"]}") }
+                get("/{rest...}") { call.respondText("rest=${call.parameters.getAll("rest")}") }
+            }
+        }
+        // Single segment: the higher-quality plain parameter wins.
+        assertEquals("id=one", client.get("/x/one").bodyAsText())
+        // Multiple segments: only the tailcard matches.
+        assertEquals("rest=[a, b]", client.get("/x/a/b").bodyAsText())
+    }
+
+    @Test
+    fun `optional parameter defers to slow path`() = testApplication {
+        routing {
+            get("/opt/{id?}") { call.respondText("id=${call.parameters["id"]}") }
+        }
+        assertEquals("id=42", client.get("/opt/42").bodyAsText())
+        assertEquals("id=null", client.get("/opt").bodyAsText())
+    }
+
+    @Test
+    fun `prefixed tailcard defers to slow path`() = testApplication {
+        routing {
+            get("/files/pre{rest...}") { call.respondText("rest=${call.parameters.getAll("rest")}") }
+        }
+        assertEquals("rest=[fix, a, b]", client.get("/files/prefix/a/b").bodyAsText())
+    }
+
+    @Test
+    fun `trailing slash against tailcard resolves correctly`() = testApplication {
+        routing {
+            get("/files/{path...}") { call.respondText("path=${call.parameters.getAll("path")}") }
+        }
+        assertEquals("path=[a, b]", client.get("/files/a/b").bodyAsText())
+        // Trailing slash is deferred to DFS; resolution must remain correct.
+        assertEquals(HttpStatusCode.OK, client.get("/files/a/b/").status)
+    }
+
     private fun Route.transparent(build: Route.() -> Unit): Route {
         val route = createChild(
             object : RouteSelector() {

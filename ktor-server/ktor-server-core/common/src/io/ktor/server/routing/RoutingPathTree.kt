@@ -5,7 +5,7 @@
 package io.ktor.server.routing
 
 import io.ktor.http.*
-import io.ktor.server.routing.RoutingResolveResult.Success
+import io.ktor.server.routing.RoutingResolveResult.*
 
 /**
  * Fast-path index over the routing tree, keyed by constant path segments.
@@ -19,8 +19,69 @@ import io.ktor.server.routing.RoutingResolveResult.Success
  */
 internal class RoutingPathTree private constructor(private val root: Node) {
 
+    private sealed interface Node {
+        companion object {
+            operator fun invoke(
+                children: Map<String, Node>,
+                routingNode: RoutingNode?,
+                successResult: Success?,
+                methodMatches: Map<HttpMethod, Success>,
+                parameter: Pair<String, Node>?,
+                wildcard: Node?,
+                tailcard: Pair<String, Node>?,
+            ): Node = when {
+                parameter != null -> ParameterNode(children, routingNode, successResult, methodMatches, parameter)
+                wildcard != null -> WildcardNode(children, routingNode, successResult, methodMatches, wildcard)
+                tailcard != null -> TailcardNode(children, routingNode, successResult, methodMatches, tailcard)
+                else -> ElementNode(children, routingNode, successResult, methodMatches)
+            }
+        }
+    }
+
+    private data object AmbiguousNode : Node
+
+    private open class ElementNode(
+        val children: Map<String, Node>,
+        val route: RoutingNode?,
+        val success: Success?,
+        val methods: Map<HttpMethod, Success>,
+    ) : Node {
+        fun terminalResultFor(method: HttpMethod): Success? {
+            methods[method]?.let { return it }
+            val node = route
+            if (node != null && node.handlers.isNotEmpty() && methods.isEmpty()) {
+                return success
+            }
+            return null
+        }
+    }
+
+    private class ParameterNode(
+        children: Map<String, Node>,
+        route: RoutingNode?,
+        success: Success?,
+        methods: Map<HttpMethod, Success>,
+        val parameter: Pair<String, Node>,
+    ) : ElementNode(children, route, success, methods)
+
+    private class WildcardNode(
+        children: Map<String, Node>,
+        route: RoutingNode?,
+        success: Success?,
+        methods: Map<HttpMethod, Success>,
+        val wildcard: Node,
+    ) : ElementNode(children, route, success, methods)
+
+    private class TailcardNode(
+        children: Map<String, Node>,
+        route: RoutingNode?,
+        success: Success?,
+        methods: Map<HttpMethod, Success>,
+        val tailcard: Pair<String, Node>,
+    ) : ElementNode(children, route, success, methods)
+
     /**
-     * Ultra-fast lookup operating directly on the raw request [path] — without allocating
+     * Fast lookup operating directly on the raw request [path] — without allocating
      * a [SegmentedPath], [RoutingResolveContext], or its scratch lists.
      *
      * Returns a cached [RoutingResolveResult.Success] when every segment matches a child
@@ -28,7 +89,7 @@ internal class RoutingPathTree private constructor(private val root: Node) {
      * any ambiguous nodes.
      */
     fun tryResolve(path: String, method: HttpMethod): Success? {
-        if (root.ambiguous) return null
+        if (root !is ElementNode) return null
         val length = path.length
 
         // Empty or root-only path — resolve directly at the root node.
@@ -37,19 +98,24 @@ internal class RoutingPathTree private constructor(private val root: Node) {
             return terminal
         }
 
-        val hasTrailingSlash = path[length - 1] == '/'
-        val effectiveEnd = if (hasTrailingSlash) length - 1 else length
+        // A trailing slash's meaning is decided per-call by [IgnoreTrailingSlash], which this
+        // statically-built index cannot observe — defer such requests to the DFS resolver.
+        if (path[length - 1] == '/') return null
 
         var parameters: ParametersBuilder? = null
         var current: Node = root
         var i = if (path[0] == '/') 1 else 0
 
-        while (i < effectiveEnd) {
-            if (current.ambiguous) return null
-            // Scan to the next '/' or end, tracking whether '%' appears.
+        val addParameter: (key: String, value: String) -> Unit = { key, value ->
+            if (parameters == null) parameters = ParametersBuilder()
+            parameters.append(key, value)
+        }
+
+        while (i < length) {
+            if (current !is ElementNode) return null
             var j = i
             var hasPercent = false
-            while (j < effectiveEnd) {
+            while (j < length) {
                 val c = path[j]
                 if (c == '/') break
                 if (c == '%') hasPercent = true
@@ -61,79 +127,80 @@ internal class RoutingPathTree private constructor(private val root: Node) {
             }
             val segment = if (i == 0 && j == length) path else path.substring(i, j)
             val constantNext = current.children[segment]
-            if (constantNext != null) {
-                current = constantNext
-            } else {
-                if (current.hasFallbackSibling) return null
-                val paramChild = current.parameterChild ?: return null
-                val value = try {
-                    if (hasPercent) segment.decodeURLPart() else segment
-                } catch (_: Exception) {
-                    segment
+            current = constantNext ?: when (current) {
+                is ParameterNode -> {
+                    val value = decodeSegment(segment, hasPercent)
+                    // Non-optional path parameters: reject empty segments.
+                    if (value.isEmpty()) return null
+                    val (name, node) = current.parameter
+                    addParameter(name, value)
+                    node
                 }
-                // Non-optional path parameters reject empty segments.
-                if (value.isEmpty()) return null
-                if (parameters == null) {
-                    parameters = ParametersBuilder()
+
+                is TailcardNode -> {
+                    val (name, node) = current.tailcard
+                    if (name.isNotEmpty()) {
+                        captureTailcardSegments(addParameter, name, path, i, length)
+                    }
+                    current = node
+                    break
                 }
-                val (name, node) = paramChild
-                parameters.append(name, value)
-                current = node
+
+                is WildcardNode -> current.wildcard
+
+                else -> return null
             }
             i = j + 1
         }
 
-        if (current.ambiguous) return null
-        if (hasTrailingSlash && current.requiresExactSlashHandling) return null
+        if (current !is ElementNode) return null
         val terminal = current.terminalResultFor(method) ?: return null
+        if (parameters == null) return terminal
 
         return Success(
             route = terminal.route,
-            parameters = parameters?.build() ?: return null,
+            parameters = parameters.build(),
             quality = RouteSelectorEvaluation.qualityPathParameter,
         )
     }
 
-    private class Node {
-        val children: MutableMap<String, Node> = HashMap()
-
-        /** Fallback parameter child, tried after constant-match misses (lower quality). */
-        var parameterChild: Pair<String, Node>? = null
-
-        /** The [RoutingNode] owning this tree node, if any. */
-        var routingNode: RoutingNode? = null
-
-        /** Pre-built result for [routingNode], reused across requests. */
-        var successResult: Success? = null
-
-        /** Pre-built results keyed by HTTP method, reused across requests. */
-        val methodMatches: MutableMap<HttpMethod, Success> = HashMap()
-
-        /**
-         * When `true`, a sibling may match with quality ≥ [qualityConstant][RouteSelectorEvaluation.qualityConstant],
-         * so the tree cannot safely resolve here and must defer to DFS.
-         */
-        var ambiguous: Boolean = false
-
-        /**
-         * When `true`, a sibling exists with quality between
-         * [qualityPathParameter][RouteSelectorEvaluation.qualityPathParameter] and
-         * [qualityConstant][RouteSelectorEvaluation.qualityConstant]. Constant hits
-         * still win, but the tree must not fall through to [parameterChild].
-         */
-        var hasFallbackSibling: Boolean = false
-
-        /** Forces fallback for trailing-slash requests this node cannot reason about. */
-        var requiresExactSlashHandling: Boolean = false
-
-        fun terminalResultFor(method: HttpMethod): Success? {
-            methodMatches[method]?.let { return it }
-            val node = routingNode
-            if (node != null && node.handlers.isNotEmpty() && methodMatches.isEmpty()) {
-                return successResult
+    /**
+     * Appends each segment in `path[start, end)` to [parameters] under [name], matching
+     * [PathSegmentTailcardRouteSelector] capture semantics: empty segments (from `//`) are
+     * skipped and each part is URL-decoded (only paying the decode cost when a `%` is present).
+     */
+    private fun captureTailcardSegments(
+        addParameter: (String, String) -> Unit,
+        name: String,
+        path: String,
+        start: Int,
+        end: Int,
+    ) {
+        var segStart = start
+        while (segStart < end) {
+            var segEnd = segStart
+            var hasPercent = false
+            while (segEnd < end) {
+                val c = path[segEnd]
+                if (c == '/') break
+                if (c == '%') hasPercent = true
+                segEnd++
             }
-            return null
+            if (segEnd != segStart) { // skip empty segments produced by consecutive '/'
+                addParameter(name, decodeSegment(path.substring(segStart, segEnd), hasPercent))
+            }
+            segStart = segEnd + 1
         }
+    }
+
+    /**
+     * URL-decodes [segment], only paying the decode cost when [hasPercent] is set, and falling
+     * back to the raw value if decoding fails.
+     */
+    private fun decodeSegment(segment: String, hasPercent: Boolean): String = try {
+        if (hasPercent) segment.decodeURLPart() else segment
+    } catch (_: Exception) {
+        segment
     }
 
     companion object {
@@ -142,22 +209,32 @@ internal class RoutingPathTree private constructor(private val root: Node) {
          * safe for fast-path resolution.
          */
         fun build(root: RoutingNode): RoutingPathTree {
-            val treeRoot = Node()
             val rootSelector = root.selector
             if (rootSelector !is RootRouteSelector) {
-                treeRoot.ambiguous = true
-                return RoutingPathTree(treeRoot)
+                return RoutingPathTree(AmbiguousNode)
             }
-            var entryNode = treeRoot
-            for (part in rootSelector.rootParts) {
-                entryNode = entryNode.children.getOrPut(part.encodeURLPathPart()) { Node() }
+
+            val rootNode = buildRootNode(root, rootSelector.rootParts)
+            return RoutingPathTree(rootNode)
+        }
+
+        private fun buildRootNode(root: RoutingNode, parts: List<String>): Node {
+            if (parts.isEmpty()) {
+                return registerChildren(root)
             }
-            entryNode.routingNode = root
-            if (root.handlers.isNotEmpty()) {
-                entryNode.successResult = makeFastPathSuccess(root)
-            }
-            registerChildren(entryNode, root)
-            return RoutingPathTree(treeRoot)
+
+            val childRoutingNode = root.children.firstOrNull {
+                (it.selector as? PathSegmentConstantRouteSelector)?.value?.encodeURLPathPart() == parts.first()
+            } ?: return AmbiguousNode
+
+            val children = mapOf(parts.first() to buildRootNode(childRoutingNode, parts.drop(1)))
+
+            return ElementNode(
+                children = children,
+                route = if (parts.size == 1) childRoutingNode else null,
+                success = null,
+                methods = emptyMap(),
+            )
         }
 
         private fun makeFastPathSuccess(node: RoutingNode): Success =
@@ -173,75 +250,84 @@ internal class RoutingPathTree private constructor(private val root: Node) {
          *  - **Fallback**: lower-quality siblings (wildcards, tailcards, prefix/suffix params).
          *  - **Ambiguous**: anything that could equal or outrank a constant match.
          */
-        private fun registerChildren(treeNode: Node, routingNode: RoutingNode) {
-            val children = routingNode.children
+        private fun registerChildren(routingNode: RoutingNode): Node {
+            val routeChildren = routingNode.children
+            val children = mutableMapOf<String, Node>()
+            var parameterChild: Pair<String, Node>? = null
+            var wildcardChild: Node? = null
+            var tailcardChild: Pair<String, Node>? = null
 
             // Multiple plain parameter siblings make scoring non-trivial — bail out.
-            val parameterCount = children.count { isPlainParameterChild(it) }
+            val parameterCount = routeChildren.count { isPlainParameterChild(it) }
             if (parameterCount > 1) {
-                treeNode.ambiguous = true
-                return
+                return AmbiguousNode
             }
 
-            for (child in children) {
+            val methodMatches = mutableMapOf<HttpMethod, Success>()
+
+            for (child in routeChildren) {
                 when (val s = child.selector) {
                     is PathSegmentConstantRouteSelector -> {
-                        // Store the key pre-encoded so it matches raw (undecoded) request segments.
-                        val sub = treeNode.children.getOrPut(s.value.encodeURLPathPart()) { Node() }
-                        sub.routingNode = child
-                        if (child.handlers.isNotEmpty()) {
-                            sub.successResult = makeFastPathSuccess(child)
-                        }
-                        registerChildren(sub, child)
+                        children[s.value.encodeURLPathPart()] = registerChildren(child)
                     }
 
                     is PathSegmentParameterRouteSelector -> {
-                        if (!isPlainParameterChild(child)) {
-                            // Prefix/suffix params (quality 0.9) are fallback siblings.
-                            treeNode.hasFallbackSibling = true
+                        if (isPlainParameterChild(child)) {
+                            parameterChild = s.name to registerChildren(child)
                         } else {
-                            val sub = Node()
-                            sub.routingNode = child
-                            if (child.handlers.isNotEmpty()) {
-                                sub.successResult = makeFastPathSuccess(child)
-                            }
-                            treeNode.parameterChild = s.name to sub
-                            registerChildren(sub, child)
+                            return AmbiguousNode
                         }
                     }
 
                     is HttpMethodRouteSelector -> {
                         if (child.handlers.isNotEmpty() && child.children.isEmpty()) {
-                            treeNode.methodMatches[s.method] = makeFastPathSuccess(child)
+                            methodMatches[s.method] = makeFastPathSuccess(child)
                         } else {
-                            // Method node with sub-routes — cannot reason about their qualities.
-                            treeNode.ambiguous = true
+                            return AmbiguousNode
                         }
                     }
 
-                    is TrailingSlashRouteSelector -> {
-                        treeNode.requiresExactSlashHandling = true
+                    is PathSegmentWildcardRouteSelector -> {
+                        wildcardChild = registerChildren(child)
                     }
 
-                    is PathSegmentWildcardRouteSelector,
-                    is PathSegmentTailcardRouteSelector,
-                    is PathSegmentOptionalParameterRouteSelector -> {
-                        // Low-quality selectors: can't outrank constants but need DFS on miss.
-                        treeNode.hasFallbackSibling = true
-                    }
-
-                    else -> {
-                        // Use maxQualityHint to decide: if strictly below qualityConstant,
-                        // treat as fallback; otherwise mark ambiguous.
-                        val hint = child.selector.qualityUpperBound
-                        if (!hint.isNaN() && hint < RouteSelectorEvaluation.qualityConstant) {
-                            treeNode.hasFallbackSibling = true
+                    is PathSegmentTailcardRouteSelector -> {
+                        if (s.prefix.isEmpty()) {
+                            // Consumes all remaining segments; followable when sole matcher.
+                            tailcardChild = s.name to registerChildren(child)
                         } else {
-                            treeNode.ambiguous = true
+                            return AmbiguousNode
+                        }
+                    }
+
+                    // Matches 0 or 1 segment — backtracking the tree can't do. Defer to DFS.
+                    is PathSegmentOptionalParameterRouteSelector -> {}
+
+                    // Trailing-slash requests are always deferred to DFS (see tryResolve), so
+                    // this child never affects fast-path resolution of non-slash requests.
+                    is TrailingSlashRouteSelector -> {}
+
+                    // In other cases, we can use quality upper bound to decide if this is a useful fallback sibling
+                    // When unknown, we mark this node as ambiguous
+                    else -> {
+                        val hint = child.selector.qualityUpperBound
+                        if (hint.isNaN() || hint >= RouteSelectorEvaluation.qualityConstant) {
+                            return AmbiguousNode
                         }
                     }
                 }
             }
+
+            // Dynamic segments are taken in order: parameter, wildcard, tailcard
+            return Node(
+                children = children,
+                routingNode = routingNode,
+                successResult = if (routingNode.handlers.isNotEmpty()) makeFastPathSuccess(routingNode) else null,
+                methodMatches = methodMatches,
+                parameter = parameterChild,
+                wildcard = wildcardChild,
+                tailcard = tailcardChild,
+            )
         }
 
         /** Returns `true` for plain `{name}` parameter selectors with no prefix/suffix. */

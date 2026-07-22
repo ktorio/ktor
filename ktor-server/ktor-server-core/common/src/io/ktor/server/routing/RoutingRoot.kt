@@ -78,9 +78,7 @@ public class RoutingRoot(
 
     @OptIn(InternalAPI::class)
     public suspend fun interceptor(context: PipelineContext<Unit, PipelineCall>) {
-        // Fast path: when there are no tracers and the routing tree is amenable to constant
-        // path resolution, bypass the [RoutingResolveContext] allocation (and its `resolve`
-        // continuation, scratch ArrayLists, and per-segment parsing) entirely.
+        // Fast path, if we can resolve the route entirely from the path and there are no tracers
         if (tracers.isEmpty()) {
             val call = context.call
             val fast = pathTree.tryResolve(call.request.path(), call.request.httpMethod)
