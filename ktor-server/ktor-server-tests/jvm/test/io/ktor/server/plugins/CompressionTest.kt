@@ -876,7 +876,7 @@ class CompressionTest {
 
     @Test
     fun testDisableDecoding() = testApplication {
-        val compressed = GZip.encode(ByteReadChannel(textToCompressAsBytes)).readRemaining().readByteArray()
+        val compressed = GZip.encode(ByteReadChannel(textToCompressAsBytes)).readBuffer().readByteArray()
 
         install(Compression) {
             mode = CompressionConfig.Mode.CompressResponse
@@ -900,7 +900,7 @@ class CompressionTest {
 
     @Test
     fun testDisableEncoding() = testApplication {
-        val compressed = GZip.encode(ByteReadChannel(textToCompressAsBytes)).readRemaining().readByteArray()
+        val compressed = GZip.encode(ByteReadChannel(textToCompressAsBytes)).readBuffer().readByteArray()
 
         install(Compression) {
             mode = CompressionConfig.Mode.DecompressRequest
@@ -926,7 +926,7 @@ class CompressionTest {
 
     @Test
     fun testDisableCallEncoding() = testApplication {
-        val compressed = GZip.encode(ByteReadChannel(textToCompressAsBytes)).readRemaining().readByteArray()
+        val compressed = GZip.encode(ByteReadChannel(textToCompressAsBytes)).readBuffer().readByteArray()
         install(Compression)
 
         routing {
@@ -953,7 +953,7 @@ class CompressionTest {
 
     @Test
     fun testDisableCallDecoding() = testApplication {
-        val compressed = GZip.encode(ByteReadChannel(textToCompressAsBytes)).readRemaining().readByteArray()
+        val compressed = GZip.encode(ByteReadChannel(textToCompressAsBytes)).readBuffer().readByteArray()
 
         install(Compression)
         routing {
@@ -993,7 +993,7 @@ class CompressionTest {
         val expectedBody = "deadbeef".hexToByteArray()
 
         val responseBytes = client.post("/") {
-            val compressedBody = GZip.encode(ByteReadChannel(expectedBody)).readRemaining().readByteArray()
+            val compressedBody = GZip.encode(ByteReadChannel(expectedBody)).readBuffer().readByteArray()
             setBody(compressedBody)
             header(HttpHeaders.ContentEncoding, "gzip")
         }.bodyAsBytes()
@@ -1040,7 +1040,7 @@ class CompressionTest {
             channel.toByteArray()
         }
         val responseText = client.post("/multipart") {
-            val compressedBody = GZip.encode(ByteReadChannel(multipartBytes)).readRemaining().readByteArray()
+            val compressedBody = GZip.encode(ByteReadChannel(multipartBytes)).readBuffer().readByteArray()
             setBody(compressedBody)
             header(
                 HttpHeaders.ContentType,
@@ -1079,7 +1079,7 @@ class CompressionTest {
             val responseText = client.post("/json") {
                 val compressedBody = GZip.encode(
                     ByteReadChannel("""{"test": "$expectedText"}""".toByteArray())
-                ).readRemaining().readByteArray()
+                ).readBuffer().readByteArray()
                 setBody(compressedBody)
                 header(HttpHeaders.ContentType, ContentType.Application.Json)
                 header(HttpHeaders.ContentEncoding, "gzip")
@@ -1090,7 +1090,7 @@ class CompressionTest {
 
     @Test
     fun testRejectTooLongContentEncodingChain() = testApplication {
-        val compressed = GZip.encode(ByteReadChannel(textToCompressAsBytes)).readRemaining().readByteArray()
+        val compressed = GZip.encode(ByteReadChannel(textToCompressAsBytes)).readBuffer().readByteArray()
 
         install(Compression) {
             mode = CompressionConfig.Mode.DecompressRequest
@@ -1115,7 +1115,7 @@ class CompressionTest {
     fun testRejectDecompressionBomb() = testApplication {
         // Build a small payload that decompresses to a much larger one ("zip bomb"-like).
         val bombPlain = ByteArray(1024 * 1024) // 1 MiB of zeros
-        val bombCompressed = GZip.encode(ByteReadChannel(bombPlain)).readRemaining().readByteArray()
+        val bombCompressed = GZip.encode(ByteReadChannel(bombPlain)).readBuffer().readByteArray()
 
         install(Compression) {
             mode = CompressionConfig.Mode.DecompressRequest
@@ -1139,7 +1139,7 @@ class CompressionTest {
 
     @Test
     fun testAllowDecodedContentBelowLimit() = testApplication {
-        val compressed = GZip.encode(ByteReadChannel(textToCompressAsBytes)).readRemaining().readByteArray()
+        val compressed = GZip.encode(ByteReadChannel(textToCompressAsBytes)).readBuffer().readByteArray()
 
         install(Compression) {
             mode = CompressionConfig.Mode.DecompressRequest

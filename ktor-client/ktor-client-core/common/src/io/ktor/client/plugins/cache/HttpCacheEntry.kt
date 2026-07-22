@@ -16,7 +16,7 @@ import kotlinx.io.readByteArray
 
 @OptIn(InternalAPI::class)
 internal suspend fun HttpCacheEntry(isShared: Boolean, response: HttpResponse): HttpCacheEntry {
-    val body = response.rawContent.readRemaining().readByteArray()
+    val body = response.rawContent.readBuffer().readByteArray()
     return HttpCacheEntry(response.cacheExpires(isShared), response.varyKeys(), response, body)
 }
 

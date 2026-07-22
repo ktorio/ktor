@@ -250,7 +250,7 @@ public class JsonPlugin internal constructor(
                 val contentType = context.response.contentType() ?: return@intercept
                 if (!plugin.canHandle(contentType)) return@intercept
 
-                val parsedBody = plugin.serializer.read(info, body.readRemaining())
+                val parsedBody = plugin.serializer.read(info, body.readBuffer())
                 val response = HttpResponseContainer(info, parsedBody)
                 proceedWith(response)
             }

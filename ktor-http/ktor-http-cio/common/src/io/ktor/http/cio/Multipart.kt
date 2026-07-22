@@ -228,7 +228,7 @@ private fun CoroutineScope.parseMultipart(
     val preambleData = writer {
         parsePreambleImpl(firstBoundary, countedInput, channel, 8193)
         channel.flushAndClose()
-    }.channel.readRemaining()
+    }.channel.readBuffer()
 
     if (preambleData.remaining > 0L) {
         send(MultipartEvent.Preamble(preambleData))
@@ -279,7 +279,7 @@ private fun CoroutineScope.parseMultipart(
             send(MultipartEvent.Epilogue(countedInput.readPacket(size.toInt())))
         }
     } else {
-        val epilogueContent = countedInput.readRemaining()
+        val epilogueContent = countedInput.readBuffer()
         if (!epilogueContent.exhausted()) {
             send(MultipartEvent.Epilogue(epilogueContent))
         }

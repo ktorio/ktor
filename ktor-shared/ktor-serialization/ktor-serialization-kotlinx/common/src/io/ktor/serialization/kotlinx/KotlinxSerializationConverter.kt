@@ -67,7 +67,7 @@ public class KotlinxSerializationConverter(
     }
 
     override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? {
-        val contentPacket = content.readRemaining()
+        val contentPacket = content.readBuffer()
 
         for (ext in extensions) {
             return ext.deserialize(charset, typeInfo, ByteReadChannel(contentPacket)) ?: continue

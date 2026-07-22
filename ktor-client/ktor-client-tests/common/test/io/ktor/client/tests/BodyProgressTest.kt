@@ -213,7 +213,7 @@ class BodyProgressTest : ClientLoader() {
                 setBody(channel)
                 onDownload { _, _ -> invokedCount++ }
             }.execute {
-                val result = it.body<ByteReadChannel>().readRemaining().readBytes()
+                val result = it.body<ByteReadChannel>().readBuffer().readBytes()
                 assertContentEquals(DOUBLE_TEST_ARRAY, result)
             }
             assertTrue(invokedCount > 2)
@@ -236,7 +236,7 @@ class BodyProgressTest : ClientLoader() {
                 setBody(channel)
                 onDownload { _, _ -> invokedCount++ }
             }.body<ByteReadChannel, Unit> {
-                val result = it.readRemaining().readBytes()
+                val result = it.readBuffer().readBytes()
                 assertContentEquals(DOUBLE_TEST_ARRAY, result)
             }
             assertTrue(invokedCount > 2)

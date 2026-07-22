@@ -80,7 +80,7 @@ public val AuthenticationInterceptors: RouteScopedPlugin<RouteAuthenticationConf
         if (call.attributes.contains(cacheOAuthFormReceiveKey) && call.receiveType == typeInfo<Parameters>()) {
             if (body is ByteReadChannel) {
                 try {
-                    val array = body.readRemaining().readByteArray()
+                    val array = body.readBuffer().readByteArray()
                     call.attributes.put(formCacheKey, array)
                     newBody = ByteReadChannel(array)
                 } finally {

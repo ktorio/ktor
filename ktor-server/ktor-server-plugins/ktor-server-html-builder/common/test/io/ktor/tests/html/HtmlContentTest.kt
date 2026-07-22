@@ -41,7 +41,7 @@ class HtmlContentTest {
 
         var secondFail = false
         try {
-            channel.readRemaining().readText()
+            channel.readBuffer().readText()
         } catch (cause: Throwable) {
             secondFail = true
             assertEquals("BAAM", cause.message)

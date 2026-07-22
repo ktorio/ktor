@@ -39,19 +39,19 @@ class RespondFunctionsTest {
         client.get("/").let { call ->
             assertEquals(
                 "0, 1, 2, 3, 4, 5, 6, 7, 8, 9",
-                call.bodyAsChannel().readRemaining().readByteArray().joinToString()
+                call.bodyAsChannel().readBuffer().readByteArray().joinToString()
             )
             assertFalse(call.headers.contains(HttpHeaders.ContentType))
         }
         client.get("/provider").let { call ->
             assertEquals(
                 "0, 1, 2, 3, 4, 5, 6, 7, 8, 9",
-                call.bodyAsChannel().readRemaining().readByteArray().joinToString()
+                call.bodyAsChannel().readBuffer().readByteArray().joinToString()
             )
             assertFalse(call.headers.contains(HttpHeaders.ContentType))
         }
         client.get("/bytes-writer").let { call ->
-            assertEquals("1, 2", call.bodyAsChannel().readRemaining().readByteArray().joinToString())
+            assertEquals("1, 2", call.bodyAsChannel().readBuffer().readByteArray().joinToString())
             assertEquals("2", call.headers[HttpHeaders.ContentLength])
         }
     }

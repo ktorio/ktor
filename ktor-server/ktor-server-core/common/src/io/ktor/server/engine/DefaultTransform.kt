@@ -113,7 +113,7 @@ internal inline fun <R> withContentType(call: PipelineCall, block: () -> R): R =
 internal suspend fun ByteReadChannel.readText(
     charset: Charset
 ): String {
-    val content = readRemaining(Long.MAX_VALUE)
+    val content = readBuffer(Long.MAX_VALUE)
     if (content.exhausted()) {
         return ""
     }

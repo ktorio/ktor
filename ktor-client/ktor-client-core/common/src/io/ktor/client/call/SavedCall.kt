@@ -35,7 +35,7 @@ import kotlin.coroutines.CoroutineContext
 public suspend fun HttpClientCall.save(): HttpClientCall {
     if (this is SavedHttpCall) return this
 
-    val responseBody = response.rawContent.readRemaining().readByteArray()
+    val responseBody = response.rawContent.readBuffer().readByteArray()
     return SavedHttpCall(client, request, response, responseBody)
 }
 

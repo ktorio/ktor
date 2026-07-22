@@ -69,7 +69,7 @@ class ByteChannelTest {
     fun testChannelFromString() = runTest {
         val string = "Hello, world!"
         val channel = ByteReadChannel(string)
-        val result = channel.readRemaining().readText()
+        val result = channel.readBuffer().readText()
         assertEquals(string, result)
     }
 

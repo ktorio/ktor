@@ -70,19 +70,19 @@ class MultipartTest {
         assertEquals("preamble\r\n", preamble.body.readText())
 
         val recipient = allEvents[1] as MultipartEvent.MultipartPart
-        assertEquals("recipient@example.com", recipient.body.readRemaining().readText())
+        assertEquals("recipient@example.com", recipient.body.readBuffer().readText())
 
         val title = allEvents[2] as MultipartEvent.MultipartPart
-        assertEquals("Good news", title.body.readRemaining().readText())
+        assertEquals("Good news", title.body.readBuffer().readText())
 
         val text = allEvents[3] as MultipartEvent.MultipartPart
-        assertEquals("See attachments...", text.body.readRemaining().readText())
+        assertEquals("See attachments...", text.body.readBuffer().readText())
 
         val jpeg1 = allEvents[4] as MultipartEvent.MultipartPart
-        assertEquals("JFIF first", jpeg1.body.readRemaining().readText())
+        assertEquals("JFIF first", jpeg1.body.readBuffer().readText())
 
         val jpeg2 = allEvents[5] as MultipartEvent.MultipartPart
-        assertEquals("JFIF second", jpeg2.body.readRemaining().readText())
+        assertEquals("JFIF second", jpeg2.body.readBuffer().readText())
 
         val epilogue = allEvents[6] as MultipartEvent.Epilogue
         assertEquals("epilogue", epilogue.body.readText())
@@ -141,19 +141,19 @@ class MultipartTest {
         assertEquals("preamble\r\n", preamble.body.readText())
 
         val recipient = allEvents[1] as MultipartEvent.MultipartPart
-        assertEquals("recipient@example.com", recipient.body.readRemaining().readText())
+        assertEquals("recipient@example.com", recipient.body.readBuffer().readText())
 
         val title = allEvents[2] as MultipartEvent.MultipartPart
-        assertEquals("Good news", title.body.readRemaining().readText())
+        assertEquals("Good news", title.body.readBuffer().readText())
 
         val text = allEvents[3] as MultipartEvent.MultipartPart
-        assertEquals("See attachments...", text.body.readRemaining().readText())
+        assertEquals("See attachments...", text.body.readBuffer().readText())
 
         val jpeg1 = allEvents[4] as MultipartEvent.MultipartPart
-        assertEquals("JFIF first", jpeg1.body.readRemaining().readText())
+        assertEquals("JFIF first", jpeg1.body.readBuffer().readText())
 
         val jpeg2 = allEvents[5] as MultipartEvent.MultipartPart
-        assertEquals("JFIF second", jpeg2.body.readRemaining().readText())
+        assertEquals("JFIF second", jpeg2.body.readBuffer().readText())
     }
 
     @Test
@@ -211,8 +211,8 @@ class MultipartTest {
         val title = parts.getOrNull(0) ?: fail("No title part found")
         val file = parts.getOrNull(1) ?: fail("No file part found")
 
-        assertEquals("Hello", title.body.readRemaining().readText())
-        val fileContent = file.body.readRemaining().readText()
+        assertEquals("Hello", title.body.readBuffer().readText())
+        val fileContent = file.body.readBuffer().readText()
         assertEquals(380, fileContent.length)
     }
 
@@ -270,19 +270,19 @@ class MultipartTest {
         assertEquals("preamble\r\n", preamble.body.readText())
 
         val recipient = allEvents[1] as MultipartEvent.MultipartPart
-        assertEquals("recipient@example.com", recipient.body.readRemaining().readText())
+        assertEquals("recipient@example.com", recipient.body.readBuffer().readText())
 
         val title = allEvents[2] as MultipartEvent.MultipartPart
-        assertEquals("Good news", title.body.readRemaining().readText())
+        assertEquals("Good news", title.body.readBuffer().readText())
 
         val text = allEvents[3] as MultipartEvent.MultipartPart
-        assertEquals("See attachments...", text.body.readRemaining().readText())
+        assertEquals("See attachments...", text.body.readBuffer().readText())
 
         val jpeg1 = allEvents[4] as MultipartEvent.MultipartPart
-        assertEquals("JFIF first", jpeg1.body.readRemaining().readText())
+        assertEquals("JFIF first", jpeg1.body.readBuffer().readText())
 
         val jpeg2 = allEvents[5] as MultipartEvent.MultipartPart
-        assertEquals("JFIF second", jpeg2.body.readRemaining().readText())
+        assertEquals("JFIF second", jpeg2.body.readBuffer().readText())
 
         val epilogue = allEvents[6] as MultipartEvent.Epilogue
         assertEquals("epilogue", epilogue.body.readText())
@@ -330,10 +330,10 @@ class MultipartTest {
         assertEquals("preamble\r\n", preamble.body.readText())
 
         val recipient = allEvents[1] as MultipartEvent.MultipartPart
-        assertEquals("recipient@example.com", recipient.body.readRemaining().readText())
+        assertEquals("recipient@example.com", recipient.body.readBuffer().readText())
 
         val text = allEvents[2] as MultipartEvent.MultipartPart
-        assertEquals("See attachments...", text.body.readRemaining().readText())
+        assertEquals("See attachments...", text.body.readBuffer().readText())
 
         val epilogue = allEvents[3] as MultipartEvent.Epilogue
         assertEquals("epilogue", epilogue.body.readText())
@@ -480,7 +480,7 @@ class MultipartTest {
             ).toList()
 
             assertEquals(1, events.size)
-            assertEquals("value", (events[0] as MultipartEvent.MultipartPart).body.readRemaining().readText())
+            assertEquals("value", (events[0] as MultipartEvent.MultipartPart).body.readBuffer().readText())
         }
     }
 

@@ -346,7 +346,7 @@ class ContentNegotiationTests {
             }
             engine {
                 addHandler {
-                    val text = (it.body as OutgoingContent.ReadChannelContent).readFrom().readRemaining().readText()
+                    val text = (it.body as OutgoingContent.ReadChannelContent).readFrom().readBuffer().readText()
                     respond(text)
                 }
             }
@@ -468,7 +468,7 @@ class ContentNegotiationTests {
                 register(ContentType.Application.Xml, TestContentConverter()) {
                     deserializeFn = { charset, _, body ->
                         assertEquals(Charsets.ISO_8859_1, charset)
-                        StringWrapper(body.readRemaining().readText(charset = charset))
+                        StringWrapper(body.readBuffer().readText(charset = charset))
                     }
                 }
             }

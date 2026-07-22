@@ -77,7 +77,7 @@ class MultiPartFormDataTest : ClientLoader() {
                         assertEquals("file", part.name)
                         assertEquals("test.bin", part.originalFileName)
 
-                        val bytes = part.provider().readRemaining().readByteArray()
+                        val bytes = part.provider().readBuffer().readByteArray()
                         assertEquals(1024, bytes.size)
                         for (i in bytes.indices) {
                             assertEquals(i.toByte(), bytes[i])

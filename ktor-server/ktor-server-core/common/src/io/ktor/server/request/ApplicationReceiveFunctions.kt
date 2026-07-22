@@ -182,7 +182,7 @@ public suspend inline fun ApplicationCall.receiveText(): String {
     } catch (cause: BadContentTypeFormatException) {
         throw BadRequestException("Illegal Content-Type format: ${request.headers[HttpHeaders.ContentType]}", cause)
     }
-    return receiveChannel().readRemaining().readText(charset)
+    return receiveChannel().readBuffer().readText(charset)
 }
 
 /**

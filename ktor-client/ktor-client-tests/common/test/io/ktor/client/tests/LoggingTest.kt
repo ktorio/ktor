@@ -288,7 +288,7 @@ class LoggingTest : ClientLoader() {
                 url("$TEST_SERVER/content/echo")
             }.body<ByteReadChannel>()
             assertNotNull(response)
-            assertEquals("test", response.readRemaining().readText())
+            assertEquals("test", response.readBuffer().readText())
         }
 
         after {

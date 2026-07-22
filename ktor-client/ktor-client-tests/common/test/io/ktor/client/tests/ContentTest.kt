@@ -91,7 +91,7 @@ class ContentTest : ClientLoader() {
         test { client ->
             testArrays.forEach { content ->
                 val responseData = client.echo<ByteReadChannel>(content)
-                val data = responseData.readRemaining().readByteArray()
+                val data = responseData.readBuffer().readByteArray()
                 assertArrayEquals(
                     "Test fail with size: ${content.size}, actual size: ${data.size}",
                     content,
