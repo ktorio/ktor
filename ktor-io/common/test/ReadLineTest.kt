@@ -6,6 +6,8 @@ import io.ktor.test.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.yield
 import kotlinx.io.EOFException
 import kotlin.test.*
 
@@ -127,6 +129,13 @@ class ReadLineTest {
     fun `limit - exact limit with LF immediately after`() = runTest {
         val channel = ByteReadChannel("12345\n")
         channel.assertLines("12345", limit = 5)
+    }
+
+    @Test
+    fun `limit - exact limit with LF immediately after unicode`() = runTest {
+        val channel = ByteReadChannel("привет\n")
+        val line = channel.readLineStrict(12)
+        assertEquals("привет", line)
     }
 
     @Test
@@ -325,5 +334,86 @@ class ReadLineTest {
             assertEquals(line, buffer.toString(), "Unexpected line content")
         }
         assertTrue(exhausted(), "Not all lines were read")
+    }
+
+    @Test
+    fun `code point boundary`() = runTest {
+        val channel = ByteChannel()
+        backgroundScope.launch {
+            channel.writeFully(byteArrayOf(0xE3.toByte(), 0x83.toByte()))
+            channel.flush()
+            yield()
+            channel.writeByte(0xB3.toByte())
+            channel.flush()
+            yield()
+            channel.writeByte('\n'.code.toByte())
+
+            channel.close()
+        }
+        assertEquals("ン", channel.readLine())
+    }
+
+    @Test
+    fun `incomplete code point boundary`() = runTest {
+        val channel = ByteChannel()
+        backgroundScope.launch {
+            channel.writeFully(byteArrayOf(0xE3.toByte(), 0x83.toByte()))
+            channel.flush()
+            yield()
+            channel.writeByte('\n'.code.toByte())
+
+            channel.close()
+        }
+        assertEquals("�", channel.readLine())
+    }
+
+    @Test
+    fun `4-byte code point boundary`() = runTest {
+        val channel = ByteChannel()
+        backgroundScope.launch {
+            channel.writeFully(byteArrayOf(0xF0.toByte(), 0x9F.toByte()))
+            channel.flush()
+            yield()
+            channel.writeByte(0x98.toByte())
+            channel.flush()
+            yield()
+            channel.writeFully(byteArrayOf(0x80.toByte(), '\n'.code.toByte()))
+            channel.flush()
+
+            channel.close()
+        }
+        assertEquals("\uD83D\uDE00", channel.readLine())
+    }
+
+    @Test
+    fun `1k chunk before code point boundary`() = runTest {
+        val channel = ByteChannel()
+        backgroundScope.launch {
+            channel.writeFully(ByteArray(1024) { 'a'.code.toByte() })
+            channel.writeFully(byteArrayOf(0xE3.toByte(), 0x83.toByte()))
+            channel.flush()
+            yield()
+            channel.writeFully(byteArrayOf(0xB3.toByte(), '\n'.code.toByte()))
+            channel.flush()
+
+            channel.close()
+        }
+        assertEquals("a".repeat(1024) + "ン", channel.readLine())
+    }
+
+    @Test
+    fun `4k chunk before code point boundary`() = runTest {
+        val channel = ByteChannel()
+        backgroundScope.launch {
+            channel.writeFully(ByteArray(4094) { 'b'.code.toByte() })
+            channel.writeFully(byteArrayOf(0xE3.toByte(), 0x83.toByte()))
+            channel.flush()
+            yield()
+            channel.writeFully(byteArrayOf(0xB3.toByte(), '\n'.code.toByte()))
+            channel.flush()
+
+            channel.close()
+        }
+        assertEquals("b".repeat(4094) + "ン", channel.readLine())
     }
 }
