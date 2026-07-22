@@ -9,6 +9,7 @@ import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.util.reflect.*
+import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 
@@ -40,7 +41,7 @@ public class SSEServerContent(
     override val contentType: ContentType = ContentType.Text.EventStream
 
     override suspend fun writeTo(channel: ByteWriteChannel) {
-        LOGGER.trace("Starting sse session for ${call.request.uri}")
+        LOGGER.trace { "Starting sse session for ${call.request.uri}" }
 
         var session: ServerSSESession? = null
         try {

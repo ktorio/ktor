@@ -123,7 +123,6 @@ private fun ApplicationEnvironment.logFailure(call: ApplicationCall, cause: Thro
             "(request error: $cause)"
         }
 
-        val infoString = "$status: $logString. Exception ${cause::class}: ${cause.message}"
         when (cause) {
             is CancellationException,
             is ClosedChannelException,
@@ -133,7 +132,9 @@ private fun ApplicationEnvironment.logFailure(call: ApplicationCall, cause: Thro
             is NotFoundException,
             is PayloadTooLargeException,
             is UnsupportedMediaTypeException,
-            is CannotTransformContentToTypeException -> log.debug(infoString, cause)
+            is CannotTransformContentToTypeException -> {
+                log.debug(cause) { "$status: $logString. Exception ${cause::class}: ${cause.message}" }
+            }
 
             else -> log.error("$status: $logString", cause)
         }

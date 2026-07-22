@@ -39,10 +39,32 @@ public inline fun Logger.trace(message: () -> String) {
 }
 
 /**
+ * Check `isTraceEnabled` flag before logging to save some memory
+ * allocations.
+ *
+ * [Report a
+ * problem](https://ktor.io/feedback/?fqname=io.ktor.util.logging.trace)
+ */
+public inline fun Logger.trace(cause: Throwable, message: () -> String) {
+    if (isTraceEnabled) trace(message(), cause)
+}
+
+/**
  * Check `isDebugEnabled` flag before logging to save some memory allocations.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.logging.debug)
  */
 public inline fun Logger.debug(message: () -> String) {
     if (isDebugEnabled) debug(message())
+}
+
+/**
+ * Check `isDebugEnabled` flag before logging to save some memory
+ * allocations.
+ *
+ * [Report a
+ * problem](https://ktor.io/feedback/?fqname=io.ktor.util.logging.debug)
+ */
+public inline fun Logger.debug(cause: Throwable, message: () -> String) {
+    if (isDebugEnabled) debug(message(), cause)
 }
