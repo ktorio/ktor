@@ -40,15 +40,16 @@ private val RegisteredSchemesKey = AttributeKey<MutableMap<String, Any>>("Typesa
  */
 @SubclassOptInRequired
 @ExperimentalKtorApi
-public open class AuthenticationScheme<P : Any, C : AuthenticatedContext<P>> @PublishedApi internal constructor(
+public open class AuthenticationScheme<P, C> @PublishedApi internal constructor(
     @PublishedApi
     internal val provider: AuthenticationProvider,
     internal val principalType: KClass<P>,
     public val onUnauthorized: UnauthorizedHandler?,
     internal val anonymousFactory: (suspend RoutingContext.() -> P)?,
     @PublishedApi
-    internal val contextFactory: (AuthenticatedContext<P>) -> C
-) {
+    internal val contextFactory: (AuthenticatedContext<P>) -> C,
+) where P : Any,
+          C : AuthenticatedContext<P> {
     public val name: String = checkNotNull(provider.name) {
         "Typed authentication schemes require a named AuthenticationProvider"
     }
@@ -154,9 +155,11 @@ public typealias SimpleAuthenticationScheme<P> = AuthenticationScheme<P, Authent
  */
 @ExperimentalKtorApi
 @OptIn(InternalAPI::class)
-public inline fun <reified CP : Any, P : AP, AP : CP> AuthenticationScheme<P, AuthenticatedContext<P>>.orAnonymous(
-    noinline fallback: AnonymousFactory<AP>
-): AuthenticationScheme<CP, AuthenticatedContext<CP>> =
+public inline fun <reified CP, P, AP> SimpleAuthenticationScheme<P>.orAnonymous(
+    noinline fallback: AnonymousFactory<AP>,
+): AuthenticationScheme<CP, AuthenticatedContext<CP>> where CP : Any,
+                                                            P : AP,
+                                                            AP : CP =
     AuthenticationScheme.from(provider, onUnauthorized, fallback)
 
 internal fun AuthenticationContext.lastFailureOrNoCredentials(): AuthenticationFailedCause =
