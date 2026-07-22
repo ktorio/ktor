@@ -82,7 +82,6 @@ internal abstract class DelegateMixinSerializer<T>(
         value.keyMatcher to key
     }
 
-    @OptIn(InternalSerializationApi::class)
     override val descriptor: SerialDescriptor = baseSerializer.descriptor
 
     override fun serialize(encoder: Encoder, value: T) {

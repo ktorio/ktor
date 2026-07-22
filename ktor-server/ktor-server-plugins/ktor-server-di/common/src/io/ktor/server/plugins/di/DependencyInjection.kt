@@ -59,7 +59,6 @@ import kotlin.reflect.KFunction
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DI)
  */
-@OptIn(ExperimentalCoroutinesApi::class)
 public val DI: ApplicationPlugin<DependencyInjectionConfig> =
     createApplicationPlugin("DI", ::DependencyInjectionConfig) {
         val startupMode = environment.startupMode

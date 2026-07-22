@@ -1196,7 +1196,6 @@ class OkHttpFormatTest {
             .assertNoMoreLogs()
     }
 
-    @OptIn(InternalAPI::class)
     @Test
     fun multipartBinaryBody() = testWithLevel(LogLevel.BODY, handle = {
         respond(

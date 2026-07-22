@@ -462,7 +462,6 @@ public class KotlinxSerializerJsonSchemaInference(
  * Note: This function does not handle circular references. For types with circular dependencies,
  * consider implementing depth tracking or schema references to avoid stack overflow.
  */
-@OptIn(ExperimentalSerializationApi::class, InternalSerializationApi::class, InternalAPI::class)
 public fun SerialDescriptor.buildJsonSchema(
     includeTitle: Boolean = true,
     includeAnnotations: List<Annotation> = emptyList(),

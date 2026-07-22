@@ -15,7 +15,6 @@ import org.jetbrains.kotlin.test.services.TestServices
 
 class OpenApiRegistrarConfigurator(testServices: TestServices) : EnvironmentConfigurator(testServices) {
 
-    @OptIn(ExperimentalSerializationApi::class)
     override fun CompilerPluginRegistrar.ExtensionStorage.registerCompilerExtensions(
         module: TestModule,
         configuration: CompilerConfiguration,

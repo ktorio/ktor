@@ -128,7 +128,6 @@ public class JettyApplicationCall(
             }
         }
 
-        @OptIn(InternalCoroutinesApi::class, InternalIoApi::class)
         private val responseBodyJob: Lazy<ReaderJob> = lazy {
             call.bodyWriter(response)
         }

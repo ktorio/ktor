@@ -87,7 +87,6 @@ internal class SessionSerializerReflection<T : Any>(
                 { it },
                 {
                     when (it.kind) {
-                        @OptIn(ExperimentalContextParameters::class)
                         KParameter.Kind.CONTEXT,
                         KParameter.Kind.INSTANCE,
                         KParameter.Kind.EXTENSION_RECEIVER -> findParticularType(type, bundle)

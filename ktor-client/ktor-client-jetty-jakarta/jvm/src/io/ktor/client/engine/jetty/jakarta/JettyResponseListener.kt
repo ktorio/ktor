@@ -135,7 +135,6 @@ internal class JettyResponseListener(
         return StatusWithHeaders(statusCode, headersBuilder.build())
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     private fun runResponseProcessing() = CoroutineScope(callContext).launch {
         while (true) {
             val (data, stream) = backendChannel.receiveCatching().getOrNull() ?: break

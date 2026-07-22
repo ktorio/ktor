@@ -209,7 +209,6 @@ private suspend fun AuthenticationContext.executeChallenges(
     return false
 }
 
-@OptIn(InternalAPI::class)
 public fun AuthenticationConfig.allProviders(): Map<String?, AuthenticationProvider> {
     return providers
 }

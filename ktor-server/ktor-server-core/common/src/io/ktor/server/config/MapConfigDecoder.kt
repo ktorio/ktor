@@ -40,7 +40,6 @@ internal abstract class AbstractMapConfigDecoder(
     }
 }
 
-@OptIn(ExperimentalSerializationApi::class)
 internal class MapConfigDecoder(
     map: Map<String, String>,
     path: String = "",
@@ -76,7 +75,6 @@ internal class MapConfigDecoder(
         beginStructure(descriptor, currentPath)
 }
 
-@OptIn(ExperimentalSerializationApi::class)
 private class ListMapConfigDecoder(
     map: Map<String, String>,
     path: String,
@@ -98,7 +96,6 @@ private class ListMapConfigDecoder(
         beginStructure(descriptor, "$path.${index - 1}")
 }
 
-@OptIn(ExperimentalSerializationApi::class)
 private class SubMapConfigDecoder(
     map: Map<String, String>,
     path: String,

@@ -288,7 +288,6 @@ class MultipartTest {
         assertEquals("epilogue", epilogue.body.readText())
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     @Test
     fun testEmptyPart() = runBlocking {
         val body = """
