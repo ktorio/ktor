@@ -2,12 +2,15 @@
  * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+@file:OptIn(InternalKtorSubclassing::class)
+
 package io.ktor.server.auth
 
 import io.ktor.server.application.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 import io.ktor.util.*
+import io.ktor.util.annotations.InternalKtorSubclassing
 import io.ktor.utils.io.*
 
 /**
@@ -32,7 +35,7 @@ public object RequiredContext
  * @param P the principal type available inside the route.
  */
 @ExperimentalKtorApi
-@SubclassOptInRequired
+@SubclassOptInRequired(InternalKtorSubclassing::class)
 public open class AuthenticatedContext<P : Any> @PublishedApi internal constructor(
     internal val principalKey: AttributeKey<P>,
 )
