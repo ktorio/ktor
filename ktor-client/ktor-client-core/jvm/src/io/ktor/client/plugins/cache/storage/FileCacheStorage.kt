@@ -13,7 +13,9 @@ import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.CancellationException
 import io.ktor.utils.io.jvm.javaio.*
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.io.File
@@ -38,37 +40,43 @@ internal class CachingCacheStorage(
 ) : CacheStorage {
 
     private val store = ConcurrentMap<Url, Set<CachedResponseData>>()
+    private val mutex = Mutex()
 
-    override suspend fun store(url: Url, data: CachedResponseData) {
+    override suspend fun store(url: Url, data: CachedResponseData): Unit = mutex.withLock {
         delegate.store(url, data)
         store[url] = delegate.findAll(url)
     }
 
-    override suspend fun find(url: Url, varyKeys: Map<String, String>): CachedResponseData? {
+    override suspend fun find(url: Url, varyKeys: Map<String, String>): CachedResponseData? = mutex.withLock {
         if (!store.containsKey(url)) {
             store[url] = delegate.findAll(url)
         }
         val data = store.getValue(url)
-        return data.find {
+        data.find {
             varyKeys.all { (key, value) -> it.varyKeys[key] == value }
         }
     }
 
-    override suspend fun findAll(url: Url): Set<CachedResponseData> {
+    override suspend fun findAll(url: Url): Set<CachedResponseData> = mutex.withLock {
         if (!store.containsKey(url)) {
             store[url] = delegate.findAll(url)
         }
-        return store.getValue(url)
+        store.getValue(url)
     }
 
-    override suspend fun remove(url: Url, varyKeys: Map<String, String>) {
+    override suspend fun remove(url: Url, varyKeys: Map<String, String>): Unit = mutex.withLock {
         delegate.remove(url, varyKeys)
         store[url] = delegate.findAll(url)
     }
 
-    override suspend fun removeAll(url: Url) {
+    override suspend fun removeAll(url: Url): Unit = mutex.withLock {
         delegate.removeAll(url)
         store.remove(url)
+    }
+
+    override suspend fun clear(): Unit = mutex.withLock {
+        delegate.clear()
+        store.clear()
     }
 }
 
@@ -79,38 +87,80 @@ private class FileCacheStorage(
 
     private val mutexes = ConcurrentMap<String, Mutex>()
 
+    // Read/write coordination: clear() holds accessGate for its full duration, so new readers
+    // cannot enter while files are being deleted, and waits for in-flight readers to drain.
+    private val accessGate = Mutex()
+    private val activeReaders = atomic(0)
+    private val readersDrained = Channel<Unit>(Channel.CONFLATED)
+
     init {
         directory.mkdirs()
     }
 
     override suspend fun store(url: Url, data: CachedResponseData): Unit = withContext(dispatcher) {
-        val urlHex = key(url)
-        updateCache(urlHex) { caches ->
-            caches.filterNot { it.varyKeys == data.varyKeys } + data
+        withReadAccess {
+            val urlHex = key(url)
+            updateCache(urlHex) { caches ->
+                caches.filterNot { it.varyKeys == data.varyKeys } + data
+            }
         }
     }
 
     override suspend fun findAll(url: Url): Set<CachedResponseData> = withContext(dispatcher) {
-        readCache(key(url)).toSet()
+        withReadAccess {
+            readCache(key(url)).toSet()
+        }
     }
 
     override suspend fun find(url: Url, varyKeys: Map<String, String>): CachedResponseData? = withContext(dispatcher) {
-        val data = readCache(key(url))
-        data.find {
-            varyKeys.all { (key, value) -> it.varyKeys[key] == value }
+        withReadAccess {
+            val data = readCache(key(url))
+            data.find {
+                varyKeys.all { (key, value) -> it.varyKeys[key] == value }
+            }
         }
     }
 
     override suspend fun remove(url: Url, varyKeys: Map<String, String>) = withContext(dispatcher) {
-        val urlHex = key(url)
-        updateCache(urlHex) { caches ->
-            caches.filterNot { it.varyKeys == varyKeys }
+        withReadAccess {
+            val urlHex = key(url)
+            updateCache(urlHex) { caches ->
+                caches.filterNot { it.varyKeys == varyKeys }
+            }
         }
     }
 
     override suspend fun removeAll(url: Url) = withContext(dispatcher) {
-        val urlHex = key(url)
-        deleteCache(urlHex)
+        withReadAccess {
+            val urlHex = key(url)
+            deleteCache(urlHex)
+        }
+    }
+
+    override suspend fun clear(): Unit = withContext(dispatcher) {
+        accessGate.withLock {
+            while (activeReaders.value > 0) {
+                readersDrained.receive()
+            }
+            val files = directory.listFiles() ?: return@withLock
+            for (file in files) {
+                if (!file.delete()) {
+                    LOGGER.trace { "Failed to delete cache file: ${file.name}" }
+                }
+            }
+            mutexes.clear()
+        }
+    }
+
+    private suspend inline fun <T> withReadAccess(block: () -> T): T {
+        accessGate.withLock { activeReaders.incrementAndGet() }
+        try {
+            return block()
+        } finally {
+            if (activeReaders.decrementAndGet() == 0) {
+                readersDrained.trySend(Unit)
+            }
+        }
     }
 
     private fun key(url: Url): String {
