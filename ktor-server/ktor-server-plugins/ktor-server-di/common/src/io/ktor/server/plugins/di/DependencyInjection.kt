@@ -11,7 +11,6 @@ import io.ktor.util.reflect.*
 import io.ktor.utils.io.CancellationException
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction

@@ -6,7 +6,6 @@ package io.ktor.server.plugins.compression.zstd
 
 import io.ktor.encoding.zstd.*
 import io.ktor.server.plugins.compression.*
-import io.ktor.utils.io.*
 
 /**
  * Appends the 'zstd' encoder with [block] configuration.

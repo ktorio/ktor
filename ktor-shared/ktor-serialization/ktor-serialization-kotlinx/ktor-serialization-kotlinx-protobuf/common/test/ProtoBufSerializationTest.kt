@@ -7,7 +7,6 @@ import io.ktor.http.content.*
 import io.ktor.serialization.*
 import io.ktor.serialization.kotlinx.*
 import io.ktor.serialization.kotlinx.protobuf.*
-import io.ktor.test.dispatcher.*
 import io.ktor.test.runTest
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*

@@ -6,7 +6,6 @@ package io.ktor.util
 
 import io.ktor.util.reflect.*
 import kotlin.jvm.*
-import kotlin.reflect.*
 
 /**
  * Specifies a key for an attribute in [Attributes]

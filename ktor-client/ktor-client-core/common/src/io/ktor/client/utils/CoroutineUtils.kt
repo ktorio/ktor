@@ -6,7 +6,6 @@ package io.ktor.client.utils
 
 import io.ktor.utils.io.*
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 
 /**

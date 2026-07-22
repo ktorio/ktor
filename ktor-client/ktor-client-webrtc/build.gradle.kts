@@ -4,7 +4,6 @@
 
 import ktorbuild.disableNativeCompileConfigurationCache
 import ktorbuild.targets.*
-import org.jetbrains.kotlin.gradle.*
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
 
 description = "Ktor WebRTC Client"

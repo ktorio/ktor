@@ -6,8 +6,6 @@ package io.ktor.client.engine.java
 
 import io.ktor.client.tests.*
 import java.net.http.HttpClient
-import kotlin.test.Ignore
-import kotlin.test.Test
 
 class JavaHttp2Test : Http2Test<JavaHttpConfig>(Java) {
     override fun JavaHttpConfig.enableHttp2() {

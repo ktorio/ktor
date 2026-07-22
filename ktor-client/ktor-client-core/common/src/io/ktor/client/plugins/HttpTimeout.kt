@@ -4,7 +4,6 @@
 
 package io.ktor.client.plugins
 
-import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.client.network.sockets.*
 import io.ktor.client.plugins.api.*
@@ -15,7 +14,6 @@ import io.ktor.http.*
 import io.ktor.util.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.errors.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.io.IOException

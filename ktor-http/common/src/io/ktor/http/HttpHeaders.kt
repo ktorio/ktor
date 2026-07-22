@@ -4,8 +4,6 @@
 
 package io.ktor.http
 
-import io.ktor.http.HttpHeaders.UnsafeHeadersList
-
 @Suppress(
     "unused",
     "KDocMissingDocumentation",

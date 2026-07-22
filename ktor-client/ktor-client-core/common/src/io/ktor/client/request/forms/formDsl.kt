@@ -11,7 +11,6 @@ import io.ktor.utils.io.core.*
 import kotlinx.io.Buffer
 import kotlinx.io.Sink
 import kotlinx.io.Source
-import kotlin.contracts.ExperimentalContracts
 
 /**
  * A multipart form item. Use it to build a form in client.

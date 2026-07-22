@@ -8,7 +8,6 @@
 package io.ktor.server.websocket
 
 import io.ktor.server.routing.*
-import io.ktor.websocket.*
 
 // Deprecated stubs preserving binary compatibility after return type changed from Unit to Route.
 // Kept in JVM sources only because klib IR signatures do not differentiate by return type.

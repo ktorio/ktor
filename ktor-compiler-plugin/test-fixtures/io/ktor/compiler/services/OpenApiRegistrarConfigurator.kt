@@ -4,7 +4,6 @@ import io.ktor.openapi.*
 import io.ktor.openapi.fir.OpenApiAnalysisExtension
 import io.ktor.openapi.ir.OpenApiCodeGenerationExtension
 import io.ktor.openapi.routing.*
-import kotlinx.serialization.ExperimentalSerializationApi
 import org.jetbrains.kotlin.backend.common.extensions.IrGenerationExtension
 import org.jetbrains.kotlin.compiler.plugin.CompilerPluginRegistrar
 import org.jetbrains.kotlin.config.CompilerConfiguration
