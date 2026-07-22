@@ -16,6 +16,7 @@ import io.ktor.server.plugins.partialcontent.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.test.base.*
+import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
 import java.io.*
@@ -50,7 +51,7 @@ abstract class CompressionTestSuite<TEngine : ApplicationEngine, TConfiguration 
     @Test
     fun testStreamingContentWithCompression() = runTest {
         val file = loadTestFile()
-        testLog.trace("test file is $file")
+        testLog.trace { "test file is $file" }
 
         createAndStartServer {
             install(Compression)
@@ -75,7 +76,7 @@ abstract class CompressionTestSuite<TEngine : ApplicationEngine, TConfiguration 
     @Test
     fun testLocalFileContentRangeWithCompression() = runTest {
         val file = loadTestFile()
-        testLog.trace("test file is $file")
+        testLog.trace { "test file is $file" }
 
         createAndStartServer {
             install(Compression)

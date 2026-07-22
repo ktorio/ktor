@@ -61,10 +61,10 @@ public interface ConfigLoader {
             }
 
             for (loader in configLoaders) {
-                logger.debug("Trying ConfigLoader: ${loader::class.simpleName}")
+                logger.debug { "Trying ConfigLoader: ${loader::class.simpleName}" }
                 val config = loader.load(path)
                 if (config != null) {
-                    logger.debug("Configuration loaded successfully using ${loader::class.simpleName} from path: $path")
+                    logger.debug { "Configuration loaded successfully using ${loader::class.simpleName} from path: $path" }
                     return config
                 }
             }
@@ -75,14 +75,14 @@ public interface ConfigLoader {
 
         private fun loadDefault(): ApplicationConfig? {
             for (defaultPath in CONFIG_PATH) {
-                logger.debug("Trying default config path: $defaultPath")
+                logger.debug { "Trying default config path: $defaultPath" }
                 for (loader in configLoaders) {
-                    logger.debug("Trying ConfigLoader: ${loader::class.simpleName} for path: $defaultPath")
+                    logger.debug { "Trying ConfigLoader: ${loader::class.simpleName} for path: $defaultPath" }
                     val config = loader.load(defaultPath)
                     if (config != null) {
-                        logger.debug(
+                        logger.debug {
                             "Default configuration loaded using ${loader::class.simpleName} from path: $defaultPath"
-                        )
+                        }
                         return config
                     }
                 }

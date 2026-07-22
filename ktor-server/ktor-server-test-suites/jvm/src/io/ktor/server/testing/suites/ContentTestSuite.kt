@@ -16,6 +16,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.test.base.*
+import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlinx.io.asSource
@@ -138,7 +139,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     @Test
     fun testLocalFileContentRange() = runTest {
         val file = loadTestFile()
-        testLog.trace("test file is $file")
+        testLog.trace { "test file is $file" }
 
         createAndStartServer {
             install(PartialContent)
@@ -512,7 +513,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
 
         val location = file.parentFile!!
 
-        testLog.trace("test file is $file")
+        testLog.trace { "test file is $file" }
 
         createAndStartServer {
             staticFiles("/files", location)

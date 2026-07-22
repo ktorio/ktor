@@ -10,6 +10,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
+import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 
 /**
@@ -207,7 +208,7 @@ public class BearerAuthProvider(
      */
     override fun isApplicable(auth: HttpAuthHeader): Boolean {
         if (auth.authScheme != AuthScheme.Bearer) {
-            LOGGER.trace("Bearer Auth Provider is not applicable for $auth")
+            LOGGER.trace { "Bearer Auth Provider is not applicable for $auth" }
             return false
         }
         val isSameRealm = when {

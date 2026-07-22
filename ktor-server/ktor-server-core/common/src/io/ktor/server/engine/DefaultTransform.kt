@@ -75,13 +75,13 @@ public fun ApplicationReceivePipeline.installDefaultTransformations() {
             else -> defaultPlatformTransformations(body)
         }
         if (transformed != null) {
-            LOGGER.trace("Transformed ${body::class} to ${transformed::class} for ${call.request.uri}")
+            LOGGER.trace { "Transformed ${body::class} to ${transformed::class} for ${call.request.uri}" }
             proceedWith(transformed)
         } else {
-            LOGGER.trace(
+            LOGGER.trace {
                 "No Default Transformations found for ${body::class} and expected type ${call.receiveType} " +
                     "for call ${call.request.uri}"
-            )
+            }
         }
     }
     val afterTransform = PipelinePhase("AfterTransform")

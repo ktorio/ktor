@@ -5,6 +5,7 @@
 package io.ktor.websocket
 
 import io.ktor.util.date.*
+import io.ktor.util.logging.*
 import io.ktor.utils.io.ClosedByteChannelException
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
@@ -54,7 +55,7 @@ internal fun CoroutineScope.pinger(
     val channel = Channel<Frame.Pong>(Channel.UNLIMITED)
 
     launch(actorJob + PingerCoroutineName) {
-        LOGGER.trace("Starting WebSocket pinger coroutine with period $periodMillis ms and timeout $timeoutMillis ms")
+        LOGGER.trace { "Starting WebSocket pinger coroutine with period $periodMillis ms and timeout $timeoutMillis ms" }
         val random = Random(getTimeMillis())
         val pingIdBytes = ByteArray(32)
 
@@ -79,11 +80,11 @@ internal fun CoroutineScope.pinger(
                     while (true) {
                         val msg = channel.receive()
                         if (msg.data.decodeToString(0, 0 + msg.data.size) == pingMessage) {
-                            LOGGER.trace("WebSocket Pinger: received valid pong frame $msg")
+                            LOGGER.trace { "WebSocket Pinger: received valid pong frame $msg" }
                             break
                         }
 
-                        LOGGER.trace("WebSocket Pinger: received invalid pong frame $msg, continue waiting")
+                        LOGGER.trace { "WebSocket Pinger: received invalid pong frame $msg, continue waiting" }
                     }
                 }
 

@@ -240,7 +240,7 @@ public val CallId: RouteScopedPlugin<CallIdConfig> = createRouteScopedPlugin(
             if (!verifier(callId)) continue // could throw a RejectedCallIdException
 
             call.attributes.put(CallIdKey, callId)
-            LOGGER.trace("Setting id for a call ${call.request.uri} to $callId")
+            LOGGER.trace { "Setting id for a call ${call.request.uri} to $callId" }
 
             repliers.forEach { replier ->
                 replier(call, callId)

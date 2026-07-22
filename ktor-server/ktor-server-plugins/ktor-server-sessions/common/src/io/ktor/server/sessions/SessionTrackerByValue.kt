@@ -5,6 +5,7 @@
 package io.ktor.server.sessions
 
 import io.ktor.server.application.*
+import io.ktor.util.logging.*
 import kotlin.reflect.*
 
 /**
@@ -26,7 +27,7 @@ public class SessionTrackerByValue<S : Any>(
             try {
                 serializer.deserialize(serialized)
             } catch (t: Throwable) {
-                call.application.log.debug("Failed to deserialize session: $serialized", t)
+                call.application.log.debug(t) { "Failed to deserialize session: $serialized" }
                 null
             }
         }

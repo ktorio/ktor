@@ -193,8 +193,10 @@ actual constructor(
                 count += moreChanges.size
             }
 
-            environment.log.debug("Changes to $count files caused application restart.")
-            changes.take(5).forEach { environment.log.debug("...  {}", it.context()) }
+            environment.log.debug { "Changes to $count files caused application restart." }
+            if (environment.log.isDebugEnabled) {
+                changes.take(5).forEach { environment.log.debug("...  {}", it.context()) }
+            }
             return changes
         } catch (e: InterruptedException) {
             environment.log.debug("Watch service was interrupted", e)
@@ -243,9 +245,11 @@ actual constructor(
 
         val allUrls = baseClassLoader.allURLs()
         val jre = File(System.getProperty("java.home")).parent
-        val debugUrls = allUrls.map { it.file }
-        environment.log.debug("Java Home: $jre")
-        environment.log.debug("Class Loader: $baseClassLoader: ${debugUrls.filter { !it.toString().startsWith(jre) }}")
+        environment.log.debug { "Java Home: $jre" }
+        environment.log.debug {
+            val debugUrls = allUrls.map { it.file }
+            "Class Loader: $baseClassLoader: ${debugUrls.filter { !it.toString().startsWith(jre) }}"
+        }
 
         // we shouldn't watch URL for ktor-server classes, even if they match patterns,
         // because otherwise it loads two ApplicationEnvironment (and other) types which do not match
@@ -349,8 +353,10 @@ actual constructor(
             }
         }
 
-        paths.forEach { path ->
-            environment.log.debug("Watching $path for changes.")
+        if (environment.log.isDebugEnabled) {
+            paths.forEach { path ->
+                environment.log.debug("Watching $path for changes.")
+            }
         }
 
         val modifiers = get_com_sun_nio_file_SensitivityWatchEventModifier_HIGH()?.let { arrayOf(it) } ?: emptyArray()
@@ -469,10 +475,9 @@ actual constructor(
             try {
                 launchModuleByName(name, classLoader, application)
             } catch (cause: ReloadingException) {
-                environment.log.debug(
-                    "Failed to load module '$name' by classpath reference, falling back to currently loaded value",
-                    cause,
-                )
+                environment.log.debug(cause) {
+                    "Failed to load module '$name' by classpath reference, falling back to currently loaded value"
+                }
                 module.invoke(application)
             }
         }
