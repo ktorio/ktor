@@ -13,7 +13,7 @@ import kotlin.test.*
 class CryptoTest {
     @Test
     fun testBase64() {
-        assertEquals("AAAA", ByteArray(3).encodeBase64())
+        assertEquals("AAAA", Base64.encode(ByteArray(3)))
         assertEquals(ByteArray(3), Base64.decode("AAAA"))
     }
 

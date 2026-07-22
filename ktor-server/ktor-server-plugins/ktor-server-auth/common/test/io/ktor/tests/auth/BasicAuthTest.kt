@@ -4,6 +4,7 @@
 
 package io.ktor.tests.auth
 
+import kotlin.io.encoding.Base64
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -14,7 +15,6 @@ import io.ktor.server.plugins.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import io.ktor.util.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import kotlin.test.Test
@@ -226,7 +226,7 @@ class BasicAuthTest {
         charset: Charset = Charsets.ISO_8859_1
     ): HttpResponse = client.get(url) {
         val up = "$user:$pass"
-        val encoded = up.toByteArray(charset).encodeBase64()
+        val encoded = Base64.encode(up.toByteArray(charset))
         header(HttpHeaders.Authorization, "Basic $encoded")
     }
 
