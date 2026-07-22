@@ -96,7 +96,7 @@ internal fun bestCompressionFit(
     }
 
     for (compressedType in compressedTypes) {
-        if (acceptEncoding.none { it.value == compressedType.encoding }) {
+        if (acceptEncoding.none { it.quality > 0.0 && it.value.equals(compressedType.encoding, ignoreCase = true) }) {
             continue
         }
 
@@ -130,7 +130,7 @@ internal fun bestCompressionFit(
     var smallestSize: Long = Long.MAX_VALUE
 
     for (compressedType in compressedTypes) {
-        if (acceptEncoding.none { it.value == compressedType.encoding }) {
+        if (acceptEncoding.none { it.quality > 0.0 && it.value.equals(compressedType.encoding, ignoreCase = true) }) {
             continue
         }
 
@@ -163,7 +163,7 @@ internal fun bestCompressionFit(
     for (compressedFile in compressedFiles) {
         val (file, compressedType) = compressedFile
 
-        if (acceptEncoding.none { it.value == compressedType.encoding }) {
+        if (acceptEncoding.none { it.quality > 0.0 && it.value.equals(compressedType.encoding, ignoreCase = true) }) {
             continue
         }
 
