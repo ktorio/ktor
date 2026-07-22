@@ -298,7 +298,7 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
     private fun findPhase(phase: PipelinePhase): PhaseContent<TSubject, TContext>? {
         val phasesList = phasesRaw
 
-        for (index in 0 until phasesList.size) {
+        for (index in phasesList.indices) {
             val current = phasesList[index]
             if (current === phase) {
                 val content = PhaseContent<TSubject, TContext>(phase, PipelinePhaseRelation.Last)
@@ -317,7 +317,7 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
 
     private fun findPhaseIndex(phase: PipelinePhase): Int {
         val phasesList = phasesRaw
-        for (index in 0 until phasesList.size) {
+        for (index in phasesList.indices) {
             val current = phasesList[index]
             if (current === phase || (current is PhaseContent<*, *> && current.phase === phase)) {
                 return index
@@ -329,8 +329,7 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
 
     private fun hasPhase(phase: PipelinePhase): Boolean {
         val phasesList = phasesRaw
-        for (index in 0 until phasesList.size) {
-            val current = phasesList[index]
+        for (current in phasesList) {
             if (current === phase || (current is PhaseContent<*, *> && current.phase === phase)) {
                 return true
             }
@@ -348,10 +347,9 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
 
         val phases = phasesRaw
         if (interceptorsQuantity == 1) {
-            for (phaseIndex in 0..phases.lastIndex) {
+            for (phaseContent in phases) {
                 @Suppress("UNCHECKED_CAST")
-                val phaseContent =
-                    phases[phaseIndex] as? PhaseContent<TSubject, TContext> ?: continue
+                phaseContent as? PhaseContent<TSubject, TContext> ?: continue
 
                 if (phaseContent.isEmpty) continue
 
@@ -362,9 +360,9 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
         }
 
         val destination: MutableList<PipelineInterceptor<TSubject, TContext>> = mutableListOf()
-        for (phaseIndex in 0..phases.lastIndex) {
+        for (phase in phases) {
             @Suppress("UNCHECKED_CAST")
-            val phase = phases[phaseIndex] as? PhaseContent<TSubject, TContext> ?: continue
+            phase as? PhaseContent<TSubject, TContext> ?: continue
 
             phase.addTo(destination)
         }
@@ -384,8 +382,7 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
 
         val fromPhases = from.phasesRaw
 
-        for (index in 0..fromPhases.lastIndex) {
-            val fromPhaseOrContent = fromPhases[index]
+        for (fromPhaseOrContent in fromPhases) {
             if (fromPhaseOrContent is PipelinePhase) {
                 phasesRaw.add(fromPhaseOrContent)
                 continue

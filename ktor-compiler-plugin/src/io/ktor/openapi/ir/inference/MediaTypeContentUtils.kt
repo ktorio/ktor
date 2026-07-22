@@ -115,8 +115,8 @@ internal fun contentTypeAny(parentSymbol: IrSymbol): LocalReference? {
 
 context(context: CodeGenContext)
 fun getContentTypeArgument(call: IrCall): LocalReference? {
-    for (i in 0 until call.arguments.size) {
-        val arg = call.arguments[i] ?: continue
+    for (arg in call.arguments) {
+        arg ?: continue
         val argClass = arg.type.classOrNull?.owner
         if (argClass?.name?.asString() == "ContentType") {
             return LocalReference.of(arg)

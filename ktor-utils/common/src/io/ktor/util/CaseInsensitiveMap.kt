@@ -439,8 +439,8 @@ public class CaseInsensitiveMap<Value : Any> : MutableMap<String, Value> {
          */
         private fun caseInsensitiveHashCode(s: String): Int {
             var h = 0
-            for (i in 0 until s.length) {
-                h = 31 * h + s[i].lowercaseChar().code
+            for (c in s) {
+                h = 31 * h + c.lowercaseChar().code
             }
             return h
         }

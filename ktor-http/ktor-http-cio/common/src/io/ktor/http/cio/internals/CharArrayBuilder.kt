@@ -88,8 +88,8 @@ internal class CharArrayBuilder(
 
         if (list != null) {
             current = null
-            for (i in 0 until list.size) {
-                pool.recycle(list[i])
+            for (element in list) {
+                pool.recycle(element)
             }
         } else {
             current?.let { pool.recycle(it) }
