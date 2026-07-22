@@ -39,6 +39,20 @@ private const val DELIMITER = '/'
 internal value class SegmentedPath internal constructor(
     private val string: String
 ) : List<String> {
+    companion object {
+        internal fun parse(path: String, ignoreTrailingSlash: Boolean): List<String> {
+            if (path.isEmpty() || path == "/") return emptyList()
+            // Eagerly validate URL encoding so that malformed inputs (e.g. truncated `%XX`
+            // sequences) surface as a single `BadRequestException` instead of being lazily
+            // detected per-segment by the routing fast path or selectors.
+            path.decodeURLPart()
+            // Ensure paths ignore trailing slashes
+            if (ignoreTrailingSlash && path.length > 1 && path[path.length - 1] == '/') {
+                return SegmentedPath(path.trim('/'))
+            }
+            return SegmentedPath(path)
+        }
+    }
 
     /**
      * Iterates each segment's raw `[start, end)` range in [string], invoking [action]

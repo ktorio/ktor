@@ -69,26 +69,13 @@ public class RoutingResolveContext(
             // once here and feed it to both [parse] and the trailing-slash flag below.
             val path = call.request.path()
             hasTrailingSlash = path.endsWith('/')
-            val parsed = parse(path)
+            val parsed = SegmentedPath.parse(path, call.ignoreTrailingSlash)
             segments = parsed
             segmentsSize = parsed.size
             trace = if (tracers.isEmpty()) null else RoutingResolveTrace(call, parsed)
         } catch (cause: URLDecodeException) {
             throw BadRequestException("Url decode failed for ${call.request.uri}", cause)
         }
-    }
-
-    private fun parse(path: String): List<String> {
-        if (path.isEmpty() || path == "/") return emptyList()
-        // Eagerly validate URL encoding so that malformed inputs (e.g. truncated `%XX`
-        // sequences) surface as a single `BadRequestException` instead of being lazily
-        // detected per-segment by the routing fast path or selectors.
-        path.decodeURLPart()
-        // Ensure paths ignore trailing slashes
-        if (call.ignoreTrailingSlash && path.length > 1 && path[path.length - 1] == '/') {
-            return SegmentedPath(path.trim('/'))
-        }
-        return SegmentedPath(path)
     }
 
     /**

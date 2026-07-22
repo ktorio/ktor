@@ -81,8 +81,7 @@ internal class RoutingPathTree private constructor(private val root: Node) {
     ) : ElementNode(children, route, success, methods)
 
     /**
-     * Fast lookup operating directly on the raw request [path] — without allocating
-     * a [SegmentedPath], [RoutingResolveContext], or its scratch lists.
+     * Fast lookup operating directly on the raw request [path] — without allocating [RoutingResolveContext].
      *
      * Returns a cached [RoutingResolveResult.Success] when every segment matches a child
      * unambiguously and a terminal exists for [method]. Bails out (returns `null`) for
@@ -208,33 +207,23 @@ internal class RoutingPathTree private constructor(private val root: Node) {
          * Builds a [RoutingPathTree] from a routing [root], covering only the subset
          * safe for fast-path resolution.
          */
-        fun build(root: RoutingNode): RoutingPathTree {
-            val rootSelector = root.selector
-            if (rootSelector !is RootRouteSelector) {
-                return RoutingPathTree(AmbiguousNode)
-            }
-
-            val rootNode = buildRootNode(root, rootSelector.rootParts)
-            return RoutingPathTree(rootNode)
-        }
+        fun build(root: RoutingNode): RoutingPathTree =
+            RoutingPathTree(
+                when (val selector = root.selector) {
+                    is RootRouteSelector -> buildRootNode(root, selector.rootParts)
+                    else -> AmbiguousNode
+                }
+            )
 
         private fun buildRootNode(root: RoutingNode, parts: List<String>): Node {
-            if (parts.isEmpty()) {
-                return registerChildren(root)
+            var currentRoot = root
+            for (part in parts) {
+                currentRoot = currentRoot.children.firstOrNull {
+                    (it.selector as? PathSegmentConstantRouteSelector)?.value?.encodeURLPathPart() == part
+                } ?: return AmbiguousNode
             }
 
-            val childRoutingNode = root.children.firstOrNull {
-                (it.selector as? PathSegmentConstantRouteSelector)?.value?.encodeURLPathPart() == parts.first()
-            } ?: return AmbiguousNode
-
-            val children = mapOf(parts.first() to buildRootNode(childRoutingNode, parts.drop(1)))
-
-            return ElementNode(
-                children = children,
-                route = if (parts.size == 1) childRoutingNode else null,
-                success = null,
-                methods = emptyMap(),
-            )
+            return registerChildren(currentRoot)
         }
 
         private fun makeFastPathSuccess(node: RoutingNode): Success =

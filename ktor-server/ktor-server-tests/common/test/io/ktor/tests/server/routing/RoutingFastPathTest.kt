@@ -206,8 +206,6 @@ class RoutingFastPathTest {
 
     @Test
     fun `constant sibling resolves alongside root level tailcard`() = testApplication {
-        // Regression: a root-level tailcard (e.g. from staticResources("")) must not prevent
-        // constant-path routes from resolving via the fast path.
         routing {
             get("/{path...}") { call.respondText("static:${call.parameters.getAll("path")}") }
             get("/hello") { call.respondText("Hello, World!") }
