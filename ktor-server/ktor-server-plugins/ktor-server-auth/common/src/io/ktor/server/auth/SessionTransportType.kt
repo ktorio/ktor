@@ -2,9 +2,12 @@
  * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+@file:OptIn(InternalKtorSubclassing::class)
+
 package io.ktor.server.auth
 
 import io.ktor.server.sessions.*
+import io.ktor.util.annotations.InternalKtorSubclassing
 import io.ktor.utils.io.*
 
 /**
@@ -17,8 +20,8 @@ import io.ktor.utils.io.*
  * @param S the stored session type.
  */
 @ExperimentalKtorApi
-@SubclassOptInRequired
-public open class SessionTransportType<out S : Any> {
+@SubclassOptInRequired(InternalKtorSubclassing::class)
+public interface SessionTransportType<out S : Any> {
 
     /**
      * Passes the serialized session in a cookie.
@@ -29,7 +32,7 @@ public open class SessionTransportType<out S : Any> {
      */
     public class Cookie<S : Any>(
         public val block: CookieSessionBuilder<S>.() -> Unit = {},
-    ) : SessionTransportType<S>()
+    ) : SessionTransportType<S>
 
     /**
      * Passes a session identifier in a cookie and stores session data on the server.
@@ -42,7 +45,7 @@ public open class SessionTransportType<out S : Any> {
     public class CookieId<S : Any>(
         public val storage: SessionStorage,
         public val block: CookieIdSessionBuilder<S>.() -> Unit = {},
-    ) : SessionTransportType<S>()
+    ) : SessionTransportType<S>
 
     /**
      * Passes the serialized session in a header.
@@ -53,7 +56,7 @@ public open class SessionTransportType<out S : Any> {
      */
     public class Header<S : Any>(
         public val block: HeaderSessionBuilder<S>.() -> Unit = {},
-    ) : SessionTransportType<S>()
+    ) : SessionTransportType<S>
 
     /**
      * Passes a session identifier in a header and stores session data on the server.
@@ -66,5 +69,5 @@ public open class SessionTransportType<out S : Any> {
     public class HeaderId<S : Any>(
         public val storage: SessionStorage,
         public val block: HeaderIdSessionBuilder<S>.() -> Unit = {},
-    ) : SessionTransportType<S>()
+    ) : SessionTransportType<S>
 }
