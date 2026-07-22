@@ -70,9 +70,9 @@ public sealed class OutgoingContent {
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.content.OutgoingContent.setProperty)
      */
     public open fun <T : Any> setProperty(key: AttributeKey<T>, value: T?) {
-        when {
-            value == null && extensionProperties == null -> return
-            value == null -> extensionProperties?.remove(key)
+        when (value) {
+            null if extensionProperties == null -> return
+            null -> extensionProperties?.remove(key)
             else -> (extensionProperties ?: Attributes()).also { extensionProperties = it }.put(key, value)
         }
     }

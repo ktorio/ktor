@@ -476,15 +476,13 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
             else -> (fromPhaseOrContent as PhaseContent<*, *>).relation
         }
 
-        when {
-            fromPhaseRelation is PipelinePhaseRelation.Last ->
-                addPhase(fromPhase)
+        when (fromPhaseRelation) {
+            is PipelinePhaseRelation.Last -> addPhase(fromPhase)
 
-            fromPhaseRelation is PipelinePhaseRelation.Before && hasPhase(fromPhaseRelation.relativeTo) ->
+            is PipelinePhaseRelation.Before if hasPhase(fromPhaseRelation.relativeTo) ->
                 insertPhaseBefore(fromPhaseRelation.relativeTo, fromPhase)
 
-            fromPhaseRelation is PipelinePhaseRelation.After ->
-                insertPhaseAfter(fromPhaseRelation.relativeTo, fromPhase)
+            is PipelinePhaseRelation.After -> insertPhaseAfter(fromPhaseRelation.relativeTo, fromPhase)
 
             else -> return false
         }
