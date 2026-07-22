@@ -217,8 +217,7 @@ public class CaseInsensitiveMap<Value : Any> : MutableMap<String, Value> {
         var index = hash and (keyStorage.size - 1)
 
         while (true) {
-            val existingKey = keyStorage[index]
-            if (existingKey == null) return -1
+            val existingKey = keyStorage[index] ?: return -1
             if (existingKey.equals(key, ignoreCase = true)) return index
             index = (index + 1) and (keyStorage.size - 1)
         }
