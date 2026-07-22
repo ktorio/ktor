@@ -17,6 +17,7 @@ import io.ktor.server.testing.*
 import io.ktor.util.pipeline.*
 import kotlin.coroutines.*
 import kotlin.test.*
+import kotlinx.coroutines.currentCoroutineContext
 
 class CallIdTest {
     @Test
@@ -249,7 +250,7 @@ class CallIdTest {
         routing {
             route("1") {
                 get {
-                    call.respond(coroutineContext[KtorCallIdContextElement]?.callId ?: "not found")
+                    call.respond(currentCoroutineContext()[KtorCallIdContextElement]?.callId ?: "not found")
                 }
             }
         }

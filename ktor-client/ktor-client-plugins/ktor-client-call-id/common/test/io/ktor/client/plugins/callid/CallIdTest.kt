@@ -14,6 +14,7 @@ import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import kotlin.coroutines.*
 import kotlin.test.*
+import kotlinx.coroutines.currentCoroutineContext
 import io.ktor.server.plugins.callid.CallId as ServerCallId
 
 class CallIdTest {
@@ -121,7 +122,7 @@ class CallIdTest {
 
     private suspend fun RoutingContext.respondWithCallId() {
         val callIdFromCall = call.callId ?: error("No call id in call")
-        val callIdFromContext = coroutineContext[KtorCallIdContextElement]?.callId ?: error("No call id in context")
+        val callIdFromContext = currentCoroutineContext()[KtorCallIdContextElement]?.callId ?: error("No call id in context")
         val callIdFromHeader = call.request.headers[HttpHeaders.XRequestId] ?: error("No call id in header")
         call.respond("$callIdFromCall:$callIdFromContext:$callIdFromHeader")
     }

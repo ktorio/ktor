@@ -12,6 +12,7 @@ import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import kotlin.coroutines.*
 import kotlin.reflect.*
+import kotlinx.coroutines.currentCoroutineContext
 
 internal val LOGGER = KtorSimpleLogger("io.ktor.server.plugins.doublereceive.DoubleReceive")
 
@@ -62,10 +63,10 @@ public val DoubleReceive: RouteScopedPlugin<DoubleReceiveConfig> = createRouteSc
 
         val content = if (pluginConfig.shouldUseFileCache.any { it(call) }) {
             LOGGER.trace("Storing raw body in file cache")
-            FileCache(value, context = coroutineContext)
+            FileCache(value, context = currentCoroutineContext())
         } else {
             LOGGER.trace("Storing raw body in memory cache")
-            MemoryCache(body, coroutineContext)
+            MemoryCache(body, currentCoroutineContext())
         }
 
         cache[DoubleReceiveCache::class] = content

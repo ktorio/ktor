@@ -9,6 +9,7 @@ import io.ktor.client.plugins.api.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import kotlin.coroutines.*
+import kotlinx.coroutines.currentCoroutineContext
 
 internal typealias CallIdGenerator = suspend (HttpRequestBuilder) -> String?
 internal typealias CallIdInterceptor = (request: HttpRequestBuilder, callId: String) -> Unit
@@ -92,7 +93,7 @@ public val CallId: ClientPlugin<CallIdConfig> = createClientPlugin("CallId", ::C
     val interceptors = pluginConfig.requestInterceptors.toMutableList()
 
     if (pluginConfig.useCoroutineContext) {
-        generators.add(0) { coroutineContext[KtorCallIdContextElement]?.callId }
+        generators.add(0) { currentCoroutineContext()[KtorCallIdContextElement]?.callId }
     }
     if (interceptors.isEmpty()) {
         interceptors.add { request, callId -> request.header(HttpHeaders.XRequestId, callId) }

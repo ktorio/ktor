@@ -8,6 +8,7 @@ import io.ktor.util.*
 import io.ktor.util.debug.*
 import kotlinx.atomicfu.*
 import kotlin.coroutines.*
+import kotlinx.coroutines.currentCoroutineContext
 
 // helper interface for `startInterceptorCoroutineUninterceptedOrReturn`
 internal typealias PipelineInterceptorCoroutine<TSubject, TContext> =
@@ -89,7 +90,7 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.pipeline.Pipeline.execute)
      */
     public suspend fun execute(context: TContext, subject: TSubject): TSubject =
-        createContext(context, subject, coroutineContext).execute(subject)
+        createContext(context, subject, currentCoroutineContext()).execute(subject)
 
     /**
      * Adds [phase] to the end of this pipeline

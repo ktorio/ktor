@@ -14,6 +14,7 @@ import io.ktor.server.response.*
 import io.ktor.util.date.*
 import kotlin.coroutines.*
 import kotlin.random.*
+import kotlinx.coroutines.currentCoroutineContext
 
 // RFC7233 sec 3.2
 internal suspend fun checkIfRangeHeader(
@@ -123,7 +124,7 @@ internal suspend fun BodyTransformedHook.Context.processMultiRange(
     LOGGER.trace(
         "Responding 206 PartialContent for ${call.request.uri}: multiple range ${ranges.joinToString(",")}"
     )
-    transformBodyTo(PartialOutgoingContent.Multiple(coroutineContext, call.isGet(), content, ranges, length, boundary))
+    transformBodyTo(PartialOutgoingContent.Multiple(currentCoroutineContext(), call.isGet(), content, ranges, length, boundary))
 }
 
 internal fun ApplicationCall.isGet() = request.local.method == HttpMethod.Get
