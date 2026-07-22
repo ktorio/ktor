@@ -86,8 +86,6 @@ internal fun bestCompressionFit(
     acceptEncoding: List<HeaderValue>,
     compressedTypes: Array<CompressedFileType>
 ): Pair<File, CompressedFileType>? {
-    val acceptedEncodings = acceptEncoding.mapTo(LinkedHashSet(acceptEncoding.size)) { it.value }
-
     // Find the smallest file in the accepted encodings
     var smallestType: CompressedFileType? = null
     var smallestFile: File? = null
@@ -98,7 +96,7 @@ internal fun bestCompressionFit(
     }
 
     for (compressedType in compressedTypes) {
-        if (compressedType.encoding !in acceptedEncodings) {
+        if (acceptEncoding.none { it.value == compressedType.encoding }) {
             continue
         }
 
@@ -126,15 +124,13 @@ internal fun bestCompressionFit(
     acceptEncoding: List<HeaderValue>,
     compressedTypes: Array<CompressedFileType>
 ): Pair<Path, CompressedFileType>? {
-    val acceptedEncodings = acceptEncoding.mapTo(HashSet(acceptEncoding.size)) { it.value }
-
     // Find the smallest file in the accepted encodings
     var smallestType: CompressedFileType? = null
     var smallestPath: Path? = null
     var smallestSize: Long = Long.MAX_VALUE
 
     for (compressedType in compressedTypes) {
-        if (compressedType.encoding !in acceptedEncodings) {
+        if (acceptEncoding.none { it.value == compressedType.encoding }) {
             continue
         }
 
@@ -160,8 +156,6 @@ internal fun bestCompressionFit(
     acceptEncoding: List<HeaderValue>,
     compressedFiles: Array<Pair<CachedStaticFile, CompressedFileType>>
 ): Pair<CachedStaticFile, CompressedFileType>? {
-    val acceptedEncodings = acceptEncoding.mapTo(HashSet(acceptEncoding.size)) { it.value }
-
     // Find the smallest file in the accepted encodings
     var smallest: Pair<CachedStaticFile, CompressedFileType>? = null
     var smallestSize: Int = Int.MAX_VALUE
@@ -169,7 +163,7 @@ internal fun bestCompressionFit(
     for (compressedFile in compressedFiles) {
         val (file, compressedType) = compressedFile
 
-        if (compressedType.encoding !in acceptedEncodings) {
+        if (acceptEncoding.none { it.value == compressedType.encoding }) {
             continue
         }
 
