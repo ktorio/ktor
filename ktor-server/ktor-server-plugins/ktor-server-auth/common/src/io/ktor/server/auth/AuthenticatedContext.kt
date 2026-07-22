@@ -79,9 +79,10 @@ public val <P : Any> ApplicationCall.principalOrNull: P?
  * @param R the role type.
  */
 @ExperimentalKtorApi
-public class RolesContext<P : Any, R : AuthenticationRole> internal constructor(
+public class RolesContext<P, R> internal constructor(
     private val key: AttributeKey<Set<R>>,
-) {
+) where P : Any,
+          R : AuthenticationRole {
     /**
      * Returns the roles resolved for [call].
      *
@@ -183,8 +184,7 @@ public var <S : Any> ApplicationCall.session: S
 /**
  * Authenticated session for the current session-protected typed route, or `null` when no session was resolved.
  *
- * Use this property inside [authenticateWithOptional] session route blocks. Unlike
- * [ApplicationCall.session], this property does not require [RequiredContext].
+ * Use this property inside [authenticateWithOptional] session route blocks instead of [ApplicationCall.session].
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.sessionOrNull)
  */
@@ -226,5 +226,6 @@ public fun <S : Any> ApplicationCall.clearSession() {
  */
 @ExperimentalKtorApi
 context(rolesContext: RolesContext<P, R>, routingContext: RoutingContext)
-public val <P : Any, R : AuthenticationRole> P.roles: Set<R>
+public val <P, R> P.roles: Set<R> where P : Any,
+          R : AuthenticationRole
     get() = rolesContext.getRoles(call = routingContext.call)
