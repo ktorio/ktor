@@ -106,9 +106,9 @@ public class HttpTimeoutConfig {
     }
 
     override fun hashCode(): Int {
-        var result = _requestTimeoutMillis?.hashCode() ?: 0
-        result = 31 * result + (_connectTimeoutMillis?.hashCode() ?: 0)
-        result = 31 * result + (_socketTimeoutMillis?.hashCode() ?: 0)
+        var result = _requestTimeoutMillis.hashCode()
+        result = 31 * result + _connectTimeoutMillis.hashCode()
+        result = 31 * result + _socketTimeoutMillis.hashCode()
         return result
     }
 

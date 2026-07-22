@@ -205,7 +205,7 @@ public class CaseInsensitiveMap<Value : Any> : MutableMap<String, Value> {
         for (i in keyStorage.indices) {
             val k = keyStorage[i]
             if (k != null) {
-                result += caseInsensitiveHashCode(k) xor (valueStorage[i]?.hashCode() ?: 0)
+                result += caseInsensitiveHashCode(k) xor valueStorage[i].hashCode()
             }
         }
         return result

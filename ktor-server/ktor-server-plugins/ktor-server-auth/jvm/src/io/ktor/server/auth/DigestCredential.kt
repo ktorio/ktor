@@ -189,12 +189,12 @@ public class DigestCredential(
         result = 31 * result + userName.hashCode()
         result = 31 * result + digestUri.hashCode()
         result = 31 * result + nonce.hashCode()
-        result = 31 * result + (opaque?.hashCode() ?: 0)
-        result = 31 * result + (nonceCount?.hashCode() ?: 0)
+        result = 31 * result + opaque.hashCode()
+        result = 31 * result + nonceCount.hashCode()
         result = 31 * result + digestAlgorithm.hashCode()
         result = 31 * result + response.hashCode()
-        result = 31 * result + (cnonce?.hashCode() ?: 0)
-        result = 31 * result + (qop?.hashCode() ?: 0)
+        result = 31 * result + cnonce.hashCode()
+        result = 31 * result + qop.hashCode()
         result = 31 * result + charset.hashCode()
         return result
     }
