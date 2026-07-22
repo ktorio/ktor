@@ -97,17 +97,6 @@ public class RoutingResolveContext(
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.RoutingResolveContext.resolve)
      */
     public suspend fun resolve(): RoutingResolveResult {
-        // Try the constant-path fast path first. It returns a non-null result only when the
-        // request can be resolved unambiguously without considering parameter/wildcard/header
-        // or other complex selectors. We disable it when tracing is enabled so trace listeners
-        // still observe the full evaluation timeline they expect.
-        if (trace == null) {
-            val fastPathResult = tryResolveFastPath()
-            if (fastPathResult != null) {
-                return fastPathResult
-            }
-        }
-
         // Only allocate the DFS scratch lists once the slow path is actually entered.
         resolveResultOrNull = ArrayList(ROUTING_DEFAULT_CAPACITY)
 
@@ -130,16 +119,6 @@ public class RoutingResolveContext(
         trace?.registerFinalResult(finalResult)
         trace?.apply { tracers.forEach { it(this) } }
         return finalResult
-    }
-
-    private fun tryResolveFastPath(): RoutingResolveResult.Success? {
-        val root = routing as? RoutingRoot ?: return null
-        return root.pathTrie.lookup(
-            segments = segments,
-            segmentsSize = segmentsSize,
-            method = call.request.httpMethod,
-            hasTrailingSlash = hasTrailingSlash,
-        )
     }
 
     /**

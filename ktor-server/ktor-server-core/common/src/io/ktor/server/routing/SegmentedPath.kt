@@ -36,7 +36,7 @@ private const val DELIMITER = '/'
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.SegmentedPath)
  */
 @JvmInline
-public value class SegmentedPath internal constructor(
+internal value class SegmentedPath internal constructor(
     private val string: String
 ) : List<String> {
 

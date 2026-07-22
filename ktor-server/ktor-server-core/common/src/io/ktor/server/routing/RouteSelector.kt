@@ -262,14 +262,14 @@ public abstract class RouteSelector {
      * either need suspension or live in modules without access to this internal hook.
      *
      * Returning a non-null result MUST be equivalent to returning the same result from
-     * [evaluate] (i.e., implementations must not change behaviour based on which entry point is
+     * [evaluate] (i.e., implementations must not change behavior based on which entry point is
      * used).
      */
     internal open fun tryEvaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation? = null
 
     /**
      * Upper bound on the quality this selector can produce from a successful [evaluate] call,
-     * used by the routing fast-path index ([RoutingPathTrie]) at build time to classify
+     * used by the routing fast-path index ([RoutingPathTree]) at build time to classify
      * sibling selectors without invoking them.
      *
      * The default is [Double.NaN], meaning "unknown" — such selectors force the routing index
@@ -281,7 +281,7 @@ public abstract class RouteSelector {
      * tailcard wrapper) should override this to allow the routing index to keep indexing
      * constant siblings, deferring to the slow DFS only when the constant lookup misses.
      */
-    internal open val maxQualityHint: Double get() = Double.NaN
+    internal open val qualityUpperBound: Double get() = Double.NaN
 }
 
 /**
@@ -340,7 +340,7 @@ public class RootRouteSelector(rootPath: String = "") : RouteSelector(), RoutePa
 
     /**
      * Constant path segments declared by this root selector, in order. Used by the routing
-     * fast-path index ([RoutingPathTrie]) to seed the trie below the application root prefix.
+     * fast-path index ([RoutingPathTree]) to seed the tree below the application root prefix.
      */
     internal val rootParts: List<String> get() = parts
 
