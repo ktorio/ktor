@@ -24,7 +24,6 @@ public sealed interface SecurityScheme {
     public val description: String?
 }
 
-@OptIn(InternalSerializationApi::class)
 internal object SecuritySchemeSerializer : KSerializer<SecurityScheme> {
     @Suppress("UNCHECKED_CAST")
     private val serializers = mapOf(

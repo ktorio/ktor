@@ -93,10 +93,7 @@ public fun resourceClasspathResource(
             if (path.endsWith("/")) {
                 null
             } else {
-                val zipFile = findContainingJarFile(url.toString())
-                if (zipFile == null) {
-                    return URIFileContent(url, mimeResolve(url))
-                }
+                val zipFile = findContainingJarFile(url.toString()) ?: return URIFileContent(url, mimeResolve(url))
                 JarFileContent(zipFile, path, mimeResolve(url)).takeIf { it.isFile }
             }
         }

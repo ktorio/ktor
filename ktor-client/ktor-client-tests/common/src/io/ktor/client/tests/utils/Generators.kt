@@ -4,9 +4,9 @@
 
 package io.ktor.client.tests.utils
 
+import kotlin.io.encoding.Base64
 import io.ktor.http.*
 import io.ktor.http.content.*
-import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
@@ -14,7 +14,7 @@ import kotlinx.io.readByteArray
 
 fun makeArray(size: Int): ByteArray = ByteArray(size) { it.toByte() }
 
-fun makeString(size: Int): String = CharArray(size) { it.toChar() }.concatToString().encodeBase64().take(size)
+fun makeString(size: Int): String = Base64.encode(CharArray(size) { it.toChar() }.concatToString().encodeToByteArray()).take(size)
 
 suspend fun List<PartData>.makeString(): String = buildString {
     val list = this@makeString
@@ -42,6 +42,6 @@ private suspend fun filenameContentTypeAndContentString(provider: () -> ByteRead
     val disposition: ContentDisposition = ContentDisposition.parse(dispositionHeader)
     val filename: String = disposition.parameter("filename") ?: ""
     val contentType = headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) } ?: ""
-    val content: String = provider().readRemaining().readText(Charsets.ISO_8859_1)
+    val content: String = provider().readBuffer().readText(Charsets.ISO_8859_1)
     return "$filename$contentType$content"
 }

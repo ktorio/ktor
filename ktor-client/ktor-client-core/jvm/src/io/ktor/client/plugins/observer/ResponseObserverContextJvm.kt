@@ -6,6 +6,7 @@ package io.ktor.client.plugins.observer
 
 import kotlinx.coroutines.slf4j.*
 import kotlin.coroutines.*
+import kotlinx.coroutines.currentCoroutineContext
 
 internal actual suspend fun getResponseObserverContext(): CoroutineContext =
-    coroutineContext[MDCContext] ?: EmptyCoroutineContext
+    currentCoroutineContext()[MDCContext] ?: EmptyCoroutineContext

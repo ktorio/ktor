@@ -4,8 +4,6 @@
 
 package io.ktor.network.tls
 
-import kotlin.enums.*
-
 /**
  * TLS version
  *

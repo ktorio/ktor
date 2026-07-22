@@ -16,7 +16,7 @@ import kotlin.math.*
 @Deprecated(
     IO_DEPRECATION_MESSAGE,
     level = DeprecationLevel.ERROR,
-    replaceWith = ReplaceWith("write(other, min(other.size, maxSize.toLong())")
+    replaceWith = ReplaceWith("write(other, min(other.size, maxSize.toLong()))")
 )
 internal fun Buffer.writeBufferAppend(other: Buffer, maxSize: Int): Int {
     val byteCount = min(other.size, maxSize.toLong())

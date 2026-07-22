@@ -4,6 +4,7 @@
 
 package io.ktor.tests.auth
 
+import kotlin.io.encoding.Base64
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.cookies.*
@@ -893,7 +894,7 @@ class OAuth2Test {
 private suspend fun ApplicationTestBuilder.handleRequestWithBasic(url: String, user: String, pass: String) =
     client.get(url) {
         val up = "$user:$pass"
-        val encoded = up.toByteArray(Charsets.ISO_8859_1).encodeBase64()
+        val encoded = Base64.encode(up.toByteArray(Charsets.ISO_8859_1))
         header(HttpHeaders.Authorization, "Basic $encoded")
     }
 

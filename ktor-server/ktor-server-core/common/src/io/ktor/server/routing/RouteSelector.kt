@@ -7,7 +7,6 @@ package io.ktor.server.routing
 import io.ktor.http.*
 import io.ktor.server.plugins.*
 import io.ktor.server.request.*
-import io.ktor.server.routing.RouteSelectorEvaluation.Companion.qualityTransparent
 
 /**
  * A result of a route evaluation against a call.

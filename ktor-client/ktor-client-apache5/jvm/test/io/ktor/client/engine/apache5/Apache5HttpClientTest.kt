@@ -50,7 +50,6 @@ class Apache5HttpClientTest : HttpClientTest(Apache5) {
     }
 
     @Test
-    @OptIn(InternalAPI::class)
     fun testCustomTimeoutOverridesHttpTimeout() = runTest {
         val client = HttpClient(Apache5) {
             engine {

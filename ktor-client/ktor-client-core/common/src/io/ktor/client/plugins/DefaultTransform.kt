@@ -76,12 +76,12 @@ public fun HttpClient.defaultTransformers() {
             }
 
             Int::class -> {
-                proceedWith(HttpResponseContainer(info, body.readRemaining().readText().toInt()))
+                proceedWith(HttpResponseContainer(info, body.readBuffer().readText().toInt()))
             }
 
             Source::class,
             Input::class -> {
-                proceedWith(HttpResponseContainer(info, body.readRemaining()))
+                proceedWith(HttpResponseContainer(info, body.readBuffer()))
             }
 
             ByteArray::class -> {

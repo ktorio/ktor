@@ -4,6 +4,7 @@
 
 package io.ktor.server.auth
 
+import kotlin.io.encoding.Base64
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -192,7 +193,7 @@ private suspend fun oauth2RequestAccessToken(
                 HttpHeaders.Authorization,
                 HttpAuthHeader.Single(
                     AuthScheme.Basic,
-                    "$clientId:$clientSecret".toByteArray(Charsets.ISO_8859_1).encodeBase64()
+                    Base64.encode("$clientId:$clientSecret".toByteArray(Charsets.ISO_8859_1))
                 ).render()
             )
         }

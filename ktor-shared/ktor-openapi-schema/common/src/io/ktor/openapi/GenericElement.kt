@@ -691,7 +691,6 @@ internal abstract class GenericElementDecoder : AbstractDecoder() {
 /**
  * A custom decoder for deserializing a [GenericElementMap].
  */
-@OptIn(ExperimentalSerializationApi::class)
 internal class GenericElementClassDecoder(
     internal val map: Map<String, GenericElement>,
     override val serializersModule: SerializersModule = EmptySerializersModule()
@@ -755,7 +754,6 @@ internal class GenericElementClassDecoder(
 /**
  * A custom decoder for deserializing a [GenericElementMap].
  */
-@OptIn(ExperimentalSerializationApi::class)
 internal class GenericElementMapDecoder(
     internal val entries: List<Pair<String, GenericElement>>,
     override val serializersModule: SerializersModule = EmptySerializersModule()
@@ -789,7 +787,6 @@ internal class GenericElementMapDecoder(
 /**
  * A custom decoder for deserializing a list within a [GenericElement].
  */
-@OptIn(ExperimentalSerializationApi::class)
 internal class GenericElementListDecoder(
     listElement: GenericElement,
     override val serializersModule: SerializersModule = EmptySerializersModule()

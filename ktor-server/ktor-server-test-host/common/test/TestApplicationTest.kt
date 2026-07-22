@@ -430,13 +430,13 @@ class TestApplicationTest {
 
     @Test
     fun testCanPassCoroutineContextFromOutside() = testApplication(MyElement("test")) {
-        assertEquals("test", coroutineContext[MyElement]!!.data)
+        assertEquals("test", currentCoroutineContext()[MyElement]!!.data)
         withContext(Dispatchers.Unconfined) {
             assertEquals("test", coroutineContext[MyElement]!!.data)
         }
         routing {
             get {
-                call.respond(coroutineContext[MyElement]!!.data)
+                call.respond(currentCoroutineContext()[MyElement]!!.data)
             }
         }
         assertEquals("test", client.get("/").bodyAsText())

@@ -150,7 +150,7 @@ public abstract class AbstractSerializationTest<T : SerialFormat> {
                     content.writeTo(channel)
                     channel.close()
                 }
-                channel.readRemaining().readByteArray()
+                channel.readBuffer().readByteArray()
             }
 
             else -> error("Failed to get serialized $data")

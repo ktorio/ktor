@@ -4,7 +4,6 @@
 
 package io.ktor.server.engine.internal
 
-import io.ktor.utils.io.errors.*
 import kotlinx.io.IOException
 
 public expect open class ClosedChannelException : IOException

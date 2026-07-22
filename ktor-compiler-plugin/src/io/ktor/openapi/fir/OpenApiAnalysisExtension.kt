@@ -2,7 +2,6 @@ package io.ktor.openapi.fir
 
 import io.ktor.openapi.Logger
 import io.ktor.openapi.routing.*
-import io.ktor.openapi.routing.RoutingFunctionConstants
 import io.ktor.openapi.routing.RoutingFunctionConstants.ROUTE_INTERFACE
 import io.ktor.openapi.routing.RoutingFunctionConstants.ROUTING_CONTEXT
 import org.jetbrains.kotlin.diagnostics.DiagnosticReporter

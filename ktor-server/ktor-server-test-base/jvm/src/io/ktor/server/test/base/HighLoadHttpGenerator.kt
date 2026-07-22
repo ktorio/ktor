@@ -456,9 +456,8 @@ class HighLoadHttpGenerator(
                     }
                 }
 
-                for (idx in 0 until writeReady.size) {
+                for (c in writeReady) {
                     if (cancelled) break
-                    val c = writeReady[idx]
                     if (!c.channel.isConnected) continue
 
                     try {
@@ -489,9 +488,8 @@ class HighLoadHttpGenerator(
                 writeReadyTmp = writeReady
                 writeReady = tmp
 
-                for (idx in 0 until readReady.size) {
+                for (c in readReady) {
                     if (cancelled) break
-                    val c = readReady[idx]
                     if (!c.channel.isConnected) continue
 
                     try {
@@ -522,9 +520,8 @@ class HighLoadHttpGenerator(
                 }
                 readReady.clear()
 
-                for (idx in 0 until pending.size) {
+                for (c in pending) {
                     if (cancelled) break
-                    val c = pending[idx]
                     c.interest(selector)
                 }
                 pending.clear()

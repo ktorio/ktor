@@ -6,7 +6,6 @@ package io.ktor.client.utils
 
 import io.ktor.utils.io.*
 import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 
 /**
@@ -18,7 +17,6 @@ import kotlinx.coroutines.Dispatchers
  * @param threadCount the number of threads for the new [CoroutineDispatcher].
  * @param dispatcherName the name of the new [CoroutineDispatcher].
  */
-@OptIn(DelicateCoroutinesApi::class)
 @Deprecated(
     "Use Dispatchers.IO.limitedParallelism instead",
     ReplaceWith(

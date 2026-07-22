@@ -6,8 +6,6 @@ package io.ktor.http.content
 
 import io.ktor.http.*
 import io.ktor.http.content.PartData.*
-import io.ktor.http.content.PartData.BinaryItem
-import io.ktor.http.content.PartData.FileItem
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.flow.*

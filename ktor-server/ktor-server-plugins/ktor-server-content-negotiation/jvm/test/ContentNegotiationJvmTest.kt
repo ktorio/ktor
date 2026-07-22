@@ -129,7 +129,7 @@ internal fun buildMultipart(
             append(
                 when (it) {
                     is PartData.FileItem -> {
-                        channel.writeFully(it.provider().readRemaining().readByteArray())
+                        channel.writeFully(it.provider().readBuffer().readByteArray())
                         ""
                     }
 

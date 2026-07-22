@@ -11,7 +11,6 @@ import io.ktor.util.reflect.*
 import io.ktor.utils.io.CancellationException
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
@@ -59,7 +58,6 @@ import kotlin.reflect.KFunction
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DI)
  */
-@OptIn(ExperimentalCoroutinesApi::class)
 public val DI: ApplicationPlugin<DependencyInjectionConfig> =
     createApplicationPlugin("DI", ::DependencyInjectionConfig) {
         val startupMode = environment.startupMode

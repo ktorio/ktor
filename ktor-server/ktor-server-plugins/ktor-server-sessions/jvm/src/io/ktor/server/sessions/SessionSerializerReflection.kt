@@ -87,7 +87,6 @@ internal class SessionSerializerReflection<T : Any>(
                 { it },
                 {
                     when (it.kind) {
-                        @OptIn(ExperimentalContextParameters::class)
                         KParameter.Kind.CONTEXT,
                         KParameter.Kind.INSTANCE,
                         KParameter.Kind.EXTENSION_RECEIVER -> findParticularType(type, bundle)
@@ -205,10 +204,10 @@ internal class SessionSerializerReflection<T : Any>(
         when {
             value == null -> null
 
-            isListType(type) -> when {
-                value !is List<*> && value is Iterable<*> -> coerceType(type, value.toList())
+            isListType(type) -> when (value) {
+                !is List<*> if value is Iterable<*> -> coerceType(type, value.toList())
 
-                value !is List<*> -> throw IllegalArgumentException(
+                !is List<*> -> throw IllegalArgumentException(
                     "Couldn't coerce type ${value::class.java} to $type"
                 )
 
@@ -228,10 +227,10 @@ internal class SessionSerializerReflection<T : Any>(
                 }
             }
 
-            isSetType(type) -> when {
-                value !is Set<*> && value is Iterable<*> -> coerceType(type, value.toSet())
+            isSetType(type) -> when (value) {
+                !is Set<*> if value is Iterable<*> -> coerceType(type, value.toSet())
 
-                value !is Set<*> -> throw IllegalArgumentException("Couldn't coerce type ${value::class.java} to $type")
+                !is Set<*> -> throw IllegalArgumentException("Couldn't coerce type ${value::class.java} to $type")
 
                 else -> {
                     val contentType = type.arguments.single().type

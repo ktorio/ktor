@@ -214,7 +214,6 @@ public class HttpStatement(
     }
 
     @PublishedApi
-    @OptIn(InternalAPI::class)
     @Deprecated("Use cleanup(cause) instead", level = DeprecationLevel.HIDDEN)
     internal suspend fun HttpResponse.cleanup(): Unit = cleanup(cause = null)
 

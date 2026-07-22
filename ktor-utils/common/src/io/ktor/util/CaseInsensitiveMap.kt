@@ -205,7 +205,7 @@ public class CaseInsensitiveMap<Value : Any> : MutableMap<String, Value> {
         for (i in keyStorage.indices) {
             val k = keyStorage[i]
             if (k != null) {
-                result += caseInsensitiveHashCode(k) xor (valueStorage[i]?.hashCode() ?: 0)
+                result += caseInsensitiveHashCode(k) xor valueStorage[i].hashCode()
             }
         }
         return result
@@ -217,8 +217,7 @@ public class CaseInsensitiveMap<Value : Any> : MutableMap<String, Value> {
         var index = hash and (keyStorage.size - 1)
 
         while (true) {
-            val existingKey = keyStorage[index]
-            if (existingKey == null) return -1
+            val existingKey = keyStorage[index] ?: return -1
             if (existingKey.equals(key, ignoreCase = true)) return index
             index = (index + 1) and (keyStorage.size - 1)
         }
@@ -440,8 +439,8 @@ public class CaseInsensitiveMap<Value : Any> : MutableMap<String, Value> {
          */
         private fun caseInsensitiveHashCode(s: String): Int {
             var h = 0
-            for (i in 0 until s.length) {
-                h = 31 * h + s[i].lowercaseChar().code
+            for (c in s) {
+                h = 31 * h + c.lowercaseChar().code
             }
             return h
         }
