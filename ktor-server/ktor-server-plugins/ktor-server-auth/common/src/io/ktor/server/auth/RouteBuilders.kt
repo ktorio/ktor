@@ -39,13 +39,16 @@ import io.ktor.utils.io.*
  * @param build route builder with [C] available as a context parameter.
  */
 @ExperimentalKtorApi
-public fun <P : Any, C : AuthenticatedContext<P>, S : AuthenticationScheme<P, C>> Route.authenticateWith(
+public fun <P, C, S> Route.authenticateWith(
     scheme: S,
     onUnauthorized: UnauthorizedHandler? = null,
-    build: context(C, RequiredContext) Route.() -> Unit
-): Route = authenticateWithInternal(scheme, isOptional = false, onUnauthorized) {
-    context(RequiredContext) { build() }
-}
+    build: context(C, RequiredContext) Route.() -> Unit,
+): Route where P : Any,
+               C : AuthenticatedContext<P>,
+               S : AuthenticationScheme<P, C> =
+    authenticateWithInternal(scheme, isOptional = false, onUnauthorized) {
+        context(RequiredContext) { build() }
+    }
 
 /**
  * Creates a child route where authentication is optional.
@@ -63,20 +66,25 @@ public fun <P : Any, C : AuthenticatedContext<P>, S : AuthenticationScheme<P, C>
  * @param build route builder with [C] available as a context parameter.
  */
 @ExperimentalKtorApi
-public fun <P : Any, C : AuthenticatedContext<P>, S : AuthenticationScheme<P, C>> Route.authenticateWithOptional(
+public fun <P, C, S> Route.authenticateWithOptional(
     scheme: S,
     onUnauthorized: UnauthorizedHandler? = null,
-    build: context(C) Route.() -> Unit
-): Route = authenticateWithInternal(scheme, isOptional = true, onUnauthorized, build = build)
+    build: context(C) Route.() -> Unit,
+): Route where P : Any,
+               C : AuthenticatedContext<P>,
+               S : AuthenticationScheme<P, C> =
+    authenticateWithInternal(scheme, isOptional = true, onUnauthorized, build = build)
 
 @ExperimentalKtorApi
-internal fun <P : Any, C : AuthenticatedContext<P>, S : AuthenticationScheme<P, C>> Route.authenticateWithInternal(
+internal fun <P, C, S> Route.authenticateWithInternal(
     scheme: S,
     isOptional: Boolean,
     onUnauthorized: UnauthorizedHandler? = null,
     onAccepted: (suspend RoutingContext.(P) -> Unit)? = null,
-    build: context(C) Route.() -> Unit
-): Route {
+    build: context(C) Route.() -> Unit,
+): Route where P : Any,
+               C : AuthenticatedContext<P>,
+               S : AuthenticationScheme<P, C> {
     scheme.requireOptionalCompatible(isOptional)
     val selector = AuthenticationRouteSelector(listOf(scheme.name))
     val route = createChild(selector).also { scheme.preinstallAt(route = it) }
@@ -187,18 +195,16 @@ internal fun <P : Any> Route.authenticateWithAnyOf(
  * @param build route builder with [RolesContext] and the base scheme context available as context parameters.
  */
 @ExperimentalKtorApi
-public fun <
-    P : Any,
-    R : AuthenticationRole,
-    C : AuthenticatedContext<P>,
-    S : AuthenticationScheme<P, C>,
-    > Route.authenticateWith(
+public fun <P, R, C, S> Route.authenticateWith(
     scheme: AuthenticationSchemeWithRoles<P, R, C, S>,
     roles: Set<R>? = null,
     onUnauthorized: UnauthorizedHandler? = null,
     onForbidden: ForbiddenHandler<R>? = null,
-    build: context(C, RequiredContext, RolesContext<P, R>) Route.() -> Unit
-): Route =
+    build: context(C, RequiredContext, RolesContext<P, R>) Route.() -> Unit,
+): Route where P : Any,
+               R : AuthenticationRole,
+               C : AuthenticatedContext<P>,
+               S : AuthenticationScheme<P, C> =
     authenticateWith(scheme, roles, isOptional = false, onUnauthorized, onForbidden) {
         context(RequiredContext) { build() }
     }
@@ -223,34 +229,30 @@ public fun <
  * @param build route builder with the base scheme context and [RolesContext] available as context parameters.
  */
 @ExperimentalKtorApi
-public fun <
-    P : Any,
-    R : AuthenticationRole,
-    C : AuthenticatedContext<P>,
-    S : AuthenticationScheme<P, C>,
-    > Route.authenticateWithOptional(
+public fun <P, R, C, S> Route.authenticateWithOptional(
     scheme: AuthenticationSchemeWithRoles<P, R, C, S>,
     roles: Set<R>? = null,
     onUnauthorized: UnauthorizedHandler? = null,
     onForbidden: ForbiddenHandler<R>? = null,
-    build: context(C, RolesContext<P, R>) Route.() -> Unit
-): Route =
+    build: context(C, RolesContext<P, R>) Route.() -> Unit,
+): Route where P : Any,
+               R : AuthenticationRole,
+               C : AuthenticatedContext<P>,
+               S : AuthenticationScheme<P, C> =
     authenticateWith(scheme, roles, isOptional = true, onUnauthorized, onForbidden, build)
 
 @ExperimentalKtorApi
-internal fun <
-    P : Any,
-    R : AuthenticationRole,
-    C : AuthenticatedContext<P>,
-    S : AuthenticationScheme<P, C>,
-    > Route.authenticateWith(
+internal fun <P, R, C, S> Route.authenticateWith(
     scheme: AuthenticationSchemeWithRoles<P, R, C, S>,
     roles: Set<R>?,
     isOptional: Boolean,
     onUnauthorized: UnauthorizedHandler? = null,
     onForbidden: ForbiddenHandler<R>? = null,
-    build: context(C, RolesContext<P, R>) Route.() -> Unit
-): Route =
+    build: context(C, RolesContext<P, R>) Route.() -> Unit,
+): Route where P : Any,
+               R : AuthenticationRole,
+               C : AuthenticatedContext<P>,
+               S : AuthenticationScheme<P, C> =
     authenticateWithInternal(
         scheme = scheme.base,
         isOptional = isOptional,

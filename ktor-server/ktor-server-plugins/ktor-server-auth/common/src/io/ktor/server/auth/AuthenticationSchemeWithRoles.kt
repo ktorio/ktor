@@ -92,10 +92,13 @@ public typealias ForbiddenHandler<R> = suspend RoutingContext.(Set<R>) -> Unit
  * @return a [AuthenticationSchemeWithRoles] that performs role checks after authentication.
  */
 @ExperimentalKtorApi
-public fun <P : Any, R : AuthenticationRole, C : AuthenticatedContext<P>, S : AuthenticationScheme<P, C>> S.withRoles(
+public fun <P, R, C, S> S.withRoles(
     onForbidden: ForbiddenHandler<R> = { _ -> call.respond(HttpStatusCode.Forbidden) },
     resolveRoles: suspend RoutingContext.(P) -> Set<R>,
-): AuthenticationSchemeWithRoles<P, R, C, S> =
+): AuthenticationSchemeWithRoles<P, R, C, S> where P : Any,
+                                                   R : AuthenticationRole,
+                                                   C : AuthenticatedContext<P>,
+                                                   S : AuthenticationScheme<P, C> =
     AuthenticationSchemeWithRoles(base = this, onForbidden, resolveRoles)
 
 /**
@@ -113,16 +116,14 @@ public fun <P : Any, R : AuthenticationRole, C : AuthenticatedContext<P>, S : Au
  * A route-level [ForbiddenHandler] passed to [authenticateWith] overrides this handler.
  */
 @ExperimentalKtorApi
-public class AuthenticationSchemeWithRoles<
-    P : Any,
-    R : AuthenticationRole,
-    C : AuthenticatedContext<P>,
-    B : AuthenticationScheme<P, C>,
-    > internal constructor(
+public class AuthenticationSchemeWithRoles<P, R, C, B> internal constructor(
     public val base: B,
     public val onForbidden: ForbiddenHandler<R>,
     private val resolveRoles: suspend RoutingContext.(P) -> Set<R>,
-) {
+) where P : Any,
+          R : AuthenticationRole,
+          C : AuthenticatedContext<P>,
+          B : AuthenticationScheme<P, C> {
     private val rolesKey: AttributeKey<Set<R>> = AttributeKey("TypesafeAuth:${base.name}:Roles")
 
     internal fun createContext(): RolesContext<P, R> =
