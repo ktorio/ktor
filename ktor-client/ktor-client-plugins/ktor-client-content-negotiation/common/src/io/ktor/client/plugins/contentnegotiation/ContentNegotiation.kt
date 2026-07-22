@@ -19,8 +19,16 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import kotlin.reflect.*
 
-// https://datatracker.ietf.org/doc/html/rfc6839
-private val supportedSuffixTypes = setOf("json", "ber", "der", "fastinfoset", "wbxml", "zip", "xml")
+// Media types of the underlying representations mapped to the structured syntax suffixes
+// registered in RFC 6839. The `+ber` and `+der` suffixes are omitted as the RFC defines
+// no generic media type for them, so there is no content type to register a converter for.
+private val supportedSuffixTypes = mapOf(
+    ContentType.Application.Json to "json",
+    ContentType.Application.Xml to "xml",
+    ContentType("application", "fastinfoset") to "fastinfoset",
+    ContentType("application", "vnd.wap.wbxml") to "wbxml",
+    ContentType.Application.Zip to "zip",
+)
 private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.contentnegotiation.ContentNegotiation")
 
 internal val DefaultCommonIgnoredTypes: Set<KClass<*>> = setOf(
@@ -70,6 +78,10 @@ public class ContentNegotiationConfig : Configuration {
 
     /**
      * Registers a [contentType] to a specified [converter] with an optional [configuration] script for a converter.
+     *
+     * Besides the exact matches, the converter is used for content types with the matching
+     * structured syntax suffix as registered in [RFC 6839](https://datatracker.ietf.org/doc/html/rfc6839).
+     * For example, a converter registered for `application/json` also handles `application/problem+json`.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.contentnegotiation.ContentNegotiationConfig.register)
      */
@@ -151,16 +163,20 @@ public class ContentNegotiationConfig : Configuration {
     }
 
     private fun defaultMatcher(pattern: ContentType): ContentTypeMatcher = object : ContentTypeMatcher {
+        // RFC 6839 doesn't restrict suffixed types to any top-level type,
+        // so only the subtype suffix is checked (e.g., image/svg+xml matches application/xml).
+        private val subtypeSuffix by lazy {
+            supportedSuffixTypes[pattern.withoutParameters()]?.let { "+$it" }
+        }
+
         override fun contains(contentType: ContentType): Boolean {
             if (contentType.match(pattern)) {
                 return true
             }
 
-            val value = contentType.withoutParameters().toString()
+            val subtypeSuffix = subtypeSuffix ?: return false
 
-            return value.startsWith(pattern.contentType) &&
-                value.endsWith("+${pattern.contentSubtype}", ignoreCase = true) &&
-                pattern.contentSubtype in supportedSuffixTypes
+            return contentType.contentSubtype.endsWith(subtypeSuffix, ignoreCase = true)
         }
     }
 }
