@@ -131,6 +131,9 @@ tasks {
         group = "verification"
         configureCompilerPluginTest()
         systemProperty("testSamples.replaceSnapshots", "true")
+        testClassesDirs = sourceSets.test.get().output.classesDirs
+        classpath = sourceSets.test.get().runtimeClasspath
+        outputs.upToDateWhen { false }
     }
 
     val generateTests = register<JavaExec>("generateTests") {
