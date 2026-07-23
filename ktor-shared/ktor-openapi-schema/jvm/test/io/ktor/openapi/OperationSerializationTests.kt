@@ -98,6 +98,22 @@ class OperationSerializationTests {
     }
 
     @Test
+    fun `document with tag metadata`() {
+        val document = OpenApiDoc.build {
+            info = OpenApiInfo("Articles", "1.0.0")
+            tag(
+                name = "articles",
+                description = "Endpoints pertaining to articles",
+                externalDocs = ExternalDocs(url = "https://example.com/docs/articles")
+            )
+        }
+
+        val (parsedJson, parsedYaml) = checkSerialization(document)
+        assertEquals(document, parsedJson)
+        assertEquals(document, parsedYaml)
+    }
+
+    @Test
     fun `operation with custom servers`() {
         val operation = Operation.build {
             summary = "Get articles"
@@ -218,7 +234,7 @@ class OperationSerializationTests {
     fun `request body with extension properties`() {
         val operation = Operation.build {
             summary = "Create article"
-            tag("Articles", "Endpoints pertaining to articles")
+            tag("Articles")
 
             requestBody {
                 description = "Article data"
@@ -231,14 +247,16 @@ class OperationSerializationTests {
         checkSerialization(operation)
     }
 
-    private fun checkSerialization(operation: Operation) {
-        val json = jsonFormat.encodeToString(operation)
-        val parsedJson = jsonFormat.decodeFromString<Operation>(json)
+    private inline fun <reified T> checkSerialization(value: T): Pair<T, T> {
+        val json = jsonFormat.encodeToString(value)
+        val parsedJson = jsonFormat.decodeFromString<T>(json)
         assertEquals(json, jsonFormat.encodeToString(parsedJson))
 
-        val yaml = yamlFormat.encodeToString(operation)
-        val parsedYaml = yamlFormat.decodeFromString<Operation>(yaml)
+        val yaml = yamlFormat.encodeToString(value)
+        val parsedYaml = yamlFormat.decodeFromString<T>(yaml)
         assertEquals(yaml, yamlFormat.encodeToString(parsedYaml))
+
+        return parsedJson to parsedYaml
     }
 }
 

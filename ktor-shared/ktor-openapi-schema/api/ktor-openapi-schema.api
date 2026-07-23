@@ -1543,8 +1543,7 @@ public final class io/ktor/openapi/Operation$Builder : io/ktor/openapi/JsonSchem
 	public final fun setOperationId (Ljava/lang/String;)V
 	public final fun setRequestBody (Lio/ktor/openapi/RequestBody;)V
 	public final fun setSummary (Ljava/lang/String;)V
-	public final fun tag (Ljava/lang/String;Ljava/lang/String;Lio/ktor/openapi/ExternalDocs;)V
-	public static synthetic fun tag$default (Lio/ktor/openapi/Operation$Builder;Ljava/lang/String;Ljava/lang/String;Lio/ktor/openapi/ExternalDocs;ILjava/lang/Object;)V
+	public final fun tag (Ljava/lang/String;)V
 }
 
 public final class io/ktor/openapi/Operation$Companion {

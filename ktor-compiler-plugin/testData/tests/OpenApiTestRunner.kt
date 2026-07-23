@@ -50,10 +50,20 @@ fun box(): String {
                 try {
                     val routes = OpenApiDoc(info = OpenApiInfo("OpenAPI Document", version = "1.0.0")) +
                             call.application.routingRoot.descendants()
+                    val referencesTag = Tag(
+                        name = "references",
+                        description = "Operations that document type references",
+                        externalDocs = ExternalDocs(url = "https://example.com/docs/references")
+                    )
+                    val document = if (routes.usesTag(referencesTag.name)) {
+                        routes.copy(tags = listOf(referencesTag))
+                    } else {
+                        routes
+                    }
                     call.respondText(
                         json.encodeToString(
-                            routes.copy(
-                                paths = routes.paths - "/openapi.json"
+                            document.copy(
+                                paths = document.paths - "/openapi.json"
                             )
                         )
                     )
@@ -87,3 +97,10 @@ fun box(): String {
     }
     return "OK"
 }
+
+private fun OpenApiDoc.usesTag(name: String): Boolean = paths.values
+    .mapNotNull { it.valueOrNull() }
+    .any { pathItem -> pathItem.operations.any { name in it.tags.orEmpty() } }
+
+private val PathItem.operations: List<Operation>
+    get() = listOfNotNull(get, put, post, delete, options, head, patch, trace)
