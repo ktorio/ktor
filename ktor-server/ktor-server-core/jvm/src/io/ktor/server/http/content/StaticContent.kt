@@ -965,8 +965,17 @@ public interface FileSystemPaths {
 
 // Adds lower priority to the route so that it can be used as a fallback
 private object TailcardSelector : RouteSelector() {
-    override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation =
+
+    override fun tryEvaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation =
         RouteSelectorEvaluation.Success(quality = RouteSelectorEvaluation.qualityTailcard)
+
+    override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation =
+        tryEvaluate(context, segmentIndex)
+
+    // Lets the routing fast-path index treat this wrapper as a low-quality sibling so that
+    // constant siblings (e.g. `get("/hello")` next to `staticResources("")`) can still be
+    // resolved via the trie. See `RouteSelector.maxQualityHint`.
+    override val qualityUpperBound: Double get() = RouteSelectorEvaluation.qualityTailcard
 
     override fun toString(): String = "(static-content)"
 }
