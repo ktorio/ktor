@@ -40,7 +40,7 @@ import kotlin.jvm.JvmInline
 @KeepGeneratedSerializer
 public data class Operation(
     public val operationId: String? = null,
-    public val tags: List<Tag>? = null,
+    public val tags: List<String>? = null,
     public val summary: String? = null,
     public val description: String? = null,
     public val externalDocs: ExternalDocs? = null,
@@ -120,7 +120,7 @@ public data class Operation(
         public var externalDocs: ExternalDocs? = null
 
         // TODO remove these after KT-14663 is implemented
-        private val _tags = mutableListOf<Tag>()
+        private val _tags = mutableListOf<String>()
         private val _parameters = mutableListOf<Parameter>()
         private var _responses: Responses? = null
         private val _servers = mutableListOf<Server>()
@@ -132,7 +132,7 @@ public data class Operation(
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.Operation.Builder.tags)
          */
-        public val tags: List<Tag> get() = _tags
+        public val tags: List<String> get() = _tags
 
         /**
          * Collected parameter definitions for this operation.
@@ -190,8 +190,8 @@ public data class Operation(
          *
          * @param tag The tag name to add.
          */
-        public fun tag(tag: String, description: String? = null, externalDocs: ExternalDocs? = null) {
-            _tags.add(Tag(tag, description, externalDocs))
+        public fun tag(tag: String) {
+            _tags.add(tag)
         }
 
         /**
@@ -275,7 +275,7 @@ public data class Operation(
 
         internal fun build(): Operation {
             return Operation(
-                tags = _tags.distinctBy { it.name }.ifEmpty { null },
+                tags = _tags.distinct().ifEmpty { null },
                 summary = summary,
                 description = description,
                 externalDocs = externalDocs,
