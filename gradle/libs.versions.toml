@@ -1,7 +1,7 @@
 [versions]
 
 kotlin = "2.3.21"
-android-gradlePlugin = "9.2.1"
+android-gradlePlugin = "9.3.0"
 androidx-test = "1.7.0"
 kotlinx-html = "0.12.0"
 kotlinx-datetime = "0.6.2"
@@ -10,8 +10,8 @@ coroutines = "1.11.0"
 atomicfu = "0.32.1"
 serialization = "1.11.0"
 dokka = "2.2.0"
-kover = "0.9.8"
-kotlinter = "5.5.0"
+kover = "0.9.9"
+kotlinter = "5.6.0"
 kotlinx-browser = "0.5.0"
 
 netty = "4.2.15.Final"
@@ -42,7 +42,7 @@ jackson-annotations = "2.21"
 
 junit = "5.14.4"
 slf4j = "2.0.18"
-logback = "1.5.34"
+logback = "1.5.38"
 
 dropwizard = "4.2.39"
 micrometer = "1.16.5"
@@ -83,7 +83,7 @@ zstd-jni = "1.5.7-11"
 # Keep it in sync with build-settings-logic/settings.gradle.kts
 # TODO: Remove module 'develocity-patched' after updating Develocity plugin to 4.4+
 develocity = "4.3.2" # Should be compatible with our server: ge.jetbrains.com
-develocity-commonCustomUserData = "2.6.0"
+develocity-commonCustomUserData = "2.7.0"
 gradleDoctor = "0.12.1"
 mavenPublishing = "0.37.0"
 
