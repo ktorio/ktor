@@ -632,6 +632,10 @@ final class io.ktor.client.plugins.websocket/DefaultClientWebSocketSession : io.
 final class io.ktor.client.plugins.websocket/WebSocketException : kotlin/IllegalStateException { // io.ktor.client.plugins.websocket/WebSocketException|null[0]
     constructor <init>(kotlin/String) // io.ktor.client.plugins.websocket/WebSocketException.<init>|<init>(kotlin.String){}[0]
     constructor <init>(kotlin/String, kotlin/Throwable?) // io.ktor.client.plugins.websocket/WebSocketException.<init>|<init>(kotlin.String;kotlin.Throwable?){}[0]
+    constructor <init>(kotlin/String, kotlin/Throwable?, io.ktor.client.statement/HttpResponse?) // io.ktor.client.plugins.websocket/WebSocketException.<init>|<init>(kotlin.String;kotlin.Throwable?;io.ktor.client.statement.HttpResponse?){}[0]
+
+    final val response // io.ktor.client.plugins.websocket/WebSocketException.response|{}response[0]
+        final fun <get-response>(): io.ktor.client.statement/HttpResponse? // io.ktor.client.plugins.websocket/WebSocketException.response.<get-response>|<get-response>(){}[0]
 }
 
 final class io.ktor.client.plugins.websocket/WebSockets { // io.ktor.client.plugins.websocket/WebSockets|null[0]
