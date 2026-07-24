@@ -86,9 +86,11 @@ internal fun Application.webSockets() {
                 call.respond(HttpStatusCode.InternalServerError)
             }
             get("handshake-403") {
+                call.response.header("X-Handshake-Reason", "forbidden")
                 call.respondText("handshake forbidden", status = HttpStatusCode.Forbidden)
             }
             get("handshake-401") {
+                call.response.header("X-Handshake-Reason", "unauthorized")
                 call.respond(HttpStatusCode.Unauthorized)
             }
         }
