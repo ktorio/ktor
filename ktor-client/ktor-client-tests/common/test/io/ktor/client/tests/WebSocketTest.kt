@@ -593,6 +593,7 @@ class WebSocketTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
 
             val response = assertNotNull(exception.response)
             assertEquals(HttpStatusCode.Forbidden, response.status)
+            assertEquals("forbidden", response.headers["X-Handshake-Reason"])
             assertEquals("handshake forbidden", response.bodyAsText())
         }
     }
@@ -614,6 +615,7 @@ class WebSocketTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
 
             val response = assertNotNull(exception.response)
             assertEquals(HttpStatusCode.Unauthorized, response.status)
+            assertEquals("unauthorized", response.headers["X-Handshake-Reason"])
         }
     }
 
