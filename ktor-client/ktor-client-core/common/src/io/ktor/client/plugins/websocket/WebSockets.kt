@@ -229,9 +229,17 @@ public class WebSockets internal constructor(
                     return@intercept
                 }
                 if (status != HttpStatusCode.SwitchingProtocols) {
+                    val failedResponse = try {
+                        context.save().response
+                    } catch (cause: Exception) {
+                        LOGGER.trace { "Failed to read response body of failed WebSocket handshake: $cause" }
+                        null
+                    }
                     @Suppress("ktlint:standard:max-line-length")
                     throw WebSocketException(
-                        "Handshake exception, expected status code ${HttpStatusCode.SwitchingProtocols.value} but was ${status.value}"
+                        "Handshake exception, expected status code ${HttpStatusCode.SwitchingProtocols.value} but was ${status.value}",
+                        cause = null,
+                        response = failedResponse,
                     )
                 }
                 if (session !is WebSocketSession) {
@@ -273,7 +281,12 @@ public class WebSockets internal constructor(
     }
 }
 
-public class WebSocketException(message: String, cause: Throwable?) : IllegalStateException(message, cause) {
+public class WebSocketException(
+    message: String,
+    cause: Throwable?,
+    public val response: HttpResponse?,
+) : IllegalStateException(message, cause) {
     // required for backwards binary compatibility
-    public constructor(message: String) : this(message, cause = null)
+    public constructor(message: String) : this(message, cause = null, response = null)
+    public constructor(message: String, cause: Throwable?) : this(message, cause, response = null)
 }
