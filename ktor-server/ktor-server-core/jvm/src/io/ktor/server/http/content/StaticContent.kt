@@ -24,9 +24,16 @@ import kotlin.io.path.isDirectory
 import kotlin.io.path.pathString
 
 /**
- * Attribute to assign the path of a static file served in the response.  The main use of this attribute is to indicate
- * to subsequent interceptors that a static file was served via the `ApplicationCall.isStaticContent()` extension
- * function.
+ * Attribute that stores the path of static content being served.
+ *
+ * It is set by static-content handlers (for example, [staticFiles], [staticResources], or the Webjars plugin)
+ * when a static file or resource is handled. The value is typically the resolved file path or the requested
+ * relative resource path.
+ *
+ * This attribute is not set in early pipeline phases such as [ApplicationCallPipeline.Setup].
+ * For [staticFiles] and [staticResources], it is set during the [ApplicationCallPipeline.Call] phase when routing
+ * handles the request. Use [isStaticContent] in response hooks such as [PluginBuilder.onCallRespond] or
+ * [ResponseSent], not in early setup hooks such as the CallId plugin `retrieve` block.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.StaticFileLocationProperty)
  */
@@ -254,7 +261,7 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
  *
  * If the requested file doesn't exist, or it is a directory and no [index] specified, response will be 404 Not Found.
  *
- * You can use [block] for additional set up.
+ * You can use [block] for additional setup.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.staticFiles)
  */
@@ -497,6 +504,7 @@ public fun Route.preCompressed(
     "This property only used in deprecated functions `files`, `file` and `default`. " +
         "Please use `staticFiles` or `staticResources` instead"
 )
+@Suppress("DEPRECATION")
 public var Route.staticRootFolder: File?
     get() = attributes.getOrNull(staticRootFolderKey) ?: parent?.staticRootFolder
     set(value) {
@@ -536,6 +544,7 @@ public fun Route.static(remotePath: String, configure: Route.() -> Unit): Route 
  */
 
 @Deprecated("Please use `staticFiles` instead")
+@Suppress("DEPRECATION")
 public fun Route.default(localPath: String): Unit = default(File(localPath))
 
 /**
@@ -544,6 +553,7 @@ public fun Route.default(localPath: String): Unit = default(File(localPath))
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.default)
  */
 @Deprecated("Please use `staticFiles` instead")
+@Suppress("DEPRECATION")
 public fun Route.default(localPath: File) {
     val file = staticRootFolder.combine(localPath)
     val compressedTypes = staticContentEncodedTypes
@@ -559,6 +569,7 @@ public fun Route.default(localPath: File) {
  */
 
 @Deprecated("Please use `staticFiles` instead")
+@Suppress("DEPRECATION")
 public fun Route.file(remotePath: String, localPath: String = remotePath): Unit =
     file(remotePath, File(localPath))
 
@@ -568,6 +579,7 @@ public fun Route.file(remotePath: String, localPath: String = remotePath): Unit 
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.file)
  */
 @Deprecated("Please use `staticFiles` instead")
+@Suppress("DEPRECATION")
 public fun Route.file(remotePath: String, localPath: File) {
     val file = staticRootFolder.combine(localPath)
     val compressedTypes = staticContentEncodedTypes
@@ -583,6 +595,7 @@ public fun Route.file(remotePath: String, localPath: File) {
  */
 
 @Deprecated("Please use `staticFiles` instead")
+@Suppress("DEPRECATION")
 public fun Route.files(folder: String): Unit = files(File(folder))
 
 /**
@@ -591,6 +604,7 @@ public fun Route.files(folder: String): Unit = files(File(folder))
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.files)
  */
 @Deprecated("Please use `staticFiles` instead")
+@Suppress("DEPRECATION")
 public fun Route.files(folder: File) {
     val dir = staticRootFolder.combine(folder)
     val compressedTypes = staticContentEncodedTypes
@@ -610,6 +624,7 @@ private val staticBasePackageName = AttributeKey<String>("BasePackage")
  */
 
 @Deprecated("Please use `staticResources` instead")
+@Suppress("DEPRECATION")
 public var Route.staticBasePackage: String?
     get() = attributes.getOrNull(staticBasePackageName) ?: parent?.staticBasePackage
     set(value) {
@@ -633,6 +648,7 @@ private fun String?.combinePackage(resourcePackage: String?) = when {
  */
 
 @Deprecated("Please use `staticResources` instead")
+@Suppress("DEPRECATION")
 public fun Route.resource(remotePath: String, resource: String = remotePath, resourcePackage: String? = null) {
     val compressedTypes = staticContentEncodedTypes
     val packageName = staticBasePackage.combinePackage(resourcePackage)
@@ -652,6 +668,7 @@ public fun Route.resource(remotePath: String, resource: String = remotePath, res
  */
 
 @Deprecated("Please use `staticResources` instead")
+@Suppress("DEPRECATION")
 public fun Route.resources(resourcePackage: String? = null) {
     val packageName = staticBasePackage.combinePackage(resourcePackage)
     val compressedTypes = staticContentEncodedTypes
@@ -672,6 +689,7 @@ public fun Route.resources(resourcePackage: String? = null) {
  */
 
 @Deprecated("Please use `staticResources` instead")
+@Suppress("DEPRECATION")
 public fun Route.defaultResource(resource: String, resourcePackage: String? = null) {
     val packageName = staticBasePackage.combinePackage(resourcePackage)
     val compressedTypes = staticContentEncodedTypes
@@ -685,7 +703,17 @@ public fun Route.defaultResource(resource: String, resourcePackage: String? = nu
 }
 
 /**
- *  Checks if the application call is requesting static content
+ * Checks whether static content is being served for this call.
+ *
+ * Returns `true` when [StaticFileLocationProperty] has been set by a static-content handler
+ * (for example, [staticFiles], [staticResources], or the Webjars plugin).
+ *
+ * This function returns `false` in early pipeline phases such as [ApplicationCallPipeline.Setup],
+ * because static-content routing runs later in [ApplicationCallPipeline.Call].
+ * For example, it cannot be used inside the CallId plugin `retrieve` block.
+ *
+ * To detect static content, use this function in response hooks such as [PluginBuilder.onCallRespond]
+ * or [ResponseSent].
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.isStaticContent)
  */
