@@ -293,6 +293,10 @@ public class WebSockets internal constructor(
 public class WebSocketException(
     message: String,
     cause: Throwable?,
+    /**
+     * The HTTP response from a failed handshake, exposing the status, headers, and body returned
+     * by the server. Availability varies by engine.
+     */
     public val response: HttpResponse?,
 ) : IllegalStateException(message, cause) {
     // required for backwards binary compatibility
