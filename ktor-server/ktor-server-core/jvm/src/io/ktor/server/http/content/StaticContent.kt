@@ -14,12 +14,27 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
 import io.ktor.util.date.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.joinAll
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.io.Buffer
+import kotlinx.io.RawSource
+import kotlinx.io.Sink
+import kotlinx.io.buffered
+import kotlinx.io.files.SystemFileSystem
+import kotlinx.io.writeString
 import java.io.File
 import java.net.URL
 import java.nio.file.FileSystem
 import java.nio.file.FileSystems
 import java.nio.file.Path
 import java.nio.file.StandardWatchEventKinds
+import java.security.MessageDigest
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.io.path.isDirectory
 import kotlin.io.path.pathString
 
@@ -84,6 +99,7 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
     internal var autoHeadResponse: Boolean = false
     internal var lastModifiedExtractor: (Resource) -> GMTDate? = { null }
     internal var etagExtractor: ETagProvider = ETagProvider { null }
+    internal var contentHash: ContentHash? = null
 
     /**
      * Enables pre-compressed files or resources.
@@ -244,6 +260,10 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
     public fun extensions(vararg extensions: String) {
         this.extensions = extensions.toList()
     }
+
+    public fun useContentHash(contentHash: ContentHash) {
+        this.contentHash = contentHash
+    }
 }
 
 /**
@@ -276,6 +296,7 @@ public fun Route.staticFiles(
     val fallback = staticRoute.fallback
     val lastModified = staticRoute.lastModifiedExtractor
     val etag = staticRoute.etagExtractor
+    val contentHash = staticRoute.contentHash
     return staticContentRoute(remotePath, autoHead) {
         respondStaticFile(
             index = index,
@@ -290,6 +311,7 @@ public fun Route.staticFiles(
             extensions = extensions,
             defaultPath = defaultPath,
             fallback = fallback,
+            contentHash = contentHash
         )
     }
 }
@@ -726,9 +748,10 @@ private suspend fun ApplicationCall.respondStaticFile(
     extensions: List<String>,
     defaultPath: String?,
     fallback: suspend (String, ApplicationCall) -> Unit,
+    contentHash: ContentHash?
 ) {
     val relativePath = parameters.getAll(pathParameterName)?.joinToString(File.separator) ?: return
-    val requestedFile = dir.combineSafe(relativePath)
+    var requestedFile = dir.combineSafe(relativePath)
 
     suspend fun checkExclude(file: File): Boolean {
         if (!exclude(file)) return false
@@ -738,6 +761,7 @@ private suspend fun ApplicationCall.respondStaticFile(
 
     val isDirectory = requestedFile.isDirectory
     if (index != null && isDirectory) {
+        // TODO: Fingerprinting for index
         respondStaticFile(
             File(requestedFile, index),
             compressedTypes,
@@ -749,6 +773,13 @@ private suspend fun ApplicationCall.respondStaticFile(
         )
     } else if (!isDirectory) {
         if (checkExclude(requestedFile)) return
+
+        if (contentHash != null) {
+            val file = contentHash.lookupFile(dir, relativePath)
+            if (file != null) {
+                requestedFile = file
+            }
+        }
 
         respondStaticFile(requestedFile, compressedTypes, contentType, cacheControl, lastModified, etag, modify)
         if (isHandled) return
@@ -969,4 +1000,178 @@ private object TailcardSelector : RouteSelector() {
         RouteSelectorEvaluation.Success(quality = RouteSelectorEvaluation.qualityTailcard)
 
     override fun toString(): String = "(static-content)"
+}
+
+// TODO: Think if it should accept a directory in the constructor
+// TODO: Think how to separate methods avoid overwhelming the caller
+// TODO: Resources
+public class ContentHash {
+    private sealed interface TreeValue
+    private class OriginalName(val name: String) : TreeValue
+    private class HashedName(val name: String) : TreeValue
+    private class Tree(val map: java.util.concurrent.ConcurrentMap<String, TreeValue>) : TreeValue
+
+    private val root = Tree(ConcurrentHashMap())
+
+    // TODO: Optimize
+    public fun load(manifest: File) {
+        root.map.clear()
+
+        for (line in manifest.readLines()) {
+            if (line.isEmpty()) continue
+            val (newPath, originalName) = line.split(' ', limit = 2)
+
+            var tree = root
+            val parts = newPath.split('/')
+            for (p in parts.take(parts.size - 1)) {
+                var t = tree.map[p]
+                require(t !is OriginalName && t !is HashedName) {}
+
+                if (t == null) {
+                    t = Tree(ConcurrentHashMap())
+                    tree.map[p] = t
+                }
+
+                tree = t as Tree
+            }
+
+            tree.map[parts.last()] = OriginalName(originalName)
+            tree.map[originalName] = HashedName(parts.last())
+        }
+    }
+
+    public suspend fun generate(dir: File) {
+        require(dir.isDirectory)
+
+        val jobs = mutableListOf<Job>()
+        gen(dir, root, jobs)
+        jobs.joinAll()
+    }
+
+    private suspend fun gen(dir: File, tree: Tree, jobs: MutableList<Job>): Unit = coroutineScope {
+        for (file in dir.listFiles() ?: emptyArray()) {
+            if (file.name.startsWith(".")) continue
+            if (file.isFile) {
+                jobs.add(
+                    launch {
+                        val hashedName = if (file.extension.isNotEmpty()) {
+                            "${file.nameWithoutExtension}-${sha256Hash(kotlinx.io.files.Path(file.path))}.${file.extension}"
+                        } else {
+                            "${file.name}-${sha256Hash(kotlinx.io.files.Path(file.path))}"
+                        }
+
+                        tree.map[hashedName] = OriginalName(file.name)
+                        tree.map[file.name] = HashedName(hashedName)
+                    }
+                )
+            } else if (file.isDirectory) {
+                val t = Tree(ConcurrentHashMap())
+                tree.map[file.name] = t
+                gen(file, t, jobs)
+            }
+        }
+    }
+
+    private val hashDispatcher = Dispatchers.IO.limitedParallelism(32)
+    private suspend fun sha256Hash(path: kotlinx.io.files.Path): String = withContext(hashDispatcher) {
+        val digest = MessageDigest.getInstance("SHA-256")
+        val buffer = ByteArray(8192)
+        ensureActive()
+        SystemFileSystem.source(path).buffered().use { source ->
+            while (!source.exhausted()) {
+                ensureActive()
+                val read = source.readAtMostTo(buffer, 0, buffer.size)
+                ensureActive()
+                digest.update(buffer, 0, read)
+                ensureActive()
+            }
+        }
+        digest.digest().joinToString("") { "%02x".format(it) }
+    }
+
+    // TODO: Optimize
+    public fun dump(): RawSource {
+        val buffer = Buffer()
+        writeTree(buffer, root, "")
+        return buffer
+    }
+
+    private fun writeTree(out: Sink, tree: Tree, prefix: String) {
+        for ((newName, value) in tree.map.entries) {
+            when(value) {
+                is OriginalName -> {
+                    if (prefix.isNotEmpty()) {
+                        out.writeString("$prefix/$newName ${value.name}\n")
+                    } else {
+                        out.writeString("$newName ${value.name}\n")
+                    }
+                }
+                is HashedName -> {
+                    // Do nothing
+                }
+                is Tree -> {
+                    val newPrefix = if (prefix.isNotEmpty()) {
+                        "$prefix/$newName"
+                    } else {
+                        newName
+                    }
+                    writeTree(out, value, newPrefix)
+                }
+            }
+        }
+    }
+
+    public fun lookupFile(dir: File, relativePath: String): File? {
+        var tree = root
+        val prefix = StringBuilder()
+        for (part in relativePath.split('/')) {
+            when (val t = tree.map[part]) {
+                is OriginalName -> {
+                    prefix.append(t.name)
+                    return dir.combineSafe(prefix.toString())
+                }
+                is HashedName -> {
+                    return null
+                }
+                is Tree -> {
+                    prefix.append("$part/")
+                    tree = t
+                }
+                null ->  {
+                    return null
+                }
+            }
+        }
+
+        return null
+    }
+
+    public fun webPath(remotePath: String, filepath: String): String? {
+        var tree = root
+        val prefix = StringBuilder()
+        for (part in filepath.split('/')) {
+            when (val t = tree.map[part]) {
+                is OriginalName -> {
+                    return null
+                }
+                is HashedName -> {
+                    prefix.append(t.name)
+                    return if (remotePath.isNotEmpty()) {
+                        "$remotePath/$prefix"
+                    } else {
+                        prefix.toString()
+                    }
+                }
+                is Tree -> {
+                    prefix.append("$part/")
+                    tree = t
+                }
+                null ->  {
+                    return null
+                }
+            }
+        }
+
+        return null
+    }
 }

@@ -8,9 +8,13 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.application.hooks.*
+import io.ktor.server.http.content.ContentHash
 import io.ktor.utils.io.*
 import org.thymeleaf.*
 import org.thymeleaf.context.*
+import org.thymeleaf.dialect.AbstractDialect
+import org.thymeleaf.dialect.IExpressionObjectDialect
+import org.thymeleaf.expression.IExpressionObjectFactory
 import java.util.*
 
 /**
@@ -61,4 +65,28 @@ public val Thymeleaf: ApplicationPlugin<TemplateEngine> = createApplicationPlugi
             result
         }
     }
+}
+
+internal class Assets(private val contentHash: ContentHash) {
+    fun webPath(remotePath: String, filepath: String): String? {
+        return contentHash.webPath(remotePath, filepath)
+    }
+}
+
+public fun TemplateEngine.useContentHash(contentHash: ContentHash) {
+    addDialect(object : AbstractDialect("assets"), IExpressionObjectDialect {
+        private val factory = object : IExpressionObjectFactory {
+            override fun getAllExpressionObjectNames(): Set<String?> = setOf("assets")
+
+            override fun buildObject(
+                context: IExpressionContext?,
+                expressionObjectName: String?
+            ): Any? = if (name == "assets") Assets(contentHash) else null
+
+            override fun isCacheable(expressionObjectName: String?): Boolean = true
+
+        }
+        override fun getExpressionObjectFactory(): IExpressionObjectFactory = factory
+
+    })
 }

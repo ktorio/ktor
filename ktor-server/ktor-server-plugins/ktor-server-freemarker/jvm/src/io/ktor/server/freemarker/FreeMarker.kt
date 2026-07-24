@@ -5,10 +5,12 @@
 package io.ktor.server.freemarker
 
 import freemarker.template.*
+import freemarker.template.utility.DeepUnwrap
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.application.hooks.*
+import io.ktor.server.http.content.ContentHash
 import io.ktor.utils.io.*
 import java.io.*
 
@@ -55,4 +57,17 @@ public val FreeMarker: ApplicationPlugin<Configuration> = createApplicationPlugi
             result
         }
     }
+}
+
+public fun Configuration.useContentHash(contentHash: ContentHash) {
+    setSharedVariable("webAsset", object : TemplateMethodModelEx {
+        override fun exec(arguments: List<*>?): Any? {
+            if (arguments == null || arguments.size != 2) throw TemplateModelException("webAsset() expects two arguments: remotePath and filepath")
+            val remotePath = DeepUnwrap.unwrap(arguments[0] as TemplateModel) as? String
+            val filepath = DeepUnwrap.unwrap(arguments[1] as TemplateModel) as? String
+            if (remotePath == null) throw TemplateModelException("webAsset() expects remotePath to be a string")
+            if (filepath == null) throw TemplateModelException("webAsset() expects filepath to be a string")
+            return contentHash.webPath(remotePath, filepath)
+        }
+    })
 }
