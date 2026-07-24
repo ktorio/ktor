@@ -7,6 +7,7 @@ package io.ktor.server.routing
 import io.ktor.http.*
 import io.ktor.server.plugins.*
 import io.ktor.server.request.*
+import io.ktor.utils.io.InternalAPI
 
 /**
  * A result of a route evaluation against a call.
@@ -266,22 +267,20 @@ public abstract class RouteSelector {
      * used).
      */
     internal open fun tryEvaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation? = null
+}
 
-    /**
-     * Upper bound on the quality this selector can produce from a successful [evaluate] call,
-     * used by the routing fast-path index ([RoutingPathTree]) at build time to classify
-     * sibling selectors without invoking them.
-     *
-     * The default is [Double.NaN], meaning "unknown" — such selectors force the routing index
-     * to fall back to the slow DFS for the whole subtree (since they could in principle outrank
-     * a sibling constant path match).
-     *
-     * Selectors that statically guarantee a quality **strictly less than**
-     * [RouteSelectorEvaluation.qualityConstant] (e.g. wildcards, tailcards, the static-content
-     * tailcard wrapper) should override this to allow the routing index to keep indexing
-     * constant siblings, deferring to the slow DFS only when the constant lookup misses.
-     */
-    internal open val qualityUpperBound: Double get() = Double.NaN
+@InternalAPI
+public abstract class TransparentRouteSelector : RouteSelector() {
+
+    override suspend fun evaluate(
+        context: RoutingResolveContext,
+        segmentIndex: Int
+    ): RouteSelectorEvaluation = tryEvaluate(context, segmentIndex)
+
+    override fun tryEvaluate(
+        context: RoutingResolveContext,
+        segmentIndex: Int
+    ): RouteSelectorEvaluation = RouteSelectorEvaluation.Transparent
 }
 
 /**

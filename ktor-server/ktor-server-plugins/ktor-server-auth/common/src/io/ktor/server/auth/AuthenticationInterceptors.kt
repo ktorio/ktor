@@ -339,10 +339,8 @@ public class RouteAuthenticationConfig {
  *
  * @param names of authentication providers to be applied to this route.
  */
-public class AuthenticationRouteSelector(public val names: List<String?>) : RouteSelector() {
-    override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
-        return RouteSelectorEvaluation.Transparent
-    }
+@OptIn(InternalAPI::class)
+public class AuthenticationRouteSelector(public val names: List<String?>) : TransparentRouteSelector() {
 
     override fun toString(): String = "(authenticate ${names.joinToString { it ?: "\"$DEFAULT_NAME\"" }})"
 
