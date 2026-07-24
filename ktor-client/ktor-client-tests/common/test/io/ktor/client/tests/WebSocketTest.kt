@@ -598,6 +598,26 @@ class WebSocketTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
     }
 
     @Test
+    fun testFailedHandshakeExposesResponseStatus() = clientTests(only("CIO", "OkHttp", "Java")) {
+        // The OkHttp and Java engines only surface the failed-handshake response for 401 Unauthorized;
+        // CIO surfaces it for any non-101 status (and additionally exposes the body, see the test above).
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            val exception = assertFailsWith<WebSocketException> {
+                client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/handshake-401") {
+                    fail("Unreachable")
+                }
+            }
+
+            val response = assertNotNull(exception.response)
+            assertEquals(HttpStatusCode.Unauthorized, response.status)
+        }
+    }
+
+    @Test
     fun testWebSocketHeaders() = clientTests {
         config {
             install(WebSockets)
