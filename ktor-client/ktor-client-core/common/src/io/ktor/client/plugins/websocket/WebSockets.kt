@@ -24,6 +24,10 @@ public val WEBSOCKETS_KEY: AttributeKey<WebSockets> = AttributeKey<WebSockets>("
 
 internal val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.websocket.WebSockets")
 
+// Marks a call whose failed-handshake response has already been captured, so reading that
+// response's body (via WebSocketException.response) doesn't re-enter the handshake handling below.
+private val FAILED_HANDSHAKE_RESPONSE_KEY = AttributeKey<Unit>("WebSocketFailedHandshakeResponse")
+
 /**
  * Indicates if a client engine supports WebSockets.
  *
@@ -228,9 +232,14 @@ public class WebSockets internal constructor(
                     LOGGER.trace { "Skipping non-websocket response from ${context.request.url}: $requestContent" }
                     return@intercept
                 }
+                if (context.attributes.contains(FAILED_HANDSHAKE_RESPONSE_KEY)) {
+                    // Reading the body of an already-captured failed handshake (WebSocketException.response);
+                    // let the default transformers produce the body instead of handling the handshake again.
+                    return@intercept
+                }
                 if (status != HttpStatusCode.SwitchingProtocols) {
                     val failedResponse = try {
-                        context.save().response
+                        context.save().also { it.attributes.put(FAILED_HANDSHAKE_RESPONSE_KEY, Unit) }.response
                     } catch (cause: Exception) {
                         LOGGER.trace { "Failed to read response body of failed WebSocket handshake: $cause" }
                         null
