@@ -64,7 +64,7 @@ internal class SignalPoint : Closeable {
                 val result = write(writeDescriptor, array, 1.convert())
                 if (result < 0) return
 
-                remaining += result.toInt()
+                remaining += result
             }
         }
     }
