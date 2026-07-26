@@ -55,7 +55,9 @@ public fun HttpClientConfig<*>.addDefaultResponseValidation() {
                 in 500..599 -> ServerResponseException(exceptionResponse, exceptionResponseText)
                 else -> ResponseException(exceptionResponse, exceptionResponseText)
             }
-            LOGGER.trace(exception) { "Default response validation for ${response.call.request.url} failed with exception" }
+            LOGGER.trace(exception) {
+                "Default response validation for ${response.call.request.url} failed with exception"
+            }
             throw exception
         }
     }
