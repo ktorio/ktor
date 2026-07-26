@@ -85,7 +85,8 @@ private fun ldapLogin(ldapURL: String, ldapEnvironmentBuilder: (MutableMap<Strin
 }
 
 internal fun ldapEscape(string: String): String {
-    for ((index, character) in string.withIndex()) {
+    for (index in 0..string.lastIndex) {
+        val character = string[index]
         if (character.shouldEscape()) {
             return ldapEscapeImpl(string, index)
         }

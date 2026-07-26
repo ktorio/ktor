@@ -38,8 +38,8 @@ internal class PhaseContent<TSubject : Any, Call : Any>(
             destination.ensureCapacity(destination.size + interceptors.size)
         }
 
-        for (interceptor in interceptors) {
-            destination.add(interceptor)
+        for (index in 0 until interceptors.size) {
+            destination.add(interceptors[index])
         }
     }
 

@@ -32,7 +32,9 @@ public abstract class HeaderValueWithParameters(
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.HeaderValueWithParameters.parameter)
      */
     public fun parameter(name: String): String? {
-        for (parameter in parameters) {
+        for (index in 0..parameters.lastIndex) {
+            val parameter = parameters[index]
+
             if (parameter.name.equals(name, ignoreCase = true)) {
                 return parameter.value
             }
@@ -49,11 +51,12 @@ public abstract class HeaderValueWithParameters(
 
             StringBuilder(size).apply {
                 append(content)
-                for ((name, value) in parameters) {
+                for (index in 0..parameters.lastIndex) {
+                    val element = parameters[index]
                     append("; ")
-                    append(name)
+                    append(element.name)
                     append("=")
-                    value.escapeIfNeededTo(this)
+                    element.value.escapeIfNeededTo(this)
                 }
             }.toString()
         }

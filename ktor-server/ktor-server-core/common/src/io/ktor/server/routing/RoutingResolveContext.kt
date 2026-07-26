@@ -162,7 +162,8 @@ public class RoutingResolveContext(
         }
 
         // iterate using indices to avoid creating iterator
-        for (child in entry.children) {
+        for (childIndex in 0..entry.children.lastIndex) {
+            val child = entry.children[childIndex]
             val childQuality = handleRoute(child, newIndex, trait, bestSucceedChildQuality)
             if (childQuality > 0) {
                 bestSucceedChildQuality = max(bestSucceedChildQuality, childQuality)
@@ -189,7 +190,8 @@ public class RoutingResolveContext(
         val parameters = ParametersBuilder()
         var quality = Double.MAX_VALUE
 
-        for (part in finalResolve) {
+        for (index in 0..finalResolve.lastIndex) {
+            val part = finalResolve[index]
             parameters.appendAll(part.parameters)
 
             val partQuality = if (part.quality == RouteSelectorEvaluation.qualityTransparent) {

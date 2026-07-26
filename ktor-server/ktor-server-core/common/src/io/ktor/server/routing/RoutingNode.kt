@@ -118,13 +118,13 @@ public open class RoutingNode(
         }
 
         val handlers = handlers
-        for (handler in handlers) {
+        for (index in 0..handlers.lastIndex) {
             pipeline.intercept(Call) {
                 val call = call as RoutingPipelineCall
                 val routingCall = RoutingCall(call)
                 val routingContext = RoutingContext(routingCall)
                 if (call.isHandled) return@intercept
-                handler.invoke(routingContext)
+                handlers[index].invoke(routingContext)
             }
         }
         cachedPipeline = pipeline
