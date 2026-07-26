@@ -41,7 +41,7 @@ internal class TCPSocketNative(
                             value = sizeOf<IntVar>().convert()
                         }
                         ktor_getsockopt(descriptor, SOL_SOCKET, SO_ERROR, result.ptr, size.ptr).check()
-                        val resultValue = result.value
+                        val resultValue = result.value.toInt()
                         when {
                             // connected
                             resultValue == 0 -> break

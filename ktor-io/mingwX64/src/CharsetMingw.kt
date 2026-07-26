@@ -85,8 +85,8 @@ internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: In
                              * outbytesleft is decremented by the number of bytes written
                              */
                             val convertResult =
-                                iconv(cd, inbuf.ptr, inbytesleft.ptr, outbuf.ptr, outbytesleft.ptr)
-                            if (convertResult == MAX_SIZE) {
+                                iconv(cd, inbuf.ptr, inbytesleft.ptr, outbuf.ptr, outbytesleft.ptr).toULong()
+                            if (convertResult == MAX_SIZE.toULong()) {
                                 checkIconvResult(posix_errno())
                             }
 
@@ -132,7 +132,7 @@ public actual fun CharsetDecoder.decode(input: Source, dst: Appendable, max: Int
                             outbytesleft.value = (chars.size * 2).toULong()
 
                             val result = iconv(cd, inbuf.ptr, inbytesleft.ptr, outbuf.ptr, outbytesleft.ptr)
-                            if (result == MAX_SIZE) {
+                            if (result == MAX_SIZE.toULong()) {
                                 checkIconvResult(posix_errno())
                             }
 

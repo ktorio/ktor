@@ -30,7 +30,7 @@ internal fun CoroutineScope.attachForWritingImpl(
                 val bufferStart = pinned.addressOf(start).reinterpret<ByteVar>()
                 val remaining = stop - start
                 val bytesWritten = if (remaining > 0) {
-                    ktor_send(descriptor, bufferStart, remaining.convert(), 0)
+                    ktor_send(descriptor, bufferStart, remaining.convert(), 0).toInt()
                 } else {
                     0
                 }

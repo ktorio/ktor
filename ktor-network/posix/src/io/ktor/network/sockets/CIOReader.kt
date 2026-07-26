@@ -26,7 +26,7 @@ internal fun CoroutineScope.attachForReadingImpl(
                 memory.usePinned {
                     val bufferStart = it.addressOf(startIndex)
                     val size = endIndex - startIndex
-                    val bytesRead = ktor_recv(descriptor, bufferStart, size.convert(), 0)
+                    val bytesRead = ktor_recv(descriptor, bufferStart, size.convert(), 0).toInt()
 
                     when (bytesRead) {
                         0 -> close = true

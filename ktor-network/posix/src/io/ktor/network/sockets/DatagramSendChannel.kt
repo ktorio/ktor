@@ -116,7 +116,7 @@ internal class DatagramSendChannel(
                         0,
                         address,
                         addressSize
-                    )
+                    ).toInt()
                 }
             } else {
                 bytesWritten = ktor_sendto(
@@ -126,7 +126,7 @@ internal class DatagramSendChannel(
                     0,
                     null,
                     0.convert()
-                )
+                ).toInt()
             }
         }
         return bytesWritten ?: error("bytesWritten cannot be null")
