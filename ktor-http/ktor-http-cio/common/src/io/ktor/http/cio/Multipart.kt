@@ -52,6 +52,7 @@ public sealed class MultipartEvent {
     public class Preamble(
         public val body: Source
     ) : MultipartEvent() {
+        @Deprecated("Use releaseSuspend instead", level = DeprecationLevel.WARNING)
         override fun release() {
             body.close()
         }
@@ -105,6 +106,7 @@ public sealed class MultipartEvent {
     public class Epilogue(
         public val body: Source
     ) : MultipartEvent() {
+        @Deprecated("Use releaseSuspend instead", level = DeprecationLevel.WARNING)
         override fun release() {
             body.close()
         }

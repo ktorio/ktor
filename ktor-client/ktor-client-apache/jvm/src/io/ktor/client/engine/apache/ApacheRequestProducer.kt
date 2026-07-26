@@ -30,6 +30,7 @@ import kotlin.coroutines.CoroutineContext
 @OptIn(InternalAPI::class)
 internal class ApacheRequestProducer(
     val requestData: HttpRequestData,
+    @Suppress("DEPRECATION")
     private val config: ApacheEngineConfig,
     callContext: CoroutineContext
 ) : HttpAsyncRequestProducer, CoroutineScope {
