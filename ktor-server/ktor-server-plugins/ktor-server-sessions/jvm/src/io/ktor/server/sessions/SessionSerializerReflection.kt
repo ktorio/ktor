@@ -487,22 +487,22 @@ internal class SessionSerializerReflection<T : Any>(
         .joinToString("&")
         .encodeURLQueryComponent()
 
-    @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
+    @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN", "RemoveRedundantQualifierName")
     private fun isListType(type: KType): Boolean {
         return getRawType(type)?.let { java.util.List::class.java.isAssignableFrom(it) } ?: false
     }
 
-    @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
+    @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN", "RemoveRedundantQualifierName")
     private fun isSetType(type: KType): Boolean {
         return getRawType(type)?.let { java.util.Set::class.java.isAssignableFrom(it) } ?: false
     }
 
-    @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
+    @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN", "RemoveRedundantQualifierName")
     private fun isEnumType(type: KType): Boolean {
         return getRawType(type)?.let { java.lang.Enum::class.java.isAssignableFrom(it) } ?: false
     }
 
-    @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
+    @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN", "RemoveRedundantQualifierName")
     private fun isMapType(type: KType): Boolean {
         return getRawType(type)?.let { java.util.Map::class.java.isAssignableFrom(it) } ?: false
     }

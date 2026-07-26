@@ -331,7 +331,7 @@ private object ZonedDateTimeAsStructSerializer : KSerializer<ZonedDateTime> {
                     5 -> second = decodeIntElement(descriptor, 5)
                     6 -> nano = decodeIntElement(descriptor, 6)
                     7 -> zoneId = decodeStringElement(descriptor, 7)
-                    kotlinx.serialization.encoding.CompositeDecoder.DECODE_DONE -> break
+                    CompositeDecoder.DECODE_DONE -> break
                     else -> error("Unexpected index: $index")
                 }
             }

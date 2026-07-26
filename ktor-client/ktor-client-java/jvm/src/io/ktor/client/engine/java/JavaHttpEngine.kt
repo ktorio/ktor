@@ -46,9 +46,7 @@ public class JavaHttpEngine(override val config: JavaHttpConfig) : HttpClientEng
             if (data.isUpgradeRequest()) {
                 engine.executeWebSocketRequest(callContext, data)
             } else {
-                engine.executeHttpRequest(callContext, data) ?: throw kotlinx.coroutines.CancellationException(
-                    "Request was cancelled"
-                )
+                engine.executeHttpRequest(callContext, data) ?: throw CancellationException("Request was cancelled")
             }
         } catch (cause: Throwable) {
             callContext.cancel(CancellationException("Failed to execute request", cause))
