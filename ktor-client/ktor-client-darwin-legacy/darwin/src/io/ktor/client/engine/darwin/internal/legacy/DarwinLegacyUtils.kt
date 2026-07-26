@@ -14,6 +14,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.io.readByteArray
 import platform.Foundation.*
 import platform.posix.memcpy
+import io.ktor.utils.io.readBuffer
 
 @OptIn(UnsafeNumber::class)
 internal val NSURLSessionTask.id: ULong get() = this.taskIdentifier.toULong()
@@ -24,9 +25,9 @@ internal suspend fun OutgoingContent.toNSData(): NSData? = when (this) {
 
     is OutgoingContent.WriteChannelContent -> GlobalScope.writer(Dispatchers.Unconfined) {
         writeTo(channel)
-    }.channel.readRemaining().readByteArray().toNSData()
+    }.channel.readBuffer().readByteArray().toNSData()
 
-    is OutgoingContent.ReadChannelContent -> readFrom().readRemaining().readByteArray().toNSData()
+    is OutgoingContent.ReadChannelContent -> readFrom().readBuffer().readByteArray().toNSData()
 
     is OutgoingContent.NoContent -> null
 
