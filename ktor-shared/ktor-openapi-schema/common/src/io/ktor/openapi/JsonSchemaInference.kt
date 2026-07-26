@@ -611,7 +611,7 @@ public fun jsonSchemaFromAnnotations(
         maxItems = annotations.firstInstanceOf<MaxItems>()?.value,
         minItems = annotations.firstInstanceOf<MinItems>()?.value,
         uniqueItems = annotations.firstInstanceOf<UniqueItems>()?.let { true },
-        enum = annotations.firstInstanceOf<Enum>()?.value
+        enum = annotations.firstInstanceOf<JsonSchema.Enum>()?.value
             ?.map { parseJsonLiteralOrUseString(it) }
             ?.takeIf { it.isNotEmpty() } ?: enum,
         multipleOf = annotations.firstInstanceOf<MultipleOf>()?.value,
