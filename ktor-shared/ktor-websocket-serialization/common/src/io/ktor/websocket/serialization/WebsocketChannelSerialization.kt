@@ -130,7 +130,7 @@ public suspend fun WebSocketSession.receiveDeserializedBase(
 
     throw WebsocketDeserializeException(
         "Can't deserialize value: expected value of type ${typeInfo.type.simpleName}," +
-            " got ${result!!::class.simpleName}",
+            " got ${result::class.simpleName}",
         frame = frame
     )
 }

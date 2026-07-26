@@ -41,6 +41,7 @@ public val BOMRemover: ClientPlugin<Unit> = createClientPlugin(
         }
 
         var offset = 0
+        @OptIn(DelicateCoroutinesApi::class)
         GlobalScope.writer {
             for (bom in BOMs) {
                 if (length >= bom.size && bom.indices.all { beginning[it] == bom[it] }) {

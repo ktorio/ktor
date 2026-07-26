@@ -57,7 +57,7 @@ fun example() {
                     response.bytes(HelloWorld)
                     output.writePacket(response.build())
                 } else {
-                    output.writePacket(notFound404_11.copy())
+                    output.writePacket(notFound404_11.peek())
                 }
 
                 output.flushAndClose()

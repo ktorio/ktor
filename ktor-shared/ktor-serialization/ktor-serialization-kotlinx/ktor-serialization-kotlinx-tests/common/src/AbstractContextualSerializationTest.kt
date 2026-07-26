@@ -8,7 +8,7 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.serialization.*
 import io.ktor.serialization.kotlinx.*
-import io.ktor.test.dispatcher.*
+import io.ktor.test.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
@@ -49,7 +49,7 @@ public abstract class AbstractContextualSerializationTest<T : SerialFormat> {
 
     @Test
     public fun testSerializationWithContext() {
-        testSuspend {
+        runTest {
             val context = serializersModuleOf(UserData::class, UserDataSerializer)
             val contextualSerializer = buildContextualSerializer(context)
             val contextual = KotlinxSerializationConverter(contextualSerializer)

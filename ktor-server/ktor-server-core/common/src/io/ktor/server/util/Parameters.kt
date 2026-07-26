@@ -59,6 +59,7 @@ public inline fun <reified R> Parameters.getOrFail(name: String): R =
 @PublishedApi
 internal fun <R> Parameters.getOrFailImpl(name: String, typeInfo: TypeInfo): R {
     return if (typeInfo.kotlinType?.isMarkedNullable == true && get(name) == null) {
+        @Suppress("UNCHECKED_CAST")
         null as R
     } else {
         val values = getAll(name) ?: throw MissingRequestParameterException(name)

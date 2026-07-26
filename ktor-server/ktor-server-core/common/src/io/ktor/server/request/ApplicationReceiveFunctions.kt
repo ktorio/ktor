@@ -109,6 +109,7 @@ public suspend inline fun <reified T> ApplicationCall.receiveNullable(): T? = re
  */
 public suspend fun <T : Any> ApplicationCall.receive(type: KClass<T>): T {
     val kotlinType = starProjectedTypeBridge(type)
+    @Suppress("DEPRECATION")
     return receiveNullable(TypeInfo(type, kotlinType))!!
 }
 

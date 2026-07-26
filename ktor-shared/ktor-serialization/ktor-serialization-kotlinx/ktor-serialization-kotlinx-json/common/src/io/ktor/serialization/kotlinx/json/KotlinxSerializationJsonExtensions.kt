@@ -98,6 +98,7 @@ private class JsonArraySymbols(charset: Charset) {
 
 internal fun TypeInfo.argumentTypeInfo(): TypeInfo {
     val elementType = kotlinType!!.arguments[0].type!!
+    @Suppress("DEPRECATION")
     return TypeInfo(
         elementType.classifier as KClass<*>,
         elementType

@@ -712,7 +712,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
                         is PartData.BinaryChannelItem -> {}
                     }
 
-                    part.dispose()
+                    part.release()
                 }
                 call.respondText(response.toString())
             }

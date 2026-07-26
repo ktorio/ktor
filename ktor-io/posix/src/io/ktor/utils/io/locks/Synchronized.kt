@@ -37,6 +37,7 @@ public actual open class SynchronizedObject {
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.locks.SynchronizedObject.lock)
      */
     public fun lock() {
+        @Suppress("UNNECESSARY_NOT_NULL_ASSERTION")
         val currentThreadId = pthread_self()!!
         while (true) {
             val state = lock.value
