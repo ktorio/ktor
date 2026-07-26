@@ -146,7 +146,7 @@ abstract class KtorTargets @Inject internal constructor(
                 hierarchyTracker.targetSourceSets.getValue(target).any { it in targetDirectories.get() }
             }
         }
-        return if (value) filter(target) else false
+        return value && filter(target)
     }
 
     private fun loadDefaults(rawDefaults: Map<String, String>): MutableMap<String, Boolean> {

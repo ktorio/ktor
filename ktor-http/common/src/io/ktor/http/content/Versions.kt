@@ -215,16 +215,14 @@ public data class EntityTagVersion(val etag: String, val weak: Boolean) : Versio
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.content.EntityTagVersion.match)
      */
     public fun match(other: EntityTagVersion): Boolean {
-        if (weak || other.weak) return false
-        return weakMatch(other)
+        return !(weak || other.weak) && weakMatch(other)
     }
 
     /**
      * Checks whether two entity-tags match (weak).
      */
     private fun weakMatch(other: EntityTagVersion): Boolean {
-        if (this == STAR || other == STAR) return true
-        return opaque == other.opaque
+        return this == STAR || other == STAR || opaque == other.opaque
     }
 
     /**

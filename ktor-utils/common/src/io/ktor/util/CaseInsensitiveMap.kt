@@ -417,8 +417,7 @@ public class CaseInsensitiveMap<Value : Any> : MutableMap<String, Value> {
         }
 
         override fun equals(other: Any?): Boolean {
-            if (other !is Map.Entry<*, *>) return false
-            return key == other.key && value == other.value
+            return other is Map.Entry<*, *> && key == other.key && value == other.value
         }
 
         override fun hashCode(): Int = key.hashCode() xor value.hashCode()

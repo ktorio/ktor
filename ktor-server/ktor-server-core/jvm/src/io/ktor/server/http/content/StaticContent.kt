@@ -226,11 +226,7 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
     public fun exclude(block: (Resource) -> Boolean) {
         val oldBlock = exclude
         exclude = {
-            if (oldBlock(it)) {
-                true
-            } else {
-                block(it)
-            }
+            oldBlock(it) || block(it)
         }
     }
 
