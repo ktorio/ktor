@@ -28,6 +28,7 @@ private val hostForbiddenSymbols = setOf('/', '?', '#', '@')
  * https://datatracker.ietf.org/doc/html/rfc9112#section-2.2-3
  */
 @OptIn(InternalAPI::class)
+@Suppress("DEPRECATION")
 internal val httpLineEndings: LineEndingMode = LineEndingMode.CRLF + LineEndingMode.LF
 
 /**
