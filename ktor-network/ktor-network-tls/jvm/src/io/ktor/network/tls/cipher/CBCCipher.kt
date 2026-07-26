@@ -28,7 +28,7 @@ internal class CBCCipher(
     private var outputCounter: Long = 0L
 
     override fun encrypt(record: TLSRecord): TLSRecord {
-        sendCipher.init(Cipher.ENCRYPT_MODE, sendKey, IvParameterSpec(generateNonce(suite.fixedIvLength)))
+        sendCipher.init(Cipher.ENCRYPT_MODE, sendKey, IvParameterSpec(generateNonceBlocking(suite.fixedIvLength).toByteArray()))
 
         val content = record.packet.readByteArray()
         val macBytes = prepareMac(record, content)
