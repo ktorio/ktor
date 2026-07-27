@@ -7,7 +7,6 @@ package io.ktor.server.http.content
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
-import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
@@ -160,12 +159,12 @@ internal fun bestCompressionFit(
     return (smallestPath ?: return null) to (smallestType ?: return null)
 }
 
-internal fun bestCompressionFit(
-    compressedFiles: Array<Pair<CachedStaticFile, CompressedFileType>>,
+internal fun <T : Any> bestCompressionFit(
+    compressedFiles: Array<Pair<CachedStaticFile<T>, CompressedFileType>>,
     acceptEncoding: List<AcceptEncoding>,
-): Pair<CachedStaticFile, CompressedFileType>? {
+): Pair<CachedStaticFile<T>, CompressedFileType>? {
     // Find the smallest file in the accepted encodings
-    var smallest: Pair<CachedStaticFile, CompressedFileType>? = null
+    var smallest: Pair<CachedStaticFile<T>, CompressedFileType>? = null
     var smallestSize: Int = Int.MAX_VALUE
 
     for (compressedFile in compressedFiles) {
@@ -316,12 +315,12 @@ internal suspend fun ApplicationCall.respondStaticPath(
     }
 }
 
-internal suspend fun ApplicationCall.respondCachedStaticPath(
-    requestedPath: Path,
-    cachedFile: CachedStaticFile,
-    cachedCompressedFiles: Array<Pair<CachedStaticFile, CompressedFileType>>,
+internal suspend fun <T : Any> ApplicationCall.respondCachedStaticFile(
+    requestedPath: T,
+    cachedFile: CachedStaticFile<T>,
+    cachedCompressedFiles: Array<Pair<CachedStaticFile<T>, CompressedFileType>>,
     acceptedEncodings: List<AcceptEncoding>,
-    modify: suspend (Path, ApplicationCall) -> Unit = { _, _ -> }
+    modify: suspend (T, ApplicationCall) -> Unit = { _, _ -> }
 ) {
     attributes.put(StaticFileLocationProperty, requestedPath.toString())
 

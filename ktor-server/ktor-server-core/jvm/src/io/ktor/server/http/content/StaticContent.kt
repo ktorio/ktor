@@ -21,6 +21,8 @@ import java.nio.file.*
 import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.io.path.*
+import kotlin.io.path.exists
+import kotlin.io.path.readBytes
 import kotlin.math.min
 
 /**
@@ -261,8 +263,8 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
 /**
  * Used for pre-compressed static files which are stored in memory.
  */
-internal data class CachedStaticFile(
-    val path: Path,
+internal data class CachedStaticFile<Resource : Any>(
+    val file: Resource,
     val bytes: ByteArray,
     val cacheControl: List<CacheControl>,
     val contentType: ContentType,
@@ -271,8 +273,8 @@ internal data class CachedStaticFile(
 ) {
     override fun equals(other: Any?) = when {
         this === other -> true
-        other !is CachedStaticFile -> false
-        path != other.path -> false
+        other !is CachedStaticFile<*> -> false
+        file != other.file -> false
         !bytes.contentEquals(other.bytes) -> false
         cacheControl != other.cacheControl -> false
         contentType != other.contentType -> false
@@ -281,7 +283,7 @@ internal data class CachedStaticFile(
         else -> true
     }
 
-    override fun hashCode() = Objects.hash(path, bytes, cacheControl, contentType, etag, lastModified)
+    override fun hashCode() = Objects.hash(file, bytes, cacheControl, contentType, etag, lastModified)
 }
 
 /**
@@ -311,10 +313,55 @@ public fun Route.staticFiles(
     val modify = staticRoute.modifier
     val exclude = staticRoute.exclude.flattenExcludeFunctions()
     val filter = staticRoute.filter.flattenExcludeFunctions()
-    val defaultPath = staticRoute.defaultPath
+    val defaultPathString = staticRoute.defaultPath
     val fallback = staticRoute.fallback
     val lastModified = staticRoute.lastModifiedExtractor
     val etag = staticRoute.etagExtractor
+
+    val defaultPath = if (defaultPathString != null) File(dir, defaultPathString) else null
+    var defaultFile: CachedStaticFile<File>? = null
+    var defaultCompressedFiles: Array<Pair<CachedStaticFile<File>, CompressedFileType>>? = null
+
+    if (defaultPath != null && defaultPath.exists() && defaultPath.isFile) {
+        watchDefaultPathForUpdates(defaultPath.toPath(), compressedTypes) {
+            if (defaultPath.exists()) {
+                val bytes = defaultPath.readBytes()
+                defaultFile = CachedStaticFile(
+                    defaultPath,
+                    bytes,
+                    cacheControl(defaultPath),
+                    contentType(defaultPath),
+                    etag.provide(defaultPath),
+                    lastModified(defaultPath),
+                )
+            } else {
+                // file may have been deleted, so reset defaultFile & defaultCompressedFiles
+                defaultFile = null
+                defaultCompressedFiles = null
+                return@watchDefaultPathForUpdates
+            }
+
+            defaultCompressedFiles = buildList {
+                for (compressedType in compressedTypes) {
+                    val path = defaultPath.resolveSibling("${defaultPath.path}.${compressedType.extension}")
+
+                    if (path.exists()) {
+                        val bytes = path.readBytes()
+                        add(
+                            CachedStaticFile(
+                                path,
+                                bytes,
+                                cacheControl(defaultPath),
+                                contentType(defaultPath),
+                                etag.provide(path),
+                                lastModified(path),
+                            ) to compressedType
+                        )
+                    }
+                }
+            }.toTypedArray()
+        }
+    }
 
     return staticContentRoute(remotePath, autoHead) {
         if (filter(this)) return@staticContentRoute
@@ -344,16 +391,24 @@ public fun Route.staticFiles(
 
         if (isHandled) return@staticContentRoute
         if (defaultPath != null) {
-            respondStaticFile(
-                requestedFile = File(dir, defaultPath),
-                compressedTypes = compressedTypes,
-                acceptedEncodings = acceptedEncodings,
-                contentType = contentType,
-                cacheControl = cacheControl,
-                lastModified = lastModified,
-                etag = etag,
-                modify = modify
-            )
+            val cachedFile = defaultFile
+            val cachedCompressedFiles = defaultCompressedFiles
+            if (cachedFile != null && cachedCompressedFiles != null) {
+                // watcher was able to be registered & default file exists
+                respondCachedStaticFile(defaultPath, cachedFile, cachedCompressedFiles, acceptedEncodings, modify)
+            } else {
+                // watcher might have failed to register or default file was deleted/doesn't exist
+                respondStaticFile(
+                    requestedFile = defaultPath,
+                    compressedTypes = compressedTypes,
+                    acceptedEncodings = acceptedEncodings,
+                    contentType = contentType,
+                    cacheControl = cacheControl,
+                    lastModified = lastModified,
+                    etag = etag,
+                    modify = modify
+                )
+            }
         }
 
         if (isHandled) return@staticContentRoute
@@ -588,11 +643,11 @@ public fun Route.staticFileSystem(
     val defaultPath = defaultPathString?.let {
         dir?.resolve(defaultPathString) ?: fileSystem.getPath(defaultPathString)
     }
-    var defaultFile: CachedStaticFile? = null
-    var defaultCompressedFiles: Array<Pair<CachedStaticFile, CompressedFileType>>? = null
+    var defaultFile: CachedStaticFile<Path>? = null
+    var defaultCompressedFiles: Array<Pair<CachedStaticFile<Path>, CompressedFileType>>? = null
 
     if (defaultPath != null && defaultPath.exists() && defaultPath.isRegularFile()) {
-        fun updateDefaultFile() {
+        watchDefaultPathForUpdates(defaultPath, compressedTypes) {
             if (defaultPath.exists()) {
                 val bytes = defaultPath.readBytes()
                 defaultFile = CachedStaticFile(
@@ -607,7 +662,7 @@ public fun Route.staticFileSystem(
                 // file may have been deleted, so reset defaultFile & defaultCompressedFiles
                 defaultFile = null
                 defaultCompressedFiles = null
-                return
+                return@watchDefaultPathForUpdates
             }
 
             defaultCompressedFiles = buildList {
@@ -629,49 +684,6 @@ public fun Route.staticFileSystem(
                     }
                 }
             }.toTypedArray()
-        }
-
-        val watchService = try {
-            defaultPath.parent.fileSystem.newWatchService()
-        } catch (_: Exception) {
-            null
-        }
-
-        val watchKey = defaultPath.parent.tryRegister(
-            watchService,
-            StandardWatchEventKinds.ENTRY_CREATE,
-            StandardWatchEventKinds.ENTRY_DELETE,
-            StandardWatchEventKinds.ENTRY_MODIFY,
-        )
-
-        if (watchService != null && watchKey != null) {
-            updateDefaultFile()
-
-            val defaultCompressedPaths = compressedTypes.map { type ->
-                defaultPath.resolveSibling("${defaultPath.pathString}.${type.extension}")
-            }.toTypedArray()
-
-            val job = watchForUpdates(
-                watchService,
-                defaultPath.parent,
-                { it.isDefaultFile(defaultPath, defaultCompressedPaths) },
-                { updateDefaultFile() },
-            )
-
-            application.monitor.subscribe(ApplicationStopping) {
-                try {
-                    runBlocking {
-                        job.cancelAndJoin()
-                    }
-                } catch (_: Exception) {
-                    // ignored
-                }
-                try {
-                    watchService.close()
-                } catch (_: ClosedWatchServiceException) {
-                    // ignored
-                }
-            }
         }
     }
 
@@ -704,7 +716,7 @@ public fun Route.staticFileSystem(
             val cachedCompressedFiles = defaultCompressedFiles
             if (cachedFile != null && cachedCompressedFiles != null) {
                 // watcher was able to be registered & default file exists
-                respondCachedStaticPath(defaultPath, cachedFile, cachedCompressedFiles, acceptedEncodings, modify)
+                respondCachedStaticFile(defaultPath, cachedFile, cachedCompressedFiles, acceptedEncodings, modify)
             } else {
                 // watcher might have failed to register or default file was deleted/doesn't exist
                 respondStaticPath(
@@ -723,6 +735,55 @@ public fun Route.staticFileSystem(
 
         if (isHandled) return@staticContentRoute
         fallback(relativePath, this)
+    }
+}
+
+private fun Route.watchDefaultPathForUpdates(
+    defaultPath: Path,
+    compressedTypes: Array<CompressedFileType>,
+    onUpdate: () -> Unit,
+) {
+    val watchService = try {
+        defaultPath.parent.fileSystem.newWatchService()
+    } catch (_: Exception) {
+        null
+    }
+
+    val watchKey = defaultPath.parent.tryRegister(
+        watchService,
+        StandardWatchEventKinds.ENTRY_CREATE,
+        StandardWatchEventKinds.ENTRY_DELETE,
+        StandardWatchEventKinds.ENTRY_MODIFY,
+    )
+
+    if (watchService != null && watchKey != null) {
+        onUpdate()
+
+        val defaultCompressedPaths = compressedTypes.map { type ->
+            defaultPath.resolveSibling("${defaultPath.pathString}.${type.extension}")
+        }.toTypedArray()
+
+        val job = watchForUpdates(
+            watchService,
+            defaultPath.parent,
+            { it.isDefaultFile(defaultPath, defaultCompressedPaths) },
+            onUpdate,
+        )
+
+        application.monitor.subscribe(ApplicationStopping) {
+            try {
+                runBlocking {
+                    job.cancelAndJoin()
+                }
+            } catch (_: Exception) {
+                // ignored
+            }
+            try {
+                watchService.close()
+            } catch (_: ClosedWatchServiceException) {
+                // ignored
+            }
+        }
     }
 }
 
