@@ -1002,7 +1002,6 @@ private object TailcardSelector : RouteSelector() {
     override fun toString(): String = "(static-content)"
 }
 
-// TODO: Think if it should accept a directory in the constructor
 // TODO: Think how to separate methods avoid overwhelming the caller
 // TODO: Resources
 public class ContentHash {
@@ -1013,7 +1012,6 @@ public class ContentHash {
 
     private val root = Tree(ConcurrentHashMap())
 
-    // TODO: Optimize
     public fun load(manifest: File) {
         root.map.clear()
 
@@ -1089,7 +1087,6 @@ public class ContentHash {
         digest.digest().joinToString("") { "%02x".format(it) }
     }
 
-    // TODO: Optimize
     public fun dump(): RawSource {
         val buffer = Buffer()
         writeTree(buffer, root, "")
