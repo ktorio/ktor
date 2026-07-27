@@ -9,20 +9,9 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 
 /**
- * Configures a typed Basic authentication scheme.
+ * Configures a typed Basic authentication scheme with principal type [P].
  *
- * Unlike [BasicAuthenticationProvider.Config], [validate] returns [P] so routes protected by [authenticateWith] can
- * read [io.ktor.server.application.ApplicationCall.principal] as the configured type.
- *
- * This config does not expose provider-level `challenge`. Set [onUnauthorized] or pass `onUnauthorized` to
- * [authenticateWith] to customize failure responses.
- *
- * Challenge strategy: a route-level `onUnauthorized` is used first, then [onUnauthorized]. If neither is configured,
- * Basic authentication responds with a `WWW-Authenticate: Basic` challenge that includes [realm] and [charset].
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedBasicAuthConfig)
- *
- * @param P the principal type produced by this scheme.
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.TypedBasicAuthConfig)
  */
 @ExperimentalKtorApi
 @KtorDsl
@@ -30,14 +19,14 @@ public class TypedBasicAuthConfig<P : Any> @PublishedApi internal constructor() 
     /**
      * Human-readable description of this authentication scheme.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedBasicAuthConfig.description)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.TypedBasicAuthConfig.description)
      */
     public var description: String? = null
 
     /**
      * Realm passed in the `WWW-Authenticate` header.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedBasicAuthConfig.realm)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.TypedBasicAuthConfig.realm)
      */
     public var realm: String = "Ktor Server"
 
@@ -47,7 +36,7 @@ public class TypedBasicAuthConfig<P : Any> @PublishedApi internal constructor() 
      * It can be either `UTF_8` or `null`.
      * Setting `null` turns on a legacy mode (`ISO-8859-1`).
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedBasicAuthConfig.charset)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.TypedBasicAuthConfig.charset)
      */
     public var charset: Charset? = Charsets.UTF_8
 
@@ -57,18 +46,16 @@ public class TypedBasicAuthConfig<P : Any> @PublishedApi internal constructor() 
      * A route-level `onUnauthorized` passed to [authenticateWith] overrides this handler. If both are `null`, Basic
      * authentication sends the default challenge described by this configuration.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedBasicAuthConfig.onUnauthorized)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.TypedBasicAuthConfig.onUnauthorized)
      */
     public var onUnauthorized: UnauthorizedHandler? = null
-
-    private var validateFn: (suspend RoutingContext.(UserPasswordCredential) -> P?)? = null
 
     /**
      * Sets a validation function for [UserPasswordCredential].
      *
      * Return a principal of type [P] when authentication succeeds, or `null` when credentials are invalid.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedBasicAuthConfig.validate)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.TypedBasicAuthConfig.validate)
      *
      * @param body validation function called with the current routing context and credentials extracted from the request.
      */
@@ -84,4 +71,6 @@ public class TypedBasicAuthConfig<P : Any> @PublishedApi internal constructor() 
         validateFn?.let { fn -> config.validate { credential -> toRoutingContext().fn(credential) } }
         return BasicAuthenticationProvider(config)
     }
+
+    private var validateFn: (suspend RoutingContext.(UserPasswordCredential) -> P?)? = null
 }

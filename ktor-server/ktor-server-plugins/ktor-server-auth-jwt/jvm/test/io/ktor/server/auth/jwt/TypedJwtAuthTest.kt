@@ -19,13 +19,12 @@ import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.utils.io.*
 import kotlin.test.*
-import io.ktor.server.auth.jwt.jwt as typedJwt
 
 class TypedJwtAuthTest {
 
     @Test
     fun `jwt scheme authenticates and rejects`() = testApplication {
-        val scheme = typedJwt<JwtUser>("typed-jwt") {
+        val scheme = jwt<JwtUser>("typed-jwt") {
             verifier(ISSUER, AUDIENCE, ALGORITHM)
             validate { credential ->
                 if (credential.audience.contains(AUDIENCE)) {
@@ -60,7 +59,7 @@ class TypedJwtAuthTest {
 
     @Test
     fun `jwt scheme accepts configured auth schemes`() = testApplication {
-        val scheme = typedJwt<JwtUser>("typed-jwt-scheme") {
+        val scheme = jwt<JwtUser>("typed-jwt-scheme") {
             authSchemes("Bearer", "Token")
             verifier(ISSUER, AUDIENCE, ALGORITHM)
             validate { credential -> JwtUser(credential.payload.subject) }
@@ -83,7 +82,7 @@ class TypedJwtAuthTest {
 
     @Test
     fun `jwt scheme accepts configured auth header`() = testApplication {
-        val scheme = typedJwt<JwtUser>("typed-jwt-header") {
+        val scheme = jwt<JwtUser>("typed-jwt-header") {
             authHeader { call ->
                 call.request.headers["X-Auth"]?.let { parseAuthorizationHeader(it) }
             }
@@ -108,7 +107,7 @@ class TypedJwtAuthTest {
 
     @Test
     fun `jwt onUnauthorized can be configured per scheme and route`() = testApplication {
-        val scheme = typedJwt<JwtUser>("typed-jwt-unauthorized") {
+        val scheme = jwt<JwtUser>("typed-jwt-unauthorized") {
             onUnauthorized = { cause ->
                 call.respondText("scheme:${cause::class.simpleName}", status = HttpStatusCode.Unauthorized)
             }

@@ -5,26 +5,13 @@
 package io.ktor.server.auth
 
 import io.ktor.http.auth.*
-import io.ktor.server.application.*
 import io.ktor.server.routing.*
 import io.ktor.utils.io.*
 
 /**
- * Configures a typed Bearer authentication scheme.
+ * Configures a typed Bearer authentication scheme with principal type [P].
  *
- * Unlike [BearerAuthenticationProvider.Config], [validate] returns [P] so routes protected by [authenticateWith]
- * can read [ApplicationCall.principal] as the configured type.
- *
- * This config does not expose provider-level `challenge`. Set [onUnauthorized] or pass `onUnauthorized` to
- * [authenticateWith] to customize failure responses.
- *
- * Challenge strategy: a route-level `onUnauthorized` is used first, then [onUnauthorized]. If neither is configured,
- * Bearer authentication responds with a `WWW-Authenticate` challenge for the default authentication scheme (`Bearer`
- * unless changed by [authSchemes]) and the optional [realm].
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedBearerAuthConfig)
- *
- * @param P the principal type produced by this scheme.
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.TypedBearerAuthConfig)
  */
 @ExperimentalKtorApi
 @KtorDsl
@@ -32,14 +19,14 @@ public class TypedBearerAuthConfig<P : Any> @InternalAPI constructor() {
     /**
      * Human-readable description of this authentication scheme.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedBearerAuthConfig.description)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.TypedBearerAuthConfig.description)
      */
     public var description: String? = null
 
     /**
      * Optional Bearer realm passed in the `WWW-Authenticate` header.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedBearerAuthConfig.realm)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.TypedBearerAuthConfig.realm)
      */
     public var realm: String? = null
 
@@ -49,21 +36,16 @@ public class TypedBearerAuthConfig<P : Any> @InternalAPI constructor() {
      * A route-level `onUnauthorized` passed to [authenticateWith] overrides this handler. If both are `null`, Bearer
      * authentication sends the default challenge described by this configuration.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedBearerAuthConfig.onUnauthorized)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.TypedBearerAuthConfig.onUnauthorized)
      */
     public var onUnauthorized: UnauthorizedHandler? = null
-
-    private var validateFn: (suspend RoutingContext.(BearerTokenCredential) -> P?)? = null
-    private var authHeaderFn: (RoutingContext.() -> HttpAuthHeader?)? = null
-    private var defaultScheme: String? = null
-    private var additionalSchemes: List<String>? = null
 
     /**
      * Exchanges a bearer token for a principal of type [P].
      *
      * Return `null` when the token is not accepted.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedBearerAuthConfig.validate)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.TypedBearerAuthConfig.validate)
      *
      * @param body validation function called with the current routing context and extracted
      * [BearerTokenCredential].
@@ -77,7 +59,7 @@ public class TypedBearerAuthConfig<P : Any> @InternalAPI constructor() {
      *
      * By default, Bearer authentication parses the `Authorization` header.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedBearerAuthConfig.authHeader)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.TypedBearerAuthConfig.authHeader)
      *
      * @param block returns an authentication header for the call, or `null` when no header is available.
      */
@@ -90,7 +72,7 @@ public class TypedBearerAuthConfig<P : Any> @InternalAPI constructor() {
      *
      * By default, only the `Bearer` scheme is accepted.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedBearerAuthConfig.authSchemes)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.TypedBearerAuthConfig.authSchemes)
      *
      * @param defaultScheme scheme used in the default challenge.
      * @param additionalSchemes additional schemes accepted when validating the request.
@@ -114,4 +96,9 @@ public class TypedBearerAuthConfig<P : Any> @InternalAPI constructor() {
         }
         return config.build()
     }
+
+    private var validateFn: (suspend RoutingContext.(BearerTokenCredential) -> P?)? = null
+    private var authHeaderFn: (RoutingContext.() -> HttpAuthHeader?)? = null
+    private var defaultScheme: String? = null
+    private var additionalSchemes: List<String>? = null
 }

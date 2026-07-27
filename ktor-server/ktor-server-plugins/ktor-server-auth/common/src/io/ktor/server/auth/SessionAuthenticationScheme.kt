@@ -20,7 +20,7 @@ import kotlin.reflect.KClass
 /**
  * Creates a custom session-authenticated route context.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.SessionContextFactory)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.SessionContextFactory)
  *
  * @param S stored session type.
  * @param P route principal type.
@@ -34,7 +34,7 @@ public typealias SessionContextFactory<S, P, C> = (SessionContext<S, P>) -> C
  * Use [Sessions] to configure how the session is transported or stored, for example with
  * `install(Sessions) { cookie(auth) }`.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.SessionAuthenticationScheme)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.SessionAuthenticationScheme)
  *
  * @param S the stored session type.
  * @param P the principal type exposed to authenticated routes.
@@ -101,7 +101,7 @@ public class SessionAuthenticationScheme<S : Any, P : Any> internal constructor(
  *
  * Called automatically by [Route.install] when installing a [SessionAuthenticationScheme].
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.applyTransport)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.applyTransport)
  */
 @ExperimentalKtorApi
 context(pluginConfig: SessionsConfig)
@@ -120,7 +120,7 @@ public fun SessionAuthenticationScheme<*, *>.applyTransport() {
  * This is used by integrations that own their route subtree and want the typed session scheme to install its
  * configured transport automatically.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.install)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.install)
  *
  * @param sessions typed session authentication scheme whose transport configuration is applied.
  * @throws IllegalStateException when no transport configuration was provided.
@@ -135,7 +135,7 @@ public fun Route.install(sessions: SessionAuthenticationScheme<*, *>) {
  *
  * Equivalent to `application.routing { install(sessions) }`.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.install)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.install)
  *
  * @param sessions typed session authentication scheme whose transport configuration is applied.
  */
@@ -149,7 +149,7 @@ public fun Application.install(sessions: SessionAuthenticationScheme<*, *>) {
  *
  * To clear a session from a non-authenticated route, use `call.sessions.clear(name)` on the [Sessions] plugin.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.SessionAuthenticationScheme.setSession)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.SessionAuthenticationScheme.setSession)
  *
  * @this typed Session authentication scheme.
  * @param value session value to set.
@@ -159,3 +159,13 @@ public fun Application.install(sessions: SessionAuthenticationScheme<*, *>) {
 context(context: RoutingContext)
 public fun <S : Any, P : Any> SessionAuthenticationScheme<S, P>.setSession(value: S): Unit =
     context.call.sessions.set(name, value)
+
+/**
+ * Clears a session for this scheme.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.SessionAuthenticationScheme.clearSession)
+ */
+@ExperimentalKtorApi
+context(context: RoutingContext)
+public fun <S : Any, P : Any> SessionAuthenticationScheme<S, P>.clearSession(): Unit =
+    context.call.sessions.clear(name)

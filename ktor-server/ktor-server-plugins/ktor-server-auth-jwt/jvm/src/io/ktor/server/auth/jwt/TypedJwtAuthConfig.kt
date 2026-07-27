@@ -14,22 +14,9 @@ import io.ktor.server.auth.UnauthorizedHandler
 import io.ktor.utils.io.*
 
 /**
- * Configures a typed JWT authentication scheme.
+ * Configures a typed JWT authentication scheme with principal type [P].
  *
- * Unlike [JWTAuthenticationProvider.Config], [validate] returns [P] so routes protected by
- * [io.ktor.server.auth.authenticateWith] can read [io.ktor.server.auth.principal]
- * as the configured type.
- *
- * This config does not expose provider-level `challenge`. Set [onUnauthorized] or pass `onUnauthorized` to
- * [io.ktor.server.auth.authenticateWith] to customize failure responses.
- *
- * Challenge strategy: a route-level `onUnauthorized` is used first, then [onUnauthorized]. If neither is configured,
- * JWT authentication responds to missing or invalid credentials with a `WWW-Authenticate` challenge for the default
- * authentication scheme (`Bearer` unless changed by [authSchemes]) and [realm].
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedJwtAuthConfig)
- *
- * @param P the principal type produced by this scheme.
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.jwt.TypedJwtAuthConfig)
  */
 @ExperimentalKtorApi
 @KtorDsl
@@ -37,14 +24,14 @@ public class TypedJwtAuthConfig<P : Any> @PublishedApi internal constructor() {
     /**
      * Human-readable description of this authentication scheme.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedJwtAuthConfig.description)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.jwt.TypedJwtAuthConfig.description)
      */
     public var description: String? = null
 
     /**
      * JWT realm passed in the `WWW-Authenticate` header.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedJwtAuthConfig.realm)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.jwt.TypedJwtAuthConfig.realm)
      */
     public var realm: String = "Ktor Server"
 
@@ -54,21 +41,16 @@ public class TypedJwtAuthConfig<P : Any> @PublishedApi internal constructor() {
      * A route-level `onUnauthorized` passed to [io.ktor.server.auth.authenticateWith] overrides this handler. If both are `null`, JWT
      * authentication sends the default challenge described by this configuration.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedJwtAuthConfig.onUnauthorized)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.jwt.TypedJwtAuthConfig.onUnauthorized)
      */
     public var onUnauthorized: UnauthorizedHandler? = null
-
-    private var validateFn: (suspend ApplicationCall.(JWTCredential) -> P?)? = null
-    private var authHeaderFn: ((ApplicationCall) -> HttpAuthHeader?)? = null
-    private var authSchemes: AuthSchemes? = null
-    private var verifierConfig: (JWTAuthenticationProvider.Config.() -> Unit)? = null
 
     /**
      * Configures how to retrieve an HTTP authentication header.
      *
      * By default, JWT authentication parses the `Authorization` header.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedJwtAuthConfig.authHeader)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.jwt.TypedJwtAuthConfig.authHeader)
      *
      * @param block returns an authentication header for the call, or `null` when no header is available.
      */
@@ -81,7 +63,7 @@ public class TypedJwtAuthConfig<P : Any> @PublishedApi internal constructor() {
      *
      * By default, only the `Bearer` scheme is accepted.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedJwtAuthConfig.authSchemes)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.jwt.TypedJwtAuthConfig.authSchemes)
      *
      * @param defaultScheme scheme used in the default challenge.
      * @param additionalSchemes additional schemes accepted when validating the request.
@@ -93,7 +75,7 @@ public class TypedJwtAuthConfig<P : Any> @PublishedApi internal constructor() {
     /**
      * Sets the [JWTVerifier] used to verify token format and signature.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedJwtAuthConfig.verifier)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.jwt.TypedJwtAuthConfig.verifier)
      *
      * @param verifier verifies token format and signature.
      */
@@ -106,7 +88,7 @@ public class TypedJwtAuthConfig<P : Any> @PublishedApi internal constructor() {
      *
      * Return `null` when no verifier can be created for the provided header.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedJwtAuthConfig.verifier)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.jwt.TypedJwtAuthConfig.verifier)
      *
      * @param verifier resolves a verifier for the authentication header.
      */
@@ -117,7 +99,7 @@ public class TypedJwtAuthConfig<P : Any> @PublishedApi internal constructor() {
     /**
      * Creates a [JWTVerifier] from [jwkProvider] and [issuer].
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedJwtAuthConfig.verifier)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.jwt.TypedJwtAuthConfig.verifier)
      *
      * @param jwkProvider provides JSON Web Keys.
      * @param issuer expected token issuer.
@@ -130,7 +112,7 @@ public class TypedJwtAuthConfig<P : Any> @PublishedApi internal constructor() {
     /**
      * Creates a [JWTVerifier] from [jwkProvider].
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedJwtAuthConfig.verifier)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.jwt.TypedJwtAuthConfig.verifier)
      *
      * @param jwkProvider provides JSON Web Keys.
      * @param configure configures JWT verification.
@@ -142,7 +124,7 @@ public class TypedJwtAuthConfig<P : Any> @PublishedApi internal constructor() {
     /**
      * Creates a [JWTVerifier] for the given [issuer], [audience], and [algorithm].
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedJwtAuthConfig.verifier)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.jwt.TypedJwtAuthConfig.verifier)
      *
      * @param issuer expected token issuer.
      * @param audience expected token audience.
@@ -161,7 +143,7 @@ public class TypedJwtAuthConfig<P : Any> @PublishedApi internal constructor() {
     /**
      * Creates a [JWTVerifier] using JSON Web Keys discovered from [issuer].
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedJwtAuthConfig.verifier)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.jwt.TypedJwtAuthConfig.verifier)
      *
      * @param issuer expected token issuer and JWK provider base URL.
      * @param block configures JWT verification.
@@ -176,7 +158,7 @@ public class TypedJwtAuthConfig<P : Any> @PublishedApi internal constructor() {
      * Return a principal of type [P] when authentication succeeds, or `null` when the verified JWT should not be
      * accepted.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedJwtAuthConfig.validate)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.jwt.TypedJwtAuthConfig.validate)
      *
      * @param body validation function called after the token is verified.
      */
@@ -196,6 +178,11 @@ public class TypedJwtAuthConfig<P : Any> @PublishedApi internal constructor() {
         validateFn?.let { fn -> config.validate { credential -> fn(credential) } }
         return JWTAuthenticationProvider(config)
     }
+
+    private var validateFn: (suspend ApplicationCall.(JWTCredential) -> P?)? = null
+    private var authHeaderFn: ((ApplicationCall) -> HttpAuthHeader?)? = null
+    private var authSchemes: AuthSchemes? = null
+    private var verifierConfig: (JWTAuthenticationProvider.Config.() -> Unit)? = null
 
     private class AuthSchemes(
         val defaultScheme: String,
