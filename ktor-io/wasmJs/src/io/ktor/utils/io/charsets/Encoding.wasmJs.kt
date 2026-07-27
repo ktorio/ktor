@@ -13,7 +13,7 @@ public actual abstract class Charset(internal val _name: String) {
     public actual abstract fun newDecoder(): CharsetDecoder
 
     actual override fun equals(other: Any?): Boolean {
-        return this === other || other is Charset && (_name == other._name)
+        return this === other || (other is Charset && _name == other._name)
     }
 
     actual override fun hashCode(): Int = _name.hashCode()
