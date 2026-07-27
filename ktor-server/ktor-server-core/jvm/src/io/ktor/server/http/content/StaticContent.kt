@@ -24,9 +24,15 @@ import kotlin.io.path.isDirectory
 import kotlin.io.path.pathString
 
 /**
- * Attribute to assign the path of a static file served in the response.  The main use of this attribute is to indicate
- * to subsequent interceptors that a static file was served via the `ApplicationCall.isStaticContent()` extension
- * function.
+ * Attribute that stores the path of the static content being served.
+ *
+ * It is set by static content handlers (for example, [staticFiles], [staticResources], or the Webjars plugin)
+ * when a static file or resource is handled. The value is typically the resolved file path or the requested
+ * relative resource path.
+ *
+ * This attribute is not set in early pipeline phases such as [ApplicationCallPipeline.Setup].
+ * For [staticFiles] and [staticResources], it is set during the [ApplicationCallPipeline.Call] phase when routing
+ * handles the request.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.StaticFileLocationProperty)
  */
@@ -91,7 +97,7 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
      * For example, for static files, by setting `preCompressed(CompressedFileType.BROTLI)`, the local file
      * /foo/bar.js.br can be found at "/foo/bar.js"
      *
-     * Appropriate headers will be set and compression will be suppressed if pre-compressed file is found.
+     * Sets appropriate headers and suppresses compression if a pre-compressed file is found.
      *
      * The order in types is *important*.
      * It will determine the priority of serving one versus serving another.
@@ -112,7 +118,7 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
     }
 
     /**
-     * Configures default [Resource] to respond with, when requested file is not found.
+     * Configures default [Resource] to respond with when a requested file is not found.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.StaticContentConfig.default)
      */
@@ -125,9 +131,9 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
      *
      * This function allows you to provide a callback that inspects the originally requested path (e.g. "plugins/file.php")
      * and the [ApplicationCall], and then perform custom logic such as:
-     * - redirecting to a different path,
-     * - responding with a specific HTTP status (e.g. 410 Gone or 400 Bad Request),
-     * - or serving an alternative static file manually.
+     * - Redirecting to a different path,
+     * - Responding with a specific HTTP status (e.g., 410 Gone or 400 Bad Request),
+     * - Or serving an alternative static file manually.
      *
      * Example:
      * ```
@@ -155,7 +161,7 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
 
     /**
      * Configures [ContentType] for requested static content.
-     * If the [block] returns `null`, default behaviour of guessing [ContentType] from the header will be used.
+     * If the [block] returns `null`, default behavior of guessing [ContentType] from the header will be used.
      * For files, [Resource] is a requested [File].
      * For resources, [Resource] is a [URL] to a requested resource.
      *
@@ -254,7 +260,7 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
  *
  * If the requested file doesn't exist, or it is a directory and no [index] specified, response will be 404 Not Found.
  *
- * You can use [block] for additional set up.
+ * You can use [block] for additional setup.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.staticFiles)
  */
@@ -302,7 +308,7 @@ public fun Route.staticFiles(
  *
  * If requested resource doesn't exist and no [index] specified, response will be 404 Not Found.
  *
- * You can use [block] for additional set up.
+ * You can use [block] for additional setup.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.staticResources)
  */
@@ -345,12 +351,12 @@ public fun Route.staticResources(
 /**
  * Sets up [RoutingRoot] to serve contents of [zip] as static content.
  * All paths inside [basePath] will be accessible recursively at "[remotePath]/path/to/resource".
- * If requested path doesn't exist and [index] is not `null`,
+ * If a requested path doesn't exist and [index] is not `null`,
  * then response will be [index] path in the requested package.
  *
- * If requested path doesn't exist and no [index] specified, response will be 404 Not Found.
+ * If a requested path doesn't exist and no [index] specified, response will be 404 Not Found.
  *
- * You can use [block] for additional set up.
+ * You can use [block] for additional setup.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.staticZip)
  */
@@ -375,7 +381,7 @@ public fun Route.staticZip(
 private fun getFileSystem(zip: Path, classLoader: ClassLoader): FileSystem = FileSystems.newFileSystem(zip, classLoader)
 
 /**
- * Allow to serve changing [FileSystem]. Returns [FileSystemPaths],
+ * Allows serving reloading [FileSystem]. Returns [FileSystemPaths],
  * which will be recreated on each request if there were any file changes.
  */
 private class ReloadingZipFileSystem(
@@ -414,12 +420,12 @@ private class ReloadingZipFileSystem(
 /**
  * Sets up [RoutingRoot] to serve [fileSystem] as static content.
  * All paths inside [basePath] will be accessible recursively at "[remotePath]/path/to/resource".
- * If requested path doesn't exist and [index] is not `null`,
+ * If a requested path doesn't exist and [index] is not `null`,
  * then response will be [index] path in the requested package.
  *
- * If requested path doesn't exist and no [index] specified, response will be 404 Not Found.
+ * If a requested path doesn't exist and no [index] specified, response will be 404 Not Found.
  *
- * You can use [block] for additional set up.
+ * You can use [block] for additional setup.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.staticFileSystem)
  */
@@ -465,9 +471,9 @@ public fun Route.staticFileSystem(
  * Support pre-compressed files and resources
  *
  * For example, by using [preCompressed()] (or [preCompressed(CompressedFileType.BROTLI)]), the local file
- * /foo/bar.js.br can be found @ http..../foo/bar.js
+ * /foo/bar.js.br can be found @ http.../foo/bar.js
  *
- * Appropriate headers will be set and compression will be suppressed if pre-compressed file is found
+ * Sets appropriate headers and suppresses compression if a pre-compressed file is found
  *
  * Notes:
  *
@@ -497,6 +503,7 @@ public fun Route.preCompressed(
     "This property only used in deprecated functions `files`, `file` and `default`. " +
         "Please use `staticFiles` or `staticResources` instead"
 )
+@Suppress("DEPRECATION")
 public var Route.staticRootFolder: File?
     get() = attributes.getOrNull(staticRootFolderKey) ?: parent?.staticRootFolder
     set(value) {
@@ -536,6 +543,7 @@ public fun Route.static(remotePath: String, configure: Route.() -> Unit): Route 
  */
 
 @Deprecated("Please use `staticFiles` instead")
+@Suppress("DEPRECATION")
 public fun Route.default(localPath: String): Unit = default(File(localPath))
 
 /**
@@ -544,6 +552,7 @@ public fun Route.default(localPath: String): Unit = default(File(localPath))
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.default)
  */
 @Deprecated("Please use `staticFiles` instead")
+@Suppress("DEPRECATION")
 public fun Route.default(localPath: File) {
     val file = staticRootFolder.combine(localPath)
     val compressedTypes = staticContentEncodedTypes
@@ -559,6 +568,7 @@ public fun Route.default(localPath: File) {
  */
 
 @Deprecated("Please use `staticFiles` instead")
+@Suppress("DEPRECATION")
 public fun Route.file(remotePath: String, localPath: String = remotePath): Unit =
     file(remotePath, File(localPath))
 
@@ -568,6 +578,7 @@ public fun Route.file(remotePath: String, localPath: String = remotePath): Unit 
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.file)
  */
 @Deprecated("Please use `staticFiles` instead")
+@Suppress("DEPRECATION")
 public fun Route.file(remotePath: String, localPath: File) {
     val file = staticRootFolder.combine(localPath)
     val compressedTypes = staticContentEncodedTypes
@@ -583,6 +594,7 @@ public fun Route.file(remotePath: String, localPath: File) {
  */
 
 @Deprecated("Please use `staticFiles` instead")
+@Suppress("DEPRECATION")
 public fun Route.files(folder: String): Unit = files(File(folder))
 
 /**
@@ -591,6 +603,7 @@ public fun Route.files(folder: String): Unit = files(File(folder))
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.files)
  */
 @Deprecated("Please use `staticFiles` instead")
+@Suppress("DEPRECATION")
 public fun Route.files(folder: File) {
     val dir = staticRootFolder.combine(folder)
     val compressedTypes = staticContentEncodedTypes
@@ -610,6 +623,7 @@ private val staticBasePackageName = AttributeKey<String>("BasePackage")
  */
 
 @Deprecated("Please use `staticResources` instead")
+@Suppress("DEPRECATION")
 public var Route.staticBasePackage: String?
     get() = attributes.getOrNull(staticBasePackageName) ?: parent?.staticBasePackage
     set(value) {
@@ -633,6 +647,7 @@ private fun String?.combinePackage(resourcePackage: String?) = when {
  */
 
 @Deprecated("Please use `staticResources` instead")
+@Suppress("DEPRECATION")
 public fun Route.resource(remotePath: String, resource: String = remotePath, resourcePackage: String? = null) {
     val compressedTypes = staticContentEncodedTypes
     val packageName = staticBasePackage.combinePackage(resourcePackage)
@@ -652,6 +667,7 @@ public fun Route.resource(remotePath: String, resource: String = remotePath, res
  */
 
 @Deprecated("Please use `staticResources` instead")
+@Suppress("DEPRECATION")
 public fun Route.resources(resourcePackage: String? = null) {
     val packageName = staticBasePackage.combinePackage(resourcePackage)
     val compressedTypes = staticContentEncodedTypes
@@ -672,6 +688,7 @@ public fun Route.resources(resourcePackage: String? = null) {
  */
 
 @Deprecated("Please use `staticResources` instead")
+@Suppress("DEPRECATION")
 public fun Route.defaultResource(resource: String, resourcePackage: String? = null) {
     val packageName = staticBasePackage.combinePackage(resourcePackage)
     val compressedTypes = staticContentEncodedTypes
@@ -685,7 +702,14 @@ public fun Route.defaultResource(resource: String, resourcePackage: String? = nu
 }
 
 /**
- *  Checks if the application call is requesting static content
+ * Returns `true` if static content is being served for this call.
+ *
+ * This function returns `false` in early pipeline phases such as [ApplicationCallPipeline.Setup],
+ * because static content routing runs later during [ApplicationCallPipeline.Call].
+ * For example, it cannot be used inside the CallId plugin `retrieve` block.
+ *
+ * Use this function in response hooks such as [PluginBuilder.onCallRespond]
+ * or [ResponseSent] to detect calls that serve static content.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.isStaticContent)
  */
