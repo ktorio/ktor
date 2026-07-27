@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit
 import kotlin.io.path.*
 import kotlin.io.path.exists
 import kotlin.io.path.readBytes
-import kotlin.math.min
+import kotlin.math.max
 
 /**
  * Attribute to assign the path of a static file served in the response.  The main use of this attribute is to indicate
@@ -1418,10 +1418,10 @@ private suspend fun ApplicationCall.respondStaticResource(
 private fun ApplicationCall.relativePath(): String? {
     val paths = parameters.getAll(pathParameterName) ?: return null
     var pathLength = 0
-    for (element in paths) {
-        pathLength += element.length
+    for (i in paths.indices) {
+        pathLength += paths[i].length
     }
-    pathLength += min(paths.size - 1, 0)
+    pathLength += max(paths.size - 1, 0)
     return buildString(pathLength) {
         for (i in paths.indices) {
             if (i >= 1) {
