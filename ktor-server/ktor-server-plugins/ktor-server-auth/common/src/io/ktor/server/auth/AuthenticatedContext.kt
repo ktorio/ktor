@@ -2,7 +2,7 @@
  * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-@file:OptIn(InternalKtorSubclassing::class)
+@file:OptIn(InternalKtorSubclassing::class, InternalAPI::class)
 
 package io.ktor.server.auth
 
@@ -20,23 +20,37 @@ import io.ktor.utils.io.*
  * [ApplicationCall.session] require this context receiver. Optional routes use
  * [principalOrNull] instead.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.RequiredContext)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.PrincipalOptionality)
  */
 @ExperimentalKtorApi
-public object RequiredContext
+@SubclassOptInRequired(InternalKtorSubclassing::class)
+public interface PrincipalOptionality {
+    /**
+     * Marks route blocks where a non-null principal is required.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.PrincipalOptionality.Required)
+     */
+    public object Required : PrincipalOptionality
+
+    /**
+     * Marks route blocks where authentication is optional.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.PrincipalOptionality.Optional)
+     */
+    public object Optional : PrincipalOptionality
+}
 
 /**
  * Typed authentication context that exposes the route principal.
  *
  * Used by [authenticateWith] for schemes that do not define a custom context.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.AuthenticatedContext)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.AuthenticatedContext)
  *
  * @param P the principal type available inside the route.
  */
 @ExperimentalKtorApi
-@SubclassOptInRequired(InternalKtorSubclassing::class)
-public open class AuthenticatedContext<P : Any> @PublishedApi internal constructor(
+public open class AuthenticatedContext<P : Any> internal constructor(
     internal val principalKey: AttributeKey<P>,
 )
 
@@ -50,10 +64,10 @@ public open class AuthenticatedContext<P : Any> @PublishedApi internal construct
  * Use [io.ktor.server.auth.principal] outside typed routes or when reading a principal from a specific provider by
  * name.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.principal)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.principal)
  */
 @ExperimentalKtorApi
-context(authCtx: AuthenticatedContext<P>, _: RequiredContext)
+context(authCtx: AuthenticatedContext<P>, _: PrincipalOptionality.Required)
 public val <P : Any> ApplicationCall.principal: P
     get() = checkNotNull(attributes.getOrNull(authCtx.principalKey)) {
         "Principal not found. This should not happen inside an authenticateWith block."
@@ -66,17 +80,17 @@ public val <P : Any> ApplicationCall.principal: P
  * Use this property inside [authenticateWithOptional] route blocks. For required authentication, prefer
  * [ApplicationCall.principal].
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.principalOrNull)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.principalOrNull)
  */
 @ExperimentalKtorApi
-context(authCtx: AuthenticatedContext<P>)
+context(authCtx: AuthenticatedContext<P>, _: PrincipalOptionality.Optional)
 public val <P : Any> ApplicationCall.principalOrNull: P?
     get() = attributes.getOrNull(authCtx.principalKey)
 
 /**
  * Typed authentication context that exposes both the authenticated principal and resolved roles.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.RolesContext)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.RolesContext)
  *
  * @param P the principal type.
  * @param R the role type.
@@ -89,7 +103,7 @@ public class RolesContext<P, R> internal constructor(
     /**
      * Returns the roles resolved for [call].
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.RolesContext.getRoles)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.RolesContext.getRoles)
      */
     public fun getRoles(call: ApplicationCall): Set<R> =
         checkNotNull(call.attributes.getOrNull(key)) {
@@ -100,10 +114,10 @@ public class RolesContext<P, R> internal constructor(
 /**
  * Typed authentication context used by Session authentication.
  *
- * The context exposes the authenticated [ApplicationCall.principal], the session value
- * that passed authentication, and helpers to update or clear that session in a type-safe way.
+ * The context exposes the principal, the session value that passed authentication, and helpers to update or clear
+ * that session in a type-safe way.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.SessionContext)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.SessionContext)
  *
  * @param S the stored session type.
  * @param P the principal type.
@@ -117,7 +131,7 @@ public class SessionContext<S : Any, P : Any>(
     /**
      * Returns the session value that passed authentication for [call].
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.SessionContext.getSession)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.SessionContext.getSession)
      */
     public fun getSession(call: ApplicationCall): S {
         return checkNotNull(call.attributes.getOrNull(sessionKey)) {
@@ -128,7 +142,7 @@ public class SessionContext<S : Any, P : Any>(
     /**
      * Returns the session value that passed authentication for [call], or `null` when no session is stored.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.SessionContext.getSessionOrNull)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.SessionContext.getSessionOrNull)
      */
     public fun getSessionOrNull(call: ApplicationCall): S? =
         call.attributes.getOrNull(sessionKey)
@@ -138,7 +152,7 @@ public class SessionContext<S : Any, P : Any>(
      *
      * The captured route session is updated as well, so later reads of [getSession] in the same handler see [value].
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.SessionContext.setSession)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.SessionContext.setSession)
      */
     public fun setSession(call: ApplicationCall, value: S) {
         call.sessions.set(sessionProviderName, value)
@@ -148,7 +162,7 @@ public class SessionContext<S : Any, P : Any>(
     /**
      * Clears the authenticated session for [call].
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.SessionContext.clearSession)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.SessionContext.clearSession)
      */
     public fun clearSession(call: ApplicationCall) {
         call.sessions.clear(sessionProviderName)
@@ -158,7 +172,7 @@ public class SessionContext<S : Any, P : Any>(
     /**
      * Replaces the authenticated session with the value returned by [transform].
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.SessionContext.updateSession)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.SessionContext.updateSession)
      *
      * @return the updated session value.
      */
@@ -174,10 +188,10 @@ public class SessionContext<S : Any, P : Any>(
  *
  * Assigning this property updates the stored session and the value exposed in the current route handler.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.session)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.session)
  */
 @ExperimentalKtorApi
-context(authCtx: SessionContext<S, *>, _: RequiredContext)
+context(authCtx: SessionContext<S, *>, _: PrincipalOptionality.Required)
 public var <S : Any> ApplicationCall.session: S
     get() = authCtx.getSession(call = this)
     set(value) {
@@ -189,22 +203,22 @@ public var <S : Any> ApplicationCall.session: S
  *
  * Use this property inside [authenticateWithOptional] session route blocks instead of [ApplicationCall.session].
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.sessionOrNull)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.sessionOrNull)
  */
 @ExperimentalKtorApi
-context(authCtx: SessionContext<S, *>)
+context(authCtx: SessionContext<S, *>, _: PrincipalOptionality.Optional)
 public val <S : Any> ApplicationCall.sessionOrNull: S?
     get() = authCtx.getSessionOrNull(call = this)
 
 /**
  * Replaces the authenticated session with the value returned by [transform].
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.updateSession)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.updateSession)
  *
  * @return the updated session value.
  */
 @ExperimentalKtorApi
-context(sessionCtx: SessionContext<S, *>, _: RequiredContext)
+context(sessionCtx: SessionContext<S, *>, _: PrincipalOptionality.Required)
 public fun <S : Any> ApplicationCall.updateSession(transform: (S) -> S): S {
     return sessionCtx.updateSession(call = this, transform)
 }
@@ -212,7 +226,7 @@ public fun <S : Any> ApplicationCall.updateSession(transform: (S) -> S): S {
 /**
  * Clears the authenticated session for the current session-protected typed route.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.clearSession)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.clearSession)
  */
 @ExperimentalKtorApi
 context(sessionCtx: SessionContext<S, *>)
@@ -225,7 +239,7 @@ public fun <S : Any> ApplicationCall.clearSession() {
  *
  * The property is available inside route handlers nested in [authenticateWith] with a [AuthenticationSchemeWithRoles].
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.roles)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.roles)
  */
 @ExperimentalKtorApi
 context(rolesContext: RolesContext<P, R>, routingContext: RoutingContext)

@@ -131,7 +131,9 @@ internal fun <P : Any> createMultiPlugin(
             }
 
             if (onUnauthorized != null) {
-                onUnauthorized(call.toRoutingContext(), failures)
+                with(onUnauthorized) {
+                    call.toRoutingContext().onUnauthorized(failures)
+                }
                 return@on
             }
 

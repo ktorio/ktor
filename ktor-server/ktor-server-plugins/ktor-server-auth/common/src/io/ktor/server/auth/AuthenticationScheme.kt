@@ -2,7 +2,7 @@
  * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-@file:OptIn(ExperimentalKtorApi::class)
+@file:OptIn(ExperimentalKtorApi::class, InternalAPI::class)
 
 package io.ktor.server.auth
 
@@ -21,7 +21,7 @@ import kotlin.reflect.KClass
  * The handler receives the current [RoutingContext] and the [AuthenticationFailedCause] for the failed authentication
  * attempt.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.UnauthorizedHandler)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.UnauthorizedHandler)
  */
 public fun interface UnauthorizedHandler {
     public suspend fun RoutingContext.onUnauthorized(cause: AuthenticationFailedCause)
@@ -34,7 +34,7 @@ private val RegisteredSchemesKey = AttributeKey<MutableMap<String, Any>>("Typesa
  * another typed route reuses the existing application registration. Creating a different scheme instance with the same
  * name fails fast because scheme names are application-wide identifiers.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.AuthenticationScheme)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.AuthenticationScheme)
  *
  * @param P the principal type produced by this scheme.
  * @property name name that identifies this authentication scheme.
@@ -51,8 +51,7 @@ public open class AuthenticationScheme<P, C> @PublishedApi internal constructor(
     internal val anonymousFactory: AnonymousFactory<P>?,
     @PublishedApi
     internal val contextFactory: (AuthenticatedContext<P>) -> C,
-) where
-          P : Any,
+) where P : Any,
           C : AuthenticatedContext<P> {
     public val name: String = checkNotNull(provider.name) {
         "Typed authentication schemes require a named AuthenticationProvider"
@@ -88,21 +87,11 @@ public open class AuthenticationScheme<P, C> @PublishedApi internal constructor(
         }
     }
 
-    internal fun createContext(): C =
-        contextFactory(AuthenticatedContext(principalKey))
-
-    internal fun requireOptionalCompatible(isOptional: Boolean) {
-        require(!isOptional || anonymousFactory == null) {
-            "authenticateWithOptional cannot be used with orAnonymous schemes. " +
-                "Use authenticateWith with orAnonymous instead."
-        }
-    }
+    internal val context: C = contextFactory(AuthenticatedContext(principalKey))
 
     public companion object {
         /**
-         * Creates a [AuthenticationScheme] that exposes the authenticated principal through [AuthenticatedContext].
-         *
-         * Typed provider builders use this helper when they do not need a custom route context.
+         * Creates a [AuthenticationScheme] with principal type [P] and context [AuthenticatedContext].
          */
         @InternalAPI
         public inline fun <reified P : Any> from(
@@ -126,7 +115,7 @@ public open class AuthenticationScheme<P, C> @PublishedApi internal constructor(
  *
  * Used by [orAnonymous] to supply a fallback principal for optional authentication flows.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.AnonymousFactory)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.AnonymousFactory)
  */
 public fun interface AnonymousFactory<out P : Any> {
     public suspend fun RoutingContext.createAnonymousPrincipal(): P
@@ -137,29 +126,48 @@ public fun interface AnonymousFactory<out P : Any> {
  *
  * Most built-in providers such as [basic], [bearer], and [jwt] return this scheme type.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.SimpleAuthenticationScheme)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.SimpleAuthenticationScheme)
  */
 public typealias SimpleAuthenticationScheme<P> = AuthenticationScheme<P, AuthenticatedContext<P>>
 
 /**
  * Returns a scheme that accepts anonymous requests when no credentials are provided.
  *
- * Requests without credentials receive the principal produced by [fallback]. Requests with invalid credentials still
- * fail authentication. Use the returned scheme with [authenticateWith] and read
- * [ApplicationCall.principal] inside the route block.
+ * Requests without credentials receive the principal produced by [fallback].
+ * Requests with invalid credentials still fail authentication.
+ * Use the returned scheme with [authenticateWith] and read `principal` inside the route block.
  *
  * Do not combine the returned scheme with [authenticateWithOptional]. Use [authenticateWith] instead.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.orAnonymous)
+ * ```kotlin
+ * interface Identity
+ * data class AuthenticatedUser(val id: String) : Identity
+ * data class GuestUser(val label: String = "guest") : Identity
  *
- * @param CP common principal type shared by authenticated and anonymous principals.
+ * val auth = basic<AuthenticatedUser>("users") {
+ *     validate { credentials -> findUser(credentials) }
+ * }.orAnonymous { GuestUser() }
+ *
+ * routing {
+ *     authenticateWith(auth) {
+ *         get("/feed") {
+ *             when (val user = call.principal) {
+ *                 is AuthenticatedUser -> call.respondText("auth:${user.id}")
+ *                 is GuestUser -> call.respondText("guest:${user.label}")
+ *             }
+ *         }
+ *     }
+ * }
+ * ```
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.orAnonymous)
+ *
  * @param P authenticated principal type produced when credentials are valid.
- * @param AP authenticated principal type accepted by this scheme before widening to [CP].
+ * @param AP anonymous principal type returned by [fallback].
+ * @param CP common principal type shared by authenticated and anonymous principals.
  * @param fallback creates the anonymous principal when no credentials are present.
- * @return a scheme that authenticates valid credentials or falls back to an anonymous principal.
  */
 @ExperimentalKtorApi
-@OptIn(InternalAPI::class)
 public inline fun <reified CP, P, AP> SimpleAuthenticationScheme<P>.orAnonymous(
     fallback: AnonymousFactory<AP>,
 ): SimpleAuthenticationScheme<CP> where CP : Any,

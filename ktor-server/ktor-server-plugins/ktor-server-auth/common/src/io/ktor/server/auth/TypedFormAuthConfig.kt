@@ -11,7 +11,7 @@ import io.ktor.utils.io.*
  * Configures a typed Form authentication scheme.
  *
  * Unlike [FormAuthenticationProvider.Config], [validate] returns [P] so routes protected by [authenticateWith] can
- * read [io.ktor.server.application.ApplicationCall.principal] as the configured type.
+ * read `principal` as the configured type.
  *
  * This config does not expose provider-level `challenge`. Set [onUnauthorized] or pass `onUnauthorized` to
  * [authenticateWith] to customize failure responses.
@@ -19,7 +19,7 @@ import io.ktor.utils.io.*
  * Challenge strategy: a route-level `onUnauthorized` is used first, then [onUnauthorized]. If neither is configured,
  * Form authentication responds with its default `401 Unauthorized` challenge.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedFormAuthConfig)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.TypedFormAuthConfig)
  *
  * @param P the principal type produced by this scheme.
  */
@@ -29,21 +29,21 @@ public class TypedFormAuthConfig<P : Any> @PublishedApi internal constructor() {
     /**
      * Human-readable description of this authentication scheme.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedFormAuthConfig.description)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.TypedFormAuthConfig.description)
      */
     public var description: String? = null
 
     /**
      * Specifies a POST parameter name used to fetch a username.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedFormAuthConfig.usernameField)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.TypedFormAuthConfig.usernameField)
      */
     public var usernameField: String = "user"
 
     /**
      * Specifies a POST parameter name used to fetch a password.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedFormAuthConfig.passwordField)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.TypedFormAuthConfig.passwordField)
      */
     public var passwordField: String = "password"
 
@@ -53,18 +53,16 @@ public class TypedFormAuthConfig<P : Any> @PublishedApi internal constructor() {
      * A route-level `onUnauthorized` passed to [authenticateWith] overrides this handler. If both are `null`, Form
      * authentication sends the default challenge described by this configuration.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedFormAuthConfig.onUnauthorized)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.TypedFormAuthConfig.onUnauthorized)
      */
     public var onUnauthorized: UnauthorizedHandler? = null
-
-    private var validateFn: (suspend RoutingContext.(UserPasswordCredential) -> P?)? = null
 
     /**
      * Sets a validation function for [UserPasswordCredential].
      *
      * Return a principal of type [P] when authentication succeeds, or `null` when credentials are invalid.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedFormAuthConfig.validate)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.TypedFormAuthConfig.validate)
      *
      * @param body validation function called with the current routing context and credentials extracted from form
      * parameters.
@@ -81,4 +79,6 @@ public class TypedFormAuthConfig<P : Any> @PublishedApi internal constructor() {
         validateFn?.let { fn -> config.validate { credential -> fn(toRoutingContext(), credential) } }
         return config.build()
     }
+
+    private var validateFn: (suspend RoutingContext.(UserPasswordCredential) -> P?)? = null
 }

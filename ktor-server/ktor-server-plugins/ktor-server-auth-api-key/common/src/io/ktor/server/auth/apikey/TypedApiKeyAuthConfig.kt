@@ -9,21 +9,9 @@ import io.ktor.server.auth.UnauthorizedHandler
 import io.ktor.utils.io.*
 
 /**
- * Configures a typed API key authentication scheme.
+ * Configures a typed API key authentication scheme with principal type [P].
  *
- * Unlike [ApiKeyAuthenticationProvider.Configuration], [validate] returns [P] so routes protected by
- * [io.ktor.server.auth.authenticateWith] can read [ApplicationCall.principal]
- * as the configured type.
- *
- * This config does not expose provider-level `challenge`. Set [onUnauthorized] or pass `onUnauthorized` to
- * [io.ktor.server.auth.authenticateWith] to customize failure responses.
- *
- * Challenge strategy: a route-level `onUnauthorized` is used first, then [onUnauthorized]. If neither is configured,
- * API key authentication responds with `401 Unauthorized` and uses the scheme name as the authentication challenge key.
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedApiKeyAuthConfig)
- *
- * @param P the principal type produced by this scheme.
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.apikey.TypedApiKeyAuthConfig)
  */
 @ExperimentalKtorApi
 @KtorDsl
@@ -31,14 +19,14 @@ public class TypedApiKeyAuthConfig<P : Any> @PublishedApi internal constructor()
     /**
      * Human-readable description of this authentication scheme.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedApiKeyAuthConfig.description)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.apikey.TypedApiKeyAuthConfig.description)
      */
     public var description: String? = null
 
     /**
      * Header name used to read the API key.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedApiKeyAuthConfig.headerName)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.apikey.TypedApiKeyAuthConfig.headerName)
      */
     public var headerName: String = ApiKeyAuth.DEFAULT_HEADER_NAME
 
@@ -48,18 +36,16 @@ public class TypedApiKeyAuthConfig<P : Any> @PublishedApi internal constructor()
      * A route-level `onUnauthorized` passed to [io.ktor.server.auth.authenticateWith] overrides this handler. If both are `null`, API key
      * authentication sends the default challenge described by this configuration.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedApiKeyAuthConfig.onUnauthorized)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.apikey.TypedApiKeyAuthConfig.onUnauthorized)
      */
     public var onUnauthorized: UnauthorizedHandler? = null
-
-    private var validateFn: (suspend ApplicationCall.(String) -> P?)? = null
 
     /**
      * Sets a validation function for the API key string read from [headerName].
      *
      * Return a principal of type [P] when authentication succeeds, or `null` when the key is invalid.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedApiKeyAuthConfig.validate)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.apikey.TypedApiKeyAuthConfig.validate)
      *
      * @param body validation function called with the API key header value.
      */
@@ -75,4 +61,6 @@ public class TypedApiKeyAuthConfig<P : Any> @PublishedApi internal constructor()
         validateFn?.let { fn -> config.validate { apiKey -> fn(apiKey) } }
         return ApiKeyAuthenticationProvider(config)
     }
+
+    private var validateFn: (suspend ApplicationCall.(String) -> P?)? = null
 }

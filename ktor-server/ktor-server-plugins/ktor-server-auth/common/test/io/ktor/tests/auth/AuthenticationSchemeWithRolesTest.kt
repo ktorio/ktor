@@ -80,11 +80,10 @@ class AuthenticationSchemeWithRolesTest {
             authenticateWith(
                 scheme,
                 roles = setOf(TestRole.Admin),
-                onForbidden = { requiredRoles ->
-                    call.respondText(
-                        "Route: requires ${requiredRoles.joinToString { it.name }}",
-                        status = HttpStatusCode.Forbidden
-                    )
+                onForbidden = {
+                    val rolesStr = call.principal.roles.joinToString(separator = ",")
+                    val message = "Route: requires Admin, but got $rolesStr"
+                    call.respondText(message, status = HttpStatusCode.Forbidden)
                 }
             ) {
                 get("/custom") { call.respondText("ok") }
@@ -99,7 +98,7 @@ class AuthenticationSchemeWithRolesTest {
         val customResp = client.get("/custom") {
             header(HttpHeaders.Authorization, basicAuthHeader("user"))
         }
-        assertEquals("Route: requires Admin", customResp.bodyAsText())
+        assertEquals("Route: requires Admin, but got User", customResp.bodyAsText())
     }
 
     @Test

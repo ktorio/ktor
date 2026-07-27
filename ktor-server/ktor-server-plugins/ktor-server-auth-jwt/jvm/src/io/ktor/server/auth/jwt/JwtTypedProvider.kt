@@ -10,16 +10,33 @@ import io.ktor.server.auth.*
 import io.ktor.utils.io.*
 
 /**
- * Creates a typed JWT authentication scheme.
+ * Creates a typed JWT authentication scheme with principal type [P].
  *
- * The [validate][TypedJwtAuthConfig.validate] callback returns a principal of type [P]. Use the returned scheme with
- * [authenticateWith] to protect routes and access [principal] without casts.
+ * ```kotlin
+ * data class JwtUser(val name: String)
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.jwt)
+ * val jwtAuth = jwt<JwtUser>("jwt-auth") {
+ *     verifier(issuer = "https://issuer.example", audience = "my-audience", algorithm = Algorithm.HMAC256("secret"))
+ *     validate { credential ->
+ *         if (credential.audience.contains("my-audience")) {
+ *             JwtUser(credential.payload.subject)
+ *         } else {
+ *             null
+ *         }
+ *     }
+ * }
+ *
+ * routing {
+ *     authenticateWith(jwtAuth) {
+ *         get("/profile") { call.respondText(call.principal.name) }
+ *     }
+ * }
+ * ```
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.jwt.jwt)
  *
  * @param name name that identifies the JWT authentication scheme.
  * @param configure configures JWT authentication for this scheme.
- * @return a typed authentication scheme that produces principals of type [P].
  */
 @ExperimentalKtorApi
 public inline fun <reified P : Any> jwt(
@@ -27,8 +44,6 @@ public inline fun <reified P : Any> jwt(
     configure: TypedJwtAuthConfig<P>.() -> Unit
 ): SimpleAuthenticationScheme<P> {
     val typedConfig = TypedJwtAuthConfig<P>().apply(configure)
-    return AuthenticationScheme.from(
-        typedConfig.buildProvider(name),
-        typedConfig.onUnauthorized
-    )
+    val provider = typedConfig.buildProvider(name)
+    return AuthenticationScheme.from(provider, typedConfig.onUnauthorized)
 }

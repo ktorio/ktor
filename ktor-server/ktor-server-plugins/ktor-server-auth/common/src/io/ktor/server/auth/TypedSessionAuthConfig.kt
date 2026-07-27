@@ -18,44 +18,35 @@ import kotlin.reflect.KClass
  *
  * Return `null` to reject the session.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.SessionPrincipalResolver)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.SessionPrincipalResolver)
  */
-public typealias SessionPrincipalResolver<S, P> = suspend RoutingContext.(S) -> P?
+public fun interface SessionPrincipalResolver<S, P> {
+    public suspend fun RoutingContext.resolvePrincipal(session: S): P?
+}
 
 /**
  * Transforms a session value before principal resolution.
  *
  * Return the session value that should be validated for the current call, or `null` to reject the session.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.SessionTransformer)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.SessionTransformer)
  */
-public typealias SessionTransformer<S> = suspend RoutingContext.(S) -> S?
+public fun interface SessionTransformer<S> {
+    public suspend fun RoutingContext.transform(currentSession: S): S?
+}
 
 /**
- * Configures a typed Session authentication scheme.
+ * Configures a typed Session authentication scheme with principal type [P] and session type [S].
  *
- * Unlike [SessionAuthenticationProvider.Config], [validate] returns [P] from a stored session value [S], so routes
- * protected by [authenticateWith] can read [io.ktor.server.application.ApplicationCall.principal] as [P] and
- * [io.ktor.server.application.ApplicationCall.session] as [S].
- *
- * This config does not expose provider-level `challenge`. Set [onUnauthorized] or pass `onUnauthorized` to
- * [authenticateWith] to customize failure responses.
- *
- * Challenge strategy: a route-level `onUnauthorized` is used first, then [onUnauthorized]. If neither is configured,
- * Session authentication responds with its default `401 Unauthorized` challenge.
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedSessionAuthConfig)
- *
- * @param S the stored session type.
- * @param P the principal type exposed to authenticated routes.
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.TypedSessionAuthConfig)
  */
-@ExperimentalKtorApi
 @KtorDsl
+@ExperimentalKtorApi
 public open class TypedSessionAuthConfig<S : Any, P : Any> @PublishedApi internal constructor() {
     /**
      * Human-readable description of this authentication scheme.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedSessionAuthConfig.description)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.TypedSessionAuthConfig.description)
      */
     public var description: String? = null
 
@@ -65,16 +56,9 @@ public open class TypedSessionAuthConfig<S : Any, P : Any> @PublishedApi interna
      * A route-level `onUnauthorized` passed to [authenticateWith] overrides this handler. If both are `null`, Session
      * authentication sends the default challenge described by this configuration.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedSessionAuthConfig.onUnauthorized)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.TypedSessionAuthConfig.onUnauthorized)
      */
     public var onUnauthorized: UnauthorizedHandler? = null
-
-    @InternalAPI
-    public var principalResolver: SessionPrincipalResolver<S, P>? = null
-
-    internal var sessionTransformer: SessionTransformer<S>? = null
-
-    internal var csrfConfig: (CSRFConfig.() -> Unit)? = null
 
     /**
      * Configures how the typed session scheme installs the [Sessions] plugin.
@@ -85,7 +69,7 @@ public open class TypedSessionAuthConfig<S : Any, P : Any> @PublishedApi interna
      * Defaults to [SessionTransportType.Cookie]. Manual setups can call `install(Sessions) { cookie(auth) }` instead of
      * configuring [transport].
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedSessionAuthConfig.transport)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.TypedSessionAuthConfig.transport)
      */
     public var transport: SessionTransportType<S> = SessionTransportType.Cookie()
 
@@ -94,13 +78,12 @@ public open class TypedSessionAuthConfig<S : Any, P : Any> @PublishedApi interna
      *
      * Return the principal of type [P] when the session is accepted, or `null` when the session is invalid.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedSessionAuthConfig.validate)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.TypedSessionAuthConfig.validate)
      *
      * @param body validation function called with the current routing context and session value read by the
      * [Sessions] plugin.
      */
-    @OptIn(InternalAPI::class)
-    public fun validate(body: suspend RoutingContext.(S) -> P?) {
+    public fun validate(body: SessionPrincipalResolver<S, P>?) {
         principalResolver = body
     }
 
@@ -116,7 +99,7 @@ public open class TypedSessionAuthConfig<S : Any, P : Any> @PublishedApi interna
      * @param block transformation function called with the session value read by the
      * [Sessions] plugin.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedSessionAuthConfig.transformSession)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.TypedSessionAuthConfig.transformSession)
      */
     public fun transformSession(block: SessionTransformer<S>) {
         sessionTransformer = block
@@ -124,6 +107,8 @@ public open class TypedSessionAuthConfig<S : Any, P : Any> @PublishedApi interna
 
     /**
      * Configures CSRF protection for routes authenticated with this session scheme.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.TypedSessionAuthConfig.csrfProtection)
      *
      * @param config CSRF plugin configuration.
      */
@@ -143,18 +128,24 @@ public open class TypedSessionAuthConfig<S : Any, P : Any> @PublishedApi interna
         }
         val resolver = requireNotNull(principalResolver) { "Principal resolver cannot be null" }
         val transformer = sessionTransformer
-        config.validate { session ->
+        config.validate { currentSession ->
             val routingContext = toRoutingContext()
+
             val effectiveSession = if (transformer != null) {
-                val updatedSession = transformer(routingContext, session) ?: return@validate null
-                if (updatedSession != session) {
+                val updatedSession = with(transformer) {
+                    routingContext.transform(currentSession) ?: return@validate null
+                }
+                if (updatedSession != currentSession) {
                     sessions.set(name, updatedSession)
                 }
                 updatedSession
             } else {
-                session
+                currentSession
             }
-            val principal = routingContext.resolver(effectiveSession)
+
+            val principal = with(resolver) {
+                routingContext.resolvePrincipal(effectiveSession)
+            }
             if (principal != null) {
                 attributes.put(sessionKey, effectiveSession)
             }
@@ -162,4 +153,8 @@ public open class TypedSessionAuthConfig<S : Any, P : Any> @PublishedApi interna
         }
         return config.buildProvider()
     }
+
+    internal var principalResolver: SessionPrincipalResolver<S, P>? = null
+    private var sessionTransformer: SessionTransformer<S>? = null
+    internal var csrfConfig: (CSRFConfig.() -> Unit)? = null
 }

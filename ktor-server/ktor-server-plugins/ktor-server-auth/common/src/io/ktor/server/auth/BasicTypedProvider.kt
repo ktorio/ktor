@@ -10,17 +10,26 @@ import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 
 /**
- * Creates a typed Basic authentication scheme.
+ * Creates a typed Basic authentication scheme with a principal type [P].
  *
- * The [validate][TypedBasicAuthConfig.validate] callback returns a principal of type [P].
- * Use the returned scheme with [authenticateWith] to protect routes and access
- * [io.ktor.server.application.ApplicationCall.principal] without casts.
+ * ```kotlin
+ * data class User(val name: String)
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.basic)
+ * val userAuth = basic<User>("user-auth") {
+ *     validate { credentials -> findUser(credentials.name, credentials.password) }
+ * }
+ *
+ * routing {
+ *     authenticateWith(userAuth) {
+ *         get("/me") { call.respondText(call.principal.name) }
+ *     }
+ * }
+ * ```
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.basic)
  *
  * @param name name that identifies the Basic authentication scheme.
  * @param configure configures Basic authentication for this scheme.
- * @return a typed authentication scheme that produces principals of type [P].
  */
 @ExperimentalKtorApi
 public inline fun <reified P : Any> basic(
@@ -32,17 +41,26 @@ public inline fun <reified P : Any> basic(
 }
 
 /**
- * Creates a typed Bearer authentication scheme.
+ * Creates a typed Bearer authentication scheme with a principal type [P].
  *
- * The [validate][TypedBearerAuthConfig.validate] callback returns a principal of type [P]. Use the returned
- * scheme with [authenticateWith] to protect routes and access [io.ktor.server.application.ApplicationCall.principal]
- * without casts.
+ * ```kotlin
+ * data class ApiUser(val id: String)
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.bearer)
+ * val bearerAuth = bearer<ApiUser>("api-bearer") {
+ *     validate { token -> findUserByToken(token) }
+ * }
+ *
+ * routing {
+ *     authenticateWith(bearerAuth) {
+ *         get("/api/me") { call.respondText(call.principal.id) }
+ *     }
+ * }
+ * ```
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.bearer)
  *
  * @param name name that identifies the Bearer authentication scheme.
  * @param configure configures Bearer authentication for this scheme.
- * @return a typed authentication scheme that produces principals of type [P].
  */
 @ExperimentalKtorApi
 public inline fun <reified P : Any> bearer(
@@ -57,13 +75,26 @@ public inline fun <reified P : Any> bearer(
  * Creates a typed Form authentication scheme.
  *
  * The [validate][TypedFormAuthConfig.validate] callback returns a principal of type [P]. Use the returned scheme with
- * [authenticateWith] to protect routes and access [io.ktor.server.application.ApplicationCall.principal] without casts.
+ * [authenticateWith] to protect routes and access `principal` without casts.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.form)
+ * ```kotlin
+ * data class User(val name: String)
+ *
+ * val formAuth = form<User>("login-form") {
+ *     validate { credentials -> findUser(credentials.user, credentials.password) }
+ * }
+ *
+ * routing {
+ *     authenticateWith(formAuth) {
+ *         get("/dashboard") { call.respondText(call.principal.name) }
+ *     }
+ * }
+ * ```
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.form)
  *
  * @param name name that identifies the Form authentication scheme.
  * @param configure configures Form authentication for this scheme.
- * @return a typed authentication scheme that produces principals of type [P].
  */
 @ExperimentalKtorApi
 public inline fun <reified P : Any> form(
@@ -75,16 +106,38 @@ public inline fun <reified P : Any> form(
 }
 
 /**
- * Creates a typed Session authentication scheme.
+ * Creates a typed Session authentication scheme with a principal type [P] and a session type [S].
  *
- * The session value [S] is validated and mapped to a route principal [P]. Use this scheme with [authenticateWith]
- * after installing and configuring [io.ktor.server.sessions.Sessions].
+ * The session value [S] is validated and mapped to a route principal [P].
+ * Install the scheme with [io.ktor.server.routing.Route.install] or [io.ktor.server.application.Application.install]
+ * before protecting routes with [authenticateWith].
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.session)
+ * ```kotlin
+ * data class UserSession(val username: String)
+ * data class User(val name: String)
+ *
+ * val sessionAuth = session<UserSession, User>("user-session") {
+ *     validate { session -> User(session.username) }
+ * }
+ *
+ * routing {
+ *     install(sessionAuth)
+ *     get("/login") {
+ *         sessionAuth.setSession(UserSession("alice"))
+ *         call.respondRedirect("/me")
+ *     }
+ *     authenticateWith(sessionAuth) {
+ *         get("/me") {
+ *             call.respondText("${call.session.username}:${call.principal.name}")
+ *         }
+ *     }
+ * }
+ * ```
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.session)
  *
  * @param name name that identifies the Session authentication scheme.
  * @param configure configures Session authentication for this scheme.
- * @return a typed authentication scheme that produces principals of type [P].
  */
 @ExperimentalKtorApi
 public inline fun <reified S : Any, reified P : Any> session(

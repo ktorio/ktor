@@ -11,37 +11,26 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 
 /**
- * Configures a typed Digest authentication scheme.
+ * Configures a typed Digest authentication scheme with principal type [P].
  *
- * Unlike [DigestAuthenticationProvider.Config], [validate] returns [P] so routes protected by [authenticateWith] can
- * read [io.ktor.server.application.ApplicationCall.principal] as the configured type.
- *
- * This config does not expose provider-level `challenge`. Set [onUnauthorized] or pass `onUnauthorized` to
- * [authenticateWith] to customize failure responses.
- *
- * Challenge strategy: a route-level `onUnauthorized` is used first, then [onUnauthorized]. If neither is configured,
- * Digest authentication responds with one `WWW-Authenticate: Digest` challenge for each configured algorithm, including
- * [realm], a new nonce, supported qop values, UTF-8 charset when configured, and `userhash=true` when a
- * [userHashResolver] is configured.
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedDigestAuthConfig)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.TypedDigestAuthConfig)
  *
  * @param P the principal type produced by this scheme.
  */
-@ExperimentalKtorApi
 @KtorDsl
+@ExperimentalKtorApi
 public class TypedDigestAuthConfig<P : Any> @PublishedApi internal constructor() {
     /**
      * Human-readable description of this authentication scheme.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedDigestAuthConfig.description)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.TypedDigestAuthConfig.description)
      */
     public var description: String? = null
 
     /**
      * Realm passed in the `WWW-Authenticate` header.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedDigestAuthConfig.realm)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.TypedDigestAuthConfig.realm)
      */
     public var realm: String = "Ktor Server"
 
@@ -51,7 +40,7 @@ public class TypedDigestAuthConfig<P : Any> @PublishedApi internal constructor()
      * When multiple algorithms are configured, the server sends multiple `WWW-Authenticate` headers and lets the
      * client choose one.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedDigestAuthConfig.algorithms)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.TypedDigestAuthConfig.algorithms)
      */
     public var algorithms: List<DigestAlgorithm> =
         listOf(DigestAlgorithm.SHA_512_256, @Suppress("DEPRECATION") DigestAlgorithm.MD5)
@@ -61,21 +50,21 @@ public class TypedDigestAuthConfig<P : Any> @PublishedApi internal constructor()
      *
      * Include [DigestQop.AUTH_INT] only when the request body can be read during authentication.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedDigestAuthConfig.supportedQop)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.TypedDigestAuthConfig.supportedQop)
      */
     public var supportedQop: List<DigestQop> = listOf(DigestQop.AUTH)
 
     /**
      * Charset used by Digest authentication.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedDigestAuthConfig.charset)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.TypedDigestAuthConfig.charset)
      */
     public var charset: Charset = Charsets.UTF_8
 
     /**
      * [NonceManager] used to generate and verify nonce values.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedDigestAuthConfig.nonceManager)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.TypedDigestAuthConfig.nonceManager)
      */
     public var nonceManager: NonceManager = GenerateOnlyNonceManager
 
@@ -85,15 +74,9 @@ public class TypedDigestAuthConfig<P : Any> @PublishedApi internal constructor()
      * A route-level `onUnauthorized` passed to [authenticateWith] overrides this handler. If both are `null`, Digest
      * authentication sends the default challenge described by this configuration.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedDigestAuthConfig.onUnauthorized)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.TypedDigestAuthConfig.onUnauthorized)
      */
     public var onUnauthorized: UnauthorizedHandler? = null
-
-    private var validateFn: (suspend RoutingContext.(DigestCredential) -> P?)? = null
-    private var digestProviderFn: DigestProviderFunctionV2? = null
-    private var legacyDigestProviderFn: DigestProviderFunction? = null
-    private var userHashResolverFn: UserHashResolverFunction? = null
-    private var strictMode: Boolean = false
 
     /**
      * Sets a validation function for [DigestCredential].
@@ -101,7 +84,7 @@ public class TypedDigestAuthConfig<P : Any> @PublishedApi internal constructor()
      * Return a principal of type [P] when authentication succeeds, or `null` when the verified credentials should not
      * be accepted.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedDigestAuthConfig.validate)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.TypedDigestAuthConfig.validate)
      *
      * @param body validation function called with the current routing context after Digest credentials are verified.
      */
@@ -115,7 +98,7 @@ public class TypedDigestAuthConfig<P : Any> @PublishedApi internal constructor()
      * This overload does not receive the selected [DigestAlgorithm]. Use the overload that accepts
      * [DigestProviderFunctionV2] for full RFC 7616 support.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedDigestAuthConfig.digestProvider)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.TypedDigestAuthConfig.digestProvider)
      *
      * @param digest provides a digest for a username and realm, or `null` when the user is unknown.
      */
@@ -127,7 +110,7 @@ public class TypedDigestAuthConfig<P : Any> @PublishedApi internal constructor()
     /**
      * Configures the digest provider used to look up `H(username:realm:password)` for the selected algorithm.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedDigestAuthConfig.digestProvider)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.TypedDigestAuthConfig.digestProvider)
      *
      * @param digest provides a digest for a username, realm, and algorithm, or `null` when the user is unknown.
      */
@@ -141,7 +124,7 @@ public class TypedDigestAuthConfig<P : Any> @PublishedApi internal constructor()
      *
      * When configured, the server can accept hashed usernames and advertise `userhash=true` in challenges.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedDigestAuthConfig.userHashResolver)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.TypedDigestAuthConfig.userHashResolver)
      *
      * @param resolver resolves a user hash to the original username.
      */
@@ -154,7 +137,7 @@ public class TypedDigestAuthConfig<P : Any> @PublishedApi internal constructor()
      *
      * Strict mode removes deprecated MD5 algorithms and uses UTF-8.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.typesafe.TypedDigestAuthConfig.strictRfc7616Mode)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.TypedDigestAuthConfig.strictRfc7616Mode)
      */
     public fun strictRfc7616Mode() {
         strictMode = true
@@ -181,4 +164,10 @@ public class TypedDigestAuthConfig<P : Any> @PublishedApi internal constructor()
         if (strictMode) config.strictRfc7616Mode()
         return DigestAuthenticationProvider(config)
     }
+
+    private var validateFn: (suspend RoutingContext.(DigestCredential) -> P?)? = null
+    private var digestProviderFn: DigestProviderFunctionV2? = null
+    private var legacyDigestProviderFn: DigestProviderFunction? = null
+    private var userHashResolverFn: UserHashResolverFunction? = null
+    private var strictMode: Boolean = false
 }
