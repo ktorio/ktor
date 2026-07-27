@@ -143,14 +143,13 @@ final class io.ktor.server.auth/AuthenticationProcedureChallenge { // io.ktor.se
     final fun toString(): kotlin/String // io.ktor.server.auth/AuthenticationProcedureChallenge.toString|toString(){}[0]
 }
 
-final class io.ktor.server.auth/AuthenticationRouteSelector : io.ktor.server.routing/RouteSelector { // io.ktor.server.auth/AuthenticationRouteSelector|null[0]
+final class io.ktor.server.auth/AuthenticationRouteSelector : io.ktor.server.routing/TransparentRouteSelector { // io.ktor.server.auth/AuthenticationRouteSelector|null[0]
     constructor <init>(kotlin.collections/List<kotlin/String?>) // io.ktor.server.auth/AuthenticationRouteSelector.<init>|<init>(kotlin.collections.List<kotlin.String?>){}[0]
 
     final val names // io.ktor.server.auth/AuthenticationRouteSelector.names|{}names[0]
         final fun <get-names>(): kotlin.collections/List<kotlin/String?> // io.ktor.server.auth/AuthenticationRouteSelector.names.<get-names>|<get-names>(){}[0]
 
     final fun toString(): kotlin/String // io.ktor.server.auth/AuthenticationRouteSelector.toString|toString(){}[0]
-    final suspend fun evaluate(io.ktor.server.routing/RoutingResolveContext, kotlin/Int): io.ktor.server.routing/RouteSelectorEvaluation // io.ktor.server.auth/AuthenticationRouteSelector.evaluate|evaluate(io.ktor.server.routing.RoutingResolveContext;kotlin.Int){}[0]
 
     final object Companion { // io.ktor.server.auth/AuthenticationRouteSelector.Companion|null[0]
         final const val DEFAULT_NAME // io.ktor.server.auth/AuthenticationRouteSelector.Companion.DEFAULT_NAME|{}DEFAULT_NAME[0]

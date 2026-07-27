@@ -454,6 +454,12 @@ abstract class io.ktor.server.routing/RouteSelector { // io.ktor.server.routing/
     abstract suspend fun evaluate(io.ktor.server.routing/RoutingResolveContext, kotlin/Int): io.ktor.server.routing/RouteSelectorEvaluation // io.ktor.server.routing/RouteSelector.evaluate|evaluate(io.ktor.server.routing.RoutingResolveContext;kotlin.Int){}[0]
 }
 
+abstract class io.ktor.server.routing/TransparentRouteSelector : io.ktor.server.routing/RouteSelector { // io.ktor.server.routing/TransparentRouteSelector|null[0]
+    constructor <init>() // io.ktor.server.routing/TransparentRouteSelector.<init>|<init>(){}[0]
+
+    open suspend fun evaluate(io.ktor.server.routing/RoutingResolveContext, kotlin/Int): io.ktor.server.routing/RouteSelectorEvaluation // io.ktor.server.routing/TransparentRouteSelector.evaluate|evaluate(io.ktor.server.routing.RoutingResolveContext;kotlin.Int){}[0]
+}
+
 final class <#A: io.ktor.server.engine/ApplicationEngine, #B: io.ktor.server.engine/ApplicationEngine.Configuration> io.ktor.server.engine/EmbeddedServer { // io.ktor.server.engine/EmbeddedServer|null[0]
     constructor <init>(io.ktor.server.application/ServerConfig, io.ktor.server.engine/ApplicationEngineFactory<#A, #B>, kotlin/Function1<#B, kotlin/Unit> = ...) // io.ktor.server.engine/EmbeddedServer.<init>|<init>(io.ktor.server.application.ServerConfig;io.ktor.server.engine.ApplicationEngineFactory<1:0,1:1>;kotlin.Function1<1:1,kotlin.Unit>){}[0]
 
