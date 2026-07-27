@@ -31,11 +31,7 @@ public fun ApplicationCall.resolveResource(
     classLoader: ClassLoader = application.environment.classLoader,
     mimeResolve: (String) -> ContentType = { ContentType.defaultForFileExtension(it) }
 ): OutgoingContent.ReadChannelContent? {
-    if (path.endsWith("/") || path.endsWith("\\")) {
-        return null
-    }
-
-    val normalizedPath = normalisedPath(resourcePackage, path)
+    val normalizedPath = normalisedPath(resourcePackage, path) ?: return null
 
     for (url in classLoader.getResources(normalizedPath).asSequence()) {
         resourceClasspathResource(url, normalizedPath) { mimeResolve(it.path.extension()) }?.let { content ->
@@ -48,43 +44,40 @@ public fun ApplicationCall.resolveResource(
 
 private val resourceCache by lazy { ConcurrentHashMap<String, URL>() }
 
-@OptIn(InternalAPI::class)
+/**
+ * Resolves a resource URL from a normalized path. Make sure to normalize
+ * the path with [normalisedPath] and ensure the path does not end with a
+ * forwards/backwards slash.
+ */
 internal fun Application.resolveResourceURL(
     path: String,
-    resourcePackage: String? = null,
     classLoader: ClassLoader = environment.classLoader
 ): URL? {
-    if (path.endsWith("/") || path.endsWith("\\")) {
-        return null
-    }
-
-    val normalizedPath = normalisedPath(resourcePackage, path)
-    val cacheKey = "${classLoader.hashCode()}/$normalizedPath"
+    val cacheKey = "${classLoader.hashCode()}/$path"
     return resourceCache[cacheKey]
-        ?: classLoader.getResources(normalizedPath).asSequence()
+        ?: classLoader.getResources(path).asSequence()
             .firstOrNull()?.also { url ->
                 resourceCache[cacheKey] = url
             }
 }
 
+/**
+ * Resolves a resource from a normalized path. Make sure to normalize
+ * the path with [normalisedPath] and ensure the path does not end with a
+ * forwards/backwards slash.
+ */
 @OptIn(InternalAPI::class)
 internal fun Application.resolveResource(
     path: String,
-    resourcePackage: String? = null,
     classLoader: ClassLoader = environment.classLoader,
     mimeResolve: (URL) -> ContentType
 ): Pair<URL, OutgoingContent.ReadChannelContent>? {
-    if (path.endsWith("/") || path.endsWith("\\")) {
-        return null
-    }
-
-    val normalizedPath = normalisedPath(resourcePackage, path)
-    val cacheKey = "${classLoader.hashCode()}/$normalizedPath"
+    val cacheKey = "${classLoader.hashCode()}/$path"
     val resolveContent: (URL) -> Pair<URL, OutgoingContent.ReadChannelContent>? = { url ->
-        resourceClasspathResource(url, normalizedPath, mimeResolve)?.let { url to it }
+        resourceClasspathResource(url, path, mimeResolve)?.let { url to it }
     }
     return resourceCache[cacheKey]?.let(resolveContent)
-        ?: classLoader.getResources(normalizedPath).asSequence()
+        ?: classLoader.getResources(path).asSequence()
             .firstNotNullOfOrNull(resolveContent)?.also { (url) ->
                 resourceCache[cacheKey] = url
             }
@@ -112,10 +105,7 @@ public fun resourceClasspathResource(
             if (path.endsWith("/")) {
                 null
             } else {
-                val zipFile = findContainingJarFile(url.toString())
-                if (zipFile == null) {
-                    return URIFileContent(url, mimeResolve(url))
-                }
+                val zipFile = findContainingJarFile(url.toString()) ?: return URIFileContent(url, mimeResolve(url))
                 JarFileContent(zipFile, path, mimeResolve(url)).takeIf { it.isFile }
             }
         }
@@ -164,7 +154,14 @@ internal fun String.extension(): String {
     return if (indexOfDot >= 0) substring(indexOfDot) else ""
 }
 
-private fun normalisedPath(resourcePackage: String?, path: String): String {
+/**
+ * returns `null` if `path` has a trailing slash.
+ */
+internal fun normalisedPath(resourcePackage: String?, path: String): String? {
+    if (path.endsWith("/") || path.endsWith("\\")) {
+        return null
+    }
+
     // note: we don't need to check for ".." in the normalizedPath because all ".." get replaced with //
     val pathComponents = path.split('/', '\\')
     if (pathComponents.contains("..")) {
