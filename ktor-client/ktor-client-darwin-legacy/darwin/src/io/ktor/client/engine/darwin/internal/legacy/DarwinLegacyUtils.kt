@@ -7,6 +7,7 @@ package io.ktor.client.engine.darwin.internal.legacy
 import io.ktor.client.call.*
 import io.ktor.http.content.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.readBuffer
 import kotlinx.cinterop.*
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
@@ -14,7 +15,6 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.io.readByteArray
 import platform.Foundation.*
 import platform.posix.memcpy
-import io.ktor.utils.io.readBuffer
 
 @OptIn(UnsafeNumber::class)
 internal val NSURLSessionTask.id: ULong get() = this.taskIdentifier.toULong()

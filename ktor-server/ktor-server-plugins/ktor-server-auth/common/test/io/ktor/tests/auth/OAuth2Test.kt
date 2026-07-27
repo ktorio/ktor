@@ -4,7 +4,6 @@
 
 package io.ktor.tests.auth
 
-import kotlin.io.encoding.Base64
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.cookies.*
@@ -31,6 +30,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlin.io.encoding.Base64
 import kotlin.test.*
 
 class OAuth2Test {

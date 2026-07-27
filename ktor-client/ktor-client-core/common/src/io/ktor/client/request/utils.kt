@@ -4,9 +4,9 @@
 
 package io.ktor.client.request
 
-import kotlin.io.encoding.Base64
 import io.ktor.http.*
 import io.ktor.util.date.*
+import kotlin.io.encoding.Base64
 
 /**
  * Gets the associated URL's host.

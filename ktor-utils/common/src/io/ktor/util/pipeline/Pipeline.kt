@@ -7,8 +7,8 @@ package io.ktor.util.pipeline
 import io.ktor.util.*
 import io.ktor.util.debug.*
 import kotlinx.atomicfu.*
-import kotlin.coroutines.*
 import kotlinx.coroutines.currentCoroutineContext
+import kotlin.coroutines.*
 
 // helper interface for `startInterceptorCoroutineUninterceptedOrReturn`
 internal typealias PipelineInterceptorCoroutine<TSubject, TContext> =

@@ -10,9 +10,9 @@ import io.ktor.server.request.*
 import io.ktor.util.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.currentCoroutineContext
 import kotlin.coroutines.*
 import kotlin.reflect.*
-import kotlinx.coroutines.currentCoroutineContext
 
 internal val LOGGER = KtorSimpleLogger("io.ktor.server.plugins.doublereceive.DoubleReceive")
 

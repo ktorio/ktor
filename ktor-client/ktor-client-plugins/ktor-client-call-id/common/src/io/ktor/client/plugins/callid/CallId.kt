@@ -8,8 +8,8 @@ import io.ktor.callid.*
 import io.ktor.client.plugins.api.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import kotlin.coroutines.*
 import kotlinx.coroutines.currentCoroutineContext
+import kotlin.coroutines.*
 
 internal typealias CallIdGenerator = suspend (HttpRequestBuilder) -> String?
 internal typealias CallIdInterceptor = (request: HttpRequestBuilder, callId: String) -> Unit

@@ -4,10 +4,10 @@
 
 package io.ktor.http.websocket
 
-import kotlin.io.encoding.Base64
 import io.ktor.util.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
+import kotlin.io.encoding.Base64
 
 private const val WEBSOCKET_SERVER_ACCEPT_TAIL = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
 

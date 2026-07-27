@@ -4,10 +4,10 @@
 
 package io.ktor.server.engine
 
+import kotlinx.atomicfu.atomic
 import kotlinx.cinterop.*
 import platform.posix.*
 import kotlin.concurrent.*
-import kotlinx.atomicfu.atomic
 
 internal actual val SHUTDOWN_HOOK_ENABLED = true
 

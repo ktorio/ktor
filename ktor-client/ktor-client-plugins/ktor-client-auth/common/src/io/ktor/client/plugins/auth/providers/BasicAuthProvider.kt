@@ -4,7 +4,6 @@
 
 package io.ktor.client.plugins.auth.providers
 
-import kotlin.io.encoding.Base64
 import io.ktor.client.plugins.auth.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -13,6 +12,7 @@ import io.ktor.http.auth.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
+import kotlin.io.encoding.Base64
 
 /**
  * Installs the client's [BasicAuthProvider].

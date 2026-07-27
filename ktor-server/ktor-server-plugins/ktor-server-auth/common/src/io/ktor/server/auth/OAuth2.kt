@@ -4,7 +4,6 @@
 
 package io.ktor.server.auth
 
-import kotlin.io.encoding.Base64
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -22,6 +21,7 @@ import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.io.*
 import kotlinx.serialization.json.*
+import kotlin.io.encoding.Base64
 
 private val Logger: Logger = KtorSimpleLogger("io.ktor.auth.oauth")
 

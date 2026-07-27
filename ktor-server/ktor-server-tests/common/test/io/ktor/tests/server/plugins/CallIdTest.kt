@@ -15,9 +15,9 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.util.pipeline.*
+import kotlinx.coroutines.currentCoroutineContext
 import kotlin.coroutines.*
 import kotlin.test.*
-import kotlinx.coroutines.currentCoroutineContext
 
 class CallIdTest {
     @Test
