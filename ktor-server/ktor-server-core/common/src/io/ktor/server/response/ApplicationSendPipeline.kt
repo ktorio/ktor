@@ -20,7 +20,6 @@ public open class ApplicationSendPipeline(
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.response.ApplicationSendPipeline.Phases)
      */
-    @Suppress("PublicApiImplicitType")
     public companion object Phases {
         /**
          * The earliest phase that happens before any other

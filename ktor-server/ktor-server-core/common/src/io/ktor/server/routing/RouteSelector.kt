@@ -7,7 +7,6 @@ package io.ktor.server.routing
 import io.ktor.http.*
 import io.ktor.server.plugins.*
 import io.ktor.server.request.*
-import io.ktor.server.routing.RouteSelectorEvaluation.Companion.qualityTransparent
 
 /**
  * A result of a route evaluation against a call.
@@ -17,7 +16,7 @@ import io.ktor.server.routing.RouteSelectorEvaluation.Companion.qualityTranspare
  *
  * @param succeeded indicates if a route matches the current [RoutingResolveContext]
  */
-@Suppress("RemoveRedundantQualifierName", "PublicApiImplicitType")
+@Suppress("RemoveRedundantQualifierName")
 public sealed class RouteSelectorEvaluation(
     public val succeeded: Boolean
 ) {
@@ -52,6 +51,7 @@ public sealed class RouteSelectorEvaluation(
         public val failureStatusCode: HttpStatusCode
     ) : RouteSelectorEvaluation(false)
 
+    @Suppress("ConstPropertyName")
     public companion object {
         @Deprecated(
             "Please use RouteSelectorEvaluation.Failure() or RouteSelectorEvaluation.Success() constructors",
@@ -107,7 +107,6 @@ public sealed class RouteSelectorEvaluation(
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.RouteSelectorEvaluation.Companion.qualityMethodParameter)
          */
-        @Suppress("unused")
         public const val qualityMethodParameter: Double = qualityParameter
 
         /**
@@ -587,7 +586,6 @@ public data class PathSegmentTailcardRouteSelector(
  * @param first is a first selector
  * @param second is a second selector
  */
-@Suppress("unused")
 public data class OrRouteSelector(
     val first: RouteSelector,
     val second: RouteSelector
@@ -616,7 +614,6 @@ public data class OrRouteSelector(
  * @param first is a first selector
  * @param second is a second selector
  */
-@Suppress("unused")
 public data class AndRouteSelector(
     val first: RouteSelector,
     val second: RouteSelector

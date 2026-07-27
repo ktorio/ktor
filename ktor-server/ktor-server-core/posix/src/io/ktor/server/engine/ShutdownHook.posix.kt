@@ -4,6 +4,7 @@
 
 package io.ktor.server.engine
 
+import kotlinx.atomicfu.atomic
 import kotlinx.cinterop.*
 import platform.posix.*
 import kotlin.concurrent.*
@@ -20,7 +21,7 @@ private val shutdownHook: AtomicReference<() -> Unit> = AtomicReference {}
  */
 @OptIn(ExperimentalForeignApi::class)
 internal actual fun EmbeddedServer<*, *>.platformAddShutdownHook(stop: () -> Unit) {
-    val shouldStop = AtomicReference(true)
+    val shouldStop = atomic(true)
     shutdownHook.value = {
         if (shouldStop.compareAndSet(true, false)) {
             stop()

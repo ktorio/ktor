@@ -31,6 +31,5 @@ internal fun checkAcceptHeader(
     acceptItems: List<ContentTypeWithQuality>,
     contentType: ContentType?
 ): Boolean {
-    if (acceptItems.isEmpty() || contentType == null) return true
-    return acceptItems.any { contentType.match(it.contentType) }
+    return acceptItems.isEmpty() || contentType == null || acceptItems.any { contentType.match(it.contentType) }
 }

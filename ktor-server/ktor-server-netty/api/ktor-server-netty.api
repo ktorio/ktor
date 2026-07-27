@@ -15,6 +15,7 @@ public final class io/ktor/server/netty/EventLoopGroupProxy : io/netty/channel/E
 	public fun <init> (Lkotlin/reflect/KClass;Lio/netty/channel/EventLoopGroup;)V
 	public fun awaitTermination (JLjava/util/concurrent/TimeUnit;)Z
 	public fun execute (Ljava/lang/Runnable;)V
+	public fun forEach (Ljava/util/function/Consumer;)V
 	public final fun getChannel ()Lkotlin/reflect/KClass;
 	public fun invokeAll (Ljava/util/Collection;)Ljava/util/List;
 	public fun invokeAll (Ljava/util/Collection;JLjava/util/concurrent/TimeUnit;)Ljava/util/List;
@@ -41,6 +42,7 @@ public final class io/ktor/server/netty/EventLoopGroupProxy : io/netty/channel/E
 	public fun shutdownGracefully ()Lio/netty/util/concurrent/Future;
 	public fun shutdownGracefully (JJLjava/util/concurrent/TimeUnit;)Lio/netty/util/concurrent/Future;
 	public fun shutdownNow ()Ljava/util/List;
+	public fun spliterator ()Ljava/util/Spliterator;
 	public fun submit (Ljava/lang/Runnable;)Lio/netty/util/concurrent/Future;
 	public synthetic fun submit (Ljava/lang/Runnable;)Ljava/util/concurrent/Future;
 	public fun submit (Ljava/lang/Runnable;Ljava/lang/Object;)Lio/netty/util/concurrent/Future;
@@ -48,6 +50,7 @@ public final class io/ktor/server/netty/EventLoopGroupProxy : io/netty/channel/E
 	public fun submit (Ljava/util/concurrent/Callable;)Lio/netty/util/concurrent/Future;
 	public synthetic fun submit (Ljava/util/concurrent/Callable;)Ljava/util/concurrent/Future;
 	public fun terminationFuture ()Lio/netty/util/concurrent/Future;
+	public fun ticker ()Lio/netty/util/concurrent/Ticker;
 }
 
 public final class io/ktor/server/netty/EventLoopGroupProxy$Companion {

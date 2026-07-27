@@ -42,7 +42,7 @@ class TestEngineMultipartTest {
             extraFileAssertions = { file ->
                 assertEquals(
                     bytes.toHexString(),
-                    file.provider().readRemaining().readByteArray().toHexString()
+                    file.provider().readBuffer().readByteArray().toHexString()
                 )
             }
         )
@@ -54,7 +54,7 @@ class TestEngineMultipartTest {
         return testMultiPartsFileItemBase(
             filename = "file.txt",
             provider = { ByteReadChannel(string.toByteArray()) },
-            extraFileAssertions = { file -> assertEquals(string, file.provider().readRemaining().readText()) }
+            extraFileAssertions = { file -> assertEquals(string, file.provider().readBuffer().readText()) }
         )
     }
 
@@ -68,7 +68,7 @@ class TestEngineMultipartTest {
 
             assertEquals("fileField", file.name)
             assertEquals("file.bin", file.originalFileName)
-            assertEquals(bytes.toHexString(), file.provider().readRemaining().readByteArray().toHexString())
+            assertEquals(bytes.toHexString(), file.provider().readBuffer().readByteArray().toHexString())
 
             file.release()
         }) {
@@ -120,7 +120,7 @@ class TestEngineMultipartTest {
                         val part = multipart.readPart() ?: break
                         when (part) {
                             is PartData.FileItem -> {
-                                part.provider().readRemaining().readText()
+                                part.provider().readBuffer().readText()
                             }
 
                             is PartData.FormItem -> {
@@ -128,7 +128,7 @@ class TestEngineMultipartTest {
                             }
 
                             is PartData.BinaryChannelItem -> {
-                                part.provider().readRemaining().readText()
+                                part.provider().readBuffer().readText()
                             }
 
                             is PartData.BinaryItem -> {
@@ -259,7 +259,7 @@ internal fun buildMultipart(
                     append(
                         when (it) {
                             is PartData.FileItem -> {
-                                channel.writeFully(it.provider().readRemaining().readByteArray())
+                                channel.writeFully(it.provider().readBuffer().readByteArray())
                                 ""
                             }
 

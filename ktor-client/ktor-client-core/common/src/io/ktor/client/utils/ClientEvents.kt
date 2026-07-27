@@ -7,7 +7,6 @@ package io.ktor.client.utils
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.events.*
-import kotlin.native.concurrent.*
 
 /**
  * Occurs after the creation of a new request

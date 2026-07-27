@@ -41,7 +41,6 @@ class DescribeRouteTest {
 
     val testMessage = Message.DM(1L, "Hello, world!", 16777216000)
 
-    @OptIn(ExperimentalSerializationApi::class)
     val jsonFormat = Json {
         encodeDefaults = false
         prettyPrint = true

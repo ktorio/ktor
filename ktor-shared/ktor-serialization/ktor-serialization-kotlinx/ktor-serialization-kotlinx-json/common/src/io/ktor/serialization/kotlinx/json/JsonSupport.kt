@@ -9,8 +9,6 @@ import io.ktor.serialization.*
 import io.ktor.serialization.kotlinx.*
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
-import kotlinx.serialization.modules.*
-import kotlin.native.concurrent.*
 
 /**
  * The default JSON configuration used in [KotlinxSerializationConverter]. The settings are:

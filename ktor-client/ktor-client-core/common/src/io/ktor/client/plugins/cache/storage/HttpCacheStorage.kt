@@ -163,7 +163,7 @@ public suspend fun CacheStorage.store(
     isShared: Boolean = false
 ): CachedResponseData {
     val url = response.call.request.url
-    val body = response.rawContent.readRemaining().readBytes()
+    val body = response.rawContent.readBuffer().readBytes()
     val data = CachedResponseData(
         url = response.call.request.url,
         statusCode = response.status,

@@ -4,9 +4,6 @@
 
 package io.ktor.utils.io
 
-import io.ktor.utils.io.LineEndingMode.Companion.CR
-import io.ktor.utils.io.LineEndingMode.Companion.CRLF
-import io.ktor.utils.io.LineEndingMode.Companion.LF
 import kotlin.jvm.JvmInline
 
 /**

@@ -36,7 +36,6 @@ public open class ApplicationReceivePipeline(
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.request.ApplicationReceivePipeline.Phases)
      */
-    @Suppress("PublicApiImplicitType")
     public companion object Phases {
         /**
          * Executes before any transformations are made.
@@ -109,6 +108,7 @@ public suspend inline fun <reified T> ApplicationCall.receiveNullable(): T? = re
  */
 public suspend fun <T : Any> ApplicationCall.receive(type: KClass<T>): T {
     val kotlinType = starProjectedTypeBridge(type)
+    @Suppress("DEPRECATION")
     return receiveNullable(TypeInfo(type, kotlinType))!!
 }
 
@@ -182,7 +182,7 @@ public suspend inline fun ApplicationCall.receiveText(): String {
     } catch (cause: BadContentTypeFormatException) {
         throw BadRequestException("Illegal Content-Type format: ${request.headers[HttpHeaders.ContentType]}", cause)
     }
-    return receiveChannel().readRemaining().readText(charset)
+    return receiveChannel().readBuffer().readText(charset)
 }
 
 /**

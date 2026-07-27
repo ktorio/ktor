@@ -100,7 +100,7 @@ public fun guessSerializer(value: Any?, module: SerializersModule): KSerializer<
     }
 } as KSerializer<Any>
 
-@OptIn(ExperimentalSerializationApi::class, InternalAPI::class)
+@OptIn(InternalAPI::class)
 private fun Collection<*>.elementSerializer(module: SerializersModule): KSerializer<*> {
     val serializers: List<KSerializer<*>> =
         filterNotNull().map { guessSerializer(it, module) }.distinctBy { it.descriptor.serialName }

@@ -46,10 +46,10 @@ class ChannelTest {
         }
 
         val firstResult = async(Dispatchers.Unconfined) {
-            first.readRemaining().readByteArray()
+            first.readBuffer().readByteArray()
         }
         val secondResult = async(Dispatchers.Unconfined) {
-            second.readRemaining().readByteArray()
+            second.readBuffer().readByteArray()
         }
 
         val results = listOf(firstResult, secondResult).awaitAll()
@@ -74,14 +74,14 @@ class ChannelTest {
 
         assertFailsWith<IOException> {
             val firstResult = GlobalScope.async(Dispatchers.Default) {
-                first.readRemaining().readByteArray()
+                first.readBuffer().readByteArray()
             }
             firstResult.await()
         }
 
         assertFailsWith<IOException> {
             val secondResult = GlobalScope.async(Dispatchers.Default) {
-                second.readRemaining().readByteArray()
+                second.readBuffer().readByteArray()
             }
             secondResult.await()
         }
@@ -113,7 +113,7 @@ class ChannelTest {
 
         assertFailsWith<IOException> {
             val secondResult = GlobalScope.async(Dispatchers.Unconfined) {
-                second.readRemaining().readByteArray()
+                second.readBuffer().readByteArray()
             }
             secondResult.await()
         }
@@ -141,7 +141,7 @@ class ChannelTest {
 
         assertFailsWith<IOException> {
             val secondResult = GlobalScope.async(Dispatchers.Unconfined) {
-                second.readRemaining().readByteArray()
+                second.readBuffer().readByteArray()
             }
             secondResult.await()
         }

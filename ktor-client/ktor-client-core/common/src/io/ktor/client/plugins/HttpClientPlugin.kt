@@ -6,7 +6,6 @@ package io.ktor.client.plugins
 
 import io.ktor.client.*
 import io.ktor.util.*
-import kotlin.native.concurrent.*
 
 internal val PLUGIN_INSTALLED_LIST = AttributeKey<Attributes>("ApplicationPluginRegistry")
 

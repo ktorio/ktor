@@ -69,7 +69,6 @@ public suspend fun ByteWriteChannel.writeByteArray(array: ByteArray) {
     flushIfNeeded()
 }
 
-@OptIn(InternalAPI::class)
 public suspend fun ByteWriteChannel.writeSource(source: Source) {
     writePacket(source)
 }
@@ -86,7 +85,6 @@ public suspend fun ByteWriteChannel.writeFully(value: ByteArray, startIndex: Int
     flushIfNeeded()
 }
 
-@OptIn(InternalAPI::class)
 public suspend fun ByteWriteChannel.writeBuffer(source: RawSource) {
     writePacket(source.buffered())
 }

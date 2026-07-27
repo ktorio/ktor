@@ -68,8 +68,6 @@ private fun Grammar.toRegex(
     is AnyOfGrammar -> GrammarRegex("[${Regex.escape(value)}]")
 
     is RangeGrammar -> GrammarRegex("[$from-$to]")
-
-    else -> error("Unsupported grammar element: $this")
 }
 
 private fun MutableMap<String, MutableList<Int>>.add(key: String, value: Int) {

@@ -24,7 +24,7 @@ class DefaultTransformJvmTest {
         config {
             engine {
                 addHandler {
-                    val text = (it.body as OutgoingContent.ReadChannelContent).readFrom().readRemaining().readText()
+                    val text = (it.body as OutgoingContent.ReadChannelContent).readFrom().readBuffer().readText()
                     respond(text)
                 }
             }

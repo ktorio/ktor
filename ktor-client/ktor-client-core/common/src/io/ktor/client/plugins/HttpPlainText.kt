@@ -148,7 +148,7 @@ public val HttpPlainText: ClientPlugin<HttpPlainTextConfig> =
         transformResponseBody { response, content, requestedType ->
             if (requestedType.type != String::class) return@transformResponseBody null
 
-            val bodyBytes = content.readRemaining()
+            val bodyBytes = content.readBuffer()
             read(response.call, bodyBytes)
         }
     }

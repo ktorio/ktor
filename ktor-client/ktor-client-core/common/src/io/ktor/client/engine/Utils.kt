@@ -84,7 +84,7 @@ public fun mergeHeaders(
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.callContext)
  */
 @InternalAPI
-public suspend fun callContext(): CoroutineContext = coroutineContext[KtorCallContextElement]!!.callContext
+public suspend fun callContext(): CoroutineContext = currentCoroutineContext()[KtorCallContextElement]!!.callContext
 
 /**
  * Coroutine context element containing call job.

@@ -88,7 +88,7 @@ class ServerPipelineTest : CoroutineScope {
         assertEquals("/", requestsReceived.single())
 
         input.close()
-        output.readRemaining().discard()
+        output.readBuffer().discard()
     }
 
     @Test
@@ -123,7 +123,7 @@ class ServerPipelineTest : CoroutineScope {
         assertEquals("/", requestsReceived.single())
 
         input.close()
-        output.readRemaining().discard()
+        output.readBuffer().discard()
     }
 
     @Test

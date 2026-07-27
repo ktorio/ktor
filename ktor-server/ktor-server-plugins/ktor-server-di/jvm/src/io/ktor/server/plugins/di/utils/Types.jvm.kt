@@ -170,7 +170,7 @@ private fun KType.hierarchy(): Sequence<KType> {
 
         val substitutedArguments = supertype.arguments.map { projection ->
             when (val typeParameter = projection.type?.classifier) {
-                is kotlin.reflect.KTypeParameter -> {
+                is KTypeParameter -> {
                     // Substitute type parameter with the actual type argument from the current type
                     val index = currentTypeClassifier.typeParameters.indexOf(typeParameter)
                     if (index >= 0) currentTypeArguments[index] else KTypeProjection.STAR

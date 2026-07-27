@@ -22,6 +22,7 @@ public object EngineMain {
     @JvmStatic
     public fun main(args: Array<String>) {
         val server = createServer(args)
+        @Suppress("DEPRECATION") // deprecated on the js platform
         server.start(true)
     }
 

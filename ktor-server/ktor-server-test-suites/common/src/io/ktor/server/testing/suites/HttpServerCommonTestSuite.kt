@@ -29,7 +29,6 @@ import io.ktor.server.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.Channel
 import kotlinx.io.readByteArray
 import kotlin.coroutines.AbstractCoroutineContextElement
 import kotlin.coroutines.CoroutineContext
@@ -605,7 +604,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
                 post {
                     val byteStream = ByteChannel(autoFlush = true)
                     launch(Dispatchers.Unconfined) {
-                        byteStream.writePacket(call.receiveChannel().readRemaining())
+                        byteStream.writePacket(call.receiveChannel().readBuffer())
                         byteStream.close(null)
                     }
                     call.respond(object : OutgoingContent.ReadChannelContent() {
@@ -635,7 +634,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
             requestBody.writeFully(content)
             requestBody.close(null)
 
-            assertContentEquals(channel.readRemaining().readByteArray(), content)
+            assertContentEquals(channel.readBuffer().readByteArray(), content)
         }
         client.close()
     }

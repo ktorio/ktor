@@ -25,7 +25,7 @@ class ContentEncodingIntegrationTest : ClientLoader() {
         test { client ->
             val response = client.get("$TEST_URL/gzip-with-content-length")
             val content = when (response.headers[HttpHeaders.ContentEncoding]) {
-                "gzip" -> GZipEncoder.decode(response.bodyAsChannel()).readRemaining().readString()
+                "gzip" -> GZipEncoder.decode(response.bodyAsChannel()).readBuffer().readString()
 
                 null -> {
                     // Content-Length should be removed for browser

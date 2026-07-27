@@ -7,7 +7,6 @@ package io.ktor.server.cio
 import io.ktor.http.cio.*
 import io.ktor.server.cio.backend.*
 import kotlinx.coroutines.*
-import kotlin.native.concurrent.*
 
 /**
  * HTTP request handler function

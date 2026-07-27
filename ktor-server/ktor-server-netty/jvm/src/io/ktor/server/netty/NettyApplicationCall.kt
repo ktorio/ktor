@@ -6,7 +6,6 @@ package io.ktor.server.netty
 
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
-import io.ktor.util.*
 import io.netty.buffer.*
 import io.netty.channel.*
 import io.netty.util.*

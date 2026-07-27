@@ -15,7 +15,6 @@ import kotlinx.serialization.modules.*
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.resources.serialization.ResourcesFormat)
  */
-@OptIn(ExperimentalSerializationApi::class)
 public class ResourcesFormat(
     override val serializersModule: SerializersModule = EmptySerializersModule()
 ) : SerialFormat {

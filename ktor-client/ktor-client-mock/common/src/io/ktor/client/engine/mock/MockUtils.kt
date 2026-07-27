@@ -39,7 +39,7 @@ public suspend fun OutgoingContent.toByteArray(): ByteArray = when (this) {
 public suspend fun OutgoingContent.toByteReadPacket(): Source = when (this) {
     is OutgoingContent.ByteArrayContent -> ByteReadPacket(bytes())
 
-    is OutgoingContent.ReadChannelContent -> readFrom().readRemaining()
+    is OutgoingContent.ReadChannelContent -> readFrom().readBuffer()
 
     is OutgoingContent.WriteChannelContent -> {
         val channel = ByteChannel()
@@ -47,7 +47,7 @@ public suspend fun OutgoingContent.toByteReadPacket(): Source = when (this) {
             writeTo(channel)
             channel.close()
         }
-        channel.readRemaining()
+        channel.readBuffer()
     }
 
     else -> ByteReadPacketEmpty

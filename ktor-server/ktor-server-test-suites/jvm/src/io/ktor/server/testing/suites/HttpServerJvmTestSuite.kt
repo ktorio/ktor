@@ -88,7 +88,7 @@ abstract class HttpServerJvmTestSuite<TEngine : ApplicationEngine, TConfiguratio
                     if (id < 16 && processedRequests.incrementAndGet() == 15L) {
                         lastHandler.complete(Unit)
                     }
-                    byteStream.writePacket(call.receiveChannel().readRemaining())
+                    byteStream.writePacket(call.receiveChannel().readBuffer())
                     byteStream.writeStringUtf8("\n")
                     byteStream.close(null)
                 }
@@ -344,7 +344,7 @@ abstract class HttpServerJvmTestSuite<TEngine : ApplicationEngine, TConfiguratio
                                     bb.flip()
                                     output.writeFully(bb)
                                     output.flushAndClose()
-                                    input.readRemaining().use {
+                                    input.readBuffer().use {
                                         assertEquals(0, it.remaining)
                                     }
                                     completed.complete(Unit)

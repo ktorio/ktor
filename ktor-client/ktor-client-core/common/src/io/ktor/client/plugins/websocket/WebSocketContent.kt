@@ -9,17 +9,13 @@ import io.ktor.http.*
 import io.ktor.http.websocket.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
-import kotlin.io.encoding.Base64
 
 private const val WEBSOCKET_VERSION = "13"
 private const val NONCE_SIZE = 16
 
 @OptIn(InternalAPI::class)
 internal class WebSocketContent : ClientUpgradeContent() {
-    private val nonce: String = buildString {
-        val nonce = generateNonce(NONCE_SIZE)
-        append(Base64.encode(nonce))
-    }
+    private val nonce: String = generateNonceBlocking(NONCE_SIZE)
 
     override val headers: Headers = HeadersBuilder().apply {
         append(HttpHeaders.Upgrade, "websocket")

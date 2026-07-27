@@ -237,7 +237,7 @@ public fun encodeCookieValue(value: String, encoding: CookieEncoding): String = 
         else -> value
     }
 
-    CookieEncoding.BASE64_ENCODING -> value.encodeBase64()
+    CookieEncoding.BASE64_ENCODING -> Base64.encode(value.encodeToByteArray())
 
     CookieEncoding.URI_ENCODING -> value.encodeURLParameter(spaceToPlus = true)
 }

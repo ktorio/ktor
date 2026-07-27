@@ -102,7 +102,7 @@ class FileChannelTest {
             assertFalse(temp.delete())
 
             // And just making sure we can complete it normally.
-            readChannel.readRemaining()
+            readChannel.readBuffer()
             assertTrue(temp.delete())
         }
     }

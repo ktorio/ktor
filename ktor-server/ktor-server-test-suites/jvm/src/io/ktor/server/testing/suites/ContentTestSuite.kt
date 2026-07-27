@@ -630,7 +630,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
                         is PartData.FileItem ->
                             response.append(
                                 "file:${part.name},${part.originalFileName},${
-                                    part.provider().readRemaining().readText()
+                                    part.provider().readBuffer().readText()
                                 }\n"
                             )
 
@@ -699,7 +699,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
 
                         is PartData.FileItem -> {
                             val lineSequence = part.provider()
-                                .readRemaining()
+                                .readBuffer()
                                 .readText()
                                 .lines()
 
@@ -712,7 +712,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
                         is PartData.BinaryChannelItem -> {}
                     }
 
-                    part.dispose()
+                    part.release()
                 }
                 call.respondText(response.toString())
             }

@@ -16,7 +16,6 @@ import kotlinx.io.*
 import kotlin.coroutines.*
 import kotlin.time.*
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
 
 internal val LOGGER = KtorSimpleLogger("io.ktor.websocket.WebSocket")
 

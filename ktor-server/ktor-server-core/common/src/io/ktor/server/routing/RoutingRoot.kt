@@ -140,7 +140,6 @@ public class RoutingRoot(
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.RoutingRoot.Plugin)
      */
-    @Suppress("PublicApiImplicitType")
     public companion object Plugin : BaseApplicationPlugin<Application, Routing, RoutingRoot> {
 
         /**

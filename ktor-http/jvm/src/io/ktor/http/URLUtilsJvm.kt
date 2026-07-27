@@ -2,6 +2,8 @@
  * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+@file:Suppress("FunctionName")
+
 package io.ktor.http
 
 import java.net.*
@@ -69,5 +71,4 @@ public fun Url.toURI(): URI = URI(toString())
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.Url)
  */
-@Suppress("FunctionName")
 public fun Url(uri: URI): Url = URLBuilder().takeFrom(uri).build()

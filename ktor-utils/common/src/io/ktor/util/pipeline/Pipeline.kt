@@ -7,6 +7,7 @@ package io.ktor.util.pipeline
 import io.ktor.util.*
 import io.ktor.util.debug.*
 import kotlinx.atomicfu.*
+import kotlinx.coroutines.currentCoroutineContext
 import kotlin.coroutines.*
 
 // helper interface for `startInterceptorCoroutineUninterceptedOrReturn`
@@ -89,7 +90,7 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.pipeline.Pipeline.execute)
      */
     public suspend fun execute(context: TContext, subject: TSubject): TSubject =
-        createContext(context, subject, coroutineContext).execute(subject)
+        createContext(context, subject, currentCoroutineContext()).execute(subject)
 
     /**
      * Adds [phase] to the end of this pipeline
@@ -479,15 +480,13 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
             else -> (fromPhaseOrContent as PhaseContent<*, *>).relation
         }
 
-        when {
-            fromPhaseRelation is PipelinePhaseRelation.Last ->
-                addPhase(fromPhase)
+        when (fromPhaseRelation) {
+            is PipelinePhaseRelation.Last -> addPhase(fromPhase)
 
-            fromPhaseRelation is PipelinePhaseRelation.Before && hasPhase(fromPhaseRelation.relativeTo) ->
+            is PipelinePhaseRelation.Before if hasPhase(fromPhaseRelation.relativeTo) ->
                 insertPhaseBefore(fromPhaseRelation.relativeTo, fromPhase)
 
-            fromPhaseRelation is PipelinePhaseRelation.After ->
-                insertPhaseAfter(fromPhaseRelation.relativeTo, fromPhase)
+            is PipelinePhaseRelation.After -> insertPhaseAfter(fromPhaseRelation.relativeTo, fromPhase)
 
             else -> return false
         }

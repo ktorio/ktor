@@ -36,6 +36,7 @@ internal suspend fun commonFetch(
         PlatformUtils.IS_BROWSER -> config.fetch(input, init)
 
         else -> {
+            @Suppress("DEPRECATION")
             val options = js("Object").assign(js("Object").create(null), init, config.nodeOptions)
             config.fetch(input, options)
         }

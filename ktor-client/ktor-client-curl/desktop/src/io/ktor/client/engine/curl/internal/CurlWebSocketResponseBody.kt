@@ -107,7 +107,7 @@ internal class CurlWebSocketResponseBody(
     }
 
     private fun handleIncomingFrame(frame: Frame?): Boolean =
-        if (frame != null) _incoming.trySend(frame).isSuccess else false
+        frame != null && _incoming.trySend(frame).isSuccess
 
     override fun close(cause: Throwable?) {
         if (!closed.compareAndSet(expect = false, update = true)) return

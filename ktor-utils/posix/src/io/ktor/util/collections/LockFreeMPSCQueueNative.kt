@@ -219,7 +219,7 @@ private class LockFreeMPSCQueueCore<E : Any>(private val capacity: Int) {
 
     @Suppress("PrivatePropertyName")
     companion object {
-        internal const val INITIAL_CAPACITY = 8
+        const val INITIAL_CAPACITY = 8
 
         private const val CAPACITY_BITS = 30
         private const val MAX_CAPACITY_MASK = (1 shl CAPACITY_BITS) - 1
@@ -233,13 +233,13 @@ private class LockFreeMPSCQueueCore<E : Any>(private val capacity: Int) {
         private const val CLOSED_SHIFT = FROZEN_SHIFT + 1
         private const val CLOSED_MASK = 1L shl CLOSED_SHIFT
 
-        internal val REMOVE_FROZEN = object {
+        val REMOVE_FROZEN = object {
             override fun toString() = "REMOVE_FROZEN"
         }
 
-        internal const val ADD_SUCCESS = 0
-        internal const val ADD_FROZEN = 1
-        internal const val ADD_CLOSED = 2
+        const val ADD_SUCCESS = 0
+        const val ADD_FROZEN = 1
+        const val ADD_CLOSED = 2
 
         private infix fun Long.wo(other: Long) = this and other.inv()
         private fun Long.updateHead(newHead: Int) = (this wo HEAD_MASK) or (newHead.toLong() shl HEAD_SHIFT)

@@ -50,7 +50,7 @@ class PluginsTest : ClientLoader() {
         val task = Job()
         config {
             ResponseObserver { response ->
-                val text = response.rawContent.readRemaining().readText()
+                val text = response.rawContent.readBuffer().readText()
                 assertEquals(body, text)
                 task.complete()
             }

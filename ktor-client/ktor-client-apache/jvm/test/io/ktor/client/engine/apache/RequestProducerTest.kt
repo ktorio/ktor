@@ -62,7 +62,7 @@ class RequestProducerTest {
         val ioctrl = TestIOControl()
 
         val result = async {
-            encoder.channel.readRemaining().readText()
+            encoder.channel.readBuffer().readText()
         }
 
         while (!encoder.isCompleted) {
@@ -82,7 +82,7 @@ class RequestProducerTest {
         val ioctrl = TestIOControl()
 
         val result = async {
-            encoder.channel.readRemaining().readText()
+            encoder.channel.readBuffer().readText()
         }
 
         while (!encoder.isCompleted) {
@@ -120,7 +120,7 @@ class RequestProducerTest {
         }
 
         val result = async {
-            encoder.channel.readRemaining().readText()
+            encoder.channel.readBuffer().readText()
         }
 
         while (!encoder.isCompleted) {
@@ -155,7 +155,7 @@ class RequestProducerTest {
         val ioctrl = TestIOControl()
 
         val result = async {
-            encoder.channel.readRemaining().readText()
+            encoder.channel.readBuffer().readText()
         }
 
         launch {

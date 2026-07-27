@@ -47,13 +47,11 @@ public class SSEServerContent(
             coroutineScope {
                 session = DefaultServerSSESession(channel, call, coroutineContext)
                 if (serialize != null) {
-                    session = object :
-                        ServerSSESessionWithSerialization,
-                        ServerSSESession by session as DefaultServerSSESession {
+                    session = object : ServerSSESessionWithSerialization, ServerSSESession by session {
                         override val serializer: (TypeInfo, Any) -> String = serialize
                     }
                 }
-                session?.handle()
+                session.handle()
             }
         } finally {
             val heartbeatJob = call.attributes.getOrNull(heartbeatJobKey)

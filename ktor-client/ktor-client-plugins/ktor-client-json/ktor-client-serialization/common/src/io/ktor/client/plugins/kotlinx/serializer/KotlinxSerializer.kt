@@ -83,7 +83,6 @@ private fun buildSerializer(value: Any, module: SerializersModule): KSerializer<
     }
 } as KSerializer<Any>
 
-@OptIn(ExperimentalSerializationApi::class)
 private fun Collection<*>.elementSerializer(module: SerializersModule): KSerializer<*> {
     val serializers: List<KSerializer<*>> =
         filterNotNull().map { buildSerializer(it, module) }.distinctBy { it.descriptor.serialName }

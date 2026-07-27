@@ -3,8 +3,6 @@ package io.ktor.openapi.routing
 import io.ktor.openapi.model.ExtensionAttribute
 import io.ktor.openapi.model.ModelAttribute
 import io.ktor.openapi.model.SchemaAttribute
-import org.jetbrains.kotlin.ir.expressions.IrConst
-import org.jetbrains.kotlin.ir.expressions.IrExpression
 
 /**
  * Sealed class representing different KDoc parameters for OpenAPI documentation.

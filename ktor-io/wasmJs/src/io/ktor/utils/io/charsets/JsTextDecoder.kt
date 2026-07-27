@@ -2,6 +2,8 @@
  * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+@file:Suppress("RedundantNullableReturnType")
+
 package io.ktor.utils.io.js
 
 import io.ktor.utils.io.charsets.*
@@ -9,16 +11,16 @@ import org.khronos.webgl.*
 
 private external interface TextDecoder
 
-private fun tryCreateTextDecoder(encoding: String, fatal: Boolean): TextDecoder =
+private fun tryCreateTextDecoder(encoding: String, fatal: Boolean): TextDecoder? =
     js("{ try { return new TextDecoder(encoding, { fatal: fatal }) } catch(e) { return null } }")
 
-private fun decode(decoder: TextDecoder): String =
+private fun decode(decoder: TextDecoder): String? =
     js("{ try { return decoder.decode() } catch(e) { return null } }")
 
-private fun decode(decoder: TextDecoder, buffer: Int8Array): String =
+private fun decode(decoder: TextDecoder, buffer: Int8Array): String? =
     js("{ try { return decoder.decode(buffer) } catch(e) { return null } }")
 
-private fun decodeStream(decoder: TextDecoder, buffer: Int8Array): String =
+private fun decodeStream(decoder: TextDecoder, buffer: Int8Array): String? =
     js("{ try { return decoder.decode(buffer, { stream: true }) } catch(e) { return null } }")
 
 private inline fun decodeOrFail(body: () -> String?): String =
@@ -35,7 +37,7 @@ internal class JsTextDecoder private constructor(private val decoder: TextDecode
         decodeOrFail { decodeStream(decoder, buffer.toJsArray()) }
 
     companion object {
-        fun tryCreate(encoding: String, fatal: Boolean = true): JsTextDecoder =
-            tryCreateTextDecoder(encoding, fatal).let(::JsTextDecoder)
+        fun tryCreate(encoding: String, fatal: Boolean = true): JsTextDecoder? =
+            tryCreateTextDecoder(encoding, fatal)?.let(::JsTextDecoder)
     }
 }

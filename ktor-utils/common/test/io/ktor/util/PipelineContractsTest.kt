@@ -4,7 +4,6 @@
 
 package io.ktor.util
 
-import io.ktor.util.collections.*
 import io.ktor.util.pipeline.*
 import kotlinx.atomicfu.*
 import kotlin.coroutines.*

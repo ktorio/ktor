@@ -127,7 +127,7 @@ class ResponseObserverTest : ClientLoader() {
 
             val response = client.get("/")
             assertNotNull(wasSaved, "Response observer should be called")
-            assertTrue(wasSaved!!, "Response should be saved before reaching the response observer")
+            assertTrue(wasSaved, "Response should be saved before reaching the response observer")
 
             // After all pipelines
             assertBodyCanBeReadMultipleTimes(response)

@@ -971,7 +971,6 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         }
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     open fun testJobsAreCancelledOnShutdown() = runTest {
         var applicationJob: Job? = null

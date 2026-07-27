@@ -32,7 +32,7 @@ public suspend fun HttpResponse.readBytes(count: Int): ByteArray = ByteArray(cou
  * @return the raw payload of the HTTP response as a byte array
  */
 @OptIn(InternalAPI::class)
-public suspend fun HttpResponse.readRawBytes(): ByteArray = rawContent.readRemaining().readByteArray()
+public suspend fun HttpResponse.readRawBytes(): ByteArray = rawContent.readBuffer().readByteArray()
 
 /**
  * Reads the raw payload of the HTTP response as a byte array.
@@ -50,7 +50,7 @@ public suspend fun HttpResponse.readRawBytes(): ByteArray = rawContent.readRemai
  */
 @OptIn(InternalAPI::class)
 @Deprecated("This method was renamed to readRawBytes() to reflect what it does.", ReplaceWith("readRawBytes()"))
-public suspend fun HttpResponse.readBytes(): ByteArray = rawContent.readRemaining().readByteArray()
+public suspend fun HttpResponse.readBytes(): ByteArray = rawContent.readBuffer().readByteArray()
 
 /**
  * Efficiently discards the remaining bytes of [HttpResponse.rawContent].

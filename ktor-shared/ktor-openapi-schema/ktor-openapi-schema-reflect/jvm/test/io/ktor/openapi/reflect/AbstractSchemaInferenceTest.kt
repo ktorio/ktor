@@ -363,13 +363,13 @@ value class Score(val value: Int)
 
 @Serializable
 data class ItemsRefData(
-    @JsonSchema.ItemsRef(Country::class)
+    @ItemsRef(Country::class)
     val locations: List<String>,
 )
 
 @Serializable
 data class PrefixItemsRefData(
-    @JsonSchema.PrefixItemsRef(Address::class, Country::class)
+    @PrefixItemsRef(Address::class, Country::class)
     val mixedTuple: List<String>,
 )
 

@@ -60,6 +60,7 @@ abstract class ConnectionTestSuite(val engine: ApplicationEngineFactory<*, *>) {
         server.monitor.subscribe(ServerReady) {
             serverStarted.complete(Unit)
         }
+        @OptIn(DelicateCoroutinesApi::class)
         GlobalScope.launch {
             server.start(true)
         }

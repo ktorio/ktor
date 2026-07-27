@@ -2,13 +2,12 @@
  * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-@file:kotlin.jvm.JvmMultifileClass
-@file:kotlin.jvm.JvmName("RoutingKt")
+@file:JvmMultifileClass
+@file:JvmName("RoutingKt")
 
 package io.ktor.server.websocket
 
 import io.ktor.server.routing.*
-import io.ktor.websocket.*
 
 // Deprecated stubs preserving binary compatibility after return type changed from Unit to Route.
 // Kept in JVM sources only because klib IR signatures do not differentiate by return type.
