@@ -113,6 +113,13 @@ public interface CacheStorage {
      */
     public suspend fun removeAll(url: Url)
 
+    /**
+     * Removes all entries from this cache storage.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.cache.storage.CacheStorage.clear)
+     */
+    public suspend fun clear() {}
+
     public companion object {
         /**
          * Default unlimited cache storage.

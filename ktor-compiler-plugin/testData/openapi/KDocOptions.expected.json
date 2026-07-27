@@ -269,5 +269,14 @@
                 }
             }
         }
-    }
+    },
+    "tags": [
+        {
+            "name": "references",
+            "description": "Operations that document type references",
+            "externalDocs": {
+                "url": "https://example.com/docs/references"
+            }
+        }
+    ]
 }

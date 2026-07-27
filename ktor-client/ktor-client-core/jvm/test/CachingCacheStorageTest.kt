@@ -100,6 +100,25 @@ class CachingCacheStorageTest {
         assertEquals(1, delegate.removeAllCalledCount)
     }
 
+    @Test
+    fun `clear removes both delegate and in-memory cache`(): Unit = runBlocking {
+        val delegate = InMemoryCacheStorage()
+        val storage = CachingCacheStorage(delegate)
+
+        storage.store(Url("http://example.com"), data())
+        storage.store(Url("http://example.com"), data(mapOf("key" to "value")))
+        storage.store(Url("http://other.com"), data())
+
+        assertEquals(2, storage.findAll(Url("http://example.com")).size)
+        assertEquals(1, storage.findAll(Url("http://other.com")).size)
+
+        storage.clear()
+
+        assertEquals(0, storage.findAll(Url("http://example.com")).size)
+        assertEquals(0, storage.findAll(Url("http://other.com")).size)
+        assertEquals(1, delegate.clearCalledCount)
+    }
+
     private fun data(varyKeys: Map<String, String> = emptyMap()) = CachedResponseData(
         Url("http://example.com"),
         HttpStatusCode.OK,
@@ -120,6 +139,7 @@ private class InMemoryCacheStorage : CacheStorage {
     var findAllCalledCount = 0
     var removeCalledCount = 0
     var removeAllCalledCount = 0
+    var clearCalledCount = 0
 
     override suspend fun store(url: Url, data: CachedResponseData) {
         val cache = store.computeIfAbsent(url) { mutableSetOf() }
@@ -150,5 +170,10 @@ private class InMemoryCacheStorage : CacheStorage {
     override suspend fun removeAll(url: Url) {
         removeAllCalledCount++
         store.remove(url)
+    }
+
+    override suspend fun clear() {
+        clearCalledCount++
+        store.clear()
     }
 }
