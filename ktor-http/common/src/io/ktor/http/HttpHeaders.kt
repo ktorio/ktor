@@ -5,9 +5,7 @@
 package io.ktor.http
 
 @Suppress(
-    "unused",
     "KDocMissingDocumentation",
-    "PublicApiImplicitType",
     "ConstPropertyName",
 )
 public object HttpHeaders {

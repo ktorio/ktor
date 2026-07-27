@@ -101,7 +101,7 @@ public data class CipherSuite(
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.CIOCipherSuites)
  */
-@Suppress("KDocMissingDocumentation", "PublicApiImplicitType", "MemberVisibilityCanBePrivate")
+@Suppress("KDocMissingDocumentation")
 public object CIOCipherSuites {
     public val TLS_RSA_WITH_AES_128_GCM_SHA256: CipherSuite = CipherSuite(
         0x009c, "TLS_RSA_WITH_AES_128_GCM_SHA256", "AES128-GCM-SHA256",

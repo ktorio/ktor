@@ -37,7 +37,6 @@ fun KotlinHierarchyTracker(): KotlinHierarchyTracker = KotlinHierarchyTrackerImp
     groups = mutableMapOf(),
 )
 
-@Suppress("DeprecatedCallableAddReplaceWith")
 private class KotlinHierarchyTrackerImpl(
     private val groupName: String?,
     override val targetSourceSets: GroupedSourceSets,

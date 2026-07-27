@@ -21,7 +21,6 @@ public data class URLProtocol(val name: String, val defaultPort: Int) : JvmSeria
         require(name.all { it.isLowerCase() }) { "All characters should be lower case" }
     }
 
-    @Suppress("PublicApiImplicitType")
     public companion object {
         /**
          * HTTP with port 80

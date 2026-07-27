@@ -478,7 +478,7 @@ public sealed class HttpAuthHeader(public val authScheme: String) {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.auth.HttpAuthHeader.Parameters)
      */
-    @Suppress("KDocMissingDocumentation", "PublicApiImplicitType")
+    @Suppress("KDocMissingDocumentation", "ConstPropertyName")
     public object Parameters {
         public const val Realm: String = "realm"
         public const val Charset: String = "charset"

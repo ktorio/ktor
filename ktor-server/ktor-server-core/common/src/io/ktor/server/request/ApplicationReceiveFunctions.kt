@@ -36,7 +36,6 @@ public open class ApplicationReceivePipeline(
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.request.ApplicationReceivePipeline.Phases)
      */
-    @Suppress("PublicApiImplicitType")
     public companion object Phases {
         /**
          * Executes before any transformations are made.

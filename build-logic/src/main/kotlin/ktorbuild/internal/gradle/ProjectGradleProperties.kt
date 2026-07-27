@@ -53,7 +53,6 @@ internal abstract class ProjectGradleProperties : ValueSource<Map<String, String
     }
 }
 
-@Suppress("UnstableApiUsage")
 internal fun ProviderFactory.projectGradleProperties(projectLayout: ProjectLayout, prefix: String): Provider<Map<String, String>> {
     return of(ProjectGradleProperties::class) {
         parameters {

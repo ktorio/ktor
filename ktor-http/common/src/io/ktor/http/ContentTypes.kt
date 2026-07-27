@@ -177,7 +177,7 @@ public class ContentType private constructor(
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.Application)
      */
-    @Suppress("KDocMissingDocumentation", "unused")
+    @Suppress("KDocMissingDocumentation")
     public object Application {
         public const val TYPE: String = "application"
 
@@ -232,7 +232,7 @@ public class ContentType private constructor(
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.Audio)
      */
-    @Suppress("KDocMissingDocumentation", "unused")
+    @Suppress("KDocMissingDocumentation")
     public object Audio {
         public const val TYPE: String = "audio"
 
@@ -262,7 +262,7 @@ public class ContentType private constructor(
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.Image)
      */
-    @Suppress("KDocMissingDocumentation", "unused")
+    @Suppress("KDocMissingDocumentation")
     public object Image {
         public const val TYPE: String = "image"
 
@@ -302,7 +302,7 @@ public class ContentType private constructor(
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.Message)
      */
-    @Suppress("KDocMissingDocumentation", "unused")
+    @Suppress("KDocMissingDocumentation")
     public object Message {
         public const val TYPE: String = "message"
 
@@ -330,7 +330,7 @@ public class ContentType private constructor(
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.MultiPart)
      */
-    @Suppress("KDocMissingDocumentation", "unused")
+    @Suppress("KDocMissingDocumentation")
     public object MultiPart {
         public const val TYPE: String = "multipart"
 
@@ -364,7 +364,7 @@ public class ContentType private constructor(
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.Text)
      */
-    @Suppress("KDocMissingDocumentation", "unused")
+    @Suppress("KDocMissingDocumentation")
     public object Text {
         public const val TYPE: String = "text"
 
@@ -400,7 +400,7 @@ public class ContentType private constructor(
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.Video)
      */
-    @Suppress("KDocMissingDocumentation", "unused")
+    @Suppress("KDocMissingDocumentation")
     public object Video {
         public const val TYPE: String = "video"
 
@@ -431,7 +431,7 @@ public class ContentType private constructor(
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentType.Font)
      */
-    @Suppress("KDocMissingDocumentation", "unused")
+    @Suppress("KDocMissingDocumentation")
     public object Font {
         public const val TYPE: String = "font"
 

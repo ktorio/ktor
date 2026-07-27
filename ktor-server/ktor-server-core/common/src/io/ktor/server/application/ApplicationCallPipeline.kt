@@ -13,7 +13,6 @@ import io.ktor.util.pipeline.*
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ApplicationCallPipeline)
  */
-@Suppress("PublicApiImplicitType")
 public open class ApplicationCallPipeline public constructor(
     final override val developmentMode: Boolean = false,
     public val environment: ApplicationEnvironment

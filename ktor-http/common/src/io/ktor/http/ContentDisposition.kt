@@ -58,7 +58,6 @@ public class ContentDisposition(
 
     override fun hashCode(): Int = disposition.hashCode() * 31 + parameters.hashCode()
 
-    @Suppress("unused", "PublicApiImplicitType")
     public companion object {
         /**
          * `Content-Disposition: file`
@@ -101,7 +100,7 @@ public class ContentDisposition(
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.ContentDisposition.Parameters)
      */
-    @Suppress("KDocMissingDocumentation", "unused", "PublicApiImplicitType")
+    @Suppress("KDocMissingDocumentation", "ConstPropertyName")
     public object Parameters {
         public const val FileName: String = "filename"
         public const val FileNameAsterisk: String = "filename*"
