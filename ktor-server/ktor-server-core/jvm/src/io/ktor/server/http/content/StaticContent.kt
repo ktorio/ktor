@@ -1009,10 +1009,10 @@ private object TailcardSelector : RouteSelector() {
     override fun toString(): String = "(static-content)"
 }
 
-// TODO: Think how to separate methods avoid overwhelming the caller
 // TODO: Hide the manifest filename by default
 // TODO: Add Gradle task to generate manifest for files
 // TODO: Think of moving this class to ktor-utils
+// TODO: Think how to separate methods avoid overwhelming the caller
 // TODO: Hardcode static prefix
 // TODO: Think how to match resources and files on different level of manifest file
 public class ContentHash {
