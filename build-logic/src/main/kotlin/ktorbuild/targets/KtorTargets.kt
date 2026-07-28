@@ -271,7 +271,6 @@ internal fun KotlinMultiplatformExtension.addTargets(targets: KtorTargets, isCI:
     // Tier 2
     if (targets.isEnabled("linuxArm64")) linuxArm64()
     if (targets.isEnabled("linuxX64")) linuxX64()
-    if (targets.isEnabled("watchosArm32")) watchosArm32()
     if (targets.isEnabled("watchosArm64")) watchosArm64()
     if (targets.isEnabled("watchosX64")) watchosX64()
     if (targets.isEnabled("watchosSimulatorArm64")) watchosSimulatorArm64()
