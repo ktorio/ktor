@@ -687,12 +687,28 @@ private suspend fun ByteReadChannel.internalReadLineTo(
     if (isClosedForRead) return -1
 
     var consumed = 0L
-    val outBuffer = Buffer()
+    var outBufferCreated = false
+    val outBuffer: Buffer by lazy {
+        outBufferCreated = true
+        Buffer()
+    }
 
     fun transferBytes(count: Long) {
         if (count > 0L) {
             outBuffer.write(readBuffer, count)
             consumed += count
+        }
+    }
+
+    fun completeLine(count: Long) {
+        if (!outBufferCreated) {
+            if (count > 0L) {
+                out.append(readBuffer.readString(count))
+                consumed += count
+            }
+        } else {
+            transferBytes(count)
+            out.append(outBuffer.readString())
         }
     }
 
@@ -735,33 +751,31 @@ private suspend fun ByteReadChannel.internalReadLineTo(
 
         // Sole CR in the buffer
         if (crIndex >= 0) {
-            transferBytes(crIndex)
+            completeLine(crIndex)
             readBuffer.discard(1)
-            out.append(outBuffer.readString())
+
             return consumed
         }
 
         // Fast path. LF or CRLF in the buffer
         if (lfIndex == 0L) {
+            completeLine(lfIndex)
             readBuffer.discard(1)
-            out.append(outBuffer.readString())
             return consumed
         }
         if (lfIndex > 0) {
             val isCrlf = if (readBuffer.buffer[lfIndex - 1] == CR) 1L else 0L
-            transferBytes(lfIndex - isCrlf)
+            completeLine(lfIndex - isCrlf)
             readBuffer.discard(1 + isCrlf)
-            out.append(outBuffer.readString())
             return consumed
         }
 
         val count = minOf(limitLeft, readBuffer.remaining)
         // Check for the corner case when the last byte in the buffer is CR, and LF is in the next buffer
         if (readBuffer.buffer[count - 1] == CR) {
-            transferBytes(count - 1)
+            completeLine(count - 1)
 
             if (readBuffer.discardCrlfOrCr()) {
-                out.append(outBuffer.readString())
                 return consumed
             } else {
                 transferBytes(1)
