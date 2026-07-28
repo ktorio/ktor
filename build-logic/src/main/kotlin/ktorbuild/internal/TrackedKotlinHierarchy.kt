@@ -77,7 +77,6 @@ private class KotlinHierarchyTrackerImpl(
     }
 
     override fun withWatchos() {
-        withWatchosArm32()
         withWatchosArm64()
         withWatchosX64()
         withWatchosDeviceArm64()
@@ -127,7 +126,6 @@ private class KotlinHierarchyTrackerImpl(
     override fun withIosArm64() = addTarget("iosArm64")
     override fun withIosX64() = addTarget("iosX64")
     override fun withIosSimulatorArm64() = addTarget("iosSimulatorArm64")
-    override fun withWatchosArm32() = addTarget("watchosArm32")
     override fun withWatchosArm64() = addTarget("watchosArm64")
     override fun withWatchosX64() = addTarget("watchosX64")
     override fun withWatchosSimulatorArm64() = addTarget("watchosSimulatorArm64")
