@@ -37,6 +37,7 @@ import java.security.MessageDigest
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.io.path.isDirectory
 import kotlin.io.path.pathString
+import kotlin.text.isEmpty
 
 /**
  * Attribute to assign the path of a static file served in the response.  The main use of this attribute is to indicate
@@ -346,6 +347,7 @@ public fun Route.staticResources(
     val fallback = staticRoute.fallback
     val lastModified = staticRoute.lastModifiedExtractor
     val etag = staticRoute.etagExtractor
+    val contentHash = staticRoute.contentHash
     return staticContentRoute(remotePath, autoHead) {
         respondStaticResource(
             index = index,
@@ -360,6 +362,7 @@ public fun Route.staticResources(
             extensions = extensions,
             defaultPath = defaultPath,
             fallback = fallback,
+            contentHash = contentHash,
         )
     }
 }
@@ -905,6 +908,7 @@ private suspend fun ApplicationCall.respondStaticResource(
     exclude: (URL) -> Boolean,
     extensions: List<String>,
     defaultPath: String?,
+    contentHash: ContentHash? = null,
     fallback: suspend (String, ApplicationCall) -> Unit,
 ) {
     val relativePath = parameters.getAll(pathParameterName)?.joinToString(File.separator) ?: return
@@ -918,7 +922,8 @@ private suspend fun ApplicationCall.respondStaticResource(
         modifier = modifier,
         lastModified = lastModified,
         etag = etag,
-        exclude = exclude
+        exclude = exclude,
+        contentHash = contentHash
     )
 
     if (isHandled) return
@@ -932,7 +937,8 @@ private suspend fun ApplicationCall.respondStaticResource(
             modifier = modifier,
             lastModified = lastModified,
             etag = etag,
-            exclude = exclude
+            exclude = exclude,
+            contentHash = contentHash
         )
         if (isHandled) return
     }
@@ -961,6 +967,7 @@ private suspend fun ApplicationCall.respondStaticResource(
             modifier = modifier,
             lastModified = lastModified,
             etag = etag,
+            contentHash = contentHash
         )
     }
 
@@ -1003,7 +1010,11 @@ private object TailcardSelector : RouteSelector() {
 }
 
 // TODO: Think how to separate methods avoid overwhelming the caller
-// TODO: Resources
+// TODO: Hide the manifest filename by default
+// TODO: Add Gradle task to generate manifest for files
+// TODO: Think of moving this class to ktor-utils
+// TODO: Hardcode static prefix
+// TODO: Think how to match resources and files on different level of manifest file
 public class ContentHash {
     private sealed interface TreeValue
     private class OriginalName(val name: String) : TreeValue
@@ -1013,9 +1024,19 @@ public class ContentHash {
     private val root = Tree(ConcurrentHashMap())
 
     public fun load(manifest: File) {
+        loadFrom(manifest.readLines())
+    }
+
+    public fun load(resource: String) {
+        val manifest = this::class.java.classLoader.getResource(resource)
+            ?: throw IllegalStateException("Manifest resource $resource not found")
+        loadFrom(manifest.readText().split('\n'))
+    }
+
+    private fun loadFrom(lines: List<String>) {
         root.map.clear()
 
-        for (line in manifest.readLines()) {
+        for (line in lines) {
             if (line.isEmpty()) continue
             val (newPath, originalName) = line.split(' ', limit = 2)
 
@@ -1037,6 +1058,7 @@ public class ContentHash {
             tree.map[originalName] = HashedName(parts.last())
         }
     }
+
 
     public suspend fun generate(dir: File) {
         require(dir.isDirectory)
@@ -1126,6 +1148,31 @@ public class ContentHash {
                 is OriginalName -> {
                     prefix.append(t.name)
                     return dir.combineSafe(prefix.toString())
+                }
+                is HashedName -> {
+                    return null
+                }
+                is Tree -> {
+                    prefix.append("$part/")
+                    tree = t
+                }
+                null ->  {
+                    return null
+                }
+            }
+        }
+
+        return null
+    }
+
+    public fun lookupResource(resource: String): String? {
+        var tree = root
+        val prefix = StringBuilder()
+        for (part in resource.split('/')) {
+            when (val t = tree.map[part]) {
+                is OriginalName -> {
+                    prefix.append(t.name)
+                    return prefix.toString()
                 }
                 is HashedName -> {
                     return null

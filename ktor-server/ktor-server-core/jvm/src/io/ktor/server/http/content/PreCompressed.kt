@@ -196,13 +196,17 @@ internal suspend fun ApplicationCall.respondStaticResource(
     requestedResource: String,
     packageName: String?,
     compressedTypes: List<CompressedFileType>?,
+    contentHash: ContentHash? = null,
     contentType: (URL) -> ContentType = { ContentType.defaultForFileExtension(it.path.extension()) },
     cacheControl: (URL) -> List<CacheControl> = { emptyList() },
     modifier: suspend (URL, ApplicationCall) -> Unit = { _, _ -> },
     lastModified: (URL) -> GMTDate? = { null },
     etag: ETagProvider = ETagProvider { null },
-    exclude: (URL) -> Boolean = { false }
+    exclude: (URL) -> Boolean = { false },
 ) {
+    var requestedResource = requestedResource
+    contentHash?.lookupResource(requestedResource)?.let { requestedResource = it }
+
     attributes.put(StaticFileLocationProperty, requestedResource)
     val bestCompressionFit = bestCompressionFit(
         call = this,
