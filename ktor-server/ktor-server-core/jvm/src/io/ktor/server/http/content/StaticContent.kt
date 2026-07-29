@@ -100,7 +100,7 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
     internal var autoHeadResponse: Boolean = false
     internal var lastModifiedExtractor: (Resource) -> GMTDate? = { null }
     internal var etagExtractor: ETagProvider = ETagProvider { null }
-    internal var contentHash: ContentHash? = null
+    internal var contentHash: ContentHash.Readonly? = null
 
     /**
      * Enables pre-compressed files or resources.
@@ -262,7 +262,7 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
         this.extensions = extensions.toList()
     }
 
-    public fun useContentHash(contentHash: ContentHash) {
+    public fun useContentHash(contentHash: ContentHash.Readonly) {
         this.contentHash = contentHash
     }
 }
@@ -751,7 +751,7 @@ private suspend fun ApplicationCall.respondStaticFile(
     extensions: List<String>,
     defaultPath: String?,
     fallback: suspend (String, ApplicationCall) -> Unit,
-    contentHash: ContentHash?
+    contentHash: ContentHash.Readonly?
 ) {
     val relativePath = parameters.getAll(pathParameterName)?.joinToString(File.separator) ?: return
     var requestedFile = dir.combineSafe(relativePath)
@@ -764,7 +764,6 @@ private suspend fun ApplicationCall.respondStaticFile(
 
     val isDirectory = requestedFile.isDirectory
     if (index != null && isDirectory) {
-        // TODO: Fingerprinting for index
         respondStaticFile(
             File(requestedFile, index),
             compressedTypes,
@@ -778,9 +777,9 @@ private suspend fun ApplicationCall.respondStaticFile(
         if (checkExclude(requestedFile)) return
 
         if (contentHash != null) {
-            val file = contentHash.lookupFile(dir, relativePath)
-            if (file != null) {
-                requestedFile = file
+            val realRelativePath = contentHash.lookup(relativePath)
+            if (realRelativePath != null) {
+                requestedFile = dir.combineSafe(realRelativePath)
             }
         }
 
@@ -908,7 +907,7 @@ private suspend fun ApplicationCall.respondStaticResource(
     exclude: (URL) -> Boolean,
     extensions: List<String>,
     defaultPath: String?,
-    contentHash: ContentHash? = null,
+    contentHash: ContentHash.Readonly? = null,
     fallback: suspend (String, ApplicationCall) -> Unit,
 ) {
     val relativePath = parameters.getAll(pathParameterName)?.joinToString(File.separator) ?: return
@@ -1009,25 +1008,34 @@ private object TailcardSelector : RouteSelector() {
     override fun toString(): String = "(static-content)"
 }
 
-// TODO: Hide the manifest filename by default
-// TODO: Add Gradle task to generate manifest for files
 // TODO: Think of moving this class to ktor-utils
-// TODO: Think how to separate methods avoid overwhelming the caller
-// TODO: Hardcode static prefix
-// TODO: Think how to match resources and files on different level of manifest file
 public class ContentHash {
-    private sealed interface TreeValue
-    private class OriginalName(val name: String) : TreeValue
-    private class HashedName(val name: String) : TreeValue
-    private class Tree(val map: java.util.concurrent.ConcurrentMap<String, TreeValue>) : TreeValue
+    internal sealed interface TreeValue
+    internal class OriginalName(val name: String) : TreeValue
+    internal class HashedName(val name: String) : TreeValue
+    internal class Tree(val map: java.util.concurrent.ConcurrentMap<String, TreeValue>) : TreeValue
 
     private val root = Tree(ConcurrentHashMap())
 
-    public fun load(manifest: File) {
+    public fun loadFromManifest(dir: File) {
+        load(dir.resolve(".assets-manifest.txt"))
+    }
+
+    public fun loadFromManifest(packageName: String) {
+        load("$packageName/.assets-manifest.txt")
+    }
+
+    public fun saveManifest(directory: File) {
+        SystemFileSystem.sink(kotlinx.io.files.Path(directory.resolve(".assets-manifest.txt").path)).buffered().use { sink ->
+            sink.transferFrom(dump())
+        }
+    }
+
+    internal fun load(manifest: File) {
         loadFrom(manifest.readLines())
     }
 
-    public fun load(resource: String) {
+    internal fun load(resource: String) {
         val manifest = this::class.java.classLoader.getResource(resource)
             ?: throw IllegalStateException("Manifest resource $resource not found")
         loadFrom(manifest.readText().split('\n'))
@@ -1140,82 +1148,89 @@ public class ContentHash {
         }
     }
 
-    public fun lookupFile(dir: File, relativePath: String): File? {
-        var tree = root
-        val prefix = StringBuilder()
-        for (part in relativePath.split('/')) {
-            when (val t = tree.map[part]) {
-                is OriginalName -> {
-                    prefix.append(t.name)
-                    return dir.combineSafe(prefix.toString())
-                }
-                is HashedName -> {
-                    return null
-                }
-                is Tree -> {
-                    prefix.append("$part/")
-                    tree = t
-                }
-                null ->  {
-                    return null
-                }
-            }
-        }
-
-        return null
-    }
-
-    public fun lookupResource(resource: String): String? {
-        var tree = root
-        val prefix = StringBuilder()
-        for (part in resource.split('/')) {
-            when (val t = tree.map[part]) {
-                is OriginalName -> {
-                    prefix.append(t.name)
-                    return prefix.toString()
-                }
-                is HashedName -> {
-                    return null
-                }
-                is Tree -> {
-                    prefix.append("$part/")
-                    tree = t
-                }
-                null ->  {
-                    return null
-                }
-            }
-        }
-
-        return null
-    }
-
-    public fun webPath(remotePath: String, filepath: String): String? {
-        var tree = root
-        val prefix = StringBuilder()
-        for (part in filepath.split('/')) {
-            when (val t = tree.map[part]) {
-                is OriginalName -> {
-                    return null
-                }
-                is HashedName -> {
-                    prefix.append(t.name)
-                    return if (remotePath.isNotEmpty()) {
-                        "$remotePath/$prefix"
-                    } else {
-                        prefix.toString()
+    public fun readonly(path: String, remotePath: String = ""): Readonly {
+        return if (path.isEmpty()) {
+            Readonly(root, remotePath)
+        } else {
+            var tree = root
+            for (part in path.split('/')) {
+                when (val t = tree.map[part]) {
+                    is Tree -> {
+                        tree = t
+                    }
+                    else -> {
+                        throw IllegalStateException("Path '$path' not points to a tree")
                     }
                 }
-                is Tree -> {
-                    prefix.append("$part/")
-                    tree = t
-                }
-                null ->  {
-                    return null
+            }
+
+            Readonly(tree, remotePath)
+        }
+    }
+
+    public fun readonly(remotePath: String = ""): Readonly {
+        return readonly("", remotePath)
+    }
+
+    public class Readonly internal constructor(
+        private val root: Tree,
+        private val remotePath: String = ""
+    ) {
+        public fun lookup(path: String): String? {
+            var tree = root
+            val prefix = StringBuilder()
+            for (part in path.split('/')) {
+                when (val t = tree.map[part]) {
+                    is OriginalName -> {
+                        prefix.append(t.name)
+                        return prefix.toString()
+                    }
+
+                    is HashedName -> {
+                        return null
+                    }
+
+                    is Tree -> {
+                        prefix.append("$part/")
+                        tree = t
+                    }
+
+                    null -> {
+                        return null
+                    }
                 }
             }
+
+            return null
         }
 
-        return null
+        public fun webPath(filepath: String): String? {
+            var tree = root
+            val prefix = StringBuilder()
+            for (part in filepath.split('/')) {
+                when (val t = tree.map[part]) {
+                    is OriginalName -> {
+                        return null
+                    }
+                    is HashedName -> {
+                        prefix.append(t.name)
+                        return if (remotePath.isNotEmpty()) {
+                            "$remotePath/$prefix"
+                        } else {
+                            prefix.toString()
+                        }
+                    }
+                    is Tree -> {
+                        prefix.append("$part/")
+                        tree = t
+                    }
+                    null ->  {
+                        return null
+                    }
+                }
+            }
+
+            return null
+        }
     }
 }

@@ -67,13 +67,13 @@ public val Thymeleaf: ApplicationPlugin<TemplateEngine> = createApplicationPlugi
     }
 }
 
-internal class Assets(private val contentHash: ContentHash) {
-    fun webPath(remotePath: String, filepath: String): String? {
-        return contentHash.webPath(remotePath, filepath)
+internal class Assets(private val contentHash: ContentHash.Readonly) {
+    fun webPath(filepath: String): String? {
+        return contentHash.webPath(filepath)
     }
 }
 
-public fun TemplateEngine.useContentHash(contentHash: ContentHash) {
+public fun TemplateEngine.useContentHash(contentHash: ContentHash.Readonly) {
     addDialect(object : AbstractDialect("assets"), IExpressionObjectDialect {
         private val factory = object : IExpressionObjectFactory {
             override fun getAllExpressionObjectNames(): Set<String?> = setOf("assets")

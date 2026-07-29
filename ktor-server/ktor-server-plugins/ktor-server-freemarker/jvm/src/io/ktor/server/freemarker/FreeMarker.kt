@@ -59,15 +59,13 @@ public val FreeMarker: ApplicationPlugin<Configuration> = createApplicationPlugi
     }
 }
 
-public fun Configuration.useContentHash(contentHash: ContentHash) {
+public fun Configuration.useContentHash(contentHash: ContentHash.Readonly) {
     setSharedVariable("webAsset", object : TemplateMethodModelEx {
         override fun exec(arguments: List<*>?): Any? {
-            if (arguments == null || arguments.size != 2) throw TemplateModelException("webAsset() expects two arguments: remotePath and filepath")
-            val remotePath = DeepUnwrap.unwrap(arguments[0] as TemplateModel) as? String
-            val filepath = DeepUnwrap.unwrap(arguments[1] as TemplateModel) as? String
-            if (remotePath == null) throw TemplateModelException("webAsset() expects remotePath to be a string")
-            if (filepath == null) throw TemplateModelException("webAsset() expects filepath to be a string")
-            return contentHash.webPath(remotePath, filepath)
+            if (arguments == null || arguments.size != 1) throw TemplateModelException("webAsset() expects one argument: filepath")
+            val filepath = DeepUnwrap.unwrap(arguments[0] as TemplateModel) as? String
+                ?: throw TemplateModelException("webAsset() expects filepath to be a string")
+            return contentHash.webPath(filepath)
         }
     })
 }
