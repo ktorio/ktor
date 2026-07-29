@@ -538,8 +538,6 @@ public final class io/ktor/server/auth/OAuthServerSettings$OAuth2ServerSettings 
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/HttpMethod;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;ZLio/ktor/util/NonceManager;Lkotlin/jvm/functions/Function1;ZLjava/util/List;Ljava/util/List;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function3;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/HttpMethod;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/Map;ZLio/ktor/util/NonceManager;Lkotlin/jvm/functions/Function2;ZLjava/util/List;Ljava/util/List;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function3;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/HttpMethod;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/Map;ZLio/ktor/util/NonceManager;Lkotlin/jvm/functions/Function2;ZLjava/util/List;Ljava/util/List;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function3;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/HttpMethod;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/Map;ZLio/ktor/util/NonceManager;Lkotlin/jvm/functions/Function2;ZLjava/util/List;Ljava/util/List;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/HttpMethod;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/Map;ZLio/ktor/util/NonceManager;Lkotlin/jvm/functions/Function2;ZLjava/util/List;Ljava/util/List;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;Lkotlin/jvm/functions/Function3;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getAccessTokenInterceptor ()Lkotlin/jvm/functions/Function1;
 	public final fun getAccessTokenRequiresBasicAuth ()Z
 	public final fun getAccessTokenUrl ()Ljava/lang/String;
@@ -551,13 +549,11 @@ public final class io/ktor/server/auth/OAuthServerSettings$OAuth2ServerSettings 
 	public final fun getDefaultScopes ()Ljava/util/List;
 	public final fun getExtraAuthParameters ()Ljava/util/List;
 	public final fun getExtraTokenParameters ()Ljava/util/List;
-	public final fun getExtraTokenParametersProvider ()Lkotlin/jvm/functions/Function3;
 	public final fun getNonceManager ()Lio/ktor/util/NonceManager;
 	public final fun getOnStateCreated ()Lkotlin/jvm/functions/Function3;
 	public final fun getPassParamsInURL ()Z
 	public final fun getRefreshUrl ()Ljava/lang/String;
 	public final fun getRequestMethod ()Lio/ktor/http/HttpMethod;
-	public final fun getVerifyState ()Lkotlin/jvm/functions/Function3;
 }
 
 public final class io/ktor/server/auth/OAuthVersion : java/lang/Enum {
