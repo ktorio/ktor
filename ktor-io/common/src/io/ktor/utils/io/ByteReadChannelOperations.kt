@@ -687,21 +687,21 @@ private suspend fun ByteReadChannel.internalReadLineTo(
     if (isClosedForRead) return -1
 
     var consumed = 0L
-    var outBufferCreated = false
-    val outBuffer: Buffer by lazy {
-        outBufferCreated = true
-        Buffer()
-    }
+    var outBuffer: Buffer? = null
 
     fun transferBytes(count: Long) {
         if (count > 0L) {
+            if (outBuffer == null) {
+                outBuffer = Buffer()
+            }
+
             outBuffer.write(readBuffer, count)
             consumed += count
         }
     }
 
-    fun completeLine(count: Long) {
-        if (!outBufferCreated) {
+    fun transferLine(count: Long) {
+        if (outBuffer == null) {
             if (count > 0L) {
                 out.append(readBuffer.readString(count))
                 consumed += count
@@ -751,7 +751,7 @@ private suspend fun ByteReadChannel.internalReadLineTo(
 
         // Sole CR in the buffer
         if (crIndex >= 0) {
-            completeLine(crIndex)
+            transferLine(crIndex)
             readBuffer.discard(1)
 
             return consumed
@@ -759,13 +759,13 @@ private suspend fun ByteReadChannel.internalReadLineTo(
 
         // Fast path. LF or CRLF in the buffer
         if (lfIndex == 0L) {
-            completeLine(lfIndex)
+            transferLine(lfIndex)
             readBuffer.discard(1)
             return consumed
         }
         if (lfIndex > 0) {
             val isCrlf = if (readBuffer.buffer[lfIndex - 1] == CR) 1L else 0L
-            completeLine(lfIndex - isCrlf)
+            transferLine(lfIndex - isCrlf)
             readBuffer.discard(1 + isCrlf)
             return consumed
         }
@@ -773,7 +773,7 @@ private suspend fun ByteReadChannel.internalReadLineTo(
         val count = minOf(limitLeft, readBuffer.remaining)
         // Check for the corner case when the last byte in the buffer is CR, and LF is in the next buffer
         if (readBuffer.buffer[count - 1] == CR) {
-            completeLine(count - 1)
+            transferLine(count - 1)
 
             if (readBuffer.discardCrlfOrCr()) {
                 return consumed
@@ -803,12 +803,17 @@ private suspend fun ByteReadChannel.internalReadLineTo(
         when (readBuffer.buffer[0]) {
             LF -> {
                 readBuffer.discard(1)
-                out.append(outBuffer.readString())
+                if (outBuffer != null) {
+                    out.append(outBuffer.readString())
+                }
+
                 return consumed
             }
 
             CR -> if (readBuffer.discardCrlfOrCr()) {
-                out.append(outBuffer.readString())
+                if (outBuffer != null) {
+                    out.append(outBuffer.readString())
+                }
                 return consumed
             }
         }
@@ -816,7 +821,9 @@ private suspend fun ByteReadChannel.internalReadLineTo(
         throwTooLongLineException(limit)
     }
 
-    out.append(outBuffer.readString())
+    if (outBuffer != null) {
+        out.append(outBuffer.readString())
+    }
 
     if (throwOnIncompleteLine) throwEndOfStreamException(consumed)
     return consumed
