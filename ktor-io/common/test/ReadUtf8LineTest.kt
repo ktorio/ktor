@@ -34,6 +34,14 @@ class ReadUtf8LineTest {
     }
 
     @Test
+    fun `test reading exact limit without line ending`() = runTest {
+        val line = "привет"
+        val channel = ByteReadChannel(line)
+
+        assertEquals(line, channel.readUTF8Line(line.encodeToByteArray().size))
+    }
+
+    @Test
     fun `test reading line with newline after flush`() = runTest {
         val channel = writer {
             channel.writeStringUtf8("4\r")
