@@ -16,10 +16,6 @@ import io.ktor.utils.io.*
 /**
  * Marks route blocks where a non-null principal is required.
  *
- * Typed authentication extensions such as [ApplicationCall.principal] and
- * [ApplicationCall.session] require this context receiver. Optional routes use
- * [principalOrNull] instead.
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.PrincipalOptionality)
  */
 @ExperimentalKtorApi
@@ -58,11 +54,10 @@ public open class AuthenticatedContext<P : Any> internal constructor(
  * Authenticated principal captured for the current typed route.
  *
  * The property is available inside route handlers nested in [authenticateWith] and is typed by the scheme used to
- * protect the route. Unlike [io.ktor.server.auth.principal], it does not require an explicit type argument and is
+ * protect the route. Unlike [ApplicationCall.principal], it does not require an explicit type argument and is
  * only available inside typed authentication route blocks.
  *
- * Use [io.ktor.server.auth.principal] outside typed routes or when reading a principal from a specific provider by
- * name.
+ * Use [ApplicationCall.principal] outside typed routes.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.principal)
  */
@@ -78,7 +73,7 @@ public val <P : Any> ApplicationCall.principal: P
  * was resolved.
  *
  * Use this property inside [authenticateWithOptional] route blocks. For required authentication, prefer
- * [ApplicationCall.principal].
+ * `principal`.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.principalOrNull)
  */
