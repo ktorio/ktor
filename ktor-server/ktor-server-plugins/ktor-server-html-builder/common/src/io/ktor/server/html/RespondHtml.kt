@@ -64,15 +64,21 @@ public suspend fun ApplicationCall.respondHtmlFragment(
  * This is useful for returning partial HTML content, such as HTMX responses.
  * You can learn more from [HTML DSL](https://ktor.io/docs/html-dsl.html).
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.html.respondHtmlFragment)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.html.respondHtmlPartial)
  */
 public suspend inline fun ApplicationCall.respondHtmlPartial(
     status: HttpStatusCode = HttpStatusCode.OK,
     block: TagConsumer<Appendable>.() -> Unit
 ) {
-    respond(TextContent(buildString {
-        appendHTML(prettyPrint = false).block()
-    }, ContentType.Text.Html.withCharset(Charsets.UTF_8), status))
+    respond(
+        TextContent(
+            buildString {
+                appendHTML(prettyPrint = false).block()
+            },
+            ContentType.Text.Html.withCharset(Charsets.UTF_8),
+            status
+        )
+    )
 }
 
 /**
