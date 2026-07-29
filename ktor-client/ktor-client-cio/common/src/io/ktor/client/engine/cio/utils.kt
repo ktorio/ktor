@@ -45,10 +45,11 @@ internal suspend fun writeHeaders(
     val url = request.url.rebuildIfNeeded()
     val headers = request.headers
     val body = request.body
+    val contentBody = body.getUnwrapped()
 
-    val contentLength = headers[HttpHeaders.ContentLength] ?: body.contentLength?.toString()
+    val contentLength = headers[HttpHeaders.ContentLength] ?: contentBody.contentLength?.toString()
     val contentEncoding = headers[HttpHeaders.TransferEncoding]
-    val responseEncoding = body.headers[HttpHeaders.TransferEncoding]
+    val responseEncoding = contentBody.headers[HttpHeaders.TransferEncoding]
     val chunked = isChunked(contentLength, responseEncoding, contentEncoding)
     val expected = headers[HttpHeaders.Expect]
 
@@ -67,7 +68,7 @@ internal suspend fun writeHeaders(
             builder.headerLine(HttpHeaders.Host, host)
         }
 
-        val hasContent = body !is OutgoingContent.NoContent
+        val hasContent = contentBody !is OutgoingContent.NoContent
         if (contentLength != null) {
             if (method.supportsRequestBody || hasContent) {
                 builder.headerLine(HttpHeaders.ContentLength, contentLength)
@@ -80,7 +81,7 @@ internal suspend fun writeHeaders(
             builder.headerLine(key, value)
         }
 
-        if (chunked && contentEncoding == null && responseEncoding == null && body !is OutgoingContent.NoContent) {
+        if (chunked && contentEncoding == null && responseEncoding == null && hasContent) {
             builder.headerLine(HttpHeaders.TransferEncoding, "chunked")
         }
 
