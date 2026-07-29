@@ -13,13 +13,16 @@ import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
+import io.ktor.util.*
 import io.ktor.util.internal.*
+import io.ktor.util.logging.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.io.*
 import kotlinx.serialization.json.*
-import kotlin.io.encoding.Base64
+
+private val Logger: Logger = KtorSimpleLogger("io.ktor.auth.oauth")
 
 internal suspend fun ApplicationCall.oauth2HandleCallback(): OAuthCallback? {
     val params = when (request.contentType()) {
@@ -61,17 +64,13 @@ internal suspend fun ApplicationCall.redirectAuthenticateOAuth2(
     )
 }
 
-internal suspend fun ApplicationCall.oauth2RequestAccessToken(
+internal suspend fun oauth2RequestAccessToken(
     client: HttpClient,
     settings: OAuthServerSettings.OAuth2ServerSettings,
     usedRedirectUrl: String,
     callbackResponse: OAuthCallback.TokenSingle,
     configure: (HttpRequestBuilder.() -> Unit)? = null
 ): OAuthAccessTokenResponse.OAuth2 {
-    if (!settings.verifyState(this, callbackResponse.state)) {
-        throw OAuth2Exception.InvalidNonce()
-    }
-
     val interceptor: HttpRequestBuilder.() -> Unit = when (configure) {
         null -> settings.accessTokenInterceptor
 
@@ -80,21 +79,21 @@ internal suspend fun ApplicationCall.oauth2RequestAccessToken(
             configure()
         }
     }
-    val tokenParameters = settings.extraTokenParameters + settings.extraTokenParametersProvider(this, callbackResponse)
 
     return oauth2RequestAccessToken(
-        client = client,
-        method = settings.requestMethod,
-        usedRedirectUrl = usedRedirectUrl,
-        baseUrl = settings.accessTokenUrl,
-        clientId = settings.clientId,
-        clientSecret = settings.clientSecret,
-        state = callbackResponse.state,
-        code = callbackResponse.token,
-        extraParameters = tokenParameters,
-        configure = interceptor,
-        useBasicAuth = settings.accessTokenRequiresBasicAuth,
-        passParamsInURL = settings.passParamsInURL
+        client,
+        settings.requestMethod,
+        usedRedirectUrl,
+        settings.accessTokenUrl,
+        settings.clientId,
+        settings.clientSecret,
+        callbackResponse.state,
+        callbackResponse.token,
+        settings.extraTokenParameters,
+        interceptor,
+        settings.accessTokenRequiresBasicAuth,
+        settings.nonceManager,
+        settings.passParamsInURL
     )
 }
 
@@ -136,9 +135,14 @@ private suspend fun oauth2RequestAccessToken(
     extraParameters: List<Pair<String, String>> = emptyList(),
     configure: HttpRequestBuilder.() -> Unit = {},
     useBasicAuth: Boolean = false,
+    nonceManager: NonceManager,
     passParamsInURL: Boolean = false,
     grantType: String = OAuthGrantTypes.AuthorizationCode
 ): OAuthAccessTokenResponse.OAuth2 {
+    if (!nonceManager.verifyNonce(state.orEmpty())) {
+        throw OAuth2Exception.InvalidNonce()
+    }
+
     val request = HttpRequestBuilder()
     request.url.takeFrom(baseUrl)
 
@@ -188,7 +192,7 @@ private suspend fun oauth2RequestAccessToken(
                 HttpHeaders.Authorization,
                 HttpAuthHeader.Single(
                     AuthScheme.Basic,
-                    Base64.encode("$clientId:$clientSecret".toByteArray(Charsets.ISO_8859_1))
+                    "$clientId:$clientSecret".toByteArray(Charsets.ISO_8859_1).encodeBase64()
                 ).render()
             )
         }
@@ -282,13 +286,8 @@ public suspend fun verifyWithOAuth2(
     client: HttpClient,
     settings: OAuthServerSettings.OAuth2ServerSettings
 ): OAuthAccessTokenResponse.OAuth2 {
-    val nonce = "" // because state is null
-    if (!settings.nonceManager.verifyNonce(nonce)) {
-        throw OAuth2Exception.InvalidNonce()
-    }
     return oauth2RequestAccessToken(
-        client = client,
-        method = HttpMethod.Post,
+        client, HttpMethod.Post,
         usedRedirectUrl = null,
         baseUrl = settings.accessTokenUrl,
         clientId = settings.clientId,
@@ -301,6 +300,7 @@ public suspend fun verifyWithOAuth2(
             OAuth2RequestParameters.Password to credential.password
         ),
         useBasicAuth = true,
+        nonceManager = settings.nonceManager,
         passParamsInURL = settings.passParamsInURL,
         grantType = OAuthGrantTypes.Password
     )
