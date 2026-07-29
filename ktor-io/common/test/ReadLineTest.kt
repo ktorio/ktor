@@ -8,7 +8,10 @@ import io.ktor.utils.io.charsets.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.yield
+import kotlinx.io.Buffer
 import kotlinx.io.EOFException
+import kotlinx.io.IOException
+import kotlinx.io.writeString
 import kotlin.test.*
 
 class ReadLineTest {
@@ -132,10 +135,12 @@ class ReadLineTest {
     }
 
     @Test
-    fun `limit - exact limit with LF immediately after unicode`() = runTest {
-        val channel = ByteReadChannel("привет\n")
-        val line = channel.readLineStrict(12)
-        assertEquals("привет", line)
+    fun `returns number of UTF-8 bytes at exact limit`() = runTest {
+        val line = "привет"
+        val encodedSize = line.encodeToByteArray().size.toLong()
+
+        ByteReadChannel("$line\n").assertLines(line)
+        ByteReadChannel("$line\n").assertLines(line, limit = encodedSize)
     }
 
     @Test
@@ -216,6 +221,7 @@ class ReadLineTest {
         assertFailsWith<TooLongLineException> {
             channel.readLineStrictTo(buffer, limit = 5)
         }
+        assertEquals("12345", buffer.toString())
     }
 
     @Test
@@ -225,6 +231,28 @@ class ReadLineTest {
         assertFailsWith<EOFException> {
             channel.readLineStrictTo(buffer, limit = 5)
         }
+        assertEquals("12345", buffer.toString())
+    }
+
+    @OptIn(InternalAPI::class)
+    @Test
+    fun `appends buffered bytes before propagating channel failure`() = runTest {
+        val channel = object : ByteReadChannel {
+            override val closedCause: Throwable? = null
+            override val isClosedForRead: Boolean = false
+            override val readBuffer = Buffer().apply { writeString("12345") }
+
+            override suspend fun awaitContent(min: Int): Boolean {
+                throw IOException("Test failure")
+            }
+
+            override fun cancel(cause: Throwable?) {}
+        }
+
+        assertFailsWith<IOException> {
+            channel.readLineStrictTo(buffer)
+        }
+        assertEquals("12345", buffer.toString())
     }
 
     @Test
@@ -326,8 +354,9 @@ class ReadLineTest {
     ) {
         for (line in expected) {
             buffer.clear()
+            val expectedByteCount = line.encodeToByteArray().size.toLong()
             assertEquals(
-                line.length.toLong(),
+                expectedByteCount,
                 if (limit == -1L) readLineTo(buffer, lineEnding) else readLineStrictTo(buffer, limit, lineEnding),
                 "Unexpected line length for line \"$line\""
             )

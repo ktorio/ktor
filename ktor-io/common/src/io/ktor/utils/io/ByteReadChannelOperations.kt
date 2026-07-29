@@ -689,7 +689,7 @@ private suspend fun ByteReadChannel.internalReadLineTo(
     var consumed = 0L
     var outBuffer: Buffer? = null
 
-    fun transferBytes(count: Long) {
+    fun bufferBytes(count: Long) {
         if (count > 0L) {
             if (outBuffer == null) {
                 outBuffer = Buffer()
@@ -700,15 +700,14 @@ private suspend fun ByteReadChannel.internalReadLineTo(
         }
     }
 
-    fun transferLine(count: Long) {
+    fun appendOrBuffer(count: Long) {
         if (outBuffer == null) {
             if (count > 0L) {
                 out.append(readBuffer.readString(count))
                 consumed += count
             }
         } else {
-            transferBytes(count)
-            out.append(outBuffer.readString())
+            bufferBytes(count)
         }
     }
 
@@ -744,97 +743,89 @@ private suspend fun ByteReadChannel.internalReadLineTo(
         return false
     }
 
-    while (consumed < limit && !isClosedForRead) {
-        val limitLeft = limit - consumed
-        val lfIndex = readBuffer.indexOf(LF, endIndex = limitLeft)
-        val crIndex = readBuffer.scanForSoleCr(lfIndex, limitLeft)
+    try {
+        while (consumed < limit && !isClosedForRead) {
+            val limitLeft = limit - consumed
+            val lfIndex = readBuffer.indexOf(LF, endIndex = limitLeft)
+            val crIndex = readBuffer.scanForSoleCr(lfIndex, limitLeft)
 
-        // Sole CR in the buffer
-        if (crIndex >= 0) {
-            transferLine(crIndex)
-            readBuffer.discard(1)
-
-            return consumed
-        }
-
-        // Fast path. LF or CRLF in the buffer
-        if (lfIndex == 0L) {
-            transferLine(lfIndex)
-            readBuffer.discard(1)
-            return consumed
-        }
-        if (lfIndex > 0) {
-            val isCrlf = if (readBuffer.buffer[lfIndex - 1] == CR) 1L else 0L
-            transferLine(lfIndex - isCrlf)
-            readBuffer.discard(1 + isCrlf)
-            return consumed
-        }
-
-        val count = minOf(limitLeft, readBuffer.remaining)
-        // Check for the corner case when the last byte in the buffer is CR, and LF is in the next buffer
-        if (readBuffer.buffer[count - 1] == CR) {
-            transferLine(count - 1)
-
-            if (readBuffer.discardCrlfOrCr()) {
-                return consumed
-            } else {
-                transferBytes(1)
-            }
-        } else {
-            // No new line separator
-            transferBytes(count)
-        }
-
-        if (consumed < limit && readBuffer.remaining == 0L && !awaitContent()) break
-    }
-
-    if (consumed == 0L && isClosedForRead) return -1
-
-    check(consumed <= limit) {
-        "Consumed bytes exceed the limit: $consumed > $limit. It's an implementation bug, please report it."
-    }
-    if (consumed == limit) {
-        // We can't read data anymore
-        if (limit == Long.MAX_VALUE) throw TooLongLineException("Max line length exceeded")
-        // There is no more data
-        if (readBuffer.remaining == 0L && !awaitContent()) throwEndOfStreamException(consumed)
-
-        // Corner case: line ending is right after the limit
-        when (readBuffer.buffer[0]) {
-            LF -> {
+            // Sole CR in the buffer
+            if (crIndex >= 0) {
+                appendOrBuffer(crIndex)
                 readBuffer.discard(1)
-                if (outBuffer != null) {
-                    out.append(outBuffer.readString())
-                }
 
                 return consumed
             }
 
-            CR -> if (readBuffer.discardCrlfOrCr()) {
-                if (outBuffer != null) {
-                    out.append(outBuffer.readString())
-                }
+            // Fast path. LF or CRLF in the buffer
+            if (lfIndex == 0L) {
+                readBuffer.discard(1)
                 return consumed
             }
+            if (lfIndex > 0) {
+                val isCrlf = if (readBuffer.buffer[lfIndex - 1] == CR) 1L else 0L
+                appendOrBuffer(lfIndex - isCrlf)
+                readBuffer.discard(1 + isCrlf)
+                return consumed
+            }
+
+            val count = minOf(limitLeft, readBuffer.remaining)
+            // Check for the corner case when the last byte in the buffer is CR, and LF is in the next buffer
+            if (readBuffer.buffer[count - 1] == CR) {
+                appendOrBuffer(count - 1)
+
+                if (readBuffer.discardCrlfOrCr()) {
+                    return consumed
+                } else {
+                    bufferBytes(1)
+                }
+            } else {
+                // No new line separator
+                bufferBytes(count)
+            }
+
+            if (consumed < limit && readBuffer.remaining == 0L && !awaitContent()) break
         }
 
-        throwTooLongLineException(limit)
-    }
+        if (consumed == 0L && isClosedForRead) return -1
 
-    if (outBuffer != null) {
-        out.append(outBuffer.readString())
-    }
+        check(consumed <= limit) {
+            "Consumed bytes exceed the limit: $consumed > $limit. It's an implementation bug, please report it."
+        }
+        if (consumed == limit) {
+            // We can't read data anymore
+            if (limit == Long.MAX_VALUE) throw TooLongLineException("Max line length exceeded")
+            // There is no more data
+            if (readBuffer.remaining == 0L && !awaitContent()) throwEndOfStreamException(consumed)
 
-    if (throwOnIncompleteLine) throwEndOfStreamException(consumed)
-    return consumed
+            // Corner case: line ending is right after the limit
+            when (readBuffer.buffer[0]) {
+                LF -> {
+                    readBuffer.discard(1)
+                    return consumed
+                }
+
+                CR -> if (readBuffer.discardCrlfOrCr()) {
+                    return consumed
+                }
+            }
+
+            throwTooLongLineException(limit)
+        }
+
+        if (throwOnIncompleteLine) throwEndOfStreamException(consumed)
+        return consumed
+    } finally {
+        if (outBuffer != null) out.append(outBuffer.readString())
+    }
 }
 
 private fun throwTooLongLineException(limit: Long): Nothing {
-    throw TooLongLineException("Line exceeds limit of $limit characters")
+    throw TooLongLineException("Line exceeds limit of $limit bytes")
 }
 
 private fun throwEndOfStreamException(consumed: Long): Nothing {
-    throw EOFException("Unexpected end of stream after reading $consumed characters")
+    throw EOFException("Unexpected end of stream after reading $consumed bytes")
 }
 
 @OptIn(InternalAPI::class, UnsafeIoApi::class, InternalIoApi::class)
