@@ -126,6 +126,7 @@ projects {
         +"ktor-client-js"
         +"ktor-client-mock"
         +"ktor-client-okhttp"
+        +"ktor-client-defaults"
 
         +"ktor-client-test-base"
         +"ktor-client-tests"

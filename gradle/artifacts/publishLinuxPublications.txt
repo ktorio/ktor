@@ -48,6 +48,12 @@ io.ktor:ktor-client-curl-linuxx64/.klib
 io.ktor:ktor-client-curl-linuxx64/cinterop-libcurl.klib
 io.ktor:ktor-client-curl-linuxx64/javadoc.jar
 io.ktor:ktor-client-curl-linuxx64/sources.jar
+io.ktor:ktor-client-defaults-linuxarm64/.klib
+io.ktor:ktor-client-defaults-linuxarm64/javadoc.jar
+io.ktor:ktor-client-defaults-linuxarm64/sources.jar
+io.ktor:ktor-client-defaults-linuxx64/.klib
+io.ktor:ktor-client-defaults-linuxx64/javadoc.jar
+io.ktor:ktor-client-defaults-linuxx64/sources.jar
 io.ktor:ktor-client-encoding-linuxarm64/.klib
 io.ktor:ktor-client-encoding-linuxarm64/javadoc.jar
 io.ktor:ktor-client-encoding-linuxarm64/sources.jar

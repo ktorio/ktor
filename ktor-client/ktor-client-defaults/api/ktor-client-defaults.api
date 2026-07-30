@@ -1,0 +1,4 @@
+public final class io/ktor/client/defaults/DefaultEngineJvmKt {
+	public static final fun getDefaultEngine ()Lio/ktor/client/engine/HttpClientEngineFactory;
+}
+

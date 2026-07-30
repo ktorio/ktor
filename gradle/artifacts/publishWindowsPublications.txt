@@ -23,6 +23,9 @@ io.ktor:ktor-client-curl-mingwx64/.klib
 io.ktor:ktor-client-curl-mingwx64/cinterop-libcurl.klib
 io.ktor:ktor-client-curl-mingwx64/javadoc.jar
 io.ktor:ktor-client-curl-mingwx64/sources.jar
+io.ktor:ktor-client-defaults-mingwx64/.klib
+io.ktor:ktor-client-defaults-mingwx64/javadoc.jar
+io.ktor:ktor-client-defaults-mingwx64/sources.jar
 io.ktor:ktor-client-encoding-mingwx64/.klib
 io.ktor:ktor-client-encoding-mingwx64/javadoc.jar
 io.ktor:ktor-client-encoding-mingwx64/sources.jar
