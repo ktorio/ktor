@@ -35,7 +35,6 @@ public class RequestBodyLimitConfig {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.bodylimit.RequestBodyLimit)
  */
-@OptIn(InternalAPI::class)
 public val RequestBodyLimit: RouteScopedPlugin<RequestBodyLimitConfig> = createRouteScopedPlugin(
     "RequestBodyLimit",
     ::RequestBodyLimitConfig
@@ -43,7 +42,6 @@ public val RequestBodyLimit: RouteScopedPlugin<RequestBodyLimitConfig> = createR
 
     val bodyLimit = pluginConfig.bodyLimit
 
-    @Suppress("INVISIBLE_REFERENCE")
     onCallValidators { call ->
         val limit = bodyLimit(call)
         val contentLength = call.request.contentLength()

@@ -72,7 +72,7 @@ public open class ApplicationCallPipeline public constructor(
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ApplicationCallPipeline.ApplicationPhase.Validators)
          */
-        internal val Validators: PipelinePhase = PipelinePhase("Validators")
+        public val Validators: PipelinePhase = PipelinePhase("Validators")
 
         /**
          * Phase for processing a call and sending a response

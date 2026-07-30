@@ -306,6 +306,7 @@ abstract class <#A: kotlin/Any> io.ktor.server.application/PluginBuilder { // io
     final fun onCallReceive(kotlin.coroutines/SuspendFunction3<io.ktor.server.application/OnCallReceiveContext<#A>, io.ktor.server.application/PipelineCall, kotlin/Any, kotlin/Unit>) // io.ktor.server.application/PluginBuilder.onCallReceive|onCallReceive(kotlin.coroutines.SuspendFunction3<io.ktor.server.application.OnCallReceiveContext<1:0>,io.ktor.server.application.PipelineCall,kotlin.Any,kotlin.Unit>){}[0]
     final fun onCallRespond(kotlin.coroutines/SuspendFunction2<io.ktor.server.application/OnCallRespondContext<#A>, io.ktor.server.application/PipelineCall, kotlin/Unit>) // io.ktor.server.application/PluginBuilder.onCallRespond|onCallRespond(kotlin.coroutines.SuspendFunction2<io.ktor.server.application.OnCallRespondContext<1:0>,io.ktor.server.application.PipelineCall,kotlin.Unit>){}[0]
     final fun onCallRespond(kotlin.coroutines/SuspendFunction3<io.ktor.server.application/OnCallRespondContext<#A>, io.ktor.server.application/PipelineCall, kotlin/Any, kotlin/Unit>) // io.ktor.server.application/PluginBuilder.onCallRespond|onCallRespond(kotlin.coroutines.SuspendFunction3<io.ktor.server.application.OnCallRespondContext<1:0>,io.ktor.server.application.PipelineCall,kotlin.Any,kotlin.Unit>){}[0]
+    final fun onCallValidators(kotlin.coroutines/SuspendFunction2<io.ktor.server.application/OnCallContext<#A>, io.ktor.server.application/PipelineCall, kotlin/Unit>) // io.ktor.server.application/PluginBuilder.onCallValidators|onCallValidators(kotlin.coroutines.SuspendFunction2<io.ktor.server.application.OnCallContext<1:0>,io.ktor.server.application.PipelineCall,kotlin.Unit>){}[0]
 }
 
 abstract class <#A: kotlin/Any> io.ktor.server.application/RouteScopedPluginBuilder : io.ktor.server.application/PluginBuilder<#A> { // io.ktor.server.application/RouteScopedPluginBuilder|null[0]
@@ -1337,6 +1338,8 @@ open class io.ktor.server.application/ApplicationCallPipeline : io.ktor.util.pip
             final fun <get-Plugins>(): io.ktor.util.pipeline/PipelinePhase // io.ktor.server.application/ApplicationCallPipeline.ApplicationPhase.Plugins.<get-Plugins>|<get-Plugins>(){}[0]
         final val Setup // io.ktor.server.application/ApplicationCallPipeline.ApplicationPhase.Setup|{}Setup[0]
             final fun <get-Setup>(): io.ktor.util.pipeline/PipelinePhase // io.ktor.server.application/ApplicationCallPipeline.ApplicationPhase.Setup.<get-Setup>|<get-Setup>(){}[0]
+        final val Validators // io.ktor.server.application/ApplicationCallPipeline.ApplicationPhase.Validators|{}Validators[0]
+            final fun <get-Validators>(): io.ktor.util.pipeline/PipelinePhase // io.ktor.server.application/ApplicationCallPipeline.ApplicationPhase.Validators.<get-Validators>|<get-Validators>(){}[0]
     }
 }
 

@@ -24,7 +24,6 @@ internal object AuthenticationHook : Hook<suspend (ApplicationCall) -> Unit> {
         pipeline: ApplicationCallPipeline,
         handler: suspend (ApplicationCall) -> Unit
     ) {
-        @Suppress("INVISIBLE_REFERENCE")
         pipeline.intercept(ApplicationCallPipeline.Validators) { handler(call) }
     }
 }
