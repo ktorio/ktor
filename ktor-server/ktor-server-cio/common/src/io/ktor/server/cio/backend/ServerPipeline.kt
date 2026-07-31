@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.cio.backend
@@ -16,11 +16,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
-import kotlinx.io.Buffer
-import kotlinx.io.IOException
-import kotlinx.io.InternalIoApi
-import kotlinx.io.Source
-import kotlinx.io.readByteArray
+import kotlinx.io.*
 import kotlin.time.Duration
 
 private val LOGGER = KtorSimpleLogger("io.ktor.server.cio.backend.ServerPipeline")
@@ -46,19 +42,7 @@ public fun CoroutineScope.startServerConnectionPipeline(
     handler: HttpRequestHandler
 ): Job = launch(HttpPipelineCoroutine) {
     val actorChannel = Channel<ByteReadChannel>(capacity = 3)
-
-    launch(
-        context = HttpPipelineWriterCoroutine,
-        start = CoroutineStart.UNDISPATCHED
-    ) {
-        try {
-            pipelineWriterLoop(actorChannel, timeout, connection)
-        } catch (cause: Throwable) {
-            connection.output.close(cause)
-        } finally {
-            connection.output.close()
-        }
-    }
+    startServerPipelineWriter(actorChannel, timeout, connection)
 
     val requestContext = RequestHandlerCoroutine + Dispatchers.Unconfined
 
@@ -97,7 +81,8 @@ public fun CoroutineScope.startServerConnectionPipeline(
                 actorChannel.send(response)
             } catch (cause: Throwable) {
                 request.release()
-                throw cause
+                response.cancel(cause)
+                break // end pipeline loop
             }
 
             try {
@@ -192,6 +177,38 @@ public fun CoroutineScope.startServerConnectionPipeline(
         // the call coroutine with proper ConnectionClosedException cause.
         handlerScope?.onClose?.invoke()
         actorChannel.close()
+    }
+}
+
+@OptIn(InternalAPI::class)
+internal fun CoroutineScope.startServerPipelineWriter(
+    actorChannel: Channel<ByteReadChannel>,
+    timeout: Duration,
+    connection: ServerIncomingConnection
+): Job = launch(
+    context = HttpPipelineWriterCoroutine,
+    start = CoroutineStart.UNDISPATCHED
+) {
+    var failure: Throwable? = null
+    try {
+        pipelineWriterLoop(actorChannel, timeout, connection)
+    } catch (cause: Throwable) {
+        failure = cause
+    } finally {
+        actorChannel.close(failure)
+        connection.output.close(failure)
+        actorChannel.cancelPendingResponses(failure)
+    }
+}
+
+private fun Channel<ByteReadChannel>.cancelPendingResponses(cause: Throwable?) {
+    while (true) {
+        val response = tryReceive().getOrNull() ?: break
+        if (cause == null) {
+            response.cancel()
+        } else {
+            response.cancel(cause)
+        }
     }
 }
 

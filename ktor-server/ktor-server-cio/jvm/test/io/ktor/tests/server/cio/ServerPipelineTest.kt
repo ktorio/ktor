@@ -9,18 +9,17 @@ import io.ktor.server.cio.backend.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.TestInfo
 import java.util.concurrent.CountDownLatch
 import kotlin.coroutines.AbstractCoroutineContextElement
 import kotlin.coroutines.CoroutineContext
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
+import kotlin.test.*
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 @OptIn(InternalAPI::class)
 class ServerPipelineTest : CoroutineScope {
@@ -182,6 +181,91 @@ class ServerPipelineTest : CoroutineScope {
                 }
             }
         }
+    }
+
+    @Test
+    fun testRequestAfterIdleTimeoutIsNotHandled(): Unit = runBlocking(coroutineContext) {
+        val input = ByteChannel()
+        val output = ByteChannel()
+        val lateRequestHandled = CompletableDeferred<Unit>()
+
+        val pipelineJob = startServerConnectionPipeline(
+            ServerIncomingConnection(input, output, null, null),
+            timeout = 100.milliseconds
+        ) { request ->
+            val isFirstRequest = request.uri.toString() == "/first"
+            request.release()
+            if (isFirstRequest) {
+                this.output.writeStringUtf8("OK")
+            } else {
+                lateRequestHandled.complete(Unit)
+            }
+        }
+        val outputReader = launch { output.discard() }
+
+        input.writeStringUtf8("GET /first HTTP/1.1\r\nConnection: keep-alive\r\n\r\n")
+        input.flush()
+        withTimeout(1.seconds) { outputReader.join() }
+
+        input.writeStringUtf8("GET /second HTTP/1.1\r\nConnection: keep-alive\r\n\r\n")
+        input.flush()
+        input.close()
+
+        withTimeout(1.seconds) { pipelineJob.join() }
+        assertFalse(lateRequestHandled.isCompleted, "Request should not be handled after the idle timeout")
+        assertFalse(pipelineJob.isCancelled, "Pipeline job should complete gracefully")
+    }
+
+    @Test
+    fun testWriterTimeoutCancelsQueuedResponses(): Unit = runBlocking(coroutineContext) {
+        val responses = List(3) { ByteChannel() }
+        val actorChannel = Channel<ByteReadChannel>(3)
+        responses.forEach { assertTrue(actorChannel.trySend(it).isSuccess) }
+
+        startServerPipelineWriter(
+            actorChannel,
+            timeout = Duration.ZERO,
+            connection = ServerIncomingConnection(ByteChannel(), ByteChannel(), null, null)
+        ).join()
+
+        responses.forEach { assertTrue(it.isClosedForRead) }
+    }
+
+    @Test
+    fun testIdleTimeoutDoesNotCancelActiveRequest(): Unit = runBlocking(coroutineContext) {
+        val input = ByteChannel()
+        val output = ByteChannel()
+        val responseSent = CompletableDeferred<Unit>()
+        val finishRequest = CompletableDeferred<Unit>()
+        val requestJob = CompletableDeferred<Job>()
+
+        val pipelineJob = startServerConnectionPipeline(
+            ServerIncomingConnection(input, output, null, null),
+            timeout = 100.milliseconds
+        ) { request ->
+            request.release()
+            requestJob.complete(currentCoroutineContext().job)
+            this.output.writeStringUtf8("OK")
+            this.output.flushAndClose()
+            responseSent.complete(Unit)
+            finishRequest.await()
+        }
+        val outputReader = launch { output.discard() }
+
+        input.writeStringUtf8("GET / HTTP/1.1\r\nConnection: keep-alive\r\n\r\n")
+        input.flush()
+        responseSent.await()
+        withTimeout(1.seconds) { outputReader.join() }
+
+        input.writeStringUtf8("GET /late HTTP/1.1\r\nConnection: keep-alive\r\n\r\n")
+        input.flush()
+        input.close()
+
+        assertNull(withTimeoutOrNull(500.milliseconds) { requestJob.await().join() }, "Request should not be cancelled")
+        finishRequest.complete(Unit)
+        withTimeout(1.seconds) { requestJob.await().join() }
+        withTimeout(1.seconds) { pipelineJob.join() }
+        assertFalse(pipelineJob.isCancelled, "Pipeline job should complete gracefully")
     }
 
     @Test
