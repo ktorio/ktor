@@ -20,8 +20,8 @@ import java.net.InetSocketAddress
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
-import kotlin.system.measureTimeMillis
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 /**
@@ -38,11 +38,6 @@ class NettyHttp3CallExecutorTest :
 
     init {
         enableSsl = true
-        // FreePorts probes with TCP sockets, but HTTP/3 binds UDP on sslPort; on Windows,
-        // TCP-free ports often fall into Hyper-V/WSL UDP excluded ranges and fail the bind.
-        // Pin ports outside the dynamic range for stability.
-        port = 24430
-        sslPort = 24431
     }
 
     @OptIn(ExperimentalKtorApi::class)
@@ -53,28 +48,19 @@ class NettyHttp3CallExecutorTest :
     @Test
     fun `blocking user code on one HTTP3 connection must not stall other connections`() = runTest {
         val blockEntered = CountDownLatch(1)
-        val blockMillis = 1500L
+        val releaseBlock = CountDownLatch(1)
 
         createAndStartServer {
             application.routing {
                 get("/instant") { call.respondText("ok") }
                 get("/block") {
                     blockEntered.countDown()
-                    Thread.sleep(blockMillis) // deliberately blocking user code (e.g. JDBC, file IO)
+                    releaseBlock.await() // deliberately blocking user code (e.g. JDBC, file IO)
                     call.respondText("done")
                 }
             }
         }
 
-        // warmup: the first QUIC connection pays one-time JVM/native initialization costs
-        withHttp3Client { quic -> sendHttp3Request(quic, "/instant") }
-
-        val baselineMs = measureTimeMillis {
-            withHttp3Client { quic -> sendHttp3Request(quic, "/instant") }
-        }
-        println("[repro] fresh connection + GET /instant with idle server: ${baselineMs}ms")
-
-        var stalledMs = 0L
         withHttp3Client { connectionA ->
             // fire GET /block on connection A without awaiting the response
             val pending = Http3ResponseHandler()
@@ -83,23 +69,19 @@ class NettyHttp3CallExecutorTest :
             stream.shutdownOutput().sync()
             assertTrue(blockEntered.await(5, TimeUnit.SECONDS), "server never entered /block")
 
-            // a brand-new QUIC connection (fresh handshake) on the same connector
-            stalledMs = measureTimeMillis {
-                withHttp3Client { connectionB -> sendHttp3Request(connectionB, "/instant") }
+            // While /block is still parked on releaseBlock above, a brand-new QUIC connection
+            // (fresh handshake) must still be served. This only succeeds if the blocking
+            // handler runs off the shared QUIC event loop, since all connections of a connector
+            // share a single DatagramChannel driven by one event loop.
+            withHttp3Client { connectionB ->
+                val response = sendHttp3Request(connectionB, "/instant")
+                assertEquals("ok", response.body)
             }
-            println(
-                "[repro] fresh connection + GET /instant while another connection's handler blocks: ${stalledMs}ms"
-            )
 
-            pending.responseQueue.poll(5, TimeUnit.SECONDS) // drain the /block response
+            releaseBlock.countDown()
+            val blockResponse = pending.responseQueue.poll(5, TimeUnit.SECONDS)
+            assertEquals("done", blockResponse?.body)
         }
-
-        assertTrue(
-            stalledMs - baselineMs < 1000,
-            "an unrelated new HTTP/3 connection was stalled (${stalledMs}ms vs ${baselineMs}ms baseline) " +
-                "by blocking user code on another connection: user code runs on the shared QUIC event " +
-                "loop instead of an executor from the call event group (cf. HTTP/1/2, KTOR-9542)"
-        )
     }
 
     // --- HTTP/3 client helpers (mirroring NettyHttp3Test, where they are private) ---

@@ -33,8 +33,8 @@ internal class NettyHttp3RequestStreamInitializer(
             NettyHttp3Handler(
                 enginePipeline,
                 application,
-                userCoroutineContext,
                 callEventGroup,
+                userCoroutineContext,
                 runningLimit
             )
         )

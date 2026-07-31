@@ -16,6 +16,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.channels.consumeEach
 import kotlinx.io.Buffer
 import kotlinx.io.IOException
 import kotlinx.io.InternalIoApi
@@ -46,7 +47,6 @@ public fun CoroutineScope.startServerConnectionPipeline(
     handler: HttpRequestHandler
 ): Job = launch(HttpPipelineCoroutine) {
     val actorChannel = Channel<ByteReadChannel>(capacity = 3)
-
     launch(
         context = HttpPipelineWriterCoroutine,
         start = CoroutineStart.UNDISPATCHED

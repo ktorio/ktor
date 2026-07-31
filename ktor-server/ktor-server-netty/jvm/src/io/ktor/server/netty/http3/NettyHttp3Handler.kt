@@ -23,8 +23,8 @@ import kotlin.coroutines.CoroutineContext
 internal class NettyHttp3Handler(
     private val enginePipeline: EnginePipeline,
     private val application: Application,
-    private val userCoroutineContext: CoroutineContext,
     private val callEventGroup: EventExecutorGroup,
+    private val userCoroutineContext: CoroutineContext,
     runningLimit: Int
 ) : Http3RequestStreamInboundHandler(), CoroutineScope {
     // Parent [Job] for per-call [Job]s. Cached to avoid re-running `userCoroutineContext[Job]` per request.
