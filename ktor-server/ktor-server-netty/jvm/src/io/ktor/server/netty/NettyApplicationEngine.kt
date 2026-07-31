@@ -316,6 +316,7 @@ public class NettyApplicationEngine(
                     applicationProvider,
                     pipeline,
                     userContext,
+                    callEventGroup,
                     configuration.runningLimit,
                     quicSslContext,
                     http3Configuration

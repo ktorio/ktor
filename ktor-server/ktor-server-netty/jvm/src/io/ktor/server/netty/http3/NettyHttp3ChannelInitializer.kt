@@ -12,6 +12,7 @@ import io.netty.handler.codec.http3.Http3
 import io.netty.handler.codec.http3.Http3ServerConnectionHandler
 import io.netty.handler.codec.quic.QuicChannel
 import io.netty.handler.codec.quic.QuicSslContext
+import io.netty.util.concurrent.EventExecutorGroup
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.CoroutineContext
 
@@ -26,6 +27,7 @@ internal class NettyHttp3ChannelInitializer(
     private val applicationProvider: () -> Application,
     private val enginePipeline: EnginePipeline,
     private val userContext: CoroutineContext,
+    private val callEventGroup: EventExecutorGroup,
     private val runningLimit: Int,
     private val quicSslContext: QuicSslContext,
     private val http3Configuration: NettyHttp3Configuration
@@ -38,6 +40,7 @@ internal class NettyHttp3ChannelInitializer(
             enginePipeline,
             application,
             userContext,
+            callEventGroup,
             runningLimit
         )
 
