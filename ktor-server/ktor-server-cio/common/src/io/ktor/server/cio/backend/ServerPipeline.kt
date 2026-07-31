@@ -41,7 +41,12 @@ public fun CoroutineScope.startServerConnectionPipeline(
     timeout: Duration,
     handler: HttpRequestHandler
 ): Job = launch(HttpPipelineCoroutine) {
-    val actorChannel = Channel<ByteReadChannel>(capacity = 3)
+    val actorChannel = Channel<ByteReadChannel>(
+        capacity = 3,
+        onUndeliveredElement = { response ->
+            response.cancel(IOException("Response was not delivered"))
+        }
+    )
     startServerPipelineWriter(actorChannel, timeout, connection)
 
     val requestContext = RequestHandlerCoroutine + Dispatchers.Unconfined
@@ -202,13 +207,11 @@ internal fun CoroutineScope.startServerPipelineWriter(
 }
 
 private fun Channel<ByteReadChannel>.cancelPendingResponses(cause: Throwable?) {
+    var cancellationCause: Throwable? = cause
     while (true) {
         val response = tryReceive().getOrNull() ?: break
-        if (cause == null) {
-            response.cancel()
-        } else {
-            response.cancel(cause)
-        }
+        cancellationCause = cancellationCause ?: IOException("Response writer has stopped")
+        response.cancel(cancellationCause)
     }
 }
 
