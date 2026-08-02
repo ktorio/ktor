@@ -6,6 +6,7 @@ package io.ktor.http.cio
 
 import io.ktor.http.*
 import io.ktor.http.cio.internals.*
+import io.ktor.http.content.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.CompletableDeferred
@@ -151,10 +152,15 @@ private suspend fun parsePartBodyImpl(
     headers: HttpHeadersMap,
     limit: Long,
 ): Long {
-    val byteCount = when (val contentLength = headers["Content-Length"]?.parseDecLong()) {
-        null -> input.readUntil(boundaryPrefixed, output, limit, ignoreMissing = true)
-        in 0L..limit -> input.copyTo(output, contentLength) + input.skipIfFoundReadCount(boundaryPrefixed)
-        else -> throwLimitExceeded(contentLength, limit)
+    val byteCount = try {
+        when (val contentLength = headers["Content-Length"]?.parseDecLong()) {
+            null -> input.readUntil(boundaryPrefixed, output, limit, ignoreMissing = true)
+            in 0L..limit -> input.copyTo(output, contentLength) + input.skipIfFoundReadCount(boundaryPrefixed)
+            else -> throwLimitExceeded(contentLength, limit)
+        }
+    } catch (cause: IOException) {
+        if (cause is FormFieldLimitExceededException) throw cause
+        throw FormFieldLimitExceededException(headers.snapshot(), cause = cause)
     }
     output.flush()
 

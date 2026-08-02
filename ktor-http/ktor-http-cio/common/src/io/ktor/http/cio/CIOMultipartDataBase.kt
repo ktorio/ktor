@@ -96,10 +96,4 @@ public class CIOMultipartDataBase(
             part::releaseSuspend
         )
     }
-
-    private fun HttpHeadersMap.snapshot(): Headers = Headers.build {
-        for (offset in offsets()) {
-            append(nameAtOffset(offset).toString(), valueAtOffset(offset).toString())
-        }
-    }
 }

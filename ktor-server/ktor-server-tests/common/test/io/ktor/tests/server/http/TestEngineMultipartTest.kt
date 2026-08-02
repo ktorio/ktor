@@ -184,6 +184,47 @@ class TestEngineMultipartTest {
         }
     }
 
+    @Test
+    fun testMultipartBiggerThanLimitThrowsFormFieldLimitExceededException() {
+        if (!PlatformUtils.IS_JVM) return
+
+        testApplication {
+            routing {
+                post {
+                    call.receiveMultipart(formFieldLimit = 10).readPart()
+                }
+            }
+
+            val exception = assertFailsWith<FormFieldLimitExceededException> {
+                client.post {
+                    setBody(
+                        MultiPartFormDataContent(
+                            formData {
+                                append("longField", "a".repeat(100))
+                            }
+                        )
+                    )
+                }
+            }
+
+            val contentDisposition = exception.headers[HttpHeaders.ContentDisposition]
+            assertNotNull(contentDisposition)
+            assertTrue(contentDisposition.contains("longField"))
+            assertEquals("longField", exception.fieldName)
+            assertEquals("Form field limit exceeded for field 'longField'", exception.message)
+        }
+    }
+
+    @Test
+    fun testFormFieldLimitExceededExceptionMessageFallback() {
+        val headers = Headers.build {
+            append(HttpHeaders.ContentType, "text/plain")
+        }
+        val exception = FormFieldLimitExceededException(headers)
+        assertNull(exception.fieldName)
+        assertEquals("Form field limit exceeded for part with headers: $headers", exception.message)
+    }
+
     private fun testMultiParts(
         asserts: suspend (MultiPartData?) -> Unit,
         setup: HttpRequestBuilder.() -> Unit
