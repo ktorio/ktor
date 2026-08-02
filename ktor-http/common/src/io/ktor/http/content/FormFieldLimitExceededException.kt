@@ -12,7 +12,9 @@ import kotlinx.io.IOException
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.content.FormFieldLimitExceededException)
  *
- * @property headers The headers of the part that exceeded the limit.
+ * @param headers The headers of the part that exceeded the limit.
+ * @param message The exception message.
+ * @param cause The I/O failure that caused this exception, if available.
  */
 public class FormFieldLimitExceededException(
     public val headers: Headers,
