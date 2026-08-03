@@ -8,7 +8,7 @@
 * [KTOR-7892](https://youtrack.jetbrains.com/issue/KTOR-7892) SwaggerUI: Missing oauth2-redirect.html support in the plugin
 * [KTOR-9759](https://youtrack.jetbrains.com/issue/KTOR-9759) Reject whitespace in URL hosts during parsing
 * [KTOR-9681](https://youtrack.jetbrains.com/issue/KTOR-9681) Update kotlinx-io to 0.9.1
-* [KTOR-9743](https://youtrack.jetbrains.com/issue/KTOR-9743) ByteReadChannel.readLineSctrict: Misleading definition of limit parameter in KDocs
+* [KTOR-9743](https://youtrack.jetbrains.com/issue/KTOR-9743) ByteReadChannel.readLineStrict: Misleading definition of limit parameter in KDocs
 * [KTOR-9504](https://youtrack.jetbrains.com/issue/KTOR-9504) Improve KDoc for EmbeddedServer.addShutdownHook
 
 ### Bugfixes
@@ -18,6 +18,7 @@
 * [KTOR-9704](https://youtrack.jetbrains.com/issue/KTOR-9704) UTF-8 encoding in ktor-io bypasses JVM String.getBytes intrinsics, slowing every text response by 5-7x
 * [KTOR-9588](https://youtrack.jetbrains.com/issue/KTOR-9588) SSE client (CIO engine) sends spurious `Content-Length: 0` on body-less GET (RFC 9110 § 8.6 violation; rejected by AWS ELB)
 * [KTOR-9679](https://youtrack.jetbrains.com/issue/KTOR-9679) ByteReadChannel.readLine corrupts multi-byte UTF-8 by splitting a character at a buffer boundary
+* [KTOR-9767](https://youtrack.jetbrains.com/issue/KTOR-9767) ByteReadChannel.readLineTo: Return read bytes count instead of decoded characters count [![](https://img.shields.io/badge/[Impactful%20change]-orange?style=flat-square)](#)
 * [KTOR-8992](https://youtrack.jetbrains.com/issue/KTOR-8992) HoconConfigLoader is not loaded when ktor-server-config-yaml on the classpath
 * [KTOR-9698](https://youtrack.jetbrains.com/issue/KTOR-9698) OpenAPI: schema for kotlinx.serialization sealed types omits discriminator property in variant schemas
 * [KTOR-9690](https://youtrack.jetbrains.com/issue/KTOR-9690) Netty: in-flight requests are aborted on stop(), ignoring shutdown grace period
