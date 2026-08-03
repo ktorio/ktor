@@ -1,3 +1,36 @@
+# 3.5.2
+> Published 2 August 2026
+
+### Improvements
+* [KTOR-8032](https://youtrack.jetbrains.com/issue/KTOR-8032) RateLimit: Allow limit requests based on authentication result
+* [KTOR-9719](https://youtrack.jetbrains.com/issue/KTOR-9719) `ApplicationCall.isStaticContent` returns false when called from plugin interceptors
+* [KTOR-8450](https://youtrack.jetbrains.com/issue/KTOR-8450) ContentNegotiation: it doesn't handle content type suffixes
+* [KTOR-7892](https://youtrack.jetbrains.com/issue/KTOR-7892) SwaggerUI: Missing oauth2-redirect.html support in the plugin
+* [KTOR-9759](https://youtrack.jetbrains.com/issue/KTOR-9759) Reject whitespace in URL hosts during parsing
+* [KTOR-9681](https://youtrack.jetbrains.com/issue/KTOR-9681) Update kotlinx-io to 0.9.1
+* [KTOR-9743](https://youtrack.jetbrains.com/issue/KTOR-9743) ByteReadChannel.readLineSctrict: Misleading definition of limit parameter in KDocs
+* [KTOR-9504](https://youtrack.jetbrains.com/issue/KTOR-9504) Improve KDoc for EmbeddedServer.addShutdownHook
+
+### Bugfixes
+* [KTOR-9741](https://youtrack.jetbrains.com/issue/KTOR-9741) CIO: request-handler coroutine leak on half-closed idle connection after ≥1MB response
+* [KTOR-7661](https://youtrack.jetbrains.com/issue/KTOR-7661) Maven + YAML config file does not work
+* [KTOR-9585](https://youtrack.jetbrains.com/issue/KTOR-9585) OpenAPI: JsonSchema title is truncated when it contains a dot
+* [KTOR-9704](https://youtrack.jetbrains.com/issue/KTOR-9704) UTF-8 encoding in ktor-io bypasses JVM String.getBytes intrinsics, slowing every text response by 5-7x
+* [KTOR-9588](https://youtrack.jetbrains.com/issue/KTOR-9588) SSE client (CIO engine) sends spurious `Content-Length: 0` on body-less GET (RFC 9110 § 8.6 violation; rejected by AWS ELB)
+* [KTOR-9679](https://youtrack.jetbrains.com/issue/KTOR-9679) ByteReadChannel.readLine corrupts multi-byte UTF-8 by splitting a character at a buffer boundary
+* [KTOR-8992](https://youtrack.jetbrains.com/issue/KTOR-8992) HoconConfigLoader is not loaded when ktor-server-config-yaml on the classpath
+* [KTOR-9698](https://youtrack.jetbrains.com/issue/KTOR-9698) OpenAPI: schema for kotlinx.serialization sealed types omits discriminator property in variant schemas
+* [KTOR-9690](https://youtrack.jetbrains.com/issue/KTOR-9690) Netty: in-flight requests are aborted on stop(), ignoring shutdown grace period
+* [KTOR-8903](https://youtrack.jetbrains.com/issue/KTOR-8903) Netty: Close channel connection on errors properly
+* [KTOR-9707](https://youtrack.jetbrains.com/issue/KTOR-9707) SaveBody performance regression
+* [KTOR-9703](https://youtrack.jetbrains.com/issue/KTOR-9703) Inefficient text reading function in DefaultTransform
+* [KTOR-9711](https://youtrack.jetbrains.com/issue/KTOR-9711) Netty HTTP/2: a single client-canceled stream (RST_STREAM) breaks response flushing for the whole connection
+* [KTOR-9688](https://youtrack.jetbrains.com/issue/KTOR-9688) RateLimit: No access to principal when wrapped with authentication since 3.5.1
+* [KTOR-9677](https://youtrack.jetbrains.com/issue/KTOR-9677) Auto-reloading: server is reloaded only once since 3.5.0
+* [KTOR-9683](https://youtrack.jetbrains.com/issue/KTOR-9683) Sockets: Canceling a SelectorManager job doesn't close it properly
+* [KTOR-9671](https://youtrack.jetbrains.com/issue/KTOR-9671) Darwin: Semicolons in URL path are sanitized
+
+
 # 3.5.1
 > Published 25 June 2026
 
