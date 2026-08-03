@@ -1,5 +1,5 @@
 # 3.5.2
-> Published 2 August 2026
+> Published 31 July 2026
 
 ### Improvements
 * [KTOR-8032](https://youtrack.jetbrains.com/issue/KTOR-8032) RateLimit: Allow limit requests based on authentication result
