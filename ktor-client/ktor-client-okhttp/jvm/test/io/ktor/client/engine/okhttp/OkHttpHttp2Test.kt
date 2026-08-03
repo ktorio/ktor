@@ -11,11 +11,17 @@ import io.ktor.client.tests.*
 import io.ktor.http.content.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withTimeoutOrNull
+import okhttp3.ConnectionPool
 import okhttp3.Protocol
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 import kotlin.test.fail
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 class OkHttpHttp2Test : Http2Test<OkHttpConfig>(OkHttp) {
     override fun OkHttpConfig.enableHttp2() {
@@ -53,6 +59,45 @@ class OkHttpHttp2Test : Http2Test<OkHttpConfig>(OkHttp) {
                 """.trimIndent(),
                 response.trim()
             )
+        }
+    }
+
+    @Test
+    fun testDuplexStreamingConnectionReleasedAfterRequest() = testClient {
+        val connectionPool = ConnectionPool()
+        configureClient {
+            engine {
+                duplexStreamingEnabled = true
+                config { connectionPool(connectionPool) }
+            }
+        }
+
+        test { client ->
+            val inputChannel = ByteChannel(true)
+            client
+                .preparePost("/echo/stream") {
+                    setBody(inputChannel)
+                }
+                .execute {
+                    val outputChannel = it.bodyAsChannel()
+                    val buffer = StringBuilder()
+                    (0..2).forEach { i ->
+                        inputChannel.writeStringUtf8("client: $i\n")
+                        inputChannel.flush()
+                        outputChannel.readLineStrictTo(buffer)
+                        buffer.append('\n')
+                    }
+                    buffer.toString()
+                }
+
+            assertTrue(connectionPool.connectionCount() > 0, "Expected the request to use the injected pool")
+
+            val released = withTimeoutOrNull(5.seconds) {
+                while (connectionPool.idleConnectionCount() < connectionPool.connectionCount()) {
+                    delay(50.milliseconds)
+                }
+            } != null
+            assertTrue(released, "Connection should be released after request")
         }
     }
 

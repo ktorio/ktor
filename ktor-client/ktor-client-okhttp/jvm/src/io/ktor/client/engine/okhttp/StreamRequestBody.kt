@@ -30,7 +30,9 @@ internal class StreamRequestBody(
             CoroutineScope(callContext).launch(Dispatchers.IO) {
                 try {
                     val channel = block()
-                    channel.copyTo(sink.outputStream().asByteWriteChannel())
+                    sink.use {
+                        channel.copyTo(it.outputStream().asByteWriteChannel())
+                    }
                 } catch (cause: IOException) {
                     throw cause
                 } catch (cause: Throwable) {
