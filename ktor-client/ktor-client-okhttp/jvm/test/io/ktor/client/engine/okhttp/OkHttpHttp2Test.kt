@@ -18,7 +18,6 @@ import okhttp3.Protocol
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import kotlin.test.assertTrue
 import kotlin.test.fail
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -90,14 +89,15 @@ class OkHttpHttp2Test : Http2Test<OkHttpConfig>(OkHttp) {
                     buffer.toString()
                 }
 
-            assertTrue(connectionPool.connectionCount() > 0, "Expected the request to use the injected pool")
+            assertEquals(connectionPool.connectionCount(), 1, "Expected the request to use the injected pool")
 
-            val released = withTimeoutOrNull(5.seconds) {
+            val idleConnections = withTimeoutOrNull(5.seconds) {
                 while (connectionPool.idleConnectionCount() < connectionPool.connectionCount()) {
                     delay(50.milliseconds)
                 }
-            } != null
-            assertTrue(released, "Connection should be released after request")
+                connectionPool.idleConnectionCount()
+            } ?: 0
+            assertEquals(idleConnections, 1, "Connection should be released after request")
         }
     }
 
