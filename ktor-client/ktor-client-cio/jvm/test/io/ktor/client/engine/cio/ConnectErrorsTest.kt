@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.cio
@@ -20,10 +20,12 @@ import io.ktor.server.routing.*
 import io.ktor.test.*
 import io.ktor.utils.io.*
 import org.junit.jupiter.api.assertThrows
+import java.io.EOFException
 import java.io.File
 import java.net.ConnectException
 import java.net.ServerSocket
 import java.net.SocketException
+import java.net.SocketTimeoutException
 import java.util.concurrent.TimeUnit
 import javax.net.ssl.TrustManagerFactory
 import javax.net.ssl.X509TrustManager
@@ -202,6 +204,21 @@ class ConnectErrorsTest {
                 thread.join()
             }
         }
+    }
+
+    @Test
+    fun testMapToKtorPreservesNonTimeoutException() {
+        val exception = ClosedReadChannelException(EOFException())
+
+        assertSame(exception, exception.mapToKtor(HttpRequestBuilder().build()))
+    }
+
+    @Test
+    fun testMapToKtorMapsSocketTimeoutException() {
+        val exception = ClosedReadChannelException(SocketTimeoutException())
+
+        val mappedException = assertIs<SocketTimeoutException>(exception.mapToKtor(HttpRequestBuilder().build()))
+        assertSame(exception, mappedException.cause)
     }
 
     @Test
