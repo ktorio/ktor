@@ -43,7 +43,7 @@ public data class HeaderValue(val value: String, val params: List<HeaderValuePar
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.HeaderValue.quality)
      */
-    val quality: Double = params.firstOrNull { it.name == "q" }
+    val quality: Double = params.firstOrNull { it.name.equals("q", ignoreCase = true) }
         ?.value
         ?.toDoubleOrNull()
         ?.takeIf { it in 0.0..1.0 }
