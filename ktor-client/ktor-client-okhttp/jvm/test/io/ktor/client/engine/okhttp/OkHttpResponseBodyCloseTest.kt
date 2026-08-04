@@ -19,7 +19,9 @@ import okio.Source
 import okio.Timeout
 import okio.buffer
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.test.Test
 import kotlin.test.assertNotSame
@@ -33,48 +35,69 @@ class OkHttpResponseBodyCloseTest {
      * `NetworkOnMainThreadException`.
      */
     @Test
-    fun `response body is not closed on the thread that cancels the call`() = runBlocking {
+    fun `response body is closed on the engine dispatcher and not on the cancelling thread`() = runBlocking {
         val closed = CountDownLatch(1)
         val closingThread = AtomicReference<Thread?>(null)
+        val engineThreadIndex = AtomicInteger()
+        val engineExecutor = Executors.newFixedThreadPool(4) { task ->
+            Thread(task, "$ENGINE_THREAD_PREFIX-${engineThreadIndex.incrementAndGet()}")
+        }
 
-        val okHttpClient = OkHttpClient.Builder()
-            .addInterceptor { chain ->
-                Response.Builder()
-                    .request(chain.request())
-                    .protocol(Protocol.HTTP_1_1)
-                    .code(200)
-                    .message("OK")
-                    .body(TrackingResponseBody(closed, closingThread))
-                    .build()
-            }
-            .build()
+        try {
+            val okHttpClient = OkHttpClient.Builder()
+                .addInterceptor { chain ->
+                    Response.Builder()
+                        .request(chain.request())
+                        .protocol(Protocol.HTTP_1_1)
+                        .code(200)
+                        .message("OK")
+                        .body(TrackingResponseBody(closed, closingThread))
+                        .build()
+                }
+                .build()
 
-        HttpClient(OkHttp) { engine { preconfigured = okHttpClient } }.use { client ->
-            val requestJob = Job()
-            val responseReceived = CompletableDeferred<Unit>()
-            launch(requestJob + Dispatchers.Default) {
-                client.prepareGet("http://localhost/").execute {
-                    responseReceived.complete(Unit)
-                    awaitCancellation()
+            val client = HttpClient(OkHttp) {
+                engine {
+                    preconfigured = okHttpClient
+                    dispatcher = engineExecutor.asCoroutineDispatcher()
                 }
             }
 
-            withTimeout(10_000) { responseReceived.await() }
+            client.use {
+                val requestJob = Job()
+                val responseReceived = CompletableDeferred<Unit>()
+                launch(requestJob + Dispatchers.Default) {
+                    client.prepareGet("http://localhost/").execute {
+                        responseReceived.complete(Unit)
+                        awaitCancellation()
+                    }
+                }
 
-            val cancellingThread = Thread.currentThread()
-            requestJob.cancel()
+                withTimeout(10_000) { responseReceived.await() }
 
-            assertTrue(closed.await(10, TimeUnit.SECONDS), "The response body has not been closed")
-            assertNotSame(
-                cancellingThread,
-                closingThread.get(),
-                "The response body has been closed on the thread that cancelled the call"
-            )
+                val cancellingThread = Thread.currentThread()
+                requestJob.cancel()
+
+                assertTrue(closed.await(10, TimeUnit.SECONDS), "The response body has not been closed")
+                assertNotSame(
+                    cancellingThread,
+                    closingThread.get(),
+                    "The response body has been closed on the thread that cancelled the call"
+                )
+                val closingThreadName = closingThread.get()?.name
+                assertTrue(
+                    closingThreadName?.startsWith(ENGINE_THREAD_PREFIX) == true,
+                    "The response body has been closed on $closingThreadName instead of the engine dispatcher"
+                )
+            }
+        } finally {
+            engineExecutor.shutdownNow()
         }
     }
 
     /**
-     * An empty response body that records the thread closing it.
+     * An empty response body that records the thread closing it. The reader started by the engine closes the
+     * source rather than the body, so the body is only released by the call completion handler.
      */
     private class TrackingResponseBody(
         private val closed: CountDownLatch,
@@ -90,8 +113,8 @@ class OkHttpResponseBodyCloseTest {
 
         override fun close() {
             closingThread.compareAndSet(null, Thread.currentThread())
-            closed.countDown()
             super.close()
+            closed.countDown()
         }
     }
 
@@ -101,5 +124,9 @@ class OkHttpResponseBodyCloseTest {
         override fun timeout(): Timeout = Timeout.NONE
 
         override fun close() = Unit
+    }
+
+    private companion object {
+        const val ENGINE_THREAD_PREFIX = "okhttp-body-close-test"
     }
 }
