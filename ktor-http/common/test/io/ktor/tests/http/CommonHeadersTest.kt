@@ -32,6 +32,7 @@ class CommonHeadersTest {
         assertEquals(2, items.count())
         assertEquals("audio/basic", items[0].value)
         assertEquals("audio/*", items[1].value)
+        assertEquals(0.2, items[1].quality)
     }
 
     @Test
