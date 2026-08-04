@@ -107,7 +107,15 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
         val response = engine.execute(engineRequest, requestData, callContext)
 
         val body = response.body
-        callContext.job.invokeOnCompletion { body.close() }
+        // Closing an OkHttp response body performs blocking socket I/O, and completion handlers run on
+        // the thread that completes the job, which is the caller's thread when the call is cancelled.
+        // Closing on the engine dispatcher keeps that I/O off threads that must not perform it, such as
+        // the Android main thread.
+        callContext.job.invokeOnCompletion {
+            GlobalScope.launch(dispatcher) {
+                runCatching { body.close() }
+            }
+        }
 
         val responseContent = body.source().toChannel(callContext, requestData)
         return buildResponseData(response, requestTime, responseContent, callContext, requestData)
