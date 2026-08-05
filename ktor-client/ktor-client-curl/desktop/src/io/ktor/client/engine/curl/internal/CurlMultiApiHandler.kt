@@ -21,10 +21,14 @@ import platform.posix.size_tVar
 @OptIn(ExperimentalForeignApi::class)
 private class RequestHolder(
     val responseCompletable: CompletableDeferred<CurlSuccess>,
+    val requestHeaders: CPointer<curl_slist>,
+    val responseDataRef: StableRef<CurlResponseBuilder>,
     val requestWrapper: StableRef<CurlRequestBodyData>,
     val responseWrapper: StableRef<CurlResponseBodyData>,
 ) {
     fun dispose() {
+        curl_slist_free_all(requestHeaders)
+        responseDataRef.dispose()
         requestWrapper.dispose()
         responseWrapper.dispose()
     }
@@ -82,6 +86,8 @@ internal class CurlMultiApiHandler : Closeable {
         val requestWrapper = setupUploadContent(easyHandle, request)
         val requestHolder = RequestHolder(
             deferred,
+            request.headers,
+            responseDataRef.asStableRef(),
             requestWrapper.asStableRef(),
             responseWrapper.asStableRef()
         )
@@ -317,8 +323,6 @@ internal class CurlMultiApiHandler : Closeable {
         httpStatusCode: Long,
         proxyCode: CURLproxycode,
     ): CurlFail? {
-        curl_slist_free_all(request.headers)
-
         if (message != CURLMSG.CURLMSG_DONE) {
             return CurlFail(
                 IllegalStateException("Request $request failed: $message")
