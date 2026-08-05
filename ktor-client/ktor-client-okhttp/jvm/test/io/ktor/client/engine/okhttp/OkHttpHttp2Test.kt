@@ -11,15 +11,12 @@ import io.ktor.client.tests.*
 import io.ktor.http.content.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.withTimeoutOrNull
 import okhttp3.ConnectionPool
 import okhttp3.Protocol
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.fail
-import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 class OkHttpHttp2Test : Http2Test<OkHttpConfig>(OkHttp) {
@@ -79,25 +76,56 @@ class OkHttpHttp2Test : Http2Test<OkHttpConfig>(OkHttp) {
                 }
                 .execute {
                     val outputChannel = it.bodyAsChannel()
-                    val buffer = StringBuilder()
-                    (0..2).forEach { i ->
-                        inputChannel.writeStringUtf8("client: $i\n")
+                    repeat(3) { index ->
+                        inputChannel.writeStringUtf8("client: $index\n")
                         inputChannel.flush()
-                        outputChannel.readLineStrictTo(buffer)
-                        buffer.append('\n')
+                        assertEquals("server: client: $index", outputChannel.readLineStrict())
                     }
-                    buffer.toString()
                 }
 
-            assertEquals(connectionPool.connectionCount(), 1, "Expected the request to use the injected pool")
+            assertEquals(1, connectionPool.connectionCount(), "Expected the request to use the injected pool")
 
-            val idleConnections = withTimeoutOrNull(5.seconds) {
-                while (connectionPool.idleConnectionCount() < connectionPool.connectionCount()) {
-                    delay(50.milliseconds)
+            waitForCondition("connection to be released", timeout = 5.seconds) {
+                connectionPool.idleConnectionCount() == connectionPool.connectionCount()
+            }
+            assertEquals(1, connectionPool.idleConnectionCount(), "Connection should be released after request")
+        }
+    }
+
+    @Test
+    fun testDuplexStreamingFixedLengthConnectionReleasedAfterRequest() = testClient {
+        val connectionPool = ConnectionPool()
+        configureClient {
+            engine {
+                duplexStreamingEnabled = true
+                config { connectionPool(connectionPool) }
+            }
+        }
+
+        test { client ->
+            val inputChannel = ByteChannel(true)
+            val partialBody = object : OutgoingContent.ReadChannelContent() {
+                override val contentLength: Long = 1024
+                override fun readFrom(): ByteReadChannel = inputChannel
+            }
+
+            client
+                .preparePost("/echo/stream") {
+                    setBody(partialBody)
                 }
-                connectionPool.idleConnectionCount()
-            } ?: 0
-            assertEquals(idleConnections, 1, "Connection should be released after request")
+                .execute {
+                    val outputChannel = it.bodyAsChannel()
+                    inputChannel.writeStringUtf8("client: 0\n")
+                    inputChannel.flush()
+                    assertEquals("server: client: 0", outputChannel.readLineStrict())
+                }
+
+            assertEquals(1, connectionPool.connectionCount(), "Expected the request to use the injected pool")
+
+            waitForCondition("connection to be released", timeout = 5.seconds) {
+                connectionPool.idleConnectionCount() == connectionPool.connectionCount()
+            }
+            assertEquals(1, connectionPool.idleConnectionCount(), "Connection should be released after request")
         }
     }
 

@@ -31,7 +31,15 @@ internal class StreamRequestBody(
                 try {
                     val channel = block()
                     sink.use {
-                        channel.copyTo(it.outputStream().asByteWriteChannel())
+                        try {
+                            channel.copyTo(it.outputStream().asByteWriteChannel())
+                        } catch (cause: Throwable) {
+                            // A failing flush() completes the request body, while close() alone would
+                            // throw ProtocolException for a partially written fixed-length body
+                            // without releasing the connection.
+                            runCatching { it.flush() }
+                            throw cause
+                        }
                     }
                 } catch (cause: IOException) {
                     throw cause
