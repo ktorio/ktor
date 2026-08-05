@@ -107,15 +107,20 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
         val response = engine.execute(engineRequest, requestData, callContext)
 
         val body = response.body
-        // Closing an OkHttp response body performs blocking socket I/O, and completion handlers run on
-        // the thread that completes the job, which is the caller's thread when the call is cancelled.
-        // Closing on the engine dispatcher keeps that I/O off threads that must not perform it, such as
-        // the Android main thread.
-        callContext.job.invokeOnCompletion {
-            GlobalScope.launch(dispatcher) {
-                runCatching { body.close() }
+        // Closing an OkHttp response body performs blocking socket I/O, and completion handlers run on the
+        // thread that completes the job, which is the caller's thread when the call is cancelled. Awaiting
+        // the call from a coroutine bound to the engine dispatcher keeps that I/O off threads that must not
+        // perform it, such as the Android main thread. The cleanup is registered as a child of requestsJob
+        // right away, so engine teardown waits for it, and completing requestsJob in close() does not
+        // cancel an already registered child.
+        CoroutineScope(requestsJob + dispatcher + CoroutineName("okhttp-response-body-close"))
+            .launch(start = CoroutineStart.ATOMIC) {
+                try {
+                    callContext.job.join()
+                } finally {
+                    runCatching { body.close() }
+                }
             }
-        }
 
         val responseContent = body.source().toChannel(callContext, requestData)
         return buildResponseData(response, requestTime, responseContent, callContext, requestData)
