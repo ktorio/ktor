@@ -7,7 +7,6 @@ package io.ktor.client.engine.darwin
 import io.ktor.client.engine.darwin.internal.legacy.*
 import io.ktor.client.request.*
 import io.ktor.util.collections.*
-import kotlinx.cinterop.UnsafeNumber
 import kotlinx.coroutines.CompletableDeferred
 import platform.Foundation.*
 import platform.darwin.NSObject
@@ -19,7 +18,6 @@ import kotlin.coroutines.CoroutineContext
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.darwin.KtorLegacyNSURLSessionDelegate)
  */
 @Suppress("DEPRECATION")
-@OptIn(UnsafeNumber::class)
 public fun KtorLegacyNSURLSessionDelegate(): KtorLegacyNSURLSessionDelegate {
     return KtorLegacyNSURLSessionDelegate(null)
 }
@@ -39,7 +37,6 @@ public fun KtorLegacyNSURLSessionDelegate(): KtorLegacyNSURLSessionDelegate {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.darwin.KtorLegacyNSURLSessionDelegate)
  */
-@OptIn(UnsafeNumber::class)
 @Deprecated(
     message = "DarwinLegacy engine is deprecated. Consider using KtorNSURLSessionDelegate from Darwin engine instead.",
     replaceWith = ReplaceWith(

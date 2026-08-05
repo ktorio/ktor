@@ -49,7 +49,6 @@ internal class SignalPoint : Closeable {
         }
     }
 
-    @OptIn(UnsafeNumber::class)
     fun signal() {
         synchronized(lock) {
             if (closed) return@synchronized
@@ -85,7 +84,6 @@ internal class SignalPoint : Closeable {
         }
     }
 
-    @OptIn(UnsafeNumber::class)
     private fun readFromPipe(): Int {
         var count = 0
 

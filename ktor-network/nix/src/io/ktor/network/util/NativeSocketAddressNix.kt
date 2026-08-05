@@ -7,7 +7,6 @@ package io.ktor.network.util
 import kotlinx.cinterop.*
 import platform.posix.*
 
-@OptIn(UnsafeNumber::class)
 internal actual class NativeIPv4SocketAddress(
     family: UByte,
     rawAddress: in_addr,
@@ -49,7 +48,7 @@ internal actual class NativeIPv4SocketAddress(
         }
 }
 
-@OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class)
 internal actual class NativeIPv6SocketAddress(
     family: UByte,
     private val rawAddress: CValue<in6_addr>,

@@ -8,7 +8,7 @@ import kotlinx.cinterop.*
 import platform.posix.*
 
 @Suppress("FunctionName")
-@OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class)
 internal actual fun system_time(tm: CValuesRef<tm>?): Long = timegm(tm).toLong()
 
 /**
@@ -17,7 +17,7 @@ internal actual fun system_time(tm: CValuesRef<tm>?): Long = timegm(tm).toLong()
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.date.getTimeMillis)
  */
-@OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class)
 public actual fun getTimeMillis(): Long = memScoped {
     val timeHolder = alloc<timespec>()
     clock_gettime(CLOCK_REALTIME.convert(), timeHolder.ptr)

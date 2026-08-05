@@ -44,7 +44,7 @@ private fun addrinfo?.toIpList(): List<NativeSocketAddress> {
     return result
 }
 
-@OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class)
 internal actual fun sockaddr.toNativeSocketAddress(): NativeSocketAddress = when (sa_family.toUShort().toInt()) {
     AF_INET -> {
         val address = ptr.reinterpret<sockaddr_in>().pointed
@@ -96,17 +96,17 @@ internal actual fun signalIgnoreSigpipe() {
     signal(SIGPIPE, SIG_IGN)
 }
 
-@OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class)
 internal actual fun ktor_send(socket: Int, buf: CValuesRef<ByteVar>?, len: Int, flags: Int): Int {
     return send(socket, buf, len.convert(), flags).toInt()
 }
 
-@OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class)
 internal actual fun ktor_recv(socket: Int, buf: CValuesRef<ByteVar>?, len: Int, flags: Int): Int {
     return recv(socket, buf, len.convert(), flags).toInt()
 }
 
-@OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class)
 internal actual fun ktor_sendto(
     __fd: Int,
     __buf: CValuesRef<ByteVar>?,

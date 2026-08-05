@@ -6,12 +6,10 @@ package io.ktor.client.engine.darwin
 
 import io.ktor.client.engine.darwin.utils.*
 import io.ktor.client.tests.*
-import kotlinx.cinterop.UnsafeNumber
 import kotlin.test.Ignore
 import kotlin.test.Test
 
 class DarwinHttp2Test : Http2Test<DarwinClientEngineConfig>(Darwin, useH2c = false) {
-    @OptIn(UnsafeNumber::class)
     override fun DarwinClientEngineConfig.disableCertificateValidation() {
         handleChallenge { _, _, challenge, completionHandler -> trustAnyCertificate(challenge, completionHandler) }
     }

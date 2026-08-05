@@ -6,10 +6,9 @@ package io.ktor.client.engine.darwin.internal.legacy
 
 import io.ktor.client.request.*
 import io.ktor.utils.io.*
-import kotlinx.cinterop.UnsafeNumber
 import platform.Foundation.*
 
-@OptIn(InternalAPI::class, UnsafeNumber::class)
+@OptIn(InternalAPI::class)
 internal suspend fun HttpRequestData.toNSUrlRequest(): NSMutableURLRequest {
     val url = url.toNSUrl()
     val nativeRequest = NSMutableURLRequest.requestWithURL(url).apply {

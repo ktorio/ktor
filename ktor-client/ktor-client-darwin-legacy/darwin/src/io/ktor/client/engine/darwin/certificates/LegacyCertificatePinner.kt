@@ -109,7 +109,6 @@ import platform.Security.*
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.darwin.certificates.LegacyCertificatePinner)
  */
-@OptIn(UnsafeNumber::class)
 public data class LegacyCertificatePinner(
     private val pinnedCertificates: Set<LegacyPinnedCertificate>,
     private val validateTrust: Boolean

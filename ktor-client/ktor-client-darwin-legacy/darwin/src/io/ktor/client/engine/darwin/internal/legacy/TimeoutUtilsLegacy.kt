@@ -25,7 +25,6 @@ internal fun NSMutableURLRequest.setupSocketTimeout(requestData: HttpRequestData
     }
 }
 
-@OptIn(UnsafeNumber::class)
 internal fun handleNSError(requestData: HttpRequestData, error: NSError): Throwable = when (error.code) {
     NSURLErrorTimedOut -> SocketTimeoutException(requestData)
     else -> DarwinHttpRequestException(error)

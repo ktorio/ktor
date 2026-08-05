@@ -14,12 +14,10 @@ import kotlinx.io.IOException
 import platform.Foundation.*
 import platform.posix.memcpy
 
-@OptIn(UnsafeNumber::class)
 internal val NSURLSessionTask.id: ULong get() = this.taskIdentifier.toULong()
 
 @OptIn(
     DelicateCoroutinesApi::class,
-    UnsafeNumber::class,
     InternalAPI::class,
     ExperimentalForeignApi::class,
     BetaInteropApi::class
@@ -82,7 +80,7 @@ internal suspend fun OutgoingContent.toDataOrStream(): Any? {
     return inputStream
 }
 
-@OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class)
 internal fun ByteArray.toNSData(): NSData = NSMutableData().apply {
     if (isEmpty()) return@apply
     this@toNSData.usePinned {
@@ -90,7 +88,7 @@ internal fun ByteArray.toNSData(): NSData = NSMutableData().apply {
     }
 }
 
-@OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class)
 internal fun NSData.toByteArray(): ByteArray {
     val result = ByteArray(length.toULong().toInt())
     if (result.isEmpty()) return result
@@ -106,7 +104,7 @@ internal fun NSData.toByteArray(): ByteArray {
  * Writes the entire content of [NSData] to this channel without intermediate allocations.
  * Writes directly from NSData's byte pointer to avoid creating an intermediate ByteArray.
  */
-@OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class)
 internal suspend fun ByteWriteChannel.writeFully(data: NSData) {
     val length = data.length.toULong().toLong()
     if (length == 0L) return

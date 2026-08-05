@@ -12,7 +12,6 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import io.ktor.websocket.*
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.UnsafeNumber
 import kotlinx.cinterop.convert
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
@@ -28,7 +27,7 @@ import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
-@OptIn(InternalAPI::class, UnsafeNumber::class, ExperimentalForeignApi::class)
+@OptIn(InternalAPI::class, ExperimentalForeignApi::class)
 internal class DarwinWebsocketSession(
     callContext: CoroutineContext,
     private val task: NSURLSessionWebSocketTask,
@@ -227,7 +226,6 @@ internal class DarwinWebsocketSession(
     }
 }
 
-@OptIn(UnsafeNumber::class)
 private suspend fun NSURLSessionWebSocketTask.receiveMessage(): NSURLSessionWebSocketMessage =
     suspendCancellableCoroutine {
         receiveMessageWithCompletionHandler { message, error ->
@@ -253,11 +251,10 @@ private suspend fun NSURLSessionWebSocketTask.receiveMessage(): NSURLSessionWebS
         }
     }
 
-@OptIn(UnsafeNumber::class)
 @Suppress("REDUNDANT_CALL_OF_CONVERSION_METHOD")
 internal fun NSURLSessionTask.getStatusCode() = (response() as NSHTTPURLResponse?)?.statusCode?.toInt()
 
-@OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class)
 private fun convertWebsocketError(error: NSError): Exception = when {
     (error.domain == NSPOSIXErrorDomain || error.domain == "kNWErrorDomainPOSIX") &&
         error.code.toInt() == EMSGSIZE -> {

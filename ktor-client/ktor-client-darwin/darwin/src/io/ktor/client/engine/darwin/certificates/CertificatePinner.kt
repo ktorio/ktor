@@ -117,7 +117,6 @@ private val LOG = KtorSimpleLogger("io.ktor.client.engine.darwin.certificates.Ce
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.darwin.certificates.CertificatePinner)
  */
-@OptIn(UnsafeNumber::class)
 public data class CertificatePinner(
     private val pinnedCertificates: Set<PinnedCertificate>,
     private val validateTrust: Boolean

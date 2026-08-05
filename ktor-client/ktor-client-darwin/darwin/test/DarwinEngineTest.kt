@@ -15,7 +15,6 @@ import io.ktor.http.*
 import io.ktor.utils.io.*
 import io.ktor.websocket.*
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.UnsafeNumber
 import kotlinx.coroutines.*
 import kotlinx.coroutines.test.runTest
 import platform.Foundation.NSHTTPCookieStorage.Companion.sharedHTTPCookieStorage
@@ -214,7 +213,7 @@ class DarwinEngineTest : ClientEngineTest<DarwinClientEngineConfig>(Darwin) {
         }
     }
 
-    @OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
+    @OptIn(ExperimentalForeignApi::class)
     @Test
     fun testConfigureWebsocketRequest(): Unit = testClient {
         var customChallengeCalled = false
@@ -259,7 +258,6 @@ class DarwinEngineTest : ClientEngineTest<DarwinClientEngineConfig>(Darwin) {
         }
     }
 
-    @OptIn(UnsafeNumber::class)
     @Test
     fun testRethrowExceptionThrownDuringCustomChallenge() = runBlocking {
         val challengeException = Exception("Challenge failed")

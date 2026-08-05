@@ -7,7 +7,6 @@ package io.ktor.util
 import kotlinx.cinterop.*
 import platform.posix.*
 
-@OptIn(UnsafeNumber::class)
 internal actual fun collectStack(thread: pthread_t): List<String> = emptyList()
 
 internal actual fun setSignalHandler() = Unit

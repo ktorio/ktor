@@ -10,7 +10,6 @@ import io.ktor.http.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.UnsafeNumber
 import kotlinx.cinterop.convert
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -79,7 +78,7 @@ internal class DarwinTaskHandler(
         bodyChunks.close()
     }
 
-    @OptIn(UnsafeNumber::class, ExperimentalForeignApi::class, InternalAPI::class)
+    @OptIn(ExperimentalForeignApi::class, InternalAPI::class)
     fun NSHTTPURLResponse.toResponseData(requestData: HttpRequestData): HttpResponseData {
         val status = HttpStatusCode.fromValue(statusCode.toInt())
         val headers = readHeaders(requestData.method, requestData.attributes)

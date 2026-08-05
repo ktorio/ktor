@@ -10,7 +10,6 @@ import io.ktor.client.request.*
 import io.ktor.util.collections.*
 import io.ktor.utils.io.*
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.UnsafeNumber
 import kotlinx.cinterop.convert
 import kotlinx.coroutines.CompletableDeferred
 import platform.Foundation.*
@@ -25,7 +24,6 @@ private const val WS_REQUESTS_INITIAL_CAPACITY = 16
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.darwin.KtorNSURLSessionDelegate)
  */
-@OptIn(UnsafeNumber::class)
 public fun KtorNSURLSessionDelegate(): KtorNSURLSessionDelegate {
     return KtorNSURLSessionDelegate(null)
 }
@@ -49,7 +47,6 @@ public fun KtorNSURLSessionDelegate(): KtorNSURLSessionDelegate {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.darwin.KtorNSURLSessionDelegate)
  */
-@OptIn(UnsafeNumber::class)
 public class KtorNSURLSessionDelegate(
     internal val challengeHandler: ChallengeHandler?
 ) : NSObject(), NSURLSessionDataDelegateProtocol, NSURLSessionWebSocketDelegateProtocol {

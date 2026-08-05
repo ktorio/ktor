@@ -5,10 +5,9 @@
 package io.ktor.client.engine.darwin.utils
 
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.UnsafeNumber
 import platform.Foundation.*
 
-@OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class)
 internal fun trustAnyCertificate(
     challenge: NSURLAuthenticationChallenge,
     completionHandler: (NSURLSessionAuthChallengeDisposition, NSURLCredential?) -> Unit

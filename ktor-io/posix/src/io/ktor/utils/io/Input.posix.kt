@@ -10,7 +10,7 @@ import kotlinx.io.*
 import kotlinx.io.unsafe.*
 import platform.posix.*
 
-@OptIn(ExperimentalForeignApi::class, UnsafeIoApi::class, InternalIoApi::class, UnsafeNumber::class)
+@OptIn(ExperimentalForeignApi::class, UnsafeIoApi::class, InternalIoApi::class)
 public fun Input.readAvailable(cPointer: CPointer<ByteVar>, offset: Int, length: Int): Int {
     var result = 0
     UnsafeBufferOperations.readFromHead(buffer) { array, startOffset, endExclusive ->
