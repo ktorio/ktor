@@ -14,7 +14,6 @@ import platform.Foundation.*
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.darwin.ChallengeHandler)
  */
-@OptIn(UnsafeNumber::class)
 public typealias ChallengeHandler = (
     session: NSURLSession,
     task: NSURLSessionTask,
@@ -59,7 +58,6 @@ public class DarwinClientEngineConfig : HttpClientEngineConfig() {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.darwin.DarwinClientEngineConfig.challengeHandler)
      */
-    @OptIn(UnsafeNumber::class)
     public var challengeHandler: ChallengeHandler? = null
         private set
 
@@ -158,7 +156,6 @@ public class DarwinClientEngineConfig : HttpClientEngineConfig() {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.darwin.DarwinClientEngineConfig.handleChallenge)
      */
-    @OptIn(UnsafeNumber::class)
     public fun handleChallenge(block: ChallengeHandler) {
         challengeHandler = block
     }

@@ -67,7 +67,7 @@ private fun readFile(path: String): String {
     return packet.readText()
 }
 
-@OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class)
 private fun CPointer<FILE>.readFileChunk(
     bytes: ByteArray,
     size: Int

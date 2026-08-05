@@ -12,7 +12,6 @@ import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.UnsafeNumber
 import kotlinx.coroutines.job
 import platform.Foundation.NSOperationQueue
 import platform.Foundation.NSURLSession
@@ -20,7 +19,6 @@ import platform.Foundation.NSURLSessionConfiguration
 import platform.Foundation.NSURLSessionTaskStateRunning
 import kotlin.coroutines.CoroutineContext
 
-@OptIn(UnsafeNumber::class)
 internal class DarwinSession(
     private val config: DarwinClientEngineConfig,
     requestQueue: NSOperationQueue?
@@ -83,7 +81,6 @@ internal class DarwinSession(
     }
 }
 
-@OptIn(UnsafeNumber::class)
 internal fun createSession(
     config: DarwinClientEngineConfig,
     requestQueue: NSOperationQueue?

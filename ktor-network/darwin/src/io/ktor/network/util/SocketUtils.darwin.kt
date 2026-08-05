@@ -19,7 +19,7 @@ internal actual fun ktor_inet_ntop(
     size: UInt
 ): CPointer<ByteVar>? = inet_ntop(family, src, dst, size)
 
-@OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class)
 internal actual fun ktor_recvfrom(
     __fd: Int,
     __buf: CValuesRef<ByteVar>?,

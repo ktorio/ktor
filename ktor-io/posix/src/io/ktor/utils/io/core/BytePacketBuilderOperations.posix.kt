@@ -24,7 +24,7 @@ public fun Sink.write(block: (buffer: CPointer<ByteVar>, offset: Long, length: L
     return result
 }
 
-@OptIn(ExperimentalForeignApi::class, UnsafeIoApi::class, InternalIoApi::class, UnsafeNumber::class)
+@OptIn(ExperimentalForeignApi::class, UnsafeIoApi::class, InternalIoApi::class)
 public fun Sink.writeFully(buffer: CPointer<ByteVar>, offset: Long, length: Long) {
     var consumed = 0L
     while (consumed < length) {

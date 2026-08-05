@@ -11,7 +11,6 @@ import io.ktor.utils.io.core.*
 import kotlinx.atomicfu.atomic
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
-import kotlinx.cinterop.UnsafeNumber
 import kotlinx.coroutines.job
 import platform.Foundation.NSOperationQueue
 import platform.Foundation.NSURLSession
@@ -19,7 +18,6 @@ import platform.Foundation.NSURLSessionConfiguration
 import platform.Foundation.NSURLSessionTaskStateRunning
 import kotlin.coroutines.CoroutineContext
 
-@OptIn(UnsafeNumber::class)
 @Suppress("DEPRECATION")
 internal class DarwinLegacySession(
     private val config: DarwinLegacyClientEngineConfig,
@@ -76,7 +74,6 @@ internal class DarwinLegacySession(
     }
 }
 
-@OptIn(UnsafeNumber::class)
 @Suppress("DEPRECATION")
 internal fun createSession(
     config: DarwinLegacyClientEngineConfig,

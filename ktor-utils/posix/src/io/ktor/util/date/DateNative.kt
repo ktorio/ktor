@@ -14,7 +14,7 @@ import platform.posix.*
  *
  * @param timestamp is a number of epoch milliseconds (it is `now` by default).
  */
-@OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class)
 public actual fun GMTDate(timestamp: Long?): GMTDate = memScoped {
     val timeHolder = alloc<time_tVar>()
     val current: Long = if (timestamp == null) {

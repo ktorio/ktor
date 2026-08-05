@@ -27,7 +27,6 @@ internal actual fun findCharset(name: String): Charset {
 }
 
 private class CharsetDarwin(name: String) : Charset(name) {
-    @OptIn(UnsafeNumber::class)
     val encoding: NSStringEncoding = when (name.uppercase()) {
         "UTF-8" -> NSUTF8StringEncoding
         "ISO-8859-1" -> NSISOLatin1StringEncoding
@@ -51,7 +50,6 @@ private class CharsetDarwin(name: String) : Charset(name) {
     }
 }
 
-@OptIn(UnsafeNumber::class)
 internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: Int, toIndex: Int, dst: Sink): Int {
     val charset = _charset as? CharsetDarwin ?: error("Charset $this is not supported by Darwin.")
 
@@ -67,7 +65,7 @@ internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: In
 }
 
 @Suppress("CAST_NEVER_SUCCEEDS")
-@OptIn(UnsafeNumber::class, BetaInteropApi::class)
+@OptIn(BetaInteropApi::class)
 public actual fun CharsetDecoder.decode(input: Source, dst: Appendable, max: Int): Int {
     if (max != Int.MAX_VALUE) {
         throw IOException("Max argument is deprecated")
@@ -84,7 +82,6 @@ public actual fun CharsetDecoder.decode(input: Source, dst: Appendable, max: Int
     return content.length
 }
 
-@OptIn(UnsafeNumber::class)
 internal actual fun CharsetEncoder.encodeToByteArrayImpl(
     input: CharSequence,
     fromIndex: Int,
@@ -100,7 +97,7 @@ internal actual fun CharsetEncoder.encodeToByteArrayImpl(
         ?: throw MalformedInputException("Failed to convert String to Bytes using $charset")
 }
 
-@OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class)
 private fun ByteArray.toNSData(): NSData = NSMutableData().apply {
     if (isEmpty()) return@apply
     this@toNSData.usePinned {
@@ -108,7 +105,7 @@ private fun ByteArray.toNSData(): NSData = NSMutableData().apply {
     }
 }
 
-@OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class)
 private fun NSData.toByteArray(): ByteArray {
     val result = ByteArray(length.toInt())
     if (result.isEmpty()) return result

@@ -96,7 +96,7 @@ class YamlConfigTestNix {
         return result
     }
 
-    @OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
+    @OptIn(ExperimentalForeignApi::class)
     private fun writeFile(path: String, content: String) {
         val file = fopen(path, "w")
         val bytes = content.toByteArray()
