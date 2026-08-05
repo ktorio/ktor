@@ -61,11 +61,6 @@ class OkHttpEngineTests {
         }
     }
 
-    /**
-     * Closing an OkHttp response body performs blocking socket I/O, so it must not run on the thread that
-     * cancels the call: on Android that thread is usually the main one, where such I/O fails with
-     * `NetworkOnMainThreadException`.
-     */
     @Test
     fun testResponseBodyIsClosedOnEngineDispatcher() = runTest {
         val engineThread = CompletableDeferred<Thread>()
