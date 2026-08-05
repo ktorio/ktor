@@ -19,15 +19,19 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.mockk.mockkStatic
 import io.mockk.verify
+import kotlinx.coroutines.*
 import kotlinx.coroutines.debug.junit5.CoroutinesTimeout
-import kotlinx.coroutines.delay
 import java.net.InetAddress
 import java.nio.channels.UnresolvedAddressException
 import kotlin.test.*
+import kotlin.time.Duration.Companion.seconds
 
 @CoroutinesTimeout(60_000)
 class CIORequestTest : TestWithKtor() {
     private val testSize = 2 * 1024
+
+    private val firstPipelineRequestReceived = CompletableDeferred<Unit>()
+    private val secondPipelineRequestReceived = CompletableDeferred<Unit>()
 
     override val server: EmbeddedServer<*, *> = embeddedServer(Netty, serverPort) {
         routing {
@@ -48,9 +52,43 @@ class CIORequestTest : TestWithKtor() {
                 call.respond("OK")
             }
             get("/delay") {
-                delay(1000)
+                delay(1.seconds)
                 call.respond("OK")
             }
+            get("/pipeline") {
+                when (call.parameters["request"]) {
+                    "first" -> {
+                        firstPipelineRequestReceived.complete(Unit)
+                        secondPipelineRequestReceived.await()
+                    }
+
+                    "second" -> secondPipelineRequestReceived.complete(Unit)
+                }
+                call.respond("OK")
+            }
+        }
+    }
+
+    @Test
+    fun testTwoPipelinedRequests() = testWithEngine(CIO) {
+        config {
+            defaultRequest { port = serverPort }
+            engine {
+                pipelining = true
+                endpoint {
+                    maxConnectionsPerRoute = 1
+                }
+            }
+        }
+
+        test { client ->
+            val responses = coroutineScope {
+                val firstRequest = async { client.get("/pipeline?request=first").bodyAsText() }
+                firstPipelineRequestReceived.await()
+                val secondRequest = async { client.get("/pipeline?request=second").bodyAsText() }
+                awaitAll(firstRequest, secondRequest)
+            }
+            assertEquals(listOf("OK", "OK"), responses)
         }
     }
 
