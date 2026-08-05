@@ -7,7 +7,7 @@ package io.ktor.client.engine.okhttp
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
-import io.ktor.test.runTest
+import io.ktor.test.*
 import kotlinx.coroutines.*
 import okhttp3.*
 import okio.Buffer
