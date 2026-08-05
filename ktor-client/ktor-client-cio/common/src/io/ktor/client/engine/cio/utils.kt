@@ -6,7 +6,7 @@ package io.ktor.client.engine.cio
 
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
-import io.ktor.client.plugins.websocket.WEBSOCKETS_KEY
+import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
@@ -28,8 +28,8 @@ internal suspend fun writeRequest(
     overProxy: Boolean,
     closeChannel: Boolean = true
 ) = withContext(callContext) {
-    writeHeaders(request, output, overProxy, closeChannel)
-    writeBody(request, output, callContext)
+    writeHeaders(request, output, overProxy = overProxy, closeChannelOnError = closeChannel)
+    writeBody(request, output, callContext, closeChannel)
 }
 
 @OptIn(InternalAPI::class)
@@ -37,7 +37,7 @@ internal suspend fun writeHeaders(
     request: HttpRequestData,
     output: ByteWriteChannel,
     overProxy: Boolean,
-    closeChannel: Boolean = true
+    closeChannelOnError: Boolean = true
 ) {
     val builder = RequestResponseBuilder()
 
@@ -93,7 +93,7 @@ internal suspend fun writeHeaders(
         output.writePacket(builder.build())
         output.flush()
     } catch (cause: Throwable) {
-        if (closeChannel) {
+        if (closeChannelOnError) {
             output.flushAndClose()
         }
         throw cause
@@ -102,8 +102,8 @@ internal suspend fun writeHeaders(
     }
 }
 
-@Suppress("TYPEALIAS_EXPANSION_DEPRECATION", "DEPRECATION")
-internal suspend fun writeBody(
+@Suppress("DEPRECATION")
+internal fun writeBody(
     request: HttpRequestData,
     output: ByteWriteChannel,
     callContext: CoroutineContext,
