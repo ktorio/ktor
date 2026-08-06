@@ -6,15 +6,26 @@ package io.ktor.util.logging
 
 import org.slf4j.*
 import java.util.concurrent.CompletableFuture
-import java.util.concurrent.Executors
+import java.util.concurrent.Executor
+import java.util.concurrent.LinkedBlockingQueue
+import java.util.concurrent.ThreadPoolExecutor
+import java.util.concurrent.TimeUnit
+
+private val loggerInitExecutor: Executor = ThreadPoolExecutor(
+    0,
+    1,
+    30L,
+    TimeUnit.SECONDS,
+    LinkedBlockingQueue(),
+) { r ->
+    Thread(r, "ktor-slf4j-logger-init").apply { isDaemon = true }
+}
 
 @Suppress("FunctionName")
 public actual fun KtorSimpleLogger(name: String): Logger = object : org.slf4j.Logger {
     private val loggerFuture = CompletableFuture.supplyAsync({
         LoggerFactory.getLogger(name)
-    }, Executors.newSingleThreadExecutor { r ->
-        Thread(r, "slf4j-$name-logger").apply { isDaemon = true }
-    })
+    }, loggerInitExecutor)
 
     override fun getName(): String {
         return name
