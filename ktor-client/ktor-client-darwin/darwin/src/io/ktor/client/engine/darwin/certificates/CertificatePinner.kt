@@ -13,6 +13,7 @@ import platform.CoreCrypto.CC_SHA1_DIGEST_LENGTH
 import platform.CoreCrypto.CC_SHA256
 import platform.CoreCrypto.CC_SHA256_DIGEST_LENGTH
 import platform.CoreFoundation.CFDictionaryGetValue
+import platform.CoreFoundation.CFRetain
 import platform.CoreFoundation.CFStringCreateWithCString
 import platform.CoreFoundation.kCFStringEncodingUTF8
 import platform.Foundation.*
@@ -294,9 +295,9 @@ public data class CertificatePinner(
         return publicKeyRef.use {
             val publicKeyAttributes = SecKeyCopyAttributes(publicKeyRef)
             val publicKeyTypePointer = CFDictionaryGetValue(publicKeyAttributes, kSecAttrKeyType)
-            val publicKeyType = CFBridgingRelease(publicKeyTypePointer) as NSString
+            val publicKeyType = CFBridgingRelease(CFRetain(publicKeyTypePointer)) as NSString
             val publicKeySizePointer = CFDictionaryGetValue(publicKeyAttributes, kSecAttrKeySizeInBits)
-            val publicKeySize = CFBridgingRelease(publicKeySizePointer) as NSNumber
+            val publicKeySize = CFBridgingRelease(CFRetain(publicKeySizePointer)) as NSNumber
 
             CFBridgingRelease(publicKeyAttributes)
 
@@ -323,8 +324,8 @@ public data class CertificatePinner(
      */
     @OptIn(ExperimentalForeignApi::class)
     private fun checkValidKeyType(publicKeyType: NSString, publicKeySize: NSNumber): Boolean {
-        val keyTypeRSA = CFBridgingRelease(kSecAttrKeyTypeRSA) as NSString
-        val keyTypeECSECPrimeRandom = CFBridgingRelease(kSecAttrKeyTypeECSECPrimeRandom) as NSString
+        val keyTypeRSA = CFBridgingRelease(CFRetain(kSecAttrKeyTypeRSA)) as NSString
+        val keyTypeECSECPrimeRandom = CFBridgingRelease(CFRetain(kSecAttrKeyTypeECSECPrimeRandom)) as NSString
 
         val size: Int = publicKeySize.intValue.toInt()
         val keys = when (publicKeyType) {
@@ -342,8 +343,8 @@ public data class CertificatePinner(
      */
     @OptIn(ExperimentalForeignApi::class)
     private fun getAsn1HeaderBytes(publicKeyType: NSString, publicKeySize: NSNumber): IntArray {
-        val keyTypeRSA = CFBridgingRelease(kSecAttrKeyTypeRSA) as NSString
-        val keyTypeECSECPrimeRandom = CFBridgingRelease(kSecAttrKeyTypeECSECPrimeRandom) as NSString
+        val keyTypeRSA = CFBridgingRelease(CFRetain(kSecAttrKeyTypeRSA)) as NSString
+        val keyTypeECSECPrimeRandom = CFBridgingRelease(CFRetain(kSecAttrKeyTypeECSECPrimeRandom)) as NSString
 
         val size: Int = publicKeySize.intValue.toInt()
         val keys = when (publicKeyType) {
