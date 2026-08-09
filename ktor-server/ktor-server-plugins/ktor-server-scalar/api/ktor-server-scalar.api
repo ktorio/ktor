@@ -1,0 +1,42 @@
+public final class io/ktor/server/plugins/scalar/ScalarConfig : io/ktor/openapi/OpenApiDocDsl {
+	public fun <init> ()V
+	public final fun customStyle (Ljava/lang/String;)V
+	public final fun getCdnUrl ()Ljava/lang/String;
+	public fun getComponents ()Lio/ktor/openapi/Components;
+	public fun getExtensions ()Ljava/util/Map;
+	public fun getExternalDocs ()Lio/ktor/openapi/ExternalDocs;
+	public final fun getFaviconLocation ()Ljava/lang/String;
+	public fun getInfo ()Lio/ktor/openapi/OpenApiInfo;
+	public final fun getLayout ()Ljava/lang/String;
+	public fun getOpenapiVersion ()Ljava/lang/String;
+	public final fun getRemotePath ()Ljava/lang/String;
+	public final fun getShowSidebar ()Z
+	public final fun getSource ()Lio/ktor/server/routing/openapi/OpenApiDocSource;
+	public final fun getTheme ()Ljava/lang/String;
+	public fun security (Lkotlin/jvm/functions/Function1;)V
+	public fun servers (Lkotlin/jvm/functions/Function1;)V
+	public final fun setCdnUrl (Ljava/lang/String;)V
+	public fun setComponents (Lio/ktor/openapi/Components;)V
+	public fun setExternalDocs (Lio/ktor/openapi/ExternalDocs;)V
+	public final fun setFaviconLocation (Ljava/lang/String;)V
+	public fun setInfo (Lio/ktor/openapi/OpenApiInfo;)V
+	public final fun setLayout (Ljava/lang/String;)V
+	public fun setOpenapiVersion (Ljava/lang/String;)V
+	public final fun setRemotePath (Ljava/lang/String;)V
+	public final fun setShowSidebar (Z)V
+	public final fun setSource (Lio/ktor/server/routing/openapi/OpenApiDocSource;)V
+	public final fun setTheme (Ljava/lang/String;)V
+	public fun tag (Ljava/lang/String;Ljava/lang/String;Lio/ktor/openapi/ExternalDocs;)V
+}
+
+public final class io/ktor/server/plugins/scalar/ScalarKt {
+	public static final fun scalarUI (Lio/ktor/server/routing/Route;Ljava/lang/String;Ljava/io/File;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/routing/Route;
+	public static final fun scalarUI (Lio/ktor/server/routing/Route;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/routing/Route;
+	public static final fun scalarUI (Lio/ktor/server/routing/Route;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/routing/Route;
+	public static final fun scalarUI (Lio/ktor/server/routing/Route;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/routing/Route;
+	public static synthetic fun scalarUI$default (Lio/ktor/server/routing/Route;Ljava/lang/String;Ljava/io/File;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/server/routing/Route;
+	public static synthetic fun scalarUI$default (Lio/ktor/server/routing/Route;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/server/routing/Route;
+	public static synthetic fun scalarUI$default (Lio/ktor/server/routing/Route;Ljava/lang/String;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/server/routing/Route;
+	public static synthetic fun scalarUI$default (Lio/ktor/server/routing/Route;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/server/routing/Route;
+}
+

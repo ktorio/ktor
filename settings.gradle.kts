@@ -97,6 +97,7 @@ projects {
             +"ktor-server-rate-limit"
             +"ktor-server-request-validation"
             +"ktor-server-resources"
+	        +"ktor-server-scalar"
             +"ktor-server-sessions"
             +"ktor-server-sse"
             +"ktor-server-status-pages"
