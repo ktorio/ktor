@@ -33,7 +33,7 @@ internal class StreamRequestBody(
                     sink.use {
                         try {
                             channel.copyTo(it.outputStream().asByteWriteChannel())
-                        } catch (cause: Throwable) {
+                        } catch (cause: CancellationException) {
                             // A failing flush() completes the request body, while close() alone would
                             // throw ProtocolException for a partially written fixed-length body
                             // without releasing the connection.
