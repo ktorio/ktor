@@ -36,6 +36,7 @@ public final class io/ktor/server/application/ApplicationCallPipeline$Applicatio
 	public final fun getMonitoring ()Lio/ktor/util/pipeline/PipelinePhase;
 	public final fun getPlugins ()Lio/ktor/util/pipeline/PipelinePhase;
 	public final fun getSetup ()Lio/ktor/util/pipeline/PipelinePhase;
+	public final fun getValidators ()Lio/ktor/util/pipeline/PipelinePhase;
 }
 
 public final class io/ktor/server/application/ApplicationCallPipelineKt {
@@ -198,6 +199,7 @@ public abstract class io/ktor/server/application/PluginBuilder {
 	public final fun onCallReceive (Lkotlin/jvm/functions/Function4;)V
 	public final fun onCallRespond (Lkotlin/jvm/functions/Function3;)V
 	public final fun onCallRespond (Lkotlin/jvm/functions/Function4;)V
+	public final fun onCallValidators (Lkotlin/jvm/functions/Function3;)V
 }
 
 public final class io/ktor/server/application/PluginInstance {
