@@ -114,7 +114,10 @@ class TestEngineMultipartTest {
         routing {
             post {
                 val part = call.receiveMultipart().readPart() as PartData.FormItem
-                call.respondText("${part.name}=${part.value}")
+                val name = part.name
+                val value = part.value
+                part.release()
+                call.respondText("$name=$value")
             }
         }
 
@@ -138,6 +141,7 @@ class TestEngineMultipartTest {
             setBody(MultiPartFormDataContent(formData { append("data", "value") }))
         }
 
+        assertEquals(HttpStatusCode.OK, response.status)
         assertEquals("value", response.bodyAsText())
     }
 
