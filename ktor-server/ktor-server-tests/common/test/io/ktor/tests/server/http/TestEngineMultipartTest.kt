@@ -6,6 +6,7 @@ package io.ktor.tests.server.http
 
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
@@ -109,6 +110,38 @@ class TestEngineMultipartTest {
     }
 
     @Test
+    fun testReceiveMultipartFormItem() = testApplication {
+        routing {
+            post {
+                val part = call.receiveMultipart().readPart() as PartData.FormItem
+                call.respondText("${part.name}=${part.value}")
+            }
+        }
+
+        val response = client.post {
+            setBody(MultiPartFormDataContent(formData { append("data", "value") }))
+        }
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals("data=value", response.bodyAsText())
+    }
+
+    @Test
+    fun testReceiveParametersFromMultipart() = testApplication {
+        routing {
+            post {
+                call.respondText(call.receiveParameters()["data"] ?: "missing")
+            }
+        }
+
+        val response = client.post {
+            setBody(MultiPartFormDataContent(formData { append("data", "value") }))
+        }
+
+        assertEquals("value", response.bodyAsText())
+    }
+
+    @Test
     fun testMultipartIsNotTruncated() {
         if (!PlatformUtils.IS_JVM) return
 
@@ -160,8 +193,6 @@ class TestEngineMultipartTest {
 
     @Test
     fun testMultipartBiggerThanLimitFails() {
-        if (!PlatformUtils.IS_JVM) return
-
         testApplication {
             routing {
                 post {
