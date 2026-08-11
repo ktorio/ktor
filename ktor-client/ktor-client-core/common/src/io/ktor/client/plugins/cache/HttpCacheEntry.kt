@@ -11,6 +11,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.date.*
+import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import kotlinx.io.readByteArray
 
@@ -112,7 +113,7 @@ internal fun shouldValidate(
     val requestCacheControl = parseHeaderValue(requestHeaders.getAll(HttpHeaders.CacheControl)?.joinToString(","))
 
     if (CacheControl.NO_CACHE in requestCacheControl) {
-        LOGGER.trace("\"no-cache\" is set for ${request.url}, should validate cached response")
+        LOGGER.trace { "\"no-cache\" is set for ${request.url}, should validate cached response" }
         return ValidateStatus.ShouldValidate
     }
 
@@ -120,21 +121,21 @@ internal fun shouldValidate(
         ?.value?.split("=")
         ?.get(1)?.let { it.toIntOrNull() ?: 0 }
     if (requestMaxAge == 0) {
-        LOGGER.trace("\"max-age\" is not set for ${request.url}, should validate cached response")
+        LOGGER.trace { "\"max-age\" is not set for ${request.url}, should validate cached response" }
         return ValidateStatus.ShouldValidate
     }
 
     if (CacheControl.NO_CACHE in responseCacheControl) {
-        LOGGER.trace("\"no-cache\" is set for ${request.url}, should validate cached response")
+        LOGGER.trace { "\"no-cache\" is set for ${request.url}, should validate cached response" }
         return ValidateStatus.ShouldValidate
     }
     val validMillis = cacheExpires.timestamp - getTimeMillis()
     if (validMillis > 0) {
-        LOGGER.trace("Cached response is valid for ${request.url}, should not validate")
+        LOGGER.trace { "Cached response is valid for ${request.url}, should not validate" }
         return ValidateStatus.ShouldNotValidate
     }
     if (CacheControl.MUST_REVALIDATE in responseCacheControl) {
-        LOGGER.trace("\"must-revalidate\" is set for ${request.url}, should validate cached response")
+        LOGGER.trace { "\"must-revalidate\" is set for ${request.url}, should validate cached response" }
         return ValidateStatus.ShouldValidate
     }
 
@@ -143,10 +144,10 @@ internal fun shouldValidate(
         ?.toIntOrNull() ?: 0
     val maxStaleMillis = maxStale * 1000L
     if (validMillis + maxStaleMillis > 0) {
-        LOGGER.trace("Cached response is stale for ${request.url} but less than max-stale, should warn")
+        LOGGER.trace { "Cached response is stale for ${request.url} but less than max-stale, should warn" }
         return ValidateStatus.ShouldWarn
     }
-    LOGGER.trace("Cached response is stale for ${request.url}, should validate cached response")
+    LOGGER.trace { "Cached response is stale for ${request.url}, should validate cached response" }
     return ValidateStatus.ShouldValidate
 }
 

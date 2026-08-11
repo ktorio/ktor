@@ -60,7 +60,7 @@ public fun HttpClient.defaultTransformers() {
         }
         if (content?.contentType != null) {
             context.headers.remove(HttpHeaders.ContentType)
-            LOGGER.trace("Transformed with default transformers request body for ${context.url} from ${body::class}")
+            LOGGER.trace { "Transformed with default transformers request body for ${context.url} from ${body::class}" }
             proceedWith(content)
         }
     }
@@ -145,10 +145,9 @@ public fun HttpClient.defaultTransformers() {
             else -> null
         }
         if (result != null) {
-            LOGGER.trace(
-                "Transformed with default transformers response body " +
-                    "for ${context.request.url} to ${info.type}"
-            )
+            LOGGER.trace {
+                "Transformed with default transformers response body for ${context.request.url} to ${info.type}"
+            }
         }
     }
 

@@ -9,6 +9,7 @@ import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.*
 import io.ktor.server.request.*
+import io.ktor.util.logging.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
@@ -19,9 +20,9 @@ internal fun PluginBuilder<ContentNegotiationConfig>.convertRequestBody() {
         val requestedType = call.receiveType
 
         if (requestedType.type in pluginConfig.ignoredTypes) {
-            LOGGER.trace(
+            LOGGER.trace {
                 "Skipping for request type ${requestedType.type} because the type is ignored."
-            )
+            }
             return@onCallReceive
         }
 
@@ -41,7 +42,7 @@ internal fun PluginBuilder<ContentNegotiationConfig>.convertRequestBody() {
                     ?: continue
             }
 
-            LOGGER.trace("No suitable content converter found for request type ${requestedType.type}")
+            LOGGER.trace { "No suitable content converter found for request type ${requestedType.type}" }
             return@transformBody body
         }
     }
@@ -55,10 +56,10 @@ private suspend fun convertBody(
     requestContentType: ContentType
 ): Any? {
     if (!requestContentType.match(registration.contentType.withoutParameters())) {
-        LOGGER.trace(
+        LOGGER.trace {
             "Skipping content converter for request type ${receiveType.type} because " +
                 "content type $requestContentType does not match ${registration.contentType}"
-        )
+        }
         return null
     }
 
