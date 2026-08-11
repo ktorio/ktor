@@ -236,10 +236,9 @@ fun IrExpression.inlineVariables(lookup: (IrValueSymbol) -> IrExpression?): IrEx
     try {
         transform(object : IrElementTransformerVoid() {
             override fun visitGetValue(expression: IrGetValue): IrExpression {
-                return when (val argumentValue = lookup(expression.symbol)?.deepCopyWithSymbols()) {
-                    null -> throw MissingVariableException(expression.symbol)
-                    else -> argumentValue
-                }
+                val argumentValue = lookup(expression.symbol) ?: throw MissingVariableException(expression.symbol)
+                // The substituted expression may itself reference values (i.e., receiver)
+                return argumentValue.deepCopyWithSymbols().transform(this, null)
             }
         }, null)
     } catch (e: MissingVariableException) {

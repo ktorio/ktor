@@ -4,6 +4,7 @@
 
 package io.ktor.openapi.reflect
 
+import io.ktor.openapi.jsonSchema
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.JsonClassDiscriminator
 import kotlin.reflect.KClass

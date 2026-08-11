@@ -85,6 +85,5 @@ fun acceptedStatus() =
 
 fun callLambdaArg(action: suspend RoutingContext.() -> Unit) {}
 
-
 @Serializable
 data class CustomResponse(val message: String)
