@@ -229,7 +229,7 @@ class ChannelOutputStreamTest {
     fun testWritesAreStreamedWithoutExplicitFlush() = runTest {
         val channel = ByteChannel()
         val outputStream = ChannelOutputStream(channel)
-        val data = ByteArray(16 * 1024) { it.toByte() }
+        val data = ByteArray(2 * 1024 * 1024) { it.toByte() }
 
         // Exceeds the internal flush threshold, so it must reach the channel
         // even though neither flush() nor close() is called

@@ -585,7 +585,7 @@ public final class io/ktor/utils/io/jvm/javaio/BlockingKt {
 	public static final fun toOutputStream (Lio/ktor/utils/io/ByteWriteChannel;)Ljava/io/OutputStream;
 }
 
-public class io/ktor/utils/io/jvm/javaio/ChannelOutputStream : java/io/OutputStream {
+public final class io/ktor/utils/io/jvm/javaio/ChannelOutputStream : java/io/OutputStream {
 	public fun <init> (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/CoroutineContext;)V
 	public synthetic fun <init> (Lio/ktor/utils/io/ByteWriteChannel;Lkotlin/coroutines/CoroutineContext;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun close ()V

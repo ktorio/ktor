@@ -18,7 +18,7 @@ import kotlin.coroutines.EmptyCoroutineContext
  * off to the flush job, so data is streamed and backpressure applies even when the caller never
  * invokes `flush()`.
  */
-private const val FLUSH_THRESHOLD: Long = 8 * 1024
+private const val FLUSH_THRESHOLD: Long = CHANNEL_MAX_SIZE.toLong()
 
 /**
  * Dispatcher for [ChannelOutputStream] flush jobs.
@@ -34,10 +34,7 @@ private val FlushDispatcher = Dispatchers.IO.limitedParallelism(64, "ktor-channe
  * An [OutputStream] adapter for a [ByteWriteChannel] that avoids blocking the writing thread.
  *
  * Written bytes are accumulated in a local buffer that is handed off to a background flush job
- * when [flush] is called or [FLUSH_THRESHOLD] is exceeded. A hand-off only blocks when the queue
- * of pending buffers is full. [close] (or [closeSuspend]) delivers the remaining bytes, awaits
- * completion of the flush job and rethrows the failure, if any, encountered while writing to the
- * channel. Failures are also reported from [write] and [flush] calls that follow them.
+ * when [flush] is called or [FLUSH_THRESHOLD] is exceeded.
  *
  * Closing this stream does **not** close or cancel [channel]; its lifecycle remains with the caller.
  *
@@ -47,7 +44,7 @@ private val FlushDispatcher = Dispatchers.IO.limitedParallelism(64, "ktor-channe
  * runs on a dedicated dispatcher so that it can make progress while caller threads are parked.
  */
 @InternalAPI
-public open class ChannelOutputStream(
+public class ChannelOutputStream(
     private val channel: ByteWriteChannel,
     coroutineContext: CoroutineContext = EmptyCoroutineContext,
 ) : OutputStream() {
@@ -58,8 +55,9 @@ public open class ChannelOutputStream(
     @Volatile
     private var failure: Throwable? = null
 
+    // Small queue size to avoid unbounded memory usage when the flush job is slow to write.
     private val flushes = Channel<Buffer>(
-        capacity = Channel.BUFFERED,
+        capacity = 4,
         onUndeliveredElement = { it.clear() },
     )
 
@@ -90,7 +88,6 @@ public open class ChannelOutputStream(
     override fun write(b: Int) {
         ensureOpen()
         buffer.writeByte(b.toByte())
-        if (buffer.size >= FLUSH_THRESHOLD) enqueueBuffer()
     }
 
     override fun write(b: ByteArray, off: Int, len: Int) {
