@@ -41,6 +41,9 @@ fun Application.installCallHandlerFunctions() {
         get("/reified-type-parameter") {
             call.respondReified(setOf(42))
         }
+        get("/call-getter-extension") {
+            call.respondWithDynamicContentType()
+        }
     }
 }
 
@@ -82,4 +85,8 @@ private fun RoutingCall.nextHeader(index: Int = 0): String = buildString {
 
 private fun RoutingCall.includeHeader(key: String, value: String) {
     response.headers.append(key, value)
+}
+
+suspend fun ApplicationCall.respondWithDynamicContentType() {
+    respondText("data", if (isHandled) ContentType.Text.Html else ContentType.Text.Html)
 }

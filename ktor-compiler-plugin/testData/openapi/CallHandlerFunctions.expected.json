@@ -124,6 +124,19 @@
                     }
                 }
             }
+        },
+        "/call-getter-extension": {
+            "get": {
+                "summary": "",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "text/plain": {}
+                        }
+                    }
+                }
+            }
         }
     },
     "components": {}
