@@ -14,15 +14,13 @@ import java.nio.charset.*
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.cio.bufferedWriter)
  */
-@OptIn(InternalAPI::class)
 public fun ByteWriteChannel.bufferedWriter(charset: Charset = Charsets.UTF_8): BufferedWriter =
-    ChannelOutputStream(this).bufferedWriter(charset)
+    toOutputStream().bufferedWriter(charset)
 
 /**
  * Open a writer to the channel
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.cio.writer)
  */
-@OptIn(InternalAPI::class)
 public fun ByteWriteChannel.writer(charset: Charset = Charsets.UTF_8): Writer =
-    ChannelOutputStream(this).writer(charset)
+    toOutputStream().writer(charset)

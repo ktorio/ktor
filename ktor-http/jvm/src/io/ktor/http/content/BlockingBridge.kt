@@ -9,7 +9,6 @@ import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.withContext
 import java.io.OutputStream
 import java.io.Writer
@@ -25,7 +24,7 @@ private const val BLOCKING_BRIDGE_PARALLELISM_PROPERTY_NAME = "io.ktor.blocking.
  *
  * The parallelism can be configured with [BLOCKING_BRIDGE_PARALLELISM_PROPERTY_NAME].
  */
-internal val BlockingBridgeDispatcher = Dispatchers.IO.limitedParallelism(
+private val BlockingBridgeDispatcher = Dispatchers.IO.limitedParallelism(
     parallelism = System.getProperty(BLOCKING_BRIDGE_PARALLELISM_PROPERTY_NAME)?.toIntOrNull() ?: 64,
     name = "ktor-blocking-bridge",
 )
@@ -39,18 +38,13 @@ internal val BlockingBridgeDispatcher = Dispatchers.IO.limitedParallelism(
  *
  * The stream passed to [block] is owned by this function and must not be used after [block] returns.
  */
-@OptIn(InternalAPI::class)
 internal suspend inline fun ByteWriteChannel.withBlockingOutputStream(
     dispatcher: CoroutineDispatcher = BlockingBridgeDispatcher,
     crossinline block: suspend (OutputStream) -> Unit,
 ) {
     withContext(dispatcher) {
-        ChannelOutputStream(
-            this@withBlockingOutputStream,
-            currentCoroutineContext()
-        ).use { outputStream ->
-            block(outputStream)
-        }
+        val outputStream = toOutputStream()
+        block(outputStream)
     }
 }
 

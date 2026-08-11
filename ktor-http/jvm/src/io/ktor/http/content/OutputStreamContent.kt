@@ -7,8 +7,6 @@ package io.ktor.http.content
 import io.ktor.http.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.withContext
 import java.io.OutputStream
 
 /**
@@ -21,27 +19,11 @@ public class OutputStreamContent(
     private val body: suspend OutputStream.() -> Unit,
     override val contentType: ContentType,
     override val status: HttpStatusCode? = null,
-    override val contentLength: Long? = null,
+    override val contentLength: Long? = null
 ) : OutgoingContent.WriteChannelContent() {
 
-    @OptIn(InternalAPI::class)
     override suspend fun writeTo(channel: ByteWriteChannel) {
-        withContext(BlockingBridgeDispatcher) {
-            val outputStream = ChannelOutputStream(channel, currentCoroutineContext())
-            try {
-                outputStream.body()
-                outputStream.closeSuspend()
-            } catch (cause: Throwable) {
-                // Deliver the bytes buffered before the failure, but don't let a failure
-                // from closing mask the original exception.
-                try {
-                    outputStream.closeSuspend()
-                } catch (closeFailure: Throwable) {
-                    if (closeFailure !== cause) cause.addSuppressed(closeFailure)
-                }
-                throw cause
-            }
-        }
+        channel.withBlockingOutputStream(block = body)
     }
 
     /**
