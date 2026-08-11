@@ -126,34 +126,64 @@ public val PopulateMediaTypeDefaults: OperationMapping = OperationMapping { oper
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.openapi.CollectSchemaReferences)
  */
 public class CollectSchemaReferences(private val schemaToComponent: (JsonSchema) -> String?) : OperationMapping {
+    private val titleToComponent = mutableMapOf<String, String>()
+
     override fun map(operation: Operation): Operation =
         operation.copy(
-            requestBody = operation.requestBody?.mapValue {
-                it.copy(content = it.content?.let(::collectSchemaReferences))
+            requestBody = operation.requestBody?.mapValue { reqBody ->
+                reqBody.copy(content = reqBody.content?.let(::mapSchemaReferences))
             },
             responses = operation.responses?.let { responses ->
                 responses.copy(
+                    default = responses.default?.mapValue { mapSchemaReferences(it) },
                     responses = responses.responses?.mapValues { (_, response) ->
-                        response.mapValue {
-                            it.copy(content = it.content?.let(::collectSchemaReferences))
-                        }
+                        response.mapValue { mapSchemaReferences(it) }
                     }
                 )
             },
             parameters = operation.parameters?.map { parameter ->
-                parameter.mapValue {
-                    it.copy(
-                        schema = it.schema?.mapToReference(::collectSchema),
-                        content = it.content?.let(::collectSchemaReferences)
+                parameter.mapValue { param ->
+                    param.copy(
+                        schema = param.schema?.mapToSchemaReference(::mapSchemaReferences, ::mapSchemaReferences),
+                        content = param.content?.let(::mapSchemaReferences)
                     )
                 }
             },
+            callbacks = operation.callbacks?.mapValues { (_, callbackRef) ->
+                callbackRef.mapValue { callback ->
+                    Callback(
+                        callback.value.mapValues { (_, pathItem) ->
+                            pathItem.copy(
+                                parameters = pathItem.parameters?.map { parameter ->
+                                    parameter.mapValue { param ->
+                                        param.copy(
+                                            schema = param.schema?.mapToSchemaReference(
+                                                ::mapSchemaReferences,
+                                                ::mapSchemaReferences
+                                            ),
+                                            content = param.content?.let(::mapSchemaReferences)
+                                        )
+                                    }
+                                },
+                                get = pathItem.get?.let(::map),
+                                put = pathItem.put?.let(::map),
+                                post = pathItem.post?.let(::map),
+                                delete = pathItem.delete?.let(::map),
+                                options = pathItem.options?.let(::map),
+                                head = pathItem.head?.let(::map),
+                                patch = pathItem.patch?.let(::map),
+                                trace = pathItem.trace?.let(::map),
+                            )
+                        }
+                    )
+                }
+            }
         )
 
-    private fun collectSchemaReferences(content: Map<ContentType, MediaType>): Map<ContentType, MediaType> =
+    private fun mapSchemaReferences(content: Map<ContentType, MediaType>): Map<ContentType, MediaType> =
         content.mapValues { (_, mediaType) ->
             mediaType.copy(
-                schema = mediaType.schema?.mapToReference(::collectSchema),
+                schema = mediaType.schema?.mapToSchemaReference(::mapSchemaReferences, ::mapSchemaReferences),
             )
         }
 
@@ -162,27 +192,67 @@ public class CollectSchemaReferences(private val schemaToComponent: (JsonSchema)
      *
      * This applies a "depth-first" transformation on the schema to extract all nested references first.
      */
-    private fun collectSchema(schema: JsonSchema): ReferenceOr<JsonSchema> {
+    private fun mapSchemaReferences(schema: JsonSchema): ReferenceOr<JsonSchema> {
         val nestedSchema = schema.copy(
-            allOf = schema.allOf?.map { it.mapToReference(::collectSchema) },
-            anyOf = schema.anyOf?.map { it.mapToReference(::collectSchema) },
-            oneOf = schema.oneOf?.map { it.mapToReference(::collectSchema) },
-            not = schema.not?.mapToReference(::collectSchema),
-            properties = schema.properties?.mapValues { (_, value) -> value.mapToReference(::collectSchema) },
-            items = schema.items?.mapToReference(::collectSchema),
+            allOf = schema.allOf?.map { it.mapToSchemaReference(::mapSchemaReferences, ::mapSchemaReferences) },
+            anyOf = schema.anyOf?.map { it.mapToSchemaReference(::mapSchemaReferences, ::mapSchemaReferences) },
+            oneOf = schema.oneOf?.map { it.mapToSchemaReference(::mapSchemaReferences, ::mapSchemaReferences) },
+            not = schema.not?.mapToSchemaReference(::mapSchemaReferences, ::mapSchemaReferences),
+            properties = schema.properties?.mapValues { (_, value) ->
+                value.mapToSchemaReference(::mapSchemaReferences, ::mapSchemaReferences)
+            },
+            items = schema.items?.mapToSchemaReference(::mapSchemaReferences, ::mapSchemaReferences),
             additionalProperties = when (val ap = schema.additionalProperties) {
                 is AdditionalProperties.PSchema -> AdditionalProperties.PSchema(
-                    ap.value.mapToReference(::collectSchema)
+                    ap.value.mapToSchemaReference(::mapSchemaReferences, ::mapSchemaReferences)
                 )
 
                 else -> ap
             },
         )
-        return schemaToComponent(nestedSchema)
+        val title = nestedSchema.title
+        val componentName = schemaToComponent(nestedSchema)
+        if (title != null && componentName != null) {
+            titleToComponent[title] = componentName
+            titleToComponent[title.substringAfterLast('.')] = componentName
+        }
+        return componentName
             ?.let(::schemaRef)
             ?: ReferenceOr.value(nestedSchema)
     }
 
+    private fun mapSchemaReferences(refRef: ReferenceOr.Reference): ReferenceOr<JsonSchema> {
+        val schemaName = refRef.ref.removePrefix("#/components/schemas/")
+        val targetComponent = titleToComponent[schemaName]
+            ?: titleToComponent[schemaName.substringAfterLast('.')]
+            ?: schemaName.substringAfterLast('.')
+        return ReferenceOr.schema(targetComponent, refRef.isDynamic)
+    }
+
+    private fun mapSchemaReferences(response: Response): Response = response.copy(
+        content = response.content?.let(this::mapSchemaReferences),
+        headers = response.headers?.mapValues { (_, headerRef) ->
+            headerRef.mapValue { header ->
+                header.copy(
+                    schema = header.schema?.mapToSchemaReference(
+                        ::mapSchemaReferences,
+                        ::mapSchemaReferences
+                    ),
+                    content = header.content?.let(::mapSchemaReferences)
+                )
+            }
+        }
+    )
+
     private fun schemaRef(title: String): ReferenceOr<JsonSchema> =
         ReferenceOr.schema(title)
 }
+
+private fun ReferenceOr<JsonSchema>.mapToSchemaReference(
+    mappingFunction: (JsonSchema) -> ReferenceOr<JsonSchema>,
+    referenceMapping: (ReferenceOr.Reference) -> ReferenceOr<JsonSchema>
+): ReferenceOr<JsonSchema> =
+    when (this) {
+        is ReferenceOr.Reference -> referenceMapping(this)
+        is ReferenceOr.Value -> mappingFunction(value)
+    }
