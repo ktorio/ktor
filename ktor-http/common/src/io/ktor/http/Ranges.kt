@@ -79,7 +79,8 @@ public sealed class ContentRange {
 public fun parseRangesSpecifier(rangeSpec: String): RangesSpecifier? {
     try {
         val (unit, allRangesString) = rangeSpec.chomp("=") { return null }
-        val allRanges = allRangesString.split(',').map {
+        // A range set is a comma-separated list, and RFC 9110 5.6.1 allows optional whitespace around the commas
+        val allRanges = allRangesString.split(',').map { it.trim() }.map {
             if (it.startsWith("-")) {
                 ContentRange.Suffix(it.removePrefix("-").toLong())
             } else {

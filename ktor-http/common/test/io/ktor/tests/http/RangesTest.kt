@@ -55,6 +55,34 @@ class RangesTest {
     }
 
     @Test
+    fun testParseWhitespaceAfterComma() {
+        assertEquals(
+            RangesSpecifier(
+                RangeUnits.Bytes,
+                listOf(
+                    ContentRange.Bounded(0, 499),
+                    ContentRange.Bounded(1000, 1499)
+                )
+            ),
+            parseRangesSpecifier("bytes=0-499, 1000-1499")
+        )
+    }
+
+    @Test
+    fun testParseWhitespaceAroundComma() {
+        assertEquals(
+            RangesSpecifier(
+                RangeUnits.Bytes,
+                listOf(
+                    ContentRange.TailFrom(9500),
+                    ContentRange.Suffix(500)
+                )
+            ),
+            parseRangesSpecifier("bytes=9500-\t, -500")
+        )
+    }
+
+    @Test
     fun testParseEmpty() {
         assertNull(parseRangesSpecifier(""))
     }
