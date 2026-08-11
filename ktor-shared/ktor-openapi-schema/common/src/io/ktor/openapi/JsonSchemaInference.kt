@@ -537,6 +537,7 @@ public fun jsonSchemaFromAnnotations(
     properties: Map<String, ReferenceOr<JsonSchema>>? = null,
     additionalProperties: AdditionalProperties? = null,
     enum: List<GenericElement?>? = null,
+    const: GenericElement? = null,
     format: String? = null,
     discriminator: JsonSchemaDiscriminator? = null,
     oneOf: List<ReferenceOr<JsonSchema>>? = null,
@@ -615,6 +616,7 @@ public fun jsonSchemaFromAnnotations(
         enum = annotations.firstInstanceOf<JsonSchema.Enum>()?.value
             ?.map { parseJsonLiteralOrUseString(it) }
             ?.takeIf { it.isNotEmpty() } ?: enum,
+        const = annotations.firstInstanceOf<Const>()?.value?.let { parseJsonLiteralOrUseString(it) } ?: const,
         multipleOf = annotations.firstInstanceOf<MultipleOf>()?.value,
         id = annotations.firstInstanceOf<Id>()?.value,
         anchor = annotations.firstInstanceOf<Anchor>()?.value,

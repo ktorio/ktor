@@ -61,6 +61,7 @@ public data class JsonSchema(
     val uniqueItems: Boolean? = null,
     // inner type nullable to allow explicit "null" value for nullable enums
     val enum: List<GenericElement?>? = null,
+    val const: GenericElement? = null,
     val multipleOf: Double? = null,
     @SerialName($$"$id") val id: String? = null,
     @SerialName($$"$anchor") val anchor: String? = null,
@@ -273,6 +274,17 @@ public data class JsonSchema(
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
     @Retention(AnnotationRetention.RUNTIME)
     public annotation class Enum(vararg val value: String)
+
+    /**
+     * const (JSON literal as text)
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.JsonSchema.Const)
+     */
+    @OptIn(ExperimentalSerializationApi::class)
+    @SerialInfo
+    @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    @Retention(AnnotationRetention.RUNTIME)
+    public annotation class Const(val value: String)
 
     /**
      * minLength
