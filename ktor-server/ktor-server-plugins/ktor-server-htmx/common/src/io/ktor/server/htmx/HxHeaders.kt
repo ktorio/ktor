@@ -8,15 +8,12 @@ import io.ktor.util.collections.*
 import io.ktor.utils.io.*
 import kotlin.jvm.JvmInline
 
-@ExperimentalKtorApi
 public val RoutingRequest.hx: HXRequestHeaders get() = HXRequestHeaders(headers)
 
-@ExperimentalKtorApi
 public val RoutingResponse.hx: HXResponseHeaders get() = HXResponseHeaders(headers)
 
 public val RoutingRequest.isHtmx: Boolean get() = headers[HxRequestHeaders.Request] == "true"
 
-@ExperimentalKtorApi
 @JvmInline
 public value class HXRequestHeaders(private val headers: Headers) {
 
@@ -70,7 +67,6 @@ public value class HXRequestHeaders(private val headers: Headers) {
     public val triggerName: String? get() = headers[HxRequestHeaders.TriggerName]
 }
 
-@ExperimentalKtorApi
 @OptIn(InternalAPI::class)
 public class HXResponseHeaders(private val headers: ResponseHeaders) : StringMap {
 

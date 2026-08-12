@@ -11,15 +11,12 @@ import kotlinx.html.HtmlTagMarker
 import kotlinx.html.impl.DelegatingMap
 import kotlin.jvm.JvmInline
 
-@ExperimentalKtorApi
 public val DelegatingMap.hx: HxAttributes get() = HxAttributes(this)
 
-@ExperimentalKtorApi
 public inline fun DelegatingMap.hx(block: HxAttributes.() -> Unit) {
     hx.block()
 }
 
-@ExperimentalKtorApi
 @HtmlTagMarker
 @OptIn(InternalAPI::class)
 public class HxAttributes(override val map: DelegatingMap) : StringMapDelegate {
