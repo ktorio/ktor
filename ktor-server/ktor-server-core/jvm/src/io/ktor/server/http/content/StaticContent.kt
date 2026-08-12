@@ -1460,8 +1460,12 @@ public interface FileSystemPaths {
 
 // Adds lower priority to the route so that it can be used as a fallback
 private object TailcardSelector : RouteSelector() {
-    override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation =
+
+    override fun tryEvaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation =
         RouteSelectorEvaluation.Success(quality = RouteSelectorEvaluation.qualityTailcard)
+
+    override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation =
+        tryEvaluate(context, segmentIndex)
 
     override fun toString(): String = "(static-content)"
 }

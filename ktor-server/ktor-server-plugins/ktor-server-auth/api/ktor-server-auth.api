@@ -115,11 +115,10 @@ public class io/ktor/server/auth/AuthenticationProvider$Config {
 	public final fun skipWhen (Lkotlin/jvm/functions/Function1;)V
 }
 
-public final class io/ktor/server/auth/AuthenticationRouteSelector : io/ktor/server/routing/RouteSelector {
+public final class io/ktor/server/auth/AuthenticationRouteSelector : io/ktor/server/routing/TransparentRouteSelector {
 	public static final field Companion Lio/ktor/server/auth/AuthenticationRouteSelector$Companion;
 	public static final field DEFAULT_NAME Ljava/lang/String;
 	public fun <init> (Ljava/util/List;)V
-	public fun evaluate (Lio/ktor/server/routing/RoutingResolveContext;ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public final fun getNames ()Ljava/util/List;
 	public fun toString ()Ljava/lang/String;
 }
