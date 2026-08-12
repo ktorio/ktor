@@ -13,8 +13,9 @@ import java.util.*
  * Constructs an asynchronous [HttpClient] using optional [block] for configuring this client.
  *
  * The [HttpClientEngine] is selected from the dependencies using [ServiceLoader].
- * The first found implementation that provides [HttpClientEngineContainer] service implementation is used.
- * An exception is thrown if no implementations found.
+ * All [HttpClientEngineContainer] implementations found on the classpath are ranked by [HttpClientEngineContainer.priority]
+ * and the one with the highest priority is used. An exception is thrown if no implementations are found
+ * or if multiple implementations share the same highest priority.
  *
  * See https://ktor.io/docs/http-client-engines.html
  *
@@ -34,13 +35,38 @@ public actual fun HttpClient(
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.HttpClientEngineContainer)
  *
  * @property factory that produces HTTP client instances
+ * @property priority that determines the order of searching for the default client engine.
+ *   Higher values are preferred. When multiple containers share the same highest priority an exception is thrown;
+ *   assign distinct priorities to avoid ambiguity.
  */
 public interface HttpClientEngineContainer {
     public val factory: HttpClientEngineFactory<*>
+    public val priority: Double get() = 1.0
 }
 
 @OptIn(InternalAPI::class)
-private val FACTORY = loadServiceOrNull<HttpClientEngineContainer>()?.factory ?: error(
-    "Failed to find HTTP client engine implementation: consider adding client engine dependency. " +
-        "See https://ktor.io/docs/http-client-engines.html"
-)
+private val FACTORY: HttpClientEngineFactory<*> by lazy {
+    val engineContainers = loadServices<HttpClientEngineContainer>()
+    when (engineContainers.size) {
+        0 -> error(
+            "Failed to find HTTP client engine implementation: consider adding client engine dependency. " +
+                "See https://ktor.io/docs/http-client-engines.html"
+        )
+
+        1 -> engineContainers.single().factory
+
+        else -> {
+            val maxPriority = engineContainers.maxOf { it.priority }
+            val topEngines = engineContainers.filter { it.priority == maxPriority }
+            if (topEngines.size > 1) {
+                error(
+                    "Multiple HTTP client engine implementations share the same highest priority ($maxPriority): " +
+                        topEngines.joinToString { it.factory::class.qualifiedName ?: it.factory.toString() } +
+                        ". Specify an engine explicitly or assign distinct priorities to resolve the conflict. " +
+                        "See https://ktor.io/docs/http-client-engines.html"
+                )
+            }
+            topEngines.single().factory
+        }
+    }
+}

@@ -48,6 +48,7 @@ public data object Apache : HttpClientEngineFactory<ApacheEngineConfig> {
 )
 public class ApacheEngineContainer : HttpClientEngineContainer {
     override val factory: HttpClientEngineFactory<*> = Apache
+    override val priority: Double get() = -1.0
 
     override fun toString(): String = "Apache"
 }

@@ -12,5 +12,10 @@ import io.ktor.utils.io.*
 public class CIOEngineContainer : HttpClientEngineContainer {
     override val factory: HttpClientEngineFactory<*> = CIO
 
+    /**
+     * CIO engine is often used in common sources, so it has a lower priority than stronger, platform-specific engines.
+     */
+    override val priority: Double get() = 0.0
+
     override fun toString(): String = "CIO"
 }

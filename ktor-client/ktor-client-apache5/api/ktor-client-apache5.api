@@ -30,6 +30,7 @@ public final class io/ktor/client/engine/apache5/Apache5EngineConfig : io/ktor/c
 public final class io/ktor/client/engine/apache5/Apache5EngineContainer : io/ktor/client/HttpClientEngineContainer {
 	public fun <init> ()V
 	public fun getFactory ()Lio/ktor/client/engine/HttpClientEngineFactory;
+	public fun getPriority ()D
 	public fun toString ()Ljava/lang/String;
 }
 

@@ -59,7 +59,12 @@ actual constructor(
 
     @OptIn(InternalAPI::class)
     private val moduleInjector: ModuleParametersInjector by lazy {
-        loadServiceOrNull() ?: ModuleParametersInjector.Disabled
+        val injectors = loadServices<ModuleParametersInjector>()
+        when (injectors.size) {
+            0 -> ModuleParametersInjector.Disabled
+            1 -> injectors.single()
+            else -> error("Multiple injectors found: ${injectors.joinToString { it::class.simpleName ?: "(unknown)" }}")
+        }
     }
     private val modules: List<DynamicApplicationModule> get() =
         environment.moduleConfigReferences.map(::dynamicModule) +
