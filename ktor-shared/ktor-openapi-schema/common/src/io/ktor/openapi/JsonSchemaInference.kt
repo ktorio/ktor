@@ -616,7 +616,8 @@ public fun jsonSchemaFromAnnotations(
         enum = annotations.firstInstanceOf<JsonSchema.Enum>()?.value
             ?.map { parseJsonLiteralOrUseString(it) }
             ?.takeIf { it.isNotEmpty() } ?: enum,
-        const = annotations.firstInstanceOf<Const>()?.value?.let { parseJsonLiteralOrUseString(it) } ?: const,
+        const = annotations.firstInstanceOf<Const>()?.value
+            ?.let { parseJsonLiteralToGenericElement(it) } ?: const,
         multipleOf = annotations.firstInstanceOf<MultipleOf>()?.value,
         id = annotations.firstInstanceOf<Id>()?.value,
         anchor = annotations.firstInstanceOf<Anchor>()?.value,
