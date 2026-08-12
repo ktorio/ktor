@@ -7,7 +7,6 @@ package io.ktor.client.plugins.cache.storage
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.io.files.Path
-import kotlinx.io.files.SystemFileSystem
 import java.io.File
 
 /**
@@ -24,7 +23,6 @@ public fun FileStorage(
     directory: File,
     dispatcher: CoroutineDispatcher = Dispatchers.IO
 ): CacheStorage = FileStorage(
-    fileSystem = SystemFileSystem,
     directory = Path(directory.path),
     dispatcher = dispatcher,
 )

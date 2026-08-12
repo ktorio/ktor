@@ -25,21 +25,21 @@ import kotlinx.io.files.*
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.cache.storage.FileStorage)
  *
- * @param fileSystem file system to use for file operations.
  * @param directory directory to store cache data.
+ * @param fileSystem file system to use for file operations.
  * @param dispatcher dispatcher to use for file operations.
  */
 @Suppress("FunctionName")
 public fun FileStorage(
-    fileSystem: FileSystem,
     directory: Path,
+    fileSystem: FileSystem = SystemFileSystem,
     dispatcher: CoroutineDispatcher = ioDispatcher()
-): CacheStorage = CachingCacheStorage(FileCacheStorage(fileSystem, directory, dispatcher))
+): CacheStorage = CachingCacheStorage(FileCacheStorage(directory, fileSystem, dispatcher))
 
 private class FileCacheStorage(
-    private val fileSystem: FileSystem,
     private val directoryPath: Path,
-    private val dispatcher: CoroutineDispatcher = ioDispatcher()
+    private val fileSystem: FileSystem,
+    private val dispatcher: CoroutineDispatcher
 ) : CacheStorage {
 
     private val mutexes = ConcurrentMap<String, Mutex>()
