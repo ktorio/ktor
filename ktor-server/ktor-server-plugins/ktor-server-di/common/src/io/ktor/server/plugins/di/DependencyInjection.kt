@@ -11,6 +11,7 @@ import io.ktor.util.reflect.*
 import io.ktor.utils.io.CancellationException
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.DisposableHandle
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlin.reflect.KClass
@@ -124,16 +125,20 @@ public val DI: ApplicationPlugin<DependencyInjectionConfig> =
         var registry = DependencyRegistry(resolver, provider)
 
         with(application) {
+            val ownerApplication = this
             // First, we install all references from the configuration file
             for (reference in configuredDependencyReferences) {
                 installReference(registry, reference)
             }
+            val subscriptions = mutableListOf<DisposableHandle>()
             // Interrupt any consumers waiting for a provider
-            monitor.subscribe(ApplicationModulesLoading) {
+            subscriptions += monitor.subscribe(ApplicationModulesLoading) { eventApplication ->
+                if (eventApplication !== ownerApplication) return@subscribe
                 resolver.stopWaiting()
             }
             // Validate any lazy-loaded dependencies before starting the server
-            monitor.subscribe(ApplicationModulesLoaded) {
+            subscriptions += monitor.subscribe(ApplicationModulesLoaded) { eventApplication ->
+                if (eventApplication !== ownerApplication) return@subscribe
                 val exceptions = mutableListOf<Pair<DependencyKey, Throwable>>()
                 for ((key, source) in registry.requirements) {
                     try {
@@ -161,29 +166,37 @@ public val DI: ApplicationPlugin<DependencyInjectionConfig> =
                     }
                 }
             }
-            monitor.subscribe(ApplicationStopping) {
-                for ((key, initializer) in dependencyMap.entries.reversed()) {
-                    when (initializer) {
-                        is DependencyInitializer.Ambiguous,
-                        is DependencyInitializer.Missing,
-                        is DependencyInitializer.Null,
-                        is DependencyInitializer.Implicit -> continue
+            subscriptions += monitor.subscribe(ApplicationStopping) { eventApplication ->
+                if (eventApplication !== ownerApplication) return@subscribe
+                try {
+                    for ((key, initializer) in dependencyMap.entries.reversed()) {
+                        when (initializer) {
+                            is DependencyInitializer.Ambiguous,
+                            is DependencyInitializer.Missing,
+                            is DependencyInitializer.Null,
+                            is DependencyInitializer.Implicit -> continue
 
-                        is DependencyInitializer.Explicit,
-                        is DependencyInitializer.Value -> {
-                            try {
-                                val instance = registry.getDeferred<Any?>(key).tryGetCompleted() ?: continue
-                                registry.shutdownHooks[key]?.invoke(instance)
-                                onShutdown(key, instance)
-                            } catch (e: Throwable) {
-                                if (e is CancellationException) throw e
+                            is DependencyInitializer.Explicit,
+                            is DependencyInitializer.Value -> {
+                                try {
+                                    val instance = registry.getDeferred<Any?>(key).tryGetCompleted() ?: continue
+                                    registry.shutdownHooks[key]?.invoke(instance)
+                                    onShutdown(key, instance)
+                                } catch (e: Throwable) {
+                                    if (e is CancellationException) throw e
 
-                                environment.log.warn("Exception during cleanup for $key; continuing", e)
+                                    environment.log.warn("Exception during cleanup for $key; continuing", e)
+                                }
                             }
                         }
                     }
+                } finally {
+                    try {
+                        coroutineScope.cancel("Application stopped")
+                    } finally {
+                        subscriptions.forEach(DisposableHandle::dispose)
+                    }
                 }
-                coroutineScope.cancel("Application stopped")
             }
 
             attributes.put(DependencyRegistryKey, registry)

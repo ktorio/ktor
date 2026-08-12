@@ -10,6 +10,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.config.*
+import io.ktor.server.engine.*
 import io.ktor.server.testing.*
 import io.ktor.test.dispatcher.*
 import io.ktor.util.reflect.TypeInfo
@@ -565,6 +566,40 @@ class DependencyInjectionJvmTest {
                 fail("Should fail but found $service")
             }
         }
+    }
+
+    @Test
+    fun `dependencies survive application reload`() = runTestWithRealTime {
+        var generation = 0
+        val cleaned = mutableListOf<Int>()
+        val environment = createTestEnvironment()
+        val config = serverConfig(environment) {
+            developmentMode = true
+            module {
+                val current = ++generation
+                dependencies {
+                    provide<Int> { current } cleanup { cleaned += it }
+                }
+            }
+        }
+        val server = EmbeddedServer(config, TestEngine)
+
+        try {
+            server.start()
+            assertEquals(1, server.application.dependencies.resolve<Int>())
+
+            server.reload()
+            assertEquals(listOf(1), cleaned)
+            assertEquals(2, server.application.dependencies.resolve<Int>())
+
+            server.reload()
+            assertEquals(listOf(1, 2), cleaned)
+            assertEquals(3, server.application.dependencies.resolve<Int>())
+        } finally {
+            server.stop()
+        }
+
+        assertEquals(listOf(1, 2, 3), cleaned)
     }
 
     private fun runTestDI(
