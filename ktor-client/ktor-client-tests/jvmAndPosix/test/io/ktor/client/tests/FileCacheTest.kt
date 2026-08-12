@@ -25,8 +25,8 @@ import kotlin.uuid.Uuid
 
 class FileCacheTest : ClientLoader() {
     private val tmpDirPath = temporaryDirectoryPath()
-    private val publicStorage = FileStorage(SystemFileSystem, Path(tmpDirPath, "cache-test-public"))
-    private val privateStorage = FileStorage(SystemFileSystem, Path(tmpDirPath, "cache-test-private"))
+    private val publicStorage = FileStorage(Path(tmpDirPath, "cache-test-public"))
+    private val privateStorage = FileStorage(Path(tmpDirPath, "cache-test-private"))
 
     @Test
     fun testVaryHeader() = clientTests {
@@ -126,7 +126,7 @@ class FileCacheTest : ClientLoader() {
     @Test
     fun testSkipCacheIfException() = clientTests {
         val path = Path(SystemTemporaryDirectory, "cache-test-public-deleted")
-        val publicStorage = FileStorage(SystemFileSystem, path)
+        val publicStorage = FileStorage(path)
         config {
             install(HttpCache) {
                 publicStorage(publicStorage)
@@ -146,7 +146,7 @@ class FileCacheTest : ClientLoader() {
     @Test
     fun testUpgradeOldCacheVersionWithCaseSensitiveVary() = clientTests {
         val path = Path(SystemTemporaryDirectory, "cache-test-public-upgrade")
-        val publicStorage = FileStorage(SystemFileSystem, path)
+        val publicStorage = FileStorage(path)
         config {
             install(HttpCache) {
                 publicStorage(publicStorage)

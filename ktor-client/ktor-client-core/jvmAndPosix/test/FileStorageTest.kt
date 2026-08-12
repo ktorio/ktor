@@ -39,7 +39,7 @@ class FileStorageTest {
 
     @Test
     fun testFindAll() = runTest {
-        val storage = FileStorage(SystemFileSystem, tempDirectory)
+        val storage = FileStorage(tempDirectory)
 
         storage.store(Url("http://example.com"), data())
         storage.store(Url("http://example.com"), data(mapOf("key" to "value")))
@@ -49,7 +49,7 @@ class FileStorageTest {
 
     @Test
     fun testFind() = runTest {
-        val storage = FileStorage(SystemFileSystem, tempDirectory)
+        val storage = FileStorage(tempDirectory)
 
         storage.store(Url("http://example.com"), data())
         // Use an uppercase key to test case insensitivity
@@ -60,7 +60,7 @@ class FileStorageTest {
 
     @Test
     fun testStore() = runTest {
-        val storage = FileStorage(SystemFileSystem, tempDirectory)
+        val storage = FileStorage(tempDirectory)
         storage.store(Url("http://example.com"), data())
 
         assertEquals(1, storage.findAll(Url("http://example.com")).size)
@@ -72,7 +72,7 @@ class FileStorageTest {
 
     @Test
     fun testRemove() = runTest {
-        val storage = FileStorage(SystemFileSystem, tempDirectory)
+        val storage = FileStorage(tempDirectory)
         storage.store(Url("http://example.com"), data())
         storage.store(Url("http://example.com"), data(mapOf("key" to "value")))
 
@@ -85,7 +85,7 @@ class FileStorageTest {
 
     @Test
     fun testRemoveAll() = runTest {
-        val storage = FileStorage(SystemFileSystem, tempDirectory)
+        val storage = FileStorage(tempDirectory)
         storage.store(Url("http://example.com"), data())
         storage.store(Url("http://example.com"), data(mapOf("key" to "value")))
 
@@ -97,7 +97,7 @@ class FileStorageTest {
 
     @Test
     fun `clear removes entries for all cached URLs`() = runTest {
-        val storage = FileStorage(SystemFileSystem, tempDirectory)
+        val storage = FileStorage(tempDirectory)
         storage.store(Url("http://example.com"), data())
         storage.store(Url("http://example.com"), data(mapOf("key" to "value")))
         storage.store(Url("http://other.com"), data())
