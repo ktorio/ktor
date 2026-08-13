@@ -55,7 +55,7 @@ class RangesTest {
     }
 
     @Test
-    fun testParseWhitespaceAfterComma() {
+    fun `parse whitespace after comma`() {
         assertEquals(
             RangesSpecifier(
                 RangeUnits.Bytes,
@@ -69,7 +69,7 @@ class RangesTest {
     }
 
     @Test
-    fun testParseWhitespaceAroundComma() {
+    fun `parse whitespace around comma`() {
         assertEquals(
             RangesSpecifier(
                 RangeUnits.Bytes,
@@ -80,6 +80,20 @@ class RangesTest {
             ),
             parseRangesSpecifier("bytes=9500-\t, -500")
         )
+    }
+
+    @Test
+    fun `reject line breaks around comma`() {
+        assertNull(parseRangesSpecifier("bytes=0-499,\n1000-1499"))
+        assertNull(parseRangesSpecifier("bytes=0-499\r, 1000-1499"))
+    }
+
+    @Test
+    fun `reject empty range set elements`() {
+        assertNull(parseRangesSpecifier("bytes=,0-499"))
+        assertNull(parseRangesSpecifier("bytes=0-499,"))
+        assertNull(parseRangesSpecifier("bytes=0-499,,1000-1499"))
+        assertNull(parseRangesSpecifier("bytes=0-499, ,1000-1499"))
     }
 
     @Test
