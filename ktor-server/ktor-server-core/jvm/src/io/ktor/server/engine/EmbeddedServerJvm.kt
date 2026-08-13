@@ -2,6 +2,8 @@
  * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+@file:OptIn(InternalAPI::class)
+
 package io.ktor.server.engine
 
 import io.ktor.events.*
@@ -27,6 +29,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.getOrSet
 import kotlin.concurrent.read
 import kotlin.concurrent.write
+import kotlin.time.Duration.Companion.milliseconds
 
 private typealias ApplicationModule = suspend Application.() -> Unit
 
@@ -61,9 +64,10 @@ actual constructor(
     private val moduleInjector: ModuleParametersInjector by lazy {
         loadServiceOrNull() ?: ModuleParametersInjector.Disabled
     }
-    private val modules: List<DynamicApplicationModule> get() =
-        environment.moduleConfigReferences.map(::dynamicModule) +
-            rootConfig.modules.map { module -> module.toDynamicModuleOrNull() ?: module.wrapWithDynamicModule() }
+    private val modules: List<DynamicApplicationModule>
+        get() =
+            environment.moduleConfigReferences.map(::dynamicModule) +
+                rootConfig.modules.map { module -> module.toDynamicModuleOrNull() ?: module.wrapWithDynamicModule() }
 
     private var applicationInstance: Application? = Application(
         environment,
@@ -91,10 +95,11 @@ actual constructor(
     }
 
     /**
-     * Reload application: build a new instance first, then dispose of the previous one.
+     * Reload application: stop the current instance first, then create a replacement.
      *
-     * If the new application cannot be created (for example, because the user code throws during
-     * module loading), the previous instance is preserved and the failure is rethrown.
+     * If creation fails (for example, because the user code throws during module loading),
+     * the engine and file watcher keep running without an application. Another explicit
+     * [reload] call may retry; auto-reload retries only after another watched-file change.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.EmbeddedServer.reload)
      */
@@ -105,24 +110,22 @@ actual constructor(
     }
 
     private fun currentApplication(): Application = applicationInstanceLock.read {
-        val currentApplication = applicationInstance ?: error("EmbeddedServer was stopped")
-
         if (!rootConfig.developmentMode) {
-            return@read currentApplication
+            return@read applicationInstance ?: error("EmbeddedServer was stopped")
         }
 
+        // Poll for changes even when no application is loaded, so a failed reload can recover
+        // after the next filesystem event.
         if (getFileChanges().isNullOrEmpty()) {
-            return@read currentApplication
+            return@read applicationInstance ?: error("EmbeddedServer was stopped")
         }
 
         applicationInstanceLock.write {
             try {
                 reloadApplication()
             } catch (cause: Throwable) {
-                environment.log.error(
-                    "Auto-reload failed; continuing to serve the previously loaded application.",
-                    cause,
-                )
+                environment.log.error("Auto-reload failed.", cause)
+                throw cause
             }
         }
 
@@ -130,10 +133,10 @@ actual constructor(
     }
 
     /**
-     * Build a new application and swap it in, disposing of the previous one only on success.
+     * Stop the current application (if any), then create and install a replacement.
      *
-     * On failure the previous application, its class loader, and the registered watch keys
-     * are left intact so the server keeps serving requests against the last known-good code.
+     * On failure the engine keeps running, [applicationInstance] stays null, watch keys from
+     * the failed attempt are retained, and a partially initialized replacement is disposed of.
      *
      * Must be called while holding the write lock on [applicationInstanceLock].
      */
@@ -142,39 +145,36 @@ actual constructor(
         val previousClassLoader = applicationClassLoader
         val previousWatchKeys = packageWatchKeys
 
-        val (newApplication, newClassLoader) = try {
-            createApplication()
-        } catch (cause: Throwable) {
-            // createClassLoader -> watchUrls() may have already replaced packageWatchKeys before
-            // instantiateAndConfigureApplication() failed. Cancel those freshly-registered keys
-            // (they belong to a class loader we are discarding) and restore the previous ones.
-            if (packageWatchKeys !== previousWatchKeys) {
-                packageWatchKeys.forEach { it.cancel() }
-                packageWatchKeys = previousWatchKeys
-            }
-            throw cause
-        }
+        applicationInstance = null
+        applicationClassLoader = null
 
         if (previousApplication != null) {
-            safeRaiseEvent(ApplicationStopping, previousApplication)
-            try {
-                destroyBlocking(previousApplication, previousClassLoader)
-            } catch (e: Throwable) {
-                environment.log.error("Failed to destroy previous application instance.", e)
-            }
-            safeRaiseEvent(ApplicationStopped, previousApplication)
-        }
-        if (packageWatchKeys !== previousWatchKeys) {
-            previousWatchKeys.forEach { it.cancel() }
+            disposeApplication(previousApplication, previousClassLoader)
         }
 
-        applicationInstance = newApplication
-        applicationClassLoader = newClassLoader
+        try {
+            val (newApplication, newClassLoader) = createApplication()
+            applicationInstance = newApplication
+            applicationClassLoader = newClassLoader
+        } catch (cause: Throwable) {
+            environment.log.error("Application reload failed.", cause)
+            throw cause
+        } finally {
+            // Keep watch keys from the latest creation attempt (or the previous ones if create
+            // failed before watchUrls). Drop only obsolete previous-only keys.
+            for (watchKey in previousWatchKeys) {
+                if (watchKey !in packageWatchKeys) {
+                    watchKey.cancel()
+                }
+            }
+        }
     }
 
     private fun getFileChanges(): List<WatchEvent<*>>? {
         try {
-            val changes = packageWatchKeys.flatMap { it.pollEvents() }
+            val changes = packageWatchKeys.flatMap { key ->
+                key.pollEvents().also { key.reset() }
+            }
             if (changes.isEmpty()) {
                 return changes
             }
@@ -184,7 +184,9 @@ actual constructor(
             var count = changes.size
             while (true) {
                 Thread.sleep(200)
-                val moreChanges = packageWatchKeys.flatMap { it.pollEvents() }
+                val moreChanges = packageWatchKeys.flatMap { key ->
+                    key.pollEvents().also { key.reset() }
+                }
                 if (moreChanges.isEmpty()) {
                     break
                 }
@@ -213,6 +215,11 @@ actual constructor(
 
         try {
             return instantiateAndConfigureApplication(classLoader) to classLoader
+        } catch (cause: Throwable) {
+            // Application cleanup (if a new instance was created) happens in
+            // instantiateAndConfigureApplication. Always close a discarded overriding loader.
+            (classLoader as? OverridingClassLoader)?.close()
+            throw cause
         } finally {
             currentThread.contextClassLoader = oldThreadClassLoader
         }
@@ -245,7 +252,11 @@ actual constructor(
         val jre = File(System.getProperty("java.home")).parent
         val debugUrls = allUrls.map { it.file }
         environment.log.debug("Java Home: $jre")
-        environment.log.debug("Class Loader: $baseClassLoader: ${debugUrls.filter { !it.toString().startsWith(jre) }}")
+        environment.log.debug(
+            "Class Loader: {}: {}",
+            baseClassLoader,
+            debugUrls.filter { !it.toString().startsWith(jre) }
+        )
 
         // we shouldn't watch URL for ktor-server classes, even if they match patterns,
         // because otherwise it loads two ApplicationEnvironment (and other) types which do not match
@@ -292,23 +303,16 @@ actual constructor(
         applicationClassLoader = null
 
         if (currentApplication != null) {
-            safeRaiseEvent(ApplicationStopping, currentApplication)
-            try {
-                destroyBlocking(currentApplication, currentApplicationClassLoader)
-            } catch (e: Throwable) {
-                environment.log.error("Failed to destroy application instance.", e)
-            }
-            safeRaiseEvent(ApplicationStopped, currentApplication)
+            disposeApplication(currentApplication, currentApplicationClassLoader)
         }
         packageWatchKeys.forEach { it.cancel() }
         packageWatchKeys = mutableListOf()
     }
 
-    @OptIn(InternalAPI::class)
     private fun destroyBlocking(application: Application, classLoader: ClassLoader?) {
         try {
             runBlocking {
-                withTimeout(engineConfig.shutdownTimeout) {
+                withTimeout(engineConfig.shutdownTimeout.milliseconds) {
                     application.disposeAndJoin()
                 }
             }
@@ -350,7 +354,7 @@ actual constructor(
         }
 
         paths.forEach { path ->
-            environment.log.debug("Watching $path for changes.")
+            environment.log.debug("Watching {} for changes.", path)
         }
 
         val modifiers = get_com_sun_nio_file_SensitivityWatchEventModifier_HIGH()?.let { arrayOf(it) } ?: emptyArray()
@@ -418,7 +422,8 @@ actual constructor(
     }
 
     private fun instantiateAndConfigureApplication(currentClassLoader: ClassLoader): Application {
-        val newInstance = if (recreateInstance || applicationInstance == null) {
+        val createdNewInstance = recreateInstance || applicationInstance == null
+        val newInstance = if (createdNewInstance) {
             Application(
                 environment,
                 rootConfig.developmentMode,
@@ -432,22 +437,42 @@ actual constructor(
             applicationInstance!!
         }
 
-        safeRaiseEvent(ApplicationStarting, newInstance)
+        try {
+            safeRaiseEvent(ApplicationStarting, newInstance)
 
-        avoidingDoubleStartup {
-            withTimeout(environment.startupTimeout) {
-                environment.moduleLoader.loadModules(
-                    newInstance,
-                    currentClassLoader,
-                    modules,
-                )
+            avoidingDoubleStartup {
+                withTimeout(environment.startupTimeout) {
+                    environment.moduleLoader.loadModules(
+                        newInstance,
+                        currentClassLoader,
+                        modules,
+                    )
+                }
             }
+
+            monitor.raise(ApplicationModulesLoaded, newInstance)
+            monitor.raise(ApplicationStarted, newInstance)
+
+            return newInstance
+        } catch (cause: Throwable) {
+            // Dispose of orphaned replacement instances. The pre-start reused instance is cleaned by
+            // start()'s destroyApplication() path instead to avoid double disposal.
+            if (createdNewInstance) {
+                // Class loader is closed by createApplication()'s failure path.
+                disposeApplication(newInstance, classLoader = null)
+            }
+            throw cause
         }
+    }
 
-        monitor.raise(ApplicationModulesLoaded, newInstance)
-        monitor.raise(ApplicationStarted, newInstance)
-
-        return newInstance
+    private fun disposeApplication(application: Application, classLoader: ClassLoader?) {
+        safeRaiseEvent(ApplicationStopping, application)
+        try {
+            destroyBlocking(application, classLoader)
+        } catch (e: Throwable) {
+            environment.log.error("Failed to destroy application instance.", e)
+        }
+        safeRaiseEvent(ApplicationStopped, application)
     }
 
     private fun dynamicModule(name: String): DynamicApplicationModule {
@@ -479,8 +504,8 @@ actual constructor(
     }
 
     /**
-     * Method name getting might fail if method signature has been changed after compilation
-     * (for example by R8 or ProGuard).
+     * Method name getting might fail if the method signature has been changed after compilation
+     * (for example, by R8 or ProGuard).
      *
      * We must also filter out function names with $, assuming they are anonymous.
      */
