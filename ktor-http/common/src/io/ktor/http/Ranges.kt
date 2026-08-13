@@ -77,20 +77,17 @@ public sealed class ContentRange {
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.parseRangesSpecifier)
  *
  * @param rangeSpec the raw `Range` header value, for example `bytes=0-499, 1000-1499`.
- * Optional whitespace (space or horizontal tab) around the commas separating the range set is accepted,
- * as allowed by the list syntax of RFC 9110 5.6.1.
  * @return the parsed specifier, or `null` if [rangeSpec] is syntactically incorrect or unsatisfiable
  */
 public fun parseRangesSpecifier(rangeSpec: String): RangesSpecifier? {
     try {
         val (unit, allRangesString) = rangeSpec.chomp("=") { return null }
-        // A range set is a comma-separated list, and RFC 9110 5.6.1 allows optional whitespace (SP / HTAB)
-        // around the commas
-        val allRanges = allRangesString.split(',').map { it.trim(' ', '\t') }.map {
-            if (it.startsWith("-")) {
-                ContentRange.Suffix(it.removePrefix("-").toLong())
+        val allRanges = allRangesString.split(',').map { segment ->
+            val range = segment.trim(' ', '\t')
+            if (range.startsWith("-")) {
+                ContentRange.Suffix(range.removePrefix("-").toLong())
             } else {
-                val (from, to) = it.chomp("-") { "" to "" }
+                val (from, to) = range.chomp("-") { "" to "" }
                 when {
                     to.isNotEmpty() -> ContentRange.Bounded(from.toLong(), to.toLong())
                     else -> ContentRange.TailFrom(from.toLong())
