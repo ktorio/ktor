@@ -21,6 +21,47 @@ import kotlin.reflect.KClass
  * Unless stated otherwise, the property definitions follow the JSON Schema.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.JsonSchema)
+ *
+ * @property type The type of the schema (e.g. string, object, array).
+ * @property title A short title for the schema.
+ * @property description A verbose explanation of the schema behavior.
+ * @property required An array of property names that are required.
+ * @property allOf Subschemas that must all be valid.
+ * @property oneOf Subschemas where exactly one must be valid.
+ * @property not A subschema that must not be valid.
+ * @property anyOf Subschemas where at least one must be valid.
+ * @property properties Definitions for object properties, keyed by property name.
+ * @property additionalProperties Schema or boolean defining allowed additional properties.
+ * @property discriminator Polymorphic discriminator configuration.
+ * @property readOnly Indicates that the property is read-only.
+ * @property writeOnly Indicates that the property is write-only.
+ * @property xml XML representation metadata.
+ * @property externalDocs External documentation reference.
+ * @property example A single example value for the schema.
+ * @property examples A list of example values for the schema.
+ * @property deprecated Indicates that the schema is deprecated.
+ * @property maxProperties Maximum number of properties allowed in an object.
+ * @property minProperties Minimum number of properties allowed in an object.
+ * @property default Default value for the schema.
+ * @property format Semantic format validation hint (e.g., date-time, uuid).
+ * @property items Schema for items within an array.
+ * @property prefixItems Positional schemas for items within an array (tuple validation).
+ * @property maximum Numeric maximum value (inclusive).
+ * @property exclusiveMaximum Numeric maximum value (exclusive).
+ * @property minimum Numeric minimum value (inclusive).
+ * @property exclusiveMinimum Numeric minimum value (exclusive).
+ * @property maxLength Maximum length for strings.
+ * @property minLength Minimum length for strings.
+ * @property pattern Regular expression pattern for strings.
+ * @property maxItems Maximum number of items in an array.
+ * @property minItems Minimum number of items in an array.
+ * @property uniqueItems Indicates whether all items in an array must be unique.
+ * @property enum Allowed values for the instance.
+ * @property const Constant value for the instance.
+ * @property multipleOf Numeric factor for multiples.
+ * @property id The $id identifier of the schema.
+ * @property anchor The $anchor reference anchor of the schema.
+ * @property dynamicAnchor The $dynamicAnchor dynamic anchor flag of the schema.
  */
 @Serializable
 public data class JsonSchema(
@@ -61,6 +102,7 @@ public data class JsonSchema(
     val uniqueItems: Boolean? = null,
     // inner type nullable to allow explicit "null" value for nullable enums
     val enum: List<GenericElement?>? = null,
+    val const: GenericElement? = null,
     val multipleOf: Double? = null,
     @SerialName($$"$id") val id: String? = null,
     @SerialName($$"$anchor") val anchor: String? = null,
@@ -273,6 +315,17 @@ public data class JsonSchema(
     @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
     @Retention(AnnotationRetention.RUNTIME)
     public annotation class Enum(vararg val value: String)
+
+    /**
+     * const (JSON literal as text)
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.JsonSchema.Const)
+     */
+    @OptIn(ExperimentalSerializationApi::class)
+    @SerialInfo
+    @Target(AnnotationTarget.CLASS, AnnotationTarget.PROPERTY)
+    @Retention(AnnotationRetention.RUNTIME)
+    public annotation class Const(val value: String)
 
     /**
      * minLength
