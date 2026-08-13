@@ -6,7 +6,6 @@ description = "A curated set of Ktor engines for providing multiplatform support
 
 plugins {
     id("ktorbuild.project.library")
-    id("test-server")
 }
 
 kotlin {
@@ -28,9 +27,6 @@ kotlin {
         }
         androidNativeMain.dependencies {
             api(projects.ktorClientCio)
-        }
-        commonTest.dependencies {
-            implementation(projects.ktorClientTestBase)
         }
     }
 }

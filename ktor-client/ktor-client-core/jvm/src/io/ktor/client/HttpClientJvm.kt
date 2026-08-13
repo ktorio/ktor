@@ -5,6 +5,7 @@
 package io.ktor.client
 
 import io.ktor.client.engine.*
+import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import java.util.*
@@ -58,15 +59,20 @@ private val FACTORY: HttpClientEngineFactory<*> by lazy {
         else -> {
             val maxPriority = engineContainers.maxOf { it.priority }
             val topEngines = engineContainers.filter { it.priority == maxPriority }
+            val selectedEngine = topEngines.first()
             if (topEngines.size > 1) {
-                error(
-                    "Multiple HTTP client engine implementations share the same highest priority ($maxPriority): " +
-                        topEngines.joinToString { it.factory::class.qualifiedName ?: it.factory.toString() } +
-                        ". Specify an engine explicitly or assign distinct priorities to resolve the conflict. " +
-                        "See https://ktor.io/docs/http-client-engines.html"
-                )
+                KtorSimpleLogger("HttpClient")
+                    .warn(
+                        buildString {
+                            append("Multiple engines found: ")
+                            appendLine(topEngines.joinToString { it.name })
+                            appendLine("\tUsing the first: ${selectedEngine.name}")
+                        }
+                    )
             }
-            topEngines.single().factory
+            selectedEngine.factory
         }
     }
 }
+
+private val HttpClientEngineContainer.name get() = factory::class.simpleName ?: factory.toString()

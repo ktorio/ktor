@@ -21,7 +21,11 @@ private typealias EngineFactory = HttpClientEngineFactory<HttpClientEngineConfig
 public class EngineEntry(
     public val factory: EngineFactory,
     public val priority: Double = 1.0,
-)
+) {
+    init {
+        require(!priority.isNaN()) { "Priority cannot be NaN" }
+    }
+}
 
 /**
  * Shared engines collection for.
