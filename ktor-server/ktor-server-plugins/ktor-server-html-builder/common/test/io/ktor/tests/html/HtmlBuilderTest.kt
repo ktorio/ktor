@@ -18,10 +18,10 @@ import kotlin.test.*
 
 class HtmlBuilderTest {
     @Test
-    fun testRespondHtmlFragment() = testApplication {
+    fun testRespondHtmlPartial() = testApplication {
         routing {
             get("/fragment") {
-                call.respondHtmlFragment {
+                call.respondHtmlPartial {
                     div {
                         +"This is an HTML fragment"
                     }
@@ -38,18 +38,18 @@ class HtmlBuilderTest {
     }
 
     @Test
-    fun testRespondHtmlFragmentWithStatus() = testApplication {
+    fun testRespondHtmlPartialWithStatus() = testApplication {
         routing {
             get("/fragment") {
-                call.respondHtmlFragment(HttpStatusCode.Created) {
-                    span { +"Created!" }
+                call.respondHtmlPartial(HttpStatusCode.Created) {
+                    td { +"Created!" }
                 }
             }
         }
 
         client.get("/fragment").let { response ->
             assertEquals(HttpStatusCode.Created, response.status)
-            assertEquals("<span>Created!</span>", response.bodyAsText().trim())
+            assertEquals("<td>Created!</td>", response.bodyAsText().trim())
         }
     }
 
