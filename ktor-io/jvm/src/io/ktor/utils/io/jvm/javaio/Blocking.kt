@@ -5,12 +5,12 @@
 package io.ktor.utils.io.jvm.javaio
 
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
-import kotlinx.io.Buffer
-import kotlinx.io.IOException
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.runBlocking
 import kotlinx.io.InternalIoApi
-import java.io.*
-import kotlin.math.*
+import java.io.InputStream
+import java.io.OutputStream
+import kotlin.math.min
 
 /**
  * Create blocking [java.io.InputStream] for this channel that does block every time the channel suspends at read

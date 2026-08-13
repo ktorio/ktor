@@ -14,7 +14,6 @@ import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 
-@OptIn(InternalAPI::class)
 class ByteByteChannelOutputStreamTest {
 
     @Test
@@ -198,7 +197,7 @@ class ByteByteChannelOutputStreamTest {
 
     @Test
     fun `writes are streamed without explicit flush`() = runTestWithRealTime {
-        val channel = ByteChannel()
+        val channel = ByteChannel(autoFlush = true)
         val outputStream = ByteChannelOutputStream(channel)
         val data = ByteArray(2 * 1024 * 1024) { it.toByte() }
 
