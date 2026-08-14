@@ -18,6 +18,7 @@ import kotlinx.serialization.Serializable
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 
 class ScalarTest {
 
@@ -98,6 +99,18 @@ class ScalarTest {
     }
 
     @Test
+    fun testScalarCustomRemotePath() = testApplication {
+        routing {
+            scalarUI("scalar") {
+                remotePath = "custom-spec.yaml"
+            }
+        }
+
+        val response = client.get("/scalar").bodyAsText()
+        assertContains(response, "spec: { url: '/scalar/custom-spec.yaml' }")
+    }
+
+    @Test
     fun testScalarFileIsServed() = testApplication {
         routing {
             scalarUI("openapi")
@@ -110,7 +123,7 @@ class ScalarTest {
     }
 
     @Test
-    fun `scalar file resolved from routing`() = testApplication {
+    fun testScalarFileResolvedFromRouting() = testApplication {
         routing {
             route("/api") {
                 @OptIn(ExperimentalKtorApi::class)
@@ -143,6 +156,23 @@ class ScalarTest {
             assertContains(responseText, "Items API from routes")
             assertContains(responseText, "Get items")
         }
+    }
+
+    @Test
+    fun testScalarMissingSpecErrorResponseDoesNotLeakSource() = testApplication {
+        routing {
+            scalarUI("scalar") {
+                source = OpenApiDocSource.File("non_existent_file.yaml")
+            }
+        }
+
+        val response = client.get("/scalar/documentation.yaml")
+        assertEquals(HttpStatusCode.NotFound, response.status)
+        assertEquals(ContentType.Application.Json, response.contentType())
+
+        val body = response.bodyAsText()
+        assertContains(body, "OpenAPI Specification Not Found")
+        assertFalse(body.contains("non_existent_file.yaml"), "Server source path must not leak to client")
     }
 }
 
