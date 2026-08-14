@@ -166,6 +166,32 @@ class CommonHeadersTest {
     }
 
     @Test
+    fun `parse quoted parameter value with escaped character at the end`() {
+        assertEquals(
+            listOf(HeaderValue("justValue", listOf(HeaderValueParam("a", "quoted\"")))),
+            parseHeaderValue("justValue; a=\"quoted\\\"\"")
+        )
+        assertEquals(
+            listOf(HeaderValue("justValue", listOf(HeaderValueParam("a", "quoted\\")))),
+            parseHeaderValue("justValue; a=\"quoted\\\\\"")
+        )
+        assertEquals(
+            listOf(HeaderValue("justValue", listOf(HeaderValueParam("a", "\"")))),
+            parseHeaderValue("justValue; a=\"\\\"\"")
+        )
+    }
+
+    @Test
+    fun `parse round trips a rendered parameter value ending with a quote`() {
+        val rendered = ContentDisposition.File.withParameter("filename", "a\"").toString()
+        assertEquals("file; filename=\"a\\\"\"", rendered)
+        assertEquals(
+            listOf(HeaderValue("file", listOf(HeaderValueParam("filename", "a\"")))),
+            parseHeaderValue(rendered)
+        )
+    }
+
+    @Test
     fun parseRealLifeHeadersShouldntFail() {
         val examples = listOf(
             "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",

@@ -217,7 +217,7 @@ private fun parseHeaderValueParameterValueQuoted(value: String, start: Int): Pai
                 return position + 1 to builder.toString()
             }
 
-            currentChar == '\\' && position < value.lastIndex - 2 -> {
+            currentChar == '\\' && position < value.lastIndex -> {
                 builder.append(value[position + 1])
                 position += 2
                 continue@loop
