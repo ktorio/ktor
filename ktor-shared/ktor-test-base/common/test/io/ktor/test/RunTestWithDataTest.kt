@@ -52,10 +52,27 @@ class RunTestWithDataTest {
             singleTestCase,
             retries = 3,
             test = { (_, retry) ->
-                if (retry < 3) fail("Retry #$retry")
+                if (retry < 3) transientFailure("Retry #$retry")
                 successfulRetry = retry
             },
             afterAll = { assertEquals(3, successfulRetry) },
+        )
+    }
+
+    @Test
+    fun testAssertionFailuresAreNotRetried(): TestResult {
+        var attempts = 0
+        return runTestWithData(
+            singleTestCase,
+            retries = 3,
+            test = {
+                attempts++
+                fail("Deterministic failure")
+            },
+            handleFailures = {
+                assertEquals(1, it.size)
+                assertEquals(1, attempts, "Assertion failures should not be retried")
+            },
         )
     }
 
@@ -107,7 +124,7 @@ class RunTestWithDataTest {
         timeout = singleTestDuration * 1.75,
         test = { (_, retry) ->
             realTimeDelay(singleTestDuration)
-            if (retry == 0) fail("Try again, please")
+            if (retry == 0) transientFailure("Try again, please")
         },
     )
 
@@ -151,7 +168,7 @@ class RunTestWithDataTest {
             },
             test = { (id, retry) ->
                 when (id) {
-                    1 -> if (retry == 0) fail("First attempt failed")
+                    1 -> if (retry == 0) transientFailure("First attempt failed")
                     2 -> if (retry == 0) realTimeDelay(singleTestDuration * 2)
                 }
             },
@@ -179,6 +196,9 @@ class RunTestWithDataTest {
 }
 
 private val singleTestCase = listOf(1)
+
+/** Simulates a transient (retryable) failure, as opposed to an assertion failure. */
+private fun transientFailure(message: String): Nothing = throw IllegalStateException(message)
 
 private suspend fun realTimeDelay(duration: Duration) {
     withContext(Dispatchers.Default.limitedParallelism(1)) { delay(duration) }

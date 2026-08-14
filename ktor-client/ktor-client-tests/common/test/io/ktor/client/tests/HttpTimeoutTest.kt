@@ -12,6 +12,7 @@ import io.ktor.client.statement.*
 import io.ktor.client.test.base.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
+import io.ktor.test.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.withTimeout
@@ -135,7 +136,7 @@ class HttpTimeoutTest : ClientLoader(timeout = 30.seconds) {
 
             client.prepareRequest(requestBuilder).body<ByteReadChannel>().cancel()
 
-            waitForCondition("all children to be cancelled", timeout = 500.milliseconds) {
+            assertEventually("all children to be cancelled", timeout = 500.milliseconds) {
                 requestBuilder.executionContext.getActiveChildren().none()
             }
         }

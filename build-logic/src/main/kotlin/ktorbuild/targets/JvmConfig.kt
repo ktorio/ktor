@@ -41,9 +41,15 @@ internal fun Project.configureJvm() {
 }
 
 private fun Project.configureTests() {
+    val flakyTestsEnabled = flakyTestsMode() != FlakyTestsMode.EXCLUDE
+
     val jvmTest = tasks.named<KotlinJvmTest>("jvmTest") {
         maxHeapSize = "2g"
         exclude("**/*StressTest*")
+        // Auto-register FlakyTestCondition so @Flaky tests are excluded from the default
+        // run (they run only in the `flakyTest` task below, which sets enable.flaky.tests).
+        systemProperty("junit.jupiter.extensions.autodetection.enabled", "true")
+        systemProperty("enable.flaky.tests", flakyTestsEnabled)
         useJUnitPlatform()
         configureJavaToolchain(java.toolchain.languageVersion, ktorBuild.jvmTestToolchain)
     }
@@ -57,6 +63,23 @@ private fun Project.configureTests() {
         setForkEvery(1)
         systemProperty("enable.stress.tests", "true")
         include("**/*StressTest*")
+        useJUnitPlatform()
+        configureJavaToolchain(java.toolchain.languageVersion, ktorBuild.jvmTestToolchain)
+    }
+
+    // Runs @Flaky-annotated tests (excluded from the default `jvmTest`). Intended for a
+    // nightly/dedicated job that publishes to Develocity so quarantined tests stay tracked.
+    // This runs the full suite with flaky tests enabled, because the annotation can only be
+    // resolved at execution time. To run flaky tests and nothing else — on any target, not just
+    // JVM — use the name-based selection instead: `-Pktor.tests.flaky=only`.
+    tasks.register<Test>(FLAKY_TEST_TASK) {
+        classpath = files(jvmTest.map { it.classpath })
+        testClassesDirs = files(jvmTest.map { it.testClassesDirs })
+
+        maxHeapSize = "2g"
+        systemProperty("enable.flaky.tests", "true")
+        systemProperty("junit.jupiter.extensions.autodetection.enabled", "true")
+        exclude("**/*StressTest*")
         useJUnitPlatform()
         configureJavaToolchain(java.toolchain.languageVersion, ktorBuild.jvmTestToolchain)
     }

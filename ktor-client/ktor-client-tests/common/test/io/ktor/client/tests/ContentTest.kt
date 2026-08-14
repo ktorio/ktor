@@ -17,6 +17,7 @@ import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.serialization.kotlinx.json.*
+import io.ktor.test.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
@@ -407,7 +408,7 @@ class ContentTest : ClientLoader() {
                 val cause = CancellationException("Test exception")
                 job.cancel(cause)
 
-                waitForCondition("body to be closed", timeout = 2.seconds) { body.closedCause != null }
+                assertEventually("body to be closed", timeout = 2.seconds) { body.closedCause != null }
                 assertEquals(cause.message, body.closedCause!!.message)
             }
         }
