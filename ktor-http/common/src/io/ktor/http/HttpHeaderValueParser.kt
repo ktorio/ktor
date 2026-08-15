@@ -229,7 +229,7 @@ private fun parseHeaderValueParameterValueQuoted(value: String, start: Int): Pai
     }
 
     // The value is unquoted here
-    return position to '"' + builder.toString()
+    return position to value.substring(start - 1, position)
 }
 
 private fun String.nextIsDelimiterOrEnd(start: Int): Boolean {

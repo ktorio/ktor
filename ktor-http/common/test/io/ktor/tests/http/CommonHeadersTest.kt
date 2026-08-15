@@ -163,6 +163,10 @@ class CommonHeadersTest {
             listOf(HeaderValue("justValue", listOf(HeaderValueParam("x", "\"abc\\")))),
             parseHeaderValue("justValue;x=\"abc\\")
         )
+        assertEquals(
+            listOf(HeaderValue("justValue", listOf(HeaderValueParam("x", "\"abc\\q")))),
+            parseHeaderValue("justValue;x=\"abc\\q")
+        )
     }
 
     @Test
