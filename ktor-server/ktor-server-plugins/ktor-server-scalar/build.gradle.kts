@@ -8,7 +8,7 @@ plugins {
 
 kotlin {
     sourceSets {
-        jvmMain.dependencies {
+        commonMain.dependencies {
             implementation(projects.ktorServerHtmlBuilder)
             api(projects.ktorServerRoutingOpenapi)
         }
