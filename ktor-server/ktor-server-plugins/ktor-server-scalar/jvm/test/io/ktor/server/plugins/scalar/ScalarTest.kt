@@ -174,6 +174,23 @@ class ScalarTest {
         assertContains(body, "OpenAPI Specification Not Found")
         assertFalse(body.contains("non_existent_file.yaml"), "Server source path must not leak to client")
     }
+
+    @Test
+    fun testScalarScriptInjectionProtection() = testApplication {
+        routing {
+            scalarUI("scalar/path'with'quote</script><script>alert(1)") {
+                remotePath = "remote'path</script>.yaml"
+            }
+        }
+
+        val response = client.get("/scalar/path'with'quote</script><script>alert(1)").bodyAsText()
+        assertContains(
+            response,
+            "spec: { url: '/scalar/path%27with%27quote%3C/script%3E%3Cscript%3Ealert(1)/remote%27path%3C/script%3E.yaml' }"
+        )
+        assertFalse(response.contains("'/scalar/path'with'quote"), "Single quotes in path must be encoded")
+        assertFalse(response.contains("</script><script>alert(1)"), "HTML tags in path must be encoded")
+    }
 }
 
 @Serializable

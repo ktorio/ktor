@@ -71,7 +71,13 @@ public fun Route.scalarUI(
         }.hide()
 
         get {
-            val fullPath = call.request.path().removeSuffix("/")
+            val fullPath = call.request.path()
+                .removeSuffix("/")
+                .encodeURLPath(encodeEncoded = false)
+                .replace("'", "%27")
+            val safeApiUrl = apiUrl
+                .encodeURLPath(encodeEncoded = false)
+                .replace("'", "%27")
             call.respondHtml {
                 head {
                     title { +"Scalar API Reference" }
@@ -94,7 +100,7 @@ public fun Route.scalarUI(
                         unsafe {
                             +"""
                             Scalar.createApiReference('#app', {
-                                spec: { url: '$fullPath/$apiUrl' },
+                                spec: { url: '$fullPath/$safeApiUrl' },
                                 theme: '${config.theme}',
                                 layout: '${config.layout}',
                                 showSidebar: ${config.showSidebar}
