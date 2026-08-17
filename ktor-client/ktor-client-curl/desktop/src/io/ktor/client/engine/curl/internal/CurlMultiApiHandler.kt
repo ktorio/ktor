@@ -127,7 +127,22 @@ internal class CurlMultiApiHandler : Closeable {
             request.caInfo?.let { option(CURLOPT_CAINFO, it) }
         }
 
-        curl_multi_add_handle(multiHandle, easyHandle).verify()
+        try {
+            curl_multi_add_handle(multiHandle, easyHandle).verify()
+        } catch (cause: Throwable) {
+            activeHandles.remove(easyHandle)
+            try {
+                try {
+                    responseData.responseBody.close(cause)
+                } finally {
+                    responseData.headersBytes.close()
+                }
+            } finally {
+                curl_easy_cleanup(easyHandle)
+                requestHolder.dispose()
+            }
+            throw cause
+        }
 
         return easyHandle
     }

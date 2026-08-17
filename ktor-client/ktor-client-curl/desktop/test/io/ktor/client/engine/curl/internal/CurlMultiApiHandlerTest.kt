@@ -20,11 +20,11 @@ import kotlin.native.runtime.GC
 import kotlin.native.runtime.NativeRuntimeApi
 import kotlin.test.Test
 import kotlin.test.assertNull
-import kotlin.test.assertTrue
+import kotlin.test.assertSame
 
-@OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class, NativeRuntimeApi::class)
-class CurlMultiApiHandlerTest {
+internal class CurlMultiApiHandlerTest {
 
+    @OptIn(ExperimentalNativeApi::class, NativeRuntimeApi::class)
     @Test
     fun `cancelling a request releases its stable response data`() {
         val handler = CurlMultiApiHandler()
@@ -42,6 +42,7 @@ class CurlMultiApiHandlerTest {
         }
     }
 
+    @OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
     private fun scheduleAndCancel(handler: CurlMultiApiHandler): WeakReference<CurlRequestData> {
         val request = CurlRequestData(
             protocol = "http",
@@ -63,13 +64,16 @@ class CurlMultiApiHandlerTest {
         val requestReference = WeakReference(request)
         val response = CompletableDeferred<CurlSuccess>()
         val easyHandle = handler.scheduleRequest(request, response)
+        val cancellationCause = CancellationException("Test cancellation")
+        var completionCause: Throwable? = null
+        response.invokeOnCompletion { completionCause = it }
 
-        handler.cancelRequest(easyHandle, CancellationException("Test cancellation"))
+        handler.cancelRequest(easyHandle, cancellationCause)
         memScoped {
             handler.perform(alloc<IntVar>())
         }
 
-        assertTrue(response.isCompleted)
+        assertSame(cancellationCause, completionCause)
         return requestReference
     }
 }
