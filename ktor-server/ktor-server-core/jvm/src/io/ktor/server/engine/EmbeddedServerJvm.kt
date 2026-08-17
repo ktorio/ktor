@@ -57,6 +57,9 @@ actual constructor(
     private var applicationClassLoader: ClassLoader? = null
     private var packageWatchKeys = emptyList<WatchKey>()
 
+    /** Bumped after each successful reload; used to skip duplicate auto-reloads. */
+    private var applicationGeneration: Int = 0
+
     private val configuredWatchPath = environment.config.propertyOrNull("ktor.deployment.watch")?.getList().orEmpty()
     private val watchPatterns: List<String> = configuredWatchPath + rootConfig.watchPaths
 
@@ -65,9 +68,8 @@ actual constructor(
         loadServiceOrNull() ?: ModuleParametersInjector.Disabled
     }
     private val modules: List<DynamicApplicationModule>
-        get() =
-            environment.moduleConfigReferences.map(::dynamicModule) +
-                rootConfig.modules.map { module -> module.toDynamicModuleOrNull() ?: module.wrapWithDynamicModule() }
+        get() = environment.moduleConfigReferences.map(::dynamicModule) +
+            rootConfig.modules.map { module -> module.toDynamicModuleOrNull() ?: module.wrapWithDynamicModule() }
 
     private var applicationInstance: Application? = Application(
         environment,
@@ -106,30 +108,42 @@ actual constructor(
     public fun reload() {
         applicationInstanceLock.write {
             reloadApplication()
+            applicationGeneration++
         }
     }
 
-    private fun currentApplication(): Application = applicationInstanceLock.read {
+    private fun getApplicationOrThrow(): Application {
+        return applicationInstance ?: error("Application is not loaded; check logs for details")
+    }
+
+    private fun currentApplication(): Application {
         if (!rootConfig.developmentMode) {
-            return@read applicationInstance ?: error("EmbeddedServer was stopped")
+            return applicationInstanceLock.read { getApplicationOrThrow() }
         }
 
-        // Poll for changes even when no application is loaded, so a failed reload can recover
-        // after the next filesystem event.
-        if (getFileChanges().isNullOrEmpty()) {
-            return@read applicationInstance ?: error("EmbeddedServer was stopped")
-        }
-
-        applicationInstanceLock.write {
-            try {
-                reloadApplication()
-            } catch (cause: Throwable) {
-                environment.log.error("Auto-reload failed.", cause)
-                throw cause
+        // Poll under the read lock only. Later write-lock re-poll can be empty even when this thread must still reload.
+        // Track generation instead.
+        val generationBefore = applicationInstanceLock.read {
+            if (drainFileChanges().isNullOrEmpty()) {
+                return getApplicationOrThrow()
             }
+            applicationGeneration
         }
 
-        return@read applicationInstance ?: error("EmbeddedServer was stopped")
+        return applicationInstanceLock.write {
+            if (applicationGeneration == generationBefore) {
+                // Drain any leftover events from the same change wave
+                drainFileChanges()
+                try {
+                    reloadApplication()
+                    applicationGeneration++
+                } catch (cause: Throwable) {
+                    environment.log.error("Auto-reload failed.", cause)
+                    throw cause
+                }
+            }
+            getApplicationOrThrow()
+        }
     }
 
     /**
@@ -170,7 +184,7 @@ actual constructor(
         }
     }
 
-    private fun getFileChanges(): List<WatchEvent<*>>? {
+    private fun drainFileChanges(): List<WatchEvent<*>>? {
         try {
             val changes = packageWatchKeys.flatMap { key ->
                 key.pollEvents().also { key.reset() }
@@ -264,7 +278,7 @@ actual constructor(
             ApplicationEnvironment::class.java, // ktor-server
             Pipeline::class.java, // ktor-parsing
             HttpStatusCode::class.java, // ktor-http
-            kotlin.jvm.functions.Function1::class.java, // kotlin-stdlib
+            Function1::class.java, // kotlin-stdlib
             Logger::class.java, // slf4j
             ByteReadChannel::class.java,
             Input::class.java, // kotlinx-io
