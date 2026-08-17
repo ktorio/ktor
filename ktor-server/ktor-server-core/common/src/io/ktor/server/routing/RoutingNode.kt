@@ -265,7 +265,7 @@ public class RoutingContext(
     public val call: RoutingCall
 )
 
-@OptIn(InternalAPI::class)
+@InternalAPI
 public fun ApplicationCall.toRoutingContext(): RoutingContext = when (this) {
     is RoutingCall -> RoutingContext(call = this)
     is RoutingPipelineCall -> RoutingContext(call = RoutingCall(this))

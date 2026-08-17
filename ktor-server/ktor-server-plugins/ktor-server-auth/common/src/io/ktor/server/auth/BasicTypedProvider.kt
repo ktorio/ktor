@@ -136,8 +136,11 @@ public inline fun <reified P : Any> form(
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.session)
  *
+ * @param S the stored session type.
+ * @param P the principal type exposed to authenticated routes.
  * @param name name that identifies the Session authentication scheme.
  * @param configure configures Session authentication for this scheme.
+ * @return a typed session authentication scheme.
  */
 @ExperimentalKtorApi
 public inline fun <reified S : Any, reified P : Any> session(
@@ -145,7 +148,7 @@ public inline fun <reified S : Any, reified P : Any> session(
     configure: TypedSessionAuthConfig<S, P>.() -> Unit
 ): SessionAuthenticationScheme<S, P> {
     val config = TypedSessionAuthConfig<S, P>().apply(configure)
-    return SessionAuthenticationScheme.from(
+    return createSessionAuthenticationScheme(
         name = name,
         sessionTypeInfo = typeInfo<S>(),
         principalType = P::class,
