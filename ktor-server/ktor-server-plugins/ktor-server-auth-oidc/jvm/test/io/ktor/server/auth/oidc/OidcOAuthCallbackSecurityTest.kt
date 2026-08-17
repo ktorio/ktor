@@ -10,7 +10,9 @@ import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.server.application.install
 import io.ktor.server.auth.oidc.utils.*
+import io.ktor.server.auth.principal
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -41,16 +43,15 @@ class OidcOAuthCallbackSecurityTest {
 
     @Test
     fun `oauth callback rejects id token when stored nonce is missing`() = testApplication {
-        val keys = testRsaKeys
         val idTokensByState = ConcurrentHashMap<String, String>()
         val missingState = "missing-state"
 
-        openIdProvider(keys, idTokensByState)
-        idTokensByState[missingState] = keys.idToken(subject = "callback-user") {
+        openIdProvider(testRsaKeys, idTokensByState)
+        idTokensByState[missingState] = testRsaKeys.idToken(subject = "callback-user") {
             audience = "client-id"
             nonce = "orphaned-nonce"
         }
-        installOAuthProvider(keys)
+        installOAuthProvider(testRsaKeys)
 
         val callback = noRedirectsClient().get("/oidc/auth0/callback?code=login-code&state=$missingState")
         assertEquals(HttpStatusCode.Unauthorized, callback.status)
@@ -58,14 +59,13 @@ class OidcOAuthCallbackSecurityTest {
 
     @Test
     fun `oauth callback rejects state without matching authorization session cookie`() = testApplication {
-        val keys = testRsaKeys
         val idTokensByState = ConcurrentHashMap<String, String>()
 
-        openIdProvider(keys, idTokensByState)
-        installOAuthProvider(keys)
+        openIdProvider(testRsaKeys, idTokensByState)
+        installOAuthProvider(testRsaKeys)
 
         val browser = noRedirectsClient()
-        val login = browser.prepareLoginAndIdToken(keys, idTokensByState)
+        val login = browser.prepareLoginAndIdToken(testRsaKeys, idTokensByState)
         val withoutCookie = browser.get("/oidc/auth0/callback?code=login-code&state=${login.state}")
         assertEquals(HttpStatusCode.Unauthorized, withoutCookie.status)
 
@@ -77,7 +77,6 @@ class OidcOAuthCallbackSecurityTest {
 
     @Test
     fun `oauth callback validates authorization response issuer`() = testApplication {
-        val keys = testRsaKeys
         val idTokensByState = ConcurrentHashMap<String, String>()
         val metadata = OpenIdProviderMetadata(
             issuer = ISSUER_URL,
@@ -93,7 +92,7 @@ class OidcOAuthCallbackSecurityTest {
                         respondAuthorizationCodeWithIdToken(
                             parameters = call.receiveParameters(),
                             idTokensByState = idTokensByState,
-                            accessToken = keys.accessToken {
+                            accessToken = testRsaKeys.accessToken {
                                 subject = "token-user"
                             },
                         )
@@ -102,27 +101,26 @@ class OidcOAuthCallbackSecurityTest {
             }
         }
         installOAuthProvider(
-            keys = keys,
+            keys = testRsaKeys,
             metadata = metadata,
-            onSuccess = { principal ->
-                val idToken = principal as OidcToken.Id
+            onSuccess = { idToken ->
                 call.respondText("signed in ${idToken.userInfo.subject}")
             },
         )
 
         val browser = noRedirectsClient()
-        val missingIssuer = browser.prepareLoginAndIdToken(keys, idTokensByState)
+        val missingIssuer = browser.prepareLoginAndIdToken(testRsaKeys, idTokensByState)
         val missingIssuerCallback = browser.completeOidcCallback(missingIssuer.toPreparedLogin())
         assertEquals(HttpStatusCode.Unauthorized, missingIssuerCallback.status)
 
-        val wrongIssuer = browser.prepareLoginAndIdToken(keys, idTokensByState)
+        val wrongIssuer = browser.prepareLoginAndIdToken(testRsaKeys, idTokensByState)
         val wrongIssuerCallback = browser.completeOidcCallback(
             wrongIssuer.toPreparedLogin(),
             issuer = "https://wrong.example.com",
         )
         assertEquals(HttpStatusCode.Unauthorized, wrongIssuerCallback.status)
 
-        val validIssuer = browser.prepareLoginAndIdToken(keys, idTokensByState)
+        val validIssuer = browser.prepareLoginAndIdToken(testRsaKeys, idTokensByState)
         val validIssuerCallback = browser.completeOidcCallback(validIssuer.toPreparedLogin(), issuer = ISSUER_URL)
         assertEquals(HttpStatusCode.OK, validIssuerCallback.status)
         assertEquals("signed in callback-user", validIssuerCallback.bodyAsText())
@@ -130,15 +128,14 @@ class OidcOAuthCallbackSecurityTest {
 
     @Test
     fun `oauth callback rejects id token with wrong nonce`() = testApplication {
-        val keys = testRsaKeys
         val idTokensByState = ConcurrentHashMap<String, String>()
 
-        openIdProvider(keys, idTokensByState)
-        installOAuthProvider(keys)
+        openIdProvider(testRsaKeys, idTokensByState)
+        installOAuthProvider(testRsaKeys)
 
         val browser = noRedirectsClient()
         val login = browser.prepareOidcLogin()
-        idTokensByState[login.state] = keys.idToken(subject = "callback-user") {
+        idTokensByState[login.state] = testRsaKeys.idToken(subject = "callback-user") {
             audience = "client-id"
             nonce = "wrong-nonce"
         }
@@ -150,21 +147,21 @@ class OidcOAuthCallbackSecurityTest {
     private fun ApplicationTestBuilder.installOAuthProvider(
         keys: OpenIdTestKeys,
         metadata: OpenIdProviderMetadata = testOpenIdProviderMetadata(ISSUER_URL),
-        onSuccess: suspend RoutingContext.(OidcToken) -> Unit = { call.respond(HttpStatusCode.OK) },
+        onSuccess: suspend RoutingContext.(OidcToken.Id) -> Unit = { call.respond(HttpStatusCode.OK) },
     ) {
-        val openIdClient = openIdHttpClient()
+        val openIdClient = discoveryClient()
         application {
-            val oidc = openIdConnect {
+            val oidc = install(Oidc) {
                 httpClient = openIdClient
                 discoveryRefreshInterval = ZERO
             }
-            oidc.provider("auth0") {
+            oidc.identityProvider("auth0") {
                 testIssuer(metadata = metadata)
                 jwt(keys)
                 oauth {
                     clientId = "client-id"
                     clientSecret = "client-secret"
-                    this.onSuccess(onSuccess)
+                    this.onSuccess { token -> onSuccess(token) }
                 }
             }
         }

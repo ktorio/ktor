@@ -10,8 +10,9 @@ import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.server.application.install
+import io.ktor.server.auth.*
 import io.ktor.server.auth.oidc.*
-import io.ktor.server.auth.typesafe.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -45,6 +46,7 @@ internal fun TestApplicationBuilder.openIdRefreshProvider(
                         )
 
                         "refresh_token" -> refreshResponse()
+
                         else -> call.respond(HttpStatusCode.BadRequest)
                     }
                 }
@@ -77,20 +79,21 @@ internal suspend fun RoutingContext.respondRefreshedIdToken(
 internal fun ApplicationTestBuilder.installSessionTestApp(
     keys: OpenIdTestKeys,
     endSessionEndpoint: String? = "$ISSUER_URL/logout",
-    configureProvider: OidcProviderConfig<OidcToken>.() -> Unit = { jwt(keys) },
+    configureProvider: OidcProviderConfig.() -> Unit = { jwt(keys) },
     meResponse: suspend RoutingContext.(OidcToken.Id) -> Unit = { idToken ->
         call.respondText(idToken.userInfo.subject)
     },
-    configureSessions: OidcSessionConfig<OidcToken>.() -> Unit = {},
+    configureSessions: OidcSessionsConfig.() -> Unit = {},
 ) {
-    val openIdClient = openIdHttpClient()
+    val client = discoveryClient()
     application {
-        val oidc = openIdConnect {
-            httpClient = openIdClient
+        val oidc = install(Oidc) {
+            httpClient = client
             discoveryRefreshInterval = ZERO
         }
-        val oidcProvider = oidc.provider("auth0") {
-            testIssuer(metadata = browserFlowMetadata(endSessionEndpoint = endSessionEndpoint))
+
+        val oidcProvider = oidc.identityProvider("auth0") {
+            testIssuer(metadata = browserFlowMetadata(endSessionEndpoint))
             oauth {
                 clientId = "client-id"
                 clientSecret = "client-secret"
@@ -111,9 +114,9 @@ internal fun ApplicationTestBuilder.installSessionTestApp(
         }
 
         routing {
-            authenticateWith(oidcProvider.sessions) {
+            authenticateWith(oidcProvider.session) {
                 get("/me") {
-                    val idToken = principal as OidcToken.Id
+                    val idToken = call.principal
                     meResponse(idToken)
                 }
             }

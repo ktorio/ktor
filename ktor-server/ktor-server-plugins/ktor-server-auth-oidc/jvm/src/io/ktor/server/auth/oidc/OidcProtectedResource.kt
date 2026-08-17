@@ -14,7 +14,7 @@ import java.net.URI
 
 internal fun Application.configureProtectedResourceRoute(
     config: ProtectedResourceMetadataConfig,
-    providers: () -> List<OidcProviderConfig<*>>,
+    providers: () -> List<OidcProviderConfig>,
 ) = routing {
     val path = buildResourceMetadataRoutePath(config.resource)
     route(path) {
@@ -32,7 +32,7 @@ internal fun Application.configureProtectedResourceRoute(
 
 internal fun buildProtectedResourceMetadata(
     config: ProtectedResourceMetadataConfig,
-    providers: Collection<OidcProviderConfig<*>>,
+    providers: Collection<OidcProviderConfig>,
 ): ProtectedResourceMetadata {
     val bearerProviders = providers.filter { it.bearerConfig != null }
 

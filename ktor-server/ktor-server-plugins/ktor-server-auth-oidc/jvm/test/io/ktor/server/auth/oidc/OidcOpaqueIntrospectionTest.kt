@@ -9,8 +9,9 @@ package io.ktor.server.auth.oidc
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.server.application.install
+import io.ktor.server.auth.*
 import io.ktor.server.auth.oidc.utils.*
-import io.ktor.server.auth.typesafe.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -80,10 +81,29 @@ class OidcOpaqueIntrospectionTest {
 
         installOpaqueBearer(
             audience = "my api",
-            authMethod = OpaqueTokenIntrospectionAuthMethod.ClientSecretPost,
+            authMethod = TokenIntrospectionAuthMethod.ClientSecretPost,
         )
 
         assertOpaqueToken("spaced-audience-token", HttpStatusCode.OK, "primitive-user")
+    }
+
+    @Test
+    fun `introspection bearer accepts jwt-formatted tokens without local jwt verification`() = testApplication {
+        val keys = OpenIdTestKeys.rsa(issuer = ISSUER_URL, audience = "api")
+        val jwtToken = keys.accessToken {
+            subject = "jwt-user"
+            email = "jwt@example.com"
+        }
+
+        openIdIntrospectionProvider { parameters ->
+            assertEquals(jwtToken, parameters["token"])
+            """{"active":true,"sub":"introspected-user","aud":["api"],"scope":"read"}"""
+        }
+
+        installOpaqueBearer("api")
+
+        // JWT-formatted material is sent to introspection; jwtBearer is not used as a fallback.
+        assertOpaqueToken(jwtToken, HttpStatusCode.OK, "introspected-user")
     }
 
     private fun TestApplicationBuilder.openIdIntrospectionProvider(
@@ -102,32 +122,30 @@ class OidcOpaqueIntrospectionTest {
 
     private fun ApplicationTestBuilder.installOpaqueBearer(
         audience: String,
-        authMethod: OpaqueTokenIntrospectionAuthMethod = OpaqueTokenIntrospectionAuthMethod.ClientSecretBasic,
+        authMethod: TokenIntrospectionAuthMethod = TokenIntrospectionAuthMethod.ClientSecretBasic,
     ) {
-        val openIdClient = openIdHttpClient()
+        val openIdClient = discoveryClient()
         application {
-            val oidc = openIdConnect {
+            val oidc = install(Oidc) {
                 httpClient = openIdClient
             }
-            val oidcProvider = oidc.provider("auth0") {
+            val oidcProvider = oidc.identityProvider("auth0") {
                 testIssuer()
-                accessToken {
-                    audiences = setOf(audience)
-                    opaqueToken = OpaqueTokenStrategy.Introspect(
-                        endpoint = "$ISSUER_URL/introspect",
-                        clientId = "resource-server",
-                        clientSecret = "secret",
-                        authMethod = authMethod,
-                    )
+                bearer {
+                    this.audience = setOf(audience)
+                    introspection {
+                        endpoint = "$ISSUER_URL/introspect"
+                        clientId = "resource-server"
+                        clientSecret = "secret"
+                        this.authMethod = authMethod
+                    }
                 }
-                bearer()
             }
 
             routing {
-                authenticateWith(oidcProvider.bearer) {
+                authenticateWith(oidcProvider.introspectionBearer) {
                     get("/opaque") {
-                        val opaque = principal as OidcToken.Opaque
-                        call.respondText(opaque.introspection.subject ?: "missing")
+                        call.respondText(call.principal.introspection.subject ?: "missing")
                     }
                 }
             }

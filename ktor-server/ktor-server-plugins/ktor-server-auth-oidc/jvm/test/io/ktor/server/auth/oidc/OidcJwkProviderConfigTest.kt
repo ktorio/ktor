@@ -123,7 +123,7 @@ class OidcJwkProviderConfigTest {
         val provider = OidcProvider(
             name = "auth0",
             client = client,
-            config = OidcProviderConfig("auth0", OidcToken::class).apply {
+            config = OidcProviderConfig("auth0").apply {
                 issuer = ISSUER_URL
             },
         )
@@ -200,7 +200,7 @@ class OidcJwkProviderConfigTest {
             OidcProvider(
                 name = "auth0",
                 client = client,
-                config = OidcProviderConfig("auth0", OidcToken::class).apply {
+                config = OidcProviderConfig("auth0").apply {
                     issuer = ISSUER_URL
                     jwt(configureJwt)
                     validate()

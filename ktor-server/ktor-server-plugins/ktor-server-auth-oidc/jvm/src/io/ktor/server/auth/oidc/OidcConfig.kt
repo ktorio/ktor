@@ -9,16 +9,15 @@ import com.auth0.jwk.JwkProviderBuilder
 import io.ktor.client.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
-import io.ktor.server.application.*
-import io.ktor.server.auth.typesafe.*
+import io.ktor.server.auth.*
 import io.ktor.server.plugins.*
 import io.ktor.server.plugins.csrf.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
+import io.ktor.util.annotations.*
 import io.ktor.utils.io.*
-import kotlin.reflect.KClass
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
@@ -70,24 +69,13 @@ public class OidcPluginConfig {
     public var initialDiscoveryRetryDelay: Duration = 5.seconds
 
     /**
-     * Configures OAuth 2.0 Protected Resource Metadata (RFC 9728) with defaults.
-     *
-     * When configured, the plugin serves a `/.well-known/oauth-protected-resource` endpoint with
-     * metadata for this resource and includes a `resource_metadata` parameter in `WWW-Authenticate`
-     * headers on Bearer authentication failures.
-     */
-    public fun protectedResource(resource: String) {
-        protectedResource(resource) {}
-    }
-
-    /**
      * Configures OAuth 2.0 Protected Resource Metadata (RFC 9728).
      *
      * When configured, the plugin serves a `/.well-known/oauth-protected-resource` endpoint with
      * metadata for this resource and includes a `resource_metadata` parameter in `WWW-Authenticate`
      * headers on Bearer authentication failures.
      */
-    public fun protectedResource(resource: String, configure: ProtectedResourceMetadataConfig.() -> Unit) {
+    public fun protectedResource(resource: String, configure: ProtectedResourceMetadataConfig.() -> Unit = {}) {
         protectedResourceConfig = ProtectedResourceMetadataConfig(resource).apply(configure)
     }
 
@@ -104,18 +92,17 @@ public class OidcPluginConfig {
 /**
  * Configuration for a single OpenID Connect provider (issuer).
  *
- * The provider is the typed root for route-facing capabilities. Bearer schemes and OAuth callbacks created from this
- * configuration expose the same principal type [P].
+ * The provider shares discovery, JWT, Bearer, and OAuth configuration. Route-facing schemes expose precise
+ * [OidcToken] subtypes on [OidcProvider]. Map those schemes to application principals with
+ * [io.ktor.server.auth.mapPrincipal].
  *
  * @property name provider name used for generated routes and authentication scheme names.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcProviderConfig)
  */
 @KtorDsl
-public class OidcProviderConfig<P : Any> internal constructor(
-    public val name: String,
-    internal val principalType: KClass<P>,
-    internal var principalTransformer: PrincipalTransformer<P>? = null
+public class OidcProviderConfig internal constructor(
+    public val name: String
 ) {
     /**
      * Issuer URL. Used for OpenID Connect discovery (`<issuer>/.well-known/openid-configuration`) unless
@@ -130,11 +117,6 @@ public class OidcProviderConfig<P : Any> internal constructor(
      * provider.
      */
     public var metadata: OpenIdProviderMetadata? = null
-
-    internal val jwtConfig: OidcJwtConfig = OidcJwtConfig()
-    internal var accessTokenConfig: OidcAccessTokenConfig? = null
-    internal var bearerConfig: OidcBearerConfig? = null
-    internal var oauthConfig: OidcOAuthConfig<P>? = null
 
     /**
      * Configures JWT verification shared by ID-token and JWT access-token validation.
@@ -162,18 +144,11 @@ public class OidcProviderConfig<P : Any> internal constructor(
     }
 
     /**
-     * Configures access-token acceptance for Bearer authentication and OAuth callbacks without an ID token.
-     * Access-token-only OAuth callbacks are accepted only when OAuth [OidcOAuthConfig.sessions] is not configured.
-     */
-    public fun accessToken(configure: OidcAccessTokenConfig.() -> Unit) {
-        accessTokenConfig = (accessTokenConfig ?: OidcAccessTokenConfig()).apply(configure)
-    }
-
-    /**
-     * Enables Bearer token authentication and configures token extraction for this provider.
+     * Enables resource-server Bearer authentication for this provider.
      *
-     * Bearer authentication accepts access tokens only when [accessToken] is also configured with at least one
-     * expected audience.
+     * Configuring [bearer] enables JWT Bearer ([OidcProvider.jwtBearer]) and requires non-empty
+     * [OidcBearerConfig.audience]. Nested [OidcBearerConfig.introspection] additionally enables
+     * introspection Bearer.
      */
     public fun bearer(configure: OidcBearerConfig.() -> Unit = {}) {
         bearerConfig = OidcBearerConfig().apply(configure)
@@ -182,39 +157,39 @@ public class OidcProviderConfig<P : Any> internal constructor(
     /**
      * Configures the OAuth/OpenID Connect login flow for this provider.
      *
-     * This installs provider-specific login and callback routes. The callback verifies the token response and passes
-     * [P] to the configured success handler. Browser sessions, refresh, and logout are configured inside this block.
+     * This installs provider-specific login and callback routes. The callback requires an ID token and the `openid`
+     * scope. Browser sessions are enabled by default; customize them with [OidcOAuthConfig.sessions] or opt out with
+     * [OidcOAuthConfig.disableSessions].
      */
-    public fun oauth(configure: OidcOAuthConfig<P>.() -> Unit = {}) {
-        oauthConfig = (oauthConfig ?: OidcOAuthConfig(name)).apply(configure)
+    public fun oauth(configure: OidcOAuthConfig.() -> Unit) {
+        val config = OidcOAuthConfig(name).apply(configure)
+        if (!config.sessionsDisabled && config.sessionConfig == null) {
+            config.sessions()
+        }
+        oauthConfig = config
     }
+
+    internal val jwtConfig: OidcJwtConfig = OidcJwtConfig()
+    internal var bearerConfig: OidcBearerConfig? = null
+    internal var oauthConfig: OidcOAuthConfig? = null
 
     internal fun validate() {
         require(::issuer.isInitialized && issuer.isNotBlank()) {
             "issuer must be configured"
         }
         metadata?.validate(expectedIssuer = issuer)
-        require(bearerConfig == null || accessTokenConfig != null) {
-            "Bearer authentication requires accessToken { audiences = ... }"
-        }
         jwtConfig.validate()
-        accessTokenConfig?.validate()
-        oauthConfig?.let { oauth ->
-            oauth.validate(accessTokenOnlyAllowed = accessTokenConfig != null && oauth.sessionConfig == null)
-        }
+        bearerConfig?.validate()
+        oauthConfig?.validate()
     }
 }
 
 /**
- * Maps a verified raw OpenID Connect principal to the route principal type [P].
+ * Extracts a Bearer token candidate from an application call.
  *
- * The transformer receives the current [RoutingContext] and verified principal.
- *
- * Return `null` to reject a verified ID token or JWT access token for this provider.
- *
- * @param P the principal type exposed to typed route handlers.
+ * Return `null` when this source does not contain a token.
  */
-public typealias PrincipalTransformer<P> = suspend RoutingContext.(OidcToken) -> P?
+public typealias OidcTokenExtractor = RoutingContext.() -> String?
 
 /**
  * JWT verification configuration shared by ID tokens and JWT access tokens.
@@ -279,14 +254,6 @@ public class OidcJwtConfig internal constructor() {
      */
     public var jwkBuilder: JwkProviderBuilder.() -> Unit = {}
 
-    internal var jwkCacheEnabled: Boolean = true
-    internal var jwkCacheConfig: CacheConfig? = null
-    internal var jwkCacheConfigured: Boolean = false
-
-    internal var jwkRateLimitEnabled: Boolean = true
-    internal var jwkRateLimitConfig: RateLimitConfig? = null
-    internal var jwkRateLimitConfigured: Boolean = false
-
     /**
      * Configures caching for fetched JSON Web Keys.
      *
@@ -327,6 +294,14 @@ public class OidcJwtConfig internal constructor() {
         jwkRateLimitConfigured = true
     }
 
+    internal var jwkCacheEnabled: Boolean = true
+    internal var jwkCacheConfig: CacheConfig? = null
+    internal var jwkCacheConfigured: Boolean = false
+
+    internal var jwkRateLimitEnabled: Boolean = true
+    internal var jwkRateLimitConfig: RateLimitConfig? = null
+    internal var jwkRateLimitConfigured: Boolean = false
+
     internal fun validate() {
         require(jwkProviderFactory == null || (!jwkCacheConfigured && !jwkRateLimitConfigured)) {
             "jwt { jwkProviderFactory = ... } cannot be combined with jwkCache or jwkRateLimit configuration"
@@ -340,86 +315,99 @@ public class OidcJwtConfig internal constructor() {
 }
 
 /**
- * Access-token verification policy.
+ * Access-token verification policy for resource-server Bearer authentication.
  *
- * Access-token authentication is disabled unless this block is configured. Unlike ID-token validation, access-token
- * audience never defaults to the OAuth client ID; configure resource audiences explicitly.
+ * Configuring [OidcProviderConfig.bearer] enables JWT Bearer authentication and requires non-empty [audience].
+ * Nested [introspection] additionally enables introspection Bearer authentication for opaque or JWT-formatted tokens.
  *
- * @property audiences accepted resource identifiers for this server. Access tokens must include at least one value
- * from this set.
- * @property opaqueToken strategy used when the access token cannot be decoded as a JWT.
+ * Bearer audiences are resource identifiers for this server. They are independent of OAuth [OidcOAuthConfig.clientId],
+ * which is used as the ID-token audience for login callbacks.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcAccessTokenConfig)
+ * @property audience accepted resource identifiers. Access tokens must include at least one value from this set.
+ * @property tokenExtractor custom token extractor shared by JWT and introspection Bearer schemes.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcBearerConfig)
  */
 @KtorDsl
-public class OidcAccessTokenConfig internal constructor() {
+public class OidcBearerConfig internal constructor() {
     /**
      * Expected resource identifiers. Access tokens must include at least one of these audiences.
      */
-    public var audiences: Set<String> = emptySet()
+    public var audience: Set<String> = emptySet()
 
     /**
-     * How opaque access tokens are handled.
+     * Custom token extractor for Bearer authentication.
+     *
+     * When `null`, the provider reads the standard `Authorization: Bearer <token>` header.
+     * Shared by JWT Bearer and introspection Bearer schemes.
      */
-    public var opaqueToken: OpaqueTokenStrategy = OpaqueTokenStrategy.Reject
+    public var tokenExtractor: OidcTokenExtractor? = null
+
+    /**
+     * Optional RFC 7662 token introspection configuration.
+     *
+     * When configured, enables introspection Bearer authentication in addition to JWT Bearer.
+     */
+    public fun introspection(configure: OidcTokenIntrospectionConfig.() -> Unit) {
+        introspectionConfig = OidcTokenIntrospectionConfig().apply(configure)
+    }
+
+    internal var introspectionConfig: OidcTokenIntrospectionConfig? = null
 
     internal fun validate() {
-        require(audiences.isNotEmpty()) {
-            "accessToken { audiences = ... } must be configured"
+        require(audience.isNotEmpty()) {
+            "bearer { audience = ... } must be configured with at least one audience"
+        }
+        introspectionConfig?.validate()
+    }
+}
+
+/**
+ * RFC 7662 token introspection configuration for Bearer authentication.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcTokenIntrospectionConfig)
+ */
+@KtorDsl
+public class OidcTokenIntrospectionConfig internal constructor() {
+    /**
+     * Token introspection endpoint URL.
+     */
+    public lateinit var endpoint: String
+
+    /**
+     * Client ID used to authenticate the resource server to the introspection endpoint.
+     */
+    public lateinit var clientId: String
+
+    /**
+     * Client secret used to authenticate the resource server to the introspection endpoint.
+     */
+    public lateinit var clientSecret: String
+
+    /**
+     * Client authentication method used for introspection requests.
+     */
+    public var authMethod: TokenIntrospectionAuthMethod = TokenIntrospectionAuthMethod.ClientSecretBasic
+
+    internal fun validate() {
+        require(::endpoint.isInitialized && endpoint.isNotBlank()) {
+            "introspection { endpoint = ... } must be configured"
+        }
+        require(::clientId.isInitialized && clientId.isNotBlank()) {
+            "introspection { clientId = ... } must be configured"
+        }
+        require(::clientSecret.isInitialized && clientSecret.isNotBlank()) {
+            "introspection { clientSecret = ... } must be configured"
         }
     }
 }
 
 /**
- * Opaque access-token handling strategy.
+ * Client authentication methods supported for token introspection.
  *
- * Opaque tokens are rejected by default. Configure [Introspect] to validate them with an RFC 7662 token
- * introspection endpoint.
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OpaqueTokenStrategy)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.TokenIntrospectionAuthMethod)
  */
-public sealed class OpaqueTokenStrategy {
-    /**
-     * Reject opaque access tokens.
-     */
-    public object Reject : OpaqueTokenStrategy()
-
-    /**
-     * Introspect opaque access tokens with an RFC 7662 introspection endpoint.
-     *
-     * @property endpoint token introspection endpoint URL.
-     * @property clientId client ID used to authenticate the resource server to the introspection endpoint.
-     * @property clientSecret client secret used to authenticate the resource server to the introspection endpoint.
-     * @property authMethod client authentication method used for introspection requests.
-     */
-    public class Introspect(
-        public val endpoint: String,
-        public val clientId: String,
-        public val clientSecret: String,
-        public val authMethod: OpaqueTokenIntrospectionAuthMethod =
-            OpaqueTokenIntrospectionAuthMethod.ClientSecretBasic,
-    ) : OpaqueTokenStrategy() {
-
-        init {
-            require(endpoint.isNotBlank()) {
-                "opaqueToken introspection endpoint must be configured"
-            }
-            require(clientId.isNotBlank()) {
-                "opaqueToken introspection clientId must be configured"
-            }
-            require(clientSecret.isNotBlank()) {
-                "opaqueToken introspection clientSecret must be configured"
-            }
-        }
-    }
-}
-
-/**
- * Client authentication methods supported for opaque-token introspection.
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OpaqueTokenIntrospectionAuthMethod)
- */
-public enum class OpaqueTokenIntrospectionAuthMethod {
+public enum class TokenIntrospectionAuthMethod {
     /**
      * Authenticate with HTTP Basic using the client ID and client secret.
      */
@@ -431,28 +419,7 @@ public enum class OpaqueTokenIntrospectionAuthMethod {
     ClientSecretPost,
 }
 
-/**
- * Extracts a Bearer token candidate from an application call.
- *
- * Return `null` when this source does not contain a token.
- */
-public typealias TokenExtractor = (ApplicationCall) -> String?
-
-/**
- * Bearer token extraction configuration for a discovered issuer.
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcBearerConfig)
- */
-@KtorDsl
-public class OidcBearerConfig internal constructor() {
-    /**
-     * Custom token extractor for Bearer authentication.
-     *
-     * When `null`, the provider reads the standard `Authorization: Bearer <token>` header.
-     */
-    public var tokenExtractor: TokenExtractor? = null
-}
-
+@SubclassOptInRequired(InternalKtorSubclassing::class)
 public interface CodeChallengeMethod {
     public val name: String
 
@@ -463,24 +430,28 @@ public interface CodeChallengeMethod {
     }
 }
 
+internal typealias OidcOAuthSuccessHandler = suspend RoutingContext.(OidcToken.Id) -> Unit
+
 /**
  * OAuth/OpenID Connect configuration.
  *
- * OAuth installs a provider-specific login route and callback route. The callback verifies the token response
- * and passes the transformed provider principal to [onSuccess].
+ * OAuth installs a provider-specific login route and callback route. The callback requires an ID token and the
+ * `openid` scope, then passes the verified [OidcToken.Id] to [onSuccess].
  *
- * Browser sessions are opt-in via [sessions]. Plugin-managed [refresh] and [logout] routes require [sessions].
- *
- * @param P the typed principal exposed to [onSuccess].
+ * Browser sessions are enabled by default. Customize them with [sessions] or opt out with [disableSessions].
+ * Plugin-managed [refresh] and [logout] routes require sessions. When sessions are disabled, [onSuccess] is required
+ * so verified token material is not discarded.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcOAuthConfig)
  */
 @KtorDsl
-public class OidcOAuthConfig<P : Any> internal constructor(
+public class OidcOAuthConfig internal constructor(
     internal val providerName: String,
 ) {
     /**
      * OAuth client ID. Required when OAuth is configured.
+     *
+     * Also used as the expected ID-token audience for callback and refresh validation.
      */
     public lateinit var clientId: String
 
@@ -492,9 +463,8 @@ public class OidcOAuthConfig<P : Any> internal constructor(
     /**
      * OAuth scopes requested during authorization.
      *
-     * The `openid` scope is required unless [OidcProviderConfig.accessToken] is configured, in which case
-     * non-session OAuth callbacks may accept an access-token-only response. Session-backed callbacks always
-     * require an ID token.
+     * The `openid` scope is always required. OAuth callbacks without an ID token are not supported; use Ktor's
+     * generic OAuth support for access-token-only login.
      */
     public var scopes: List<String> = listOf("openid", "profile", "email")
 
@@ -502,12 +472,6 @@ public class OidcOAuthConfig<P : Any> internal constructor(
      * Optional resource indicators added to authorization, token, and refresh requests.
      */
     public var resourceIndicators: List<String> = emptyList()
-
-    /**
-     * Expected audience for ID token validation in callback/refresh.
-     * Defaults to [clientId] when not specified.
-     */
-    public var idTokenAudience: String? = null
 
     /**
      * Enables userinfo request in the callback flow.
@@ -555,40 +519,33 @@ public class OidcOAuthConfig<P : Any> internal constructor(
      */
     public var loginUri: URLBuilder.() -> Unit = { path("oidc", providerName, "login") }
 
-    internal var sessionConfig: OidcSessionConfig<P>? = null
-
-    internal var logoutPath: String? = null
-    internal var refreshPath: String? = null
-
-    internal var postLogoutRedirectUri: (URLBuilder.() -> Unit)? = null
-
-    internal var onLogout: suspend RoutingContext.() -> Unit = {}
-    internal var onRefresh: suspend RoutingContext.() -> Unit = {}
-
-    /**
-     * Called after a successful OAuth login.
-     */
-    internal var onSuccess: suspend RoutingContext.(P) -> Unit = { call.respond(HttpStatusCode.OK) }
-
-    /**
-     * Called when OAuth, OpenID Connect verification, or principal mapping fails during the callback.
-     */
-    internal var onFailure: UnauthorizedHandler = { call.respond(HttpStatusCode.Unauthorized) }
-
     /**
      * Configures the OIDC session for this OAuth flow, including cookie transport and CSRF protection.
      *
-     * Defaults to a cookie named `"${providerName.uppercase()}_SESSION"` with secure defaults
-     * (`httpOnly`, `secure` in production, `SameSite=lax`), and CSRF protection enabled
-     * with [CSRFConfig.originMatchesHost].
+     * Sessions are enabled by default when [OidcProviderConfig.oauth] is configured. Use this block to customize
+     * the secure defaults (`httpOnly`, `secure` in production, `SameSite=lax`), CSRF protection, storage, or
+     * refresh strategy.
      *
      * When enabled, the OAuth callback stores the verified [OidcToken.Id] session and plugin-managed refresh/logout
-     * routes are installed. Use `authenticateWith(provider.sessions)` to protect routes with that session.
+     * routes are installed. Use `authenticateWith(auth0.session)` after [Oidc.identityProvider] to protect routes
+     * with that session.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcOAuthConfig.sessions)
      */
-    public fun sessions(configure: OidcSessionConfig<P>.() -> Unit = {}) {
-        sessionConfig = OidcSessionConfig<P>().apply(configure)
+    public fun sessions(configure: OidcSessionsConfig.() -> Unit = {}) {
+        sessionsDisabled = false
+        sessionConfig = OidcSessionsConfig().apply(configure)
+    }
+
+    /**
+     * Disables browser sessions for this OAuth flow.
+     *
+     * Selects callback-only handling without storing an [OidcToken.Id] session. Plugin-managed [refresh] and
+     * [logout] routes require sessions and cannot be used after calling this method.
+     */
+    public fun disableSessions() {
+        sessionsDisabled = true
+        sessionConfig = null
     }
 
     /**
@@ -662,14 +619,17 @@ public class OidcOAuthConfig<P : Any> internal constructor(
     /**
      * Sets the handler called after a successful OAuth/OIDC login.
      *
-     * @param block handler invoked with the typed provider principal.
+     * The callback receives the verified [OidcToken.Id]. With sessions enabled, it runs after the session is stored.
+     * Without sessions, it runs after verification and is required, so token material is not discarded.
+     *
+     * @param block handler invoked with the verified ID-token bundle.
      */
-    public fun onSuccess(block: suspend RoutingContext.(P) -> Unit) {
+    public fun onSuccess(block: OidcOAuthSuccessHandler) {
         onSuccess = block
     }
 
     /**
-     * Sets the handler called when OIDC verification or principal mapping fails after token exchange.
+     * Sets the handler called when OIDC verification fails after token exchange.
      *
      * @param block failure handler.
      */
@@ -677,23 +637,47 @@ public class OidcOAuthConfig<P : Any> internal constructor(
         onFailure = block
     }
 
-    internal fun validate(accessTokenOnlyAllowed: Boolean) {
+    internal var sessionsDisabled: Boolean = false
+    internal var sessionConfig: OidcSessionsConfig? = null
+
+    internal var logoutPath: String? = null
+    internal var refreshPath: String? = null
+
+    internal var postLogoutRedirectUri: (URLBuilder.() -> Unit)? = null
+
+    /**
+     * Called after a successful OAuth login with the verified [OidcToken.Id].
+     */
+    internal var onSuccess: OidcOAuthSuccessHandler? = null
+
+    /**
+     * Called when OAuth or OpenID Connect verification fails during the callback.
+     */
+    internal var onFailure: UnauthorizedHandler = { call.respond(HttpStatusCode.Unauthorized) }
+
+    internal var onLogout: suspend RoutingContext.() -> Unit = {}
+    internal var onRefresh: suspend RoutingContext.() -> Unit = {}
+
+    internal suspend fun invokeOnSuccess(context: RoutingContext, token: OidcToken.Id) {
+        val handler = onSuccess ?: { call.respond(HttpStatusCode.OK) }
+        with(context) { handler(token) }
+    }
+
+    internal fun validate() {
         require(::clientId.isInitialized) {
             "clientId must be configured"
         }
         require(::clientSecret.isInitialized) {
             "clientSecret must be configured"
         }
-        require(accessTokenOnlyAllowed || "openid" in scopes) {
-            "OAuth scopes for OpenID Connect must include openid unless accessToken-only OAuth is configured without sessions"
-        }
-        idTokenAudience?.let { audience ->
-            require(audience.isNotBlank()) {
-                "idTokenAudience must not be blank"
-            }
+        require("openid" in scopes) {
+            "OAuth scopes for OpenID Connect must include openid"
         }
         require(sessionConfig != null || (logoutPath == null && refreshPath == null)) {
-            "logout { } and refresh { } require sessions { } to be configured"
+            "logout { } and refresh { } require sessions. Call sessions { } or omit disableSessions()"
+        }
+        require(!sessionsDisabled || onSuccess != null) {
+            "onSuccess { } must be configured when sessions are disabled"
         }
     }
 }
@@ -709,12 +693,10 @@ public class OidcOAuthConfig<P : Any> internal constructor(
  *
  * Configure via [OidcOAuthConfig.sessions].
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcSessionConfig)
- *
- * @param P provider principal type exposed to route handlers.
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcSessionsConfig)
  */
 @KtorDsl
-public class OidcSessionConfig<P : Any> internal constructor() {
+public class OidcSessionsConfig internal constructor() {
     /**
      * Cookie / session name.
      *
@@ -737,11 +719,7 @@ public class OidcSessionConfig<P : Any> internal constructor() {
      * Expiry and refresh timing use [OidcToken.Id.claims] [io.ktor.server.auth.oidc.TokenClaims.expiresAt];
      * when the ID token has no `exp` claim, sessions are never treated as expired and auto-refresh never triggers.
      */
-    public var tokenRefreshStrategy: OidcTokenRefreshStrategy<P> = OidcTokenRefreshStrategy.Disabled
-
-    internal var cookieConfigure: (CookieIdSessionBuilder<OidcToken.Id>.() -> Unit)? = null
-
-    internal var csrfConfigurer: (CSRFConfig.() -> Unit)? = { originMatchesHost() }
+    public var tokenRefreshStrategy: OidcTokenRefreshStrategy = OidcTokenRefreshStrategy.Disabled
 
     /**
      * Configures cookie attributes for the session cookie.
@@ -758,7 +736,7 @@ public class OidcSessionConfig<P : Any> internal constructor() {
      *
      * By default, CSRF protection is enabled with [CSRFConfig.originMatchesHost].
      * CSRF checks are applied to plugin-managed POST routes (refresh, logout) and user-defined non-safe HTTP methods
-     * under `authenticateWith(provider.sessions)`.
+     * under `authenticateWith` for this provider's [OidcProvider.session] scheme.
      */
     public fun csrfProtection(configure: CSRFConfig.() -> Unit) {
         csrfConfigurer = configure
@@ -770,6 +748,10 @@ public class OidcSessionConfig<P : Any> internal constructor() {
     public fun disableCsrfProtection() {
         csrfConfigurer = null
     }
+
+    internal var cookieConfigure: (CookieIdSessionBuilder<OidcToken.Id>.() -> Unit)? = null
+
+    internal var csrfConfigurer: (CSRFConfig.() -> Unit)? = { originMatchesHost() }
 }
 
 internal fun oidcRoutePath(build: URLBuilder.() -> Unit): String {

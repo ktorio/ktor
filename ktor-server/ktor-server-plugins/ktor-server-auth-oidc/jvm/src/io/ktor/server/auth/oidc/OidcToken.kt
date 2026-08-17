@@ -7,9 +7,6 @@ package io.ktor.server.auth.oidc
 import com.auth0.jwt.JWT
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.modules.SerializersModule
-import kotlinx.serialization.modules.polymorphic
-import kotlinx.serialization.modules.subclass
 
 /**
  * Token material returned or validated by the OpenID Connect plugin.
@@ -17,21 +14,26 @@ import kotlinx.serialization.modules.subclass
  * This is the base type for all token-based principals in the OpenID Connect plugin. Use one of the concrete
  * subclasses depending on the token source:
  * - [Id] for full OpenID Connect flows with an ID token.
- * - [Access] for JWT access tokens, for example, Bearer tokens.
- * - [Opaque] for opaque access tokens handled via RFC 7662 introspection.
+ * - [Access] for JWT access tokens verified locally, for example, JWT Bearer authentication.
+ * - [Introspected] for access tokens validated via RFC 7662 introspection.
  *
  * The plugin creates token instances after validation. Constructors for token-bearing subclasses are internal,
  * so applications cannot accidentally fabricate a verified token principal.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcToken)
  */
-@Serializable
-public sealed class OidcToken {
+public interface OidcToken {
     /**
-     * Token principal from an OpenID Connect flow containing an ID token.
+     * Token principal from an OpenID Connect login containing a verified ID token plus the accompanying OAuth
+     * token material.
+     *
+     * This is the session and OAuth-callback token type. The accompanying [accessToken] string is the provider-issued
+     * access token from the token endpoint; it is not verified as a resource-server Bearer principal and is never
+     * exposed as [Access]. Use [jwtBearer][OidcProvider.jwtBearer] to obtain an [Access] principal.
      *
      * @property value verified ID token value.
-     * @property accessToken access token returned with the ID token.
+     * @property accessToken the accompanying access token returned with the ID token. May be JWT or opaque; it is not
+     * validated against Bearer resource audiences.
      * @property refreshToken refresh token returned by the token endpoint, or `null` when unavailable.
      * @property userInfo normalized user claims extracted from the ID token or UserInfo endpoint.
      *
@@ -44,20 +46,18 @@ public sealed class OidcToken {
         public val accessToken: String,
         public val refreshToken: String? = null,
         public val userInfo: UserInfo,
-    ) : OidcToken() {
+    ) : OidcToken {
         /**
          * Decoded claims from [value]. Accessing these values does not perform verification by itself.
          */
         public val claims: TokenClaims by lazy { TokenClaims(JWT.decode(value)) }
-
-        /**
-         * Decoded claims from [accessToken]. Accessing this property requires the access token to be a JWT.
-         */
-        public val accessTokenClaims: TokenClaims by lazy { TokenClaims(JWT.decode(accessToken)) }
     }
 
     /**
-     * Token principal from a verified JWT access token.
+     * Token principal from a JWT access token verified locally against this resource's [OidcBearerConfig.audience].
+     *
+     * This type is produced only by [OidcProvider.jwtBearer]. OAuth login does not create [Access] principals;
+     * OAuth-issued access-token material remains on [Id.accessToken].
      *
      * @property value verified JWT access token value.
      * @property userInfo normalized user claims extracted from the token, or `null` when unavailable.
@@ -69,7 +69,7 @@ public sealed class OidcToken {
     public class Access internal constructor(
         public val value: String,
         public val userInfo: UserInfo? = null,
-    ) : OidcToken() {
+    ) : OidcToken {
         /**
          * Decoded claims from [value]. Accessing these values does not perform verification by itself.
          */
@@ -85,22 +85,22 @@ public sealed class OidcToken {
     }
 
     /**
-     * Token principal from an opaque access token validated via RFC 7662 introspection.
+     * Token principal from an access token validated via RFC 7662 introspection.
      *
-     * Opaque tokens cannot be decoded locally. They are accepted only when the provider configures
-     * [OpaqueTokenStrategy.Introspect].
+     * Introspection accepts both opaque tokens and JWT-formatted access tokens. Configure
+     * `bearer { introspection { } }` to enable the introspection Bearer scheme.
      *
-     * @property value opaque access token value.
+     * @property value access token value presented to the resource server.
      * @property introspection normalized introspection response returned by the authorization server.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcToken.Opaque)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcToken.Introspected)
      */
     @Serializable
-    @SerialName("opaque_token")
-    public class Opaque internal constructor(
+    @SerialName("introspected_token")
+    public class Introspected internal constructor(
         public val value: String,
-        public val introspection: OpaqueTokenIntrospection,
-    ) : OidcToken()
+        public val introspection: TokenIntrospection,
+    ) : OidcToken
 
     /**
      * Standard user claims extracted from an ID token payload, JWT access token payload, or UserInfo response.
@@ -129,24 +129,6 @@ public sealed class OidcToken {
     ) {
         init {
             require(subject.isNotBlank()) { "subject must not be blank" }
-        }
-    }
-
-    public companion object {
-        /**
-         * [SerializersModule] for polymorphic serialization of [OidcToken] subclasses.
-         *
-         * Register this module in your [kotlinx.serialization.json.Json] configuration when using custom token
-         * serialization.
-         */
-        public val serializersModule: SerializersModule by lazy {
-            SerializersModule {
-                polymorphic(OidcToken::class) {
-                    subclass(Id::class)
-                    subclass(Access::class)
-                    subclass(Opaque::class)
-                }
-            }
         }
     }
 }

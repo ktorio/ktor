@@ -9,9 +9,8 @@ package io.ktor.server.auth.oidc
 import com.auth0.jwk.JwkProvider
 import com.auth0.jwk.JwkProviderBuilder
 import io.ktor.client.*
-import io.ktor.http.URLBuilder
-import io.ktor.server.auth.typesafe.*
-import io.ktor.server.routing.*
+import io.ktor.http.*
+import io.ktor.server.auth.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.CompletableDeferred
 import org.slf4j.Logger
@@ -20,7 +19,6 @@ import java.net.URI
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
-import kotlin.reflect.KClass
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
 import kotlin.time.toJavaDuration
@@ -36,71 +34,32 @@ private val TokenRefreshCacheEvictor = Executors.newSingleThreadScheduledExecuto
 /**
  * Typed authentication capabilities for one configured OpenID Connect provider.
  *
- * [bearer] is available when the provider was configured with `bearer { }`.
- * [sessions] is available when the provider was configured with `oauth { sessions { } }`.
+ * Exposes verified protocol-native authentication schemes with precise [OidcToken] principal types.
+ * Map those schemes to application principals with [io.ktor.server.auth.mapPrincipal].
  *
- * @param P principal type exposed by this provider's route-facing capabilities.
+ * [jwtBearer] is available when the provider was configured with `bearer { }`.
+ * [introspectionBearer] is available when nested `bearer { introspection { } }` is configured.
+ * [session] is available when the provider was configured with `oauth { }` and sessions were not disabled.
+ *
  * @property name provider name. It is also used to derive default routes (`/oidc/{name}/...`), the OAuth scheme
- * name (`{name}-oauth`), the Bearer scheme name (`{name}-bearer`), and the default session cookie root
- * (`{NAME}_SESSION`).
+ * name (`{name}-oauth`), Bearer scheme names (`{name}-jwt-bearer`, `{name}-introspection-bearer`), and the default
+ * session cookie root (`{NAME}_SESSION`).
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcProvider)
  */
-public class OidcProvider<P : Any> internal constructor(
+public class OidcProvider internal constructor(
     public val name: String,
     internal val client: HttpClient,
-    internal val config: OidcProviderConfig<P>,
+    internal val config: OidcProviderConfig,
     internal val developmentMode: Boolean = true
 ) {
+    /**
+     * Configured issuer identifier URL for this provider.
+     *
+     * Used for OpenID Connect discovery (`<issuer>/.well-known/openid-configuration`) unless static
+     * [OidcProviderConfig.metadata] was supplied, and as the expected `iss` claim when verifying tokens.
+     */
     public val issuer: String = config.issuer
-
-    internal val principalType: KClass<P> = config.principalType
-
-    internal val jwtConfig: OidcJwtConfig
-        get() = checkNotNull(config.jwtConfig) { "JWT is not enabled for provider $name" }
-
-    internal val oauthConfig: OidcOAuthConfig<P>
-        get() = checkNotNull(config.oauthConfig) { "OAuth is not enabled for provider $name" }
-
-    internal val sessionConfig: OidcSessionConfig<P>
-        get() = checkNotNull(oauthConfig.sessionConfig) {
-            "Sessions are not enabled. Call sessions { } inside oauth { } for provider $name."
-        }
-
-    internal val accessTokenConfig: OidcAccessTokenConfig
-        get() = checkNotNull(config.accessTokenConfig) { "Access token is not enabled for provider $name" }
-
-    internal var resourceMetadataUrl: String? = null
-
-    internal val bearerConfig: OidcBearerConfig
-        get() = checkNotNull(config.bearerConfig) {
-            "Bearer scheme is not enabled. Call bearer { } in the provider $name."
-        }
-
-    internal val logger: Logger = LoggerFactory.getLogger("io.ktor.server.auth.oidc.OidcProvider[$name]")
-
-    @Volatile
-    private var providerState: OidcProviderState? = null
-
-    internal val oauthFlow by lazy { createOauthFlow() }
-    internal val oauthSessionFlow by lazy { createSessions(secure = !developmentMode) }
-
-    internal val stateCodec: OidcStateCodec by lazy { createStateCodec() }
-
-    private val tokenRefreshes = ConcurrentHashMap<String, CompletableDeferred<OidcTokenRefreshResult>>()
-
-    internal val canIntrospectOpaqueToken: Boolean =
-        config.accessTokenConfig?.opaqueToken is OpaqueTokenStrategy.Introspect
-
-    internal fun updateMetadata(newMetadata: OpenIdProviderMetadata) {
-        val currentState = providerState
-        val nextJwkProvider = if (currentState?.metadata?.jwksUri == newMetadata.jwksUri) {
-            currentState.jwkProvider
-        } else {
-            computeJwkProvider(newMetadata.jwksUri)
-        }
-        providerState = OidcProviderState(newMetadata, nextJwkProvider)
-    }
 
     /**
      * Returns the currently active OpenID Connect discovery metadata for this provider.
@@ -125,55 +84,12 @@ public class OidcProvider<P : Any> internal constructor(
             "JWK provider is not initialized for OpenID Connect provider $name"
         }.jwkProvider
 
-    context(ctx: RoutingContext)
-    internal suspend fun transformPrincipal(token: OidcToken): P? {
-        config.principalTransformer?.let { transform ->
-            return ctx.transform(token)
-        }
-        check(principalType.isInstance(token)) {
-            "Invalid principal type. Returned principal is an instance of ${token::class}"
-        }
-        @Suppress("UNCHECKED_CAST")
-        return token as P
-    }
-
-    private fun computeJwkProvider(jwksUri: String): JwkProvider {
-        val factory = jwtConfig.jwkProviderFactory
-        if (factory != null) {
-            return factory(jwksUri)
-        }
-        val jwksUrl = URI(jwksUri).toURL()
-        val builder = JwkProviderBuilder(jwksUrl)
-        when (jwtConfig.jwkCacheEnabled) {
-            false -> builder.cached(false)
-            else -> jwtConfig.jwkCacheConfig?.let {
-                builder.cached(it.size, it.expiresIn.toJavaDuration())
-            }
-        }
-        when (jwtConfig.jwkRateLimitEnabled) {
-            false -> builder.rateLimited(false)
-            else -> jwtConfig.jwkRateLimitConfig?.let {
-                builder.rateLimited(
-                    it.bucketSize,
-                    it.refillDuration.inWholeMilliseconds,
-                    TimeUnit.MILLISECONDS
-                )
-            }
-        }
-        return builder.apply(jwtConfig.jwkBuilder).build()
-    }
-
-    private fun createStateCodec(): OidcStateCodec {
-        val encryptionKey = checkNotNull(oauthConfig.stateEncryptionKey)
-        return OidcStateCodec(encryptionKey)
-    }
-
     /**
      * Refreshes token material for this provider using the supplied refresh token.
      *
      * @param refreshToken Refresh token to send to the provider token endpoint.
      * @return Raw token response fields and an optional verified ID-token principal.
-     * @throws IllegalArgumentException when OAuth is not enabled.
+     * @throws IllegalStateException when OAuth is not enabled.
      */
     public suspend fun refreshToken(refreshToken: String): OidcTokenRefreshResult {
         pruneCompletedTokenRefreshes()
@@ -194,10 +110,128 @@ public class OidcProvider<P : Any> internal constructor(
             scheduleTokenRefreshEviction(refreshToken, pending)
             return result
         } catch (cause: Throwable) {
-            pending.completeExceptionally(cause)
-            tokenRefreshes.remove(refreshToken, pending)
+            pending.completeExceptionally(exception = cause)
+            tokenRefreshes.remove(key = refreshToken, value = pending)
             throw cause
         }
+    }
+
+    /**
+     * JWT Bearer authentication scheme.
+     *
+     * Accepts only locally verified JWT access tokens. Use with `authenticateWith(auth0.jwtBearer)` after
+     * [Oidc.identityProvider].
+     *
+     * @throws IllegalStateException when the provider was not configured with `bearer { }`.
+     */
+    public val jwtBearer: SimpleAuthenticationScheme<OidcToken.Access> by lazy {
+        createJwtBearerScheme(resourceMetadataUrl = resourceMetadataUrl)
+    }
+
+    /**
+     * Introspection Bearer authentication scheme.
+     *
+     * Sends any presented access token to RFC 7662 introspection, whether JWT-formatted or opaque.
+     * Use with `authenticateWith(auth0.introspectionBearer)` after [Oidc.identityProvider].
+     *
+     * @throws IllegalStateException when the provider was not configured with `bearer { introspection { } }`.
+     */
+    public val introspectionBearer: SimpleAuthenticationScheme<OidcToken.Introspected> by lazy {
+        check(canIntrospect) {
+            "Introspection Bearer is not enabled. Call introspection { } inside bearer { } for provider $name."
+        }
+        createIntrospectionBearerScheme(resourceMetadataUrl = resourceMetadataUrl)
+    }
+
+    /**
+     * Typed browser session authentication scheme.
+     *
+     * OpenID Connect stores the raw [OidcToken.Id] in a provider-specific session. Map it to an application
+     * principal with [io.ktor.server.auth.mapPrincipal] when protecting routes.
+     *
+     * @throws IllegalStateException when OAuth sessions are not enabled (`oauth { }` was omitted or
+     * [OidcOAuthConfig.disableSessions] was called).
+     */
+    public val session: SessionAuthenticationScheme<OidcToken.Id, OidcToken.Id>
+        get() = oauthSessionFlow.session
+
+    internal val jwtConfig: OidcJwtConfig
+        get() = config.jwtConfig
+
+    internal val oauthConfig: OidcOAuthConfig
+        get() = checkNotNull(config.oauthConfig) { "OAuth is not enabled for provider $name" }
+
+    internal val sessionConfig: OidcSessionsConfig
+        get() = checkNotNull(oauthConfig.sessionConfig) {
+            "Sessions are not enabled. Call sessions { } inside oauth { }, or omit disableSessions(), for provider $name."
+        }
+
+    internal var resourceMetadataUrl: String? = null
+
+    internal val bearerConfig: OidcBearerConfig
+        get() = checkNotNull(config.bearerConfig) {
+            "Bearer scheme is not enabled. Call bearer { audience = ... } in the provider $name."
+        }
+
+    internal val introspectionConfig: OidcTokenIntrospectionConfig
+        get() = checkNotNull(bearerConfig.introspectionConfig) {
+            "Introspection Bearer is not enabled. Call introspection { } inside bearer { } for provider $name."
+        }
+
+    internal val logger: Logger = LoggerFactory.getLogger("io.ktor.server.auth.oidc.OidcProvider[$name]")
+
+    @Volatile
+    private var providerState: OidcProviderState? = null
+
+    internal val oauthFlow by lazy { createOauthFlow() }
+    internal val oauthSessionFlow by lazy { createOAuthSession(secure = !developmentMode) }
+
+    internal val stateCodec: OidcStateCodec by lazy { createStateCodec() }
+
+    private val tokenRefreshes = ConcurrentHashMap<String, CompletableDeferred<OidcTokenRefreshResult>>()
+
+    internal val canIntrospect: Boolean =
+        config.bearerConfig?.introspectionConfig != null
+
+    internal fun updateMetadata(newMetadata: OpenIdProviderMetadata) {
+        val currentState = providerState
+        val nextJwkProvider = if (currentState?.metadata?.jwksUri == newMetadata.jwksUri) {
+            currentState.jwkProvider
+        } else {
+            computeJwkProvider(newMetadata.jwksUri)
+        }
+        providerState = OidcProviderState(newMetadata, nextJwkProvider)
+    }
+
+    private fun computeJwkProvider(jwksUri: String): JwkProvider {
+        val factory = jwtConfig.jwkProviderFactory
+        if (factory != null) {
+            return factory(jwksUri)
+        }
+        val jwksUrl = URI(jwksUri).toURL()
+        val builder = JwkProviderBuilder(jwksUrl)
+        when (jwtConfig.jwkCacheEnabled) {
+            false -> builder.cached(false)
+
+            else -> jwtConfig.jwkCacheConfig?.let {
+                builder.cached(it.size, it.expiresIn.toJavaDuration())
+            }
+        }
+        when (jwtConfig.jwkRateLimitEnabled) {
+            false -> builder.rateLimited(false)
+
+            else -> jwtConfig.jwkRateLimitConfig?.let {
+                val refillRate = it.refillDuration.inWholeMilliseconds
+                val refillUnit = TimeUnit.MILLISECONDS
+                builder.rateLimited(it.bucketSize, refillRate, refillUnit)
+            }
+        }
+        return builder.apply(jwtConfig.jwkBuilder).build()
+    }
+
+    private fun createStateCodec(): OidcStateCodec {
+        val encryptionKey = checkNotNull(oauthConfig.stateEncryptionKey)
+        return OidcStateCodec(encryptionKey)
     }
 
     private fun scheduleTokenRefreshEviction(
@@ -205,7 +239,7 @@ public class OidcProvider<P : Any> internal constructor(
         pending: CompletableDeferred<OidcTokenRefreshResult>
     ) {
         TokenRefreshCacheEvictor.schedule(
-            { tokenRefreshes.remove(refreshToken, pending) },
+            { tokenRefreshes.remove(key = refreshToken, value = pending) },
             TokenRefreshResultTtl.inWholeMilliseconds,
             TimeUnit.MILLISECONDS
         )
@@ -253,28 +287,6 @@ public class OidcProvider<P : Any> internal constructor(
             }
         }.buildString()
     }
-
-    /**
-     * Typed Bearer authentication scheme.
-     *
-     * Use with `authenticateWith(provider.bearer)`.
-     *
-     * @throws IllegalStateException when the provider was not configured with `bearer { }`.
-     */
-    public val bearer: DefaultAuthScheme<P, AuthenticatedContext<P>> by lazy {
-        createBearerScheme(resourceMetadataUrl)
-    }
-
-    /**
-     * Typed browser session authentication scheme.
-     *
-     * OpenID Connect stores the raw [OidcToken.Id] in a provider-specific session, then maps that value
-     * to [P] for routes protected with `authenticateWith(provider.sessions)`.
-     *
-     * @throws IllegalStateException when the provider was not configured with `oauth { sessions { } }`.
-     */
-    public val sessions: SessionAuthScheme<OidcToken.Id, P, SessionAuthenticatedContext<OidcToken.Id, P>>
-        get() = oauthSessionFlow.sessions
 }
 
 private class OidcProviderState(

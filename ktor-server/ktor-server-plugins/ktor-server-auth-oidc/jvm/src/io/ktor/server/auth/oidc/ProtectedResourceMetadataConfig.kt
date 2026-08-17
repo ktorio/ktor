@@ -24,7 +24,7 @@ public class ProtectedResourceMetadataConfig internal constructor(
     /**
      * OAuth authorization server issuer identifiers trusted by this resource.
      *
-     * When `null`, auto-derived from all configured provider issuers.
+     * When `null`, auto-derived from issuers of providers configured with `bearer { }`.
      */
     public var authorizationServers: List<String>? = null
 
@@ -38,14 +38,14 @@ public class ProtectedResourceMetadataConfig internal constructor(
     /**
      * OAuth 2.0 scope values that this resource server understands.
      *
-     * When `null`, auto-derived from the union of all provider OAuth scopes.
+     * When `null`, auto-derived from the union of OAuth scopes on providers configured with `bearer { }`.
      */
     public var scopesSupported: List<String>? = null
 
     /**
      * Methods supported for presenting Bearer tokens: `header`, `body`, `query`.
      *
-     * When `null`, auto-derived as `header` when at least one provider uses the default
+     * When `null`, auto-derived as `header` when at least one provider with `bearer { }` uses the default
      * `Authorization: Bearer` header extractor. Custom token extractors cannot be inferred; set this value
      * explicitly when a custom extractor reads tokens from another RFC 6750 location.
      */

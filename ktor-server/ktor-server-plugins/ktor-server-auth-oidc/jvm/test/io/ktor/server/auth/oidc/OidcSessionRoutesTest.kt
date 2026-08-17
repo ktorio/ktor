@@ -8,8 +8,11 @@ package io.ktor.server.auth.oidc
 
 import io.ktor.client.request.*
 import io.ktor.http.*
+import io.ktor.server.application.install
+import io.ktor.server.auth.*
 import io.ktor.server.auth.oidc.utils.*
 import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.coroutineScope
@@ -320,13 +323,13 @@ class OidcSessionRoutesTest {
         val keys = testRsaKeys
         val idTokensByState = ConcurrentHashMap<String, String>()
         openIdProvider(keys, idTokensByState)
-        val openIdClient = openIdHttpClient()
+        val openIdClient = discoveryClient()
         application {
-            val oidc = openIdConnect {
+            val oidc = install(Oidc) {
                 httpClient = openIdClient
                 discoveryRefreshInterval = ZERO
             }
-            oidc.provider("auth0") {
+            oidc.identityProvider("auth0") {
                 testIssuer(metadata = browserFlowMetadata())
                 jwt(keys)
                 oauth {
@@ -375,18 +378,18 @@ class OidcSessionRoutesTest {
                         when (caseName) {
                             "access" -> {
                                 jwt(keys)
-                                accessToken {
-                                    audiences = setOf("api")
+                                bearer {
+                                    audience = setOf("api")
                                 }
                             }
 
-                            "opaque" -> accessToken {
-                                audiences = setOf("api")
-                                opaqueToken = OpaqueTokenStrategy.Introspect(
-                                    endpoint = "$ISSUER_URL/introspect",
-                                    clientId = "resource-server",
-                                    clientSecret = "secret",
-                                )
+                            "opaque" -> bearer {
+                                audience = setOf("api")
+                                introspection {
+                                    endpoint = "$ISSUER_URL/introspect"
+                                    clientId = "resource-server"
+                                    clientSecret = "secret"
+                                }
                             }
 
                             else -> jwt(keys)

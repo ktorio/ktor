@@ -46,8 +46,6 @@ internal fun ApplicationTestBuilder.discoveryClient(): HttpClient = createClient
     }
 }
 
-internal fun ApplicationTestBuilder.openIdHttpClient(): HttpClient = discoveryClient()
-
 internal fun Application.installDiscoveryContentNegotiation() {
     install(ServerContentNegotiation) {
         json(discoveryJson)

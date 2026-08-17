@@ -36,7 +36,7 @@ class OidcTokenRefreshCacheTest {
             val provider = OidcProvider(
                 name = "auth0",
                 client = client,
-                config = OidcProviderConfig("auth0", OidcToken::class).apply {
+                config = OidcProviderConfig("auth0").apply {
                     testIssuer()
                     oauth {
                         clientId = "client-id"
@@ -65,7 +65,7 @@ class OidcTokenRefreshCacheTest {
         return field.getInt(null)
     }
 
-    private fun OidcProvider<*>.tokenRefreshCacheSize(): Int {
+    private fun OidcProvider.tokenRefreshCacheSize(): Int {
         val field = OidcProvider::class.java.getDeclaredField("tokenRefreshes")
         field.isAccessible = true
         @Suppress("UNCHECKED_CAST")

@@ -10,17 +10,19 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
+import io.ktor.server.application.*
+import io.ktor.server.auth.*
 import io.ktor.server.auth.oidc.utils.*
-import io.ktor.server.auth.typesafe.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.utils.io.*
-import kotlinx.serialization.json.*
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 
 class OidcJwtKeyAndAlgorithmTest {
 
@@ -117,35 +119,27 @@ class OidcJwtKeyAndAlgorithmTest {
         val ecKeys = testEcKeys
 
         application {
-            val oidc = openIdConnect { }
-            val rsaProvider = oidc.provider("rsa") {
+            val oidc = install(Oidc)
+            val rsaProvider = oidc.identityProvider("rsa") {
                 testIssuer()
                 jwt(rsaKeys)
-                accessToken {
-                    audiences = setOf("api")
-                }
-                bearer()
+                bearer { audience = setOf("api") }
             }
-            val ecProvider = oidc.provider("ec") {
+            val ecProvider = oidc.identityProvider("ec") {
                 testIssuer("https://ec.example.com")
                 jwt(ecKeys)
-                accessToken {
-                    audiences = setOf("api")
-                }
-                bearer()
+                bearer { audience = setOf("api") }
             }
 
             routing {
-                authenticateWith(rsaProvider.bearer) {
+                authenticateWith(rsaProvider.jwtBearer) {
                     get("/rsa") {
-                        val accessToken = principal as OidcToken.Access
-                        call.respondText(accessToken.userInfo?.subject ?: "missing")
+                        call.respondText(call.principal.userInfo?.subject ?: "missing")
                     }
                 }
-                authenticateWith(ecProvider.bearer) {
+                authenticateWith(ecProvider.jwtBearer) {
                     get("/ec") {
-                        val accessToken = principal as OidcToken.Access
-                        call.respondText(accessToken.userInfo?.subject ?: "missing")
+                        call.respondText(call.principal.userInfo?.subject ?: "missing")
                     }
                 }
             }
@@ -187,33 +181,30 @@ class OidcJwtKeyAndAlgorithmTest {
         val keys = testRsaKeys
 
         application {
-            val oidc = openIdConnect { }
-            val provider = oidc.provider("auth0") {
+            val oidc = install(Oidc)
+            val provider = oidc.identityProvider("auth0") {
                 testIssuer()
                 jwt(keys)
-                accessToken { audiences = setOf("api") }
-                bearer()
+                bearer { audience = setOf("api") }
             }
 
             routing {
-                authenticateWith(provider.bearer) {
+                authenticateWith(provider.jwtBearer) {
                     get("/claims") {
-                        val accessToken = principal as OidcToken.Access
-                        val roles = assertNotNull(
-                            accessToken.claims.claim("realm_access")
-                                ?.jsonObject
-                                ?.get("roles")
-                                ?.jsonArray
-                                ?.map { it.jsonPrimitive.content }
-                        )
-                        call.respondText(
-                            listOf(
-                                accessToken.userInfo?.subject,
-                                accessToken.userInfo?.email,
-                                accessToken.userInfo?.name,
-                                roles.joinToString(","),
-                            ).joinToString(":")
-                        )
+                        val accessToken = call.principal
+                        val roles = accessToken.claims.claim("realm_access")
+                            ?.jsonObject
+                            ?.get("roles")
+                            ?.jsonArray
+                            ?.map { it.jsonPrimitive.content }
+                            ?: return@get call.respondText("No roles found")
+                        val text = listOf(
+                            accessToken.userInfo?.subject,
+                            accessToken.userInfo?.email,
+                            accessToken.userInfo?.name,
+                            roles.joinToString(","),
+                        ).joinToString(":")
+                        call.respondText(text)
                     }
                 }
             }
@@ -238,10 +229,10 @@ class OidcJwtKeyAndAlgorithmTest {
         val keys = testRsaKeys
         val accessToken = "access-token"
 
-        lateinit var provider: OidcProvider<OidcToken>
+        lateinit var provider: OidcProvider
         application {
-            val oidc = openIdConnect { }
-            provider = oidc.provider("auth0") {
+            val oidc = install(Oidc) { }
+            provider = oidc.identityProvider("auth0") {
                 testIssuer()
                 jwt(keys)
                 oauth {
@@ -285,8 +276,8 @@ class OidcJwtKeyAndAlgorithmTest {
         )
 
         application {
-            val oidc = openIdConnect { }
-            val provider = oidc.provider("auth0") {
+            val oidc = install(Oidc) { }
+            val provider = oidc.identityProvider("auth0") {
                 testIssuer(metadata = metadata)
                 jwt {
                     jwkProviderFactory = { keys.jwkProvider }
@@ -326,8 +317,8 @@ class OidcJwtKeyAndAlgorithmTest {
         configureJwt: OidcJwtConfig.() -> Unit = {},
     ) {
         application {
-            val oidc = openIdConnect { }
-            val provider = oidc.provider("auth0") {
+            val oidc = install(Oidc)
+            val provider = oidc.identityProvider("auth0") {
                 testIssuer(metadata = metadata)
                 if (jwkProviderFactory == null && keys != null) {
                     jwt(keys)
@@ -336,17 +327,13 @@ class OidcJwtKeyAndAlgorithmTest {
                     configureJwt()
                     jwkProviderFactory?.let { this.jwkProviderFactory = it }
                 }
-                accessToken {
-                    audiences = setOf("api")
-                }
-                bearer()
+                bearer { audience = setOf("api") }
             }
 
             routing {
-                authenticateWith(provider.bearer) {
+                authenticateWith(provider.jwtBearer) {
                     get("/protected") {
-                        val accessToken = principal as OidcToken.Access
-                        call.respondText(accessToken.userInfo?.subject ?: "ok")
+                        call.respondText(call.principal.userInfo?.subject ?: "ok")
                     }
                 }
             }

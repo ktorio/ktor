@@ -2,17 +2,15 @@
  * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-@file:OptIn(ExperimentalKtorApi::class)
+@file:OptIn(ExperimentalKtorApi::class, InternalAPI::class)
 
 package io.ktor.server.auth.oidc
 
 import io.ktor.http.*
 import io.ktor.http.auth.*
-import io.ktor.http.auth.AuthScheme
-import io.ktor.server.application.*
 import io.ktor.server.auth.*
-import io.ktor.server.auth.typesafe.*
 import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import io.ktor.server.sessions.serialization.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
@@ -22,27 +20,21 @@ import org.slf4j.Logger
 
 private const val HEADER_LOG_LIMIT: Int = 96
 
-@OptIn(InternalAPI::class)
-internal fun <P : Any> OidcProvider<P>.createBearerScheme(
+internal fun OidcProvider.createJwtBearerScheme(
     resourceMetadataUrl: String?,
-): DefaultAuthScheme<P, AuthenticatedContext<P>> {
+): SimpleAuthenticationScheme<OidcToken.Access> {
     val extractor = bearerConfig.tokenExtractor
-    return bearer(
-        name = "$name-bearer",
-        principalType = principalType,
-        contextFactory = { it },
-    ) {
-        description = "OpenID Connect Bearer"
+    val typedConfig = TypedBearerAuthConfig<OidcToken.Access>().apply {
+        description = "OpenID Connect JWT Bearer"
 
-        authHeader { call -> call.extractBearerHeader(extractor, logger.takeIf { developmentMode }) }
+        authHeader { extractBearerHeader(extractor, logger.takeIf { developmentMode }) }
 
-        authenticate { credential ->
+        validate { credential ->
             runCatching {
-                val token = verifyAccessToken(credential.token)
-                transformPrincipal(token)
+                verifyJwtAccessToken(credential.token)
             }.onFailure { cause ->
                 if (cause is CancellationException) throw cause
-                logger.trace("OpenID access token authentication failed $cause")
+                logger.trace("OpenID JWT access token authentication failed $cause")
             }.getOrNull()
         }
 
@@ -52,84 +44,132 @@ internal fun <P : Any> OidcProvider<P>.createBearerScheme(
             call.respond(UnauthorizedResponse(challenge))
         }
     }
+
+    return AuthenticationScheme.from(
+        provider = typedConfig.buildProvider(name = "$name-jwt-bearer"),
+        onUnauthorized = typedConfig.onUnauthorized,
+    )
 }
 
-internal fun <P : Any> OidcProvider<P>.createOauthFlow(): OAuth2Flow =
-    oauth2Flow(name) {
-        client = this@createOauthFlow.client
-        settings = oauthServerSettings()
-        urlProvider = { call.request.oidcRedirectUri(oauthConfig.redirectUri) }
-        onForbidden = onForbidden@{ cause ->
-            val message = (cause as? AuthenticationFailedCause.Error)?.message ?: cause.toString()
-            logger.debug("OAuth authentication failed for: {}", message)
-            oauthConfig.onFailure.invoke(this@onForbidden, cause)
+internal fun OidcProvider.createIntrospectionBearerScheme(
+    resourceMetadataUrl: String?,
+): SimpleAuthenticationScheme<OidcToken.Introspected> {
+    val extractor = bearerConfig.tokenExtractor
+    val typedConfig = TypedBearerAuthConfig<OidcToken.Introspected>().apply {
+        description = "OpenID Connect Introspection Bearer"
+
+        authHeader { extractBearerHeader(extractor, logger.takeIf { developmentMode }) }
+
+        validate { credential ->
+            runCatching {
+                verifyIntrospectedToken(credential.token)
+            }.onFailure { cause ->
+                if (cause is CancellationException) throw cause
+                logger.trace("OpenID introspection access token authentication failed $cause")
+            }.getOrNull()
+        }
+
+        onUnauthorized = {
+            val parameters = resourceMetadataUrl?.let { mapOf("resource_metadata" to it) }.orEmpty()
+            val challenge = HttpAuthHeader.Parameterized(AuthScheme.Bearer, parameters = parameters)
+            call.respond(UnauthorizedResponse(challenge))
         }
     }
 
-internal fun <P : Any> OidcProvider<P>.createSessions(
-    secure: Boolean
-): OAuth2SessionFlow<OidcToken.Id, P, SessionAuthenticatedContext<OidcToken.Id, P>> {
-    val sessionJson = Json {
-        ignoreUnknownKeys = true
-        serializersModule = OidcToken.serializersModule
+    return AuthenticationScheme.from(
+        provider = typedConfig.buildProvider(name = "$name-introspection-bearer"),
+        onUnauthorized = typedConfig.onUnauthorized,
+    )
+}
+
+internal val OidcProvider.oauthFailureHandler: UnauthorizedHandler
+    get() = UnauthorizedHandler { cause ->
+        val message = (cause as? AuthenticationFailedCause.Error)?.message ?: cause.toString()
+        logger.debug("OAuth authentication failed for: {}", message)
+        with(oauthConfig.onFailure) { onUnauthorized(cause) }
     }
 
-    @OptIn(InternalAPI::class)
-    val sessionFlowConfig = OAuth2SessionConfig<OidcToken.Id, P, SessionAuthenticatedContext<OidcToken.Id, P>>().apply {
-        sessionConfig.name?.let { sessionName = it }
+internal fun OidcProvider.createOauthFlow(): OAuth2Flow {
+    val config = oauthConfig
+    val loginPath = oidcRoutePath(config.loginUri)
+    val redirectPath = oidcRoutePath(config.redirectUri)
 
-        storage { scheme ->
-            cookie(scheme, storage = sessionConfig.storage) {
-                serializer = KotlinxSessionSerializer(
-                    OidcToken.Id.serializer(),
-                    format = sessionJson,
-                )
+    return oauth2(name) {
+        client = this@createOauthFlow.client
+        settings = oauthServerSettings()
+        onUnauthorized = oauthFailureHandler
+        this.loginPath = loginPath
+
+        callback(redirectPath) callback@{ response ->
+            try {
+                val token = handleOAuthCallbackSuccess(response)
+                config.invokeOnSuccess(this, token)
+            } catch (cause: CancellationException) {
+                throw cause
+            } catch (cause: Exception) {
+                val failure = AuthenticationFailedCause.Error("Failed to complete OpenID Connect callback $cause")
+                return@callback with(oauthFailureHandler) { onUnauthorized(failure) }
+            }
+        }
+    }
+}
+
+internal fun OidcProvider.createOAuthSession(
+    secure: Boolean
+): OAuth2SessionFlow<OidcToken.Id, OidcToken.Id> {
+    val config = oauthConfig
+    val sessionConfig = sessionConfig
+    val loginPath = oidcRoutePath(config.loginUri)
+    val redirectPath = oidcRoutePath(config.redirectUri)
+
+    val sessionFormat = Json { ignoreUnknownKeys = true }
+    val sessionSerializer = KotlinxSessionSerializer(OidcToken.Id.serializer(), sessionFormat)
+
+    val sessionFlowConfig = OAuthSessionFlowConfig<OidcToken.Id, OidcToken.Id>().apply {
+        client = this@createOAuthSession.client
+        settings = oauthServerSettings()
+        onUnauthorized = oauthFailureHandler
+        this.loginPath = loginPath
+
+        callback(
+            path = redirectPath,
+            onFailure = config.onFailure,
+            onSuccess = { config.invokeOnSuccess(this, call.session) },
+        )
+
+        sessions {
+            sessionConfig.name?.let { name = it }
+
+            transport = SessionTransportType.CookieId(sessionConfig.storage) {
+                serializer = sessionSerializer
                 cookie.httpOnly = true
                 cookie.secure = secure
                 cookie.extensions["SameSite"] = "lax"
                 sessionConfig.cookieConfigure?.invoke(this)
             }
-        }
 
-        sessionCreator = sessionCreator@{ oauthResponse ->
-            call.validateAuthorizationResponseIssuer(currentMetadata())
-            val response = requireNotNull(oauthResponse as? OAuthAccessTokenResponse.OAuth2) {
-                "Expected OAuth2 token response, but got: ${oauthResponse::class.simpleName}"
-            }
-            val oauthState = response.state ?: call.request.queryParameters["state"]
-            val authorizationTransaction = oauthState?.let {
-                call.consumeAuthorizationTransaction(stateCodec, it)
+            sessionCreator = { response ->
+                handleOAuthCallbackSuccess(response)
             }
 
-            val token = buildOAuthToken(response, expectedNonce = authorizationTransaction?.nonce)
-            if (token !is OidcToken.Id) {
-                logger.debug("Received non-ID token, skipping session creation")
-                return@sessionCreator null
+            transformSession { refreshSessionIfNeeded(token = it) }
+
+            validate { it }
+
+            sessionConfig.csrfConfigurer?.let { configure ->
+                csrfProtection(configure)
             }
-            token
         }
-
-        transformSession { refreshSessionIfNeeded(token = it) }
-
-        validate { transformPrincipal(token = it) }
-
-        sessionConfig.csrfConfigurer?.let { configure ->
-            csrfProtection(configure)
-        }
-
-        contextFactory = { it }
     }
-
-    @OptIn(InternalAPI::class)
     return OAuth2SessionFlow.from(
-        oauth = oauthFlow,
+        name = name,
         config = sessionFlowConfig,
-        principalType = principalType,
+        principalType = OidcToken.Id::class,
         sessionTypeInfo = typeInfo<OidcToken.Id>(),
     )
 }
 
-private fun OidcProvider<*>.oauthServerSettings(): OAuthServerSettings.OAuth2ServerSettings {
+internal fun OidcProvider.oauthServerSettings(): OAuthServerSettings.OAuth2ServerSettings {
     val config = oauthConfig
     val metadata = currentMetadata()
     return OAuthServerSettings.OAuth2ServerSettings(
@@ -171,12 +211,12 @@ private fun OidcProvider<*>.oauthServerSettings(): OAuthServerSettings.OAuth2Ser
     )
 }
 
-private fun ApplicationCall.extractBearerHeader(extractor: TokenExtractor?, logger: Logger?): HttpAuthHeader? {
+private fun RoutingContext.extractBearerHeader(extractor: OidcTokenExtractor?, logger: Logger?): HttpAuthHeader? {
     if (extractor != null) {
-        val blob = extractor(this) ?: return null
+        val blob = extractor() ?: return null
         return HttpAuthHeader.Single(AuthScheme.Bearer, blob)
     }
-    val header = request.headers[HttpHeaders.Authorization] ?: return null
+    val header = call.request.headers[HttpHeaders.Authorization] ?: return null
     val bearer = runCatching { parseAuthorizationHeader(header) }
         .onFailure { cause ->
             logger?.trace(

@@ -7,6 +7,7 @@
 package io.ktor.server.auth.oidc
 
 import io.ktor.server.routing.RoutingContext
+import io.ktor.util.annotations.InternalKtorSubclassing
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
@@ -15,11 +16,10 @@ import kotlin.time.Instant
 /**
  * Strategy used to refresh OpenID Connect browser sessions.
  *
- * @param P provider principal type exposed to route handlers.
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcTokenRefreshStrategy)
  */
-public sealed interface OidcTokenRefreshStrategy<in P : Any> {
+@SubclassOptInRequired(InternalKtorSubclassing::class)
+public interface OidcTokenRefreshStrategy {
     /**
      * Refreshes the session automatically before it expires.
      *
@@ -30,7 +30,7 @@ public sealed interface OidcTokenRefreshStrategy<in P : Any> {
      */
     public class Auto(
         public val beforeExpiry: Duration = 30.seconds,
-    ) : OidcTokenRefreshStrategy<Any> {
+    ) : OidcTokenRefreshStrategy {
         init {
             require(beforeExpiry.isFinite() && !beforeExpiry.isNegative()) {
                 "beforeExpiry must be finite and non-negative"
@@ -45,16 +45,14 @@ public sealed interface OidcTokenRefreshStrategy<in P : Any> {
      * [OidcToken.Id.claims] [io.ktor.server.auth.oidc.TokenClaims.expiresAt]; when the ID token has no
      * `exp` claim, the session is never treated as expired.
      */
-    public object Disabled : OidcTokenRefreshStrategy<Any>
+    public object Disabled : OidcTokenRefreshStrategy
 
     /**
      * Custom session refresh policy.
      *
      * The callback is invoked for every session-authenticated user request.
-     *
-     * @param P provider principal type exposed to route handlers.
      */
-    public fun interface Custom<P : Any> : OidcTokenRefreshStrategy<P> {
+    public fun interface Custom : OidcTokenRefreshStrategy {
         /**
          * Returns the effective ID-token session for this request.
          *
@@ -65,7 +63,7 @@ public sealed interface OidcTokenRefreshStrategy<in P : Any> {
          * @param now request time captured before the strategy runs; use this instead of reading the clock again.
          */
         public suspend fun RoutingContext.refresh(
-            provider: OidcProvider<P>,
+            provider: OidcProvider,
             token: OidcToken.Id,
             now: Instant
         ): OidcToken.Id?

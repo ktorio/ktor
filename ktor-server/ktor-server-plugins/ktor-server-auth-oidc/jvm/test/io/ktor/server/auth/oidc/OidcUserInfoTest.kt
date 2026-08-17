@@ -10,6 +10,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
+import io.ktor.server.application.install
 import io.ktor.server.auth.oidc.utils.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -54,12 +55,12 @@ class OidcUserInfoTest {
         val otherKeys = testOtherRsaKeys
         val otherAlgorithmKeys = testRsaKeysByAlgorithm.getValue(SignatureAlgorithm.RSA_SHA_384)
         val userInfoBody = AtomicReference(
-            keys.idToken(subject = "userinfo-user") { audience = "client-id" }
+            keys.idToken(subject = "userinfo-user") { audience = "api-audience" }
         )
         val userInfoContentType = AtomicReference(ContentType("application", "jwt"))
 
         openIdUserInfoProvider(userInfoBody, userInfoContentType)
-        installUserInfoVerifier(keys, idTokenAudience = "api-audience")
+        installUserInfoVerifier(keys, clientId = "api-audience")
 
         val response = client.get("/verify")
         assertEquals(HttpStatusCode.OK, response.status)
@@ -67,21 +68,21 @@ class OidcUserInfoTest {
 
         val invalidCases = listOf(
             otherKeys.idToken(subject = "userinfo-user") {
-                audience = "client-id"
+                audience = "api-audience"
                 keyId = keys.keyId
             } to "signature",
             keys.idToken(subject = "userinfo-user") {
                 issuer = "https://issuer.example.net"
-                audience = "client-id"
+                audience = "api-audience"
             } to "issuer",
             keys.idToken(subject = "userinfo-user") {
                 audience = "other-client"
             } to "audience",
             keys.idToken(subject = "other-user") {
-                audience = "client-id"
+                audience = "api-audience"
             } to "UserInfo subject mismatch",
             otherAlgorithmKeys.idToken(subject = "userinfo-user") {
-                audience = "client-id"
+                audience = "api-audience"
             } to "allowed algorithms",
         )
 
@@ -93,15 +94,15 @@ class OidcUserInfoTest {
 
     private fun ApplicationTestBuilder.installUserInfoVerifier(
         keys: OpenIdTestKeys,
-        idTokenAudience: String? = null,
+        clientId: String = "client-id",
     ) {
-        val openIdClient = openIdHttpClient()
+        val openIdClient = discoveryClient()
         application {
-            val oidc = openIdConnect {
+            val oidc = install(Oidc) {
                 httpClient = openIdClient
                 discoveryRefreshInterval = ZERO
             }
-            val oidcProvider = oidc.provider("auth0") {
+            val oidcProvider = oidc.identityProvider("auth0") {
                 testIssuer(
                     metadata = OpenIdProviderMetadata(
                         issuer = ISSUER_URL,
@@ -114,23 +115,21 @@ class OidcUserInfoTest {
                 )
                 jwt(keys)
                 oauth {
-                    clientId = "client-id"
+                    this.clientId = clientId
                     clientSecret = "client-secret"
-                    idTokenAudience?.let { this.idTokenAudience = it }
                     fetchUserInfo = true
                 }
             }
-            val expectedIdTokenAudience = idTokenAudience ?: "client-id"
             routing {
                 get("/verify") {
                     val result = runCatching {
                         oidcProvider.buildIdToken(
                             idToken = keys.idToken(subject = "userinfo-user") {
-                                audience = expectedIdTokenAudience
+                                audience = clientId
                             },
                             accessToken = "access-token",
                             refreshToken = null,
-                            expectedAudience = expectedIdTokenAudience,
+                            expectedAudience = clientId,
                             fetchUserInfo = true,
                         )
                     }

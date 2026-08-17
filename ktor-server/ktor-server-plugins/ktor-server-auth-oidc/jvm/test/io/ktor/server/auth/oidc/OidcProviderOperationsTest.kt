@@ -10,8 +10,9 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
+import io.ktor.server.application.install
+import io.ktor.server.auth.*
 import io.ktor.server.auth.oidc.utils.*
-import io.ktor.server.auth.typesafe.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -27,18 +28,17 @@ class OidcProviderOperationsTest {
 
         openIdProvider(keys)
 
-        val openIdClient = openIdHttpClient()
+        val openIdClient = discoveryClient()
         application {
-            val oidc = openIdConnect {
+            val oidc = install(Oidc) {
                 httpClient = openIdClient
             }
-            val oidcProvider = oidc.provider("auth0") {
+            val oidcProvider = oidc.identityProvider("auth0") {
                 testIssuer(metadata = browserFlowMetadata())
                 jwt(keys)
-                accessToken {
-                    audiences = setOf("api")
+                bearer {
+                    audience = setOf("api")
                 }
-                bearer()
                 oauth {
                     clientId = "client-id"
                     clientSecret = "client-secret"
@@ -83,7 +83,7 @@ class OidcProviderOperationsTest {
                     )
                     call.respondText(url)
                 }
-                authenticateWith(oidcProvider.bearer) {
+                authenticateWith(oidcProvider.jwtBearer) {
                     get("/context-refresh") {
                         val result = oidcProvider.refreshToken("refresh-token-1")
                         val principal = assertNotNull(result.idToken)
@@ -115,7 +115,7 @@ class OidcProviderOperationsTest {
 
         val accessOnlyRefresh = client.get("/refresh/access-only")
         assertEquals(HttpStatusCode.OK, accessOnlyRefresh.status)
-        assertEquals(accessOnlyRefresh.bodyAsText(), "access-token-only:null:null")
+        assertEquals("access-token-only:null:null", accessOnlyRefresh.bodyAsText())
 
         val notRotatedRefresh = client.get("/refresh/not-rotated")
         assertEquals(HttpStatusCode.OK, notRotatedRefresh.status)
@@ -127,7 +127,7 @@ class OidcProviderOperationsTest {
 
         val logoutUrl = Url(client.get("/logout-url").bodyAsText())
         assertEquals("/logout", logoutUrl.encodedPath)
-        assertEquals(logoutUrl.parameters["id_token_hint"], "id-token-hint")
+        assertEquals("id-token-hint", logoutUrl.parameters["id_token_hint"])
         assertEquals("https://app.example.com/signed-out", logoutUrl.parameters["post_logout_redirect_uri"])
         assertEquals("client-id", logoutUrl.parameters["client_id"])
 
@@ -135,7 +135,7 @@ class OidcProviderOperationsTest {
             header(HttpHeaders.Authorization, "Bearer $routeToken")
         }
         assertEquals(HttpStatusCode.OK, contextRefresh.status)
-        assertEquals(contextRefresh.bodyAsText(), "access-token-2:refreshed-user")
+        assertEquals("access-token-2:refreshed-user", contextRefresh.bodyAsText())
 
         val contextLogoutUrl = Url(
             client.get("/context-logout-url") {
@@ -143,7 +143,7 @@ class OidcProviderOperationsTest {
             }.bodyAsText()
         )
         assertEquals("/logout", contextLogoutUrl.encodedPath)
-        assertEquals(contextLogoutUrl.parameters["id_token_hint"], "id-token-hint")
+        assertEquals("id-token-hint", contextLogoutUrl.parameters["id_token_hint"])
         assertEquals("https://app.example.com/signed-out", contextLogoutUrl.parameters["post_logout_redirect_uri"])
         assertEquals("client-id", contextLogoutUrl.parameters["client_id"])
     }
@@ -155,8 +155,8 @@ class OidcProviderOperationsTest {
         val algorithms = keysByAlgorithm.keys
 
         application {
-            val oidc = openIdConnect { }
-            val oidcProvider = oidc.provider("auth0") {
+            val oidc = install(Oidc) { }
+            val oidcProvider = oidc.identityProvider("auth0") {
                 testIssuer()
                 jwt {
                     jwkProviderFactory = { jwkProviderWithMultipleKeys(*keysByAlgorithm.values.toTypedArray()) }
@@ -216,8 +216,8 @@ class OidcProviderOperationsTest {
     @Test
     fun `buildLogoutUrl returns null when provider has no logout endpoint`() = testApplication {
         application {
-            val oidc = openIdConnect()
-            val oidcProvider = oidc.provider("auth0") {
+            val oidc = install(Oidc)
+            val oidcProvider = oidc.identityProvider("auth0") {
                 testIssuer(metadata = openIdProviderMetadata)
                 oauth {
                     clientId = "client-id"

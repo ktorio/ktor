@@ -132,10 +132,10 @@ public class TokenClaims internal constructor(private val jwt: DecodedJWT) {
  * @property jwtId token identifier.
  * @property claims raw JSON claims returned by the introspection endpoint.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OpaqueTokenIntrospection)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.TokenIntrospection)
  */
 @Serializable
-public class OpaqueTokenIntrospection(
+public class TokenIntrospection(
     public val active: Boolean,
     public val scope: String? = null,
     @SerialName("client_id")
@@ -160,8 +160,8 @@ public class OpaqueTokenIntrospection(
     public val claims: JsonObject = JsonObject(emptyMap()),
 )
 
-internal fun JsonObject.toOpaqueTokenIntrospection(): OpaqueTokenIntrospection =
-    OpaqueTokenIntrospection(
+internal fun JsonObject.toTokenIntrospection(): TokenIntrospection =
+    TokenIntrospection(
         active = boolean("active") ?: false,
         scope = string("scope"),
         clientId = string("client_id"),
