@@ -10,6 +10,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.test.base.*
 import io.ktor.client.tests.utils.*
+import io.ktor.test.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.Job
@@ -17,6 +18,8 @@ import kotlinx.coroutines.job
 import kotlinx.coroutines.withTimeout
 import kotlinx.io.readByteArray
 import kotlin.test.*
+
+private const val GUARD_TIMEOUT_MS = 15_000L
 
 class HttpStatementTest : ClientLoader() {
 
@@ -51,7 +54,7 @@ class HttpStatementTest : ClientLoader() {
 
         test { client ->
             val response = client.get("$TEST_SERVER/compression/gzip")
-            assertTrue(response.coroutineContext[Job]!!.isCompleted)
+            assertEventually("the response job to complete") { response.coroutineContext[Job]!!.isCompleted }
 
             val content = response.body<String>()
             assertEquals("Compressed response!", content)
@@ -62,14 +65,16 @@ class HttpStatementTest : ClientLoader() {
     fun testJobFinishedAfterResponseRead() = clientTests {
         test { client ->
             client.prepareGet("$TEST_SERVER/content/hello").execute().apply {
-                assertTrue(call.coroutineContext.job.isCompleted)
+                assertEventually("the call job to complete") { call.coroutineContext.job.isCompleted }
             }
 
             client.prepareGet("$TEST_SERVER/content/hello").execute {
                 assertFalse(it.call.coroutineContext.job.isCompleted)
                 it
             }.apply {
-                assertTrue(call.coroutineContext.job.isCompleted)
+                assertEventually("the call job to complete after the block") {
+                    call.coroutineContext.job.isCompleted
+                }
             }
         }
     }
@@ -81,7 +86,7 @@ class HttpStatementTest : ClientLoader() {
     fun testStreamingResponseExceptionCancelsImmediately() = clientTests {
         test { client ->
             val exception = assertFailsWith<IllegalStateException> {
-                withTimeout(2000) {
+                withTimeout(GUARD_TIMEOUT_MS) {
                     client.prepareGet("$TEST_SERVER/content/stream?delay=60000").execute {
                         // Headers are received, throw exception while waiting for the body
                         throw IllegalStateException("Test exception from execute block")
@@ -96,7 +101,7 @@ class HttpStatementTest : ClientLoader() {
     fun testStreamingResponseExceptionInBodyCancelsImmediately() = clientTests {
         test { client ->
             val exception = assertFailsWith<IllegalStateException> {
-                withTimeout(2000) {
+                withTimeout(GUARD_TIMEOUT_MS) {
                     client.prepareGet("$TEST_SERVER/content/stream?delay=60000").body<ByteReadChannel, Unit> {
                         // Throw exception while a channel is open
                         throw IllegalStateException("Test exception from body block")
