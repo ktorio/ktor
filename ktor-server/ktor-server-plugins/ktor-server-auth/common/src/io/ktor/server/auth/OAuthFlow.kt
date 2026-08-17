@@ -110,7 +110,13 @@ public abstract class OAuthFlowConfigBase internal constructor() {
             config.client = oauthClient
             config.settings = settings
             config.providerLookup = providerLookup?.let { lookup -> { toRoutingContext().lookup() } }
-            config.urlProvider = { url { encodedPath = callbackPath } }
+            config.urlProvider = {
+                url {
+                    encodedPath = callbackPath
+                    parameters.clear()
+                    fragment = ""
+                }
+            }
             config.fallback = { cause ->
                 with(onUnauthorized) {
                     toRoutingContext().onUnauthorized(cause)
@@ -120,10 +126,10 @@ public abstract class OAuthFlowConfigBase internal constructor() {
     }
 }
 
-internal typealias CallbackSuccessHandler = suspend RoutingContext.(OAuthAccessTokenResponse) -> Unit
+internal typealias CallbackSuccessHandler = suspend RoutingContext.(OAuthAccessTokenResponse.OAuth2) -> Unit
 
 internal typealias SessionCallbackSuccessHandler<S, P> =
-    suspend context(SessionContext<S, P>, PrincipalOptionality.Required)
+    suspend context(PrincipalContext<P>, SessionContext<S>)
     RoutingContext.() -> Unit
 
 /**
@@ -175,7 +181,7 @@ public class OAuth2FlowConfig internal constructor() : OAuthFlowConfigBase() {
  */
 @KtorDsl
 @ExperimentalKtorApi
-public class OAuthSessionFlowConfig<S : Any, P : Any> @PublishedApi internal constructor() : OAuthFlowConfigBase() {
+public class OAuthSessionFlowConfig<S : Any, P : Any> @InternalAPI constructor() : OAuthFlowConfigBase() {
     internal var callback: OAuth2FlowCallback.Session<S, P>? = null
 
     /**
@@ -274,11 +280,11 @@ public open class OAuth2SessionsConfig<S : Any, P : Any> internal constructor() 
  * Typed OAuth 2.0 authentication scheme that exposes [OAuthAccessTokenResponse.OAuth2].
  *
  * Used internally to bridge typed OAuth flows to Ktor's lower-level OAuth provider. Advanced integrations can use
- * [OAuth2Flow.from] to build flows from existing provider configuration.
+ * [OAuth2Flow.from] to build flows from an existing provider configuration.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuthScheme)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuth2Scheme)
  */
-public typealias OAuthScheme = SimpleAuthenticationScheme<OAuthAccessTokenResponse.OAuth2>
+public typealias OAuth2Scheme = SimpleAuthenticationScheme<OAuthAccessTokenResponse.OAuth2>
 
 /**
  * Typed OAuth 2.0 authorization-code flow.
@@ -297,7 +303,7 @@ public typealias OAuthScheme = SimpleAuthenticationScheme<OAuthAccessTokenRespon
 @ExperimentalKtorApi
 public open class OAuth2Flow internal constructor(
     public val name: String,
-    internal val oauthScheme: OAuthScheme,
+    internal val oauthScheme: OAuth2Scheme,
     internal val callback: OAuth2FlowCallback.Basic,
     internal val loginPath: String,
 ) {
@@ -317,7 +323,7 @@ public open class OAuth2Flow internal constructor(
     }
 }
 
-private fun createOauthScheme(name: String, config: OAuthFlowConfigBase): OAuthScheme {
+private fun createOauthScheme(name: String, config: OAuthFlowConfigBase): OAuth2Scheme {
     val providerName = "$name-oauth"
     val callback = when (config) {
         is OAuth2FlowConfig -> config.callback
@@ -351,7 +357,7 @@ private fun createOauthScheme(name: String, config: OAuthFlowConfigBase): OAuthS
 @ExperimentalKtorApi
 public class OAuth2SessionFlow<S : Any, P : Any> internal constructor(
     public val name: String,
-    internal val oauthScheme: OAuthScheme,
+    internal val oauthScheme: OAuth2Scheme,
     public val session: SessionAuthenticationScheme<S, P>,
     config: OAuthSessionFlowConfig<S, P>,
 ) {
@@ -388,7 +394,7 @@ public class OAuth2SessionFlow<S : Any, P : Any> internal constructor(
             sessionsConfig.validate(name)
             val providerName = sessionsConfig.name ?: (name.uppercase() + "_SESSION")
             val sessionScheme =
-                SessionAuthenticationScheme.from(providerName, principalType, sessionTypeInfo, sessionsConfig)
+                createSessionAuthenticationScheme(providerName, principalType, sessionTypeInfo, sessionsConfig)
             return OAuth2SessionFlow(name, oauthScheme, sessionScheme, config)
         }
     }
@@ -523,7 +529,7 @@ public fun Route.install(flow: OAuth2Flow) {
     val plugin = scheme.createPlugin(isOptional = false, onUnauthorized = null)
     route.install(plugin)
 
-    context(flow.oauthScheme.context, PrincipalOptionality.Required) {
+    scheme.provideContext {
         val callbackHandler: RoutingHandler = {
             val response = call.principal
             flow.callback.successHandler(this, response)
@@ -552,7 +558,7 @@ public fun Route.install(flow: OAuth2Flow) {
 @ExperimentalKtorApi
 public fun <S : Any, P : Any> Route.install(oauth: OAuth2SessionFlow<S, P>) {
     val route = installOAuthRoute(oauth.oauthScheme)
-    install(oauth.session)
+    install(session = oauth.session)
     val plugin = oauth.oauthScheme.createPlugin(
         isOptional = false,
         onUnauthorized = null // keep default OAuth redirect
@@ -579,11 +585,9 @@ public fun <S : Any, P : Any> Route.install(oauth: OAuth2SessionFlow<S, P>) {
             }
 
             val sessionsScheme = oauth.session
-            sessionsScheme.setSession(session)
-            call.attributes.put(sessionsScheme.sessionKey, session)
             call.attributes.put(sessionsScheme.principalKey, principal)
-
-            context(sessionsScheme.context, PrincipalOptionality.Required) {
+            sessionsScheme.provideContext {
+                call.session = session
                 callback.successHandler(this@callback)
             }
         } catch (e: CancellationException) {
@@ -627,14 +631,14 @@ public fun Application.install(oauth: OAuth2SessionFlow<*, *>) {
     routing { install(oauth) }
 }
 
-private fun Route.installOAuthRoute(scheme: OAuthScheme): Route {
+private fun Route.installOAuthRoute(scheme: OAuth2Scheme): Route {
     val route = createChild(AuthenticationRouteSelector(listOf(scheme.name)))
     route.install(createOAuthBodyCachePlugin())
     scheme.preinstallAt(route)
     return route
 }
 
-private fun Route.installOAuthLoginRoute(scheme: OAuthScheme, path: String) =
+private fun Route.installOAuthLoginRoute(scheme: OAuth2Scheme, path: String) =
     authenticateWith(scheme) {
         get(path) {
             call.respond(HttpStatusCode.OK)

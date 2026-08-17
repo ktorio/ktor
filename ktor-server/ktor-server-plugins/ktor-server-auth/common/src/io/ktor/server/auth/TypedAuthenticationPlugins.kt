@@ -2,7 +2,7 @@
  * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-@file:OptIn(ExperimentalKtorApi::class)
+@file:OptIn(ExperimentalKtorApi::class, InternalAPI::class)
 
 package io.ktor.server.auth
 
@@ -11,6 +11,7 @@ import io.ktor.server.request.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
 import io.ktor.utils.io.ExperimentalKtorApi
+import io.ktor.utils.io.InternalAPI
 import kotlin.collections.set
 
 private class TypedAuthPluginNameGenerator {
@@ -38,8 +39,7 @@ internal fun typedAuthPluginName(vararg parts: String): String {
 /**
  * Creates a route-scoped plugin for one typed authentication layer.
  *
- * Installed by [authenticateWithInternal]. Each layer receives a unique plugin key so nested [authenticateWith]
- * blocks run cumulatively instead of replacing one another.
+ * Each layer receives a unique plugin key, so nested plugins run cumulatively instead of replacing one another.
  *
  * On success the resolved principal is stored in [principalKey] and [onAccepted] runs before the route handler.
  * Failure handling order: route-level [onUnauthorized], then [AuthenticationScheme.onUnauthorized], then provider
@@ -61,7 +61,7 @@ internal fun <P : Any> AuthenticationScheme<P, *>.createPlugin(
         provider.logAuthenticationAttempt(call)
         provider.onAuthenticate(authContext)
 
-        val principal = authContext.resolvePrincipal()
+        val principal = principalResolver.resolveFrom(authContext)
         if (principal != null) {
             provider.logAuthenticationSucceeded(call)
             call.attributes.put(principalKey, principal)
@@ -118,7 +118,7 @@ internal fun <P : Any> createMultiPlugin(
                 provider.logAuthenticationAttempt(call)
                 provider.onAuthenticate(authContext)
 
-                val principal = with(scheme) { authContext.resolvePrincipal() }
+                val principal = scheme.principalResolver.resolveFrom(authContext)
                 if (principal != null) {
                     provider.logAuthenticationSucceeded(call)
                     authContext.principal(scheme.name, principal)

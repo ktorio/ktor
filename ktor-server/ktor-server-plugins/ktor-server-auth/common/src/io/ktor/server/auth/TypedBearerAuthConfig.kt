@@ -85,8 +85,8 @@ public class TypedBearerAuthConfig<P : Any> @InternalAPI constructor() {
         this.additionalSchemes = additionalSchemes.toList()
     }
 
-    @PublishedApi
-    internal fun buildProvider(name: String): BearerAuthenticationProvider {
+    @InternalAPI
+    public fun buildProvider(name: String): BearerAuthenticationProvider {
         val config = BearerAuthenticationProvider.Config(name, description)
         realm?.let { config.realm = it }
         validateFn?.let { fn -> config.authenticate { credential -> fn(toRoutingContext(), credential) } }

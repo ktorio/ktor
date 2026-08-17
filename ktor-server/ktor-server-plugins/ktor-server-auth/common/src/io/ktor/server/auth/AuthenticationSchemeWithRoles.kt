@@ -41,24 +41,22 @@ public interface AuthenticationRole {
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.ForbiddenHandler)
  */
 @ExperimentalKtorApi
-public fun interface ForbiddenHandler<P : Any, C : AuthenticatedContext<P>, R : AuthenticationRole> {
+public fun interface ForbiddenHandler<P : Any, C, R : AuthenticationRole> {
     /**
      * Invoked when authentication succeeds, but the principal lacks any roles required by the route.
      *
      * The default handler responds with [HttpStatusCode.Forbidden].
      */
-    context(authenticatedContext: C, rolesContext: RolesContext<P, R>, _: PrincipalOptionality.Required)
+    context(principalContext: PrincipalContext<P>, authenticatedContext: C, rolesContext: RolesContext<P, R>)
     public suspend fun RoutingContext.onForbidden()
 
     public companion object {
-        private val Respond403 = ForbiddenHandler<Any, AuthenticatedContext<Any>, AuthenticationRole> {
+        private val Respond403 = ForbiddenHandler<Any, Any, AuthenticationRole> {
             call.respond(HttpStatusCode.Forbidden)
         }
 
         @Suppress("UNCHECKED_CAST")
-        internal fun <P, C, R> default(): ForbiddenHandler<P, C, R> where P : Any,
-                                                                          C : AuthenticatedContext<P>,
-                                                                          R : AuthenticationRole =
+        internal fun <P, C, R> default(): ForbiddenHandler<P, C, R> where P : Any, R : AuthenticationRole =
             Respond403 as ForbiddenHandler<P, C, R>
     }
 }
@@ -118,7 +116,6 @@ public fun <P, R, C, S> S.withRoles(
     resolveRoles: suspend RoutingContext.(P) -> Set<R>,
 ): AuthenticationSchemeWithRoles<P, R, C, S> where P : Any,
                                                    R : AuthenticationRole,
-                                                   C : AuthenticatedContext<P>,
                                                    S : AuthenticationScheme<P, C> =
     AuthenticationSchemeWithRoles(base = this, onForbidden, resolveRoles)
 
@@ -142,7 +139,6 @@ public class AuthenticationSchemeWithRoles<P, R, C, B> internal constructor(
     private val resolveRoles: suspend RoutingContext.(P) -> Set<R>,
 ) where P : Any,
           R : AuthenticationRole,
-          C : AuthenticatedContext<P>,
           B : AuthenticationScheme<P, C> {
     private val rolesKey: AttributeKey<Set<R>> = AttributeKey("TypesafeAuth:${base.name}:Roles")
 
@@ -162,9 +158,9 @@ public class AuthenticationSchemeWithRoles<P, R, C, B> internal constructor(
         }
 
         val handler = forbiddenHandler ?: this.forbiddenHandler
-        context(base.context, rolesContext, PrincipalOptionality.Required) {
-            with(handler) {
-                routingContext.onForbidden()
+        base.provideContext {
+            context(rolesContext) {
+                with(handler) { routingContext.onForbidden() }
             }
         }
     }

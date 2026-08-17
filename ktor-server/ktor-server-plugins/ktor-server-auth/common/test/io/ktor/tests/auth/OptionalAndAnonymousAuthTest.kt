@@ -85,21 +85,4 @@ class OptionalAndAnonymousAuthTest {
         assertEquals(HttpStatusCode.Unauthorized, invalid.status)
         assertTrue(invalid.headers[HttpHeaders.WWWAuthenticate].orEmpty().contains("Basic"))
     }
-
-    @Test
-    fun `authenticateWithOptional with orAnonymous fails at setup`() = testApplication {
-        val anonScheme = basic<AuthenticatedUser>("anon-optional-test") {
-            validate { null }
-        }.orAnonymous { GuestUser() }
-        routing {
-            authenticateWithOptional(anonScheme) {}
-        }
-        val failure = assertFailsWith<IllegalArgumentException> {
-            startApplication()
-        }
-        assertContains(
-            failure.message.orEmpty(),
-            "authenticateWithOptional cannot be used with orAnonymous schemes"
-        )
-    }
 }

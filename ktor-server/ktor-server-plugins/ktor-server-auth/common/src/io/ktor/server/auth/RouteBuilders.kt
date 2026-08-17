@@ -2,6 +2,8 @@
  * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+@file:OptIn(InternalAPI::class, ExperimentalKtorApi::class)
+
 package io.ktor.server.auth
 
 import io.ktor.server.routing.*
@@ -12,10 +14,10 @@ import io.ktor.utils.io.*
 /**
  * Creates a child route protected by [scheme].
  *
- * The scheme is registered in [Authentication] when this route is created. Inside [build], use
- * Inside [build], use `principal` to access the authenticated caller as [P] without casting.
- * The first use of a scheme instance registers it lazily; later uses of the same scheme instance reuse that
- * registration. A different scheme instance with the same name is rejected.
+ * The provider is registered in [Authentication] when this route is created. Inside [build], use
+ * `principal` to access the authenticated caller as [P] without casting.
+ * The first use of a provider registers it lazily; later uses of the same provider object reuse that
+ * registration. A different provider with the same name is rejected.
  *
  * ```kotlin
  * val userAuth = basic<User>("user-auth") {
@@ -42,19 +44,19 @@ import io.ktor.utils.io.*
 public fun <P, C, S> Route.authenticateWith(
     scheme: S,
     onUnauthorized: UnauthorizedHandler? = null,
-    build: context(C, PrincipalOptionality.Required) Route.() -> Unit,
+    build: context(PrincipalContext<P>, C) Route.() -> Unit,
 ): Route where P : Any,
-               C : AuthenticatedContext<P>,
-               S : AuthenticationScheme<P, C> =
-    authenticateWithInternal(scheme, optionality = PrincipalOptionality.Required, onUnauthorized, build = build)
+               S : AuthenticationScheme<P, C> {
+    val route = installTypedAuthentication(scheme, isOptional = false, onUnauthorized)
+    scheme.provideContext { route.build() }
+    return route
+}
 
 /**
  * Creates a child route where authentication is optional.
  *
  * Requests without credentials enter the route and expose `null` from `principalOrNull`.
  * Requests with invalid credentials still invoke [onUnauthorized] or the scheme-level failure handler.
- *
- * This function cannot be combined with [orAnonymous]. Use [authenticateWith] with an [orAnonymous] scheme instead.
  *
  * ```kotlin
  * authenticateWithOptional(userAuth) {
@@ -75,35 +77,23 @@ public fun <P, C, S> Route.authenticateWith(
 public fun <P, C, S> Route.authenticateWithOptional(
     scheme: S,
     onUnauthorized: UnauthorizedHandler? = null,
-    build: context(C, PrincipalOptionality.Optional) Route.() -> Unit,
+    build: context(OptionalPrincipalContext<P>, C) Route.() -> Unit,
 ): Route where P : Any,
-               C : AuthenticatedContext<P>,
-               S : AuthenticationScheme<P, C> =
-    authenticateWithInternal(scheme, optionality = PrincipalOptionality.Optional, onUnauthorized, build = build)
+               S : AuthenticationScheme<P, C> {
+    val route = installTypedAuthentication(scheme, isOptional = true, onUnauthorized)
+    scheme.provideOptionalContext { route.build() }
+    return route
+}
 
-@OptIn(ExperimentalKtorApi::class)
-internal fun <P, O, C, S> Route.authenticateWithInternal(
-    scheme: S,
-    optionality: O,
+internal fun <P : Any, C> Route.installTypedAuthentication(
+    scheme: AuthenticationScheme<P, C>,
+    isOptional: Boolean,
     onUnauthorized: UnauthorizedHandler? = null,
     onAccepted: (suspend RoutingContext.(P) -> Unit)? = null,
-    build: context(C, O) Route.() -> Unit,
-): Route where P : Any,
-               O : PrincipalOptionality,
-               C : AuthenticatedContext<P>,
-               S : AuthenticationScheme<P, C> {
-    val isOptional = optionality == PrincipalOptionality.Optional
-    require(!isOptional || scheme.anonymousFactory == null) {
-        "authenticateWithOptional cannot be used with orAnonymous schemes. " +
-            "Use authenticateWith with orAnonymous instead."
-    }
-
+): Route {
     val selector = AuthenticationRouteSelector(listOf(scheme.name))
     val route = createChild(selector).also { scheme.preinstallAt(route = it) }
-    val plugin = scheme.createPlugin(isOptional, onUnauthorized, onAccepted)
-
-    route.install(plugin)
-    context(scheme.context, optionality) { route.build() }
+    route.install(scheme.createPlugin(isOptional, onUnauthorized, onAccepted))
     return route
 }
 
@@ -127,10 +117,10 @@ public fun interface MultiUnauthorizedHandler {
  *
  * The first scheme that authenticates the call supplies `principal` inside [build].
  * All schemes must produce principals assignable to [P].
- * Session schemes may be included, but the route context is always [AuthenticatedContext]. Only
+ * Session schemes may be included, but the route context is always [PrincipalContext]. Only
  * `principal` is available inside [build]; scheme-specific context extensions such as `session` are not
  * exposed.
- * Each scheme instance is registered lazily on first use and reused on later uses. A different scheme instance with an
+ * Each provider is registered lazily on first use and reused on later uses. A different provider with an
  * already registered name is rejected.
  *
  * ```kotlin
@@ -146,24 +136,23 @@ public fun interface MultiUnauthorizedHandler {
  * @param schemes typed schemes accepted by this route.
  * @param onUnauthorized optional handler invoked when all schemes fail. When omitted, the first scheme-level
  * [AuthenticationScheme.onUnauthorized] handler is used before default challenges are executed.
- * @param build route builder with [AuthenticatedContext] available as a context parameter.
+ * @param build route builder with [PrincipalContext] available as a context parameter.
  */
 @ExperimentalKtorApi
 public inline fun <reified P : Any> Route.authenticateWithAnyOf(
     vararg schemes: AuthenticationScheme<out P, *>,
     onUnauthorized: MultiUnauthorizedHandler? = null,
-    noinline build: context(AuthenticatedContext<P>, PrincipalOptionality.Required) Route.() -> Unit,
+    noinline build: context(PrincipalContext<P>) Route.() -> Unit,
 ): Route {
     return authenticateWithAnyOf(schemes.toList(), principalType = TypeInfo(P::class), onUnauthorized, build)
 }
 
 @PublishedApi
-@OptIn(ExperimentalKtorApi::class)
 internal fun <P : Any> Route.authenticateWithAnyOf(
     schemes: List<AuthenticationScheme<out P, *>>,
     principalType: TypeInfo,
     onUnauthorized: MultiUnauthorizedHandler? = null,
-    build: context(AuthenticatedContext<P>, PrincipalOptionality.Required) Route.() -> Unit,
+    build: context(PrincipalContext<P>) Route.() -> Unit,
 ): Route {
     require(schemes.isNotEmpty()) {
         "At least one scheme must be specified"
@@ -177,7 +166,7 @@ internal fun <P : Any> Route.authenticateWithAnyOf(
     }
     route.install(plugin = createMultiPlugin(schemes, principalKey, onUnauthorized))
 
-    context(AuthenticatedContext(principalKey), PrincipalOptionality.Required) { route.build() }
+    context(PrincipalContext(principalKey)) { route.build() }
     return route
 }
 
@@ -186,7 +175,7 @@ internal fun <P : Any> Route.authenticateWithAnyOf(
  *
  * Authentication failures are handled as in [authenticateWith]. If authentication succeeds but the resolved roles do
  * not include every required role, the forbidden handler is invoked. Route-level [onForbidden] takes precedence over
- * [AuthenticationSchemeWithRoles.onForbidden] on [scheme].
+ * [AuthenticationSchemeWithRoles.forbiddenHandler] on [scheme].
  *
  * ```kotlin
  * val adminAuth = userAuth.withRoles { user ->
@@ -216,19 +205,21 @@ public fun <P, R, C, S> Route.authenticateWith(
     roles: Set<R>? = null,
     onUnauthorized: UnauthorizedHandler? = null,
     onForbidden: ForbiddenHandler<P, C, R>? = null,
-    build: context(C, PrincipalOptionality.Required, RolesContext<P, R>) Route.() -> Unit,
+    build: context(PrincipalContext<P>, C, RolesContext<P, R>) Route.() -> Unit,
 ): Route where P : Any,
                R : AuthenticationRole,
-               C : AuthenticatedContext<P>,
-               S : AuthenticationScheme<P, C> =
-    authenticateWith(
-        scheme,
-        roles,
-        optionality = PrincipalOptionality.Required,
-        onUnauthorized,
-        onForbidden,
-        build
+               S : AuthenticationScheme<P, C> {
+    val route = installTypedAuthentication(
+        scheme = scheme.base,
+        isOptional = false,
+        onUnauthorized = onUnauthorized,
+        onAccepted = { principal -> scheme.validateRoles(principal, roles, onForbidden) },
     )
+    scheme.base.provideContext {
+        context(scheme.rolesContext) { route.build() }
+    }
+    return route
+}
 
 /**
  * Creates a child route where role-based authentication is optional.
@@ -238,8 +229,6 @@ public fun <P, R, C, S> Route.authenticateWith(
  * When a caller is authenticated, required [roles] are enforced: missing roles invoke [onForbidden] or the
  * scheme-level forbidden handler. Requests without credentials skip role checks and enter the route with
  * `principalOrNull == null`. Use required [authenticateWith] when every caller must authenticate and satisfy [roles].
- *
- * This function cannot be combined with [orAnonymous]. Use [authenticateWith] with an [orAnonymous] scheme instead.
  *
  * ```kotlin
  * authenticateWithOptional(adminAuth, roles = setOf(Role.Admin)) {
@@ -269,29 +258,17 @@ public fun <P, R, C> Route.authenticateWithOptional(
     roles: Set<R>? = null,
     onUnauthorized: UnauthorizedHandler? = null,
     onForbidden: ForbiddenHandler<P, C, R>? = null,
-    build: context(C, PrincipalOptionality.Optional, RolesContext<P, R>) Route.() -> Unit,
+    build: context(OptionalPrincipalContext<P>, C, RolesContext<P, R>) Route.() -> Unit,
 ): Route where P : Any,
-               R : AuthenticationRole,
-               C : AuthenticatedContext<P> =
-    authenticateWith(scheme, roles, optionality = PrincipalOptionality.Optional, onUnauthorized, onForbidden, build)
-
-@ExperimentalKtorApi
-internal fun <P, O, R, C> Route.authenticateWith(
-    scheme: AuthenticationSchemeWithRoles<P, R, C, *>,
-    roles: Set<R>?,
-    optionality: O,
-    onUnauthorized: UnauthorizedHandler? = null,
-    onForbidden: ForbiddenHandler<P, C, R>? = null,
-    build: context(C, O, RolesContext<P, R>) Route.() -> Unit,
-): Route where P : Any,
-               R : AuthenticationRole,
-               O : PrincipalOptionality,
-               C : AuthenticatedContext<P> =
-    authenticateWithInternal(
+               R : AuthenticationRole {
+    val route = installTypedAuthentication(
         scheme = scheme.base,
-        optionality = optionality,
+        isOptional = true,
         onUnauthorized = onUnauthorized,
         onAccepted = { principal -> scheme.validateRoles(principal, roles, onForbidden) },
-    ) {
-        context(scheme.base.context, optionality, scheme.rolesContext) { build() }
+    )
+    scheme.base.provideOptionalContext {
+        context(scheme.rolesContext) { route.build() }
     }
+    return route
+}
