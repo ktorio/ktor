@@ -9,8 +9,9 @@ package io.ktor.server.auth.oidc
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.server.application.install
+import io.ktor.server.auth.*
 import io.ktor.server.auth.oidc.utils.*
-import io.ktor.server.auth.typesafe.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
@@ -22,17 +23,16 @@ class ProtectedResourceMetadataTest {
     @Test
     fun `protected resource metadata endpoint returns correct JSON`() = testApplication {
         application {
-            val oidc = openIdConnect {
+            val oidc = install(Oidc) {
                 protectedResource("https://api.example.com") {
                     resourceName = "My API"
                 }
             }
-            oidc.provider("auth0") {
+            oidc.identityProvider("auth0") {
                 testIssuer()
-                accessToken {
-                    audiences = setOf("api")
+                bearer {
+                    audience = setOf("api")
                 }
-                bearer()
             }
         }
         val response = client.get("/.well-known/oauth-protected-resource")
@@ -48,15 +48,14 @@ class ProtectedResourceMetadataTest {
     @Test
     fun `protected resource metadata can be enabled with defaults`() = testApplication {
         application {
-            val oidc = openIdConnect {
+            val oidc = install(Oidc) {
                 protectedResource("https://api.example.com")
             }
-            oidc.provider("auth0") {
+            oidc.identityProvider("auth0") {
                 testIssuer()
-                accessToken {
-                    audiences = setOf("api")
+                bearer {
+                    audience = setOf("api")
                 }
-                bearer()
             }
         }
         val metadata = discoveryJson.decodeFromString<ProtectedResourceMetadata>(
@@ -70,7 +69,7 @@ class ProtectedResourceMetadataTest {
     fun `protected resource metadata reflects providers registered after first request`() = testApplication {
         lateinit var oidc: Oidc
         application {
-            oidc = openIdConnect {
+            oidc = install(Oidc) {
                 protectedResource("https://api.example.com")
             }
         }
@@ -81,12 +80,11 @@ class ProtectedResourceMetadataTest {
         assertNull(firstMetadata.authorizationServers)
         assertNull(firstMetadata.bearerMethodsSupported)
 
-        oidc.provider("auth0") {
+        oidc.identityProvider("auth0") {
             testIssuer()
-            accessToken {
-                audiences = setOf("api")
+            bearer {
+                audience = setOf("api")
             }
-            bearer()
         }
 
         val secondMetadata = discoveryJson.decodeFromString<ProtectedResourceMetadata>(
@@ -99,17 +97,16 @@ class ProtectedResourceMetadataTest {
     @Test
     fun `protected resource metadata supports explicit scopes`() = testApplication {
         application {
-            val oidc = openIdConnect {
+            val oidc = install(Oidc) {
                 protectedResource("https://api.example.com") {
                     scopesSupported = listOf("openid", "profile", "custom-scope")
                 }
             }
-            oidc.provider("auth0") {
+            oidc.identityProvider("auth0") {
                 testIssuer()
-                accessToken {
-                    audiences = setOf("api")
+                bearer {
+                    audience = setOf("api")
                 }
-                bearer()
             }
         }
         val response = client.get("/.well-known/oauth-protected-resource")
@@ -120,18 +117,17 @@ class ProtectedResourceMetadataTest {
     @Test
     fun `protected resource metadata explicit overrides take precedence`() = testApplication {
         application {
-            val oidc = openIdConnect {
+            val oidc = install(Oidc) {
                 protectedResource("https://api.example.com") {
                     authorizationServers = listOf("https://custom-as.example.com")
                     scopesSupported = listOf("read", "write")
                 }
             }
-            oidc.provider("auth0") {
+            oidc.identityProvider("auth0") {
                 testIssuer()
-                accessToken {
-                    audiences = setOf("api")
+                bearer {
+                    audience = setOf("api")
                 }
-                bearer()
             }
         }
         val response = client.get("/.well-known/oauth-protected-resource")
@@ -144,27 +140,30 @@ class ProtectedResourceMetadataTest {
     fun `protected resource metadata derives authorization servers and scopes from bearer providers only`() =
         testApplication {
             application {
-                val oidc = openIdConnect {
+                val oidc = install(Oidc) {
                     protectedResource("https://api.example.com")
                 }
-                oidc.provider("browser") {
+                oidc.identityProvider("browser") {
                     testIssuer("https://login.example.com")
                     oauth {
                         clientId = "browser-client"
                         clientSecret = "browser-secret"
                         scopes = listOf("openid", "browser")
+                        disableSessions()
+                        onSuccess { }
                     }
                 }
-                oidc.provider("api") {
+                oidc.identityProvider("api") {
                     testIssuer("https://issuer.example.com")
-                    accessToken {
-                        audiences = setOf("api")
+                    bearer {
+                        audience = setOf("api")
                     }
-                    bearer()
                     oauth {
                         clientId = "api-client"
                         clientSecret = "api-secret"
                         scopes = listOf("openid", "api.read")
+                        disableSessions()
+                        onSuccess { }
                     }
                 }
             }
@@ -178,13 +177,12 @@ class ProtectedResourceMetadataTest {
     @Test
     fun `protected resource metadata disabled by default`() = testApplication {
         application {
-            val oidc = openIdConnect { }
-            oidc.provider("auth0") {
+            val oidc = install(Oidc) { }
+            oidc.identityProvider("auth0") {
                 testIssuer()
-                accessToken {
-                    audiences = setOf("api")
+                bearer {
+                    audience = setOf("api")
                 }
-                bearer()
             }
         }
         val response = client.get("/.well-known/oauth-protected-resource")
@@ -194,19 +192,18 @@ class ProtectedResourceMetadataTest {
     @Test
     fun `WWW-Authenticate includes resource_metadata when protected resource configured`() = testApplication {
         application {
-            val oidc = openIdConnect {
+            val oidc = install(Oidc) {
                 protectedResource("https://api.example.com") {}
             }
-            val provider = oidc.provider("auth0") {
+            val provider = oidc.identityProvider("auth0") {
                 testIssuer()
-                accessToken {
-                    audiences = setOf("my-api")
+                bearer {
+                    audience = setOf("my-api")
                 }
-                bearer()
             }
 
             routing {
-                authenticateWith(provider.bearer) {
+                authenticateWith(provider.jwtBearer) {
                     get("/protected") { call.respondText("ok") }
                 }
             }
@@ -222,16 +219,15 @@ class ProtectedResourceMetadataTest {
     @Test
     fun `WWW-Authenticate omits resource_metadata when protected resource not configured`() = testApplication {
         application {
-            val oidc = openIdConnect { }
-            val provider = oidc.provider("auth0") {
+            val oidc = install(Oidc) { }
+            val provider = oidc.identityProvider("auth0") {
                 testIssuer()
-                accessToken {
-                    audiences = setOf("my-api")
+                bearer {
+                    audience = setOf("my-api")
                 }
-                bearer()
             }
             routing {
-                authenticateWith(provider.bearer) {
+                authenticateWith(provider.jwtBearer) {
                     get("/protected") { call.respondText("ok") }
                 }
             }
@@ -284,15 +280,14 @@ class ProtectedResourceMetadataTest {
     @Test
     fun `protected resource metadata omits null fields`() = testApplication {
         application {
-            val oidc = openIdConnect {
+            val oidc = install(Oidc) {
                 protectedResource("https://api.example.com") {}
             }
-            oidc.provider("auth0") {
+            oidc.identityProvider("auth0") {
                 testIssuer()
-                accessToken {
-                    audiences = setOf("api")
+                bearer {
+                    audience = setOf("api")
                 }
-                bearer()
             }
         }
         val body = client.get("/.well-known/oauth-protected-resource").bodyAsText()
@@ -306,16 +301,14 @@ class ProtectedResourceMetadataTest {
     @Test
     fun `protected resource metadata does not infer custom bearer extractors`() = testApplication {
         application {
-            val oidc = openIdConnect {
+            val oidc = install(Oidc) {
                 protectedResource("https://api.example.com") {}
             }
-            oidc.provider("auth0") {
+            oidc.identityProvider("auth0") {
                 testIssuer()
-                accessToken {
-                    audiences = setOf("api")
-                }
                 bearer {
-                    tokenExtractor = { call -> call.request.headers["X-Token"] }
+                    audience = setOf("api")
+                    tokenExtractor = { call.request.headers["X-Token"] }
                 }
             }
         }
@@ -328,18 +321,16 @@ class ProtectedResourceMetadataTest {
     @Test
     fun `protected resource metadata uses explicit bearer methods with custom extractor`() = testApplication {
         application {
-            val oidc = openIdConnect {
+            val oidc = install(Oidc) {
                 protectedResource("https://api.example.com") {
                     bearerMethodsSupported = listOf("body")
                 }
             }
-            oidc.provider("auth0") {
+            oidc.identityProvider("auth0") {
                 testIssuer()
-                accessToken {
-                    audiences = setOf("api")
-                }
                 bearer {
-                    tokenExtractor = { call -> call.request.headers["X-Token"] }
+                    audience = setOf("api")
+                    tokenExtractor = { call.request.headers["X-Token"] }
                 }
             }
         }
@@ -352,15 +343,12 @@ class ProtectedResourceMetadataTest {
     @Test
     fun `protected resource metadata derives bearer methods from token sources`() = testApplication {
         application {
-            val oidc = openIdConnect {
+            val oidc = install(Oidc) {
                 protectedResource("https://api.example.com") {}
             }
-            oidc.provider("auth0") {
+            oidc.identityProvider("auth0") {
                 testIssuer()
-                accessToken {
-                    audiences = setOf("api")
-                }
-                bearer()
+                bearer { audience = setOf("api") }
             }
         }
         val metadata = discoveryJson.decodeFromString<ProtectedResourceMetadata>(
@@ -383,7 +371,7 @@ class ProtectedResourceMetadataTest {
             val failure = assertFailsWith<IllegalArgumentException> {
                 testApplication {
                     application {
-                        openIdConnect {
+                        install(Oidc) {
                             protectedResource(resource)
                         }
                     }
@@ -395,25 +383,22 @@ class ProtectedResourceMetadataTest {
         }
     }
 
-    private suspend fun ApplicationTestBuilder.configureProtectedResourceApplication(
+    private fun ApplicationTestBuilder.configureProtectedResourceApplication(
         resource: String,
         protectedPath: String? = null,
     ) {
         application {
-            val oidc = openIdConnect {
+            val oidc = install(Oidc) {
                 protectedResource(resource) {}
             }
-            val provider = oidc.provider("auth0") {
+            val provider = oidc.identityProvider("auth0") {
                 testIssuer()
-                accessToken {
-                    audiences = setOf("api")
-                }
-                bearer()
+                bearer { audience = setOf("api") }
             }
 
             if (protectedPath != null) {
                 routing {
-                    authenticateWith(provider.bearer) {
+                    authenticateWith(provider.jwtBearer) {
                         get(protectedPath) { call.respondText("ok") }
                     }
                 }

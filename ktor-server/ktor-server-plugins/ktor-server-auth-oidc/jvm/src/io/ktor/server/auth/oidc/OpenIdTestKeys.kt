@@ -40,7 +40,8 @@ import java.time.Instant as JavaInstant
  * ```kotlin
  * val keys = OpenIdTestKeys.rsa(issuer = TEST_ISSUER, audience = TEST_AUDIENCE)
  *
- * val provider = oidc.provider("test") {
+ * // Static metadata skips discovery; jwt(keys) verifies signatures against the in-memory public key.
+ * val provider = oidc.identityProvider("test") {
  *     issuer = TEST_ISSUER
  *     metadata = OpenIdProviderMetadata(
  *         issuer = TEST_ISSUER,
@@ -49,8 +50,7 @@ import java.time.Instant as JavaInstant
  *         jwksUri = "$TEST_ISSUER/jwks",
  *     )
  *     jwt(keys)
- *     accessToken { audiences = setOf(TEST_AUDIENCE) }
- *     bearer()
+ *     bearer { audience = setOf(TEST_AUDIENCE) }
  * }
  *
  * val token = keys.accessToken { subject = "user-1" }
@@ -428,12 +428,19 @@ private fun ByteArray.stripLeadingZero(): ByteArray =
 private fun normalizeClaimValue(name: String, value: Any?): Any? =
     when (value) {
         null, is String, is Boolean, is Int, is Long, is Double, is Date, is JavaInstant -> value
+
         is Instant -> value.toJavaInstant()
+
         is Byte, is Short -> value.toInt()
+
         is Float -> value.toDouble()
+
         is Number -> value.toDouble()
+
         is Array<*> -> value.map { normalizeClaimValue(name, it) }
+
         is Iterable<*> -> value.map { normalizeClaimValue(name, it) }
+
         is Map<*, *> -> value.mapValues { (key, item) ->
             require(key is String) {
                 "claim $name map keys must be strings"
@@ -447,14 +454,23 @@ private fun normalizeClaimValue(name: String, value: Any?): Any? =
 private fun JWTCreator.Builder.withJsonClaim(name: String, value: Any?) {
     when (value) {
         null -> withNullClaim(name)
+
         is String -> withClaim(name, value)
+
         is Boolean -> withClaim(name, value)
+
         is Int -> withClaim(name, value)
+
         is Long -> withClaim(name, value)
+
         is Double -> withClaim(name, value)
+
         is Date -> withClaim(name, value)
+
         is JavaInstant -> withClaim(name, value)
+
         is List<*> -> withClaim(name, value)
+
         is Map<*, *> -> {
             @Suppress("UNCHECKED_CAST")
             withClaim(name, value as Map<String, Any?>)

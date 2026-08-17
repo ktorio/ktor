@@ -32,7 +32,7 @@ internal fun browserFlowMetadata(
     endSessionEndpoint = endSessionEndpoint,
 )
 
-internal fun <P : Any> OidcProviderConfig<P>.testIssuer(
+internal fun OidcProviderConfig.testIssuer(
     issuer: String = ISSUER_URL,
     metadata: OpenIdProviderMetadata = testOpenIdProviderMetadata(issuer),
 ) {

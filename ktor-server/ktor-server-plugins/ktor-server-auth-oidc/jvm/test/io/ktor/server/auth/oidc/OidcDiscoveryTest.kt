@@ -5,6 +5,7 @@
 package io.ktor.server.auth.oidc
 
 import io.ktor.http.*
+import io.ktor.server.application.install
 import io.ktor.server.auth.oidc.utils.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -35,15 +36,15 @@ class OidcDiscoveryTest {
             }
         }
 
-        val openIdClient = openIdHttpClient()
-        lateinit var provider: OidcProvider<OidcToken>
+        val openIdClient = discoveryClient()
+        lateinit var provider: OidcProvider
         application {
-            val oidc = openIdConnect {
+            val oidc = install(Oidc) {
                 httpClient = openIdClient
                 discoveryRefreshInterval = 10.milliseconds
                 discoveryRefreshFailureDelay = 10.milliseconds
             }
-            provider = oidc.provider("auth0") {
+            provider = oidc.identityProvider("auth0") {
                 issuer = ISSUER_URL
                 metadata = testOpenIdProviderMetadata(
                     issuer = ISSUER_URL,
@@ -65,15 +66,15 @@ class OidcDiscoveryTest {
 
         refreshingOpenIdProvider(discoveryRequests, allowRefreshResponse)
 
-        val openIdClient = openIdHttpClient()
-        lateinit var provider: OidcProvider<OidcToken>
+        val openIdClient = discoveryClient()
+        lateinit var provider: OidcProvider
         application {
-            val oidc = openIdConnect {
+            val oidc = install(Oidc) {
                 httpClient = openIdClient
                 discoveryRefreshInterval = 10.milliseconds
                 discoveryRefreshFailureDelay = 10.milliseconds
             }
-            provider = oidc.provider("auth0") { issuer = ISSUER_URL }
+            provider = oidc.identityProvider("auth0") { issuer = ISSUER_URL }
         }
 
         startApplication()
@@ -124,18 +125,18 @@ class OidcDiscoveryTest {
             }
         }
 
-        val openIdClient = openIdHttpClient()
-        lateinit var provider: OidcProvider<OidcToken>
+        val openIdClient = discoveryClient()
+        lateinit var provider: OidcProvider
         application {
             monitor.subscribe(OidcMetadataRefreshFailed) { failure ->
                 refreshFailed.complete(failure)
             }
-            val oidc = openIdConnect {
+            val oidc = install(Oidc) {
                 httpClient = openIdClient
                 discoveryRefreshInterval = 10.milliseconds
                 discoveryRefreshFailureDelay = 10.milliseconds
             }
-            provider = oidc.provider("auth0") {
+            provider = oidc.identityProvider("auth0") {
                 issuer = ISSUER_URL
             }
         }
@@ -172,15 +173,15 @@ class OidcDiscoveryTest {
             }
         }
 
-        val openIdClient = openIdHttpClient()
+        val openIdClient = discoveryClient()
         application {
-            val oidc = openIdConnect {
+            val oidc = install(Oidc) {
                 httpClient = openIdClient
                 discoveryRefreshInterval = ZERO
                 initialDiscoveryAttempts = 2
                 initialDiscoveryRetryDelay = ZERO
             }
-            oidc.provider("auth0") {
+            oidc.identityProvider("auth0") {
                 issuer = ISSUER_URL
             }
         }
@@ -206,15 +207,15 @@ class OidcDiscoveryTest {
                     }
                 }
 
-                val openIdClient = openIdHttpClient()
+                val openIdClient = discoveryClient()
                 application {
-                    val oidc = openIdConnect {
+                    val oidc = install(Oidc) {
                         httpClient = openIdClient
                         discoveryRefreshInterval = ZERO
                         initialDiscoveryAttempts = 2
                         initialDiscoveryRetryDelay = ZERO
                     }
-                    oidc.provider("auth0") {
+                    oidc.identityProvider("auth0") {
                         issuer = ISSUER_URL
                     }
                 }
@@ -245,20 +246,20 @@ class OidcDiscoveryTest {
             }
         }
 
-        val openIdClient = openIdHttpClient()
+        val openIdClient = discoveryClient()
         application {
-            val oidc = openIdConnect {
+            val oidc = install(Oidc) {
                 httpClient = openIdClient
                 discoveryRefreshInterval = ZERO
                 initialDiscoveryAttempts = 1
                 initialDiscoveryRetryDelay = ZERO
             }
             assertFailsWith<OpenIdDiscoveryException> {
-                oidc.provider("auth0") {
+                oidc.identityProvider("auth0") {
                     issuer = ISSUER_URL
                 }
             }
-            oidc.provider("auth0") {
+            oidc.identityProvider("auth0") {
                 issuer = ISSUER_URL
             }
         }
@@ -291,15 +292,15 @@ class OidcDiscoveryTest {
                     }
                 }
 
-                val openIdClient = openIdHttpClient()
+                val openIdClient = discoveryClient()
                 application {
-                    val oidc = openIdConnect {
+                    val oidc = install(Oidc) {
                         httpClient = openIdClient
                         discoveryRefreshInterval = ZERO
                         initialDiscoveryAttempts = 2
                         initialDiscoveryRetryDelay = ZERO
                     }
-                    oidc.provider("auth0") {
+                    oidc.identityProvider("auth0") {
                         issuer = ISSUER_URL
                     }
                 }

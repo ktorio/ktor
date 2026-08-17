@@ -18,7 +18,7 @@ import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
 context(ctx: RoutingContext)
-internal suspend fun <P : Any> OidcProvider<P>.refreshSessionIfNeeded(token: OidcToken.Id): OidcToken.Id? {
+internal suspend fun OidcProvider.refreshSessionIfNeeded(token: OidcToken.Id): OidcToken.Id? {
     if (managesRoute()) {
         return token
     }
@@ -26,15 +26,21 @@ internal suspend fun <P : Any> OidcProvider<P>.refreshSessionIfNeeded(token: Oid
     val sessionConfig = checkNotNull(config.oauthConfig?.sessionConfig)
     return when (val strategy = sessionConfig.tokenRefreshStrategy) {
         is OidcTokenRefreshStrategy.Auto -> refreshSessionAutomatically(token, strategy.beforeExpiry, now)
+
         is OidcTokenRefreshStrategy.Disabled -> keepSessionIfNotExpired(token, now)
+
         is OidcTokenRefreshStrategy.Custom -> refreshSession {
-            with(strategy) { ctx.refresh(provider = this@refreshSessionIfNeeded, token, now) }
+            with(strategy) {
+                ctx.refresh(provider = this@refreshSessionIfNeeded, token, now)
+            }
         }
+
+        else -> error("Unsupported token refresh strategy ${strategy::class.simpleName}.")
     }
 }
 
 context(ctx: RoutingContext)
-private fun OidcProvider<*>.keepSessionIfNotExpired(token: OidcToken.Id, now: Instant): OidcToken.Id? {
+private fun OidcProvider.keepSessionIfNotExpired(token: OidcToken.Id, now: Instant): OidcToken.Id? {
     if (!token.isExpired(now)) {
         return token
     }
@@ -44,7 +50,7 @@ private fun OidcProvider<*>.keepSessionIfNotExpired(token: OidcToken.Id, now: In
 }
 
 context(ctx: RoutingContext)
-private suspend fun <P : Any> OidcProvider<P>.refreshSessionAutomatically(
+private suspend fun OidcProvider.refreshSessionAutomatically(
     token: OidcToken.Id,
     beforeExpiry: Duration,
     now: Instant,
@@ -63,7 +69,7 @@ private suspend fun <P : Any> OidcProvider<P>.refreshSessionAutomatically(
 }
 
 context(ctx: RoutingContext)
-private suspend fun OidcProvider<*>.refreshSession(
+private suspend fun OidcProvider.refreshSession(
     refresh: suspend () -> OidcToken.Id?
 ): OidcToken.Id? {
     val newToken = try {
@@ -89,12 +95,12 @@ private fun OidcToken.Id.shouldRefresh(now: Instant, beforeExpiry: Duration): Bo
     claims.expiresAt?.let { it <= now + beforeExpiry } ?: false
 
 context(ctx: RoutingContext)
-private fun OidcProvider<*>.clearOidcSession() {
-    ctx.call.sessions.clear(oauthSessionFlow.sessions.name)
+private fun OidcProvider.clearOidcSession() {
+    ctx.call.sessions.clear(oauthSessionFlow.session.name)
 }
 
 context(ctx: RoutingContext)
-private fun OidcProvider<*>.managesRoute(): Boolean {
+private fun OidcProvider.managesRoute(): Boolean {
     val path = ctx.call.request.path()
     val isManaged = path == oauthConfig.refreshPath || path == oauthConfig.logoutPath
     return ctx.call.request.httpMethod == HttpMethod.Post && isManaged

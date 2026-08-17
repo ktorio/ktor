@@ -10,15 +10,13 @@ import com.auth0.jwt.JWT
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.oidc.utils.*
-import io.ktor.server.auth.typesafe.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.utils.io.*
-import kotlinx.serialization.PolymorphicSerializer
-import kotlinx.serialization.json.Json
 import kotlin.test.*
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
@@ -32,21 +30,19 @@ class OidcBearerJwtTest {
         val otherKeys = testOtherRsaKeys
 
         application {
-            val oidc = openIdConnect { }
-            val oidcProvider = oidc.provider("google") {
+            val oidc = install(Oidc)
+            val oidcProvider = oidc.identityProvider("google") {
                 testIssuer()
                 jwt(keys)
-                accessToken {
-                    audiences = setOf("api")
+                bearer {
+                    audience = setOf("api")
                 }
-                bearer()
             }
 
             routing {
-                authenticateWith(oidcProvider.bearer) {
+                authenticateWith(oidcProvider.jwtBearer) {
                     get("/protected") {
-                        val accessToken = principal as OidcToken.Access
-                        call.respondText(accessToken.userInfo?.subject ?: "missing")
+                        call.respondText(call.principal.userInfo?.subject ?: "missing")
                     }
                 }
             }
@@ -102,23 +98,19 @@ class OidcBearerJwtTest {
         val keys = testRsaKeys
 
         application {
-            val oidc = openIdConnect { }
-            val oidcProvider = oidc.provider("auth0") {
+            val oidc = install(Oidc)
+            val oidcProvider = oidc.identityProvider("auth0") {
                 testIssuer()
                 jwt(keys)
-                accessToken {
-                    audiences = setOf("api")
-                }
-                bearer()
+                bearer { audience = setOf("api") }
             }
 
             routing {
-                authenticateWith(oidcProvider.bearer) {
+                authenticateWith(oidcProvider.jwtBearer) {
                     get("/protected") {
-                        val accessToken = principal as OidcToken.Access
-                        call.respondText(
-                            "${accessToken.userInfo?.subject ?: "missing"}:${accessToken.clientId ?: "missing"}"
-                        )
+                        val accessToken = call.principal
+                        val text = "${accessToken.userInfo?.subject ?: "missing"}:${accessToken.clientId ?: "missing"}"
+                        call.respondText(text)
                     }
                 }
             }
@@ -140,65 +132,36 @@ class OidcBearerJwtTest {
 
     @Test
     fun `token claims headerString preserves embedded quotes`() {
-        val token = testRsaKeys.accessToken {
-            keyId = "a\"b"
-        }
+        val token = testRsaKeys.accessToken { keyId = "a\"b" }
         val claims = TokenClaims(JWT.decode(token))
 
         assertEquals("a\"b", claims.headerString("kid"))
     }
 
     @Test
-    fun `principal serialization uses stable token serial names`() {
-        val json = Json {
-            serializersModule = OidcToken.serializersModule
-        }
-        val serializer = PolymorphicSerializer(OidcToken::class)
-
-        val accessToken = json.encodeToString(serializer, OidcToken.Access("access-token"))
-        val idToken = json.encodeToString(
-            serializer,
-            OidcToken.Id(
-                value = "id-token",
-                accessToken = "access-token",
-                userInfo = OidcToken.UserInfo(subject = "user"),
-            )
-        )
-
-        assertContains(accessToken, "\"type\":\"access_token\"")
-        assertContains(idToken, "\"type\":\"id_token\"")
-    }
-
-    @Test
     fun `custom token source replaces authorization header`() = testApplication {
-        val keys = testRsaKeys
-
         application {
-            val oidc = openIdConnect { }
-            val oidcProvider = oidc.provider("auth0") {
+            val oidc = install(Oidc)
+            val oidcProvider = oidc.identityProvider("auth0") {
                 testIssuer()
-                jwt(keys)
-                accessToken {
-                    audiences = setOf("custom-api")
-                }
+                jwt(testRsaKeys)
                 bearer {
-                    tokenExtractor = { call ->
-                        call.request.headers["X-Api-Token"]
-                    }
+                    audience = setOf("custom-api")
+                    tokenExtractor = { call.request.headers["X-Api-Token"] }
                 }
             }
 
             routing {
-                authenticateWith(oidcProvider.bearer) {
+                authenticateWith(oidcProvider.jwtBearer) {
                     get("/custom") {
-                        val accessToken = principal as OidcToken.Access
+                        val accessToken = call.principal
                         call.respondText(accessToken.userInfo?.subject ?: "missing")
                     }
                 }
             }
         }
 
-        val token = keys.accessToken {
+        val token = testRsaKeys.accessToken {
             audience = "custom-api"
             subject = "custom-user"
         }
@@ -216,23 +179,21 @@ class OidcBearerJwtTest {
 
     @Test
     fun `malformed authorization header is logged at trace level with truncated value`() = testApplication {
-        val keys = testRsaKeys
         val malformedHeader = "Bearer invalid@" + "x".repeat(160)
 
         captureProviderLogs("auth0", ch.qos.logback.classic.Level.TRACE).use { logs ->
             application {
-                val oidc = openIdConnect { }
-                val provider = oidc.provider("auth0") {
+                val oidc = install(Oidc)
+                val provider = oidc.identityProvider("auth0") {
                     testIssuer()
-                    jwt(keys)
-                    accessToken {
-                        audiences = setOf("api")
+                    jwt(testRsaKeys)
+                    bearer {
+                        audience = setOf("api")
                     }
-                    bearer()
                 }
 
                 routing {
-                    authenticateWith(provider.bearer) {
+                    authenticateWith(provider.jwtBearer) {
                         get("/protected") {
                             call.respondText("ok")
                         }
@@ -258,18 +219,16 @@ class OidcBearerJwtTest {
     @Test
     fun `verifyAccessToken normalizes malformed jwt rejection`() = testApplication {
         application {
-            val oidc = openIdConnect { }
-            val provider = oidc.provider("auth0") {
+            val oidc = install(Oidc)
+            val provider = oidc.identityProvider("auth0") {
                 testIssuer()
-                accessToken {
-                    audiences = setOf("api")
-                }
+                bearer { audience = setOf("api") }
             }
 
             routing {
                 get("/verify") {
                     val failure = try {
-                        provider.verifyAccessToken("not-a-jwt-with-secret")
+                        provider.verifyJwtAccessToken("not-a-jwt-with-secret")
                         null
                     } catch (cause: Throwable) {
                         cause
@@ -286,30 +245,24 @@ class OidcBearerJwtTest {
     }
 
     @Test
-    fun `transformPrincipal exposes typed application principal`() = testApplication {
+    fun `mapPrincipal exposes typed application principal`() = testApplication {
         val keys = testRsaKeys
 
         application {
-            val oidc = openIdConnect {}
-            val google = oidc.provider(
-                name = "google",
-                transformPrincipal = { p ->
-                    val accessToken = p as? OidcToken.Access
-                    accessToken?.userInfo?.subject?.let(::UserIdPrincipal)
-                }
-            ) {
+            val oidc = install(Oidc)
+            val google = oidc.identityProvider("google") {
                 testIssuer()
                 jwt(keys)
-                accessToken {
-                    audiences = setOf("api")
-                }
-                bearer()
+                bearer { audience = setOf("api") }
+            }
+            val googleScheme = google.jwtBearer.mapPrincipal { token ->
+                token.userInfo?.subject?.let(::UserIdPrincipal)
             }
 
             routing {
-                authenticateWith(google.bearer) {
+                authenticateWith(googleScheme) {
                     get("/typed") {
-                        call.respondText(principal.name)
+                        call.respondText(call.principal.name)
                     }
                 }
             }

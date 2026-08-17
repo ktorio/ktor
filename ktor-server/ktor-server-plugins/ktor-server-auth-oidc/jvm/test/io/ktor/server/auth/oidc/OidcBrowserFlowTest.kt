@@ -9,8 +9,9 @@ package io.ktor.server.auth.oidc
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.server.application.install
+import io.ktor.server.auth.*
 import io.ktor.server.auth.oidc.utils.*
-import io.ktor.server.auth.typesafe.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -37,24 +38,23 @@ class OidcBrowserFlowTest {
 
         openIdBrowserFlowProvider(keys, idTokensByState, tokenGrantTypes, userInfoCalls, refreshedIdToken)
 
-        val openIdClient = openIdHttpClient()
+        val openIdClient = discoveryClient()
+        lateinit var oidcProvider: OidcProvider
         application {
-            val oidc = openIdConnect {
+            val oidc = install(Oidc) {
                 httpClient = openIdClient
             }
-            val oidcProvider = oidc.provider("auth0") {
+            oidcProvider = oidc.identityProvider("auth0") {
                 testIssuer(metadata = browserFlowMetadata())
                 jwt(keys)
-                accessToken {
-                    audiences = setOf("api")
+                bearer {
+                    audience = setOf("api")
                 }
-                bearer()
                 oauth {
                     clientId = "client-id"
                     clientSecret = "client-secret"
                     fetchUserInfo = true
-                    onSuccess { principal ->
-                        val idToken = principal as OidcToken.Id
+                    onSuccess { idToken ->
                         call.respondText("signed in ${idToken.userInfo.subject}")
                     }
                     refresh()
@@ -68,26 +68,30 @@ class OidcBrowserFlowTest {
                     }
                 }
             }
+        }
 
+        // also test different modules
+        application {
             routing {
-                authenticateWithAnyOf(oidcProvider.bearer, oidcProvider.sessions) {
+                authenticateWithAnyOf(oidcProvider.jwtBearer, oidcProvider.session) {
                     get("/either") {
-                        val subject = when (val currentPrincipal = principal) {
+                        val subject = when (val currentPrincipal = call.principal) {
                             is OidcToken.Access -> "bearer:${currentPrincipal.userInfo?.subject}"
                             is OidcToken.Id -> "session:${currentPrincipal.userInfo.subject}"
-                            is OidcToken.Opaque -> "opaque"
+                            is OidcToken.Introspected -> "opaque"
+                            else -> error("Unexpected principal type")
                         }
                         call.respondText(subject)
                     }
                 }
-                authenticateWith(oidcProvider.sessions) {
+                authenticateWith(oidcProvider.session) {
                     get("/me") {
-                        val idToken = principal as OidcToken.Id
-                        call.respondText("${idToken.userInfo.subject}:${idToken.userInfo.name}")
+                        val userInfo = call.principal.userInfo
+                        call.respondText("${userInfo.subject}:${userInfo.name}")
                     }
                     post("/me") {
-                        val idToken = principal as OidcToken.Id
-                        call.respondText("updated ${idToken.userInfo.subject}")
+                        val userInfo = call.principal.userInfo
+                        call.respondText("updated ${userInfo.subject}")
                     }
                 }
             }
@@ -252,7 +256,7 @@ class OidcBrowserFlowTest {
                 }
 
                 "refresh_token" -> {
-                    assertEquals(parameters["refresh_token"], "refresh-token-1")
+                    assertEquals("refresh-token-1", parameters["refresh_token"])
                     assertEquals("client-id", parameters["client_id"])
                     assertEquals("client-secret", parameters["client_secret"])
 

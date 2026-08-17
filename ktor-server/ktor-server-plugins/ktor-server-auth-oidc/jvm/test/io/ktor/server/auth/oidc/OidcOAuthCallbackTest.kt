@@ -9,12 +9,13 @@ package io.ktor.server.auth.oidc
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.server.application.install
 import io.ktor.server.auth.*
 import io.ktor.server.auth.oidc.utils.*
-import io.ktor.server.auth.typesafe.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.server.sessions.*
 import io.ktor.server.testing.*
 import io.ktor.utils.io.*
 import java.util.concurrent.ConcurrentHashMap
@@ -33,22 +34,20 @@ class OidcOAuthCallbackTest {
 
         openIdProvider(keys, idTokensByState)
 
-        val openIdClient = openIdHttpClient()
+        val openIdClient = discoveryClient()
         application {
-            val oidc = openIdConnect {
+            val oidc = install(Oidc) {
                 httpClient = openIdClient
                 discoveryRefreshInterval = ZERO
             }
-            oidc.provider("auth0") {
+            oidc.identityProvider("auth0") {
                 testIssuer()
                 jwt(keys)
                 oauth {
                     clientId = "client-id"
                     clientSecret = "client-secret"
-                    onSuccess { principal ->
-                        val idToken = principal as OidcToken.Id
-                        call.respondText("signed in ${idToken.userInfo.subject}")
-                    }
+                    disableSessions()
+                    onSuccess { idToken -> call.respondText("signed in ${idToken.userInfo.subject}") }
                 }
             }
         }
@@ -84,21 +83,20 @@ class OidcOAuthCallbackTest {
 
         openIdProvider(keys, idTokensByState, expectPkce = false)
 
-        val openIdClient = openIdHttpClient()
+        val openIdClient = discoveryClient()
         application {
-            val oidc = openIdConnect {
+            val oidc = install(Oidc) {
                 httpClient = openIdClient
                 discoveryRefreshInterval = ZERO
             }
-            oidc.provider("auth0") {
+            oidc.identityProvider("auth0") {
                 testIssuer()
                 jwt(keys)
                 oauth {
                     clientId = "client-id"
                     clientSecret = "client-secret"
                     codeChallengeMethod = null
-                    onSuccess { principal ->
-                        val idToken = principal as OidcToken.Id
+                    onSuccess { idToken ->
                         call.respondText("signed in ${idToken.userInfo.subject}")
                     }
                 }
@@ -129,8 +127,8 @@ class OidcOAuthCallbackTest {
     @Test
     fun `oauth challenge with pkce disabled still creates state transaction`() = testApplication {
         application {
-            val oidc = openIdConnect { }
-            oidc.provider("auth0") {
+            val oidc = install(Oidc) { }
+            oidc.identityProvider("auth0") {
                 testIssuer()
                 oauth {
                     clientId = "client-id"
@@ -227,8 +225,8 @@ class OidcOAuthCallbackTest {
     @Test
     fun `oauth error callback uses configured failure handler`() = testApplication {
         application {
-            val oidc = openIdConnect { }
-            oidc.provider("auth0") {
+            val oidc = install(Oidc) { }
+            oidc.identityProvider("auth0") {
                 testIssuer()
                 oauth {
                     clientId = "client-id"
@@ -255,20 +253,19 @@ class OidcOAuthCallbackTest {
 
         openIdProvider(keys, idTokensByState, tokenType = "bearer")
 
-        val openIdClient = openIdHttpClient()
+        val openIdClient = discoveryClient()
         application {
-            val oidc = openIdConnect {
+            val oidc = install(Oidc) {
                 httpClient = openIdClient
                 discoveryRefreshInterval = ZERO
             }
-            oidc.provider("auth0") {
+            oidc.identityProvider("auth0") {
                 testIssuer()
                 jwt(keys)
                 oauth {
                     clientId = "client-id"
                     clientSecret = "client-secret"
-                    onSuccess { principal ->
-                        val idToken = principal as OidcToken.Id
+                    onSuccess { idToken ->
                         call.respondText("signed in ${idToken.userInfo.subject}")
                     }
                 }
@@ -319,13 +316,13 @@ class OidcOAuthCallbackTest {
             }
         }
 
-        val openIdClient = openIdHttpClient()
+        val openIdClient = discoveryClient()
         application {
-            val oidc = openIdConnect {
+            val oidc = install(Oidc) {
                 httpClient = openIdClient
                 discoveryRefreshInterval = ZERO
             }
-            oidc.provider("auth0") {
+            oidc.identityProvider("auth0") {
                 testIssuer(metadata = browserFlowMetadata())
                 jwt(keys)
                 oauth {
@@ -374,33 +371,32 @@ class OidcOAuthCallbackTest {
 
         openIdProvider(keys, idTokensByState)
 
-        val openIdClient = openIdHttpClient()
+        val openIdClient = discoveryClient()
         application {
-            val oidc = openIdConnect {
+            val oidc = install(Oidc) {
                 httpClient = openIdClient
                 discoveryRefreshInterval = ZERO
             }
-            val oidcProvider = oidc.provider("auth0") {
+            val oidcProvider = oidc.identityProvider("auth0") {
                 testIssuer()
                 jwt(keys)
-                accessToken {
-                    audiences = setOf("api")
+                bearer {
+                    audience = setOf("api")
                 }
-                bearer()
                 oauth {
                     clientId = "client-id"
                     clientSecret = "client-secret"
-                    onSuccess { principal ->
-                        val idToken = principal as OidcToken.Id
+                    disableSessions()
+                    onSuccess { idToken ->
                         call.respondText("signed in ${idToken.userInfo.subject}")
                     }
                 }
             }
 
             routing {
-                authenticateWith(oidcProvider.bearer) {
+                authenticateWith(oidcProvider.jwtBearer) {
                     get("/protected") {
-                        val accessToken = principal as OidcToken.Access
+                        val accessToken = call.principal as OidcToken.Access
                         call.respondText(accessToken.userInfo?.subject ?: "missing")
                     }
                 }
@@ -442,21 +438,20 @@ class OidcOAuthCallbackTest {
         keys: OpenIdTestKeys,
         stateEncryptionKey: OidcStateEncryptionKey? = null,
     ) {
-        val openIdClient = openIdHttpClient()
+        val openIdClient = discoveryClient()
         application {
-            val oidc = openIdConnect {
+            val oidc = install(Oidc) {
                 httpClient = openIdClient
                 discoveryRefreshInterval = ZERO
             }
-            oidc.provider("auth0") {
+            oidc.identityProvider("auth0") {
                 testIssuer()
                 jwt(keys)
                 oauth {
                     clientId = "client-id"
                     clientSecret = "client-secret"
                     this.stateEncryptionKey = stateEncryptionKey
-                    onSuccess { principal ->
-                        val idToken = principal as OidcToken.Id
+                    onSuccess { idToken ->
                         call.respondText("signed in ${idToken.userInfo.subject}")
                     }
                 }

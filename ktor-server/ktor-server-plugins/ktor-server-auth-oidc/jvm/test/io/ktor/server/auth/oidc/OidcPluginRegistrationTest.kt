@@ -8,9 +8,9 @@ package io.ktor.server.auth.oidc
 
 import com.auth0.jwk.Jwk
 import com.auth0.jwk.JwkProvider
+import io.ktor.server.application.install
 import io.ktor.server.auth.*
 import io.ktor.server.auth.oidc.utils.*
-import io.ktor.server.auth.typesafe.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
@@ -28,7 +28,7 @@ class OidcPluginRegistrationTest {
         val provider = OidcProvider(
             name = "auth0",
             client = client,
-            config = OidcProviderConfig("auth0", OidcToken::class).apply {
+            config = OidcProviderConfig("auth0").apply {
                 issuer = ISSUER_URL
                 jwt {
                     jwkProviderFactory = {
@@ -71,12 +71,23 @@ class OidcPluginRegistrationTest {
         val providerWithoutSchemes = OidcProvider(
             name = "auth0",
             client = client,
-            config = OidcProviderConfig("auth0", OidcToken::class).apply {
+            config = OidcProviderConfig("auth0").apply {
                 issuer = ISSUER_URL
             },
         )
-        assertFailsWith<IllegalStateException> { providerWithoutSchemes.bearer }
-        assertFailsWith<IllegalStateException> { providerWithoutSchemes.sessions }
+        assertFailsWith<IllegalStateException> { providerWithoutSchemes.jwtBearer }
+        assertFailsWith<IllegalStateException> { providerWithoutSchemes.introspectionBearer }
+        assertFailsWith<IllegalStateException> { providerWithoutSchemes.session }
+
+        val providerWithoutIntrospection = OidcProvider(
+            name = "auth0",
+            client = client,
+            config = OidcProviderConfig("auth0").apply {
+                issuer = ISSUER_URL
+                bearer { audience = setOf("api") }
+            },
+        )
+        assertFailsWith<IllegalStateException> { providerWithoutIntrospection.introspectionBearer }
 
         startApplication()
     }
@@ -87,10 +98,7 @@ class OidcPluginRegistrationTest {
             providerNames = List(16) { "auth0" },
             expectedFailureMessage = "already configured",
         ) {
-            accessToken {
-                audiences = setOf("api")
-            }
-            bearer()
+            bearer { audience = setOf("api") }
         }
 
         assertConcurrentDuplicateRegistrations(
@@ -108,8 +116,8 @@ class OidcPluginRegistrationTest {
             val failure = assertFailsWith<IllegalArgumentException> {
                 testApplication {
                     application {
-                        val oidc = openIdConnect { }
-                        oidc.provider(providerName) {
+                        val oidc = install(Oidc)
+                        oidc.identityProvider(providerName) {
                             testIssuer()
                         }
                     }
@@ -121,22 +129,13 @@ class OidcPluginRegistrationTest {
 
         testApplication {
             application {
-                val oidc = openIdConnect { }
-                oidc.provider(
-                    name = "auth0",
-                    transformPrincipal = { principal ->
-                        when (principal) {
-                            is OidcToken.Id -> UserIdPrincipal(principal.userInfo.subject)
-                            is OidcToken.Access -> principal.userInfo?.subject?.let(::UserIdPrincipal)
-                            is OidcToken.Opaque -> principal.introspection.subject?.let(::UserIdPrincipal)
-                        }
-                    }
-                ) {
+                val oidc = install(Oidc)
+                oidc.identityProvider("auth0") {
                     testIssuer()
                 }
 
                 val failure = assertFailsWith<IllegalArgumentException> {
-                    oidc.provider("auth0") {
+                    oidc.identityProvider("auth0") {
                         testIssuer()
                     }
                 }
@@ -151,32 +150,29 @@ class OidcPluginRegistrationTest {
         val failure = assertFailsWith<IllegalArgumentException> {
             testApplication {
                 application {
-                    val oidc = openIdConnect { }
-                    val auth0 = oidc.provider("auth0") {
+                    val oidc = install(Oidc)
+                    val auth0 = oidc.identityProvider("auth0") {
                         testIssuer()
-                        accessToken {
-                            audiences = setOf("api")
-                        }
-                        bearer()
+                        bearer { audience = setOf("api") }
                     }
-                    val okta = oidc.provider("okta") {
+                    val okta = oidc.identityProvider("okta") {
                         testIssuer(secondIssuer)
                         oauth {
                             clientId = "client-id"
                             clientSecret = "client-secret"
                             sessions {
-                                name = "auth0-bearer"
+                                name = "auth0-jwt-bearer"
                             }
                         }
                     }
 
                     routing {
-                        authenticateWith(auth0.bearer) {
+                        authenticateWith(auth0.jwtBearer) {
                             get("/auth0") {
                                 call.respondText("auth0")
                             }
                         }
-                        authenticateWith(okta.sessions) {
+                        authenticateWith(okta.session) {
                             get("/okta") {
                                 call.respondText("okta")
                             }
@@ -187,23 +183,23 @@ class OidcPluginRegistrationTest {
             }
         }
 
-        assertContains(failure.message.orEmpty(), "auth0-bearer")
+        assertContains(failure.message.orEmpty(), "auth0-jwt-bearer")
         assertContains(failure.message.orEmpty(), "already registered")
     }
 
     private fun assertConcurrentDuplicateRegistrations(
         providerNames: List<String>,
         expectedFailureMessage: String,
-        configureProvider: OidcProviderConfig<OidcToken>.() -> Unit = {},
+        configureProvider: OidcProviderConfig.() -> Unit = {},
     ) = testApplication {
         application {
-            val oidc = openIdConnect { }
+            val oidc = install(Oidc)
 
             val results = coroutineScope {
                 providerNames.map { providerName ->
                     async {
                         runCatching {
-                            oidc.provider(providerName) {
+                            oidc.identityProvider(providerName) {
                                 testIssuer()
                                 configureProvider()
                             }
@@ -232,17 +228,16 @@ class OidcPluginRegistrationTest {
         )
 
         application {
-            val oidc = openIdConnect { }
+            val oidc = install(Oidc)
 
             val providers = coroutineScope {
                 issuers.map { (name, issuer) ->
                     async {
-                        oidc.provider(name) {
+                        oidc.identityProvider(name) {
                             testIssuer(issuer)
-                            accessToken {
-                                audiences = setOf("api")
+                            bearer {
+                                audience = setOf("api")
                             }
-                            bearer()
                         }
                     }
                 }.awaitAll()

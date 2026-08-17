@@ -2,17 +2,15 @@
  * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-@file:OptIn(ExperimentalKtorApi::class)
-
 package io.ktor.server.auth.oidc
 
 import ch.qos.logback.classic.Level
 import io.ktor.client.request.*
 import io.ktor.http.*
+import io.ktor.server.application.*
 import io.ktor.server.auth.oidc.utils.*
 import io.ktor.server.sessions.*
 import io.ktor.server.testing.*
-import io.ktor.utils.io.*
 import kotlin.test.*
 
 class OidcConfigValidationTest {
@@ -36,8 +34,8 @@ class OidcConfigValidationTest {
     @Test
     fun `bearer and oauth configs validate required security settings`() {
         val bearerFailure = assertProviderValidationFails { bearer() }
-        assertContains(bearerFailure.message.orEmpty(), "accessToken")
-        assertContains(bearerFailure.message.orEmpty(), "audiences")
+        assertContains(bearerFailure.message.orEmpty(), "bearer")
+        assertContains(bearerFailure.message.orEmpty(), "audience")
 
         val scopeFailure = assertProviderValidationFails {
             oauth {
@@ -47,16 +45,6 @@ class OidcConfigValidationTest {
             }
         }
         assertContains(scopeFailure.message.orEmpty(), "openid")
-        assertContains(scopeFailure.message.orEmpty(), "accessToken")
-
-        val audienceFailure = assertProviderValidationFails {
-            oauth {
-                clientId = "client-id"
-                clientSecret = "client-secret"
-                idTokenAudience = " "
-            }
-        }
-        assertContains(audienceFailure.message.orEmpty(), "idTokenAudience")
     }
 
     @Test
@@ -102,18 +90,15 @@ class OidcConfigValidationTest {
     }
 
     @Test
-    fun `oauth access-token-only scopes and resource indicators are supported`() = testApplication {
+    fun `oauth resource indicators are supported`() = testApplication {
         application {
-            val oidc = openIdConnect { }
-            oidc.provider("auth0") {
+            val oidc = install(Oidc)
+            oidc.identityProvider("auth0") {
                 testIssuer()
-                accessToken {
-                    audiences = setOf("api")
-                }
                 oauth {
                     clientId = "client-id"
                     clientSecret = "client-secret"
-                    scopes = listOf("profile")
+                    scopes = listOf("openid", "profile")
                     resourceIndicators = listOf("https://api.example.com", "https://mcp.example.com")
                 }
             }
@@ -127,11 +112,8 @@ class OidcConfigValidationTest {
     }
 
     @Test
-    fun `session oauth requires openid when access token is configured`() {
+    fun `oauth requires openid scope`() {
         val failure = assertProviderValidationFails {
-            accessToken {
-                audiences = setOf("api")
-            }
             oauth {
                 clientId = "client-id"
                 clientSecret = "client-secret"
@@ -141,7 +123,6 @@ class OidcConfigValidationTest {
         }
 
         assertContains(failure.message.orEmpty(), "openid")
-        assertContains(failure.message.orEmpty(), "without sessions")
     }
 
     @Test
@@ -150,6 +131,7 @@ class OidcConfigValidationTest {
             oauth {
                 clientId = "client-id"
                 clientSecret = "client-secret"
+                disableSessions()
                 logout("/custom/logout")
             }
         }
@@ -159,6 +141,7 @@ class OidcConfigValidationTest {
             oauth {
                 clientId = "client-id"
                 clientSecret = "client-secret"
+                disableSessions()
                 refresh("/custom/refresh")
             }
         }
@@ -166,12 +149,24 @@ class OidcConfigValidationTest {
     }
 
     @Test
+    fun `sessionless oauth requires onSuccess`() {
+        val failure = assertProviderValidationFails {
+            oauth {
+                clientId = "client-id"
+                clientSecret = "client-secret"
+                disableSessions()
+            }
+        }
+        assertContains(failure.message.orEmpty(), "onSuccess")
+    }
+
+    @Test
     fun `bearer token source defaults to authorization header unless customized`() {
-        OidcProviderConfig("default", OidcToken::class).apply {
+        OidcProviderConfig("default").apply {
             bearer()
             assertNull(bearerConfig!!.tokenExtractor)
         }
-        OidcProviderConfig("session", OidcToken::class).apply {
+        OidcProviderConfig("session").apply {
             oauth {
                 clientId = "client-id"
                 clientSecret = "client-secret"
@@ -181,9 +176,9 @@ class OidcConfigValidationTest {
             bearer()
             assertNull(bearerConfig!!.tokenExtractor)
         }
-        OidcProviderConfig("custom", OidcToken::class).apply {
+        OidcProviderConfig("custom").apply {
             bearer {
-                tokenExtractor = { call -> call.request.headers["X-Token"] }
+                tokenExtractor = { call.request.headers["X-Token"] }
             }
             assertNotNull(bearerConfig!!.tokenExtractor)
         }
@@ -192,11 +187,9 @@ class OidcConfigValidationTest {
     @Test
     fun `session storage memory warning is emitted only for production memory storage`() {
         val customStorage = object : SessionStorage {
-            override suspend fun write(id: String, value: String) {
-            }
+            override suspend fun write(id: String, value: String) {}
 
-            override suspend fun invalidate(id: String) {
-            }
+            override suspend fun invalidate(id: String) {}
 
             override suspend fun read(id: String): String = error("not used")
         }
@@ -234,8 +227,8 @@ class OidcConfigValidationTest {
                         this.developmentMode = developmentMode
                     }
                     application {
-                        val oidc = openIdConnect { }
-                        oidc.provider("auth0") {
+                        val oidc = install(Oidc)
+                        oidc.identityProvider("auth0") {
                             testIssuer()
                             oauth {
                                 clientId = "client-id"
@@ -255,12 +248,12 @@ class OidcConfigValidationTest {
     }
 
     private fun assertProviderValidationFails(
-        configure: OidcProviderConfig<OidcToken>.() -> Unit,
+        configure: OidcProviderConfig.() -> Unit,
     ): Throwable = assertFailsWith<IllegalArgumentException> {
         testApplication {
             application {
-                val oidc = openIdConnect { }
-                oidc.provider("auth0") {
+                val oidc = install(Oidc)
+                oidc.identityProvider("auth0") {
                     testIssuer()
                     configure()
                 }
@@ -271,7 +264,7 @@ class OidcConfigValidationTest {
 
     private fun assertSessionStorageWarning(
         providerName: String,
-        configure: OidcProviderConfig<OidcToken>.() -> Unit,
+        configure: OidcProviderConfig.() -> Unit,
         assertions: (List<ch.qos.logback.classic.spi.ILoggingEvent>) -> Unit,
     ) {
         captureProviderLogs(providerName, Level.WARN).use { logs ->
@@ -280,8 +273,8 @@ class OidcConfigValidationTest {
                     developmentMode = false
                 }
                 application {
-                    val oidc = openIdConnect { }
-                    oidc.provider(providerName) {
+                    val oidc = install(Oidc)
+                    oidc.identityProvider(providerName) {
                         testIssuer()
                         configure()
                     }

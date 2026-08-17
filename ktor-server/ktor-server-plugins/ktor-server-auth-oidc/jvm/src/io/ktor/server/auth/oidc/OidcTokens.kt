@@ -2,8 +2,6 @@
  * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-@file:OptIn(ExperimentalKtorApi::class)
-
 package io.ktor.server.auth.oidc
 
 import com.auth0.jwk.Jwk
@@ -21,11 +19,9 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
 import io.ktor.server.auth.*
-import io.ktor.utils.io.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.JsonObject
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
@@ -57,7 +53,7 @@ private enum class JwtTokenType {
 private val hmacAlgorithms = setOf("HS256", "HS384", "HS512")
 private const val BEARER_TOKEN_TYPE = "Bearer"
 
-internal suspend fun OidcProvider<*>.refreshTokenInternal(refreshToken: String): OidcTokenRefreshResult {
+internal suspend fun OidcProvider.refreshTokenInternal(refreshToken: String): OidcTokenRefreshResult {
     val config = oauthConfig
     val response = client.submitForm(
         url = currentMetadata().tokenEndpoint,
@@ -78,7 +74,7 @@ internal suspend fun OidcProvider<*>.refreshTokenInternal(refreshToken: String):
             idToken = token,
             accessToken = response.accessToken,
             refreshToken = effectiveRefreshToken,
-            expectedAudience = config.idTokenAudience ?: config.clientId,
+            expectedAudience = config.clientId,
             requireNonceAbsent = true,
             fetchUserInfo = config.fetchUserInfo,
         )
@@ -94,16 +90,13 @@ internal suspend fun OidcProvider<*>.refreshTokenInternal(refreshToken: String):
     )
 }
 
-internal suspend fun OidcProvider<*>.buildOAuthToken(
+internal suspend fun OidcProvider.buildOAuthToken(
     response: OAuthAccessTokenResponse.OAuth2,
     expectedNonce: String?,
-): OidcToken {
+): OidcToken.Id {
     val config = oauthConfig
-    val idToken = response.extraParameters["id_token"] ?: run {
-        return requireNotNull(verifyAccessToken(response.accessToken)) {
-            "OAuth callback access token was not accepted"
-        }
-    }
+    val idToken = response.extraParameters["id_token"]
+        ?: rejectToken("OAuth callback response is missing id_token")
 
     requireBearerTokenType(response.tokenType)
     val nonce = expectedNonce ?: rejectToken("OIDC state nonce is missing")
@@ -111,7 +104,7 @@ internal suspend fun OidcProvider<*>.buildOAuthToken(
         idToken = idToken,
         accessToken = response.accessToken,
         refreshToken = response.refreshToken,
-        expectedAudience = config.idTokenAudience ?: config.clientId,
+        expectedAudience = config.clientId,
         expectedNonce = nonce,
         fetchUserInfo = config.fetchUserInfo,
     )
@@ -123,14 +116,23 @@ private fun requireBearerTokenType(type: String?) {
     }
 }
 
-internal suspend fun OidcProvider<*>.verifyAccessToken(token: String): OidcToken {
+internal suspend fun OidcProvider.verifyJwtAccessToken(token: String): OidcToken.Access {
+    val jwt = try {
+        JWT.decode(token)
+    } catch (cause: JWTDecodeException) {
+        rejectToken(cause.message)
+    }
     try {
-        val decodeResult = runCatching { JWT.decode(token) }
-        return when {
-            decodeResult.isSuccess -> verifyJwtAccessToken(token, jwt = decodeResult.getOrThrow())
-            canIntrospectOpaqueToken -> verifyOpaqueToken(token)
-            else -> rejectToken(decodeResult.exceptionOrNull()?.message)
-        }
+        val verifiedJwt = verifyJwtToken(
+            token = token,
+            jwt = jwt,
+            audiences = bearerConfig.audience,
+            tokenType = JwtTokenType.AccessToken,
+            metadata = currentMetadata(),
+            jwkProvider = currentJwkProvider(),
+        )
+        val userInfo = verifiedJwt.takeIf { it.subject != null }?.extractUserInfo()
+        return OidcToken.Access(token, userInfo)
     } catch (cause: CancellationException) {
         throw cause
     } catch (cause: OidcTokenRejectedException) {
@@ -140,29 +142,24 @@ internal suspend fun OidcProvider<*>.verifyAccessToken(token: String): OidcToken
     }
 }
 
-private suspend fun OidcProvider<*>.verifyJwtAccessToken(
-    token: String,
-    jwt: DecodedJWT
-): OidcToken.Access {
-    val verifiedJwt = verifyJwtToken(
-        token = token,
-        jwt = jwt,
-        audiences = accessTokenConfig.audiences,
-        tokenType = JwtTokenType.AccessToken,
-        metadata = currentMetadata(),
-        jwkProvider = currentJwkProvider(),
-    )
-    val userInfo = verifiedJwt.takeIf { it.subject != null }?.extractUserInfo()
-    return OidcToken.Access(token, userInfo)
+internal suspend fun OidcProvider.verifyIntrospectedToken(token: String): OidcToken.Introspected {
+    try {
+        return introspectAccessToken(token)
+    } catch (cause: CancellationException) {
+        throw cause
+    } catch (cause: OidcTokenRejectedException) {
+        throw cause
+    } catch (cause: Throwable) {
+        rejectToken(cause.message)
+    }
 }
 
 @OptIn(ExperimentalTime::class)
-private suspend fun OidcProvider<*>.verifyOpaqueToken(token: String): OidcToken.Opaque {
-    val config = accessTokenConfig
-    val strategy = config.opaqueToken as OpaqueTokenStrategy.Introspect
-    val introspection = client.introspectOpaqueToken(strategy, token)
+private suspend fun OidcProvider.introspectAccessToken(token: String): OidcToken.Introspected {
+    val audiences = bearerConfig.audience
+    val introspection = client.introspectToken(token, introspectionConfig)
     val validAudience = introspection.audience.isNotEmpty() && introspection.audience.any { candidate ->
-        candidate in config.audiences
+        candidate in audiences
     }
 
     requireToken(introspection.active) { "Introspection result is not active" }
@@ -189,35 +186,30 @@ private suspend fun OidcProvider<*>.verifyOpaqueToken(token: String): OidcToken.
         }
     }
 
-    return OidcToken.Opaque(token, introspection)
+    return OidcToken.Introspected(token, introspection)
 }
 
-private suspend fun HttpClient.introspectOpaqueToken(
-    strategy: OpaqueTokenStrategy.Introspect,
+private suspend fun HttpClient.introspectToken(
     token: String,
-): OpaqueTokenIntrospection {
-    return try {
-        submitForm(
-            url = strategy.endpoint,
-            formParameters = Parameters.build {
-                append("token", token)
-                append("token_type_hint", "access_token")
-                if (strategy.authMethod == OpaqueTokenIntrospectionAuthMethod.ClientSecretPost) {
-                    append("client_id", strategy.clientId)
-                    append("client_secret", strategy.clientSecret)
-                }
-            }
-        ) {
-            if (strategy.authMethod == OpaqueTokenIntrospectionAuthMethod.ClientSecretBasic) {
-                basicAuth(username = strategy.clientId, password = strategy.clientSecret)
-            }
-        }.body<JsonObject>().toOpaqueTokenIntrospection()
-    } catch (e: SerializationException) {
-        rejectToken(e.message)
+    config: OidcTokenIntrospectionConfig,
+): TokenIntrospection {
+    val formParameters = Parameters.build {
+        append("token", token)
+        append("token_type_hint", "access_token")
+        if (config.authMethod == TokenIntrospectionAuthMethod.ClientSecretPost) {
+            append("client_id", config.clientId)
+            append("client_secret", config.clientSecret)
+        }
     }
+    val response = submitForm(url = config.endpoint, formParameters = formParameters) {
+        if (config.authMethod == TokenIntrospectionAuthMethod.ClientSecretBasic) {
+            basicAuth(username = config.clientId, password = config.clientSecret)
+        }
+    }
+    return response.body<JsonObject>().toTokenIntrospection()
 }
 
-internal suspend fun OidcProvider<*>.buildIdToken(
+internal suspend fun OidcProvider.buildIdToken(
     idToken: String,
     accessToken: String,
     refreshToken: String?,
@@ -276,7 +268,7 @@ internal suspend fun OidcProvider<*>.buildIdToken(
     )
 }
 
-private suspend fun OidcProvider<*>.fetchUserInfo(
+private suspend fun OidcProvider.fetchUserInfo(
     endpoint: String,
     accessToken: String,
     expectedSubject: String,
@@ -316,7 +308,7 @@ private suspend fun OidcProvider<*>.fetchUserInfo(
 private fun ContentType?.isJwt(): Boolean =
     this?.withoutParameters()?.match(ContentType("application", "jwt")) == true
 
-private suspend fun OidcProvider<*>.verifyJwtToken(
+private suspend fun OidcProvider.verifyJwtToken(
     token: String,
     jwt: DecodedJWT,
     audiences: Collection<String>,
@@ -337,7 +329,7 @@ private suspend fun OidcProvider<*>.verifyJwtToken(
     return verifyJwt(token, jwk, tokenAlgorithm, audiences, metadata)
 }
 
-private fun OidcProvider<*>.verifyJwt(
+private fun OidcProvider.verifyJwt(
     token: String,
     jwk: Jwk,
     tokenAlgorithm: SignatureAlgorithm,
@@ -356,7 +348,7 @@ private fun OidcProvider<*>.verifyJwt(
         rejectToken(cause.message)
     }
 
-private fun OidcProvider<*>.requireAllowedAlgorithm(
+private fun OidcProvider.requireAllowedAlgorithm(
     jwt: DecodedJWT,
     tokenType: JwtTokenType,
     metadata: OpenIdProviderMetadata,
