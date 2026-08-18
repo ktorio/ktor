@@ -119,7 +119,6 @@ public abstract interface class io/ktor/server/auth/AuthenticationRole {
 	public abstract fun getName ()Ljava/lang/String;
 }
 
-public final class io/ktor/server/auth/AuthenticationRouteSelector : io/ktor/server/routing/RouteSelector {
 public final class io/ktor/server/auth/AuthenticationRouteSelector : io/ktor/server/routing/TransparentRouteSelector {
 	public static final field Companion Lio/ktor/server/auth/AuthenticationRouteSelector$Companion;
 	public static final field DEFAULT_NAME Ljava/lang/String;
