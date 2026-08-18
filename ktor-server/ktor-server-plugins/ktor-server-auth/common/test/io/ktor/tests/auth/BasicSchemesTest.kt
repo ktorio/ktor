@@ -86,10 +86,10 @@ class BasicSchemesTest {
             authenticateWith(first) {}
             authenticateWith(second) {}
         }
-        val failure = assertFailsWith<IllegalArgumentException> {
+        val failure = assertFailsWith<IllegalStateException> {
             startApplication()
         }
-        assertContains(failure.message.orEmpty(), "already registered")
+        assertContains(failure.message.orEmpty(), "is already used by a different provider")
     }
 
     @Test

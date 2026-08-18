@@ -121,7 +121,7 @@ internal fun <P : Any> createMultiPlugin(
                 val principal = scheme.principalResolver.resolveFrom(authContext)
                 if (principal != null) {
                     provider.logAuthenticationSucceeded(call)
-                    authContext.principal(scheme.name, principal)
+                    call.authentication.principal(scheme.name, principal)
                     call.attributes.put(principalKey, principal)
                     return@on
                 }

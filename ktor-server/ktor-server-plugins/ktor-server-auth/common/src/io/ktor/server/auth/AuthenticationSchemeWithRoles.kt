@@ -5,6 +5,7 @@
 package io.ktor.server.auth
 
 import io.ktor.http.*
+import io.ktor.server.application.isHandled
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
@@ -157,11 +158,14 @@ public class AuthenticationSchemeWithRoles<P, R, C, B> internal constructor(
             return
         }
 
-        val handler = forbiddenHandler ?: this.forbiddenHandler
         base.provideContext {
             context(rolesContext) {
+                val handler = forbiddenHandler ?: this.forbiddenHandler
                 with(handler) { routingContext.onForbidden() }
             }
+        }
+        if (!routingContext.call.isHandled) {
+            routingContext.call.respond(HttpStatusCode.Forbidden)
         }
     }
 }
