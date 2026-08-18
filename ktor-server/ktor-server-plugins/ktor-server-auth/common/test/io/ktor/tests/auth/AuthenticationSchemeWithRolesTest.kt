@@ -235,7 +235,7 @@ class AuthenticationSchemeWithRolesTest {
     }
 
     @Test
-    fun `onForbidden that does not complete the call allows route handler to run`() = testApplication {
+    fun `onForbidden responds 403 when call is not handled`() = testApplication {
         val scheme = acceptAllBasicScheme("incomplete-forbidden")
             .withRoles(
                 onForbidden = { /* intentionally does not respond */ },
@@ -258,8 +258,7 @@ class AuthenticationSchemeWithRolesTest {
         val response = client.get("/admin") {
             header(HttpHeaders.Authorization, basicAuthHeader("user"))
         }
-        assertEquals(HttpStatusCode.OK, response.status)
-        assertEquals("route reached", response.bodyAsText())
+        assertEquals(HttpStatusCode.Forbidden, response.status)
     }
 
     @Test

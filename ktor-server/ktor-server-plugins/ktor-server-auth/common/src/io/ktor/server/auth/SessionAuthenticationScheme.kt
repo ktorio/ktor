@@ -42,16 +42,25 @@ internal class SessionAuthenticationSchemeExtension<S : Any>(
         try {
             route.plugin(Sessions)
         } catch (_: MissingApplicationPluginException) {
-            raiseInvalidSessionsConfiguration()
+            error(
+                "Typed session auth scheme `$name` requires Sessions to be installed " +
+                    "before authenticateWith. " +
+                    "Install Sessions manually with Route.install(SessionAuthenticationScheme<*, *>) " +
+                    "before the typed route or configure Sessions with SessionsConfig.applyTransport()."
+            )
         }
 
         config.csrfConfig?.let { configure ->
             route.install(plugin = CSRF, configure)
         }
 
+        val sessionType = sessionTypeInfo.type
         val providers = route.application.attributes.getOrNull(SessionProvidersKey).orEmpty()
-        providers.firstOrNull { it.name == name && it.type == sessionTypeInfo.type }
-            ?: raiseInvalidSessionsConfiguration()
+        val provider = providers.firstOrNull { it.name == name && it.type == sessionType }
+        checkNotNull(provider) {
+            "Sessions are installed, but no session provider named `$name` of type `${sessionType.simpleName}`" +
+                "is registered. Configure the transport with SessionsConfig.applyTransport() for this scheme."
+        }
     }
 
     fun SessionsConfig.applyTransport() {
@@ -66,15 +75,6 @@ internal class SessionAuthenticationSchemeExtension<S : Any>(
             is SessionTransportType.HeaderId ->
                 header(name, sessionTypeInfo, transport.storage, transport.block)
         }
-    }
-
-    private fun raiseInvalidSessionsConfiguration(): Nothing {
-        error(
-            "Typed session auth scheme `$name` requires Sessions to be installed " +
-                "before authenticateWith. " +
-                "Install Sessions manually with Route.install(SessionAuthenticationScheme<*, *>) " +
-                "before the typed route or configure Sessions with SessionsConfig.applyTransport()."
-        )
     }
 }
 

@@ -82,8 +82,9 @@ public class AuthenticationScheme<P, C> @PublishedApi internal constructor(
         val registered = attributes.computeIfAbsent(RegisteredProvidersKey) { mutableMapOf() }
         val existing = registered[name]
         if (existing != null) {
-            require(existing === provider) {
-                "Typed authentication scheme `$name` is already registered"
+            check(existing === provider) {
+                "Authentication provider name `$name` is already used by a different provider " +
+                    "${existing::class.simpleName}. Use a unique scheme name."
             }
             return
         }

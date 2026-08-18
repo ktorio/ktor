@@ -148,9 +148,7 @@ class SessionAuthenticationSchemeTest {
         routing {
             authenticateWith(sessionScheme) {}
         }
-        val failure = assertFailsWith<IllegalStateException> {
-            startApplication()
-        }
+        val failure = assertFailsWith<IllegalStateException> { startApplication() }
         assertContains(failure.message.orEmpty(), "requires Sessions to be installed before authenticateWith")
     }
 
@@ -168,7 +166,7 @@ class SessionAuthenticationSchemeTest {
         val failure = assertFailsWith<IllegalStateException> { startApplication() }
         assertContains(
             failure.message.orEmpty(),
-            "requires Sessions to be installed before authenticateWith"
+            "Sessions are installed, but no session provider named"
         )
     }
 

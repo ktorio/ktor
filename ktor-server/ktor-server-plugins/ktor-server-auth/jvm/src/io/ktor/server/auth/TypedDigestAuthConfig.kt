@@ -41,11 +41,11 @@ public class TypedDigestAuthConfig<P : Any> @PublishedApi internal constructor()
      *
      * When multiple algorithms are configured, the server sends multiple `WWW-Authenticate` headers and lets the
      * client choose one.
+     * Default is [DigestAlgorithm.SHA_512_256].
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.TypedDigestAuthConfig.algorithms)
      */
-    public var algorithms: List<DigestAlgorithm> =
-        listOf(DigestAlgorithm.SHA_512_256, @Suppress("DEPRECATION") DigestAlgorithm.MD5)
+    public var algorithms: List<DigestAlgorithm> = listOf(DigestAlgorithm.SHA_512_256)
 
     /**
      * Supported Quality of Protection options.

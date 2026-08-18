@@ -43,7 +43,14 @@ class LegacyApiCoexistenceTest {
                 get("/new-call") {
                     // call.principal<T>() also works inside typesafe API
                     val manual = call.principal<TestUser>()
-                    call.respondText("${call.principal.name}:${manual?.name}")
+                    val sameRef = if (manual === call.principal) "Yes" else "No"
+                    call.respondText("${call.principal.name}:${manual?.name}:$sameRef")
+                }
+            }
+            authenticateWithAnyOf(newScheme) {
+                get("anyof/same-call") {
+                    val text = if (call.principal<TestUser>() === call.principal) "Yes" else "No"
+                    call.respond(text)
                 }
             }
         }
@@ -57,7 +64,10 @@ class LegacyApiCoexistenceTest {
         assertEquals("new@test.com", newResp.bodyAsText())
 
         val callResp = client.get("/new-call") { header(HttpHeaders.Authorization, auth) }
-        assertEquals("user:user", callResp.bodyAsText())
+        assertEquals("user:user:Yes", callResp.bodyAsText())
+
+        val sameCallResp = client.get("anyof/same-call") { header(HttpHeaders.Authorization, auth) }
+        assertEquals("Yes", sameCallResp.bodyAsText())
     }
 
     @Test

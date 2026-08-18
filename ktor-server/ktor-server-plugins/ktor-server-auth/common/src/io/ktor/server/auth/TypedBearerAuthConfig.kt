@@ -88,8 +88,11 @@ public class TypedBearerAuthConfig<P : Any> @InternalAPI constructor() {
     @InternalAPI
     public fun buildProvider(name: String): BearerAuthenticationProvider {
         val config = BearerAuthenticationProvider.Config(name, description)
+        val validate = checkNotNull(validateFn) {
+            "Bearer auth scheme `$name` requires a validate { } block that returns a principal or null."
+        }
         realm?.let { config.realm = it }
-        validateFn?.let { fn -> config.authenticate { credential -> fn(toRoutingContext(), credential) } }
+        config.authenticate { credential -> validate(toRoutingContext(), credential) }
         authHeaderFn?.let { fn -> config.authHeader { call -> fn(call.toRoutingContext()) } }
         defaultScheme?.let { ds ->
             config.authSchemes(ds, *additionalSchemes!!.toTypedArray())

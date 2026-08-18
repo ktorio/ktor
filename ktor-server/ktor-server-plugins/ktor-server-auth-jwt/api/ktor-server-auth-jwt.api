@@ -73,7 +73,7 @@ public final class io/ktor/server/auth/jwt/TypedJwtAuthConfig {
 	public final fun validate (Lkotlin/jvm/functions/Function3;)V
 	public final fun verifier (Lcom/auth0/jwk/JwkProvider;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
 	public final fun verifier (Lcom/auth0/jwk/JwkProvider;Lkotlin/jvm/functions/Function1;)V
-	public final fun verifier (Lcom/auth0/jwt/JWTVerifier;)V
+	public final fun verifier (Lcom/auth0/jwt/interfaces/JWTVerifier;)V
 	public final fun verifier (Ljava/lang/String;Ljava/lang/String;Lcom/auth0/jwt/algorithms/Algorithm;Lkotlin/jvm/functions/Function1;)V
 	public final fun verifier (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
 	public final fun verifier (Lkotlin/jvm/functions/Function2;)V

@@ -5,12 +5,12 @@
 package io.ktor.server.auth.jwt
 
 import com.auth0.jwk.JwkProvider
-import com.auth0.jwt.JWTVerifier
 import com.auth0.jwt.algorithms.Algorithm
+import com.auth0.jwt.interfaces.JWTVerifier
 import com.auth0.jwt.interfaces.Verification
 import io.ktor.http.auth.*
 import io.ktor.server.application.*
-import io.ktor.server.auth.UnauthorizedHandler
+import io.ktor.server.auth.*
 import io.ktor.utils.io.*
 
 /**

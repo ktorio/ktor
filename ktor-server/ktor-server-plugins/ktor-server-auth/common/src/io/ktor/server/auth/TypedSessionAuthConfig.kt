@@ -93,8 +93,8 @@ public open class TypedSessionAuthConfig<S : Any, P : Any> @PublishedApi interna
      * This hook is intended for integrations that need to update or invalidate a stored session as part of
      * authentication. Return the effective session value for this request, or `null` to reject the session.
      *
-     * The stored session is rewritten only when the returned value is different instance as the incoming
-     * session (`!=`). Returning the same object skips [CurrentSession.set].
+     * The stored session is rewritten only when the returned value is not equal to the incoming session (`!=`).
+     * Returning an equal value skips [CurrentSession.set].
      *
      * @param block transformation function called with the session value read by the
      * [Sessions] plugin.
@@ -126,7 +126,9 @@ public open class TypedSessionAuthConfig<S : Any, P : Any> @PublishedApi interna
         val config = SessionAuthenticationProvider.Config(name, description, sessionType).apply {
             sessionName = name
         }
-        val resolver = requireNotNull(principalResolver) { "Principal resolver cannot be null" }
+        val resolver = requireNotNull(principalResolver) {
+            "A principal resolver must be configured using validate { ... }"
+        }
         val transformer = sessionTransformer
         config.validate { currentSession ->
             val routingContext = toRoutingContext()

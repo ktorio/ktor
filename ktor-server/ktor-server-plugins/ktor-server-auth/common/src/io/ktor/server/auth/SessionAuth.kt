@@ -65,7 +65,7 @@ public class SessionAuthenticationProvider<T : Any> private constructor(
     private fun CurrentSession.getSessionByName(sessionName: String): T? {
         val session = get(sessionName) ?: return null
         check(type.isInstance(session)) {
-            "Session provider `$sessionName` returned `$session`, but session type `$type` was expected."
+            "Session provider `$sessionName` returned an instance of `${session::class}`, but `$type` was expected."
         }
         @Suppress("UNCHECKED_CAST")
         return session as T

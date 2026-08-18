@@ -265,6 +265,13 @@ public class RoutingContext(
     public val call: RoutingCall
 )
 
+/**
+ * Creates a [RoutingContext] for this routing call.
+ *
+ * This function is intended for use by Ktor internal code only.
+ *
+ * @throws IllegalStateException if this call is neither a [RoutingCall] nor a [RoutingPipelineCall].
+ */
 @InternalAPI
 public fun ApplicationCall.toRoutingContext(): RoutingContext = when (this) {
     is RoutingCall -> RoutingContext(call = this)
