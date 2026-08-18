@@ -21,7 +21,6 @@ class BlockingBridgeTest {
     // Limit parallelism to 1 thread to make it easier to exhaust the dispatcher
     private val singleThreadDispatcher = Dispatchers.IO.limitedParallelism(1, "test-io-dispatcher")
 
-    @OptIn(InternalAPI::class)
     @Test
     fun `withBlockingOutputStream in combination with reader should not exhaust dispatcher`() = runTest {
         val readerStarted = CompletableDeferred<Unit>()
