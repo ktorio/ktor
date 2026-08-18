@@ -83,7 +83,6 @@ public final class io/ktor/server/auth/oidc/OidcKt {
 public final class io/ktor/server/auth/oidc/OidcMetadataRefreshFailure {
 	public fun <init> (Lio/ktor/server/auth/oidc/OidcProvider;ILjava/lang/Throwable;)V
 	public final fun getCause ()Ljava/lang/Throwable;
-	public final fun getCausedByValidation ()Z
 	public final fun getConsecutiveFailures ()I
 	public final fun getProvider ()Lio/ktor/server/auth/oidc/OidcProvider;
 }
