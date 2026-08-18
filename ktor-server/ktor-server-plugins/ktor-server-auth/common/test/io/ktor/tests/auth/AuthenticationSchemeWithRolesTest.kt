@@ -33,7 +33,7 @@ class AuthenticationSchemeWithRolesTest {
         }
 
     @Test
-    fun `role-based auth grants, forbids, and rejects`() = testApplication {
+    fun `test role-based authentication flow`() = testApplication {
         routing {
             authenticateWith(roleScheme(), roles = setOf(TestRole.Admin)) {
                 get("/admin") {
@@ -142,7 +142,7 @@ class AuthenticationSchemeWithRolesTest {
     }
 
     @Test
-    fun `role-based auth on sessions grants, forbids, and rejects`() = testApplication {
+    fun `test role-based authentication with session flow`() = testApplication {
         @Serializable
         data class UserSession(val name: String)
 
@@ -204,7 +204,7 @@ class AuthenticationSchemeWithRolesTest {
     }
 
     @Test
-    fun `optional role-based auth allows anonymous, forbids wrong role, and grants correct role`() = testApplication {
+    fun `test optional role-based authentication flow`() = testApplication {
         routing {
             authenticateWithOptional(roleScheme(), roles = setOf(TestRole.Admin)) {
                 get("/admin") {
