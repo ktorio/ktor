@@ -27,6 +27,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.getOrSet
 import kotlin.concurrent.read
 import kotlin.concurrent.write
+import kotlin.time.Duration.Companion.milliseconds
 
 private typealias ApplicationModule = suspend Application.() -> Unit
 
@@ -39,6 +40,9 @@ actual constructor(
     engineFactory: ApplicationEngineFactory<TEngine, TConfiguration>,
     engineConfigBlock: TConfiguration.() -> Unit
 ) {
+    init {
+        embeddedServerInstances.add(this)
+    }
 
     @Suppress("DEPRECATION")
     public actual val monitor: Events = rootConfig.environment.monitor
@@ -51,7 +55,6 @@ actual constructor(
     public actual val engineConfig: TConfiguration = engineFactory.configuration(engineConfigBlock)
     private val applicationInstanceLock = ReentrantReadWriteLock()
     private var recreateInstance: Boolean = false
-    private var applicationClassLoader: ClassLoader? = null
     private var packageWatchKeys = emptyList<WatchKey>()
 
     private val configuredWatchPath = environment.config.propertyOrNull("ktor.deployment.watch")?.getList().orEmpty()
@@ -139,11 +142,10 @@ actual constructor(
      */
     private fun reloadApplication() {
         val previousApplication = applicationInstance
-        val previousClassLoader = applicationClassLoader
         val previousWatchKeys = packageWatchKeys
 
-        val (newApplication, newClassLoader) = try {
-            createApplication()
+        val newApplication = try {
+            instantiateAndConfigureApplication()
         } catch (cause: Throwable) {
             // createClassLoader -> watchUrls() may have already replaced packageWatchKeys before
             // instantiateAndConfigureApplication() failed. Cancel those freshly-registered keys
@@ -158,7 +160,7 @@ actual constructor(
         if (previousApplication != null) {
             safeRaiseEvent(ApplicationStopping, previousApplication)
             try {
-                destroyBlocking(previousApplication, previousClassLoader)
+                destroyBlocking(previousApplication)
             } catch (e: Throwable) {
                 environment.log.error("Failed to destroy previous application instance.", e)
             }
@@ -169,7 +171,6 @@ actual constructor(
         }
 
         applicationInstance = newApplication
-        applicationClassLoader = newClassLoader
     }
 
     private fun getFileChanges(): List<WatchEvent<*>>? {
@@ -193,7 +194,7 @@ actual constructor(
                 count += moreChanges.size
             }
 
-            environment.log.debug("Changes to $count files caused application restart.")
+            environment.log.debug { "Changes to $count files caused application restart." }
             changes.take(5).forEach { environment.log.debug("...  {}", it.context()) }
             return changes
         } catch (e: InterruptedException) {
@@ -203,78 +204,6 @@ actual constructor(
             environment.log.debug("Watch service was closed", e)
             return null
         }
-    }
-
-    private fun createApplication(): Pair<Application, ClassLoader> {
-        val classLoader = createClassLoader()
-        val currentThread = Thread.currentThread()
-        val oldThreadClassLoader = currentThread.contextClassLoader
-        currentThread.contextClassLoader = classLoader
-
-        try {
-            return instantiateAndConfigureApplication(classLoader) to classLoader
-        } finally {
-            currentThread.contextClassLoader = oldThreadClassLoader
-        }
-    }
-
-    private fun createClassLoader(): ClassLoader {
-        val baseClassLoader = environment.classLoader
-
-        if (!rootConfig.developmentMode) {
-            environment.log.info("Autoreload is disabled because the development mode is off.")
-            return baseClassLoader
-        }
-
-        val watchPatterns = watchPatterns
-        if (watchPatterns.isEmpty()) {
-            environment.log.info("No ktor.deployment.watch patterns specified, automatic reload is not active.")
-            return baseClassLoader
-        }
-
-        if (!baseClassLoader.supportsAutoReload()) {
-            environment.log.warn(
-                "Auto-reload is disabled: application is loaded by ${baseClassLoader.javaClass.name}, " +
-                    "which is not a standard URLClassLoader. This typically happens when running inside " +
-                    "a fat-JAR (e.g. Spring Boot Launcher, Amper). Set ktor.development=false to suppress this warning."
-            )
-            return baseClassLoader
-        }
-
-        val allUrls = baseClassLoader.allURLs()
-        val jre = File(System.getProperty("java.home")).parent
-        val debugUrls = allUrls.map { it.file }
-        environment.log.debug("Java Home: $jre")
-        environment.log.debug("Class Loader: $baseClassLoader: ${debugUrls.filter { !it.toString().startsWith(jre) }}")
-
-        // we shouldn't watch URL for ktor-server classes, even if they match patterns,
-        // because otherwise it loads two ApplicationEnvironment (and other) types which do not match
-        val coreUrls = listOf(
-            ApplicationEnvironment::class.java, // ktor-server
-            Pipeline::class.java, // ktor-parsing
-            HttpStatusCode::class.java, // ktor-http
-            kotlin.jvm.functions.Function1::class.java, // kotlin-stdlib
-            Logger::class.java, // slf4j
-            ByteReadChannel::class.java,
-            Input::class.java, // kotlinx-io
-            Attributes::class.java
-        ).mapNotNullTo(HashSet()) { it.protectionDomain.codeSource.location }
-
-        val watchUrls = allUrls.filter { url ->
-            url !in coreUrls &&
-                watchPatterns.any { pattern -> checkUrlMatches(url, pattern) } &&
-                !(url.path ?: "").startsWith(jre)
-        }
-
-        if (watchUrls.isEmpty()) {
-            environment.log.info(
-                "No ktor.deployment.watch patterns match classpath entries, automatic reload is not active"
-            )
-            return baseClassLoader
-        }
-
-        watchUrls(watchUrls)
-        return OverridingClassLoader(watchUrls, baseClassLoader)
     }
 
     private fun safeRaiseEvent(event: EventDefinition<Application>, application: Application) {
@@ -287,14 +216,12 @@ actual constructor(
 
     private fun destroyApplication() {
         val currentApplication = applicationInstance
-        val currentApplicationClassLoader = applicationClassLoader
         applicationInstance = null
-        applicationClassLoader = null
 
         if (currentApplication != null) {
             safeRaiseEvent(ApplicationStopping, currentApplication)
             try {
-                destroyBlocking(currentApplication, currentApplicationClassLoader)
+                destroyBlocking(currentApplication)
             } catch (e: Throwable) {
                 environment.log.error("Failed to destroy application instance.", e)
             }
@@ -305,58 +232,10 @@ actual constructor(
     }
 
     @OptIn(InternalAPI::class)
-    private fun destroyBlocking(application: Application, classLoader: ClassLoader?) {
-        try {
-            runBlocking {
-                withTimeout(engineConfig.shutdownTimeout) {
-                    application.disposeAndJoin()
-                }
-            }
-        } finally {
-            (classLoader as? OverridingClassLoader)?.close()
-        }
-    }
-
-    private fun watchUrls(urls: List<URL>) {
-        val paths = HashSet<Path>()
-        for (url in urls) {
-            val path = url.path ?: continue
-            val decodedPath = URLDecoder.decode(path, "utf-8")
-            val folder = runCatching { File(decodedPath).toPath() }.getOrNull() ?: continue
-
-            if (!Files.exists(folder)) {
-                continue
-            }
-
-            val visitor = object : SimpleFileVisitor<Path>() {
-                override fun preVisitDirectory(dir: Path, attrs: BasicFileAttributes): FileVisitResult {
-                    paths.add(dir)
-                    return FileVisitResult.CONTINUE
-                }
-
-                override fun visitFile(file: Path, attrs: BasicFileAttributes): FileVisitResult {
-                    val dir = file.parent
-                    if (dir != null) {
-                        paths.add(dir)
-                    }
-
-                    return FileVisitResult.CONTINUE
-                }
-            }
-
-            if (Files.isDirectory(folder)) {
-                Files.walkFileTree(folder, visitor)
-            }
-        }
-
-        paths.forEach { path ->
-            environment.log.debug("Watching $path for changes.")
-        }
-
-        val modifiers = get_com_sun_nio_file_SensitivityWatchEventModifier_HIGH()?.let { arrayOf(it) } ?: emptyArray()
-        packageWatchKeys = paths.mapNotNull { path ->
-            watcher?.let {
-                path.register(it, arrayOf(ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY), *modifiers)
+    private fun destroyBlocking(application: Application) {
+        runBlocking {
+            withTimeout(engineConfig.shutdownTimeout.milliseconds) {
+                application.disposeAndJoin()
             }
         }
     }
@@ -365,8 +244,8 @@ actual constructor(
         addShutdownHook { stop() }
 
         applicationInstanceLock.write {
-            val (application, classLoader) = try {
-                createApplication()
+            val application = try {
+                instantiateAndConfigureApplication()
             } catch (cause: Throwable) {
                 destroyApplication()
                 if (watchPatterns.isNotEmpty()) {
@@ -376,7 +255,6 @@ actual constructor(
                 throw cause
             }
             applicationInstance = application
-            applicationClassLoader = classLoader
         }
 
         CoroutineScope(application.coroutineContext).launch {
@@ -417,7 +295,7 @@ actual constructor(
         withContext(Dispatchers.IOBridge) { stop(gracePeriodMillis, timeoutMillis) }
     }
 
-    private fun instantiateAndConfigureApplication(currentClassLoader: ClassLoader): Application {
+    private fun instantiateAndConfigureApplication(): Application {
         val newInstance = if (recreateInstance || applicationInstance == null) {
             Application(
                 environment,
@@ -438,7 +316,7 @@ actual constructor(
             withTimeout(environment.startupTimeout) {
                 environment.moduleLoader.loadModules(
                     newInstance,
-                    currentClassLoader,
+                    Thread.currentThread().contextClassLoader,
                     modules,
                 )
             }

@@ -7,11 +7,18 @@ package io.ktor.server.engine
 import io.ktor.events.*
 import io.ktor.server.application.*
 import io.ktor.util.logging.*
+import io.ktor.utils.io.InternalAPI
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
+
+@InternalAPI
+public fun embeddedServerInstances(): Collection<EmbeddedServer<*, *>> =
+    embeddedServerInstances
+
+internal val embeddedServerInstances: MutableList<EmbeddedServer<*, *>> = mutableListOf()
 
 /**
  * Represents an embedded server that hosts an application.
