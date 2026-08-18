@@ -8,6 +8,7 @@ import io.ktor.http.*
 import io.ktor.openapi.*
 
 private val StringReference: ReferenceOr<JsonSchema> = ReferenceOr.Value(JsonSchema(type = JsonType.STRING))
+private const val SchemaComponentPrefix: String = "#/components/schemas/"
 
 /**
  * Mapping function for [Operation].
@@ -222,7 +223,8 @@ public class CollectSchemaReferences(private val schemaToComponent: (JsonSchema)
     }
 
     private fun mapSchemaReferences(refRef: ReferenceOr.Reference): ReferenceOr<JsonSchema> {
-        val schemaName = refRef.ref.removePrefix("#/components/schemas/")
+        if (!refRef.ref.startsWith(SchemaComponentPrefix)) return refRef
+        val schemaName = refRef.ref.removePrefix(SchemaComponentPrefix)
         val targetComponent = titleToComponent[schemaName]
             ?: titleToComponent[schemaName.substringAfterLast('.')]
             ?: schemaName.substringAfterLast('.')
