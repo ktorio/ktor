@@ -14,7 +14,7 @@ kover = "0.9.4"
 kotlinter = "5.2.0"
 kotlinx-browser = "0.5.0"
 
-netty = "4.2.12.Final"
+netty = "4.1.137.Final"
 netty-tcnative = "2.0.76.Final"
 
 jetty = "9.4.58.v20250814"
