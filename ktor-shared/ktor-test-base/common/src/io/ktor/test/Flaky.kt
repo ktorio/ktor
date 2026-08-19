@@ -30,8 +30,9 @@ package io.ktor.test
  * | `./gradlew :module:jsNodeTest -Pktor.tests.flaky=only` | flaky only      |
  * | `./gradlew :module:macosArm64Test -Pktor.tests.flaky=all` | everything   |
  *
- * The JVM-only `flakyTest` task runs the full suite with `@Flaky` tests enabled, since the
- * annotation is resolved at execution time rather than during selection.
+ * The JVM-only `flakyTest` task runs **only** the `@Flaky` tests (it sets `flaky.tests.only`, so
+ * `FlakyTestCondition` skips everything else), since the annotation is resolved at execution time
+ * rather than during selection.
  *
  * Prefer fixing flakiness over marking; when marking, always link the tracking issue.
  *

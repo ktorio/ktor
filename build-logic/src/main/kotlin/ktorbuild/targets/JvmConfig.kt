@@ -47,7 +47,7 @@ private fun Project.configureTests() {
         maxHeapSize = "2g"
         exclude("**/*StressTest*")
         // Auto-register FlakyTestCondition so @Flaky tests are excluded from the default
-        // run (they run only in the `flakyTest` task below, which sets enable.flaky.tests).
+        // run (they run only in the `flakyTest` task below, which sets flaky.tests.only).
         systemProperty("junit.jupiter.extensions.autodetection.enabled", "true")
         systemProperty("enable.flaky.tests", flakyTestsEnabled)
         useJUnitPlatform()
@@ -67,17 +67,18 @@ private fun Project.configureTests() {
         configureJavaToolchain(java.toolchain.languageVersion, ktorBuild.jvmTestToolchain)
     }
 
-    // Runs @Flaky-annotated tests (excluded from the default `jvmTest`). Intended for a
+    // Runs ONLY @Flaky-annotated tests (excluded from the default `jvmTest`). Intended for a
     // nightly/dedicated job that publishes to Develocity so quarantined tests stay tracked.
-    // This runs the full suite with flaky tests enabled, because the annotation can only be
-    // resolved at execution time. To run flaky tests and nothing else — on any target, not just
-    // JVM — use the name-based selection instead: `-Pktor.tests.flaky=only`.
+    // `flaky.tests.only` makes FlakyTestCondition skip every non-flaky test, so the job samples just
+    // the quarantined tests instead of dragging the whole JVM suite along. (Selection is by
+    // annotation, resolved at execution time; the `_flaky` name token — `-Pktor.tests.flaky=only` —
+    // is the equivalent for Native/JS/Wasm, which have no JUnit Platform.)
     tasks.register<Test>(FLAKY_TEST_TASK) {
         classpath = files(jvmTest.map { it.classpath })
         testClassesDirs = files(jvmTest.map { it.testClassesDirs })
 
         maxHeapSize = "2g"
-        systemProperty("enable.flaky.tests", "true")
+        systemProperty("flaky.tests.only", "true")
         systemProperty("junit.jupiter.extensions.autodetection.enabled", "true")
         exclude("**/*StressTest*")
         useJUnitPlatform()

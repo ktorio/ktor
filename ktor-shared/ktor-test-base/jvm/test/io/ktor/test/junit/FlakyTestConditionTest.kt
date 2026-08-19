@@ -23,14 +23,16 @@ private const val SELF_TEST_TICKET = "KTOR-9796"
  * with the message below instead of passing silently.
  */
 private fun assertDisabledUnlessFlakyEnabled() {
-    // Mirrors FlakyTestCondition: the property is always set by the build, so merely being
-    // present says nothing — it has to say that flaky tests are enabled.
-    val property: String? = System.getProperty("enable.flaky.tests")
+    // Mirrors FlakyTestCondition: a @Flaky test runs only when flaky tests are enabled, via either
+    // `enable.flaky.tests` (full suite with flaky) or `flaky.tests.only` (the flakyTest task).
+    fun String?.isFlakyEnabled() = this != null && this !in setOf("false", "0")
+    val enableFlaky: String? = System.getProperty("enable.flaky.tests")
+    val onlyFlaky: String? = System.getProperty("flaky.tests.only")
     assertTrue(
-        property !in setOf(null, "false", "0"),
-        "This test is annotated @Flaky, so FlakyTestCondition must have disabled it, " +
-            "but it ran with enable.flaky.tests=$property. Is the Extension service file " +
-            "in jvm/resources/META-INF/services missing?",
+        enableFlaky.isFlakyEnabled() || onlyFlaky.isFlakyEnabled(),
+        "This test is annotated @Flaky, so FlakyTestCondition must have disabled it, but it ran " +
+            "with enable.flaky.tests=$enableFlaky flaky.tests.only=$onlyFlaky. Is the Extension " +
+            "service file in jvm/resources/META-INF/services missing?",
     )
 }
 
