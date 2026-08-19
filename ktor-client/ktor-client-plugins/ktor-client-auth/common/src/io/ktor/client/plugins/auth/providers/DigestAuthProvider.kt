@@ -120,7 +120,7 @@ public class DigestAuthProvider(
 
     private val qop = atomic<String?>(null)
     private val opaque = atomic<String?>(null)
-    private val clientNonce = generateNonceBlocking()
+    private val clientNonce = atomic<String?>(null)
 
     private val requestCounter = atomic(0)
 
@@ -166,6 +166,13 @@ public class DigestAuthProvider(
         return true
     }
 
+    private suspend inline fun getNonce(): String {
+        clientNonce.value?.let { return it }
+        val newNonce = generateNonceSuspend()
+        val prevNonce = clientNonce.getAndSet(newNonce)
+        return prevNonce ?: newNonce
+    }
+
     override suspend fun addRequestHeaders(request: HttpRequestBuilder, authHeader: HttpAuthHeader?) {
         val nonceCount = requestCounter.incrementAndGet().toString(radix = 16).padStart(length = 8, padChar = '0')
         val methodName = request.method.value.uppercase()
@@ -181,6 +188,7 @@ public class DigestAuthProvider(
         }
 
         val credentials = tokenHolder.loadToken() ?: return
+        val cnonce = getNonce()
         val credential = makeDigest("${credentials.username}:$realm:${credentials.password}")
 
         val start = credential.toHexString()
@@ -188,7 +196,7 @@ public class DigestAuthProvider(
         val tokenSequence = if (actualQop == null) {
             listOf(start, nonce, end)
         } else {
-            listOf(start, nonce, nonceCount, clientNonce, actualQop, end)
+            listOf(start, nonce, nonceCount, cnonce, actualQop, end)
         }
 
         val token = makeDigest(tokenSequence.joinToString(":"))
@@ -200,7 +208,7 @@ public class DigestAuthProvider(
                 serverOpaque?.let { this["opaque"] = it.quote() }
                 this["username"] = credentials.username.quote()
                 this["nonce"] = nonce.quote()
-                this["cnonce"] = clientNonce.quote()
+                this["cnonce"] = cnonce.quote()
                 this["response"] = token.toHexString().quote()
                 this["uri"] = url.fullPath.quote()
                 actualQop?.let { this["qop"] = it }
