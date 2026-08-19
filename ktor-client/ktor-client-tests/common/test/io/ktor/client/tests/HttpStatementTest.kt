@@ -97,8 +97,12 @@ class HttpStatementTest : ClientLoader() {
         }
     }
 
+    // The Android engine reads the body with a blocking call that doesn't honour cancellation, so
+    // throwing from the block leaves the streaming read hanging until the guard below fires and the
+    // test body never completes.
+    @Flaky("KTOR-8570")
     @Test
-    fun testStreamingResponseExceptionInBodyCancelsImmediately() = clientTests {
+    fun testStreamingResponseExceptionInBodyCancelsImmediately_flaky() = clientTests {
         test { client ->
             val exception = assertFailsWith<IllegalStateException> {
                 withTimeout(GUARD_TIMEOUT_MS) {

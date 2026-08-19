@@ -67,8 +67,11 @@ class ContentTest : ClientLoader() {
         }
     }
 
+    // WinHttp hangs on some of the larger echo payloads and the test body never completes (~10% of
+    // mingwX64 runs, every failure on that engine alone).
+    @Flaky("KTOR-9789")
     @Test
-    fun testByteArray() = clientTests(except("web:CIO")) {
+    fun testByteArray_flaky() = clientTests(except("web:CIO")) {
         test { client ->
             testArrays.forEach { content ->
                 val response = client.echo<ByteArray>(content)
