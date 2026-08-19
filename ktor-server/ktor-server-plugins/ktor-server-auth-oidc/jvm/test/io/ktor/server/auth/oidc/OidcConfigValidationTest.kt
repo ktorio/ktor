@@ -149,7 +149,7 @@ class OidcConfigValidationTest {
     }
 
     @Test
-    fun `sessionless oauth requires onSuccess`() {
+    fun `sessionless oauth requires onAuthenticated`() {
         val failure = assertProviderValidationFails {
             oauth {
                 clientId = "client-id"
@@ -157,7 +157,7 @@ class OidcConfigValidationTest {
                 disableSessions()
             }
         }
-        assertContains(failure.message.orEmpty(), "onSuccess")
+        assertContains(failure.message.orEmpty(), "onAuthenticated")
     }
 
     @Test

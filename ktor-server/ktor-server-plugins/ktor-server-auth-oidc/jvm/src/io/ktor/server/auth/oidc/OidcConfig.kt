@@ -430,17 +430,17 @@ public interface CodeChallengeMethod {
     }
 }
 
-internal typealias OidcOAuthSuccessHandler = suspend RoutingContext.(OidcToken.Id) -> Unit
+internal typealias OidcOAuthAuthenticatedHandler = suspend RoutingContext.(OidcToken.Id) -> Unit
 
 /**
  * OAuth/OpenID Connect configuration.
  *
  * OAuth installs a provider-specific login route and callback route. The callback requires an ID token and the
- * `openid` scope, then passes the verified [OidcToken.Id] to [onSuccess].
+ * `openid` scope, then passes the verified [OidcToken.Id] to [onAuthenticated].
  *
  * Browser sessions are enabled by default. Customize them with [sessions] or opt out with [disableSessions].
- * Plugin-managed [refresh] and [logout] routes require sessions. When sessions are disabled, [onSuccess] is required
- * so verified token material is not discarded.
+ * Plugin-managed [refresh] and [logout] routes require sessions. When sessions are disabled, [onAuthenticated]
+ * is required so verified token material is not discarded.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcOAuthConfig)
  */
@@ -624,8 +624,8 @@ public class OidcOAuthConfig internal constructor(
      *
      * @param block handler invoked with the verified ID-token bundle.
      */
-    public fun onSuccess(block: OidcOAuthSuccessHandler) {
-        onSuccess = block
+    public fun onAuthenticated(block: OidcOAuthAuthenticatedHandler) {
+        onAuthenticated = block
     }
 
     /**
@@ -633,8 +633,8 @@ public class OidcOAuthConfig internal constructor(
      *
      * @param block failure handler.
      */
-    public fun onFailure(block: UnauthorizedHandler) {
-        onFailure = block
+    public fun onAuthenticationFailed(block: UnauthorizedHandler) {
+        onAuthenticationFailed = block
     }
 
     internal var sessionsDisabled: Boolean = false
@@ -648,20 +648,15 @@ public class OidcOAuthConfig internal constructor(
     /**
      * Called after a successful OAuth login with the verified [OidcToken.Id].
      */
-    internal var onSuccess: OidcOAuthSuccessHandler? = null
+    internal var onAuthenticated: OidcOAuthAuthenticatedHandler = DEFAULT_ON_AUTHENTICATED
 
     /**
      * Called when OAuth or OpenID Connect verification fails during the callback.
      */
-    internal var onFailure: UnauthorizedHandler = { call.respond(HttpStatusCode.Unauthorized) }
+    internal var onAuthenticationFailed: UnauthorizedHandler = { call.respond(HttpStatusCode.Unauthorized) }
 
     internal var onLogout: suspend RoutingContext.() -> Unit = {}
     internal var onRefresh: suspend RoutingContext.() -> Unit = {}
-
-    internal suspend fun invokeOnSuccess(context: RoutingContext, token: OidcToken.Id) {
-        val handler = onSuccess ?: { call.respond(HttpStatusCode.OK) }
-        with(context) { handler(token) }
-    }
 
     internal fun validate() {
         require(::clientId.isInitialized) {
@@ -676,9 +671,13 @@ public class OidcOAuthConfig internal constructor(
         require(sessionConfig != null || (logoutPath == null && refreshPath == null)) {
             "logout { } and refresh { } require sessions. Call sessions { } or omit disableSessions()"
         }
-        require(!sessionsDisabled || onSuccess != null) {
-            "onSuccess { } must be configured when sessions are disabled"
+        require(!sessionsDisabled || onAuthenticated == DEFAULT_ON_AUTHENTICATED) {
+            "onAuthenticated { } must be configured when sessions are disabled"
         }
+    }
+
+    internal companion object {
+        val DEFAULT_ON_AUTHENTICATED: OidcOAuthAuthenticatedHandler = { call.respond(HttpStatusCode.OK) }
     }
 }
 

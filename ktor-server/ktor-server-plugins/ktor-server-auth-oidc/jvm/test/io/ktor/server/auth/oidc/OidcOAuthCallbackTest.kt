@@ -28,7 +28,7 @@ import kotlin.time.Duration.Companion.ZERO
 class OidcOAuthCallbackTest {
 
     @Test
-    fun `oauth callback without sessions uses onSuccess and skips session routes`() = testApplication {
+    fun `oauth callback without sessions uses onAuthenticated and skips session routes`() = testApplication {
         val keys = testRsaKeys
         val idTokensByState = ConcurrentHashMap<String, String>()
 
@@ -47,7 +47,7 @@ class OidcOAuthCallbackTest {
                     clientId = "client-id"
                     clientSecret = "client-secret"
                     disableSessions()
-                    onSuccess { idToken -> call.respondText("signed in ${idToken.userInfo.subject}") }
+                    onAuthenticated { idToken -> call.respondText("signed in ${idToken.userInfo.subject}") }
                 }
             }
         }
@@ -96,7 +96,7 @@ class OidcOAuthCallbackTest {
                     clientId = "client-id"
                     clientSecret = "client-secret"
                     codeChallengeMethod = null
-                    onSuccess { idToken ->
+                    onAuthenticated { idToken ->
                         call.respondText("signed in ${idToken.userInfo.subject}")
                     }
                 }
@@ -231,7 +231,7 @@ class OidcOAuthCallbackTest {
                 oauth {
                     clientId = "client-id"
                     clientSecret = "client-secret"
-                    onFailure { cause ->
+                    onAuthenticationFailed { cause ->
                         val message = (cause as? AuthenticationFailedCause.Error)?.message ?: cause.toString()
                         call.respondText("failed:$message")
                     }
@@ -265,7 +265,7 @@ class OidcOAuthCallbackTest {
                 oauth {
                     clientId = "client-id"
                     clientSecret = "client-secret"
-                    onSuccess { idToken ->
+                    onAuthenticated { idToken ->
                         call.respondText("signed in ${idToken.userInfo.subject}")
                     }
                 }
@@ -387,7 +387,7 @@ class OidcOAuthCallbackTest {
                     clientId = "client-id"
                     clientSecret = "client-secret"
                     disableSessions()
-                    onSuccess { idToken ->
+                    onAuthenticated { idToken ->
                         call.respondText("signed in ${idToken.userInfo.subject}")
                     }
                 }
@@ -451,7 +451,7 @@ class OidcOAuthCallbackTest {
                     clientId = "client-id"
                     clientSecret = "client-secret"
                     this.stateEncryptionKey = stateEncryptionKey
-                    onSuccess { idToken ->
+                    onAuthenticated { idToken ->
                         call.respondText("signed in ${idToken.userInfo.subject}")
                     }
                 }

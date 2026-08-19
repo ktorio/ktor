@@ -150,7 +150,7 @@ class ProtectedResourceMetadataTest {
                         clientSecret = "browser-secret"
                         scopes = listOf("openid", "browser")
                         disableSessions()
-                        onSuccess { }
+                        onAuthenticated { }
                     }
                 }
                 oidc.identityProvider("api") {
@@ -163,7 +163,7 @@ class ProtectedResourceMetadataTest {
                         clientSecret = "api-secret"
                         scopes = listOf("openid", "api.read")
                         disableSessions()
-                        onSuccess { }
+                        onAuthenticated { }
                     }
                 }
             }

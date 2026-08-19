@@ -97,7 +97,7 @@ internal fun ApplicationTestBuilder.installSessionTestApp(
             oauth {
                 clientId = "client-id"
                 clientSecret = "client-secret"
-                onSuccess { call.respondText("signed in") }
+                onAuthenticated { call.respondText("signed in") }
                 refresh()
                 logout()
                 sessions {

@@ -54,7 +54,7 @@ class OidcBrowserFlowTest {
                     clientId = "client-id"
                     clientSecret = "client-secret"
                     fetchUserInfo = true
-                    onSuccess { idToken ->
+                    onAuthenticated { idToken ->
                         call.respondText("signed in ${idToken.userInfo.subject}")
                     }
                     refresh()

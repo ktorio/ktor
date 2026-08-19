@@ -335,7 +335,7 @@ class OidcSessionRoutesTest {
                 oauth {
                     clientId = "client-id"
                     clientSecret = "client-secret"
-                    onSuccess { call.respondText("signed in") }
+                    onAuthenticated { call.respondText("signed in") }
                     sessions {
                         name = OIDC_TEST_SESSION_NAME
                         cookie {
