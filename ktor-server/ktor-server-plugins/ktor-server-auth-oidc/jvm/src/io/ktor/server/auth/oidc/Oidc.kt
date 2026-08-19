@@ -80,7 +80,7 @@ private val ProviderNameRegex = Regex("[a-z0-9]+(?:-[a-z0-9]+)*")
  *         clientSecret = "..."
  *         scopes = listOf("openid", "profile", "email")
  *
- *         onSuccess { token ->
+ *         onAuthenticated { token ->
  *             call.respondRedirect("/dashboard")
  *         }
  *

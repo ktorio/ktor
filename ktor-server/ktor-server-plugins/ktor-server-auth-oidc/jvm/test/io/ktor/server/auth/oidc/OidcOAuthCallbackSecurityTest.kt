@@ -103,7 +103,7 @@ class OidcOAuthCallbackSecurityTest {
         installOAuthProvider(
             keys = testRsaKeys,
             metadata = metadata,
-            onSuccess = { idToken ->
+            onAuthenticated = { idToken ->
                 call.respondText("signed in ${idToken.userInfo.subject}")
             },
         )
@@ -147,7 +147,7 @@ class OidcOAuthCallbackSecurityTest {
     private fun ApplicationTestBuilder.installOAuthProvider(
         keys: OpenIdTestKeys,
         metadata: OpenIdProviderMetadata = testOpenIdProviderMetadata(ISSUER_URL),
-        onSuccess: suspend RoutingContext.(OidcToken.Id) -> Unit = { call.respond(HttpStatusCode.OK) },
+        onAuthenticated: suspend RoutingContext.(OidcToken.Id) -> Unit = { call.respond(HttpStatusCode.OK) },
     ) {
         val openIdClient = discoveryClient()
         application {
@@ -161,7 +161,7 @@ class OidcOAuthCallbackSecurityTest {
                 oauth {
                     clientId = "client-id"
                     clientSecret = "client-secret"
-                    this.onSuccess { token -> onSuccess(token) }
+                    this.onAuthenticated { token -> onAuthenticated(token) }
                 }
             }
         }

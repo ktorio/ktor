@@ -104,8 +104,8 @@ public final class io/ktor/server/auth/oidc/OidcOAuthConfig {
 	public final fun logout (Ljava/lang/String;Lkotlin/jvm/functions/Function2;)V
 	public static synthetic fun logout$default (Lio/ktor/server/auth/oidc/OidcOAuthConfig;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;ILjava/lang/Object;)V
 	public static synthetic fun logout$default (Lio/ktor/server/auth/oidc/OidcOAuthConfig;Ljava/lang/String;Lkotlin/jvm/functions/Function2;ILjava/lang/Object;)V
-	public final fun onFailure (Lio/ktor/server/auth/UnauthorizedHandler;)V
-	public final fun onSuccess (Lkotlin/jvm/functions/Function3;)V
+	public final fun onAuthenticated (Lkotlin/jvm/functions/Function3;)V
+	public final fun onAuthenticationFailed (Lio/ktor/server/auth/UnauthorizedHandler;)V
 	public final fun refresh (Ljava/lang/String;Lkotlin/jvm/functions/Function2;)V
 	public static synthetic fun refresh$default (Lio/ktor/server/auth/oidc/OidcOAuthConfig;Ljava/lang/String;Lkotlin/jvm/functions/Function2;ILjava/lang/Object;)V
 	public final fun sessions (Lkotlin/jvm/functions/Function1;)V

@@ -147,7 +147,7 @@ class OidcPluginRegistrationTest {
     @Test
     fun `typed route registration rejects derived scheme name collisions`() {
         val secondIssuer = "https://okta.example.com"
-        val failure = assertFailsWith<IllegalArgumentException> {
+        val failure = assertFailsWith<IllegalStateException> {
             testApplication {
                 application {
                     val oidc = install(Oidc)
@@ -184,7 +184,7 @@ class OidcPluginRegistrationTest {
         }
 
         assertContains(failure.message.orEmpty(), "auth0-jwt-bearer")
-        assertContains(failure.message.orEmpty(), "already registered")
+        assertContains(failure.message.orEmpty(), "already used")
     }
 
     private fun assertConcurrentDuplicateRegistrations(

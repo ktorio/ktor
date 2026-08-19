@@ -86,7 +86,7 @@ internal val OidcProvider.oauthFailureHandler: UnauthorizedHandler
     get() = UnauthorizedHandler { cause ->
         val message = (cause as? AuthenticationFailedCause.Error)?.message ?: cause.toString()
         logger.debug("OAuth authentication failed for: {}", message)
-        with(oauthConfig.onFailure) { onUnauthorized(cause) }
+        with(oauthConfig.onAuthenticationFailed) { onUnauthorized(cause) }
     }
 
 internal fun OidcProvider.createOauthFlow(): OAuth2Flow {
@@ -103,7 +103,7 @@ internal fun OidcProvider.createOauthFlow(): OAuth2Flow {
         callback(redirectPath) callback@{ response ->
             try {
                 val token = handleOAuthCallbackSuccess(response)
-                config.invokeOnSuccess(this, token)
+                config.onAuthenticated(this, token)
             } catch (cause: CancellationException) {
                 throw cause
             } catch (cause: Exception) {
@@ -133,8 +133,8 @@ internal fun OidcProvider.createOAuthSession(
 
         callback(
             path = redirectPath,
-            onFailure = config.onFailure,
-            onSuccess = { config.invokeOnSuccess(this, call.session) },
+            onFailure = config.onAuthenticationFailed,
+            onSuccess = { config.onAuthenticated(this, call.session) },
         )
 
         sessions {
