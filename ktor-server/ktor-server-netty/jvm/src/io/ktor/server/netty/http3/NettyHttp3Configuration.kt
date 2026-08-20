@@ -23,14 +23,20 @@ import kotlin.time.Duration.Companion.seconds
 public class NettyHttp3Configuration {
 
     /**
-     * The [QuicTokenHandler] used to generate and validate QUIC retry tokens.
-     * By default, a secure HMAC-SHA256-based handler is used that cryptographically
-     * signs tokens with a randomly generated key and rejects forged or expired tokens.
+     * The [QuicTokenHandler] used to generate and validate QUIC address-validation (Retry) tokens.
      *
-     * Callers may replace this with a custom [QuicTokenHandler] implementation
-     * to use a different signing strategy or integrate with external token services.
+     * When `null` (the default), no address validation is performed and connections are accepted
+     * on the first Initial packet. Setting a handler enables stateless Retry: every new connection
+     * without a token receives a Retry packet and must restart the handshake, which adds one full
+     * round trip and roughly doubles the Initial packet processing per connection. Enable it when
+     * the endpoint is exposed to untrusted networks and needs protection against source-address
+     * spoofing and amplification attacks.
+     *
+     * [HmacQuicTokenHandler] is provided as a secure implementation that signs tokens
+     * with HMAC-SHA256 and rejects forged or expired tokens. Callers may also supply a custom
+     * [QuicTokenHandler] to use a different signing strategy or integrate with external token services.
      */
-    public var quicTokenHandler: QuicTokenHandler = HmacQuicTokenHandler()
+    public var quicTokenHandler: QuicTokenHandler? = null
 
     /**
      * Maximum idle timeout for QUIC connections.
@@ -98,6 +104,56 @@ public class NettyHttp3Configuration {
         set(value) {
             require(value > 0) {
                 "quicInitialMaxStreamsBidirectional must be > 0, but was $value"
+            }
+            field = value
+        }
+
+    /**
+     * The number of UDP sockets to bind for the HTTP/3 endpoint.
+     *
+     * All QUIC channels of a socket are served by the single event loop the socket is registered on,
+     * so binding one socket pins the entire HTTP/3 endpoint to one thread. Binding multiple sockets
+     * with `SO_REUSEPORT` lets the kernel distribute connections across sockets (and therefore across
+     * event loops) by hashing the client address.
+     *
+     * When `null` (the default), the number of worker event loops is used on transports where
+     * `SO_REUSEPORT` balances UDP traffic across sockets (Linux/epoll), and a single socket elsewhere.
+     * Values greater than 1 require a native transport (epoll or kqueue).
+     *
+     * Note: kernel hashing is based on the client address, so QUIC connection migration across
+     * client addresses is not supported when more than one socket is bound.
+     */
+    public var udpSocketCount: Int? = null
+        set(value) {
+            require(value == null || value > 0) {
+                "udpSocketCount must be > 0, but was $value"
+            }
+            field = value
+        }
+
+    /**
+     * The `SO_RCVBUF` size in bytes for the HTTP/3 UDP sockets, or `0` to use the system default.
+     *
+     * Under load, an undersized receive buffer causes dropped datagrams, which QUIC treats as packet
+     * loss and recovers from at a significant throughput cost. Consider raising this (for example,
+     * to a few megabytes) for high-throughput deployments; the effective value may be capped by the
+     * operating system.
+     */
+    public var udpReceiveBufferSize: Int = 0
+        set(value) {
+            require(value >= 0) {
+                "udpReceiveBufferSize must be >= 0, but was $value"
+            }
+            field = value
+        }
+
+    /**
+     * The `SO_SNDBUF` size in bytes for the HTTP/3 UDP sockets, or `0` to use the system default.
+     */
+    public var udpSendBufferSize: Int = 0
+        set(value) {
+            require(value >= 0) {
+                "udpSendBufferSize must be >= 0, but was $value"
             }
             field = value
         }

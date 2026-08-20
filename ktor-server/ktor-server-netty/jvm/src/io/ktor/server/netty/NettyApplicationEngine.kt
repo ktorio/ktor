@@ -27,6 +27,7 @@ import io.netty.channel.socket.DatagramChannel
 import io.netty.channel.socket.ServerSocketChannel
 import io.netty.channel.socket.nio.NioDatagramChannel
 import io.netty.channel.socket.nio.NioServerSocketChannel
+import io.netty.channel.unix.UnixChannelOption
 import io.netty.handler.codec.http.HttpObjectDecoder
 import io.netty.handler.codec.http.HttpServerCodec
 import io.netty.handler.codec.quic.QuicSslContext
@@ -288,6 +289,20 @@ public class NettyApplicationEngine(
         }
     }
 
+    /**
+     * The number of UDP sockets bound per HTTP/3 connector.
+     *
+     * Every QUIC channel (and all its streams) is served by the event loop of the datagram socket
+     * that received it, so a single socket pins the entire HTTP/3 endpoint to one thread. Binding
+     * multiple sockets with `SO_REUSEPORT` lets the kernel spread connections across event loops.
+     * Kernel-side UDP load balancing across `SO_REUSEPORT` sockets is only effective on Linux,
+     * so the automatic default stays at 1 elsewhere.
+     */
+    private val http3SocketCount: Int by lazy {
+        configuration.http3Configuration?.udpSocketCount
+            ?: if (Epoll.isAvailable()) configuration.workerGroupSize else 1
+    }
+
     @Suppress("UNCHECKED_CAST")
     private fun createHttp3Bootstrap(
         connector: EngineSSLConnectorConfig,
@@ -311,6 +326,15 @@ public class NettyApplicationEngine(
         return Bootstrap().apply {
             group(workerEventGroup)
             channel(getDatagramChannelClass().java)
+            if (http3SocketCount > 1) {
+                option(UnixChannelOption.SO_REUSEPORT, true)
+            }
+            if (http3Configuration.udpReceiveBufferSize > 0) {
+                option(ChannelOption.SO_RCVBUF, http3Configuration.udpReceiveBufferSize)
+            }
+            if (http3Configuration.udpSendBufferSize > 0) {
+                option(ChannelOption.SO_SNDBUF, http3Configuration.udpSendBufferSize)
+            }
             handler(
                 NettyHttp3ChannelInitializer(
                     applicationProvider,
@@ -348,11 +372,15 @@ public class NettyApplicationEngine(
 
             // Bind HTTP/3 (QUIC/UDP) on the same resolved port as the TCP SSL connector.
             // TCP and UDP can share the same port number since they are different protocols.
+            // Multiple sockets per connector (SO_REUSEPORT) spread QUIC connections across
+            // event loops; see [http3SocketCount].
             val resolvedSslConnectors = channels!!.zip(configuration.connectors)
                 .filter { it.second is EngineSSLConnectorConfig }
                 .map { it.second.host to (it.first.localAddress() as java.net.InetSocketAddress).port }
             http3Channels = http3Bootstraps.zip(resolvedSslConnectors)
-                .map { (bootstrap, hostPort) -> bootstrap.bind(hostPort.first, hostPort.second) }
+                .flatMap { (bootstrap, hostPort) ->
+                    List(http3SocketCount) { bootstrap.bind(hostPort.first, hostPort.second) }
+                }
                 .map { it.sync().channel() }
 
             resolvedConnectorsDeferred.complete(connectors)
