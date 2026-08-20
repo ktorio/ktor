@@ -3,6 +3,7 @@
 package openapi
 
 import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.server.application.*
 import io.ktor.server.plugins.contentnegotiation.ContentNegotiation
@@ -43,6 +44,12 @@ fun Application.installCallHandlerFunctions() {
         }
         get("/call-getter-extension") {
             call.respondWithDynamicContentType()
+        }
+        get("/suspend-lambda-arguments") {
+            if (!withAuthorization(call) { authorizeAdmin(call) }) {
+                return@get
+            }
+            call.respond(HttpStatusCode.OK, "ok")
         }
     }
 }
@@ -89,4 +96,28 @@ private fun RoutingCall.includeHeader(key: String, value: String) {
 
 suspend fun ApplicationCall.respondWithDynamicContentType() {
     respondText("data", if (isHandled) ContentType.Text.Html else ContentType.Text.Html)
+}
+
+sealed class AuthorizationResult {
+    data object Success : AuthorizationResult()
+
+    data class Failure(val statusCode: HttpStatusCode, val message: String) : AuthorizationResult()
+}
+
+suspend fun withAuthorization(
+    call: ApplicationCall,
+    block: suspend () -> AuthorizationResult,
+): Boolean {
+    val result = block()
+    if (result is AuthorizationResult.Failure) {
+        // suspend call AND a read of the smart-cast value, in the same branch
+        call.respond(result.statusCode, result.message)
+        return false
+    }
+    return true
+}
+
+suspend fun authorizeAdmin(call: ApplicationCall): AuthorizationResult {
+    call.respond(HttpStatusCode.OK, "checked")
+    return AuthorizationResult.Success
 }
