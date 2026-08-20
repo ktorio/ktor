@@ -1477,6 +1477,13 @@ public final class io/ktor/http/content/EntityTagVersion$Companion {
 	public final fun parseSingle (Ljava/lang/String;)Lio/ktor/http/content/EntityTagVersion;
 }
 
+public final class io/ktor/http/content/FormFieldLimitExceededException : java/io/IOException {
+	public fun <init> (Lio/ktor/http/Headers;Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Lio/ktor/http/Headers;Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getFieldName ()Ljava/lang/String;
+	public final fun getHeaders ()Lio/ktor/http/Headers;
+}
+
 public final class io/ktor/http/content/LastModifiedVersion : io/ktor/http/content/Version {
 	public fun <init> (Lio/ktor/util/date/GMTDate;)V
 	public fun appendHeadersTo (Lio/ktor/http/HeadersBuilder;)V
