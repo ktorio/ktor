@@ -53,6 +53,18 @@ private fun RepositoryHandler.configureRepositories(configure: RepositoryHandler
         }
         filter { includeVersionByRegex("io.ktor", ".+", ".+-eap-\\d+") }
     }
+
+    // Shibboleth Nexus repository for OpenSAML 5.x artifacts
+    exclusiveContent {
+        forRepository {
+            maven("https://build.shibboleth.net/maven/releases/") { name = "Shibboleth" }
+        }
+        filter {
+            includeGroup("org.opensaml")
+            includeGroup("net.shibboleth")
+            includeGroup("net.shibboleth.utilities")
+        }
+    }
 }
 
 private fun VersionCatalogBuilder.downgradeTestDependencies() {
