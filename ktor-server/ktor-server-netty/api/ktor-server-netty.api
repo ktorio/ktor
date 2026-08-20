@@ -174,6 +174,15 @@ public final class io/ktor/server/netty/cio/NettyResponsePipelineException : jav
 	public fun <init> (Ljava/lang/String;)V
 }
 
+public final class io/ktor/server/netty/http3/HmacQuicTokenHandler : io/netty/handler/codec/quic/QuicTokenHandler {
+	public fun <init> ()V
+	public fun <init> (Lkotlin/jvm/functions/Function0;J)V
+	public synthetic fun <init> (Lkotlin/jvm/functions/Function0;JILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun maxTokenLength ()I
+	public fun validateToken (Lio/netty/buffer/ByteBuf;Ljava/net/InetSocketAddress;)I
+	public fun writeToken (Lio/netty/buffer/ByteBuf;Lio/netty/buffer/ByteBuf;Ljava/net/InetSocketAddress;)Z
+}
+
 public final class io/ktor/server/netty/http3/NettyHttp3Configuration {
 	public fun <init> ()V
 	public final fun getConfigureQuicServerCodec ()Lkotlin/jvm/functions/Function1;
@@ -183,6 +192,9 @@ public final class io/ktor/server/netty/http3/NettyHttp3Configuration {
 	public final fun getQuicInitialMaxStreamsBidirectional ()J
 	public final fun getQuicMaxIdleTimeout-UwyO8pc ()J
 	public final fun getQuicTokenHandler ()Lio/netty/handler/codec/quic/QuicTokenHandler;
+	public final fun getUdpReceiveBufferSize ()I
+	public final fun getUdpSendBufferSize ()I
+	public final fun getUdpSocketCount ()Ljava/lang/Integer;
 	public final fun setConfigureQuicServerCodec (Lkotlin/jvm/functions/Function1;)V
 	public final fun setQuicInitialMaxData (J)V
 	public final fun setQuicInitialMaxStreamDataBidirectionalLocal (J)V
@@ -190,5 +202,8 @@ public final class io/ktor/server/netty/http3/NettyHttp3Configuration {
 	public final fun setQuicInitialMaxStreamsBidirectional (J)V
 	public final fun setQuicMaxIdleTimeout-LRDsOJo (J)V
 	public final fun setQuicTokenHandler (Lio/netty/handler/codec/quic/QuicTokenHandler;)V
+	public final fun setUdpReceiveBufferSize (I)V
+	public final fun setUdpSendBufferSize (I)V
+	public final fun setUdpSocketCount (Ljava/lang/Integer;)V
 }
 
