@@ -47,10 +47,11 @@ public fun CoroutineScope.startServerConnectionPipeline(
     val requestContext = RequestHandlerCoroutine + Dispatchers.Unconfined
 
     var handlerScope: ServerRequestScope? = null
+    var clientDisconnected = false
     try {
         while (true) { // parse requests loop
             val request = try {
-                parseRequest(connection.input) ?: break
+                parseRequest(connection.input)
             } catch (e: TooLongLineException) {
                 respondBadRequest(actorChannel, e.message)
                 break // end pipeline loop
@@ -63,6 +64,11 @@ public fun CoroutineScope.startServerConnectionPipeline(
                 // try to write 400 Bad Request
                 respondBadRequest(actorChannel, parseFailed.message)
                 break // end pipeline loop
+            }
+
+            if (request == null) {
+                clientDisconnected = true
+                break
             }
 
             val response = ByteChannel()
@@ -158,6 +164,12 @@ public fun CoroutineScope.startServerConnectionPipeline(
                         connection.input,
                         requestBody
                     )
+                } catch (cause: IOException) {
+                    requestBody.close(ChannelReadException("Failed to read request body", cause))
+                    throw cause
+                } catch (cause: CancellationException) {
+                    requestBody.close(ChannelReadException("Failed to read request body", cause))
+                    throw cause
                 } catch (cause: Throwable) {
                     requestBody.close(ChannelReadException("Failed to read request body", cause))
                     response.writePacket(cause.message.toBadRequestPacket())
@@ -171,11 +183,12 @@ public fun CoroutineScope.startServerConnectionPipeline(
             if (isLastHttpRequest(version, connectionOptions)) break
         }
     } catch (_: IOException) {
-        // Connection error - also triggers onClose below
+        clientDisconnected = true
     } finally {
-        // Invoke onClose to allow HttpRequestLifecycle plugin to cancel
-        // the call coroutine with proper ConnectionClosedException cause.
-        handlerScope?.onClose?.invoke()
+        // `Connection: close` is not a disconnect; the handler must still write the response.
+        if (clientDisconnected) {
+            handlerScope?.onClose?.invoke()
+        }
         actorChannel.close()
     }
 }
