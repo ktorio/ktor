@@ -49,7 +49,7 @@ internal class DarwinWebsocketSession(
 
     @OptIn(ExperimentalForeignApi::class)
     override var maxFrameSize: Long
-        get() = task.maximumMessageSize.toLong()
+        get() = task.maximumMessageSize.convert()
         set(value) {
             task.setMaximumMessageSize(value.convert())
         }
@@ -258,7 +258,7 @@ internal fun NSURLSessionTask.getStatusCode() = (response() as NSHTTPURLResponse
 @OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
 private fun convertWebsocketError(error: NSError): Exception = when {
     (error.domain == NSPOSIXErrorDomain || error.domain == "kNWErrorDomainPOSIX") &&
-        error.code.toInt() == EMSGSIZE -> {
+        error.code.convert<Int>() == EMSGSIZE -> {
         FrameTooBigException(frameSize = -1L, DarwinHttpRequestException(error))
     }
 

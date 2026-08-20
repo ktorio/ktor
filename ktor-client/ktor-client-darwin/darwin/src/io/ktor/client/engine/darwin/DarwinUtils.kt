@@ -65,7 +65,7 @@ internal suspend fun OutgoingContent.toDataOrStream(): Any? {
                         @Suppress("UNCHECKED_CAST")
                         val written = outputStream
                             .write(buffer.plus(offset) as CPointer<UByteVar>, (read - offset).convert())
-                            .toInt()
+                            .convert<Int>()
                         offset += written
                         if (written < 0) {
                             throw outputStream.streamError?.let { DarwinHttpRequestException(it) }
@@ -92,7 +92,7 @@ internal fun ByteArray.toNSData(): NSData = NSMutableData().apply {
 
 @OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
 internal fun NSData.toByteArray(): ByteArray {
-    val result = ByteArray(length.toULong().toInt())
+    val result = ByteArray(length.toInt())
     if (result.isEmpty()) return result
 
     result.usePinned {
@@ -108,7 +108,7 @@ internal fun NSData.toByteArray(): ByteArray {
  */
 @OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
 internal suspend fun ByteWriteChannel.writeFully(data: NSData) {
-    val length = data.length.toULong().toLong()
+    val length = data.length.toLong()
     if (length == 0L) return
 
     val bytes = data.bytes ?: return

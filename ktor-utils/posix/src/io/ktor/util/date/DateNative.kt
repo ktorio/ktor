@@ -18,7 +18,7 @@ import platform.posix.*
 public actual fun GMTDate(timestamp: Long?): GMTDate = memScoped {
     val timeHolder = alloc<time_tVar>()
     val current: Long = if (timestamp == null) {
-        val millis = getTimeMillis() // Long
+        val millis = getTimeMillis()
         timeHolder.value = (millis / 1000).convert()
         millis
     } else {
