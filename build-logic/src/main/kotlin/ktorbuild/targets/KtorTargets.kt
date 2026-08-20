@@ -262,10 +262,8 @@ internal fun KotlinMultiplatformExtension.addTargets(targets: KtorTargets, isCI:
     // See: https://kotlinlang.org/docs/native-target-support.html
 
     // Tier 1
-    if (targets.isEnabled("macosX64")) macosX64()
     if (targets.isEnabled("macosArm64")) macosArm64()
     if (targets.isEnabled("iosArm64")) iosArm64()
-    if (targets.isEnabled("iosX64")) iosX64()
     if (targets.isEnabled("iosSimulatorArm64")) iosSimulatorArm64()
 
     // Tier 2
@@ -273,10 +271,8 @@ internal fun KotlinMultiplatformExtension.addTargets(targets: KtorTargets, isCI:
     if (targets.isEnabled("linuxX64")) linuxX64()
     if (targets.isEnabled("watchosArm32")) watchosArm32()
     if (targets.isEnabled("watchosArm64")) watchosArm64()
-    if (targets.isEnabled("watchosX64")) watchosX64()
     if (targets.isEnabled("watchosSimulatorArm64")) watchosSimulatorArm64()
     if (targets.isEnabled("tvosArm64")) tvosArm64()
-    if (targets.isEnabled("tvosX64")) tvosX64()
     if (targets.isEnabled("tvosSimulatorArm64")) tvosSimulatorArm64()
 
     // Tier 3
@@ -285,7 +281,15 @@ internal fun KotlinMultiplatformExtension.addTargets(targets: KtorTargets, isCI:
     if (targets.isEnabled("androidNativeX86")) androidNativeX86()
     if (targets.isEnabled("androidNativeX64")) androidNativeX64()
     if (targets.isEnabled("mingwX64")) mingwX64()
+    if (targets.isEnabled("iosX64")) iosX64()
     if (targets.isEnabled("watchosDeviceArm64")) watchosDeviceArm64()
+
+    // Deprecated targets
+    @Suppress("DEPRECATION") run {
+        if (targets.isEnabled("macosX64")) macosX64()
+        if (targets.isEnabled("watchosX64")) watchosX64()
+        if (targets.isEnabled("tvosX64")) tvosX64()
+    }
 
     freezeSourceSets(targets.isLightSync)
     flattenSourceSetsStructure()

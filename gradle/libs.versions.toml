@@ -1,6 +1,6 @@
 [versions]
 
-kotlin = "2.3.21"
+kotlin = "2.4.10"
 android-gradlePlugin = "9.2.1"
 androidx-test = "1.7.0"
 kotlinx-html = "0.12.0"

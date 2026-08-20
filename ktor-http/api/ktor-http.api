@@ -959,6 +959,7 @@ public final class io/ktor/http/Parameters$DefaultImpls {
 
 public abstract interface class io/ktor/http/ParametersBuilder : io/ktor/util/StringValuesBuilder {
 	public abstract fun build ()Lio/ktor/http/Parameters;
+	public synthetic fun build ()Lio/ktor/util/StringValues;
 }
 
 public final class io/ktor/http/ParametersBuilderImpl : io/ktor/util/StringValuesBuilderImpl, io/ktor/http/ParametersBuilder {

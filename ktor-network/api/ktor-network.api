@@ -198,7 +198,7 @@ public final class io/ktor/network/sockets/InetSocketAddress : io/ktor/network/s
 	public final fun copy (Ljava/lang/String;I)Lio/ktor/network/sockets/InetSocketAddress;
 	public static synthetic fun copy$default (Lio/ktor/network/sockets/InetSocketAddress;Ljava/lang/String;IILjava/lang/Object;)Lio/ktor/network/sockets/InetSocketAddress;
 	public fun equals (Ljava/lang/Object;)Z
-	public synthetic fun getAddress$ktor_network ()Ljava/net/SocketAddress;
+	public synthetic fun getAddress$io_ktor_ktor_network ()Ljava/net/SocketAddress;
 	public final fun getHostname ()Ljava/lang/String;
 	public final fun getPort ()I
 	public fun hashCode ()I
@@ -249,8 +249,6 @@ public final class io/ktor/network/sockets/SocketBuilder : io/ktor/network/socke
 
 public abstract class io/ktor/network/sockets/SocketOptions {
 	public synthetic fun <init> (Ljava/util/Map;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
-	protected fun copyCommon (Lio/ktor/network/sockets/SocketOptions;)V
-	protected final fun getCustomOptions ()Ljava/util/Map;
 	public final fun getReuseAddress ()Z
 	public final fun getReusePort ()Z
 	public final fun getTypeOfService-zieKYfw ()B
@@ -260,13 +258,13 @@ public abstract class io/ktor/network/sockets/SocketOptions {
 }
 
 public final class io/ktor/network/sockets/SocketOptions$AcceptorOptions : io/ktor/network/sockets/SocketOptions {
-	public synthetic fun copy$ktor_network ()Lio/ktor/network/sockets/SocketOptions;
+	public synthetic fun copy$io_ktor_ktor_network ()Lio/ktor/network/sockets/SocketOptions;
 	public final fun getBacklogSize ()I
 	public final fun setBacklogSize (I)V
 }
 
 public class io/ktor/network/sockets/SocketOptions$PeerSocketOptions : io/ktor/network/sockets/SocketOptions {
-	public synthetic fun copy$ktor_network ()Lio/ktor/network/sockets/SocketOptions;
+	public synthetic fun copy$io_ktor_ktor_network ()Lio/ktor/network/sockets/SocketOptions;
 	protected fun copyCommon (Lio/ktor/network/sockets/SocketOptions;)V
 	public final fun getReceiveBufferSize ()I
 	public final fun getSendBufferSize ()I
@@ -275,8 +273,8 @@ public class io/ktor/network/sockets/SocketOptions$PeerSocketOptions : io/ktor/n
 }
 
 public final class io/ktor/network/sockets/SocketOptions$TCPClientSocketOptions : io/ktor/network/sockets/SocketOptions$PeerSocketOptions {
-	public synthetic fun copy$ktor_network ()Lio/ktor/network/sockets/SocketOptions$PeerSocketOptions;
-	public synthetic fun copy$ktor_network ()Lio/ktor/network/sockets/SocketOptions;
+	public synthetic fun copy$io_ktor_ktor_network ()Lio/ktor/network/sockets/SocketOptions$PeerSocketOptions;
+	public synthetic fun copy$io_ktor_ktor_network ()Lio/ktor/network/sockets/SocketOptions;
 	public final fun getKeepAlive ()Ljava/lang/Boolean;
 	public final fun getLingerSeconds ()I
 	public final fun getNoDelay ()Z
@@ -288,8 +286,8 @@ public final class io/ktor/network/sockets/SocketOptions$TCPClientSocketOptions 
 }
 
 public final class io/ktor/network/sockets/SocketOptions$UDPSocketOptions : io/ktor/network/sockets/SocketOptions$PeerSocketOptions {
-	public synthetic fun copy$ktor_network ()Lio/ktor/network/sockets/SocketOptions$PeerSocketOptions;
-	public synthetic fun copy$ktor_network ()Lio/ktor/network/sockets/SocketOptions;
+	public synthetic fun copy$io_ktor_ktor_network ()Lio/ktor/network/sockets/SocketOptions$PeerSocketOptions;
+	public synthetic fun copy$io_ktor_ktor_network ()Lio/ktor/network/sockets/SocketOptions;
 	public final fun getBroadcast ()Z
 	public final fun setBroadcast (Z)V
 }
