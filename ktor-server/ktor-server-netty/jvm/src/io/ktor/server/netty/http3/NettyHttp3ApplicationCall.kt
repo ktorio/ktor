@@ -9,6 +9,7 @@ import io.ktor.server.netty.*
 import io.netty.buffer.*
 import io.netty.channel.*
 import io.netty.handler.codec.http3.*
+import io.netty.handler.codec.quic.QuicStreamChannel
 import kotlin.coroutines.*
 
 internal class NettyHttp3ApplicationCall(
@@ -41,6 +42,17 @@ internal class NettyHttp3ApplicationCall(
         }
         // HTTP/3 signals end of stream by closing the QUIC stream, not via a frame flag
         return null
+    }
+
+    override fun flushBeforeClose(context: ChannelHandlerContext) {
+        if (isByteBufferContent) {
+            return super.flushBeforeClose(context)
+        }
+        // shutdownOutput() enqueues the QUIC stream FIN behind the pending response frames and then
+        // flushes, so the FIN coalesces with the final data packet instead of being sent separately
+        // by the subsequent channel close.
+        val channel = context.channel() as? QuicStreamChannel
+        channel?.shutdownOutput() ?: context.flush()
     }
 
     override fun upgrade(dst: ChannelHandlerContext) {

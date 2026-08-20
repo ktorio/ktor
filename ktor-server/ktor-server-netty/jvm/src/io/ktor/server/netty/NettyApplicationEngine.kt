@@ -25,8 +25,10 @@ import io.netty.channel.kqueue.KQueueDatagramChannel
 import io.netty.channel.kqueue.KQueueServerSocketChannel
 import io.netty.channel.socket.DatagramChannel
 import io.netty.channel.socket.ServerSocketChannel
+import io.netty.channel.socket.nio.NioChannelOption
 import io.netty.channel.socket.nio.NioDatagramChannel
 import io.netty.channel.socket.nio.NioServerSocketChannel
+import io.netty.channel.unix.UnixChannelOption
 import io.netty.handler.codec.http.HttpObjectDecoder
 import io.netty.handler.codec.http.HttpServerCodec
 import io.netty.handler.codec.quic.QuicSslContext
@@ -34,6 +36,8 @@ import io.netty.handler.codec.quic.QuicSslContextBuilder
 import kotlinx.coroutines.CompletableJob
 import kotlinx.coroutines.asCoroutineDispatcher
 import java.net.BindException
+import java.net.SocketOption
+import java.net.StandardSocketOptions
 import java.security.PrivateKey
 import java.security.cert.X509Certificate
 import java.util.concurrent.TimeUnit
@@ -288,6 +292,53 @@ public class NettyApplicationEngine(
         }
     }
 
+    /**
+     * The `SO_REUSEPORT` [ChannelOption] matching the datagram transport selected by
+     * [getDatagramChannelClass], or `null` when unsupported: native transports use
+     * [UnixChannelOption.SO_REUSEPORT], while NIO requires the JDK socket option
+     * `StandardSocketOptions.SO_REUSEPORT`, which is resolved reflectively because it is only
+     * available since Java 9 while this module compiles against the Java 8 API.
+     */
+    private val reusePortOption: ChannelOption<Boolean>? by lazy {
+        if (KQueue.isAvailable() || Epoll.isAvailable()) {
+            return@lazy UnixChannelOption.SO_REUSEPORT
+        }
+        try {
+            @Suppress("UNCHECKED_CAST")
+            val soReusePort = StandardSocketOptions::class.java.getField("SO_REUSEPORT")
+                .get(null) as SocketOption<Boolean>
+            NioChannelOption.of(soReusePort)
+        } catch (_: ReflectiveOperationException) {
+            null
+        }
+    }
+
+    /**
+     * The number of UDP sockets bound per HTTP/3 connector.
+     *
+     * Every QUIC channel (and all its streams) is served by the event loop of the datagram socket
+     * that received it, so a single socket pins the entire HTTP/3 endpoint to one thread. Binding
+     * multiple sockets with `SO_REUSEPORT` lets the kernel spread connections across event loops.
+     * Kernel-side UDP load balancing across `SO_REUSEPORT` sockets is a Linux kernel feature
+     * (available with both epoll and NIO transports), so the automatic default stays at 1 elsewhere.
+     */
+    private val http3SocketCount: Int by lazy {
+        val configured = configuration.http3Configuration?.udpSocketCount
+        when {
+            configured != null -> {
+                check(configured == 1 || reusePortOption != null) {
+                    "udpSocketCount = $configured requires SO_REUSEPORT support: " +
+                        "use a native transport (epoll/kqueue) or run on Java 9+ for NIO support"
+                }
+                configured
+            }
+
+            isLinux && reusePortOption != null -> configuration.workerGroupSize
+
+            else -> 1
+        }
+    }
+
     @Suppress("UNCHECKED_CAST")
     private fun createHttp3Bootstrap(
         connector: EngineSSLConnectorConfig,
@@ -311,6 +362,16 @@ public class NettyApplicationEngine(
         return Bootstrap().apply {
             group(workerEventGroup)
             channel(getDatagramChannelClass().java)
+            if (http3SocketCount > 1) {
+                // Non-null is guaranteed by the http3SocketCount initializer check.
+                option(checkNotNull(reusePortOption), true)
+            }
+            if (http3Configuration.udpReceiveBufferSize > 0) {
+                option(ChannelOption.SO_RCVBUF, http3Configuration.udpReceiveBufferSize)
+            }
+            if (http3Configuration.udpSendBufferSize > 0) {
+                option(ChannelOption.SO_SNDBUF, http3Configuration.udpSendBufferSize)
+            }
             handler(
                 NettyHttp3ChannelInitializer(
                     applicationProvider,
@@ -319,7 +380,8 @@ public class NettyApplicationEngine(
                     callEventGroup,
                     configuration.runningLimit,
                     quicSslContext,
-                    http3Configuration
+                    http3Configuration,
+                    useCodecDispatcher = http3SocketCount > 1
                 )
             )
         }
@@ -348,11 +410,15 @@ public class NettyApplicationEngine(
 
             // Bind HTTP/3 (QUIC/UDP) on the same resolved port as the TCP SSL connector.
             // TCP and UDP can share the same port number since they are different protocols.
+            // Multiple sockets per connector (SO_REUSEPORT) spread QUIC connections across
+            // event loops; see [http3SocketCount].
             val resolvedSslConnectors = channels!!.zip(configuration.connectors)
                 .filter { it.second is EngineSSLConnectorConfig }
                 .map { it.second.host to (it.first.localAddress() as java.net.InetSocketAddress).port }
             http3Channels = http3Bootstraps.zip(resolvedSslConnectors)
-                .map { (bootstrap, hostPort) -> bootstrap.bind(hostPort.first, hostPort.second) }
+                .flatMap { (bootstrap, hostPort) ->
+                    List(http3SocketCount) { bootstrap.bind(hostPort.first, hostPort.second) }
+                }
                 .map { it.sync().channel() }
 
             resolvedConnectorsDeferred.complete(connectors)
@@ -452,3 +518,5 @@ internal fun getDatagramChannelClass(): KClass<out DatagramChannel> = when {
     Epoll.isAvailable() -> EpollDatagramChannel::class
     else -> NioDatagramChannel::class
 }
+
+private val isLinux: Boolean = System.getProperty("os.name", "").contains("linux", ignoreCase = true)
