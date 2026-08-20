@@ -27,7 +27,7 @@ internal fun CoroutineScope.bodyWriter(response: Response): ReaderJob =
             override fun failed(x: Throwable?) {
                 channel.cancel(x ?: IOException("Failed to write body"))
             }
-            override fun getInvocationType(): Invocable.InvocationType? =
+            override fun getInvocationType(): Invocable.InvocationType =
                 Invocable.InvocationType.NON_BLOCKING
         }
         try {
