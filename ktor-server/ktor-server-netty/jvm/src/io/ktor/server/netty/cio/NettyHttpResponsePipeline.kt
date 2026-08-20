@@ -176,21 +176,15 @@ internal class NettyHttpResponsePipeline(
         httpHandlerState.onLastResponseMessage(context)
         call.finishedEvent.setSuccess()
 
-        lastMessageFuture?.addListener {
-            if (prepareForClose) {
-                close(lastFuture)
-                return@addListener
-            }
-        }
         if (prepareForClose) {
-            close(lastFuture)
+            close(call, lastMessageFuture ?: lastFuture)
             return
         }
         scheduleFlush()
     }
 
-    fun close(lastFuture: ChannelFuture) {
-        context.flush()
+    fun close(call: NettyApplicationCall, lastFuture: ChannelFuture) {
+        call.flushBeforeClose(context)
         isDataNotFlushed.compareAndSet(expect = true, update = false)
         lastFuture.addListener {
             context.close()
