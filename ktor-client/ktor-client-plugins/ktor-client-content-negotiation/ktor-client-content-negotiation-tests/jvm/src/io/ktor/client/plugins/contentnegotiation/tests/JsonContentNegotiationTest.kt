@@ -320,6 +320,24 @@ abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
             assertEquals("""{"value":{"value":"abc"}}""", response.bodyAsText())
         }
     }
+
+    @Test
+    open fun testContentNegotiationWithSuffix() = testApplication {
+        routing {
+            get("/") {
+                call.respondText("""{"value":"abc"}""", contentType = ContentType.Application.ProblemJson)
+            }
+        }
+
+        createClient {
+            install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
+                register(ContentType.Application.Json, converter)
+            }
+        }.get("/").let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals(Wrapper("abc"), response.body<Wrapper>())
+        }
+    }
 }
 
 @Serializable

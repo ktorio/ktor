@@ -13,15 +13,25 @@ properties:
       - type: object
         title: io.ktor.openapi.reflect.IntLiteral
         required:
+          - type
           - value
         properties:
+          type:
+            type: string
+            enum:
+              - io.ktor.openapi.reflect.IntLiteral
           value:
             type: integer
       - type: object
         title: io.ktor.openapi.reflect.StringLiteral
         required:
+          - type
           - value
         properties:
+          type:
+            type: string
+            enum:
+              - io.ktor.openapi.reflect.StringLiteral
           value:
             type: string
     discriminator:
@@ -40,15 +50,25 @@ properties:
       - type: object
         title: io.ktor.openapi.reflect.IntLiteral
         required:
+          - type
           - value
         properties:
+          type:
+            type: string
+            enum:
+              - io.ktor.openapi.reflect.IntLiteral
           value:
             type: integer
       - type: object
         title: io.ktor.openapi.reflect.StringLiteral
         required:
+          - type
           - value
         properties:
+          type:
+            type: string
+            enum:
+              - io.ktor.openapi.reflect.StringLiteral
           value:
             type: string
     discriminator:

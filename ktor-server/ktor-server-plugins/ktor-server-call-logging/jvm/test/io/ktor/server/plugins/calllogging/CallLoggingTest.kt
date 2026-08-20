@@ -28,6 +28,7 @@ import kotlinx.coroutines.withContext
 import org.fusesource.jansi.Ansi
 import org.slf4j.LoggerFactory
 import org.slf4j.MDC
+import org.slf4j.Marker
 import org.slf4j.event.Level
 import java.io.File
 import java.util.concurrent.Executors
@@ -42,6 +43,14 @@ class CallLoggingTest {
         override fun debug(message: String?) = add("DEBUG: $message")
         override fun debug(message: String?, cause: Throwable) = add("DEBUG: $message")
         override fun info(message: String?) = add("INFO: $message")
+
+        override fun isEnabledForLevel(level: Level) = true
+        override fun isTraceEnabled() = true
+        override fun isTraceEnabled(marker: Marker) = true
+        override fun isDebugEnabled() = true
+        override fun isDebugEnabled(marker: Marker) = true
+        override fun isInfoEnabled() = true
+        override fun isInfoEnabled(marker: Marker) = true
 
         private fun add(message: String?) {
             if (message != null) {

@@ -191,8 +191,11 @@ public class DigestAuthProvider(
         val cnonce = getNonce()
         val credential = makeDigest("${credentials.username}:$realm:${credentials.password}")
 
+        // Clients send "/" when the URL path is empty (RFC 9112); digest uri/HA2 must match that target.
+        val requestTarget = if (url.rawSegments.isEmpty()) "/${url.fullPath}" else url.fullPath
+
         val start = credential.toHexString()
-        val end = makeDigest("$methodName:${url.fullPath}").toHexString()
+        val end = makeDigest("$methodName:$requestTarget").toHexString()
         val tokenSequence = if (actualQop == null) {
             listOf(start, nonce, end)
         } else {
@@ -210,7 +213,7 @@ public class DigestAuthProvider(
                 this["nonce"] = nonce.quote()
                 this["cnonce"] = cnonce.quote()
                 this["response"] = token.toHexString().quote()
-                this["uri"] = url.fullPath.quote()
+                this["uri"] = requestTarget.quote()
                 actualQop?.let { this["qop"] = it }
                 this["nc"] = nonceCount
                 @Suppress("DEPRECATION_ERROR")

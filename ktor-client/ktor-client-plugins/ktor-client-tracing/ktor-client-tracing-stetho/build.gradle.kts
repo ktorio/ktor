@@ -13,7 +13,7 @@ kotlin {
     }
 
     sourceSets {
-        val androidMain by getting {
+        named("androidMain") {
             kotlin.srcDir("android/src")
             dependencies {
                 implementation(projects.ktorClientTracing)
@@ -22,7 +22,7 @@ kotlin {
             }
         }
 
-        val androidTest by getting {
+        named("androidTest") {
             kotlin.srcDir("android/test")
             dependencies {
                 implementation(projects.ktorClientCio)
@@ -65,7 +65,7 @@ android {
     useLibrary("android.test.mock")
 
     sourceSets {
-        val main by getting {
+        named("main") {
             manifest.srcFile("AndroidManifest.xml")
         }
     }

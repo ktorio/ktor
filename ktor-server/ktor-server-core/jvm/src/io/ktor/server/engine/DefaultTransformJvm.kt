@@ -5,13 +5,10 @@
 package io.ktor.server.engine
 
 import io.ktor.server.application.*
-import io.ktor.server.request.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
-import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.jvm.javaio.*
 import io.ktor.utils.io.streams.*
-import kotlinx.io.*
 import java.io.*
 
 internal actual suspend fun PipelineContext<Any, PipelineCall>.defaultPlatformTransformations(
@@ -24,9 +21,6 @@ internal actual suspend fun PipelineContext<Any, PipelineCall>.defaultPlatformTr
         else -> null
     }
 }
-
-internal actual fun Source.readTextWithCustomCharset(charset: Charset): String =
-    inputStream().reader(charset).readText()
 
 private fun receiveGuardedInputStream(channel: ByteReadChannel): InputStream {
     return channel.toInputStream()

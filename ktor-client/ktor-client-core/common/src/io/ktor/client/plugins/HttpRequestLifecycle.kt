@@ -53,7 +53,7 @@ private fun attachToClientEngineJob(
 ) {
     val handler = clientEngineJob.invokeOnCompletion { cause ->
         if (cause != null) {
-            LOGGER.trace("Cancelling request because engine Job failed with error: $cause")
+            LOGGER.trace(cause) { "Cancelling request because engine Job failed with error" }
             requestJob.cancel("Engine failed", cause)
         } else {
             LOGGER.trace("Cancelling request because engine Job completed")

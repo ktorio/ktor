@@ -49,12 +49,12 @@ public val PartialContent: RouteScopedPlugin<PartialContentConfig> = createRoute
 ) {
     onCall { call ->
         if (call.request.ranges() == null) {
-            LOGGER.trace("Skip ${call.request.uri}: no ranges specified")
+            LOGGER.trace { "Skip ${call.request.uri}: no ranges specified" }
             return@onCall
         }
 
         if (!call.isGetOrHead()) {
-            LOGGER.trace("Skip ${call.request.uri}: not a GET or HEAD request")
+            LOGGER.trace { "Skip ${call.request.uri}: not a GET or HEAD request" }
 
             val message = HttpStatusCode.MethodNotAllowed
                 .description("Method ${call.request.local.method.value} is not allowed with range request")
@@ -70,7 +70,7 @@ public val PartialContent: RouteScopedPlugin<PartialContentConfig> = createRoute
     on(BodyTransformedHook) { call, message ->
         val rangeSpecifier = call.request.ranges()
         if (rangeSpecifier == null) {
-            LOGGER.trace("No range header specified for ${call.request.uri}")
+            LOGGER.trace { "No range header specified for ${call.request.uri}" }
             if (message is OutgoingContent.ReadChannelContent && message !is PartialOutgoingContent) {
                 transformBodyTo(PartialOutgoingContent.Bypass(message))
             }

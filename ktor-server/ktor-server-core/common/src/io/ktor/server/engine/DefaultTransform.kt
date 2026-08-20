@@ -80,13 +80,13 @@ public fun ApplicationReceivePipeline.installDefaultTransformations() {
             else -> defaultPlatformTransformations(body)
         }
         if (transformed != null) {
-            LOGGER.trace("Transformed ${body::class} to ${transformed::class} for ${call.request.uri}")
+            LOGGER.trace { "Transformed ${body::class} to ${transformed::class} for ${call.request.uri}" }
             proceedWith(transformed)
         } else {
-            LOGGER.trace(
+            LOGGER.trace {
                 "No Default Transformations found for ${body::class} and expected type ${call.receiveType} " +
                     "for call ${call.request.uri}"
-            )
+            }
         }
     }
     val afterTransform = PipelinePhase("AfterTransform")
@@ -133,23 +133,5 @@ internal inline fun <R> withContentType(call: PipelineCall, block: () -> R): R =
     )
 }
 
-internal suspend fun ByteReadChannel.readText(
-    charset: Charset
-): String {
-    val content = readRemaining(Long.MAX_VALUE)
-    if (content.exhausted()) {
-        return ""
-    }
-
-    return try {
-        if (charset == Charsets.UTF_8 || charset == Charsets.ISO_8859_1) {
-            content.readText()
-        } else {
-            content.readTextWithCustomCharset(charset)
-        }
-    } finally {
-        content.close()
-    }
-}
-
-internal expect fun Source.readTextWithCustomCharset(charset: Charset): String
+internal suspend fun ByteReadChannel.readText(charset: Charset): String =
+    readBuffer().readText(charset)

@@ -195,12 +195,12 @@
     },
     "components": {
         "schemas": {
-            "Contact": {
+            "OpenApiInfo.Contact": {
                 "type": [
                     "object",
                     "null"
                 ],
-                "title": "Contact",
+                "title": "OpenApiInfo.Contact",
                 "properties": {
                     "name": {
                         "type": [
@@ -222,12 +222,12 @@
                     }
                 }
             },
-            "License": {
+            "OpenApiInfo.License": {
                 "type": [
                     "object",
                     "null"
                 ],
-                "title": "License",
+                "title": "OpenApiInfo.License",
                 "required": [
                     "name"
                 ],
@@ -276,10 +276,10 @@
                         ]
                     },
                     "contact": {
-                        "$ref": "#/components/schemas/Contact"
+                        "$ref": "#/components/schemas/OpenApiInfo.Contact"
                     },
                     "license": {
-                        "$ref": "#/components/schemas/License"
+                        "$ref": "#/components/schemas/OpenApiInfo.License"
                     },
                     "extensions": {
                         "type": [

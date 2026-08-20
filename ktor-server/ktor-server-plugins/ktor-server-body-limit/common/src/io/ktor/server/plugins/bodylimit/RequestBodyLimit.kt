@@ -35,6 +35,7 @@ public class RequestBodyLimitConfig {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.bodylimit.RequestBodyLimit)
  */
+@OptIn(InternalAPI::class)
 public val RequestBodyLimit: RouteScopedPlugin<RequestBodyLimitConfig> = createRouteScopedPlugin(
     "RequestBodyLimit",
     ::RequestBodyLimitConfig

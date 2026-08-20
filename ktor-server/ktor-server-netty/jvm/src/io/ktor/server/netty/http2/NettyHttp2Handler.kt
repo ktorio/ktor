@@ -85,7 +85,8 @@ internal class NettyHttp2Handler(
         responseWriter = NettyHttpResponsePipeline(
             context = context,
             httpHandlerState = state,
-            coroutineContext = handlerJob
+            coroutineContext = handlerJob,
+            onFailure = { responseWriter.flushIfNeeded() }
         )
 
         // Append a tail sink that consumes NettyHttp2ApplicationCall messages forwarded by this handler

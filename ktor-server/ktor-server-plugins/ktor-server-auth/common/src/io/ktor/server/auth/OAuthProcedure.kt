@@ -224,7 +224,7 @@ private suspend fun OAuthAuthenticationProvider.oauth2RequestToken(
     context.principal(authProviderName, accessToken)
     null
 } catch (cause: OAuth2Exception.InvalidGrant) {
-    Logger.trace("OAuth invalid grant reported: {}", cause)
+    Logger.trace("OAuth invalid grant reported", cause)
     OAuth2InvalidGrantError(cause)
 } catch (cause: CancellationException) {
     throw cause

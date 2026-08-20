@@ -10,6 +10,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
 import io.ktor.util.*
+import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
@@ -160,7 +161,7 @@ public class BasicAuthProvider(
 
     override fun isApplicable(auth: HttpAuthHeader): Boolean {
         if (!AuthScheme.Basic.equals(auth.authScheme, ignoreCase = true)) {
-            LOGGER.trace("Basic Auth Provider is not applicable for $auth")
+            LOGGER.trace { "Basic Auth Provider is not applicable for $auth" }
             return false
         }
 

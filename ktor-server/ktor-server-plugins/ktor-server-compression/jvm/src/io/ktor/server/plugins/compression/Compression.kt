@@ -170,11 +170,11 @@ private suspend fun ContentDecoding.Context.decode(
 ) {
     val encodingRaw = call.request.headers[HttpHeaders.ContentEncoding]
     if (call.isDecompressionSuppressed) {
-        LOGGER.trace("Skip decompression for ${call.request.uri} because it is suppressed.")
+        LOGGER.trace { "Skip decompression for ${call.request.uri} because it is suppressed." }
         return
     }
     if (encodingRaw == null) {
-        LOGGER.trace("Skip decompression for ${call.request.uri} because no content encoding provided.")
+        LOGGER.trace { "Skip decompression for ${call.request.uri} because no content encoding provided." }
         return
     }
     val encoding = parseHeaderValue(encodingRaw)
@@ -187,17 +187,16 @@ private suspend fun ContentDecoding.Context.decode(
     }
     val encoders = encoding.mapNotNull { options.encoders[it.value] }
     if (encoders.isEmpty()) {
-        LOGGER.trace("Skip decompression for ${call.request.uri} because no suitable encoders found.")
+        LOGGER.trace { "Skip decompression for ${call.request.uri} because no suitable encoders found." }
         return
     }
     val encoderNames = encoders.map { it.encoder.name }
     if (encoding.size > encoders.size) {
         val missingEncoders = encoding.map { it.value } - encoderNames.toSet()
         call.request.setHeader(HttpHeaders.ContentEncoding, missingEncoders)
-        LOGGER.trace(
-            "Skip some of decompression for ${call.request.uri} " +
-                "because no suitable encoders found for $missingEncoders"
-        )
+        LOGGER.trace {
+            "Skip some of decompression for ${call.request.uri} because no suitable encoders found for $missingEncoders"
+        }
     } else {
         call.request.setHeader(HttpHeaders.ContentEncoding, null)
     }
@@ -220,18 +219,18 @@ private class AcceptedEncoder(val config: CompressionEncoderConfig, val quality:
 
 private fun ContentEncoding.Context.encode(call: PipelineCall, options: CompressionOptions) {
     if (call.response.isSSEResponse()) {
-        LOGGER.trace("Skip compression for sse response ${call.request.uri} ")
+        LOGGER.trace { "Skip compression for sse response ${call.request.uri} " }
         return
     }
 
     val acceptEncodingRaw = call.request.acceptEncoding()
     if (acceptEncodingRaw == null) {
-        LOGGER.trace("Skip compression for ${call.request.uri} because no accept encoding provided.")
+        LOGGER.trace { "Skip compression for ${call.request.uri} because no accept encoding provided." }
         return
     }
 
     if (call.isCompressionSuppressed) {
-        LOGGER.trace("Skip compression for ${call.request.uri} because it is suppressed.")
+        LOGGER.trace { "Skip compression for ${call.request.uri} because it is suppressed." }
         return
     }
 
@@ -249,40 +248,30 @@ private fun ContentEncoding.Context.encode(call: PipelineCall, options: Compress
         .map(AcceptedEncoder::config)
 
     if (encoders.isEmpty()) {
-        LOGGER.trace("Skip compression for ${call.request.uri} because no encoders provided.")
+        LOGGER.trace { "Skip compression for ${call.request.uri} because no encoders provided." }
         return
     }
 
     transformBody { message ->
         if (options.conditions.any { !it(call, message) }) {
-            LOGGER.trace("Skip compression for ${call.request.uri} because preconditions doesn't meet.")
+            LOGGER.trace { "Skip compression for ${call.request.uri} because preconditions doesn't meet." }
             return@transformBody null
         }
 
         val encodingHeader = message.headers[HttpHeaders.ContentEncoding]
         if (encodingHeader != null) {
-            LOGGER.trace("Skip compression for ${call.request.uri} because content is already encoded.")
+            LOGGER.trace { "Skip compression for ${call.request.uri} because content is already encoded." }
             return@transformBody null
         }
 
         val encoderOptions = encoders.firstOrNull { encoder -> encoder.conditions.all { it(call, message) } }
 
         if (encoderOptions == null) {
-            LOGGER.trace("Skip compression for ${call.request.uri} because no suitable encoder found.")
+            LOGGER.trace { "Skip compression for ${call.request.uri} because no suitable encoder found." }
             return@transformBody null
         }
 
-        LOGGER.trace("Encoding body for ${call.request.uri} using ${encoderOptions.encoder.name}.")
-
-        // Most compression algorithms (e.g. gzip, deflate, brotli) cannot compress streaming responses
-        // incrementally without buffering the entire body, which defeats the purpose of streaming.
-        if (message is OutgoingContent.WriteChannelContent) {
-            LOGGER.warn(
-                "Compressing a WriteChannelContent response for ${call.request.uri}. " +
-                    "Compression will buffer the entire body before sending, which defeats the purpose of streaming. " +
-                    "Consider suppressing compression for this route with call.suppressCompression()."
-            )
-        }
+        LOGGER.trace { "Encoding body for ${call.request.uri} using ${encoderOptions.encoder.name}." }
 
         return@transformBody message.compressed(encoderOptions.encoder)
     }
