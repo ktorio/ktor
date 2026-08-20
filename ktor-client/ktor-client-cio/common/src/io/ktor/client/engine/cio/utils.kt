@@ -27,7 +27,7 @@ internal suspend fun writeRequest(
     callContext: CoroutineContext,
     overProxy: Boolean,
     closeChannel: Boolean = true
-) = withContext(callContext) {
+): Job? = withContext(callContext) {
     writeHeaders(request, output, overProxy = overProxy, closeChannelOnError = closeChannel)
     writeBody(request, output, callContext, closeChannel)
 }
@@ -108,11 +108,11 @@ internal fun writeBody(
     output: ByteWriteChannel,
     callContext: CoroutineContext,
     closeChannel: Boolean = true
-) {
+): Job? {
     val body = request.body.getUnwrapped()
     if (body is OutgoingContent.NoContent) {
         if (closeChannel) output.close()
-        return
+        return null
     }
     if (body is OutgoingContent.ProtocolUpgrade) {
         throw UnsupportedContentTypeException(body)
@@ -127,7 +127,7 @@ internal fun writeBody(
     val channel = chunkedJob?.channel ?: output
 
     val scope = CoroutineScope(callContext + CoroutineName("cio-client-body-writer"))
-    scope.launch {
+    return scope.launch {
         try {
             processOutgoingContent(request, body, channel)
         } catch (cause: Throwable) {
