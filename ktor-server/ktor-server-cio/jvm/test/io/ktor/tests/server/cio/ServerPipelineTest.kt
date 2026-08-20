@@ -13,6 +13,7 @@ import kotlinx.coroutines.channels.Channel
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.TestInfo
+import java.util.*
 import java.util.concurrent.CountDownLatch
 import kotlin.coroutines.AbstractCoroutineContextElement
 import kotlin.coroutines.CoroutineContext
@@ -231,6 +232,44 @@ class ServerPipelineTest : CoroutineScope {
         responses.forEach { assertTrue(it.isClosedForRead) }
     }
 
+    @OptIn(InternalCoroutinesApi::class)
+    @Test
+    fun testResponseClaimedByTimedOutWriterIsCancelled(): Unit = runBlocking {
+        val dispatcher = ReceiveTimeoutRaceDispatcher()
+        val pipelineScope = CoroutineScope(SupervisorJob() + dispatcher)
+        val input = ByteChannel()
+        val output = ByteChannel()
+        input.writeStringUtf8("GET / HTTP/1.1\r\nConnection: keep-alive\r\n\r\n")
+        input.flush()
+
+        val requestStarted = CompletableDeferred<Unit>()
+        val pipelineJob = pipelineScope.startServerConnectionPipeline(
+            ServerIncomingConnection(input, output, null, null),
+            timeout = 1.seconds
+        ) { request ->
+            request.release()
+            requestStarted.complete(Unit)
+            this.output.writeFully(ByteArray(1024 * 1024 + 1))
+        }
+
+        try {
+            // Run the pipeline until the response is claimed, but leave the writer continuation queued.
+            dispatcher.runNext()
+            assertTrue(requestStarted.isCompleted, "Request should be started before the writer timeout")
+
+            // Let the timeout cancel the receive before the writer continuation resumes.
+            dispatcher.runTimeout()
+            input.close()
+            dispatcher.runUntilIdle()
+
+            assertTrue(pipelineJob.isCompleted, "Pipeline should complete after the writer timeout")
+            assertFalse(pipelineJob.isCancelled, "Pipeline should complete gracefully")
+        } finally {
+            pipelineScope.cancel()
+            dispatcher.runUntilIdle()
+        }
+    }
+
     @Test
     fun testIdleTimeoutDoesNotCancelActiveRequest(): Unit = runBlocking(coroutineContext) {
         val input = ByteChannel()
@@ -307,5 +346,48 @@ class ServerPipelineTest : CoroutineScope {
 
         delay(1)
         root.cancelAndJoin()
+    }
+}
+
+/**
+ * Controls dispatched continuations and timeouts independently to reproduce a receive-timeout race.
+ * Standard test dispatchers always run a queued receive continuation before advancing to its timeout,
+ * so they cannot trigger a timeout after a response is claimed but before the writer resumes.
+ * This dispatcher only supports the single timeout required by testResponseClaimedByTimedOutWriterIsCancelled.
+ */
+@OptIn(InternalCoroutinesApi::class)
+private class ReceiveTimeoutRaceDispatcher : CoroutineDispatcher(), Delay {
+    private val tasks = ArrayDeque<Runnable>()
+    private var timeoutTask: Runnable? = null
+
+    override fun dispatch(context: CoroutineContext, block: Runnable) {
+        tasks.addLast(block)
+    }
+
+    override fun scheduleResumeAfterDelay(timeMillis: Long, continuation: CancellableContinuation<Unit>) =
+        error("Unexpected delay")
+
+    override fun invokeOnTimeout(
+        timeMillis: Long,
+        block: Runnable,
+        context: CoroutineContext
+    ): DisposableHandle {
+        check(timeoutTask == null)
+        timeoutTask = block
+        return DisposableHandle { if (timeoutTask === block) timeoutTask = null }
+    }
+
+    fun runNext() {
+        tasks.removeFirst().run()
+    }
+
+    fun runTimeout() {
+        val task = checkNotNull(timeoutTask)
+        timeoutTask = null
+        task.run()
+    }
+
+    fun runUntilIdle() {
+        while (tasks.isNotEmpty()) runNext()
     }
 }
