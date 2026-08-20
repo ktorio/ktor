@@ -318,9 +318,11 @@ public final class io/ktor/openapi/GenericElementString : io/ktor/openapi/Generi
 	public synthetic fun <init> (Ljava/lang/String;Lkotlinx/serialization/KSerializer;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun deserialize (Lkotlinx/serialization/DeserializationStrategy;)Ljava/lang/Object;
 	public fun entries ()Ljava/util/List;
+	public fun equals (Ljava/lang/Object;)Z
 	public synthetic fun getElement ()Ljava/lang/Object;
 	public fun getElement ()Ljava/lang/String;
 	public fun getElementSerializer ()Lkotlinx/serialization/KSerializer;
+	public fun hashCode ()I
 	public fun isArray ()Z
 	public fun isObject ()Z
 	public fun isString ()Z

@@ -468,6 +468,8 @@ final class io.ktor.openapi/GenericElementString : io.ktor.openapi/GenericElemen
 
     final fun <#A1: kotlin/Any?> deserialize(kotlinx.serialization/DeserializationStrategy<#A1>): #A1 // io.ktor.openapi/GenericElementString.deserialize|deserialize(kotlinx.serialization.DeserializationStrategy<0:0>){0§<kotlin.Any?>}[0]
     final fun entries(): kotlin.collections/List<kotlin/Pair<kotlin/String, io.ktor.openapi/GenericElement>> // io.ktor.openapi/GenericElementString.entries|entries(){}[0]
+    final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.openapi/GenericElementString.equals|equals(kotlin.Any?){}[0]
+    final fun hashCode(): kotlin/Int // io.ktor.openapi/GenericElementString.hashCode|hashCode(){}[0]
     final fun isString(): kotlin/Boolean // io.ktor.openapi/GenericElementString.isString|isString(){}[0]
     final fun items(): kotlin.collections/List<io.ktor.openapi/GenericElement> // io.ktor.openapi/GenericElementString.items|items(){}[0]
 }
