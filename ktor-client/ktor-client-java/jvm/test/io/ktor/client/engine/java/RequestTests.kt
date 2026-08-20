@@ -51,6 +51,15 @@ class RequestTests : TestWithKtor() {
                     }
                 )
             }
+
+            route("/headers") {
+                handle {
+                    val contentLength = call.request.header(HttpHeaders.ContentLength)
+                    call.response.header("X-Request-Method", call.request.httpMethod.value)
+                    call.response.header("X-Request-Content-Length", contentLength ?: "absent")
+                    call.respondText("OK")
+                }
+            }
         }
     }
 
@@ -109,5 +118,32 @@ class RequestTests : TestWithKtor() {
         }
 
         assertEquals(payload, response)
+    }
+
+    @Test
+    fun `GET request does not send Content-Length header`() {
+        val response = HttpClient(Java).use { client ->
+            runBlocking {
+                client.get("$testUrl/headers")
+            }
+        }
+
+        assertEquals("GET", response.headers["X-Request-Method"])
+        assertEquals(
+            "absent",
+            response.headers["X-Request-Content-Length"],
+            "GET request should not send Content-Length header"
+        )
+    }
+
+    @Test
+    fun `OPTIONS request uses correct HTTP method`() {
+        val response = HttpClient(Java).use { client ->
+            runBlocking {
+                client.options("$testUrl/headers")
+            }
+        }
+
+        assertEquals("OPTIONS", response.headers["X-Request-Method"])
     }
 }
