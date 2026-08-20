@@ -39,6 +39,11 @@ public final class io/ktor/client/HttpClientConfig {
 
 public abstract interface class io/ktor/client/HttpClientEngineContainer {
 	public abstract fun getFactory ()Lio/ktor/client/engine/HttpClientEngineFactory;
+	public fun getPriority ()D
+}
+
+public final class io/ktor/client/HttpClientEngineContainer$DefaultImpls {
+	public static fun getPriority (Lio/ktor/client/HttpClientEngineContainer;)D
 }
 
 public final class io/ktor/client/HttpClientJvmKt {

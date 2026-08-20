@@ -349,6 +349,15 @@ final class io.ktor.client.engine/ClientEngineClosedException : kotlin/IllegalSt
         final fun <get-cause>(): kotlin/Throwable? // io.ktor.client.engine/ClientEngineClosedException.cause.<get-cause>|<get-cause>(){}[0]
 }
 
+final class io.ktor.client.engine/EngineEntry { // io.ktor.client.engine/EngineEntry|null[0]
+    constructor <init>(io.ktor.client.engine/HttpClientEngineFactory<io.ktor.client.engine/HttpClientEngineConfig>, kotlin/Double = ...) // io.ktor.client.engine/EngineEntry.<init>|<init>(io.ktor.client.engine.HttpClientEngineFactory<io.ktor.client.engine.HttpClientEngineConfig>;kotlin.Double){}[0]
+
+    final val factory // io.ktor.client.engine/EngineEntry.factory|{}factory[0]
+        final fun <get-factory>(): io.ktor.client.engine/HttpClientEngineFactory<io.ktor.client.engine/HttpClientEngineConfig> // io.ktor.client.engine/EngineEntry.factory.<get-factory>|<get-factory>(){}[0]
+    final val priority // io.ktor.client.engine/EngineEntry.priority|{}priority[0]
+        final fun <get-priority>(): kotlin/Double // io.ktor.client.engine/EngineEntry.priority.<get-priority>|<get-priority>(){}[0]
+}
+
 final class io.ktor.client.engine/ProxyConfig { // io.ktor.client.engine/ProxyConfig|null[0]
     constructor <init>() // io.ktor.client.engine/ProxyConfig.<init>|<init>(){}[0]
     constructor <init>(io.ktor.http/Url) // io.ktor.client.engine/ProxyConfig.<init>|<init>(io.ktor.http.Url){}[0]
@@ -1301,6 +1310,8 @@ final object io.ktor.client.engine/ProxyBuilder { // io.ktor.client.engine/Proxy
 
 final object io.ktor.client.engine/engines : kotlin.collections/Iterable<io.ktor.client.engine/HttpClientEngineFactory<io.ktor.client.engine/HttpClientEngineConfig>> { // io.ktor.client.engine/engines|null[0]
     final fun append(io.ktor.client.engine/HttpClientEngineFactory<io.ktor.client.engine/HttpClientEngineConfig>) // io.ktor.client.engine/engines.append|append(io.ktor.client.engine.HttpClientEngineFactory<io.ktor.client.engine.HttpClientEngineConfig>){}[0]
+    final fun append(io.ktor.client.engine/HttpClientEngineFactory<io.ktor.client.engine/HttpClientEngineConfig>, kotlin/Double) // io.ktor.client.engine/engines.append|append(io.ktor.client.engine.HttpClientEngineFactory<io.ktor.client.engine.HttpClientEngineConfig>;kotlin.Double){}[0]
+    final fun entries(): kotlin.collections/List<io.ktor.client.engine/EngineEntry> // io.ktor.client.engine/engines.entries|entries(){}[0]
     final fun iterator(): kotlin.collections/Iterator<io.ktor.client.engine/HttpClientEngineFactory<io.ktor.client.engine/HttpClientEngineConfig>> // io.ktor.client.engine/engines.iterator|iterator(){}[0]
 }
 
