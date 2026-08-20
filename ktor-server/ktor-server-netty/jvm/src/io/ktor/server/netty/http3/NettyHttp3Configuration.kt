@@ -116,12 +116,17 @@ public class NettyHttp3Configuration {
      * with `SO_REUSEPORT` lets the kernel distribute connections across sockets (and therefore across
      * event loops) by hashing the client address.
      *
-     * When `null` (the default), the number of worker event loops is used on transports where
-     * `SO_REUSEPORT` balances UDP traffic across sockets (Linux/epoll), and a single socket elsewhere.
-     * Values greater than 1 require a native transport (epoll or kqueue).
+     * When `null` (the default), the number of worker event loops is used on Linux, where the
+     * kernel balances UDP traffic across `SO_REUSEPORT` sockets (with both epoll and NIO
+     * transports), and a single socket elsewhere. Values greater than 1 require `SO_REUSEPORT`
+     * support from the platform (Linux, macOS/BSD; not available on Windows). On platforms
+     * without kernel load balancing, all traffic is delivered to one of the sockets.
      *
-     * Note: kernel hashing is based on the client address, so QUIC connection migration across
-     * client addresses is not supported when more than one socket is bound.
+     * With more than one socket, the socket index is encoded into server-issued connection IDs
+     * (via Netty's [io.netty.handler.codec.quic.QuicCodecDispatcher]), and datagrams that the
+     * kernel's address hash delivers to the wrong socket (for example, after connection migration
+     * or NAT rebinding) are re-dispatched to the owning socket. Connection-id generation is managed
+     * by the engine in this mode and must not be overridden via [configureQuicServerCodec].
      */
     public var udpSocketCount: Int? = null
         set(value) {
