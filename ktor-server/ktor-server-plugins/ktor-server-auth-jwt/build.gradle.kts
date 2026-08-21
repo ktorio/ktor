@@ -7,6 +7,10 @@ plugins {
 }
 
 kotlin {
+    compilerOptions {
+        // -Xcontext-parameters requires Kotlin 2.2.0 or newer
+        freeCompilerArgs.add("-Xcontext-parameters")
+    }
     sourceSets {
         jvmMain.dependencies {
             api(projects.ktorServerAuth)
@@ -18,4 +22,3 @@ kotlin {
         }
     }
 }
-
