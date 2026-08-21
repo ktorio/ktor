@@ -62,13 +62,12 @@ public fun Source.readBytes(): ByteArray = readByteArray()
 public fun Source.readBytes(count: Int): ByteArray = readByteArray(count)
 
 /**
- * Reads at most [max] characters decoding bytes with specified [charset]. Extra character bytes will remain unconsumed
+ * Reads at most [max] bytes with specified [charset]. Extra character bytes will remain unconsumed
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.core.readText)
  *
  * @return a decoded string
  */
-@OptIn(InternalIoApi::class)
 public expect fun Source.readText(charset: Charset = Charsets.UTF_8, max: Int = Int.MAX_VALUE): String
 
 /**
