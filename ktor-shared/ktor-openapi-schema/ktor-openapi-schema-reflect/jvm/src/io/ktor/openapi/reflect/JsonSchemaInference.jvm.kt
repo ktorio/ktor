@@ -241,13 +241,15 @@ public class ReflectionJsonSchemaInference(
         try {
             if (kClass.isSealed) {
                 val sealedSubclasses = kClass.sealedSubclasses
+                val discriminatorValues = sealedSubclasses.associateWith { subclass ->
+                    val fqName = subclass.qualifiedName
+                    adapter.getDiscriminatorValue(kClass, subclass) ?: fqName ?: subclass.simpleName.orEmpty()
+                }
                 val discriminatorMapping = sealedSubclasses
                     .filter { it.qualifiedName != null }
                     .associate { subclass ->
-                        val fqName = subclass.qualifiedName!!
-                        val discriminatorValue = adapter.getDiscriminatorValue(kClass, subclass) ?: fqName
-                        val subclassSchemaName = adapter.getName(subclass.starProjectedType) ?: fqName
-                        discriminatorValue to "#/components/schemas/$subclassSchemaName"
+                        val subclassSchemaName = adapter.getName(subclass.starProjectedType) ?: subclass.qualifiedName!!
+                        discriminatorValues.getValue(subclass) to "#/components/schemas/$subclassSchemaName"
                     }
 
                 val discriminatorProperty = adapter.getDiscriminatorProperty(kClass)
@@ -256,7 +258,7 @@ public class ReflectionJsonSchemaInference(
                         type = it.starProjectedType,
                         visiting = visiting,
                         discriminatorProperty = discriminatorProperty,
-                        discriminatorValue = it.qualifiedName ?: it.simpleName.orEmpty(),
+                        discriminatorValue = discriminatorValues.getValue(it),
                     )
                 }
                 return jsonSchemaFromAnnotations(

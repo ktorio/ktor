@@ -16,6 +16,7 @@ import kotlinx.io.readString
 public actual fun Source.readText(charset: Charset, max: Int): String =
     when (max) {
         Int.MAX_VALUE -> readString(charset)
+
         else -> {
             // ensure buffer is filled
             request(max.toLong())
