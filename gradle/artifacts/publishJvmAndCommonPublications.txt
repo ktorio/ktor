@@ -678,6 +678,13 @@ io.ktor:ktor-server-routing-openapi/.jar
 io.ktor:ktor-server-routing-openapi/javadoc.jar
 io.ktor:ktor-server-routing-openapi/kotlin-tooling-metadata.json
 io.ktor:ktor-server-routing-openapi/sources.jar
+io.ktor:ktor-server-scalar-jvm/.jar
+io.ktor:ktor-server-scalar-jvm/javadoc.jar
+io.ktor:ktor-server-scalar-jvm/sources.jar
+io.ktor:ktor-server-scalar/.jar
+io.ktor:ktor-server-scalar/javadoc.jar
+io.ktor:ktor-server-scalar/kotlin-tooling-metadata.json
+io.ktor:ktor-server-scalar/sources.jar
 io.ktor:ktor-server-servlet-jakarta-jvm/.jar
 io.ktor:ktor-server-servlet-jakarta-jvm/javadoc.jar
 io.ktor:ktor-server-servlet-jakarta-jvm/sources.jar
