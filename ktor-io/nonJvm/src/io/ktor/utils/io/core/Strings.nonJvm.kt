@@ -16,6 +16,8 @@ import kotlin.math.min
 public actual fun Source.readText(charset: Charset, max: Int): String {
     if (charset == Charsets.UTF_8) {
         if (max == Int.MAX_VALUE) return readString()
+        // ensure buffer is filled
+        request(max.toLong())
         val count = min(buffer.size, max.toLong())
         return readString(count)
     }
