@@ -24,6 +24,10 @@ public val WEBSOCKETS_KEY: AttributeKey<WebSockets> = AttributeKey<WebSockets>("
 
 internal val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.websocket.WebSockets")
 
+// Marks a call whose failed-handshake response has already been captured, so reading that
+// response's body (via WebSocketException.response) doesn't re-enter the handshake handling below.
+private val FAILED_HANDSHAKE_RESPONSE_KEY = AttributeKey<Unit>("WebSocketFailedHandshakeResponse")
+
 /**
  * Indicates if a client engine supports WebSockets.
  *
@@ -228,10 +232,23 @@ public class WebSockets internal constructor(
                     LOGGER.trace { "Skipping non-websocket response from ${context.request.url}: $requestContent" }
                     return@intercept
                 }
+                if (context.attributes.contains(FAILED_HANDSHAKE_RESPONSE_KEY)) {
+                    // Reading the body of an already-captured failed handshake (WebSocketException.response);
+                    // let the default transformers produce the body instead of handling the handshake again.
+                    return@intercept
+                }
                 if (status != HttpStatusCode.SwitchingProtocols) {
+                    val failedResponse = try {
+                        context.save().also { it.attributes.put(FAILED_HANDSHAKE_RESPONSE_KEY, Unit) }.response
+                    } catch (cause: Exception) {
+                        LOGGER.trace { "Failed to read response body of failed WebSocket handshake: $cause" }
+                        null
+                    }
                     @Suppress("ktlint:standard:max-line-length")
                     throw WebSocketException(
-                        "Handshake exception, expected status code ${HttpStatusCode.SwitchingProtocols.value} but was ${status.value}"
+                        "Handshake exception, expected status code ${HttpStatusCode.SwitchingProtocols.value} but was ${status.value}",
+                        cause = null,
+                        response = failedResponse,
                     )
                 }
                 if (session !is WebSocketSession) {
@@ -273,7 +290,16 @@ public class WebSockets internal constructor(
     }
 }
 
-public class WebSocketException(message: String, cause: Throwable?) : IllegalStateException(message, cause) {
+public class WebSocketException(
+    message: String,
+    cause: Throwable?,
+    /**
+     * The HTTP response from a failed handshake, exposing the status, headers, and body returned
+     * by the server. Availability varies by engine.
+     */
+    public val response: HttpResponse?,
+) : IllegalStateException(message, cause) {
     // required for backwards binary compatibility
-    public constructor(message: String) : this(message, cause = null)
+    public constructor(message: String) : this(message, cause = null, response = null)
+    public constructor(message: String, cause: Throwable?) : this(message, cause, response = null)
 }
