@@ -231,11 +231,11 @@ public class BearerAuthProvider(
         val token = tokensHolder.loadToken() ?: return
 
         request.headers {
-            val tokenValue = "Bearer ${token.accessToken}"
-            if (contains(HttpHeaders.Authorization)) {
-                remove(HttpHeaders.Authorization)
-            }
             if (request.attributes.contains(AuthCircuitBreaker).not()) {
+                val tokenValue = "Bearer ${token.accessToken}"
+                if (contains(HttpHeaders.Authorization)) {
+                    remove(HttpHeaders.Authorization)
+                }
                 append(HttpHeaders.Authorization, tokenValue)
             }
         }
