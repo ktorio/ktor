@@ -345,6 +345,59 @@ class YamlConfigTest {
     }
 
     @Test
+    fun testEscapedDollarPrefix() {
+        val content = $$$$"""
+            ktor:
+                variable1: $$PATH
+                variable2: "$$PATH"
+                variable3: $$$PATH
+        """.trimIndent()
+        val yaml = Yaml.default.decodeFromString<YamlMap>(content)
+        val config = YamlConfig.from(yaml)
+
+        assertEquals($$"$PATH", config.property("ktor.variable1").getString())
+        assertEquals($$"$PATH", config.property("ktor.variable2").getString())
+        assertEquals($$$"$$PATH", config.property("ktor.variable3").getString())
+    }
+
+    @Test
+    fun testEscapedDollarCurlyBraces() {
+        val content = $$$"""
+            ktor:
+                variable: "$${FOO}"
+        """.trimIndent()
+        val yaml = Yaml.default.decodeFromString<YamlMap>(content)
+        val config = YamlConfig.from(yaml)
+
+        assertEquals("\${FOO}", config.property("ktor.variable").getString())
+    }
+
+    @Test
+    fun testEscapedDollarOnly() {
+        val content = $$$"""
+            ktor:
+                variable: $$
+        """.trimIndent()
+        val yaml = Yaml.default.decodeFromString<YamlMap>(content)
+        val config = YamlConfig.from(yaml)
+
+        assertEquals("\$", config.property("ktor.variable").getString())
+    }
+
+    @Test
+    fun testEscapedDollarInList() {
+        val content = $$$"""
+            ktor:
+                values:
+                    - $$foo
+        """.trimIndent()
+        val yaml = Yaml.default.decodeFromString<YamlMap>(content)
+        val config = YamlConfig.from(yaml)
+
+        assertEquals(listOf("\$foo"), config.property("ktor.values").getList())
+    }
+
+    @Test
     fun testMalformedVarCurlyBraces() {
         val content = $$"""
             ktor:

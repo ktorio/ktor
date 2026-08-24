@@ -43,6 +43,7 @@ public expect fun YamlConfig(path: String?): YamlConfig?
 /**
  * Implements [ApplicationConfig] by loading a configuration from a YAML file.
  * Values can reference to environment variables with `$ENV_VAR`, `${ENV_VAR}`, or `"$ENV_VAR:default_value"` syntax.
+ * Prefix an extra `$` to keep a literal dollar: `$$ENV` is `$ENV`.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.config.yaml.YamlConfig)
  */
@@ -200,6 +201,8 @@ private fun YamlScalar.resolveReferences(rootNode: YamlMap): YamlNode {
 }
 
 private fun resolveReference(rootNode: YamlMap, value: String, visited: MutableSet<String>): String? {
+    if (value.startsWith("$$")) return value.drop(1)
+
     if (value.startsWith("$") && !visited.add(value)) {
         throw ApplicationConfigurationException("Cycle detected in references: $visited")
     }
