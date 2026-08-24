@@ -6,6 +6,7 @@ package io.ktor.server.request
 
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.plugins.*
 import io.ktor.utils.io.*
 
 /**
@@ -120,10 +121,14 @@ public interface PipelineRequest : ApplicationRequest {
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.request.encodeParameters)
  */
 public fun ApplicationRequest.encodeParameters(parameters: Parameters): Parameters {
-    return ParametersBuilder().apply {
-        rawQueryParameters.names().forEach { key ->
-            val values = parameters.getAll(key)?.map { it.decodeURLQueryComponent(plusIsSpace = true) }.orEmpty()
-            appendAll(key.decodeURLQueryComponent(), values)
-        }
-    }.build()
+    try {
+        return ParametersBuilder().apply {
+            rawQueryParameters.names().forEach { key ->
+                val values = parameters.getAll(key)?.map { it.decodeURLQueryComponent(plusIsSpace = true) }.orEmpty()
+                appendAll(key.decodeURLQueryComponent(), values)
+            }
+        }.build()
+    } catch (cause: URLDecodeException) {
+        throw BadRequestException("Url decode failed for query parameters of $uri", cause)
+    }
 }
