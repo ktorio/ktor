@@ -88,7 +88,8 @@ public class SessionTransportTransformerEncrypt(
             val encryptedAndMac = transportValue.substringAfterLast('/', "")
             val macHex = encryptedAndMac.substringAfterLast(':', "")
             val encrypted = encryptedAndMac.substringBeforeLast(':').hexToByteArray()
-            val macCheck = mac(encrypted).toHexString() == macHex
+            val expectedMac = macHex.hexToByteArray()
+            val macCheck = MessageDigest.isEqual(mac(encrypted), expectedMac)
             if (!macCheck && !backwardCompatibleRead) {
                 return null
             }
@@ -96,7 +97,7 @@ public class SessionTransportTransformerEncrypt(
             val iv = transportValue.substringBeforeLast('/').hexToByteArray()
             val decrypted = decrypt(iv, encrypted)
 
-            if (!macCheck && mac(decrypted).toHexString() != macHex) {
+            if (!macCheck && !MessageDigest.isEqual(mac(decrypted), expectedMac)) {
                 return null
             }
 
