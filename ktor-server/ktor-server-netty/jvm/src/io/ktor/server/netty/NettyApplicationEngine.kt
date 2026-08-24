@@ -137,7 +137,10 @@ public class NettyApplicationEngine(
         public var enableHttp2: Boolean = true
 
         /**
-         * If set to `true` and [enableHttp2] is set to `true`, enables HTTP/2 protocol without TLS for Netty engine
+         * If set to `true` and [enableHttp2] is set to `true`, enables HTTP/2 protocol without TLS (h2c) for
+         * unencrypted connectors. SSL connectors are unaffected and continue to negotiate HTTP/2 via ALPN when
+         * [enableHttp2] is `true`, so this flag can be combined with an SSL connector to serve both HTTP/2 over
+         * TLS and h2c from the same server.
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.NettyApplicationEngine.Configuration.enableH2c)
          */

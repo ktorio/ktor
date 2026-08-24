@@ -406,6 +406,42 @@ class NettyH2cEnabledTest :
     }
 }
 
+class NettyH2cWithSslTest :
+    HttpServerJvmTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
+
+    init {
+        enableSsl = true
+        enableHttp2 = true
+    }
+
+    override fun configure(configuration: NettyApplicationEngine.Configuration) {
+        configuration.enableH2c = true
+    }
+
+    @Test
+    fun testH2cConnectorAndSslConnectorServeConcurrently() = runTest {
+        createAndStartServer {
+            get("/") {
+                call.respondText("Hello, world")
+            }
+        }
+
+        withHttp1("http://127.0.0.1:$port/", port, {}) {
+            assertEquals("Hello, world", bodyAsText())
+            assertEquals(HttpProtocolVersion.HTTP_1_1, version)
+        }
+
+        withHttp1("https://127.0.0.1:$sslPort/", sslPort, {}) {
+            assertEquals("Hello, world", bodyAsText())
+        }
+
+        withHttp2("https://127.0.0.1:$sslPort/", sslPort, {}) {
+            assertEquals("Hello, world", bodyAsText())
+            assertEquals(HttpProtocolVersion.HTTP_2_0, version)
+        }
+    }
+}
+
 class NettyH2cFlushTest :
     EngineTestBase<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
 
