@@ -460,6 +460,35 @@ abstract class HttpServerJvmTestSuite<TEngine : ApplicationEngine, TConfiguratio
         }
     }
 
+    @Test
+    fun testMalformedQueryParameterEncodingReturnsBadRequest() = runTest {
+        createAndStartServer {
+            get("/") {
+                call.respond(HttpStatusCode.OK)
+            }
+        }
+
+        val request = buildString {
+            append("GET /?foo=%nope HTTP/1.1\r\n")
+            append("Host: localhost\r\n")
+            append("Connection: close\r\n")
+            append("\r\n")
+        }.toByteArray()
+
+        socket {
+            outputStream.apply {
+                write(request)
+                flush()
+            }
+
+            val statusLine = inputStream.bufferedReader().readLine()
+            assertTrue(
+                statusLine != null && "400" in statusLine,
+                "Expected 400 Bad Request but got: $statusLine"
+            )
+        }
+    }
+
     private val pipelinedResponses = """
                     HTTP/1.1 200
                     Response for 1
