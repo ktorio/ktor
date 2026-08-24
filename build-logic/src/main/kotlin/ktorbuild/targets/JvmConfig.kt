@@ -77,6 +77,9 @@ private fun Project.configureTests() {
         testClassesDirs = files(jvmTest.map { it.testClassesDirs })
 
         maxHeapSize = "2g"
+        // A quarantined test flipping is the expected outcome here, not a regression to block on.
+        // Failures still land in the test reports and in Develocity, which is where the flip rate is tracked.
+        ignoreFailures = true
         systemProperty(FLAKY_MODE_PROPERTY, FlakyTestsMode.ONLY.propertyValue)
         systemProperty("junit.jupiter.extensions.autodetection.enabled", "true")
         exclude("**/*StressTest*")
