@@ -1061,9 +1061,7 @@ internal fun createOAuth2Server(server: OAuth2Server): Deferred<HttpClient> {
             routing {
                 route("/oauth/access_token") {
                     handle {
-                        val formData = runCatching {
-                            call.receiveNullable<Parameters>()
-                        }.getOrNull() ?: Parameters.Empty
+                        val formData = runCatching { call.receive<Parameters?>() }.getOrNull() ?: Parameters.Empty
 
                         val values = call.parameters + formData
 

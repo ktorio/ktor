@@ -246,6 +246,12 @@ public class RoutingCall internal constructor(
     public val queryParameters: Parameters = pipelineCall.engineCall.parameters
     public val route: RoutingNode = pipelineCall.route
 
+    override suspend fun <T> receive(typeInfo: TypeInfo): T = pipelineCall.receive(typeInfo)
+
+    @Deprecated(
+        "Use 'receive<T>(typeInfo)' with nullable T instead",
+        replaceWith = ReplaceWith("receive<T?>(typeInfo)")
+    )
     override suspend fun <T> receiveNullable(typeInfo: TypeInfo): T? = pipelineCall.receiveNullable(typeInfo)
 
     override suspend fun respond(message: Any?, typeInfo: TypeInfo?) {

@@ -70,9 +70,12 @@ public open class ApplicationReceivePipeline(
  */
 @Deprecated(
     "receiveOrNull is ambiguous with receiveNullable and going to be removed in 3.0.0. " +
-        "Please consider replacing it with runCatching with receive or receiveNullable",
+        "Please consider replacing it with runCatching with receive",
     level = DeprecationLevel.ERROR,
-    replaceWith = ReplaceWith("kotlin.runCatching { this.receiveNullable<T>() }.getOrNull()")
+    replaceWith = ReplaceWith(
+        "kotlin.runCatching { this.receive<T?>() }.getOrNull()",
+        "io.ktor.server.request.receive",
+    )
 )
 @Suppress("DEPRECATION_ERROR")
 public suspend inline fun <reified T : Any> ApplicationCall.receiveOrNull(): T? = receiveOrNull(typeInfo<T>())
@@ -85,8 +88,7 @@ public suspend inline fun <reified T : Any> ApplicationCall.receiveOrNull(): T? 
  * @return instance of [T] received from this call.
  * @throws ContentTransformationException when content cannot be transformed to the requested type.
  */
-public suspend inline fun <reified T : Any> ApplicationCall.receive(): T = receiveNullable(typeInfo<T>())
-    ?: throw CannotTransformContentToTypeException(typeInfo<T>())
+public suspend inline fun <reified T> ApplicationCall.receive(): T = receive(typeInfo<T>())
 
 /**
  * Receives content for this request.
@@ -96,7 +98,11 @@ public suspend inline fun <reified T : Any> ApplicationCall.receive(): T = recei
  * @return instance of [T] received from this call.
  * @throws ContentTransformationException when content cannot be transformed to the requested type.
  */
-public suspend inline fun <reified T> ApplicationCall.receiveNullable(): T? = receiveNullable(typeInfo<T>())
+@Deprecated(
+    "Use 'receive<T>()' with nullable T instead",
+    ReplaceWith("this.receive<T>()", "io.ktor.server.request.receive"),
+)
+public suspend inline fun <reified T> ApplicationCall.receiveNullable(): T? = receive<T>()
 
 /**
  * Receives content for this request.
@@ -109,7 +115,7 @@ public suspend inline fun <reified T> ApplicationCall.receiveNullable(): T? = re
  */
 public suspend fun <T : Any> ApplicationCall.receive(type: KClass<T>): T {
     val kotlinType = starProjectedTypeBridge(type)
-    return receiveNullable(TypeInfo(type, kotlinType))!!
+    return receive(TypeInfo(type = type, kotlinType = kotlinType))
 }
 
 /**
@@ -122,6 +128,11 @@ public suspend fun <T : Any> ApplicationCall.receive(type: KClass<T>): T {
  * @throws ContentTransformationException when content cannot be transformed to the requested type.
  * @throws NullPointerException when content is `null`.
  */
+@Suppress("EXTENSION_SHADOWED_BY_MEMBER", "DEPRECATION")
+@Deprecated(
+    "Maintained for binary compatibility",
+    level = DeprecationLevel.HIDDEN,
+)
 public suspend fun <T> ApplicationCall.receive(typeInfo: TypeInfo): T = receiveNullable(typeInfo)!!
 
 /**
@@ -134,13 +145,13 @@ public suspend fun <T> ApplicationCall.receive(typeInfo: TypeInfo): T = receiveN
  */
 @Deprecated(
     "receiveOrNull is ambiguous with receiveNullable and going to be removed in 3.0.0. " +
-        "Please consider replacing it with runCatching with receive or receiveNullable",
+        "Please consider replacing it with runCatching with receive",
     level = DeprecationLevel.ERROR,
-    replaceWith = ReplaceWith("kotlin.runCatching { this.receiveNullable<T>() }.getOrNull()")
+    replaceWith = ReplaceWith("kotlin.runCatching { this.receive<T?>(typeInfo) }.getOrNull()")
 )
 public suspend fun <T : Any> ApplicationCall.receiveOrNull(typeInfo: TypeInfo): T? {
     return try {
-        receiveNullable(typeInfo)
+        receive(typeInfo)
     } catch (cause: ContentTransformationException) {
         application.log.debug("Conversion failed, null returned", cause)
         null
@@ -157,9 +168,12 @@ public suspend fun <T : Any> ApplicationCall.receiveOrNull(typeInfo: TypeInfo): 
  */
 @Deprecated(
     "receiveOrNull is ambiguous with receiveNullable and going to be removed in 3.0.0. " +
-        "Please consider replacing it with runCatching with receive or receiveNullable",
+        "Please consider replacing it with runCatching with receive",
     level = DeprecationLevel.ERROR,
-    replaceWith = ReplaceWith("kotlin.runCatching { this.receiveNullable<T>() }.getOrNull()")
+    replaceWith = ReplaceWith(
+        "kotlin.runCatching { this.receive(type) }.getOrNull()",
+        "io.ktor.server.request.receive",
+    )
 )
 public suspend fun <T : Any> ApplicationCall.receiveOrNull(type: KClass<T>): T? = try {
     receive(type)
