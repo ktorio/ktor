@@ -119,7 +119,7 @@ public interface PipelineCall : ApplicationCall {
         when {
             transformed == NullBody -> return null
             transformed === DoubleReceivePreventionToken -> throw RequestAlreadyConsumedException()
-            !typeInfo.type.isInstance(transformed) -> throw CannotTransformContentToTypeException(typeInfo.kotlinType!!)
+            !typeInfo.type.isInstance(transformed) -> throw CannotTransformContentToTypeException(typeInfo)
         }
 
         @Suppress("UNCHECKED_CAST")

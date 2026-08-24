@@ -15,7 +15,7 @@ import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
-import kotlin.reflect.*
+import kotlin.reflect.KClass
 
 private val FORM_FIELD_LIMIT = AttributeKey<Long>("FormFieldLimit")
 
@@ -86,7 +86,7 @@ public suspend inline fun <reified T : Any> ApplicationCall.receiveOrNull(): T? 
  * @throws ContentTransformationException when content cannot be transformed to the requested type.
  */
 public suspend inline fun <reified T : Any> ApplicationCall.receive(): T = receiveNullable(typeInfo<T>())
-    ?: throw CannotTransformContentToTypeException(typeInfo<T>().kotlinType!!)
+    ?: throw CannotTransformContentToTypeException(typeInfo<T>())
 
 /**
  * Receives content for this request.
