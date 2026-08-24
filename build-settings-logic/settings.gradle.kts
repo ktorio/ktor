@@ -36,7 +36,19 @@ dependencyResolutionManagement {
 
         // Should be in sync with ktorsettings.kotlin-user-project
         val kotlinRepoUrl = providers.gradleProperty("kotlin_repo_url").orNull
-        if (kotlinRepoUrl != null) maven(kotlinRepoUrl) { name = "KotlinDev" }
+        val kotlin_version: String? by settings
+        val repoUrl = kotlinRepoUrl
+        val kotlinVersion = kotlin_version
+        if (!repoUrl.isNullOrEmpty() && !kotlinVersion.isNullOrEmpty()) {
+            exclusiveContent {
+                forRepository {
+                    maven(repoUrl)
+                }
+                filter {
+                    includeVersionByRegex("org\\.jetbrains\\.kotlin.*", ".*", kotlinVersion)
+                }
+            }
+        }
     }
 }
 
