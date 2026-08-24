@@ -14,8 +14,14 @@ public actual interface Type
 public object JsType : Type
 
 @Suppress("DEPRECATION")
-@Deprecated("Use TypeInfo constructor instead.", ReplaceWith("TypeInfo(kClass, kType)"))
-public fun typeInfoImpl(reifiedType: Type, kClass: KClass<*>, kType: KType?): TypeInfo = TypeInfo(kClass, kType)
+@Deprecated(
+    "Use TypeInfo constructor instead.",
+    ReplaceWith("TypeInfo(type = kClass, kotlinType = kType)")
+)
+public fun typeInfoImpl(reifiedType: Type, kClass: KClass<*>, kType: KType?): TypeInfo = TypeInfo(
+    type = kClass,
+    kotlinType = kType,
+)
 
 /**
  * Check [this] is instance of [type].

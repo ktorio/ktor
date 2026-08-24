@@ -8,7 +8,7 @@ import io.ktor.http.*
 import io.ktor.server.plugins.*
 import io.ktor.util.converters.*
 import io.ktor.util.reflect.*
-import kotlin.reflect.*
+import kotlin.reflect.KProperty
 
 /**
  * Operator function that allows to delegate variables by call parameters.
@@ -57,13 +57,13 @@ public inline fun <reified R> Parameters.getOrFail(name: String): R =
     getOrFailImpl(name, typeInfo<R>())
 
 @PublishedApi
+@Suppress("UNCHECKED_CAST")
 internal fun <R> Parameters.getOrFailImpl(name: String, typeInfo: TypeInfo): R {
-    return if (typeInfo.kotlinType?.isMarkedNullable == true && get(name) == null) {
+    return if (typeInfo.isNullable && get(name) == null) {
         null as R
     } else {
         val values = getAll(name) ?: throw MissingRequestParameterException(name)
         try {
-            @Suppress("UNCHECKED_CAST")
             DefaultConversionService.fromValues(values, typeInfo) as R
         } catch (cause: Exception) {
             throw ParameterConversionException(name, typeInfo.type.simpleName ?: typeInfo.type.toString(), cause)
