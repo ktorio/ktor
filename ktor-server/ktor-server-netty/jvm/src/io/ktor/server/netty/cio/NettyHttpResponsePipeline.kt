@@ -164,7 +164,7 @@ internal class NettyHttpResponsePipeline(
     }
 
     fun close(call: NettyApplicationCall, lastFuture: ChannelFuture) {
-        call.flushBeforeClose(context)
+        call.flushBeforeClose(context, lastFuture)
         isDataNotFlushed.compareAndSet(expect = true, update = false)
         lastFuture.addListener {
             context.close()

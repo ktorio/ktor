@@ -37,15 +37,15 @@ import io.netty.handler.codec.quic.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.consumeAsFlow
 import org.junit.jupiter.api.Assumptions.assumeTrue
+import org.junit.jupiter.api.io.TempDir
+import java.io.File
 import java.net.InetSocketAddress
 import java.net.StandardSocketOptions
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
-import kotlin.test.BeforeTest
-import kotlin.test.Ignore
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import kotlin.test.*
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.measureTime
 
 class NettyCompressionTest : CompressionTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
     init {
@@ -738,6 +738,41 @@ open class NettyHttp3Test :
                 ?: error("Timed out waiting for HTTP/3 response")
             assertEquals("200", response.status)
             assertEquals(body, response.body)
+        }
+    }
+
+    /**
+     * Reproduces a reported bottleneck serving files via [staticFiles] over HTTP/3.
+     * Not an assertion-heavy test: run/profile this method directly (for example with the
+     * IntelliJ profiler) to see where time goes when a [io.ktor.server.http.content.LocalFileContent]
+     * response is streamed over a QUIC stream instead of a TCP socket.
+     */
+    @Test
+    fun `staticFiles high volume GET requests`(@TempDir tempDir: File) = runTest(timeout = 60.seconds) {
+        val fileContent = "0123456789".repeat(100_000) // 1,000,000 bytes of ASCII content
+        File(tempDir, "asset.txt").writeText(fileContent)
+
+        createAndStartServer {
+            application.routing {
+                staticFiles("/static", tempDir)
+            }
+        }
+
+        val requestCount = 200
+        withHttp3Client { quicChannel ->
+            val elapsed = measureTime {
+                repeat(requestCount) {
+                    val response = sendHttp3Request(quicChannel, "GET", "/static/asset.txt")
+                    assertEquals("200", response.status)
+                    assertEquals(fileContent.length, response.body.length)
+                }
+            }
+            val totalBytes = requestCount.toLong() * fileContent.length
+            println(
+                "Served $requestCount HTTP/3 staticFiles requests " +
+                    "(${fileContent.length} bytes each, ${totalBytes / (1024 * 1024)} MiB total) in $elapsed, " +
+                    "${elapsed.inWholeMilliseconds.toDouble() / requestCount} ms/request"
+            )
         }
     }
 
