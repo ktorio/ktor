@@ -7,9 +7,9 @@ package io.ktor.test
 /**
  * Marks a test (method or class) as flaky (non-deterministic).
  *
- * Flaky tests are **excluded from the default test run** and executed only by the
- * dedicated flaky/nightly task (`enable.flaky.tests` — see build-logic `JvmConfig`),
- * so they stay tracked in Develocity instead of being deleted or silently retried.
+ * Flaky tests are **excluded from the default test run** and executed only by the dedicated
+ * flaky/nightly task, so they stay tracked in Develocity instead of being deleted or silently
+ * retried.
  *
  * On JVM this is enforced by `io.ktor.test.junit.FlakyTestCondition` (auto-registered via JUnit
  * extension autodetection). There is no JUnit Platform on Native/JS/Wasm, so annotations can't be
@@ -22,17 +22,18 @@ package io.ktor.test
  * fun testReconnectsAfterClose_flaky() { ... }
  * ```
  *
- * The token may sit on the test or on its class. Selection modes, applied to every target:
+ * Both selectors are driven by one property, `ktor.tests.flaky`, applied to every target:
  *
- * | Command                                    | Runs                        |
- * |--------------------------------------------|-----------------------------|
- * | `./gradlew :module:jvmTest`                | everything except flaky     |
- * | `./gradlew :module:jsNodeTest -Pktor.tests.flaky=only` | flaky only      |
- * | `./gradlew :module:macosArm64Test -Pktor.tests.flaky=all` | everything   |
+ * | Command                                                   | Runs                    |
+ * |-----------------------------------------------------------|-------------------------|
+ * | `./gradlew :module:jvmTest`                               | everything except flaky |
+ * | `./gradlew :module:jsNodeTest -Pktor.tests.flaky=only`    | flaky only              |
+ * | `./gradlew :module:macosArm64Test -Pktor.tests.flaky=all` | everything              |
  *
- * The JVM-only `flakyTest` task runs **only** the `@Flaky` tests (it sets `flaky.tests.only`, so
- * `FlakyTestCondition` skips everything else), since the annotation is resolved at execution time
- * rather than during selection.
+ * The JVM-only `flakyTest` task runs **only** the `@Flaky` tests: it pins the same property to
+ * `only` for the test JVM, so `FlakyTestCondition` skips everything else. It exists because the
+ * annotation is resolved at execution time rather than during selection, which is what lets it
+ * catch JVM tests that carry no `_flaky` token.
  *
  * Prefer fixing flakiness over marking; when marking, always link the tracking issue.
  *

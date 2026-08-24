@@ -20,7 +20,13 @@ const val FLAKY_NAME_TOKEN = "_flaky"
 /** Matches the token anywhere in the test name, which also covers the `[target]` name suffixes. */
 private const val FLAKY_TEST_PATTERN = "*$FLAKY_NAME_TOKEN*"
 
-private const val FLAKY_MODE_PROPERTY = "ktor.tests.flaky"
+/**
+ * Selects how test tasks treat flaky tests, as a Gradle property (`-P`).
+ *
+ * The same name and the same values are used for the system property that JVM test tasks pass to
+ * `io.ktor.test.junit.FlakyTestCondition`, so there is one spelling to remember for both selectors.
+ */
+internal const val FLAKY_MODE_PROPERTY = "ktor.tests.flaky"
 
 /** How test tasks treat tests marked with [FLAKY_NAME_TOKEN]. Selected by [FLAKY_MODE_PROPERTY]. */
 internal enum class FlakyTestsMode {
@@ -32,6 +38,9 @@ internal enum class FlakyTestsMode {
 
     /** Run everything, flaky included. */
     ALL;
+
+    /** The [FLAKY_MODE_PROPERTY] value denoting this mode, as accepted by [of]. */
+    val propertyValue: String get() = name.lowercase()
 
     companion object {
         fun of(value: String?): FlakyTestsMode = when (value) {

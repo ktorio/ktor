@@ -10,12 +10,50 @@ import org.junit.jupiter.api.extension.ExecutionCondition
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.platform.commons.support.AnnotationSupport
 
+/** System property selecting how this run treats `@Flaky` tests. See [FlakyTestsMode]. */
+internal const val FLAKY_MODE_PROPERTY = "ktor.tests.flaky"
+
 /**
- * Excludes [Flaky]-annotated tests from the default run and includes them only when flaky tests are
- * enabled, via one of two system properties:
- *  - `enable.flaky.tests` — run the full suite with `@Flaky` tests included.
- *  - `flaky.tests.only` — run **only** `@Flaky` tests, skipping everything else (the `flakyTest`
- *    nightly task, so it samples the quarantined tests without dragging the whole JVM suite along).
+ * How a test run treats `@Flaky` tests, taken from the [FLAKY_MODE_PROPERTY] system property.
+ *
+ * Mirrors `FlakyTestsMode` in build-logic, which reads the same values from the Gradle property of
+ * the same name and forwards them to test JVMs. The values are spelled out in both places because
+ * build-logic isn't on the test classpath.
+ */
+internal enum class FlakyTestsMode {
+    /** The default: `@Flaky` tests don't run. */
+    EXCLUDE,
+
+    /** Nightly: run `@Flaky` tests and nothing else, to track whether they still flip. */
+    ONLY,
+
+    /** Run everything, flaky included. */
+    ALL;
+
+    internal companion object {
+        fun of(value: String?): FlakyTestsMode = when (value) {
+            null, "", "exclude" -> EXCLUDE
+
+            "only" -> ONLY
+
+            "all" -> ALL
+
+            else -> error(
+                "Unexpected value '$value' of '$FLAKY_MODE_PROPERTY'. Expected one of: exclude, only, all."
+            )
+        }
+
+        fun current(): FlakyTestsMode = of(System.getProperty(FLAKY_MODE_PROPERTY))
+    }
+}
+
+/**
+ * Excludes [Flaky]-annotated tests from the default run and includes them only when the
+ * [FLAKY_MODE_PROPERTY] system property asks for them:
+ *  - `exclude` (the default) — skip `@Flaky` tests, run everything else.
+ *  - `only` — run **only** `@Flaky` tests, skipping everything else (the `flakyTest` nightly task,
+ *    so it samples the quarantined tests without dragging the whole JVM suite along).
+ *  - `all` — run the full suite with `@Flaky` tests included.
  *
  * Mirrors `StressTestCondition`, but is annotation-driven and auto-registered via JUnit
  * extension autodetection (see `META-INF/services/org.junit.jupiter.api.extension.Extension`
@@ -24,28 +62,27 @@ import org.junit.platform.commons.support.AnnotationSupport
  */
 class FlakyTestCondition : ExecutionCondition {
     override fun evaluateExecutionCondition(context: ExtensionContext): ConditionEvaluationResult {
-        val onlyFlaky = System.getProperty("flaky.tests.only").isFlakyEnabled()
+        val mode = FlakyTestsMode.current()
         val flaky = context.findFlaky()
 
         if (flaky == null) {
             return when {
-                !onlyFlaky -> ConditionEvaluationResult.enabled("Not a @Flaky test")
+                mode != FlakyTestsMode.ONLY -> ConditionEvaluationResult.enabled("Not a @Flaky test")
+
                 context.testMethod.isPresent ->
-                    ConditionEvaluationResult.disabled("Only @Flaky tests requested (flaky.tests.only)")
+                    ConditionEvaluationResult.disabled("Only @Flaky tests requested ($FLAKY_MODE_PROPERTY=only)")
+
                 else ->
-                    ConditionEvaluationResult.enabled("Container kept for its @Flaky tests (flaky.tests.only)")
+                    ConditionEvaluationResult.enabled("Container kept for its @Flaky tests ($FLAKY_MODE_PROPERTY=only)")
             }
         }
 
-        return if (onlyFlaky || System.getProperty("enable.flaky.tests").isFlakyEnabled()) {
-            ConditionEvaluationResult.enabled("flaky tests enabled (${flaky.ticket})")
-        } else {
+        return if (mode == FlakyTestsMode.EXCLUDE) {
             ConditionEvaluationResult.disabled("@Flaky test excluded (${flaky.ticket})")
+        } else {
+            ConditionEvaluationResult.enabled("Flaky tests enabled (${flaky.ticket})")
         }
     }
-
-    /** A flaky-mode system property is "on" unless it is unset, `"false"`, or `"0"`. */
-    private fun String?.isFlakyEnabled(): Boolean = this != null && this !in setOf("false", "0")
 
     /** Finds [Flaky] on the current test method, or on its class or any of its base classes. */
     private fun ExtensionContext.findFlaky(): Flaky? =
