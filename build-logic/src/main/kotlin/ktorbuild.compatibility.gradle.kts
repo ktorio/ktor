@@ -6,4 +6,4 @@
 import org.jetbrains.kotlin.gradle.dsl.abi.*
 import org.jetbrains.kotlin.gradle.dsl.kotlinExtension
 
-kotlinExtension.abiValidation {}
+//kotlinExtension.abiValidation {}
