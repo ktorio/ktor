@@ -16,6 +16,8 @@ import java.security.SecureRandom
 import javax.crypto.KeyGenerator
 import javax.crypto.Mac
 import javax.crypto.SecretKey
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Maximum age of a valid token in milliseconds (default: 60 seconds).
@@ -59,12 +61,18 @@ private const val TIMESTAMP_LENGTH = 8
  * @param keyGen a function for providing the secret key used in HMAC signing and validation.
  *   If not provided, a random 256-bit key is generated. Provide a shared key when tokens
  *   must validate across multiple server instances.
- * @param tokenLifetimeMillis maximum age of a valid token in milliseconds.
+ * @param tokenLifetime maximum age of a valid token.
  */
 public class HmacQuicTokenHandler(
     keyGen: () -> SecretKey = ::generateDefaultKey,
-    private val tokenLifetimeMillis: Long = TOKEN_LIFETIME_MS,
+    private val tokenLifetime: Duration = TOKEN_LIFETIME_MS.milliseconds,
 ) : QuicTokenHandler {
+
+    init {
+        require(tokenLifetime.isPositive()) {
+            "tokenLifetimeMillis must be strictly positive, but was $tokenLifetime"
+        }
+    }
 
     private val secretKey: SecretKey by lazy(keyGen)
 
@@ -100,7 +108,7 @@ public class HmacQuicTokenHandler(
         val timestamp = token.getLong(token.readerIndex())
 
         val now = System.currentTimeMillis()
-        if (now - timestamp > tokenLifetimeMillis || timestamp > now) return -1
+        if (now - timestamp > tokenLifetime.inWholeMilliseconds || timestamp > now) return -1
 
         val receivedMac = ByteArray(HMAC_LENGTH)
         token.getBytes(token.readerIndex() + TIMESTAMP_LENGTH, receivedMac)

@@ -53,7 +53,9 @@ internal class NettyHttp3ApplicationCall(
             context.flush()
             return
         }
-        // required to ensure the final write has actually reached the wire before the FIN is sent
+        // lastFuture is the future of a queued write and won't complete until flushed; flush now
+        // so the write actually reaches the wire before the FIN is sent via shutdownOutput()
+        context.flush()
         lastFuture.addListener {
             channel.shutdownOutput()
         }

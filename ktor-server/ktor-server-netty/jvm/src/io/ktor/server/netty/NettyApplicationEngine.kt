@@ -297,21 +297,45 @@ public class NettyApplicationEngine(
      * [getDatagramChannelClass], or `null` when unsupported: native transports use
      * [UnixChannelOption.SO_REUSEPORT], while NIO requires the JDK socket option
      * `StandardSocketOptions.SO_REUSEPORT`, which is resolved reflectively because it is only
-     * available since Java 9 while this module compiles against the Java 8 API.
+     * available since Java 9 while this module compiles against the Java 8 API. The field's mere
+     * presence only proves the JDK version supports the constant, not that the platform's NIO
+     * provider actually implements it (for example, Windows exposes the field but its datagram
+     * channels reject the option) — an actual NIO `DatagramChannel`'s `supportedOptions()` is
+     * probed to confirm real support before the option is used.
      */
-    private val reusePortOption: ChannelOption<Boolean>? by lazy {
+    private val reusePortOption: ChannelOption<Boolean>? get() = reusePortResolution.option
+
+    /**
+     * Explains why [reusePortOption] is `null`, distinguishing "this JDK doesn't have the
+     * `SO_REUSEPORT` constant" (needs Java 9+) from "this JDK has it, but the platform's NIO
+     * provider rejects it anyway" (for example, Windows) — the two require different advice.
+     */
+    private val reusePortResolution: ReusePortResolution by lazy {
         if (KQueue.isAvailable() || Epoll.isAvailable()) {
-            return@lazy UnixChannelOption.SO_REUSEPORT
+            return@lazy ReusePortResolution(UnixChannelOption.SO_REUSEPORT, null)
         }
         try {
             @Suppress("UNCHECKED_CAST")
             val soReusePort = StandardSocketOptions::class.java.getField("SO_REUSEPORT")
                 .get(null) as SocketOption<Boolean>
-            NioChannelOption.of(soReusePort)
+            val supported = java.nio.channels.DatagramChannel.open().use { channel ->
+                channel.supportedOptions().contains(soReusePort)
+            }
+            if (!supported) {
+                return@lazy ReusePortResolution(
+                    null,
+                    "the current platform's NIO datagram provider does not support SO_REUSEPORT"
+                )
+            }
+            ReusePortResolution(NioChannelOption.of(soReusePort), null)
         } catch (_: ReflectiveOperationException) {
-            null
+            ReusePortResolution(null, "SO_REUSEPORT requires running on Java 9 or newer")
+        } catch (_: java.io.IOException) {
+            ReusePortResolution(null, "SO_REUSEPORT support could not be determined")
         }
     }
+
+    private class ReusePortResolution(val option: ChannelOption<Boolean>?, val unsupportedReason: String?)
 
     /**
      * The number of UDP sockets bound per HTTP/3 connector.
@@ -327,13 +351,14 @@ public class NettyApplicationEngine(
         when {
             configured != null -> {
                 check(configured == 1 || reusePortOption != null) {
-                    "udpSocketCount = $configured requires SO_REUSEPORT support: " +
-                        "use a native transport (epoll/kqueue) or run on Java 9+ for NIO support"
+                    "udpSocketCount = $configured requires SO_REUSEPORT support, but " +
+                        "${reusePortResolution.unsupportedReason}. " +
+                        "Use a native transport (epoll/kqueue) or set udpSocketCount = 1."
                 }
                 configured
             }
 
-            isLinux && reusePortOption != null -> configuration.workerGroupSize
+            isLinux && reusePortOption != null && configuration.workerGroupSize > 1 -> configuration.workerGroupSize
 
             else -> 1
         }

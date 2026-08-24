@@ -92,7 +92,6 @@ internal class NettyHttp3Handler(
         context.fireChannelReadComplete()
     }
 
-    @Suppress("OverridingDeprecatedMember")
     override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
         // Stream-level failures (client resets, aborted downloads) are routine under load;
         // log at debug to keep error logging out of the hot path, matching the HTTP/2 handler.

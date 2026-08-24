@@ -88,39 +88,40 @@ internal class NettyHttp3ChannelInitializer(
             runningLimit
         )
 
-        return Http3.newQuicServerCodecBuilder()
+        val builder = Http3.newQuicServerCodecBuilder()
             .sslContext(quicSslContext)
             .maxIdleTimeout(http3Configuration.quicMaxIdleTimeout.inWholeMilliseconds, TimeUnit.MILLISECONDS)
             .initialMaxData(http3Configuration.quicInitialMaxData)
             .initialMaxStreamDataBidirectionalLocal(http3Configuration.quicInitialMaxStreamDataBidirectionalLocal)
             .initialMaxStreamDataBidirectionalRemote(http3Configuration.quicInitialMaxStreamDataBidirectionalRemote)
             .initialMaxStreamsBidirectional(http3Configuration.quicInitialMaxStreamsBidirectional)
-            .apply {
-                // When no token handler is configured, Netty accepts connections on the first Initial
-                // packet; a configured handler enables stateless Retry (address validation).
-                http3Configuration.quicTokenHandler?.let { tokenHandler(it) }
-                // GSO: send up to 10 UDP packets per syscall where the kernel supports it.
-                // newSegmentedAllocator falls back to SegmentedDatagramPacketAllocator.NONE otherwise.
-                if (Epoll.isAvailable()) {
-                    option(
-                        QuicChannelOption.SEGMENTED_DATAGRAM_PACKET_ALLOCATOR,
-                        EpollQuicUtils.newSegmentedAllocator(10)
-                    )
-                }
+        // When no token handler is configured, Netty accepts connections on the first Initial
+        // packet; a configured handler enables stateless Retry (address validation).
+        http3Configuration.quicTokenHandler?.let(builder::tokenHandler)
+
+        // GSO: send up to 10 UDP packets per syscall where the kernel supports it.
+        // newSegmentedAllocator falls back to SegmentedDatagramPacketAllocator.NONE otherwise.
+        if (Epoll.isAvailable()) {
+            builder.option(
+                QuicChannelOption.SEGMENTED_DATAGRAM_PACKET_ALLOCATOR,
+                EpollQuicUtils.newSegmentedAllocator(10)
+            )
+        }
+        // Custom configuration for codecs lambda
+        builder.apply(http3Configuration.configureQuicServerCodec)
+
+        // Applied after user configuration on purpose: with multiple sockets, the dispatcher
+        // owns connection-id generation, and overriding it would break cross-socket routing.
+        localConnectionIdLength?.let(builder::localConnectionIdLength)
+        idGenerator?.let(builder::connectionIdAddressGenerator)
+
+        // Http3ServerConnectionHandler is not sharable: one instance per connection
+        builder.handler(object : ChannelInitializer<QuicChannel>() {
+            override fun initChannel(ch: QuicChannel) {
+                ch.pipeline().addLast(Http3ServerConnectionHandler(streamInitializer))
             }
-            .apply(http3Configuration.configureQuicServerCodec)
-            .apply {
-                // Applied after user configuration on purpose: with multiple sockets, the dispatcher
-                // owns connection-id generation, and overriding it would break cross-socket routing.
-                if (localConnectionIdLength != null) localConnectionIdLength(localConnectionIdLength)
-                if (idGenerator != null) connectionIdAddressGenerator(idGenerator)
-            }
-            // Http3ServerConnectionHandler is not sharable: one instance per connection
-            .handler(object : ChannelInitializer<QuicChannel>() {
-                override fun initChannel(ch: QuicChannel) {
-                    ch.pipeline().addLast(Http3ServerConnectionHandler(streamInitializer))
-                }
-            })
-            .build()
+        })
+
+        return builder.build()
     }
 }
