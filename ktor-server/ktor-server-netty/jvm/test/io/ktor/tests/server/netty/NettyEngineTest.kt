@@ -12,6 +12,7 @@ import io.ktor.http.*
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
 import io.ktor.server.application.*
+import io.ktor.server.http.content.*
 import io.ktor.server.http.*
 import io.ktor.server.netty.*
 import io.ktor.server.request.*
@@ -26,7 +27,8 @@ import io.ktor.websocket.*
 import io.netty.bootstrap.Bootstrap
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
-import io.netty.channel.*
+import io.netty.channel.ChannelHandlerContext
+import io.netty.channel.ChannelInboundHandlerAdapter
 import io.netty.channel.epoll.Epoll
 import io.netty.channel.kqueue.KQueue
 import io.netty.channel.nio.NioEventLoopGroup
@@ -35,10 +37,14 @@ import io.netty.handler.codec.http.HttpResponseStatus
 import io.netty.handler.codec.http2.*
 import io.netty.handler.codec.http2.Http2CodecUtil.readUnsignedInt
 import io.netty.handler.codec.http3.*
-import io.netty.handler.codec.quic.*
-import kotlinx.coroutines.*
+import io.netty.handler.codec.quic.QuicChannel
+import io.netty.handler.codec.quic.QuicSslContextBuilder
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.consumeAsFlow
+import kotlinx.coroutines.withTimeout
 import org.junit.jupiter.api.Assumptions.assumeTrue
+import org.junit.jupiter.api.io.TempDir
+import java.io.File
 import java.net.InetSocketAddress
 import java.net.StandardSocketOptions
 import java.util.concurrent.LinkedBlockingQueue
@@ -50,6 +56,9 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.test.*
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.measureTime
 
 class NettyCompressionTest : CompressionTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
     init {
@@ -846,6 +855,41 @@ open class NettyHttp3Test :
                 ?: error("Timed out waiting for HTTP/3 response")
             assertEquals("200", response.status)
             assertEquals(body, response.body)
+        }
+    }
+
+    /**
+     * Reproduces a reported bottleneck serving files via [staticFiles] over HTTP/3.
+     * Not an assertion-heavy test: run/profile this method directly (for example with the
+     * IntelliJ profiler) to see where time goes when a [io.ktor.server.http.content.LocalFileContent]
+     * response is streamed over a QUIC stream instead of a TCP socket.
+     */
+    @Test
+    fun `staticFiles high volume GET requests`(@TempDir tempDir: File) = runTest(timeout = 60.seconds) {
+        val fileContent = "0123456789".repeat(100_000) // 1,000,000 bytes of ASCII content
+        File(tempDir, "asset.txt").writeText(fileContent)
+
+        createAndStartServer {
+            application.routing {
+                staticFiles("/static", tempDir)
+            }
+        }
+
+        val requestCount = 200
+        withHttp3Client { quicChannel ->
+            val elapsed = measureTime {
+                repeat(requestCount) {
+                    val response = sendHttp3Request(quicChannel, "GET", "/static/asset.txt")
+                    assertEquals("200", response.status)
+                    assertEquals(fileContent.length, response.body.length)
+                }
+            }
+            val totalBytes = requestCount.toLong() * fileContent.length
+            println(
+                "Served $requestCount HTTP/3 staticFiles requests " +
+                    "(${fileContent.length} bytes each, ${totalBytes / (1024 * 1024)} MiB total) in $elapsed, " +
+                    "${elapsed.inWholeMilliseconds.toDouble() / requestCount} ms/request"
+            )
         }
     }
 

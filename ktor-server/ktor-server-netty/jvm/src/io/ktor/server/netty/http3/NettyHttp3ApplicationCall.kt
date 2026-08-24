@@ -44,15 +44,19 @@ internal class NettyHttp3ApplicationCall(
         return null
     }
 
-    override fun flushBeforeClose(context: ChannelHandlerContext) {
+    override fun flushBeforeClose(context: ChannelHandlerContext, lastFuture: ChannelFuture) {
         if (isByteBufferContent) {
-            return super.flushBeforeClose(context)
+            return super.flushBeforeClose(context, lastFuture)
         }
-        // shutdownOutput() enqueues the QUIC stream FIN behind the pending response frames and then
-        // flushes, so the FIN coalesces with the final data packet instead of being sent separately
-        // by the subsequent channel close.
         val channel = context.channel() as? QuicStreamChannel
-        channel?.shutdownOutput() ?: context.flush()
+        if (channel == null) {
+            context.flush()
+            return
+        }
+        // required to ensure the final write has actually reached the wire before the FIN is sent
+        lastFuture.addListener {
+            channel.shutdownOutput()
+        }
     }
 
     override fun upgrade(dst: ChannelHandlerContext) {
