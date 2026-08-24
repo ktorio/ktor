@@ -38,15 +38,25 @@ private val FACTORY = run {
             val maxPriority = entries.maxOf { it.priority }
             val topEngines = entries.filter { it.priority == maxPriority }
             val selectedEngine = topEngines.first()
+            val logger = KtorSimpleLogger("HttpClient")
             if (topEngines.size > 1) {
-                KtorSimpleLogger("HttpClient")
-                    .warn(
-                        buildString {
-                            append("Multiple engines found: ")
-                            appendLine(topEngines.joinToString { it.name })
-                            appendLine("\tUsing the first: ${selectedEngine.name}")
-                        }
-                    )
+                logger.warn(
+                    buildString {
+                        append("Multiple engines found: ")
+                        appendLine(topEngines.joinToString { it.name })
+                        appendLine("\tUsing the first: ${selectedEngine.name}")
+                    }
+                )
+            } else {
+                logger.info(
+                    buildString {
+                        append("Multiple engines found: ")
+                        appendLine(entries.joinToString { it.name })
+                        appendLine(
+                            "\tUsing the engine with the highest priority: ${selectedEngine.name} (priority: $maxPriority)"
+                        )
+                    }
+                )
             }
             selectedEngine.factory
         }

@@ -60,15 +60,25 @@ private val FACTORY: HttpClientEngineFactory<*> by lazy {
             val maxPriority = engineContainers.maxOf { it.priority }
             val topEngines = engineContainers.filter { it.priority == maxPriority }
             val selectedEngine = topEngines.first()
+            val logger = KtorSimpleLogger("HttpClient")
             if (topEngines.size > 1) {
-                KtorSimpleLogger("HttpClient")
-                    .warn(
-                        buildString {
-                            append("Multiple engines found: ")
-                            appendLine(topEngines.joinToString { it.name })
-                            appendLine("\tUsing the first: ${selectedEngine.name}")
-                        }
-                    )
+                logger.warn(
+                    buildString {
+                        append("Multiple engines found: ")
+                        appendLine(topEngines.joinToString { it.name })
+                        appendLine("\tUsing the first: ${selectedEngine.name}")
+                    }
+                )
+            } else {
+                logger.info(
+                    buildString {
+                        append("Multiple engines found: ")
+                        appendLine(engineContainers.joinToString { it.name })
+                        appendLine(
+                            "\tUsing the engine with the highest priority: ${selectedEngine.name} (priority: $maxPriority)"
+                        )
+                    }
+                )
             }
             selectedEngine.factory
         }
