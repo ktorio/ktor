@@ -12,10 +12,14 @@ import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
-import kotlinx.coroutines.flow.*
-import kotlinx.serialization.*
-import kotlinx.serialization.json.*
-import kotlin.reflect.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collectIndexed
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.SerialFormat
+import kotlinx.serialization.json.Json
+import kotlin.reflect.KClass
 
 /**
  * Adds special handling for receiving [Sequence] and sending [Flow] bodies for the Json format.
@@ -69,7 +73,6 @@ internal class KotlinxSerializationJsonExtensions(private val format: Json) : Ko
         }
     }
 
-    @Suppress("BlockingMethodInNonBlockingContext")
     private suspend fun <T> Flow<T>.serialize(
         serializer: KSerializer<T>,
         charset: Charset,
