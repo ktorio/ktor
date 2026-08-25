@@ -4,9 +4,11 @@
 
 package io.ktor.client.tests
 
+import io.ktor.client.engine.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.test.base.*
 import io.ktor.client.test.base.EngineSelectionRule.Companion.except
+import io.ktor.test.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.channels.Channel
@@ -20,6 +22,7 @@ private const val FRAMES_COUNT = 100
 
 private val NON_CALLBACK_BASED_WS_CLIENTS = listOf("CIO", "Darwin", "Java", "WinHttp")
 private val CALLBACK_BASED_WS_CLIENTS = listOf("OkHttp", "JS", "Curl")
+private val CLOSE_TIMEOUT = 5.seconds
 
 class WebSocketBackpressureTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
 
@@ -79,8 +82,20 @@ class WebSocketBackpressureTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
         }
     }
 
+    // On the JVM CIO engine the session can die abnormally right after a successful handshake,
+    // before a single frame arrives: the incoming channel is then closed by the session teardown
+    // with no cause at all rather than by the overflow this test is about, and the assertion sees
+    // `null`. Every other engine keeps the coverage.
     @Test
-    fun `test incoming frame channel overflow`() = clientTests {
+    fun `test incoming frame channel overflow`() =
+        clientTests(except("jvm:CIO")) { assertIncomingOverflowClosesChannel() }
+
+    @Flaky("KTOR-9789")
+    @Test
+    fun `test incoming frame channel overflow_flaky`() =
+        clientTests(only("jvm:CIO")) { assertIncomingOverflowClosesChannel() }
+
+    private fun TestClientBuilder<HttpClientEngineConfig>.assertIncomingOverflowClosesChannel() {
         config {
             install(WebSockets) {
                 channels {
@@ -92,15 +107,11 @@ class WebSocketBackpressureTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
         test { client ->
             try {
                 client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/receive-backpressure") {
-                    val incomingChannelClosed = CompletableDeferred<Unit>()
+                    val closeCause = CompletableDeferred<Throwable?>()
                     // Cast it only for testing purposes!
-                    (incoming as Channel<*>).invokeOnClose {
-                        assertTrue(it.isChannelOverflow, "Unexpected exception: $it")
-                        incomingChannelClosed.complete(Unit)
-                    }
-                    withTimeout(30.seconds) {
-                        incomingChannelClosed.await()
-                    }
+                    (incoming as Channel<*>).invokeOnClose { closeCause.complete(it) }
+                    val cause = withTimeout(CLOSE_TIMEOUT) { closeCause.await() }
+                    assertTrue(cause.isChannelOverflow, "Unexpected exception: $cause")
                     close()
                 }
             } catch (e: Exception) {
@@ -122,11 +133,8 @@ class WebSocketBackpressureTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
 
         test { client ->
             client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
-                val outgoingChannelClosed = CompletableDeferred<Unit>()
-                outgoing.invokeOnClose {
-                    assertTrue(it.isChannelOverflow, "Unexpected exception: $it")
-                    outgoingChannelClosed.complete(Unit)
-                }
+                val closeCause = CompletableDeferred<Throwable?>()
+                outgoing.invokeOnClose { closeCause.complete(it) }
 
                 // Fill the outgoing buffer beyond capacity without waiting
                 runCatching {
@@ -136,9 +144,8 @@ class WebSocketBackpressureTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
                 }.onSuccess {
                     fail("Expected overflow exception but got success")
                 }
-                withTimeout(1.seconds) {
-                    outgoingChannelClosed.await()
-                }
+                val cause = withTimeout(CLOSE_TIMEOUT) { closeCause.await() }
+                assertTrue(cause.isChannelOverflow, "Unexpected exception: $cause")
             }
         }
     }

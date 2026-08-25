@@ -87,7 +87,7 @@ class FileChannelTest {
     }
 
     @Test
-    @Ignore("Does not work on team city CI for some reason")
+    @Flaky("KTOR-9789")
     fun `readChannel is open during read`() {
         // Arrange
         val magicNumberBiggerThanSomeInternalBuffer = 10000

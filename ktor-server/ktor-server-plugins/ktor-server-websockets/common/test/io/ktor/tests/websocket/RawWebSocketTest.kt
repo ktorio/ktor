@@ -110,6 +110,8 @@ class RawWebSocketTest {
         ensureCompletion()
     }
 
+    // Not flaky: fails deterministically after a ~30s timeout, so it stays disabled rather than
+    // being quarantined as @Flaky, which would run it nightly and report a standing failure.
     @Ignore // KTOR-7318 Investigate raw websocket disconnect hanging
     @Test
     fun testServerIncomingConnectionLoss() = runTest {
