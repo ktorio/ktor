@@ -82,7 +82,7 @@ internal class ByteChannelOutputStream(
 
     @OptIn(InternalIoApi::class)
     private fun flushIfNeeded() {
-        if (channelWriteBuffer.buffer.size >= FLUSH_THRESHOLD) {
+        if (channel.autoFlush || channelWriteBuffer.buffer.size >= FLUSH_THRESHOLD) {
             flush()
         }
     }

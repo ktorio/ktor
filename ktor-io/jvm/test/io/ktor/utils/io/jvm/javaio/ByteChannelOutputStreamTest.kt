@@ -4,7 +4,6 @@
 
 package io.ktor.utils.io.jvm.javaio
 
-import io.ktor.test.dispatcher.runTestWithRealTime
 import io.ktor.utils.io.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -13,6 +12,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
+import kotlin.time.Duration.Companion.seconds
 
 class ByteByteChannelOutputStreamTest {
 
@@ -196,20 +196,38 @@ class ByteByteChannelOutputStreamTest {
     }
 
     @Test
-    fun `writes are streamed without explicit flush`() = runTestWithRealTime {
+    fun `writes are streamed without explicit flush`() = runTest {
         val channel = ByteChannel(autoFlush = true)
         val outputStream = ByteChannelOutputStream(channel)
-        val data = ByteArray(2 * 1024 * 1024) { it.toByte() }
+        val data = byteArrayOf(1, 2, 3)
 
-        // Exceeds the internal flush threshold, so it must reach the channel
-        // even though neither flush() nor close() is called
-        launch(Dispatchers.IO) {
-            outputStream.write(data)
-        }
+        outputStream.write(data)
 
+        assertEquals(data.size, channel.availableForRead)
         val result = ByteArray(data.size)
         channel.readFully(result)
         assertContentEquals(data, result)
         outputStream.close()
+    }
+
+    @Test
+    fun `writes are streamed when flush threshold is reached`() = runTest(timeout = 5.seconds) {
+        val channel = ByteChannel(autoFlush = false)
+        val outputStream = ByteChannelOutputStream(channel)
+        val data = ByteArray(2 * CHANNEL_MAX_SIZE) { it.toByte() }
+
+        val writer = launch(Dispatchers.IO) {
+            outputStream.write(data)
+        }
+
+        try {
+            val result = ByteArray(data.size)
+            channel.readFully(result)
+            writer.join()
+
+            assertContentEquals(data, result)
+        } finally {
+            channel.cancel()
+        }
     }
 }
