@@ -4,6 +4,7 @@
 
 package io.ktor.server.engine
 
+import io.ktor.test.*
 import java.io.*
 import java.net.*
 import kotlin.reflect.full.*
@@ -12,7 +13,7 @@ import kotlin.test.*
 class OverridingClassLoaderTest {
 
     @Test
-    @Ignore("Does not work on team city CI for some reason")
+    @Flaky("KTOR-9789")
     fun childClassloaderDelegatesToParentForResources() {
         val thisClassLoader = javaClass.classLoader
         thisClassLoader.getResourceAsStream("resource.txt").use {

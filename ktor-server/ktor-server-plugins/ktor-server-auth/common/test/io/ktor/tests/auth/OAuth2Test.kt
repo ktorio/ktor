@@ -201,7 +201,8 @@ class OAuth2Test {
     @OptIn(ExperimentalCoroutinesApi::class)
     @AfterTest
     fun tearDown() {
-        testClient.getCompleted().close()
+        testClient.invokeOnCompletion { cause -> if (cause == null) testClient.getCompleted().close() }
+        testClient.cancel()
     }
 
     @Test

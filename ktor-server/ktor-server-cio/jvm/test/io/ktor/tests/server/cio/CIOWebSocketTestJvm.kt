@@ -8,12 +8,12 @@ import io.ktor.client.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.server.cio.*
 import io.ktor.server.test.base.*
+import io.ktor.test.Flaky
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.debug.DebugProbes
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertFails
 import kotlin.test.assertTrue
@@ -25,7 +25,7 @@ class CIOWebSocketTestJvm : EngineTestBase<CIOApplicationEngine, CIOApplicationE
         enableHttp2 = false
     }
 
-    @Ignore // TODO flaky
+    @Flaky("KTOR-9789")
     @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     fun testNonWebsocketRouteDoNotLeakOnWsRequest() = runTest {

@@ -71,7 +71,7 @@ class OkHttpHttpClientTest : HttpClientTest(OkHttp) {
         assertEquals(0, okHttpClient.connectionPool.connectionCount())
     }
 
-    @Ignore("Flaky test: KTOR-8854")
+    @Flaky("KTOR-8854")
     @Test
     fun testSSESessionTimeout() = runTest {
         val okHttpClient = OkHttpClient.Builder().apply {
