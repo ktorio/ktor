@@ -5,13 +5,18 @@
 package io.ktor.client.engine.okhttp
 
 import io.ktor.utils.io.*
-import io.ktor.utils.io.jvm.javaio.toInputStream
-import io.ktor.utils.io.streams.asByteWriteChannel
+import io.ktor.utils.io.jvm.javaio.*
+import io.ktor.utils.io.streams.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
-import okhttp3.*
-import okio.*
+import okhttp3.MediaType
+import okhttp3.RequestBody
+import okio.BufferedSink
+import okio.IOException
+import okio.source
+import okio.use
 import kotlin.coroutines.CoroutineContext
 
 internal class StreamAdapterIOException(cause: Throwable) : IOException(cause)
@@ -49,7 +54,7 @@ internal class StreamRequestBody(
             }
         } else {
             try {
-                block().toInputStream().source().use {
+                block().toInputStream(callContext.job).source().use {
                     sink.writeAll(it)
                 }
             } catch (cause: IOException) {
