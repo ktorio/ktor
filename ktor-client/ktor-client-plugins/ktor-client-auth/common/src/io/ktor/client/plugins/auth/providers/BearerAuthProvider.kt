@@ -52,7 +52,7 @@ public class RefreshTokensParams(
     /**
      * Marks that this request is for refreshing auth tokens, resulting in a special handling of it.
      *
-     * When a request is marked no additional Authorization headers are included and any custom
+     * When a request is marked, no additional Authorization headers are included, and any custom
      * Authorization headers are kept.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.providers.RefreshTokensParams.markAsRefreshTokenRequest)
