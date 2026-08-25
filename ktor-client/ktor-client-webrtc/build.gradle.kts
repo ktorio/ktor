@@ -1,12 +1,8 @@
 /*
  * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
-@file:OptIn(ExperimentalWasmDsl::class, ExperimentalKotlinGradlePluginApi::class)
-
 import ktorbuild.disableNativeCompileConfigurationCache
 import ktorbuild.targets.*
-import org.jetbrains.kotlin.gradle.*
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
 
 description = "Ktor WebRTC Client"
 
@@ -121,8 +117,8 @@ configurations.named { it.startsWith("androidDeviceTest") }.configureEach {
     exclude(group = "org.junit.platform")
 }
 
-tasks.withType<KotlinCompilationTask<*>>().configureEach {
-    if (name.contains("Test", ignoreCase = true)) {
+kotlin {
+    sourceSets.matching { it.name.contains("Test", ignoreCase = true) }.configureEach {
         compilerOptions {
             freeCompilerArgs.add("-Xcontext-parameters")
         }
