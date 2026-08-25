@@ -812,6 +812,8 @@ public final class io/ktor/client/plugins/observer/ResponseObserverKt {
 
 public final class io/ktor/client/plugins/sse/BuildersKt {
 	public static final fun SSE (Lio/ktor/client/HttpClientConfig;Lkotlin/jvm/functions/Function1;)V
+	public static final fun allowMissingContentType (Lio/ktor/client/request/HttpRequestBuilder;Z)V
+	public static synthetic fun allowMissingContentType$default (Lio/ktor/client/request/HttpRequestBuilder;ZILjava/lang/Object;)V
 	public static final fun bufferPolicy (Lio/ktor/client/request/HttpRequestBuilder;Lio/ktor/client/plugins/sse/SSEBufferPolicy;)V
 	public static final fun serverSentEvents-1wIb-0I (Lio/ktor/client/HttpClient;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;Lkotlin/time/Duration;Ljava/lang/Boolean;Ljava/lang/Boolean;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun serverSentEvents-1wIb-0I$default (Lio/ktor/client/HttpClient;Ljava/lang/String;Ljava/lang/String;Ljava/lang/Integer;Ljava/lang/String;Lkotlin/time/Duration;Ljava/lang/Boolean;Ljava/lang/Boolean;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
@@ -967,9 +969,11 @@ public final class io/ktor/client/plugins/sse/SSEClientException : java/lang/Ill
 
 public final class io/ktor/client/plugins/sse/SSEConfig {
 	public fun <init> ()V
+	public final fun getAllowMissingContentType ()Z
 	public final fun getBufferPolicy ()Lio/ktor/client/plugins/sse/SSEBufferPolicy;
 	public final fun getMaxReconnectionAttempts ()I
 	public final fun getReconnectionTime-UwyO8pc ()J
+	public final fun setAllowMissingContentType (Z)V
 	public final fun setBufferPolicy (Lio/ktor/client/plugins/sse/SSEBufferPolicy;)V
 	public final fun setMaxReconnectionAttempts (I)V
 	public final fun setReconnectionTime-LRDsOJo (J)V
