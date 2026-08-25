@@ -41,22 +41,63 @@ internal fun Project.configureJvm() {
 }
 
 private fun Project.configureTests() {
-    val jvmTest = tasks.named<KotlinJvmTest>("jvmTest") {
+    val flakyTestsMode = flakyTestsMode()
+
+    // Take the test classpath from the JVM test *compilation*, not from the `jvmTest` task. A
+    // provider derived from `tasks.named("jvmTest")` carries that task as its producer, so depending
+    // on it makes Gradle run the whole default suite before `stressTest` or `flakyTest`. The
+    // compilation's own file collections are built by the compile tasks, which is all these need.
+    val jvmTestCompilation = kotlin.jvm().compilations.named("test")
+    val jvmTestRuntimeClasspath = files(
+        jvmTestCompilation.map { it.output.allOutputs },
+        jvmTestCompilation.map { it.runtimeDependencyFiles },
+    )
+    val jvmTestClassesDirs = files(jvmTestCompilation.map { it.output.classesDirs })
+
+    tasks.named<KotlinJvmTest>("jvmTest") {
         maxHeapSize = "2g"
         exclude("**/*StressTest*")
+        // Auto-register FlakyTestCondition so @Flaky tests are excluded from the default run (they
+        // run only in the `flakyTest` task below, or with -Pktor.tests.flaky=only|all).
+        systemProperty("junit.jupiter.extensions.autodetection.enabled", "true")
+        systemProperty(FLAKY_MODE_PROPERTY, flakyTestsMode.propertyValue)
         useJUnitPlatform()
         configureJavaToolchain(java.toolchain.languageVersion, ktorBuild.jvmTestToolchain)
     }
 
     tasks.register<Test>("stressTest") {
-        classpath = files(jvmTest.map { it.classpath })
-        testClassesDirs = files(jvmTest.map { it.testClassesDirs })
+        classpath = jvmTestRuntimeClasspath
+        testClassesDirs = jvmTestClassesDirs
 
         maxHeapSize = "2g"
         jvmArgs("-XX:+HeapDumpOnOutOfMemoryError")
         setForkEvery(1)
         systemProperty("enable.stress.tests", "true")
+        // JVM test tasks are exempt from the `_flaky` name filter (see `configureFlakyTests`), so
+        // the condition is what keeps @Flaky tests out of this task too.
+        systemProperty("junit.jupiter.extensions.autodetection.enabled", "true")
+        systemProperty(FLAKY_MODE_PROPERTY, flakyTestsMode.propertyValue)
         include("**/*StressTest*")
+        useJUnitPlatform()
+        configureJavaToolchain(java.toolchain.languageVersion, ktorBuild.jvmTestToolchain)
+    }
+
+    // Runs ONLY @Flaky-annotated tests (excluded from the default `jvmTest`). Intended for a
+    // nightly/dedicated job that publishes to Develocity so quarantined tests stay tracked.
+    // (Selection is by annotation, resolved at execution time; the `_flaky` name token — same
+    // property, applied by `configureFlakyTests` — is the equivalent for Native/JS/Wasm, which have
+    // no JUnit Platform.)
+    tasks.register<Test>(FLAKY_TEST_TASK) {
+        classpath = jvmTestRuntimeClasspath
+        testClassesDirs = jvmTestClassesDirs
+
+        maxHeapSize = "2g"
+        // A quarantined test flipping is the expected outcome here, not a regression to block on.
+        // Failures still land in the test reports and in Develocity, which is where the flip rate is tracked.
+        ignoreFailures = true
+        systemProperty(FLAKY_MODE_PROPERTY, FlakyTestsMode.ONLY.propertyValue)
+        systemProperty("junit.jupiter.extensions.autodetection.enabled", "true")
+        exclude("**/*StressTest*")
         useJUnitPlatform()
         configureJavaToolchain(java.toolchain.languageVersion, ktorBuild.jvmTestToolchain)
     }
