@@ -378,6 +378,147 @@ class NettySpecificTest {
     }
 
     @Test
+    fun `handleFailure after engine-level 400 does not double respond`() = runTestWithRealTime {
+        val appStarted = CompletableDeferred<Application>()
+        val thrownAfterBuiltInBadRequest = CompletableDeferred<Throwable?>()
+
+        val serverJob = launch(Dispatchers.IO) {
+            val server = embeddedServer(Netty, port = 0) {
+                routing {
+                    get("/simulate-double-respond") {
+                        // Simulates the engine sending a channel-level 400 (as Netty does for
+                        // malformed requests) followed by an unrelated failure reaching
+                        // handleFailure, without an actual connection-teardown race.
+                        val engineCall = call.pipelineCall.engineCall as NettyHttp1ApplicationCall
+                        engineCall.respondError400BadRequest()
+
+                        val thrown = runCatching {
+                            handleFailure(call, RuntimeException("simulated failure after the built-in 400"))
+                        }.exceptionOrNull()
+                        thrownAfterBuiltInBadRequest.complete(thrown)
+                    }
+                }
+            }
+            server.monitor.subscribe(ApplicationStarted) { app ->
+                appStarted.complete(app)
+            }
+            server.start(wait = true)
+        }
+
+        try {
+            val serverApp = withTimeout(10.seconds) { appStarted.await() }
+            val connector = serverApp.engine.resolvedConnectors()[0]
+
+            HttpClient(CIO).use { client ->
+                runCatching { client.get("http://${connector.host}:${connector.port}/simulate-double-respond") }
+            }
+
+            val thrown = withTimeout(5.seconds) { thrownAfterBuiltInBadRequest.await() }
+            assertNull(
+                thrown,
+                "handleFailure must not attempt to respond again after the engine already sent " +
+                    "a response at the channel level, but threw: $thrown"
+            )
+        } finally {
+            serverJob.cancel()
+        }
+    }
+
+    @Test
+    fun `handleFailure after response cancel does not double respond`() = runTestWithRealTime {
+        val appStarted = CompletableDeferred<Application>()
+        val thrownAfterCancel = CompletableDeferred<Throwable?>()
+
+        val serverJob = launch(Dispatchers.IO) {
+            val server = embeddedServer(Netty, port = 0) {
+                routing {
+                    get("/simulate-cancel-double-respond") {
+                        // Simulates the engine giving up on the response (as Netty does when the
+                        // channel dies mid-response) followed by an unrelated failure reaching
+                        // handleFailure, without an actual connection-teardown race.
+                        val engineCall = call.pipelineCall.engineCall as NettyHttp1ApplicationCall
+                        engineCall.response.cancel()
+
+                        val thrown = runCatching {
+                            handleFailure(call, RuntimeException("simulated failure after response was cancelled"))
+                        }.exceptionOrNull()
+                        thrownAfterCancel.complete(thrown)
+                    }
+                }
+            }
+            server.monitor.subscribe(ApplicationStarted) { app ->
+                appStarted.complete(app)
+            }
+            server.start(wait = true)
+        }
+
+        try {
+            val serverApp = withTimeout(10.seconds) { appStarted.await() }
+            val connector = serverApp.engine.resolvedConnectors()[0]
+
+            HttpClient(CIO).use { client ->
+                runCatching { client.get("http://${connector.host}:${connector.port}/simulate-cancel-double-respond") }
+            }
+
+            val thrown = withTimeout(5.seconds) { thrownAfterCancel.await() }
+            assertNull(
+                thrown,
+                "handleFailure must not attempt to respond again after the response was cancelled, " +
+                    "but threw: $thrown"
+            )
+        } finally {
+            serverJob.cancel()
+        }
+    }
+
+    @Test
+    fun `handleFailure after built-in 408 does not double respond`() = runTestWithRealTime {
+        val appStarted = CompletableDeferred<Application>()
+        val committedAfterBuiltIn408 = CompletableDeferred<Boolean>()
+
+        val serverJob = launch(Dispatchers.IO) {
+            val server = embeddedServer(Netty, port = 0) {
+                routing {
+                    get("/simulate-408-double-respond") {
+                        // Simulates the engine sending a channel-level 408 (as Netty does on a
+                        // read timeout) followed by an unrelated failure reaching handleFailure,
+                        // without relying on an actual read-timeout race.
+                        val engineCall = call.pipelineCall.engineCall as NettyHttp1ApplicationCall
+                        engineCall.context.respond408RequestTimeoutHttp1(listOf(engineCall))
+
+                        runCatching {
+                            handleFailure(call, RuntimeException("simulated failure after the built-in 408"))
+                        }
+                        committedAfterBuiltIn408.complete(call.response.isCommitted)
+                    }
+                }
+            }
+            server.monitor.subscribe(ApplicationStarted) { app ->
+                appStarted.complete(app)
+            }
+            server.start(wait = true)
+        }
+
+        try {
+            val serverApp = withTimeout(10.seconds) { appStarted.await() }
+            val connector = serverApp.engine.resolvedConnectors()[0]
+
+            HttpClient(CIO).use { client ->
+                runCatching { client.get("http://${connector.host}:${connector.port}/simulate-408-double-respond") }
+            }
+
+            val committed = withTimeout(5.seconds) { committedAfterBuiltIn408.await() }
+            assertFalse(
+                committed,
+                "handleFailure must not attempt to respond again after the engine already sent " +
+                    "a 408 at the channel level"
+            )
+        } finally {
+            serverJob.cancel()
+        }
+    }
+
+    @Test
     fun `request handler runs on call event group`() = runTestWithRealTime {
         val handlerThread = AtomicReference<Thread>()
 

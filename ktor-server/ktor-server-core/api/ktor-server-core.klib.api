@@ -385,6 +385,7 @@ abstract class io.ktor.server.engine/BaseApplicationResponse : io.ktor.server.re
 
     final var isSent // io.ktor.server.engine/BaseApplicationResponse.isSent|{}isSent[0]
         final fun <get-isSent>(): kotlin/Boolean // io.ktor.server.engine/BaseApplicationResponse.isSent.<get-isSent>|<get-isSent>(){}[0]
+        final fun <set-isSent>(kotlin/Boolean) // io.ktor.server.engine/BaseApplicationResponse.isSent.<set-isSent>|<set-isSent>(kotlin.Boolean){}[0]
 
     abstract fun setStatus(io.ktor.http/HttpStatusCode) // io.ktor.server.engine/BaseApplicationResponse.setStatus|setStatus(io.ktor.http.HttpStatusCode){}[0]
     abstract suspend fun respondUpgrade(io.ktor.http.content/OutgoingContent.ProtocolUpgrade) // io.ktor.server.engine/BaseApplicationResponse.respondUpgrade|respondUpgrade(io.ktor.http.content.OutgoingContent.ProtocolUpgrade){}[0]

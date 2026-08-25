@@ -33,7 +33,7 @@ public abstract class BaseApplicationResponse(
         get() = responded
 
     final override var isSent: Boolean = false
-        private set
+        protected set
 
     override val cookies: ResponseCookies by lazy(LazyThreadSafetyMode.NONE) {
         ResponseCookies(this)

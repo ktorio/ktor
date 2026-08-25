@@ -35,14 +35,15 @@ internal fun NettyHttp1ApplicationRequest.isValid(): Boolean {
     return encodings.hasValidTransferEncoding()
 }
 
-internal fun ChannelHandlerContext.respond408RequestTimeoutHttp1() {
+internal fun ChannelHandlerContext.respond408RequestTimeoutHttp1(activeCalls: Collection<NettyHttp1ApplicationCall>) {
+    activeCalls.forEach { it.response.markAsSent() }
     val response = DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.REQUEST_TIMEOUT)
     response.headers().add(HttpHeaders.ContentLength, "0")
     response.headers().add(HttpHeaders.Connection, "close")
     writeAndFlush(response).addListener(ChannelFutureListener.CLOSE)
 }
 
-internal suspend fun NettyHttp1ApplicationCall.respondError400BadRequest() {
+internal fun NettyHttp1ApplicationCall.respondError400BadRequest() {
     logCause()
 
     val causeMessage = failureCause?.message?.toByteArray(charset = Charsets.UTF_8)
@@ -56,6 +57,7 @@ internal suspend fun NettyHttp1ApplicationCall.respondError400BadRequest() {
     }
     response.headers.append(HttpHeaders.Connection, "close", safeOnly = false)
     response.sendResponse(chunked = false, content)
+    response.markAsSent()
     finish()
 }
 
