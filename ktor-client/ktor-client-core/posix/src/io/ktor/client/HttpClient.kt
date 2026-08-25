@@ -5,7 +5,6 @@
 package io.ktor.client
 
 import io.ktor.client.engine.*
-import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.utils.io.*
 
 /**
@@ -13,7 +12,7 @@ import io.ktor.utils.io.*
  *
  * The [HttpClientEngine] is selected from the registered [engines].
  * All registered engine factories are ranked by their priority and the one with the highest priority is used.
- * An exception is thrown if no engines are registered or if multiple engines share the same highest priority.
+ * An exception is thrown if no engines are registered.
  *
  * See https://ktor.io/docs/http-client-engines.html
  *
@@ -25,43 +24,5 @@ public actual fun HttpClient(
 
 @OptIn(InternalAPI::class)
 private val FACTORY = run {
-    val entries = engines.entries()
-    when (entries.size) {
-        0 -> error(
-            "Failed to find HTTP client engine implementation: consider adding client engine dependency. " +
-                "See https://ktor.io/docs/http-client-engines.html"
-        )
-
-        1 -> entries.single().factory
-
-        else -> {
-            val maxPriority = entries.maxOf { it.priority }
-            val topEngines = entries.filter { it.priority == maxPriority }
-            val selectedEngine = topEngines.first()
-            val logger = KtorSimpleLogger("HttpClient")
-            if (topEngines.size > 1) {
-                logger.warn(
-                    buildString {
-                        append("Multiple engines found: ")
-                        appendLine(topEngines.joinToString { it.name })
-                        appendLine("\tUsing the first: ${selectedEngine.name}")
-                    }
-                )
-            } else {
-                logger.info(
-                    buildString {
-                        append("Multiple engines found: ")
-                        appendLine(entries.joinToString { it.name })
-                        appendLine(
-                            "\tUsing the engine with the highest priority: ${selectedEngine.name} (priority: $maxPriority)"
-                        )
-                    }
-                )
-            }
-            selectedEngine.factory
-        }
-    }
+    selectDefaultHttpClientEngine(engines.entries())
 }
-
-@OptIn(InternalAPI::class)
-private val EngineEntry.name get() = factory::class.simpleName ?: factory.toString()

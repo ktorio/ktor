@@ -120,6 +120,13 @@ abstract interface io.ktor.client.request/HttpRequest : io.ktor.http/HttpMessage
         open fun <get-coroutineContext>(): kotlin.coroutines/CoroutineContext // io.ktor.client.request/HttpRequest.coroutineContext.<get-coroutineContext>|<get-coroutineContext>(){}[0]
 }
 
+abstract interface io.ktor.client/HttpClientEngineContainer { // io.ktor.client/HttpClientEngineContainer|null[0]
+    abstract val factory // io.ktor.client/HttpClientEngineContainer.factory|{}factory[0]
+        abstract fun <get-factory>(): io.ktor.client.engine/HttpClientEngineFactory<*> // io.ktor.client/HttpClientEngineContainer.factory.<get-factory>|<get-factory>(){}[0]
+    open val priority // io.ktor.client/HttpClientEngineContainer.priority|{}priority[0]
+        open fun <get-priority>(): kotlin/Double // io.ktor.client/HttpClientEngineContainer.priority.<get-priority>|<get-priority>(){}[0]
+}
+
 sealed interface io.ktor.client.plugins.sse/SSEBufferPolicy { // io.ktor.client.plugins.sse/SSEBufferPolicy|null[0]
     final class LastEvents : io.ktor.client.plugins.sse/SSEBufferPolicy { // io.ktor.client.plugins.sse/SSEBufferPolicy.LastEvents|null[0]
         constructor <init>(kotlin/Int) // io.ktor.client.plugins.sse/SSEBufferPolicy.LastEvents.<init>|<init>(kotlin.Int){}[0]
@@ -349,7 +356,7 @@ final class io.ktor.client.engine/ClientEngineClosedException : kotlin/IllegalSt
         final fun <get-cause>(): kotlin/Throwable? // io.ktor.client.engine/ClientEngineClosedException.cause.<get-cause>|<get-cause>(){}[0]
 }
 
-final class io.ktor.client.engine/EngineEntry { // io.ktor.client.engine/EngineEntry|null[0]
+final class io.ktor.client.engine/EngineEntry : io.ktor.client/HttpClientEngineContainer { // io.ktor.client.engine/EngineEntry|null[0]
     constructor <init>(io.ktor.client.engine/HttpClientEngineFactory<io.ktor.client.engine/HttpClientEngineConfig>, kotlin/Double = ...) // io.ktor.client.engine/EngineEntry.<init>|<init>(io.ktor.client.engine.HttpClientEngineFactory<io.ktor.client.engine.HttpClientEngineConfig>;kotlin.Double){}[0]
 
     final val factory // io.ktor.client.engine/EngineEntry.factory|{}factory[0]

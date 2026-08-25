@@ -4,6 +4,7 @@
 
 package io.ktor.client.engine
 
+import io.ktor.client.*
 import io.ktor.utils.io.*
 import kotlinx.atomicfu.*
 
@@ -19,9 +20,9 @@ private typealias EngineFactory = HttpClientEngineFactory<HttpClientEngineConfig
  */
 @InternalAPI
 public class EngineEntry(
-    public val factory: EngineFactory,
-    public val priority: Double = 1.0,
-) {
+    override val factory: EngineFactory,
+    override val priority: Double = 1.0,
+) : HttpClientEngineContainer {
     init {
         require(!priority.isNaN()) { "Priority cannot be NaN" }
     }

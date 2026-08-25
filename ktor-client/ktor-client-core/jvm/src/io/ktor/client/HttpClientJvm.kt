@@ -5,7 +5,6 @@
 package io.ktor.client
 
 import io.ktor.client.engine.*
-import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import java.util.*
@@ -15,8 +14,7 @@ import java.util.*
  *
  * The [HttpClientEngine] is selected from the dependencies using [ServiceLoader].
  * All [HttpClientEngineContainer] implementations found on the classpath are ranked by [HttpClientEngineContainer.priority]
- * and the one with the highest priority is used. An exception is thrown if no implementations are found
- * or if multiple implementations share the same highest priority.
+ * and the one with the highest priority is used. An exception is thrown if no implementations are found.
  *
  * See https://ktor.io/docs/http-client-engines.html
  *
@@ -26,63 +24,7 @@ public actual fun HttpClient(
     block: HttpClientConfig<*>.() -> Unit
 ): HttpClient = HttpClient(FACTORY, block)
 
-/**
- * A container is searched across dependencies using [ServiceLoader] to find client implementations.
- * An implementation of this interface provides HTTP client [factory] and only used
- * to find the default client engine
- * when [HttpClient] function is called with no particular client implementation specified
- *
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.HttpClientEngineContainer)
- *
- * @property factory that produces HTTP client instances
- * @property priority that determines the order of searching for the default client engine.
- *   Higher values are preferred. When multiple containers share the same highest priority an exception is thrown;
- *   assign distinct priorities to avoid ambiguity.
- */
-public interface HttpClientEngineContainer {
-    public val factory: HttpClientEngineFactory<*>
-    public val priority: Double get() = 1.0
-}
-
 @OptIn(InternalAPI::class)
 private val FACTORY: HttpClientEngineFactory<*> by lazy {
-    val engineContainers = loadServices<HttpClientEngineContainer>()
-    when (engineContainers.size) {
-        0 -> error(
-            "Failed to find HTTP client engine implementation: consider adding client engine dependency. " +
-                "See https://ktor.io/docs/http-client-engines.html"
-        )
-
-        1 -> engineContainers.single().factory
-
-        else -> {
-            val maxPriority = engineContainers.maxOf { it.priority }
-            val topEngines = engineContainers.filter { it.priority == maxPriority }
-            val selectedEngine = topEngines.first()
-            val logger = KtorSimpleLogger("HttpClient")
-            if (topEngines.size > 1) {
-                logger.warn(
-                    buildString {
-                        append("Multiple engines found: ")
-                        appendLine(topEngines.joinToString { it.name })
-                        appendLine("\tUsing the first: ${selectedEngine.name}")
-                    }
-                )
-            } else {
-                logger.info(
-                    buildString {
-                        append("Multiple engines found: ")
-                        appendLine(engineContainers.joinToString { it.name })
-                        appendLine(
-                            "\tUsing the engine with the highest priority: ${selectedEngine.name} (priority: $maxPriority)"
-                        )
-                    }
-                )
-            }
-            selectedEngine.factory
-        }
-    }
+    selectDefaultHttpClientEngine(loadServices())
 }
-
-private val HttpClientEngineContainer.name get() = factory::class.simpleName ?: factory.toString()
