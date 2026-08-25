@@ -23,3 +23,11 @@ val DEFAULT_TEST_TIMEOUT: Duration = 30.seconds
  * On JVM retries are disabled as we use test-retry Gradle plugin instead.
  */
 val DEFAULT_RETRIES: Int = if (PlatformUtils.IS_JVM) 0 else 1
+
+/**
+ * Default upper bound on the wait of [assertEventually].
+ *
+ * Deliberately generous: a condition that holds quickly is detected quickly, so a large value only
+ * affects how long a genuinely broken test takes to fail.
+ */
+val DEFAULT_EVENTUALLY_TIMEOUT: Duration = 10.seconds
