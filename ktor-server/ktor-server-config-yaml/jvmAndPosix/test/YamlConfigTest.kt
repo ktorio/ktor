@@ -74,7 +74,6 @@ class YamlConfigTest {
 
         val keys = config.keys()
         assertEquals(
-            keys,
             setOf(
                 "auth.hashAlgorithm",
                 "auth.salt",
@@ -83,7 +82,8 @@ class YamlConfigTest {
                 "auth.listValues",
                 "auth.data.value1",
                 "auth.data.value2"
-            )
+            ),
+            keys
         )
     }
 
@@ -369,19 +369,19 @@ class YamlConfigTest {
         val yaml = Yaml.default.decodeFromString<YamlMap>(content)
         val config = YamlConfig.from(yaml)
 
-        assertEquals("\${FOO}", config.property("ktor.variable").getString())
+        assertEquals($$"${FOO}", config.property("ktor.variable").getString())
     }
 
     @Test
     fun testEscapedDollarOnly() {
-        val content = $$$"""
+        val content = """
             ktor:
                 variable: $$
         """.trimIndent()
         val yaml = Yaml.default.decodeFromString<YamlMap>(content)
         val config = YamlConfig.from(yaml)
 
-        assertEquals("\$", config.property("ktor.variable").getString())
+        assertEquals("$", config.property("ktor.variable").getString())
     }
 
     @Test
@@ -394,7 +394,22 @@ class YamlConfigTest {
         val yaml = Yaml.default.decodeFromString<YamlMap>(content)
         val config = YamlConfig.from(yaml)
 
-        assertEquals(listOf("\$foo"), config.property("ktor.values").getList())
+        assertEquals(listOf($$"$foo"), config.property("ktor.values").getList())
+    }
+
+    @Test
+    fun testEscapedDollarWithCheckEnvironmentVariables() {
+        val content = $$$"""
+            ktor:
+                variable: $$NON_EXISTENT
+        """.trimIndent()
+        val yaml = Yaml.default.decodeFromString<YamlMap>(content)
+        val config = YamlConfig.from(yaml)
+
+        @Suppress("DEPRECATION")
+        config.checkEnvironmentVariables()
+
+        assertEquals($$"$NON_EXISTENT", config.property("ktor.variable").getString())
     }
 
     @Test

@@ -122,15 +122,7 @@ public class YamlConfig private constructor(yamlMap: YamlMap) : ApplicationConfi
 
     @Deprecated("Redundant; handled automatically")
     public fun checkEnvironmentVariables() {
-        fun check(element: YamlNode?) {
-            when (element) {
-                is YamlScalar -> resolveReference(rootNode, element.content, visited = mutableSetOf())
-                is YamlMap -> element.entries.forEach { entry -> check(entry.value) }
-                is YamlList -> element.items.forEach { check(it) }
-                else -> return
-            }
-        }
-        check(rootNode)
+        // Substitution already ran at construction; re-resolving would treat escaped $$ as a new reference.
     }
 
     private inner class YamlNodeConfigValue(
