@@ -341,7 +341,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
             launch(dispatcher) {
                 try {
                     withUrl("/$i") {
-                        rawContent.toInputStream().reader().use { reader ->
+                        rawContent.asInputStream(coroutineContext.job).reader().use { reader ->
                             val firstByte = reader.read()
                             if (firstByte == -1) {
                                 fail("Premature end of response stream at iteration $i")
