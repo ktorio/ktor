@@ -33,6 +33,17 @@ public class SSEConfig {
     public var maxReconnectionAttempts: Int = 0
 
     /**
+     * Allows an SSE response to omit the `Content-Type` header.
+     *
+     * By default, SSE responses without `Content-Type: text/event-stream` are rejected. Enabling this option
+     * accepts a missing response content type but still rejects any explicitly specified content type other than
+     * `text/event-stream`. The response headers are not modified.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.SSEConfig.allowMissingContentType)
+     */
+    public var allowMissingContentType: Boolean = false
+
+    /**
      * Adds events consisting only of comments in the incoming flow.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.SSEConfig.showCommentEvents)

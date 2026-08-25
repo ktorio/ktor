@@ -426,7 +426,7 @@ public class SSEClientResponseAdapter : ResponseAdapter {
         return if (data.isSseRequest() &&
             !data.isSseReconnectionRequest() &&
             (
-                (status == HttpStatusCode.OK && contentType?.withoutParameters() == ContentType.Text.EventStream) ||
+                (status == HttpStatusCode.OK && data.attributes.isSseContentTypeAccepted(contentType)) ||
                     status == HttpStatusCode.NoContent
                 )
         ) {

@@ -25,6 +25,7 @@ internal val showCommentEventsAttr = AttributeKey<Boolean>("SSEShowCommentEvents
 internal val showRetryEventsAttr = AttributeKey<Boolean>("SSEShowRetryEvents")
 internal val deserializerAttr = AttributeKey<(TypeInfo, String) -> Any?>("SSEDeserializer")
 internal val sseBufferPolicyAttr = AttributeKey<SSEBufferPolicy>("bufferPolicy")
+internal val sseAllowMissingContentTypeAttr = AttributeKey<Boolean>("SSEAllowMissingContentType")
 
 /**
  * Installs the [SSE] plugin using the [config] as configuration.
@@ -1262,4 +1263,18 @@ private fun HttpClient.mapToSSEException(call: HttpClientCall?, body: ByteArray?
  */
 public fun HttpRequestBuilder.bufferPolicy(policy: SSEBufferPolicy) {
     attributes.put(sseBufferPolicyAttr, policy)
+}
+
+/**
+ * Allows an SSE response to omit the `Content-Type` header for this request.
+ *
+ * When [allow] is `true`, a missing response content type is accepted, while any explicitly specified content type
+ * other than `text/event-stream` is still rejected. This overrides [SSEConfig.allowMissingContentType].
+ *
+ * @param allow Whether a missing response content type should be accepted.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.allowMissingContentType)
+ */
+public fun HttpRequestBuilder.allowMissingContentType(allow: Boolean = true) {
+    attributes.put(sseAllowMissingContentTypeAttr, allow)
 }

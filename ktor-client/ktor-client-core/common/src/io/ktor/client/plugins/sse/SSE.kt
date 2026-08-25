@@ -88,6 +88,7 @@ public val SSE: ClientPlugin<SSEConfig> = createClientPlugin(
     val showRetryEvents = pluginConfig.showRetryEvents
     val maxReconnectionAttempts = pluginConfig.maxReconnectionAttempts
     val bufferPolicy = pluginConfig.bufferPolicy
+    val allowMissingContentType = pluginConfig.allowMissingContentType
 
     on(AfterRender) { request, content ->
         if (getAttributeValue(request, sseRequestAttr) != true) {
@@ -100,7 +101,12 @@ public val SSE: ClientPlugin<SSEConfig> = createClientPlugin(
         val localShowCommentEvents = getAttributeValue(request, showCommentEventsAttr)
         val localShowRetryEvents = getAttributeValue(request, showRetryEventsAttr)
         val localSseBufferPolicy = getAttributeValue(request, sseBufferPolicyAttr)
+        val localAllowMissingContentType = getAttributeValue(request, sseAllowMissingContentTypeAttr)
 
+        request.attributes.put(
+            sseAllowMissingContentTypeAttr,
+            localAllowMissingContentType ?: allowMissingContentType
+        )
         request.attributes.put(ResponseAdapterAttributeKey, SSEClientResponseAdapter())
         request.attributes.put(SSEClientForReconnectionAttr, client)
         content.contentType?.let { request.contentType(it) }
@@ -203,12 +209,17 @@ internal suspend fun checkResponse(response: HttpResponse) {
             message = "Expected status code ${HttpStatusCode.OK.value} but was ${status.value}"
         )
     }
-    if (contentType?.withoutParameters() != ContentType.Text.EventStream) {
+    if (!response.request.attributes.isSseContentTypeAccepted(contentType)) {
         throw SSEClientException(
             response.saved(),
             message = "Expected Content-Type ${ContentType.Text.EventStream} but was $contentType"
         )
     }
+}
+
+internal fun Attributes.isSseContentTypeAccepted(contentType: ContentType?): Boolean {
+    return contentType?.withoutParameters() == ContentType.Text.EventStream ||
+        (contentType == null && getOrNull(sseAllowMissingContentTypeAttr) == true)
 }
 
 internal suspend fun HttpResponse.saved(): HttpResponse {
