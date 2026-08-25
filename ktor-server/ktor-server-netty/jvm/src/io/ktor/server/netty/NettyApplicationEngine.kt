@@ -41,6 +41,7 @@ import java.net.StandardSocketOptions
 import java.security.PrivateKey
 import java.security.cert.X509Certificate
 import java.util.concurrent.TimeUnit
+import kotlin.getValue
 import kotlin.reflect.KClass
 import kotlin.system.measureTimeMillis
 
@@ -303,39 +304,40 @@ public class NettyApplicationEngine(
      * channels reject the option) — an actual NIO `DatagramChannel`'s `supportedOptions()` is
      * probed to confirm real support before the option is used.
      */
-    private val reusePortOption: ChannelOption<Boolean>? get() = reusePortResolution.option
+    private val reusePortOption: ChannelOption<Boolean>? get() = reusePortResolution.getOrNull()
 
     /**
      * Explains why [reusePortOption] is `null`, distinguishing "this JDK doesn't have the
      * `SO_REUSEPORT` constant" (needs Java 9+) from "this JDK has it, but the platform's NIO
      * provider rejects it anyway" (for example, Windows) — the two require different advice.
      */
-    private val reusePortResolution: ReusePortResolution by lazy {
+    private val reusePortResolution: Result<ChannelOption<Boolean>> by lazy {
         if (KQueue.isAvailable() || Epoll.isAvailable()) {
-            return@lazy ReusePortResolution(UnixChannelOption.SO_REUSEPORT, null)
-        }
-        try {
-            @Suppress("UNCHECKED_CAST")
-            val soReusePort = StandardSocketOptions::class.java.getField("SO_REUSEPORT")
-                .get(null) as SocketOption<Boolean>
-            val supported = java.nio.channels.DatagramChannel.open().use { channel ->
-                channel.supportedOptions().contains(soReusePort)
+            Result.success(UnixChannelOption.SO_REUSEPORT)
+        } else {
+            try {
+                @Suppress("UNCHECKED_CAST")
+                val soReusePort = StandardSocketOptions::class.java.getField("SO_REUSEPORT")
+                    .get(null) as SocketOption<Boolean>
+                val supported = java.nio.channels.DatagramChannel.open().use { channel ->
+                    channel.supportedOptions().contains(soReusePort)
+                }
+                if (!supported) {
+                    Result.failure(
+                        IllegalArgumentException(
+                            "the current platform's NIO datagram provider does not support SO_REUSEPORT"
+                        )
+                    )
+                } else {
+                    Result.success(NioChannelOption.of(soReusePort))
+                }
+            } catch (_: ReflectiveOperationException) {
+                Result.failure(IllegalArgumentException("SO_REUSEPORT requires running on Java 9 or newer"))
+            } catch (_: java.io.IOException) {
+                Result.failure(IllegalArgumentException("SO_REUSEPORT support could not be determined"))
             }
-            if (!supported) {
-                return@lazy ReusePortResolution(
-                    null,
-                    "the current platform's NIO datagram provider does not support SO_REUSEPORT"
-                )
-            }
-            ReusePortResolution(NioChannelOption.of(soReusePort), null)
-        } catch (_: ReflectiveOperationException) {
-            ReusePortResolution(null, "SO_REUSEPORT requires running on Java 9 or newer")
-        } catch (_: java.io.IOException) {
-            ReusePortResolution(null, "SO_REUSEPORT support could not be determined")
         }
     }
-
-    private class ReusePortResolution(val option: ChannelOption<Boolean>?, val unsupportedReason: String?)
 
     /**
      * The number of UDP sockets bound per HTTP/3 connector.
@@ -352,7 +354,7 @@ public class NettyApplicationEngine(
             configured != null -> {
                 check(configured == 1 || reusePortOption != null) {
                     "udpSocketCount = $configured requires SO_REUSEPORT support, but " +
-                        "${reusePortResolution.unsupportedReason}. " +
+                        "${reusePortResolution.exceptionOrNull()?.message}. " +
                         "Use a native transport (epoll/kqueue) or set udpSocketCount = 1."
                 }
                 configured
