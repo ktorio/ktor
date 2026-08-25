@@ -361,6 +361,93 @@ class ServerSentEventsTest : ClientLoader() {
     }
 
     @Test
+    fun `missing response content type is rejected by default`() = clientTests {
+        config {
+            install(SSE)
+        }
+
+        test { client ->
+            assertFailsWith<SSEClientException> {
+                client.sse("$TEST_SERVER/sse/content-type-missing") {}
+            }.apply {
+                assertEquals(HttpStatusCode.OK, response?.status)
+                assertNull(response?.contentType())
+                assertEquals("Expected Content-Type text/event-stream but was null", message)
+            }
+        }
+    }
+
+    @Test
+    fun `missing response content type can be allowed globally`() = clientTests {
+        config {
+            install(SSE) {
+                allowMissingContentType = true
+            }
+        }
+
+        test { client ->
+            client.sse("$TEST_SERVER/sse/content-type-missing") {
+                assertNull(call.response.contentType())
+                assertEquals("hello", incoming.single().data)
+            }
+
+            assertFailsWith<SSEClientException> {
+                client.sse("$TEST_SERVER/sse/content-type-text-plain") {}
+            }.apply {
+                assertEquals(ContentType.Text.Plain, response?.contentType())
+                assertEquals("Expected Content-Type text/event-stream but was text/plain", message)
+            }
+        }
+    }
+
+    @Test
+    fun `missing response content type can be allowed per request and on reconnection`() = clientTests {
+        config {
+            install(SSE) {
+                maxReconnectionAttempts = 1
+                reconnectionTime = 0.milliseconds
+            }
+        }
+
+        test { client ->
+            val events = mutableListOf<ServerSentEvent>()
+            client.sse(
+                urlString = "$TEST_SERVER/sse/content-type-missing",
+                request = {
+                    allowMissingContentType()
+                }
+            ) {
+                incoming.take(2).collect(events::add)
+            }
+
+            assertEquals(listOf("1", "2"), events.map { it.id })
+            assertEquals(listOf("hello", "hello"), events.map { it.data })
+        }
+    }
+
+    @Test
+    fun `per-request content type setting overrides the plugin setting`() = clientTests {
+        config {
+            install(SSE) {
+                allowMissingContentType = true
+            }
+        }
+
+        test { client ->
+            assertFailsWith<SSEClientException> {
+                client.sse(
+                    urlString = "$TEST_SERVER/sse/content-type-missing",
+                    request = {
+                        allowMissingContentType(false)
+                    }
+                ) {}
+            }.apply {
+                assertEquals("Expected Content-Type text/event-stream but was null", message)
+            }
+        }
+    }
+
+    @Test
     fun testContentTypeWithCharset() = clientTests {
         config {
             install(SSE)
