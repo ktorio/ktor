@@ -15,11 +15,18 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.job
-import kotlinx.coroutines.withTimeout
 import kotlinx.io.readByteArray
 import kotlin.test.*
+import kotlin.time.Duration.Companion.seconds
 
-private const val GUARD_TIMEOUT_MS = 15_000L
+/**
+ * Bound on the streaming tests below, which hang rather than fail when cancellation isn't honoured.
+ *
+ * Passed to `clientTests` so it configures the `runTest` timeout: a test that blows it is reported
+ * with a coroutine dump of what was still running, where an inner `withTimeout` would instead
+ * surface as an unrelated "wrong exception type" assertion failure.
+ */
+private val GUARD_TIMEOUT = 15.seconds
 
 class HttpStatementTest : ClientLoader() {
 
@@ -83,14 +90,12 @@ class HttpStatementTest : ClientLoader() {
     // so the test times out waiting for enough data to arrive unless the content type is octet/stream or application/json.
     // See: https://developer.apple.com/forums/thread/64875
     @Test
-    fun testStreamingResponseExceptionCancelsImmediately() = clientTests {
+    fun testStreamingResponseExceptionCancelsImmediately() = clientTests(timeout = GUARD_TIMEOUT) {
         test { client ->
             val exception = assertFailsWith<IllegalStateException> {
-                withTimeout(GUARD_TIMEOUT_MS) {
-                    client.prepareGet("$TEST_SERVER/content/stream?delay=60000").execute {
-                        // Headers are received, throw exception while waiting for the body
-                        throw IllegalStateException("Test exception from execute block")
-                    }
+                client.prepareGet("$TEST_SERVER/content/stream?delay=60000").execute {
+                    // Headers are received, throw exception while waiting for the body
+                    throw IllegalStateException("Test exception from execute block")
                 }
             }
             assertEquals("Test exception from execute block", exception.message)
@@ -103,21 +108,19 @@ class HttpStatementTest : ClientLoader() {
     // Native/JS/Wasm target, where Android can't even be selected — keep the coverage.
     @Test
     fun testStreamingResponseExceptionInBodyCancelsImmediately() =
-        clientTests(except("Android")) { throwFromStreamingBodyBlock() }
+        clientTests(except("Android"), timeout = GUARD_TIMEOUT) { throwFromStreamingBodyBlock() }
 
     @Flaky("KTOR-8570")
     @Test
     fun testStreamingResponseExceptionInBodyCancelsImmediately_flaky() =
-        clientTests(only("Android")) { throwFromStreamingBodyBlock() }
+        clientTests(only("Android"), timeout = GUARD_TIMEOUT) { throwFromStreamingBodyBlock() }
 
     private fun TestClientBuilder<*>.throwFromStreamingBodyBlock() {
         test { client ->
             val exception = assertFailsWith<IllegalStateException> {
-                withTimeout(GUARD_TIMEOUT_MS) {
-                    client.prepareGet("$TEST_SERVER/content/stream?delay=60000").body<ByteReadChannel, Unit> {
-                        // Throw exception while a channel is open
-                        throw IllegalStateException("Test exception from body block")
-                    }
+                client.prepareGet("$TEST_SERVER/content/stream?delay=60000").body<ByteReadChannel, Unit> {
+                    // Throw exception while a channel is open
+                    throw IllegalStateException("Test exception from body block")
                 }
             }
             assertEquals("Test exception from body block", exception.message)
