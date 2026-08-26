@@ -57,7 +57,7 @@ public class OidcPluginConfig {
      *
      * Initial discovery blocks the suspend provider registration call until the provider has loaded metadata, or
      * until this number of attempts is exhausted. If discovery still fails after the final attempt, registration
-     * fails with [OpenIdDiscoveryException].
+     * fails with [OidcDiscoveryException].
      */
     public var initialDiscoveryAttempts: Int = 1
 
@@ -169,13 +169,36 @@ public class OidcProviderConfig internal constructor(
         oauthConfig = config
     }
 
+    /**
+     * How long a completed [OidcProvider.refreshToken] result stays available so concurrent callers with the same
+     * refresh token reuse it.
+     *
+     * This is a single-flight share window, not session storage. The default is one second.
+     * [Duration.ZERO] coalesces in-flight refreshes only and removes the completed entry immediately.
+     */
+    public var tokenRefreshCacheTtl: Duration = 1.seconds
+
+    /**
+     * Maximum number of in-flight or recently completed [OidcProvider.refreshToken] entries retained for this
+     * provider.
+     *
+     * When the map exceeds this size, completed entries are pruned. The default is 1024.
+     */
+    public var tokenRefreshCacheMaxSize: Int = 1024
+
     internal val jwtConfig: OidcJwtConfig = OidcJwtConfig()
     internal var bearerConfig: OidcBearerConfig? = null
     internal var oauthConfig: OidcOAuthConfig? = null
 
     internal fun validate() {
         require(::issuer.isInitialized && issuer.isNotBlank()) {
-            "issuer must be configured"
+            "'issuer' must be configured"
+        }
+        require(tokenRefreshCacheTtl.isFinite() && !tokenRefreshCacheTtl.isNegative()) {
+            "tokenRefreshCacheTtl must be finite and non-negative"
+        }
+        require(tokenRefreshCacheMaxSize >= 1) {
+            "tokenRefreshCacheMaxSize must be greater than or equal to 1"
         }
         metadata?.validate(expectedIssuer = issuer)
         jwtConfig.validate()
@@ -321,7 +344,9 @@ public class OidcJwtConfig internal constructor() {
  * Nested [introspection] additionally enables introspection Bearer authentication for opaque or JWT-formatted tokens.
  *
  * Bearer audiences are resource identifiers for this server. They are independent of OAuth [OidcOAuthConfig.clientId],
- * which is used as the ID-token audience for login callbacks.
+ * which is used as the ID-token audience for login callbacks. If a Bearer audience equals the OAuth client ID, the
+ * plugin logs a warning: a valid ID token can satisfy signature, issuer, and audience checks. JWT Bearer still rejects
+ * tokens whose `token_use` or `typ` identifies an ID token.
  *
  * @property audience accepted resource identifiers. Access tokens must include at least one value from this set.
  * @property tokenExtractor custom token extractor shared by JWT and introspection Bearer schemes.
@@ -463,8 +488,8 @@ public class OidcOAuthConfig internal constructor(
     /**
      * OAuth scopes requested during authorization.
      *
-     * The `openid` scope is always required. OAuth callbacks without an ID token are not supported; use Ktor's
-     * generic OAuth support for access-token-only login.
+     * The `openid` scope is always required.
+     * OAuth callbacks without an ID token are not supported; use Ktor's generic OAuth support for access-token-only login.
      */
     public var scopes: List<String> = listOf("openid", "profile", "email")
 
@@ -474,7 +499,20 @@ public class OidcOAuthConfig internal constructor(
     public var resourceIndicators: List<String> = emptyList()
 
     /**
-     * Enables userinfo request in the callback flow.
+     * When `true`, requests the OpenID Provider UserInfo endpoint after token exchange and uses that
+     * response for [OidcToken.Id.userInfo].
+     *
+     * - The request sends the OAuth access token as a Bearer credential.
+     * - Signed JWT UserInfo is verified.
+     * - Encrypted UserInfo JWTs are rejected.
+     * - The UserInfo `sub` claim must match the ID token subject; a mismatch or request failure fails the callback.
+     *
+     * Also applied when a refresh response includes a new ID token.
+     *
+     * Defaults to `false`. Then, and when metadata has no `userinfo_endpoint` or the access token is
+     * blank, [OidcToken.Id.userInfo] is taken from ID token claims instead.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcOAuthConfig.fetchUserInfo)
      */
     public var fetchUserInfo: Boolean = false
 
@@ -671,7 +709,7 @@ public class OidcOAuthConfig internal constructor(
         require(sessionConfig != null || (logoutPath == null && refreshPath == null)) {
             "logout { } and refresh { } require sessions. Call sessions { } or omit disableSessions()"
         }
-        require(!sessionsDisabled || onAuthenticated == DEFAULT_ON_AUTHENTICATED) {
+        require(!sessionsDisabled || onAuthenticated != DEFAULT_ON_AUTHENTICATED) {
             "onAuthenticated { } must be configured when sessions are disabled"
         }
     }
@@ -712,9 +750,9 @@ public class OidcSessionsConfig internal constructor() {
     public var storage: SessionStorage = SessionStorageMemory()
 
     /**
-     * Strategy used to refresh session token material.
+     * Strategy used to refresh session token.
      *
-     * The default disables automatic refresh, but expired ID-token sessions are still rejected on user routes.
+     * Disabled by default; expired ID-token sessions are rejected on user routes.
      * Expiry and refresh timing use [OidcToken.Id.claims] [io.ktor.server.auth.oidc.TokenClaims.expiresAt];
      * when the ID token has no `exp` claim, sessions are never treated as expired and auto-refresh never triggers.
      */

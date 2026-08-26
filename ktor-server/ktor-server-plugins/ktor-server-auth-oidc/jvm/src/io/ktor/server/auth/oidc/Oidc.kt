@@ -24,12 +24,12 @@ private val ProviderNameRegex = Regex("[a-z0-9]+(?:-[a-z0-9]+)*")
  * First-class OpenID Connect plugin for Ktor server authentication.
  *
  * Installs per-issuer support for:
- * - Resource-server Bearer authentication (`bearer { }`). JWT Bearer ([OidcProvider.jwtBearer]) and
- *   RFC 7662 introspection Bearer ([OidcProvider.introspectionBearer], via nested `introspection { }`) are
- *   independent schemes. Map them to application principals with [io.ktor.server.auth.mapPrincipal].
  * - **OAuth 2.0 / OIDC login** (`oauth { }`) — authorization code flow with login and callback routes.
  *   Sessions are enabled by default; customize with `oauth { sessions { } }` or opt out with `disableSessions()`.
  *   Browser session authentication is exposed as [OidcProvider.session].
+ * - **Resource-server Bearer authentication** (`bearer { }`) — two independent schemes:
+ *   [OidcProvider.jwtBearer] for locally verified JWTs, and [OidcProvider.introspectionBearer]
+ *   for RFC 7662 token introspection (enabled by nested `introspection { }`).
  *
  * This plugin implements the Authorization Code Flow with PKCE (RFC 6749 §4.1, OIDC Core §3.1), resource-server
  * Bearer / RFC 7662 introspection, and optional OAuth 2.0 Protected Resource Metadata (RFC 9728) via
@@ -39,9 +39,9 @@ private val ProviderNameRegex = Regex("[a-z0-9]+(?:-[a-z0-9]+)*")
  * (`<issuer>/.well-known/openid-configuration`) and periodically refreshed unless a provider configures static
  * [OpenIdProviderMetadata].
  *
- * Initial discovery is part of [identityProvider] registration. That suspend function discovers metadata, installs
+ * Initial discovery is part of [identityProvider] registration. The function discovers metadata, installs
  * provider routes, and starts periodic refresh before returning the registered [OidcProvider]. After the final failed
- * discovery attempt, registration fails with a [OpenIdDiscoveryException]. Discovery work runs on [Dispatchers.IO].
+ * discovery attempt, registration fails with a [OidcDiscoveryException].
  *
  * ## Full configuration example
  * The example below registers identity providers from a suspend application module because registration performs
@@ -223,7 +223,7 @@ public class Oidc internal constructor(
      * @return configured identity provider.
      * @throws IllegalArgumentException when [name] or issuer is already configured, or the provider
      * configuration is invalid.
-     * @throws OpenIdDiscoveryException when initial provider discovery fails after all configured attempts.
+     * @throws OidcDiscoveryException when initial provider discovery fails after all configured attempts.
      */
     public suspend fun identityProvider(
         name: String,
@@ -267,9 +267,7 @@ public class Oidc internal constructor(
 
     private suspend fun discoverProvider(config: OidcProviderConfig): OidcProvider {
         val provider = OidcProvider(config.name, client, config, application.developmentMode)
-        val metadata = config.metadata ?: withContext(Dispatchers.IO) {
-            discoverInitialMetadata(provider)
-        }
+        val metadata = config.metadata ?: discoverInitialMetadata(provider)
         provider.updateMetadata(metadata)
         return provider
     }
@@ -282,17 +280,12 @@ public class Oidc internal constructor(
         }
     }
 
-    private fun resourceMetadataUrl(): String? =
-        config.protectedResourceConfig?.let { protectedResourceConfig ->
-            require(protectedResourceConfig.resource.isNotBlank()) {
-                "protectedResource(resource) must be set to the resource server's identifier URL"
-            }
-            buildResourceMetadataUrl(protectedResourceConfig.resource)
-        }
-
     private suspend fun commitProvider(provider: OidcProvider) = providerRegistrationMutex.withLock {
         checkProductionEnvironment(provider)
-        provider.resourceMetadataUrl = resourceMetadataUrl()
+        warnBearerAudienceOverlap(provider)
+        provider.resourceMetadataUrl = config.protectedResourceConfig?.let { protectedResourceConfig ->
+            buildResourceMetadataUrl(protectedResourceConfig.resource)
+        }
         if (provider.config.oauthConfig != null) {
             application.configureOAuthRoute(provider)
         }
@@ -316,15 +309,25 @@ public class Oidc internal constructor(
             }
         }
 
-        if (oauthConfig.stateEncryptionKey != null) {
-            return
+        if (oauthConfig.stateEncryptionKey == null) {
+            provider.logger.warn(
+                "OpenID Connect OAuth stateEncryptionKey is not configured for provider ${provider.name}. " +
+                    "An ephemeral key was generated for this process. In-flight OAuth logins will fail after restart " +
+                    "and across application instances. Configure a shared stateEncryptionKey for production deployments."
+            )
+            oauthConfig.stateEncryptionKey = OidcStateEncryptionKey.random()
         }
+    }
+
+    private fun warnBearerAudienceOverlap(provider: OidcProvider) {
+        val bearerAudience = provider.config.bearerConfig?.audience ?: return
+        val clientId = provider.config.oauthConfig?.clientId ?: return
+        if (clientId !in bearerAudience) return
         provider.logger.warn(
-            "OpenID Connect OAuth stateEncryptionKey is not configured for provider ${provider.name}. " +
-                "An ephemeral key was generated for this process. In-flight OAuth logins will fail after restart " +
-                "and across application instances. Configure a shared stateEncryptionKey for production deployments."
+            "OpenID Connect 'bearer.audience' includes OAuth clientId '$clientId'. " +
+                "ID tokens that share this audience can authenticate jwtBearer unless they carry a discriminating " +
+                "'token_use' or 'typ' claim. Use a resource identifier distinct from the login client ID."
         )
-        oauthConfig.stateEncryptionKey = OidcStateEncryptionKey.random()
     }
 
     private suspend fun releaseProvider(name: String, issuer: String?) {
@@ -339,16 +342,12 @@ public class Oidc internal constructor(
         repeat(maxAttempts) { attempt ->
             try {
                 return client.fetchOpenIdMetadata(provider.issuer)
-            } catch (cause: CancellationException) {
-                throw cause
-            } catch (cause: IllegalArgumentException) {
-                throw cause
-            } catch (cause: Throwable) {
+            } catch (cause: OidcDiscoveryException) {
                 val nextAttempt = attempt + 1
 
                 if (nextAttempt >= maxAttempts) {
                     val message = "Failed to discover OpenID configuration after $maxAttempts attempt(s)"
-                    throw OpenIdDiscoveryException(message, cause)
+                    throw OidcDiscoveryException(message, cause)
                 }
                 provider.logger.warn(
                     "OpenID configuration discovery failed. Retrying attempt $nextAttempt/$maxAttempts: ${cause.message}"
@@ -363,32 +362,24 @@ public class Oidc internal constructor(
         if (provider.config.metadata != null || !config.discoveryRefreshInterval.isPositive()) {
             return
         }
-        application.launch(Dispatchers.IO) {
-            var hasPreviousFailure = false
+        application.launch {
             var consecutiveFailures = 0
             while (isActive) {
-                val duration = if (hasPreviousFailure) {
-                    hasPreviousFailure = false
-                    config.discoveryRefreshFailureDelay
-                } else {
-                    config.discoveryRefreshInterval
+                val duration = when {
+                    consecutiveFailures > 0 -> config.discoveryRefreshFailureDelay
+                    else -> config.discoveryRefreshInterval
                 }
                 delay(duration)
                 try {
                     val newMetadata = client.fetchOpenIdMetadata(provider.issuer)
                     provider.updateMetadata(newMetadata)
                     consecutiveFailures = 0
-                } catch (cause: CancellationException) {
-                    throw cause
-                } catch (cause: Throwable) {
-                    consecutiveFailures++
-                    val event = OidcMetadataRefreshFailure(provider, consecutiveFailures, cause)
+                } catch (cause: OidcDiscoveryException) {
                     application.monitor.raiseCatching(
                         definition = OidcMetadataRefreshFailed,
-                        value = event,
+                        value = OidcMetadataRefreshFailure(provider, ++consecutiveFailures, cause),
                         logger = provider.logger
                     )
-                    hasPreviousFailure = true
                 }
             }
         }
@@ -431,9 +422,8 @@ public class Oidc internal constructor(
                 validate()
             }
 
-            val managedClient = config.httpClient ?: defaultOpenIdHttpClient()
-            if (config.httpClient == null) {
-                pipeline.monitor.subscribe(ApplicationStopped) { managedClient.close() }
+            val managedClient = config.httpClient ?: defaultOpenIdHttpClient().also { client ->
+                pipeline.monitor.subscribe(ApplicationStopped) { client.close() }
             }
 
             val plugin = Oidc(

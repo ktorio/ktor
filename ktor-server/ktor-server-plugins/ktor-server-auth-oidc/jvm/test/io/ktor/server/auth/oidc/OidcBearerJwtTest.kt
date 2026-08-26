@@ -225,56 +225,44 @@ class OidcBearerJwtTest {
                 bearer { audience = setOf("api") }
             }
 
-            routing {
-                get("/verify") {
-                    val failure = try {
-                        provider.verifyJwtAccessToken("not-a-jwt-with-secret")
-                        null
-                    } catch (cause: Throwable) {
-                        cause
-                    }
-                    assertIs<OidcTokenRejectedException>(failure)
-                    call.respondText(failure.message.orEmpty())
-                }
+            assertFailsWith<OidcTokenRejectedException> {
+                provider.verifyJwtAccessToken("not-a-jwt-with-secret")
             }
         }
-
-        val response = client.get("/verify")
-        assertEquals(HttpStatusCode.OK, response.status)
-        assertEquals("The token was expected to have 3 parts, but got 0.", response.bodyAsText())
     }
 
     @Test
-    fun `mapPrincipal exposes typed application principal`() = testApplication {
-        val keys = testRsaKeys
-
+    fun `jwt bearer rejects id tokens by token_use and typ`() = testApplication {
         application {
-            val oidc = install(Oidc)
-            val google = oidc.identityProvider("google") {
+            val keys = testRsaKeys
+            val provider = install(Oidc).identityProvider("google") {
                 testIssuer()
                 jwt(keys)
                 bearer { audience = setOf("api") }
             }
-            val googleScheme = google.jwtBearer.mapPrincipal { token ->
-                token.userInfo?.subject?.let(::UserIdPrincipal)
+
+            val accepted = listOf(
+                keys.accessToken { subject = "plain-access" },
+                keys.accessTokenWithPurpose(tokenUse = "access_token"),
+                keys.accessTokenWithPurpose(typ = "at+jwt"),
+                keys.accessTokenWithPurpose(typ = "application/at+jwt"),
+                keys.accessTokenWithPurpose(tokenUse = "access_token", typ = "JWT"),
+            )
+            for (token in accepted) {
+                assertEquals(token, provider.verifyJwtAccessToken(token).value)
             }
 
-            routing {
-                authenticateWith(googleScheme) {
-                    get("/typed") {
-                        call.respondText(call.principal.name)
-                    }
+            val rejected = listOf(
+                keys.accessTokenWithPurpose(tokenUse = "id_token"),
+                keys.accessTokenWithPurpose(typ = "id_token"),
+                keys.accessTokenWithPurpose(tokenUse = "id_token", typ = "JWT"),
+            )
+
+            for (token in rejected) {
+                assertFailsWith<OidcTokenRejectedException> {
+                    provider.verifyJwtAccessToken(token)
                 }
             }
         }
-
-        val token = keys.accessToken {
-            subject = "typed-user"
-        }
-        val response = client.get("/typed") {
-            header(HttpHeaders.Authorization, "Bearer $token")
-        }
-        assertEquals(HttpStatusCode.OK, response.status)
-        assertEquals("typed-user", response.bodyAsText())
     }
 }

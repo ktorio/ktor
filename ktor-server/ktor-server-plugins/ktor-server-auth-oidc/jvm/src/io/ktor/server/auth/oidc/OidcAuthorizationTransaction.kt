@@ -37,7 +37,7 @@ internal class OidcAuthorizationTransaction(
     }
 }
 
-private val ApplicationCall.secureCookie: Boolean
+private val ApplicationCall.isSecureCookie: Boolean
     get() = request.origin.scheme == "https"
 
 private val PendingAuthorizationTransactionKey =
@@ -48,12 +48,12 @@ internal suspend fun ApplicationCall.createAuthorizationTransaction(
     method: CodeChallengeMethod,
     state: String,
 ): OidcAuthorizationTransaction {
-    require(method is CodeChallengeMethod.S256) { "Only S256 code challenge method is supported" }
+    check(method is CodeChallengeMethod.S256) { "Custom code challenge methods are not supported" }
     val nonce = generateNonceSuspend()
     val codeVerifier = generateNonceSuspend(CodeChallengeMethod.S256.VERIFIER_LENGTH)
     val transaction = OidcAuthorizationTransaction(nonce, codeVerifier)
     attributes.put(PendingAuthorizationTransactionKey, transaction)
-    val cookie = createOidcStateCookie(value = stateCodec.encode(state, transaction), secure = secureCookie)
+    val cookie = createOidcStateCookie(value = stateCodec.encode(state, transaction), secure = isSecureCookie)
     response.cookies.append(cookie)
     return transaction
 }
@@ -64,7 +64,7 @@ internal fun ApplicationCall.consumeAuthorizationTransaction(
 ): OidcAuthorizationTransaction? {
     val transaction = readAuthorizationTransaction(stateCodec, state) ?: return null
     attributes.remove(PendingAuthorizationTransactionKey)
-    response.cookies.append(createOidcStateCookie(value = "", secure = secureCookie, maxAge = 0))
+    response.cookies.append(createOidcStateCookie(value = "", secure = isSecureCookie, maxAge = 0))
     return transaction
 }
 

@@ -30,12 +30,12 @@ internal fun OidcProvider.createJwtBearerScheme(
         authHeader { extractBearerHeader(extractor, logger.takeIf { developmentMode }) }
 
         validate { credential ->
-            runCatching {
+            try {
                 verifyJwtAccessToken(credential.token)
-            }.onFailure { cause ->
-                if (cause is CancellationException) throw cause
+            } catch (cause: OidcTokenRejectedException) {
                 logger.trace("OpenID JWT access token authentication failed $cause")
-            }.getOrNull()
+                null
+            }
         }
 
         onUnauthorized = {
@@ -61,12 +61,12 @@ internal fun OidcProvider.createIntrospectionBearerScheme(
         authHeader { extractBearerHeader(extractor, logger.takeIf { developmentMode }) }
 
         validate { credential ->
-            runCatching {
-                verifyIntrospectedToken(credential.token)
-            }.onFailure { cause ->
-                if (cause is CancellationException) throw cause
-                logger.trace("OpenID introspection access token authentication failed $cause")
-            }.getOrNull()
+            try {
+                introspectOpaqueToken(credential.token)
+            } catch (cause: OidcTokenRejectedException) {
+                logger.trace("OpenID token introspection authentication failed $cause")
+                null
+            }
         }
 
         onUnauthorized = {

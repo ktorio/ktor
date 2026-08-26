@@ -194,8 +194,8 @@ private fun JsonObject.audience(name: String): List<String> =
     }
 
 internal fun Payload.extractUserInfo(): OidcToken.UserInfo {
-    require(!subject.isNullOrBlank()) {
-        "subject claim is missing from the JWT payload"
+    requireToken(!subject.isNullOrBlank()) {
+        "subject 'claim' is missing from the JWT payload"
     }
     return OidcToken.UserInfo(
         subject = subject,

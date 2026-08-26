@@ -155,7 +155,10 @@ class OidcPluginRegistrationTest {
                         testIssuer()
                         bearer { audience = setOf("api") }
                     }
-                    val okta = oidc.identityProvider("okta") {
+                    routing {
+                        authenticateWith(auth0.jwtBearer) {}
+                    }
+                    oidc.identityProvider("okta") {
                         testIssuer(secondIssuer)
                         oauth {
                             clientId = "client-id"
@@ -165,21 +168,7 @@ class OidcPluginRegistrationTest {
                             }
                         }
                     }
-
-                    routing {
-                        authenticateWith(auth0.jwtBearer) {
-                            get("/auth0") {
-                                call.respondText("auth0")
-                            }
-                        }
-                        authenticateWith(okta.session) {
-                            get("/okta") {
-                                call.respondText("okta")
-                            }
-                        }
-                    }
                 }
-                startApplication()
             }
         }
 

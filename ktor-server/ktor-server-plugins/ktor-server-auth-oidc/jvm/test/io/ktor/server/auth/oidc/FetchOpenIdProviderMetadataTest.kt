@@ -225,7 +225,7 @@ class FetchOpenIdProviderMetadataTest {
 
         errorConfigService(HttpStatusCode.NotFound, "Not Found")
 
-        assertFailsWith<OpenIdDiscoveryException> {
+        assertFailsWith<OidcDiscoveryException> {
             discoveryClient().fetchOpenIdMetadata(issuer)
         }
     }

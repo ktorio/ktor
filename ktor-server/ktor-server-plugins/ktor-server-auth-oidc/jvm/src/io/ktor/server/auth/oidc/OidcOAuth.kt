@@ -101,7 +101,7 @@ internal fun ApplicationCall.validateAuthorizationResponseIssuer(metadata: OpenI
     val responseIssuer = request.queryParameters["iss"]
     if (responseIssuer == null) {
         require(metadata.authorizationResponseIssParameterSupported != true) {
-            "OpenID Connect authorization response is missing iss parameter"
+            "OpenID Connect authorization response is missing 'iss' parameter"
         }
         return
     }

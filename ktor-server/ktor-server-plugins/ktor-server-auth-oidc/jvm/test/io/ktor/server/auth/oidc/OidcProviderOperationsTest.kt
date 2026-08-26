@@ -2,320 +2,220 @@
  * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-@file:OptIn(ExperimentalKtorApi::class)
-
 package io.ktor.server.auth.oidc
 
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
+import io.ktor.client.*
+import io.ktor.client.engine.mock.*
+import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
-import io.ktor.server.application.install
-import io.ktor.server.auth.*
+import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.auth.oidc.utils.*
-import io.ktor.server.request.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
-import io.ktor.server.testing.*
-import io.ktor.utils.io.*
+import kotlinx.coroutines.test.runTest
 import kotlin.test.*
+import kotlin.time.Duration.Companion.seconds
 
 class OidcProviderOperationsTest {
 
     @Test
-    fun `refreshToken returns raw fields and verified principal when id token is present`() = testApplication {
+    fun `refreshToken returns raw fields and verified principal when id token is present`() = runTest {
         val keys = testRsaKeys
-
-        openIdProvider(keys)
-
-        val openIdClient = discoveryClient()
-        application {
-            val oidc = install(Oidc) {
-                httpClient = openIdClient
-            }
-            val oidcProvider = oidc.identityProvider("auth0") {
+        refreshTokenClient(keys).use { client ->
+            val provider = operationsProvider(client) {
                 testIssuer(metadata = browserFlowMetadata())
                 jwt(keys)
-                bearer {
-                    audience = setOf("api")
-                }
                 oauth {
                     clientId = "client-id"
                     clientSecret = "client-secret"
                     resourceIndicators = listOf("https://api.example.com")
                 }
             }
-            routing {
-                get("/refresh") {
-                    val result = oidcProvider.refreshToken("refresh-token-1")
-                    val principal = assertNotNull(result.idToken)
-                    call.respondText(
-                        listOf(
-                            result.accessToken,
-                            result.refreshToken,
-                            principal.value,
-                            result.expiresIn?.inWholeSeconds.toString(),
-                            result.tokenType,
-                            result.scope,
-                            principal.userInfo.subject,
-                        ).joinToString(":")
-                    )
-                }
-                get("/refresh/access-only") {
-                    val result = oidcProvider.refreshToken("access-only-refresh-token")
-                    call.respondText("${result.accessToken}:${result.refreshToken}:${result.idToken}")
-                }
-                get("/refresh/not-rotated") {
-                    val result = oidcProvider.refreshToken("refresh-token-not-rotated")
-                    val principal = assertNotNull(result.idToken)
-                    call.respondText("${result.refreshToken}:${principal.refreshToken}:${principal.userInfo.subject}")
-                }
-                get("/refresh/bad-token-type") {
-                    val failure = assertFailsWith<OidcTokenRejectedException> {
-                        oidcProvider.refreshToken("refresh-token-dpop")
-                    }
-                    call.respondText(failure.message.orEmpty())
-                }
-                get("/logout-url") {
-                    val url = oidcProvider.buildLogoutUrl(
-                        idTokenHint = "id-token-hint",
-                        postLogoutRedirectUri = "https://app.example.com/signed-out",
-                    )
-                    call.respondText(url)
-                }
-                authenticateWith(oidcProvider.jwtBearer) {
-                    get("/context-refresh") {
-                        val result = oidcProvider.refreshToken("refresh-token-1")
-                        val principal = assertNotNull(result.idToken)
-                        call.respondText("${result.accessToken}:${principal.userInfo.subject}")
-                    }
-                    get("/context-logout-url") {
-                        val url = oidcProvider.buildLogoutUrl(
-                            idTokenHint = "id-token-hint",
-                            postLogoutRedirectUri = "https://app.example.com/signed-out",
-                        )
-                        call.respondText(url)
-                    }
-                }
+
+            val result = provider.refreshToken("refresh-token-1")
+            val principal = assertNotNull(result.idToken)
+            assertEquals("access-token-2", result.accessToken)
+            assertEquals("refresh-token-2", result.refreshToken)
+            assertEquals(3600.seconds, result.expiresIn)
+            assertEquals("Bearer", result.tokenType)
+            assertEquals("openid profile", result.scope)
+            assertEquals("refreshed-user", principal.userInfo.subject)
+            assertEquals(result.refreshToken, principal.refreshToken)
+
+            val accessOnly = provider.refreshToken("access-only-refresh-token")
+            assertEquals("access-token-only", accessOnly.accessToken)
+            assertNull(accessOnly.refreshToken)
+            assertNull(accessOnly.idToken)
+
+            val notRotated = provider.refreshToken("refresh-token-not-rotated")
+            val notRotatedPrincipal = assertNotNull(notRotated.idToken)
+            assertNull(notRotated.refreshToken)
+            assertEquals("refresh-token-not-rotated", notRotatedPrincipal.refreshToken)
+            assertEquals("non-rotated-user", notRotatedPrincipal.userInfo.subject)
+
+            val failure = assertFailsWith<OidcTokenRejectedException> {
+                provider.refreshToken("refresh-token-dpop")
             }
+            assertContains(failure.message.orEmpty(), "token_type")
         }
-
-        val routeToken = keys.accessToken {
-            subject = "api-user"
-        }
-        val refresh = client.get("/refresh")
-        assertEquals(HttpStatusCode.OK, refresh.status)
-        val parts = refresh.bodyAsText().split(":")
-        assertEquals("access-token-2", parts[0])
-        assertEquals("refresh-token-2", parts[1])
-        assertEquals("3600", parts[3])
-        assertEquals("Bearer", parts[4])
-        assertEquals("openid profile", parts[5])
-        assertEquals("refreshed-user", parts[6])
-
-        val accessOnlyRefresh = client.get("/refresh/access-only")
-        assertEquals(HttpStatusCode.OK, accessOnlyRefresh.status)
-        assertEquals("access-token-only:null:null", accessOnlyRefresh.bodyAsText())
-
-        val notRotatedRefresh = client.get("/refresh/not-rotated")
-        assertEquals(HttpStatusCode.OK, notRotatedRefresh.status)
-        assertEquals("null:refresh-token-not-rotated:non-rotated-user", notRotatedRefresh.bodyAsText())
-
-        val badTokenType = client.get("/refresh/bad-token-type")
-        assertEquals(HttpStatusCode.OK, badTokenType.status)
-        assertContains(badTokenType.bodyAsText(), "token_type")
-
-        val logoutUrl = Url(client.get("/logout-url").bodyAsText())
-        assertEquals("/logout", logoutUrl.encodedPath)
-        assertEquals("id-token-hint", logoutUrl.parameters["id_token_hint"])
-        assertEquals("https://app.example.com/signed-out", logoutUrl.parameters["post_logout_redirect_uri"])
-        assertEquals("client-id", logoutUrl.parameters["client_id"])
-
-        val contextRefresh = client.get("/context-refresh") {
-            header(HttpHeaders.Authorization, "Bearer $routeToken")
-        }
-        assertEquals(HttpStatusCode.OK, contextRefresh.status)
-        assertEquals("access-token-2:refreshed-user", contextRefresh.bodyAsText())
-
-        val contextLogoutUrl = Url(
-            client.get("/context-logout-url") {
-                header(HttpHeaders.Authorization, "Bearer $routeToken")
-            }.bodyAsText()
-        )
-        assertEquals("/logout", contextLogoutUrl.encodedPath)
-        assertEquals("id-token-hint", contextLogoutUrl.parameters["id_token_hint"])
-        assertEquals("https://app.example.com/signed-out", contextLogoutUrl.parameters["post_logout_redirect_uri"])
-        assertEquals("client-id", contextLogoutUrl.parameters["client_id"])
     }
 
     @Test
-    fun `buildVerifiedPrincipal validates at hash when present`() = testApplication {
+    fun `buildIdToken validates at hash when present`() = runTest {
         val accessToken = "access-token"
         val keysByAlgorithm = testRsaKeysByAlgorithm
-        val algorithms = keysByAlgorithm.keys
 
-        application {
-            val oidc = install(Oidc) { }
-            val oidcProvider = oidc.identityProvider("auth0") {
+        unusedClient().use { client ->
+            val provider = operationsProvider(client) {
                 testIssuer()
                 jwt {
                     jwkProviderFactory = { jwkProviderWithMultipleKeys(*keysByAlgorithm.values.toTypedArray()) }
                 }
-                oauth {
-                    clientId = "client-id"
-                    clientSecret = "client-secret"
-                }
             }
-            routing {
-                algorithms.forEach { algorithm ->
-                    val algorithmName = algorithm.testJwaName
-                    get("/at-hash/valid/$algorithmName") {
-                        val keys = keysByAlgorithm.getValue(algorithm)
-                        val idToken = keys.idToken(subject = "hash-user") {
-                            audience = "client-id"
-                            atHash = keys.algorithm.hashAccessToken(accessToken)
-                        }
-                        val principal = oidcProvider.buildIdToken(
-                            idToken = idToken,
-                            accessToken = accessToken,
-                            refreshToken = null,
-                            expectedAudience = "client-id",
-                        )
-                        call.respondText(principal.userInfo.subject)
-                    }
-                }
-                get("/at-hash/invalid") {
-                    val keys = keysByAlgorithm.getValue(SignatureAlgorithm.RSA_SHA_256)
-                    val failure = assertFailsWith<OidcTokenRejectedException> {
-                        oidcProvider.buildIdToken(
-                            idToken = keys.idToken(subject = "hash-user") {
-                                audience = "client-id"
-                                atHash = "invalid"
-                            },
-                            accessToken = accessToken,
-                            refreshToken = null,
-                            expectedAudience = "client-id",
-                        )
-                    }
-                    call.respondText(failure.message.orEmpty())
-                }
+
+            keysByAlgorithm.forEach { (_, keys) ->
+                val principal = provider.buildIdToken(
+                    idToken = keys.idToken(subject = "hash-user") {
+                        audience = "client-id"
+                        atHash = keys.algorithm.hashAccessToken(accessToken)
+                    },
+                    accessToken = accessToken,
+                    refreshToken = null,
+                    expectedAudience = "client-id",
+                )
+                assertEquals("hash-user", principal.userInfo.subject)
             }
-        }
 
-        algorithms.forEach { algorithm ->
-            val valid = client.get("/at-hash/valid/${algorithm.testJwaName}")
-            assertEquals(HttpStatusCode.OK, valid.status)
-            assertEquals("hash-user", valid.bodyAsText())
+            val keys = keysByAlgorithm.getValue(SignatureAlgorithm.RSA_SHA_256)
+            val failure = assertFailsWith<OidcTokenRejectedException> {
+                provider.buildIdToken(
+                    idToken = keys.idToken(subject = "hash-user") {
+                        audience = "client-id"
+                        atHash = "invalid"
+                    },
+                    accessToken = accessToken,
+                    refreshToken = null,
+                    expectedAudience = "client-id",
+                )
+            }
+            assertContains(failure.message.orEmpty(), "at_hash")
         }
-
-        val invalid = client.get("/at-hash/invalid")
-        assertEquals(HttpStatusCode.OK, invalid.status)
-        assertContains(invalid.bodyAsText(), "at_hash")
     }
 
     @Test
-    fun `buildLogoutUrl returns null when provider has no logout endpoint`() = testApplication {
-        application {
-            val oidc = install(Oidc)
-            val oidcProvider = oidc.identityProvider("auth0") {
-                testIssuer(metadata = openIdProviderMetadata)
-                oauth {
-                    clientId = "client-id"
-                    clientSecret = "client-secret"
-                }
-            }
-            routing {
-                get("/logout-url") {
-                    val failure = assertFailsWith<IllegalArgumentException> {
-                        oidcProvider.buildLogoutUrl("id-token-hint", null)
-                    }
-                    call.respondText(failure.message.orEmpty())
-                }
+    fun `buildLogoutUrl includes id token hint client id and redirect`() = unusedClient().use { client ->
+        val provider = operationsProvider(client) {
+            testIssuer(metadata = browserFlowMetadata())
+            oauth {
+                clientId = "client-id"
+                clientSecret = "client-secret"
             }
         }
 
-        assertContains(client.get("/logout-url").bodyAsText(), "RP-Initiated logout is not supported")
+        val url = Url(
+            provider.buildLogoutUrl(
+                idTokenHint = "id-token-hint",
+                postLogoutRedirectUri = "https://app.example.com/signed-out",
+            )
+        )
+        assertEquals("/logout", url.encodedPath)
+        assertEquals("id-token-hint", url.parameters["id_token_hint"])
+        assertEquals("https://app.example.com/signed-out", url.parameters["post_logout_redirect_uri"])
+        assertEquals("client-id", url.parameters["client_id"])
     }
 
-    private fun TestApplicationBuilder.openIdProvider(keys: OpenIdTestKeys) {
-        externalServices {
-            hosts(ISSUER_URL) {
-                routing {
-                    post("/token") {
-                        val parameters = call.receiveParameters()
-                        assertEquals("refresh_token", parameters["grant_type"])
-                        assertEquals("client-id", parameters["client_id"])
-                        assertEquals("client-secret", parameters["client_secret"])
-                        assertEquals(listOf("https://api.example.com"), parameters.getAll("resource"))
+    @Test
+    fun `buildLogoutUrl fails when provider has no logout endpoint`() = unusedClient().use { client ->
+        val provider = operationsProvider(client) {
+            testIssuer(metadata = openIdProviderMetadata)
+            oauth {
+                clientId = "client-id"
+                clientSecret = "client-secret"
+            }
+        }
 
-                        when (parameters["refresh_token"]) {
-                            "refresh-token-1" -> {
-                                val idToken = keys.idToken(subject = "refreshed-user") {
-                                    audience = "client-id"
-                                }
-                                call.respondText(
-                                    openIdTestJson.encodeToString(
-                                        TokenRefreshResponse(
-                                            accessToken = "access-token-2",
-                                            tokenType = "Bearer",
-                                            expiresIn = 3600,
-                                            refreshToken = "refresh-token-2",
-                                            idToken = idToken,
-                                            scope = "openid profile",
-                                        )
-                                    ),
-                                    ContentType.Application.Json,
-                                )
-                            }
+        val failure = assertFailsWith<IllegalArgumentException> {
+            provider.buildLogoutUrl("id-token-hint", null)
+        }
+        assertContains(assertNotNull(failure.message), "RP-Initiated logout is not supported")
+    }
 
-                            "access-only-refresh-token" -> {
-                                call.respondText(
-                                    openIdTestJson.encodeToString(
-                                        TokenRefreshResponse(
-                                            accessToken = "access-token-only",
-                                            tokenType = "Bearer",
-                                        )
-                                    ),
-                                    ContentType.Application.Json,
-                                )
-                            }
+    private fun operationsProvider(
+        client: HttpClient,
+        configure: OidcProviderConfig.() -> Unit,
+    ): OidcProvider {
+        val config = OidcProviderConfig("auth0").apply {
+            configure()
+            validate()
+        }
+        return OidcProvider(
+            name = "auth0",
+            client = client,
+            config = config,
+        ).also { provider ->
+            provider.updateMetadata(checkNotNull(config.metadata))
+        }
+    }
 
-                            "refresh-token-not-rotated" -> {
-                                val idToken = keys.idToken(subject = "non-rotated-user") {
-                                    audience = "client-id"
-                                }
-                                call.respondText(
-                                    openIdTestJson.encodeToString(
-                                        TokenRefreshResponse(
-                                            accessToken = "access-token-not-rotated",
-                                            tokenType = "Bearer",
-                                            idToken = idToken,
-                                        )
-                                    ),
-                                    ContentType.Application.Json,
-                                )
-                            }
+    private fun unusedClient(): HttpClient = HttpClient(MockEngine) {
+        engine {
+            addHandler { error("HTTP is not used in this test") }
+        }
+    }
 
-                            "refresh-token-dpop" -> {
-                                val idToken = keys.idToken(subject = "bad-token-type-user") {
-                                    audience = "client-id"
-                                }
-                                call.respondText(
-                                    openIdTestJson.encodeToString(
-                                        TokenRefreshResponse(
-                                            accessToken = "access-token-bad-type",
-                                            tokenType = "DPoP",
-                                            idToken = idToken,
-                                        )
-                                    ),
-                                    ContentType.Application.Json,
-                                )
-                            }
+    private fun refreshTokenClient(keys: OpenIdTestKeys): HttpClient = HttpClient(MockEngine) {
+        install(ContentNegotiation) {
+            json(discoveryJson)
+        }
+        engine {
+            addHandler { request ->
+                val parameters = parseQueryString(request.body.toByteArray().decodeToString())
+                assertEquals("refresh_token", parameters["grant_type"])
+                assertEquals("client-id", parameters["client_id"])
+                assertEquals("client-secret", parameters["client_secret"])
+                assertEquals(listOf("https://api.example.com"), parameters.getAll("resource"))
 
-                            else -> call.respond(HttpStatusCode.BadRequest)
-                        }
-                    }
+                val response = when (parameters["refresh_token"]) {
+                    "refresh-token-1" -> TokenRefreshResponse(
+                        accessToken = "access-token-2",
+                        tokenType = "Bearer",
+                        expiresIn = 3600,
+                        refreshToken = "refresh-token-2",
+                        idToken = keys.idToken(subject = "refreshed-user") {
+                            audience = "client-id"
+                        },
+                        scope = "openid profile",
+                    )
+
+                    "access-only-refresh-token" -> TokenRefreshResponse(
+                        accessToken = "access-token-only",
+                        tokenType = "Bearer",
+                    )
+
+                    "refresh-token-not-rotated" -> TokenRefreshResponse(
+                        accessToken = "access-token-not-rotated",
+                        tokenType = "Bearer",
+                        idToken = keys.idToken(subject = "non-rotated-user") {
+                            audience = "client-id"
+                        },
+                    )
+
+                    "refresh-token-dpop" -> TokenRefreshResponse(
+                        accessToken = "access-token-bad-type",
+                        tokenType = "DPoP",
+                        idToken = keys.idToken(subject = "bad-token-type-user") {
+                            audience = "client-id"
+                        },
+                    )
+
+                    else -> return@addHandler respond(
+                        content = "",
+                        status = HttpStatusCode.BadRequest,
+                    )
                 }
+                respond(
+                    content = discoveryJson.encodeToString(response),
+                    headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString()),
+                )
             }
         }
     }

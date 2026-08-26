@@ -12,6 +12,8 @@ import io.ktor.server.auth.oidc.utils.*
 import io.ktor.server.sessions.*
 import io.ktor.server.testing.*
 import kotlin.test.*
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 class OidcConfigValidationTest {
 
@@ -45,6 +47,24 @@ class OidcConfigValidationTest {
             }
         }
         assertContains(scopeFailure.message.orEmpty(), "openid")
+    }
+
+    @Test
+    fun `token refresh cache config rejects invalid values`() {
+        val ttlFailure = assertProviderValidationFails {
+            tokenRefreshCacheTtl = (-1).seconds
+        }
+        assertContains(ttlFailure.message.orEmpty(), "tokenRefreshCacheTtl")
+
+        val infiniteTtlFailure = assertProviderValidationFails {
+            tokenRefreshCacheTtl = Duration.INFINITE
+        }
+        assertContains(infiniteTtlFailure.message.orEmpty(), "tokenRefreshCacheTtl")
+
+        val maxSizeFailure = assertProviderValidationFails {
+            tokenRefreshCacheMaxSize = 0
+        }
+        assertContains(maxSizeFailure.message.orEmpty(), "tokenRefreshCacheMaxSize")
     }
 
     @Test
@@ -244,6 +264,34 @@ class OidcConfigValidationTest {
                 assertContains(warnings.single().formattedMessage, "ephemeral key")
                 assertContains(warnings.single().formattedMessage, "shared stateEncryptionKey")
             }
+        }
+    }
+
+    @Test
+    fun `bearer audience overlapping oauth client id logs a warning`() {
+        captureProviderLogs("auth0", Level.WARN).use { logs ->
+            testApplication {
+                application {
+                    val oidc = install(Oidc)
+                    oidc.identityProvider("auth0") {
+                        testIssuer()
+                        jwt(testRsaKeys)
+                        bearer { audience = setOf("web-client", "api") }
+                        oauth {
+                            clientId = "web-client"
+                            clientSecret = "client-secret"
+                            stateEncryptionKey = testStateEncryptionKey()
+                        }
+                    }
+                }
+                startApplication()
+            }
+
+            val warnings = logs.events.filter { it.formattedMessage.contains("bearer.audience") }
+            assertEquals(1, warnings.size)
+            assertContains(warnings.single().formattedMessage, "web-client")
+            assertContains(warnings.single().formattedMessage, "token_use")
+            assertContains(warnings.single().formattedMessage, "typ")
         }
     }
 

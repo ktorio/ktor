@@ -45,9 +45,8 @@ class OidcJwtKeyAndAlgorithmTest {
     @Test
     fun `bearer authentication rejects JWT without kid when JWKS has multiple keys`() = testApplication {
         val keys = testRsaKeys
-        val otherKeys = testOtherRsaKeys
 
-        installJwtBearer(jwkProviderFactory = { jwkProviderWithMultipleKeys(keys, otherKeys) })
+        installJwtBearer(jwkProviderFactory = { jwkProviderWithMultipleKeys(keys, testOtherRsaKeys) })
 
         val token = keys.accessToken {
             subject = "missing-kid"

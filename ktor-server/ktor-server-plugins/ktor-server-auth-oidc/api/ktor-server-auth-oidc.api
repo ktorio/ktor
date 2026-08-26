@@ -26,6 +26,11 @@ public final class io/ktor/server/auth/oidc/OidcBearerConfig {
 	public final fun setTokenExtractor (Lkotlin/jvm/functions/Function1;)V
 }
 
+public final class io/ktor/server/auth/oidc/OidcDiscoveryException : java/lang/RuntimeException {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
 public final class io/ktor/server/auth/oidc/OidcEnvConfig {
 	public static final field Companion Lio/ktor/server/auth/oidc/OidcEnvConfig$Companion;
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;)V
@@ -155,11 +160,15 @@ public final class io/ktor/server/auth/oidc/OidcProviderConfig {
 	public final fun getIssuer ()Ljava/lang/String;
 	public final fun getMetadata ()Lio/ktor/server/auth/oidc/OpenIdProviderMetadata;
 	public final fun getName ()Ljava/lang/String;
+	public final fun getTokenRefreshCacheMaxSize ()I
+	public final fun getTokenRefreshCacheTtl-UwyO8pc ()J
 	public final fun jwt (Lio/ktor/server/auth/oidc/OpenIdTestKeys;)V
 	public final fun jwt (Lkotlin/jvm/functions/Function1;)V
 	public final fun oauth (Lkotlin/jvm/functions/Function1;)V
 	public final fun setIssuer (Ljava/lang/String;)V
 	public final fun setMetadata (Lio/ktor/server/auth/oidc/OpenIdProviderMetadata;)V
+	public final fun setTokenRefreshCacheMaxSize (I)V
+	public final fun setTokenRefreshCacheTtl-LRDsOJo (J)V
 }
 
 public final class io/ktor/server/auth/oidc/OidcSessionsConfig {
@@ -334,11 +343,6 @@ public abstract interface class io/ktor/server/auth/oidc/OidcTokenRefreshStrateg
 
 public final class io/ktor/server/auth/oidc/OidcTokenRefreshStrategy$Disabled : io/ktor/server/auth/oidc/OidcTokenRefreshStrategy {
 	public static final field INSTANCE Lio/ktor/server/auth/oidc/OidcTokenRefreshStrategy$Disabled;
-}
-
-public final class io/ktor/server/auth/oidc/OpenIdDiscoveryException : java/lang/RuntimeException {
-	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
-	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 }
 
 public final class io/ktor/server/auth/oidc/OpenIdProviderMetadata {

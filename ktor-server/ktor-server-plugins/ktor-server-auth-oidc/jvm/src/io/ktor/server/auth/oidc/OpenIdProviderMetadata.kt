@@ -216,7 +216,7 @@ internal fun OpenIdProviderMetadata.validate(expectedIssuer: String) {
  *
  * @param issuer The issuer URL (e.g., "https://accounts.google.com")
  * @return The OpenID Connect configuration containing endpoints and metadata
- * @throws OpenIdDiscoveryException if the request fails or the response is invalid
+ * @throws OidcDiscoveryException if the request fails or the response is invalid
  * @throws IllegalArgumentException if the decoded metadata fails issuer or required endpoint validation
  *
  */
@@ -230,7 +230,7 @@ public suspend fun HttpClient.fetchOpenIdMetadata(issuer: String): OpenIdProvide
     } catch (e: CancellationException) {
         throw e
     } catch (e: Exception) {
-        throw OpenIdDiscoveryException("Failed to fetch OpenID configuration from $issuer", e)
+        throw OidcDiscoveryException("Failed to fetch OpenID configuration from '$issuer'", e)
     }
     config.validate(expectedIssuer = issuer)
     return config
@@ -242,4 +242,4 @@ public suspend fun HttpClient.fetchOpenIdMetadata(issuer: String): OpenIdProvide
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.DiscoveryException)
  *
  */
-public class OpenIdDiscoveryException(message: String, cause: Throwable? = null) : RuntimeException(message, cause)
+public class OidcDiscoveryException(message: String, cause: Throwable? = null) : RuntimeException(message, cause)

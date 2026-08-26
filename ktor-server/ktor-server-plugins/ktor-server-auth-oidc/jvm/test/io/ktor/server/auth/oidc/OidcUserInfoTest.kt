@@ -2,22 +2,21 @@
  * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-@file:OptIn(ExperimentalKtorApi::class)
-
 package io.ktor.server.auth.oidc
 
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
-import io.ktor.server.application.install
+import io.ktor.server.application.*
 import io.ktor.server.auth.oidc.utils.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import io.ktor.utils.io.*
-import java.util.concurrent.atomic.*
-import kotlin.test.*
+import java.util.concurrent.atomic.AtomicReference
+import kotlin.test.Test
+import kotlin.test.assertContains
+import kotlin.test.assertEquals
 import kotlin.time.Duration.Companion.ZERO
 
 class OidcUserInfoTest {

@@ -104,22 +104,16 @@ class OidcDiscoveryTest {
                 routing {
                     get("/.well-known/openid-configuration") {
                         val requestNumber = discoveryRequests.incrementAndGet()
-                        val metadata = if (requestNumber == 1) {
-                            OpenIdProviderMetadata(
+                        if (requestNumber == 1) {
+                            val metadata = OpenIdProviderMetadata(
                                 issuer = ISSUER_URL,
                                 authorizationEndpoint = "$ISSUER_URL/authorize-initial",
                                 tokenEndpoint = "$ISSUER_URL/token",
                                 jwksUri = "$ISSUER_URL/jwks",
                             )
-                        } else {
-                            OpenIdProviderMetadata(
-                                issuer = "$ISSUER_URL/",
-                                authorizationEndpoint = "$ISSUER_URL/authorize-invalid",
-                                tokenEndpoint = "$ISSUER_URL/token",
-                                jwksUri = "$ISSUER_URL/jwks",
-                            )
+                            return@get call.respond(metadata)
                         }
-                        call.respond(metadata)
+                        call.respond(HttpStatusCode.NotFound)
                     }
                 }
             }
@@ -150,8 +144,9 @@ class OidcDiscoveryTest {
         assertEquals(ISSUER_URL, failure.provider.issuer)
         assertEquals("$ISSUER_URL/authorize-initial", provider.currentMetadata().authorizationEndpoint)
         assertEquals(1, failure.consecutiveFailures)
-        assertIs<IllegalArgumentException>(failure.cause)
-        assertContains(failure.cause.message.orEmpty(), "issuer mismatch")
+        assertIs<OidcDiscoveryException>(failure.cause)
+        val message = assertNotNull(failure.cause.message)
+        assertContains(message, "Failed to fetch OpenID configuration from")
     }
 
     @Test
@@ -194,7 +189,7 @@ class OidcDiscoveryTest {
     fun `initial discovery throws after configured attempts fail`() {
         val discoveryRequests = AtomicInteger()
 
-        val failure = assertFailsWith<OpenIdDiscoveryException> {
+        val failure = assertFailsWith<OidcDiscoveryException> {
             testApplication {
                 externalServices {
                     hosts(ISSUER_URL) {
@@ -254,7 +249,7 @@ class OidcDiscoveryTest {
                 initialDiscoveryAttempts = 1
                 initialDiscoveryRetryDelay = ZERO
             }
-            assertFailsWith<OpenIdDiscoveryException> {
+            assertFailsWith<OidcDiscoveryException> {
                 oidc.identityProvider("auth0") {
                     issuer = ISSUER_URL
                 }

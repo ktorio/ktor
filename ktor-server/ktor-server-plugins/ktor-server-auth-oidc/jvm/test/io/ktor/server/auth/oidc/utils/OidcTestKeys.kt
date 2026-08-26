@@ -39,6 +39,22 @@ internal val testRsaKeys: OpenIdTestKeys by lazy {
     OpenIdTestKeys.rsa(issuer = ISSUER_URL, audience = "api")
 }
 
+internal fun OpenIdTestKeys.accessTokenWithPurpose(
+    audience: String = "api",
+    subject: String = "purpose-user",
+    tokenUse: String? = null,
+    typ: String? = null,
+): String {
+    val builder = JWT.create()
+        .withIssuer(checkNotNull(defaultIssuer))
+        .withAudience(audience)
+        .withKeyId(keyId)
+        .withSubject(subject)
+    tokenUse?.let { builder.withClaim("token_use", it) }
+    typ?.let { builder.withHeader(mapOf<String, Any>("typ" to it)) }
+    return builder.sign()
+}
+
 internal val testOtherRsaKeys: OpenIdTestKeys by lazy {
     OpenIdTestKeys.rsa(keyId = "kid-2", issuer = ISSUER_URL, audience = "api")
 }

@@ -9,13 +9,12 @@ package io.ktor.server.auth.oidc
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.server.application.install
+import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.oidc.utils.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.server.sessions.*
 import io.ktor.server.testing.*
 import io.ktor.utils.io.*
 import java.util.concurrent.ConcurrentHashMap
@@ -127,7 +126,7 @@ class OidcOAuthCallbackTest {
     @Test
     fun `oauth challenge with pkce disabled still creates state transaction`() = testApplication {
         application {
-            val oidc = install(Oidc) { }
+            val oidc = install(Oidc)
             oidc.identityProvider("auth0") {
                 testIssuer()
                 oauth {
@@ -396,7 +395,7 @@ class OidcOAuthCallbackTest {
             routing {
                 authenticateWith(oidcProvider.jwtBearer) {
                     get("/protected") {
-                        val accessToken = call.principal as OidcToken.Access
+                        val accessToken = call.principal
                         call.respondText(accessToken.userInfo?.subject ?: "missing")
                     }
                 }

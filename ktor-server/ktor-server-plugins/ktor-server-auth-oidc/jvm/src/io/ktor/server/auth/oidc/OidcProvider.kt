@@ -19,12 +19,10 @@ import java.net.URI
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
-import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
 import kotlin.time.toJavaDuration
 
-private val TokenRefreshResultTtl = 1.seconds
-private const val TokenRefreshCacheMaxSize = 1024
 private val TokenRefreshCacheEvictor = Executors.newSingleThreadScheduledExecutor { task ->
     Thread(task, "ktor-oidc-token-refresh-cache").apply {
         isDaemon = true
@@ -87,6 +85,10 @@ public class OidcProvider internal constructor(
     /**
      * Refreshes token material for this provider using the supplied refresh token.
      *
+     * Concurrent callers with the same refresh token share one token-endpoint request. After success, the result
+     * remains available for [OidcProviderConfig.tokenRefreshCacheTtl] so stragglers reuse it. [Duration.ZERO]
+     * coalesces in-flight work only.
+     *
      * @param refreshToken Refresh token to send to the provider token endpoint.
      * @return Raw token response fields and an optional verified ID-token principal.
      * @throws IllegalStateException when OAuth is not enabled.
@@ -119,8 +121,8 @@ public class OidcProvider internal constructor(
     /**
      * JWT Bearer authentication scheme.
      *
-     * Accepts only locally verified JWT access tokens. Use with `authenticateWith(auth0.jwtBearer)` after
-     * [Oidc.identityProvider].
+     * Accepts only locally verified JWT access tokens.
+     * Use with `authenticateWith(auth0.jwtBearer)` after [Oidc.identityProvider].
      *
      * @throws IllegalStateException when the provider was not configured with `bearer { }`.
      */
@@ -188,7 +190,7 @@ public class OidcProvider internal constructor(
 
     internal val stateCodec: OidcStateCodec by lazy { createStateCodec() }
 
-    private val tokenRefreshes = ConcurrentHashMap<String, CompletableDeferred<OidcTokenRefreshResult>>()
+    internal val tokenRefreshes = ConcurrentHashMap<String, CompletableDeferred<OidcTokenRefreshResult>>()
 
     internal val canIntrospect: Boolean =
         config.bearerConfig?.introspectionConfig != null
@@ -238,16 +240,18 @@ public class OidcProvider internal constructor(
         refreshToken: String,
         pending: CompletableDeferred<OidcTokenRefreshResult>
     ) {
-        TokenRefreshCacheEvictor.schedule(
-            { tokenRefreshes.remove(key = refreshToken, value = pending) },
-            TokenRefreshResultTtl.inWholeMilliseconds,
-            TimeUnit.MILLISECONDS
-        )
+        val ttl = config.tokenRefreshCacheTtl
+        val command = { tokenRefreshes.remove(key = refreshToken, value = pending) }
+        if (ttl == Duration.ZERO) {
+            command()
+        } else {
+            TokenRefreshCacheEvictor.schedule(command, ttl.inWholeMilliseconds, TimeUnit.MILLISECONDS)
+        }
         pruneCompletedTokenRefreshes()
     }
 
     private fun pruneCompletedTokenRefreshes() {
-        val excess = tokenRefreshes.size - TokenRefreshCacheMaxSize
+        val excess = tokenRefreshes.size - config.tokenRefreshCacheMaxSize
         if (excess <= 0) {
             return
         }
@@ -272,7 +276,7 @@ public class OidcProvider internal constructor(
      */
     internal fun buildLogoutUrl(idTokenHint: String, postLogoutRedirectUri: String?): String {
         require(idTokenHint.isNotBlank()) {
-            "idTokenHint must not be blank"
+            "idTokenHint must not be blank for provider '$name'"
         }
         val endSessionEndpoint = requireNotNull(currentMetadata().endSessionEndpoint) {
             "RP-Initiated logout is not supported by provider '$name'"
