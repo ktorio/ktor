@@ -12,6 +12,7 @@ import io.ktor.client.statement.*
 import io.ktor.client.test.base.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
+import io.ktor.test.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.delay
@@ -24,6 +25,16 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
+
+/**
+ * Bound on the streaming-cancellation tests below, which hang rather than fail when cancellation
+ * isn't honoured.
+ *
+ * Passed to `clientTests` so it configures the `runTest` timeout: a test that blows it is reported
+ * with a coroutine dump of what was still running, where an inner `withTimeout` would instead
+ * surface as an unrelated "wrong exception type" assertion failure.
+ */
+private val GUARD_TIMEOUT = 15.seconds
 
 class HttpStatementTest : ClientLoader(timeout = 5.seconds) {
 
@@ -191,7 +202,7 @@ class HttpStatementTest : ClientLoader(timeout = 5.seconds) {
     // so the test times out waiting for enough data to arrive unless the content type is octet/stream or application/json.
     // See: https://developer.apple.com/forums/thread/64875
     @Test
-    fun `execute propagates block failure without waiting for the body`() = clientTests {
+    fun `execute propagates block failure without waiting for the body`() = clientTests(timeout = GUARD_TIMEOUT) {
         test { client ->
             val exception = assertFailsWith<IllegalStateException> {
                 client.prepareStream(delay = 1.minutes).execute {
@@ -204,7 +215,15 @@ class HttpStatementTest : ClientLoader(timeout = 5.seconds) {
     }
 
     @Test
-    fun `body block propagates failure without waiting for the body`() = clientTests {
+    fun `body block propagates failure without waiting for the body`() =
+        clientTests(except("Android"), timeout = GUARD_TIMEOUT) { throwFromStreamingBodyBlock() }
+
+    @Flaky("KTOR-8570")
+    @Test
+    fun `body block propagates failure without waiting for the body_flaky`() =
+        clientTests(only("Android"), timeout = GUARD_TIMEOUT) { throwFromStreamingBodyBlock() }
+
+    private fun TestClientBuilder<*>.throwFromStreamingBodyBlock() {
         test { client ->
             val exception = assertFailsWith<IllegalStateException> {
                 client.prepareStream(delay = 1.minutes).body<ByteReadChannel, Unit> {
