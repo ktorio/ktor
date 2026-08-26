@@ -29,9 +29,10 @@ expect abstract class BaseTest() {
  *
  * Only the coroutine context differs between targets, so that part stays in the actual and arrives
  * here as [runAttempt] — the platform's `runTestWithRealTime` call. Everything else is identical:
- * an assertion failure is recorded and replayed rather than retried, so a deterministic failure is
- * reported by the attempt that produced it instead of being masked as flakiness. `runTest`'s own
- * timeout error stays retryable, being thrown around [block] rather than by it.
+ * an assertion failure thrown by [block] is recorded and ends the retry loop, so a deterministic
+ * failure is reported by the attempt that produced it instead of being masked as flakiness.
+ * `runTest`'s own timeout error is an `AssertionError` too, but stays retryable because it is thrown
+ * around [block] rather than by it, so the guard never sees it.
  */
 internal fun BaseTest.runTestAttempts(
     retries: Int,
@@ -39,8 +40,7 @@ internal fun BaseTest.runTestAttempts(
     block: suspend CoroutineScope.() -> Unit,
 ): TestResult {
     val guard = DeterministicFailureGuard()
-    return retryTest(retries) { retry ->
-        guard.failFast()
+    return retryTest(retries, shouldRetry = { !guard.hasFailure }) { retry ->
         runAttempt {
             if (retry > 0) println("[Retry $retry/$retries]")
             beforeTest()
