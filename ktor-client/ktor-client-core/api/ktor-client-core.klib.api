@@ -581,9 +581,6 @@ final class io.ktor.client.plugins.sse/SSEClientException : kotlin/IllegalStateE
 final class io.ktor.client.plugins.sse/SSEConfig { // io.ktor.client.plugins.sse/SSEConfig|null[0]
     constructor <init>() // io.ktor.client.plugins.sse/SSEConfig.<init>|<init>(){}[0]
 
-    final var allowMissingContentType // io.ktor.client.plugins.sse/SSEConfig.allowMissingContentType|{}allowMissingContentType[0]
-        final fun <get-allowMissingContentType>(): kotlin/Boolean // io.ktor.client.plugins.sse/SSEConfig.allowMissingContentType.<get-allowMissingContentType>|<get-allowMissingContentType>(){}[0]
-        final fun <set-allowMissingContentType>(kotlin/Boolean) // io.ktor.client.plugins.sse/SSEConfig.allowMissingContentType.<set-allowMissingContentType>|<set-allowMissingContentType>(kotlin.Boolean){}[0]
     final var bufferPolicy // io.ktor.client.plugins.sse/SSEConfig.bufferPolicy|{}bufferPolicy[0]
         final fun <get-bufferPolicy>(): io.ktor.client.plugins.sse/SSEBufferPolicy // io.ktor.client.plugins.sse/SSEConfig.bufferPolicy.<get-bufferPolicy>|<get-bufferPolicy>(){}[0]
         final fun <set-bufferPolicy>(io.ktor.client.plugins.sse/SSEBufferPolicy) // io.ktor.client.plugins.sse/SSEConfig.bufferPolicy.<set-bufferPolicy>|<set-bufferPolicy>(io.ktor.client.plugins.sse.SSEBufferPolicy){}[0]
@@ -1488,7 +1485,6 @@ final fun (io.ktor.client.call/HttpClientCall).io.ktor.client.plugins.observer/w
 final fun (io.ktor.client.engine/ProxyBuilder).io.ktor.client.engine/http(kotlin/String): io.ktor.client.engine/ProxyConfig // io.ktor.client.engine/http|http@io.ktor.client.engine.ProxyBuilder(kotlin.String){}[0]
 final fun (io.ktor.client.engine/ProxyConfig).io.ktor.client.engine/resolveAddress(): io.ktor.util.network/NetworkAddress // io.ktor.client.engine/resolveAddress|resolveAddress@io.ktor.client.engine.ProxyConfig(){}[0]
 final fun (io.ktor.client.request.forms/FormBuilder).io.ktor.client.request.forms/append(kotlin/String, kotlin/String, io.ktor.http/ContentType? = ..., kotlin/Long? = ..., kotlin/Function1<kotlinx.io/Sink, kotlin/Unit>) // io.ktor.client.request.forms/append|append@io.ktor.client.request.forms.FormBuilder(kotlin.String;kotlin.String;io.ktor.http.ContentType?;kotlin.Long?;kotlin.Function1<kotlinx.io.Sink,kotlin.Unit>){}[0]
-final fun (io.ktor.client.request/HttpRequestBuilder).io.ktor.client.plugins.sse/allowMissingContentType(kotlin/Boolean = ...) // io.ktor.client.plugins.sse/allowMissingContentType|allowMissingContentType@io.ktor.client.request.HttpRequestBuilder(kotlin.Boolean){}[0]
 final fun (io.ktor.client.request/HttpRequestBuilder).io.ktor.client.plugins.sse/bufferPolicy(io.ktor.client.plugins.sse/SSEBufferPolicy) // io.ktor.client.plugins.sse/bufferPolicy|bufferPolicy@io.ktor.client.request.HttpRequestBuilder(io.ktor.client.plugins.sse.SSEBufferPolicy){}[0]
 final fun (io.ktor.client.request/HttpRequestBuilder).io.ktor.client.plugins/onDownload(io.ktor.client.content/ProgressListener?) // io.ktor.client.plugins/onDownload|onDownload@io.ktor.client.request.HttpRequestBuilder(io.ktor.client.content.ProgressListener?){}[0]
 final fun (io.ktor.client.request/HttpRequestBuilder).io.ktor.client.plugins/onUpload(io.ktor.client.content/ProgressListener?) // io.ktor.client.plugins/onUpload|onUpload@io.ktor.client.request.HttpRequestBuilder(io.ktor.client.content.ProgressListener?){}[0]

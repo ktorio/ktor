@@ -423,10 +423,12 @@ public class SSEClientResponseAdapter : ResponseAdapter {
         callContext: CoroutineContext
     ): Any? {
         val contentType = headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) }
+        val isContentTypeAccepted = contentType == null ||
+            contentType.withoutParameters() == ContentType.Text.EventStream
         return if (data.isSseRequest() &&
             !data.isSseReconnectionRequest() &&
             (
-                (status == HttpStatusCode.OK && data.attributes.isSseContentTypeAccepted(contentType)) ||
+                (status == HttpStatusCode.OK && isContentTypeAccepted) ||
                     status == HttpStatusCode.NoContent
                 )
         ) {
