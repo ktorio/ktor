@@ -49,22 +49,9 @@ actual abstract class BaseTest actual constructor() {
         timeout: Duration,
         retries: Int,
         block: suspend CoroutineScope.() -> Unit
-    ): TestResult {
-        val guard = DeterministicFailureGuard()
-        return retryTest(retries) { retry ->
-            guard.failFast()
-            runTestWithRealTime(CoroutineName("test-$testName"), timeout) {
-                if (retry > 0) println("[Retry $retry/$retries]")
-                beforeTest()
-                try {
-                    block()
-                } catch (cause: Throwable) {
-                    guard.record(cause)
-                    throw cause
-                } finally {
-                    afterTest()
-                }
-            }
-        }
-    }
+    ): TestResult = runTestAttempts(
+        retries,
+        runAttempt = { attempt -> runTestWithRealTime(CoroutineName("test-$testName"), timeout, attempt) },
+        block = block,
+    )
 }

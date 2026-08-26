@@ -22,6 +22,18 @@ dependencies {
     implementation(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
 }
 
+// The flaky-test selectors are driven by one property with one set of values, read here to
+// configure the test tasks and in `ktor-test-base` to decide whether a `@Flaky` test runs. Compiling
+// `ktor-test-constants` into build-logic keeps that a single declaration instead of two that have to
+// be kept in sync by hand.
+//
+// The module is added as a source directory rather than as a project dependency because it is a
+// Kotlin Multiplatform project built by the `ktorbuild.project.internal` convention plugin — which
+// this build produces, so including it here would be circular.
+sourceSets.main {
+    kotlin.srcDir("../ktor-shared/ktor-test-constants/common/src")
+}
+
 // Should be synced with gradle/gradle-daemon-jvm.properties
 kotlin {
     jvmToolchain(21)

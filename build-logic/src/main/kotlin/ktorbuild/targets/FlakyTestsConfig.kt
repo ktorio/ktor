@@ -4,79 +4,47 @@
 
 package ktorbuild.targets
 
+import io.ktor.test.constants.FLAKY_MODE_PROPERTY
+import io.ktor.test.constants.FLAKY_NAME_TOKEN
+import io.ktor.test.constants.FlakyTestsMode
 import org.gradle.api.Project
 import org.gradle.api.tasks.testing.AbstractTestTask
-import org.gradle.api.tasks.testing.Test
 import org.gradle.kotlin.dsl.withType
-
-/**
- * Name token marking a test as flaky on every target.
- *
- * The `@Flaky` annotation is enforced by a JUnit `ExecutionCondition`, and there is no JUnit
- * Platform on Native/JS/Wasm. A token in the test or class name is the one selector that works
- * everywhere, because Gradle test filtering applies to every `AbstractTestTask`.
- */
-const val FLAKY_NAME_TOKEN = "_flaky"
 
 /** Matches the token anywhere in the test name, which also covers the `[target]` name suffixes. */
 private const val FLAKY_TEST_PATTERN = "*$FLAKY_NAME_TOKEN*"
 
-/**
- * Selects how test tasks treat flaky tests, as a Gradle property (`-P`).
- *
- * The same name and the same values are used for the system property that JVM test tasks pass to
- * `io.ktor.test.junit.FlakyTestCondition`, so there is one spelling to remember for both selectors.
- */
-internal const val FLAKY_MODE_PROPERTY = "ktor.tests.flaky"
-
-/** How test tasks treat tests marked with [FLAKY_NAME_TOKEN]. Selected by [FLAKY_MODE_PROPERTY]. */
-internal enum class FlakyTestsMode {
-    /** The default: flaky tests don't run. */
-    EXCLUDE,
-
-    /** Nightly: run flaky tests and nothing else, to track whether they still flip. */
-    ONLY,
-
-    /** Run everything, flaky included. */
-    ALL;
-
-    /** The [FLAKY_MODE_PROPERTY] value denoting this mode, as accepted by [of]. */
-    val propertyValue: String get() = name.lowercase()
-
-    companion object {
-        fun of(value: String?): FlakyTestsMode = when (value) {
-            null, "", "exclude" -> EXCLUDE
-            "only" -> ONLY
-            "all" -> ALL
-            else -> error(
-                "Unexpected value '$value' of '$FLAKY_MODE_PROPERTY'. Expected one of: exclude, only, all."
-            )
-        }
-    }
-}
+internal const val FLAKY_TEST_TASK = "flakyTest"
 
 internal fun Project.flakyTestsMode(): FlakyTestsMode =
     FlakyTestsMode.of(providers.gradleProperty(FLAKY_MODE_PROPERTY).orNull)
 
 /**
- * Applies the [FLAKY_MODE_PROPERTY] mode to the test tasks that have no other way to select flaky
- * tests, which is every target except the JVM.
+ * Test tasks that select `@Flaky` by annotation and must therefore *not* also get the name filter.
  *
- * JVM test tasks are left alone on purpose. They select `@Flaky` by annotation through
- * `FlakyTestCondition`, which receives the same mode as a system property (see `JvmConfig`), and the
- * two selectors would *intersect* rather than agree: [FlakyTestsMode.ONLY] would run only the tests
- * that are both annotated **and** named `*_flaky*`, silently skipping every `@Flaky` test that
- * carries no name token. The name token exists only because Native/JS/Wasm have no JUnit Platform.
+ * Exactly the tasks `JvmConfig` gives [FLAKY_MODE_PROPERTY] and the JUnit autodetection that
+ * registers `FlakyTestCondition`. Stacking both selectors on them would *intersect* rather than
+ * agree: [FlakyTestsMode.ONLY] would run only the tests that are both annotated **and** named
+ * `*_flaky*`, silently skipping every `@Flaky` test that carries no name token.
+ *
+ * Matching by name rather than by task type matters: Android host tests are `Test` tasks too, but
+ * they never receive the condition, so exempting them by type would leave them with no selector at
+ * all and run quarantined tests in the default Android suite.
+ */
+private val ANNOTATION_DRIVEN_TEST_TASKS = setOf("jvmTest", "stressTest", FLAKY_TEST_TASK)
+
+/**
+ * Applies the [FLAKY_MODE_PROPERTY] mode to every test task that cannot select `@Flaky` by
+ * annotation — every target without a JUnit Platform, plus JVM tasks outside
+ * [ANNOTATION_DRIVEN_TEST_TASKS]. The name token exists only for those.
  */
 internal fun Project.configureFlakyTests() {
     val mode = flakyTestsMode()
 
     tasks.withType<AbstractTestTask>().configureEach {
-        if (this !is Test) selectFlakyTests(mode)
+        if (name !in ANNOTATION_DRIVEN_TEST_TASKS) selectFlakyTests(mode)
     }
 }
-
-internal const val FLAKY_TEST_TASK = "flakyTest"
 
 private fun AbstractTestTask.selectFlakyTests(mode: FlakyTestsMode) {
     when (mode) {
