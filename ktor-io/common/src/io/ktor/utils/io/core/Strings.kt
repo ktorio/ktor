@@ -86,15 +86,101 @@ public fun Source.readTextExact(charset: Charset = Charsets.UTF_8, n: Int): Stri
 /**
  * Read exactly [charactersCount] characters interpreting bytes in the specified [charset].
  *
+ * @throws IllegalArgumentException if [charset] is not either ISO_8859_1 or UTF_8
+ *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.core.readTextExactCharacters)
  */
 public fun Source.readTextExactCharacters(charactersCount: Int, charset: Charset = Charsets.UTF_8): String {
-    val s = readText(charset, charactersCount)
-    if (s.length < charactersCount) {
-        prematureEndOfStreamToReadChars(charactersCount)
+    require(charactersCount >= 0) { "charactersCount shouldn't be negative: $charactersCount" }
+    if (charactersCount == 0) return ""
+
+    return when (charset) {
+        Charsets.UTF_8 -> readUtf8ExactCharacters(charactersCount)
+        Charsets.ISO_8859_1 -> readIso88591ExactCharacters(charactersCount)
+        else -> throw IllegalArgumentException("Unsupported charset: $charset")
     }
-    return s
 }
+
+private fun Source.readIso88591ExactCharacters(charactersCount: Int): String {
+    val result = CharArray(charactersCount)
+    repeat(charactersCount) { index ->
+        val b = readByteOrFail()
+        result[index] = (b.toInt() and 0xFF).toChar()
+    }
+    return result.concatToString()
+}
+
+private fun Source.readUtf8ExactCharacters(charactersCount: Int): String {
+    val out = StringBuilder(charactersCount)
+    var remainingUnits = charactersCount
+
+    while (remainingUnits > 0) {
+        val nextUnits = peekNextUtf8CodePointUtf16UnitsOrFail(charactersCount)
+        if (nextUnits > remainingUnits) {
+            throw MalformedInputException(
+                "Unable to read exactly $charactersCount UTF-16 characters: next UTF-8 code point requires $nextUnits units."
+            )
+        }
+
+        val codePoint = try {
+            readCodePointValue()
+        } catch (_: EOFException) {
+            prematureEndOfStreamToReadChars(charactersCount)
+        }
+
+        if (codePoint <= 0xFFFF) {
+            out.append(codePoint.toChar())
+        } else {
+            val cp = codePoint - 0x10000
+            val high = ((cp ushr 10) + 0xD800).toChar()
+            val low = ((cp and 0x3FF) + 0xDC00).toChar()
+            out.append(high)
+            out.append(low)
+        }
+
+        remainingUnits -= nextUnits
+    }
+
+    return out.toString()
+}
+
+@OptIn(InternalIoApi::class)
+private fun Source.peekNextUtf8CodePointUtf16UnitsOrFail(charactersCount: Int): Int {
+    request(1)
+    if (buffer.size < 1L) prematureEndOfStreamToReadChars(charactersCount)
+
+    val b0 = (buffer[0].toInt() and 0xFF)
+    return when {
+        (b0 and 0b1000_0000) == 0 -> 1
+
+        (b0 and 0b1110_0000) == 0b1100_0000 -> {
+            request(2)
+            if (buffer.size < 2L) prematureEndOfStreamToReadChars(charactersCount)
+            1
+        }
+
+        (b0 and 0b1111_0000) == 0b1110_0000 -> {
+            request(3)
+            if (buffer.size < 3L) prematureEndOfStreamToReadChars(charactersCount)
+            1
+        }
+
+        (b0 and 0b1111_1000) == 0b1111_0000 -> {
+            request(4)
+            if (buffer.size < 4L) prematureEndOfStreamToReadChars(charactersCount)
+            2
+        }
+
+        else -> throw MalformedInputException("Invalid UTF-8 leading byte")
+    }
+}
+
+private fun Source.readByteOrFail(): Byte =
+    try {
+        readByte()
+    } catch (_: EOFException) {
+        prematureEndOfStreamToReadChars(1)
+    }
 
 /**
  * Writes [text] characters in range \[[fromIndex] .. [toIndex]) with the specified [charset]

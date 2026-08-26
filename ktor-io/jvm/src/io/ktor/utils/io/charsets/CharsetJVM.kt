@@ -83,10 +83,11 @@ public actual fun CharsetDecoder.decode(input: Source, dst: Appendable, max: Int
         return input.readString().also { dst.append(it) }.length
     }
     // ensure buffer is filled
-    input.request(max.toLong())
-    val count = minOf(input.remaining.toInt(), max)
-    dst.append(input.readByteString(count).decodeToString(charset))
-    return count
+    val maxBytes = max.toLong()
+    input.request(maxBytes)
+    val count = minOf(input.remaining, maxBytes)
+    dst.append(input.readString(count, charset))
+    return count.toInt()
 }
 
 // ----------------------------------
