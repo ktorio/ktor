@@ -87,8 +87,8 @@ sealed interface TestExecutionResult<T> {
  * @param context Optional coroutine context for test execution. Defaults to [EmptyCoroutineContext].
  * @param timeout Maximum duration allowed for each test attempt. Defaults to 1 minute.
  * @param retries Number of additional attempts after initial failure (`0` means no retries).
- *  Only transient failures are retried: an assertion failed by the test body is deterministic,
- *  so it is reported immediately instead of being retried and masked.
+ *  Only transient failures are retried: an assertion failure thrown by the test body is
+ *  deterministic, so it is reported immediately instead of being retried and masked.
  * @param afterEach Called after each test case attempt, regardless of success or failure.
  *  Receives the test case and error (if any occurred).
  * @param handleFailures Called after all tests finished if any failures occurred.

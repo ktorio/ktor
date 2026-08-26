@@ -5,6 +5,8 @@
 package io.ktor.test.junit
 
 import io.ktor.test.Flaky
+import io.ktor.test.constants.FLAKY_MODE_PROPERTY
+import io.ktor.test.constants.FlakyTestsMode
 import kotlin.test.Test
 import kotlin.test.assertTrue
 
@@ -25,7 +27,7 @@ private const val SELF_TEST_TICKET = "KTOR-9796"
 private fun assertDisabledUnlessFlakyEnabled() {
     // Mirrors FlakyTestCondition: a @Flaky test runs only in `only` mode (the flakyTest task) or
     // `all` mode (the full suite, flaky included).
-    val mode = FlakyTestsMode.current()
+    val mode = FlakyTestsMode.of(System.getProperty(FLAKY_MODE_PROPERTY))
     assertTrue(
         mode != FlakyTestsMode.EXCLUDE,
         "This test is annotated @Flaky, so FlakyTestCondition must have disabled it, but it ran " +
@@ -40,7 +42,7 @@ abstract class FlakyBaseClassFixture {
     fun `class-level Flaky is inherited by subclasses`() = assertDisabledUnlessFlakyEnabled()
 }
 
-/** Kotlin annotations aren't `@Inherited`, so this case needs JUnit's annotation lookup. */
+/** Covers `@Flaky` being meta-annotated `@JvmInherited`, which is what makes JUnit look here. */
 class FlakyInheritedClassTest : FlakyBaseClassFixture()
 
 class FlakyAnnotatedMethodTest {

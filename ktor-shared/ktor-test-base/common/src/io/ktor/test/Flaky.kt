@@ -65,4 +65,7 @@ package io.ktor.test
  */
 @Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
+// Inherited so that a test class extending an annotated base class is quarantined too — the shared
+// test suite pattern used across Ktor. JUnit walks superclasses only for inherited annotations.
+@JvmInherited
 annotation class Flaky(val ticket: String)

@@ -5,47 +5,12 @@
 package io.ktor.test.junit
 
 import io.ktor.test.Flaky
+import io.ktor.test.constants.FLAKY_MODE_PROPERTY
+import io.ktor.test.constants.FlakyTestsMode
 import org.junit.jupiter.api.extension.ConditionEvaluationResult
 import org.junit.jupiter.api.extension.ExecutionCondition
 import org.junit.jupiter.api.extension.ExtensionContext
 import org.junit.platform.commons.support.AnnotationSupport
-
-/** System property selecting how this run treats `@Flaky` tests. See [FlakyTestsMode]. */
-internal const val FLAKY_MODE_PROPERTY = "ktor.tests.flaky"
-
-/**
- * How a test run treats `@Flaky` tests, taken from the [FLAKY_MODE_PROPERTY] system property.
- *
- * Mirrors `FlakyTestsMode` in build-logic, which reads the same values from the Gradle property of
- * the same name and forwards them to test JVMs. The values are spelled out in both places because
- * build-logic isn't on the test classpath.
- */
-internal enum class FlakyTestsMode {
-    /** The default: `@Flaky` tests don't run. */
-    EXCLUDE,
-
-    /** Nightly: run `@Flaky` tests and nothing else, to track whether they still flip. */
-    ONLY,
-
-    /** Run everything, flaky included. */
-    ALL;
-
-    internal companion object {
-        fun of(value: String?): FlakyTestsMode = when (value) {
-            null, "", "exclude" -> EXCLUDE
-
-            "only" -> ONLY
-
-            "all" -> ALL
-
-            else -> error(
-                "Unexpected value '$value' of '$FLAKY_MODE_PROPERTY'. Expected one of: exclude, only, all."
-            )
-        }
-
-        fun current(): FlakyTestsMode = of(System.getProperty(FLAKY_MODE_PROPERTY))
-    }
-}
 
 /**
  * Excludes [Flaky]-annotated tests from the default run and includes them only when the
@@ -61,8 +26,14 @@ internal enum class FlakyTestsMode {
  * `@Flaky` on a common-source test method is honored without a per-test `@ExtendWith`.
  */
 class FlakyTestCondition : ExecutionCondition {
+
+    /**
+     * Read once: the property is fixed for the lifetime of the test JVM, and the condition is
+     * evaluated for every test in the module.
+     */
+    private val mode = FlakyTestsMode.of(System.getProperty(FLAKY_MODE_PROPERTY))
+
     override fun evaluateExecutionCondition(context: ExtensionContext): ConditionEvaluationResult {
-        val mode = FlakyTestsMode.current()
         val flaky = context.findFlaky()
 
         if (flaky == null) {
@@ -84,26 +55,15 @@ class FlakyTestCondition : ExecutionCondition {
         }
     }
 
-    /** Finds [Flaky] on the current test method, or on its class or any of its base classes. */
+    /**
+     * Finds [Flaky] on the current test method, or on its class or any of its base classes.
+     *
+     * The superclass lookup works because [Flaky] is meta-annotated `@JvmInherited`, which expands
+     * to `java.lang.annotation.Inherited` here: JUnit walks the superclass chain only for
+     * annotations carrying it. Without that, a test inheriting from an annotated base class — the
+     * shared test suite pattern used across Ktor — would silently keep running.
+     */
     private fun ExtensionContext.findFlaky(): Flaky? =
         AnnotationSupport.findAnnotation(element, Flaky::class.java).orElse(null)
-            ?: testClass.orElse(null)?.findFlakyInHierarchy()
-
-    /**
-     * Searches [Flaky] up the superclass chain.
-     *
-     * JUnit walks superclasses only for annotations meta-annotated with
-     * `java.lang.annotation.Inherited` (see `AnnotationUtils.findAnnotation`), which a Kotlin
-     * annotation declared in common code cannot be. That is why `@ExtendWith` on a base class is
-     * inherited but `@Flaky` isn't. Without this walk, tests inheriting from an annotated base
-     * class — the shared test suite pattern used across Ktor — would silently keep running.
-     */
-    private fun Class<*>.findFlakyInHierarchy(): Flaky? {
-        var type: Class<*>? = this
-        while (type != null && type != Any::class.java) {
-            AnnotationSupport.findAnnotation(type, Flaky::class.java).orElse(null)?.let { return it }
-            type = type.superclass
-        }
-        return null
-    }
+            ?: testClass.orElse(null)?.let { AnnotationSupport.findAnnotation(it, Flaky::class.java).orElse(null) }
 }
