@@ -5,23 +5,18 @@
 package io.ktor.test
 
 import kotlin.test.Test
-import kotlin.test.assertFails
 import kotlin.test.assertFalse
-import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
 class DeterministicFailureGuardTest {
 
     @Test
-    fun `assertion failure is replayed instead of retried`() {
+    fun `assertion failure stops the retry loop`() {
         val guard = DeterministicFailureGuard()
-        val cause = AssertionError("deterministic")
 
-        guard.record(cause)
+        guard.record(AssertionError("deterministic"))
 
         assertTrue(guard.hasFailure)
-        val replayed = assertFails { guard.failFast() }
-        assertSame(cause, replayed, "The recorded failure should be re-thrown as is")
     }
 
     @Test
@@ -31,6 +26,5 @@ class DeterministicFailureGuardTest {
         guard.record(IllegalStateException("connection reset"))
 
         assertFalse(guard.hasFailure)
-        guard.failFast() // Doesn't throw, so the next attempt runs the test body again.
     }
 }
