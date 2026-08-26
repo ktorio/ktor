@@ -4,14 +4,17 @@ Before we get started, thank you for considering contributing to Ktor. It's awes
 
 There are multiple ways you can contribute:
 
-* Code
-* Documentation
-* Community Support
-* Feedback/Issue reports
+1. [Code contributions](#code-contributions)
+2. [Documentation](#documentation)
+3. [Community Support](#community-support)
+4. [Reporting Issues](#reporting-issues)
 
 Independently of how you'd like to contribute, please make sure you read and comply with the [Code of Conduct](CODE_OF_CONDUCT.md).
 
-## Code
+## Code contributions
+[code-contributions]: #code-contributions
+
+### What to work on
 
 There are many bugs and features in the Ktor backlog and you're free to pick any of them. We do recommend however starting
 with some of the [low hanging fruit](https://youtrack.jetbrains.com/issues?q=%23Ktor%20%20%20%23%7BUp%20For%20Grabs%7D%20%20%23Unresolved%20).
@@ -207,21 +210,49 @@ A few things to remember:
 See [How to Write a Git Commit Message](https://chris.beams.io/posts/git-commit/)
 
 ### Design process
+[design-process]: #design-process
 
-Whether you're thinking of a new feature or want to change the design of an existing process, before making any
-code contributions, please make sure you read how we handle the [design process on the team](https://blog.jetbrains.com/ktor/2020/09/24/ktor-design-process/).
+When making significant changes to the API, either by a new feature or modifying existing APIs, it is best to discuss the design with the team before making any code contributions.
+
+All design reviews are conducted through pull requests in the [ktor-klip](https://github.com/ktorio/ktor-klip) repository.  The process here is described further in the repository README, but it is roughly analogous to the Kotlin's [KEEP RFC process](https://github.com/Kotlin/KEEP).
+
+### API changes
+
+Ktor enforces strict binary compatibility for all changes using [Kotlin's Gradle plugin](https://kotlinlang.org/docs/gradle-binary-compatibility-validation.html).
+
+For every change to a public API, you must run `./gradlew updateKotlinAbi` and commit the resulting changes.
+
+API changes are accepted in accordance with standard practice for logical versioning.
+
+- **Patch releases**, for defects targeting the `release` branch, should not have *ANY* ABI changes.
+- **Minor releases**, for features and defects targeting `main`, ABI snapshots must only have additions, with several caveats listed under [Breaking changes](#breaking-changes)
+- **Major releases** allows all changes; however, due diligence is required to mitigate the impact of any breaking changes.
+
+For significant changes to the API, please follow the process listed under [Design process](#design-process).
+
+#### Breaking changes
+[breaking-changes]: #breaking-changes
+
+All the following modifications to public APIs are considered breaking changes:
+1. Changes to existing public APIs.  Besides items marked with `@InternalApi` or `@ExperimentalKtorApi`, any red in the ABI snapshot diffs are considered breaking.
+2. New members on extensible classes and interfaces.  Except for types marked with `@SubclassOptInRequired`, or opt-ins mentioned above, or new members that include default implementations.
+3. New sealed types or enum constants.  These force changes in exhaustive `when` expressions, so we generally must wait for major releases to include these.
+4. Behavioral changes.  If there is a good chance that someone relies on an existing behavior, this is considered a breaking change.
 
 ## Documentation
+[documentation]: #documentation
 
 Ktor documentation is placed in a separate [ktor-documentation](https://github.com/ktorio/ktor-documentation) repository. See the [Contributing](https://github.com/ktorio/ktor-documentation#contributing) section to learn how you can contribute to Ktor docs.
 
 ## Community Support
+[community-support]: #community-support
 
 Ktor provides a number of [channels for support](https://ktor.io/support). In addition to our support engineers, we also count
 on our community to help, without whom Ktor wouldn't be where it is today. If you'd like to help others, please join one of our community
 channels and help out. It's also a great way to learn!
 
-## Feedback/Issue Reports
+## Reporting Issues
+[reporting issues]: #reporting-issues
 
 Please use [YouTrack](https://youtrack.jetbrains.com/issues/KTOR) to submit issues, whether these are
 bug reports or feature requests. Before doing so however, please take into consideration the following:
