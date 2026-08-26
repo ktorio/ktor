@@ -149,6 +149,7 @@ public abstract class NettyApplicationResponse(
      * the "already completed" guard in [io.ktor.server.netty.http1.NettyHttp1ApplicationResponse].
      */
     internal fun markAsSent() {
+        responseMessageSent = true
         isSent = true
     }
 
@@ -174,7 +175,6 @@ public abstract class NettyApplicationResponse(
         if (!responseMessageSent) {
             responseChannel = ByteReadChannel.Empty
             responseReady.tryFailure(CancellationException("Response was cancelled"))
-            responseMessageSent = true
             markAsSent()
         }
     }

@@ -36,6 +36,8 @@ internal fun NettyHttp1ApplicationRequest.isValid(): Boolean {
 }
 
 internal fun ChannelHandlerContext.respond408RequestTimeoutHttp1(activeCalls: Collection<NettyHttp1ApplicationCall>) {
+    // markAsSent() is required here: the call's engine pipeline may still be running and can reach
+    // NettyApplicationCall.finish() -> ensureResponseSent() after this raw 408 is written
     activeCalls.forEach { it.response.markAsSent() }
     val response = DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.REQUEST_TIMEOUT)
     response.headers().add(HttpHeaders.ContentLength, "0")

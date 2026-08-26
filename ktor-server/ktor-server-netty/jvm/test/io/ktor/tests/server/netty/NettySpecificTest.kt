@@ -519,6 +519,56 @@ class NettySpecificTest {
     }
 
     @Test
+    fun `engine pipeline finish after built-in 408 does not stage a second response`() = runTestWithRealTime {
+        val appStarted = CompletableDeferred<Application>()
+        val responseReadySucceededAfterBuiltIn408 = CompletableDeferred<Boolean>()
+
+        val serverJob = launch(Dispatchers.IO) {
+            val server = embeddedServer(Netty, port = 0) {
+                routing {
+                    get("/simulate-408-then-finish") {
+                        // Simulates a read timeout landing while the call's engine pipeline is still
+                        // running: the raw 408 is written first (as NettyHttp1Handler.exceptionCaught
+                        // does), then the cancelled call still reaches
+                        // NettyApplicationCall.finish() -> ensureResponseSent(), since AFTER_CALL_PHASE
+                        // can run to completion before the coroutine cancellation is observed.
+                        val engineCall = call.pipelineCall.engineCall as NettyHttp1ApplicationCall
+                        engineCall.context.respond408RequestTimeoutHttp1(listOf(engineCall))
+
+                        runCatching { engineCall.finish() }
+
+                        // If finish() staged a second response, responseReady flips to success and
+                        // the Netty response pipeline would write it out on top of the 408 already sent.
+                        responseReadySucceededAfterBuiltIn408.complete(engineCall.response.responseReady.isSuccess)
+                    }
+                }
+            }
+            server.monitor.subscribe(ApplicationStarted) { app ->
+                appStarted.complete(app)
+            }
+            server.start(wait = true)
+        }
+
+        try {
+            val serverApp = withTimeout(10.seconds) { appStarted.await() }
+            val connector = serverApp.engine.resolvedConnectors()[0]
+
+            HttpClient(CIO).use { client ->
+                runCatching { client.get("http://${connector.host}:${connector.port}/simulate-408-then-finish") }
+            }
+
+            val succeeded = withTimeout(5.seconds) { responseReadySucceededAfterBuiltIn408.await() }
+            assertFalse(
+                succeeded,
+                "finish() must not stage a second response after the engine already sent a 408 " +
+                    "at the channel level"
+            )
+        } finally {
+            serverJob.cancel()
+        }
+    }
+
+    @Test
     fun `request handler runs on call event group`() = runTestWithRealTime {
         val handlerThread = AtomicReference<Thread>()
 
