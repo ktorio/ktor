@@ -1,3 +1,7 @@
+/*
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
 @file:OptIn(ExperimentalTime::class)
 
 package io.ktor.server.auth.oidc
@@ -26,12 +30,12 @@ public class TokenClaims internal constructor(private val jwt: DecodedJWT) {
     /**
      * Decoded JWT header as JSON.
      */
-    public val header: JsonObject get() = parseJsonObject(jwt.header)
+    public val header: JsonObject by lazy { parseJsonObject(jwt.header) }
 
     /**
      * Decoded JWT payload claims as JSON.
      */
-    public val payload: JsonObject get() = parseJsonObject(jwt.payload)
+    public val payload: JsonObject by lazy { parseJsonObject(jwt.payload) }
 
     /**
      * Key identifier from the JWT header.
