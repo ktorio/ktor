@@ -106,12 +106,12 @@ private fun Source.readSingleByteExactCharacters(charactersCount: Int, charset: 
         throw IllegalArgumentException("Unsupported charset: $charset")
     }
 
-    val result = readText(charset, charactersCount)
-    if (result.length < charactersCount) {
-        prematureEndOfStreamToReadChars(charactersCount)
+    val bytes = ByteArray(charactersCount)
+    repeat(charactersCount) { index ->
+        bytes[index] = readByteOrFail()
     }
 
-    return result
+    return String(bytes, charset = charset)
 }
 
 private fun Source.readIso88591ExactCharacters(charactersCount: Int): String {
@@ -232,7 +232,7 @@ public fun Sink.writeText(
     charset: Charset = Charsets.UTF_8
 ) {
     if (charset === Charsets.UTF_8) {
-        val string = text.concatToString(fromIndex, fromIndex + toIndex)
+        val string = text.concatToString(fromIndex, toIndex)
         return writeString(string, 0, toIndex - fromIndex)
     }
 
