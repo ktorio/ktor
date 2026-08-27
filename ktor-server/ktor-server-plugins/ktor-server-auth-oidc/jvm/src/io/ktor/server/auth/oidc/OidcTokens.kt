@@ -213,6 +213,16 @@ internal suspend fun OidcProvider.buildIdToken(
         jwkProvider = jwkProvider,
     )
 
+    // OIDC Core 3.1.3.7 steps 4 and 5: a multi-audience token must name the authorized party,
+    // and a token authorized for another client must not be accepted as this client's login.
+    val authorizedParty = verifiedJwt.getClaim("azp").asString()
+    requireToken(verifiedJwt.audience.orEmpty().size <= 1 || authorizedParty != null) {
+        "ID token with multiple audiences must contain an 'azp' claim"
+    }
+    requireToken(authorizedParty == null || authorizedParty == expectedAudience) {
+        "ID token 'azp' claim must equal the client id $expectedAudience, got $authorizedParty"
+    }
+
     val tokenNonce = verifiedJwt.getClaim("nonce").asString()
     requireToken(!verifiedJwt.subject.isNullOrBlank()) {
         "'sub' claim must not be blank"

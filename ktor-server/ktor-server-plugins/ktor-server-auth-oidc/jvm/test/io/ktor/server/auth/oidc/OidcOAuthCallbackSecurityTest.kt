@@ -17,6 +17,8 @@ import io.ktor.server.testing.*
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
+import kotlin.test.assertNotNull
 import kotlin.time.Duration.Companion.ZERO
 
 class OidcOAuthCallbackSecurityTest {
@@ -139,6 +141,73 @@ class OidcOAuthCallbackSecurityTest {
 
         val callback = browser.completeOidcCallback(login)
         assertEquals(HttpStatusCode.Unauthorized, callback.status)
+    }
+
+    @Test
+    fun `oauth callback validates azp claim of id token`() {
+        data class AzpCase(val audiences: List<String>, val azp: String?, val expectedStatus: HttpStatusCode)
+
+        val cases = listOf(
+            AzpCase(listOf("client-id", "other-client"), azp = null, HttpStatusCode.Unauthorized),
+            AzpCase(listOf("client-id"), azp = "other-client", HttpStatusCode.Unauthorized),
+            AzpCase(listOf("client-id", "other-client"), azp = "other-client", HttpStatusCode.Unauthorized),
+            AzpCase(listOf("client-id", "other-client"), azp = "client-id", HttpStatusCode.OK),
+        )
+
+        for (case in cases) {
+            testApplication {
+                val idTokensByState = ConcurrentHashMap<String, String>()
+
+                openIdProvider(testRsaKeys, idTokensByState)
+                installOAuthProvider(testRsaKeys)
+
+                val browser = noRedirectsClient()
+                val login = browser.prepareOidcLogin()
+                idTokensByState[login.state] = testRsaKeys.idToken(subject = "callback-user") {
+                    audience = "client-id"
+                    claim("aud", case.audiences)
+                    case.azp?.let { claim("azp", it) }
+                    nonce = login.nonce
+                }
+
+                val callback = browser.completeOidcCallback(login)
+                assertEquals(case.expectedStatus, callback.status, "Unexpected status for $case")
+            }
+        }
+    }
+
+    @Test
+    fun `oauth callback rotates session id planted before login`() = testApplication {
+        val keys = testRsaKeys
+        val idTokensByState = ConcurrentHashMap<String, String>()
+
+        openIdRefreshProvider(idTokensByState) { call.respond(HttpStatusCode.BadRequest) }
+        installSessionTestApp(keys)
+
+        val browser = noRedirectsClient()
+
+        // The attacker signs in to obtain a session cookie known to them.
+        val plantedCookie = browser.signInWithIdToken(idTokensByState, keys, subject = "attacker")
+
+        // The victim signs in while the attacker's session cookie is planted in their browser.
+        val victimLogin = browser.prepareOidcLogin()
+        idTokensByState[victimLogin.state] = keys.idToken(subject = "victim") {
+            audience = "client-id"
+            victimLogin.nonce?.let { nonce = it }
+        }
+        val victimCallback = browser.completeOidcCallback(victimLogin) {
+            header(HttpHeaders.Cookie, plantedCookie)
+        }
+        assertEquals(HttpStatusCode.OK, victimCallback.status)
+        val victimCookie = assertNotNull(victimCallback.oidcSessionCookieHeader())
+
+        assertNotEquals(
+            plantedCookie,
+            victimCookie,
+            "authenticated session must not be stored under a pre-login session ID",
+        )
+        browser.assertMe(victimCookie, HttpStatusCode.OK, "victim")
+        browser.assertMe(plantedCookie, HttpStatusCode.Unauthorized)
     }
 
     private fun ApplicationTestBuilder.installOAuthProvider(
