@@ -335,9 +335,13 @@ public class Oidc internal constructor(
     }
 
     private suspend fun releaseProvider(name: String, issuer: String?) {
-        providerRegistrationMutex.withLock {
-            pendingProviderNames.remove(name)
-            pendingProviderIssuers.remove(issuer)
+        // Canceled registrations must still release their reservations, or the name and issuer
+        // stay blocked for all future registration attempts.
+        withContext(NonCancellable) {
+            providerRegistrationMutex.withLock {
+                pendingProviderNames.remove(name)
+                pendingProviderIssuers.remove(issuer)
+            }
         }
     }
 
