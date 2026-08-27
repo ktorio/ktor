@@ -17,6 +17,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.utils.io.*
+import kotlinx.serialization.json.*
 import kotlin.test.*
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
@@ -136,6 +137,35 @@ class OidcBearerJwtTest {
         val claims = TokenClaims(JWT.decode(token))
 
         assertEquals("a\"b", claims.headerString("kid"))
+    }
+
+    @Test
+    fun `token claims decode url-safe base64 payload segments`() {
+        // A "~~~" byte run always yields a URL-safe-only character (- or _) in the encoded segment.
+        val token = testRsaKeys.accessToken {
+            subject = "claims-user"
+            claim("mark", "~~~")
+        }
+        val claims = TokenClaims(JWT.decode(token))
+
+        assertTrue(token.contains('-') || token.contains('_'))
+        assertEquals("claims-user", claims.payload["sub"]?.jsonPrimitive?.content)
+        assertEquals("~~~", claims.claimString("mark"))
+    }
+
+    @Test
+    fun `token claims string accessors are null only for absent values`() {
+        val token = testRsaKeys.accessToken {
+            subject = "claims-user"
+            claim("roles", listOf("admin", "user"))
+            claim("count", 42)
+        }
+        val claims = TokenClaims(JWT.decode(token))
+
+        assertNull(claims.claimString("missing"))
+        assertFailsWith<IllegalArgumentException> { claims.claimString("roles") }
+        assertFailsWith<IllegalArgumentException> { claims.claimString("count") }
+        assertNull(claims.headerString("missing"))
     }
 
     @Test

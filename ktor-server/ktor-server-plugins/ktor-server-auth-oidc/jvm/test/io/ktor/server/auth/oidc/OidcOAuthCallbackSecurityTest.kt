@@ -2,6 +2,8 @@
  * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+@file:OptIn(ExperimentalTime::class)
+
 package io.ktor.server.auth.oidc
 
 import io.ktor.client.*
@@ -20,6 +22,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 import kotlin.time.Duration.Companion.ZERO
+import kotlin.time.ExperimentalTime
 
 class OidcOAuthCallbackSecurityTest {
 
@@ -172,6 +175,33 @@ class OidcOAuthCallbackSecurityTest {
 
                 val callback = browser.completeOidcCallback(login)
                 assertEquals(case.expectedStatus, callback.status, "Unexpected status for $case")
+            }
+        }
+    }
+
+    @Test
+    fun `oauth callback rejects id token missing exp or iat claim`() {
+        val cases = listOf<OpenIdTestIdTokenBuilder.() -> Unit>(
+            { expiresAt = null },
+            { issuedAt = null },
+        )
+        for (omitClaim in cases) {
+            testApplication {
+                val idTokensByState = ConcurrentHashMap<String, String>()
+
+                openIdProvider(testRsaKeys, idTokensByState)
+                installOAuthProvider(testRsaKeys)
+
+                val browser = noRedirectsClient()
+                val login = browser.prepareOidcLogin()
+                idTokensByState[login.state] = testRsaKeys.idToken(subject = "callback-user") {
+                    audience = "client-id"
+                    nonce = login.nonce
+                    omitClaim()
+                }
+
+                val callback = browser.completeOidcCallback(login)
+                assertEquals(HttpStatusCode.Unauthorized, callback.status)
             }
         }
     }

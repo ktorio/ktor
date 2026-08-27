@@ -95,23 +95,32 @@ public class TokenClaims internal constructor(private val jwt: DecodedJWT) {
      * Returns a decoded JWT payload claim as a string.
      *
      * @param name claim name.
-     * @return claim string value, or `null` when absent or not a JSON string.
+     * @return claim string value, or `null` when the claim is absent.
+     * @throws IllegalArgumentException when the claim is present but not a JSON string.
      */
-    public fun claimString(name: String): String? =
-        claim(name)?.jsonPrimitive?.takeIf { it.isString }?.contentOrNull
+    public fun claimString(name: String): String? = payload.stringValue(name)
 
     /**
      * Returns a JWT header value as a string.
      *
      * @param name header name.
-     * @return header string value, or `null` when absent or not a JSON string.
+     * @return header string value, or `null` when the header is absent.
+     * @throws IllegalArgumentException when the header is present but not a JSON string.
      */
-    public fun headerString(name: String): String? =
-        header[name]?.jsonPrimitive?.takeIf { it.isString }?.contentOrNull
+    public fun headerString(name: String): String? = header.stringValue(name)
+
+    private fun JsonObject.stringValue(name: String): String? {
+        val element = this[name] ?: return null
+        val primitive = element as? JsonPrimitive
+        require(primitive != null && primitive.isString) {
+            "'$name' is not a JSON string: $element"
+        }
+        return primitive.content
+    }
 
     private fun parseJsonObject(raw: String): JsonObject {
         return runCatching {
-            val decoded = Base64.withPadding(Base64.PaddingOption.ABSENT).decode(raw)
+            val decoded = Base64.UrlSafe.withPadding(Base64.PaddingOption.ABSENT).decode(raw)
             Json.parseToJsonElement(decoded.decodeToString()) as? JsonObject
         }.getOrNull() ?: JsonObject(emptyMap())
     }
