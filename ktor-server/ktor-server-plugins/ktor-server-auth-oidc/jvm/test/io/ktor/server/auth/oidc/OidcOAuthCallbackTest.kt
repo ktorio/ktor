@@ -201,7 +201,7 @@ class OidcOAuthCallbackTest {
             assertNotNull(
                 httpLogin.headers.getAll(HttpHeaders.SetCookie)
                     .orEmpty()
-                    .firstOrNull { it.startsWith(OidcStateCookieName) }
+                    .firstOrNull { it.startsWith(OidcStateCookiePrefix) }
             )
         )
         assertEquals(false, httpCookie.secure)
@@ -217,7 +217,7 @@ class OidcOAuthCallbackTest {
             assertNotNull(
                 httpsLogin.headers.getAll(HttpHeaders.SetCookie)
                     .orEmpty()
-                    .firstOrNull { it.startsWith(OidcStateCookieName) }
+                    .firstOrNull { it.startsWith(OidcStateCookiePrefix) }
             )
         )
         assertEquals(true, httpsCookie.secure)

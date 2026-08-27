@@ -63,7 +63,7 @@ internal fun HttpResponse.oidcSessionCookieHeader(name: String = OIDC_TEST_SESSI
 internal fun HttpResponse.oidcStateCookieHeader(): String? {
     return headers.getAll(HttpHeaders.SetCookie)
         .orEmpty()
-        .firstOrNull { it.startsWith("$OidcStateCookieName=") }
+        .firstOrNull { it.startsWith(OidcStateCookiePrefix) }
         ?.let(::parseServerSetCookieHeader)
         ?.let { "${it.name}=${it.value}" }
 }

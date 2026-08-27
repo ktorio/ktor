@@ -92,7 +92,7 @@ internal suspend fun OidcProvider.handleOAuthCallbackSuccess(
     call.validateAuthorizationResponseIssuer()
     val oauthState = response.state ?: call.request.queryParameters["state"]
     val authorizationTransaction = oauthState?.let { state ->
-        call.consumeAuthorizationTransaction(stateCodec, state)
+        call.consumeAuthorizationTransaction(stateCookieName, stateCodec, state)
     }
     return buildOAuthToken(response, expectedNonce = authorizationTransaction?.nonce)
 }

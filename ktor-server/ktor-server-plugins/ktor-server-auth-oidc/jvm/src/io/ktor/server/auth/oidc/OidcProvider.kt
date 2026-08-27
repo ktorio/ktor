@@ -198,6 +198,8 @@ public class OidcProvider internal constructor(
 
     internal val stateCodec: OidcStateCodec by lazy { createStateCodec() }
 
+    internal val stateCookieName: String = oidcStateCookieName(name)
+
     internal val tokenRefreshes = ConcurrentHashMap<String, CompletableDeferred<OidcTokenRefreshResult>>()
 
     internal val canIntrospect: Boolean = config.bearerConfig?.introspectionConfig != null

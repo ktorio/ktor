@@ -72,7 +72,7 @@ class OidcOAuthCallbackSecurityTest {
         assertEquals(HttpStatusCode.Unauthorized, withoutCookie.status)
 
         val mismatchedCookie = browser.get("/oidc/auth0/callback?code=login-code&state=${login.state}") {
-            header(HttpHeaders.Cookie, "$OidcStateCookieName=wrong")
+            header(HttpHeaders.Cookie, "${oidcStateCookieName("auth0")}=wrong")
         }
         assertEquals(HttpStatusCode.Unauthorized, mismatchedCookie.status)
     }
