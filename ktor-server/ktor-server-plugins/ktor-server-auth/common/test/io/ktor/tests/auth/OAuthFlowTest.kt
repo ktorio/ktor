@@ -51,7 +51,6 @@ class OAuthFlowTest {
                 call.respondText(call.session.accessToken + ":" + user.token + ":" + user.source)
             }
             sessions {
-                transport = SessionTransportType.Cookie()
                 sessionCreator = { token ->
                     OAuthSession(token.accessToken)
                 }
@@ -443,7 +442,6 @@ class OAuthFlowTest {
                 call.respondText("success")
             }
             sessions {
-                transport = SessionTransportType.Cookie()
                 sessionCreator = { OAuthSession(it.accessToken) }
                 validate { null }
             }

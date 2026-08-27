@@ -63,15 +63,19 @@ public open class TypedSessionAuthConfig<S : Any, P : Any> @PublishedApi interna
     /**
      * Configures how the typed session scheme installs the [Sessions] plugin.
      *
-     * Assign one [SessionTransportType] variant, for example `SessionTransportType.Cookie()` or
-     * `SessionTransportType.HeaderId(storage)`. Only one transport applies per scheme.
+     * Defaults to [SessionTransportType.CookieId] backed by a [SessionStorageMemory] instance private to this scheme,
+     * so the client only holds a random session ID and cannot tamper with session data. In-memory storage is intended
+     * for local development and single-instance deployments; pass a shared [SessionStorage] to keep sessions across
+     * restarts and instances.
      *
-     * Defaults to [SessionTransportType.Cookie]. Manual setups can call `install(Sessions) { cookie(auth) }` instead of
-     * configuring [transport].
+     * By-value transports ([SessionTransportType.Cookie], [SessionTransportType.Header]) send the serialized session
+     * value to the client. Because this value is the authenticated identity, add a transformer that protects it from
+     * tampering, for example, `SessionTransportTransformerEncrypt`; without one, clients can forge the session value
+     * and authenticate as any principal.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.TypedSessionAuthConfig.transport)
      */
-    public var transport: SessionTransportType<S> = SessionTransportType.Cookie()
+    public var transport: SessionTransportType<S> = SessionTransportType.CookieId(SessionStorageMemory())
 
     /**
      * Sets a validation function for the session value.

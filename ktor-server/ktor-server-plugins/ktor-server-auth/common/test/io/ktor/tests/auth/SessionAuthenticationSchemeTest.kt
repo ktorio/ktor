@@ -141,6 +141,42 @@ class SessionAuthenticationSchemeTest {
     }
 
     @Test
+    fun `session scheme accepts by-value transport with transformer`() = testApplication {
+        val sessionScheme = session<UserSession, UserSession>("transformed-session") {
+            transport = SessionTransportType.Cookie {
+                transform(SuffixIntegrityTransformer)
+            }
+            validate { session -> session }
+        }
+
+        routing {
+            install(sessionScheme)
+            get("/set-session") {
+                sessionScheme.setSession(UserSession("Alice"))
+                call.respondText("ok")
+            }
+            authenticateWith(sessionScheme) {
+                get("/protected") { call.respondText(call.session.username) }
+            }
+        }
+
+        val cookie = client.get("/set-session").setCookie().first { it.name == "transformed-session" }
+        val valid = client.get("/protected") {
+            header(HttpHeaders.Cookie, "transformed-session=${cookie.value.encodeURLParameter()}")
+        }
+        assertEquals(HttpStatusCode.OK, valid.status)
+        assertEquals("Alice", valid.bodyAsText())
+
+        val tampered = client.get("/protected") {
+            header(
+                HttpHeaders.Cookie,
+                "transformed-session=${cookie.value.removeSuffix(".sig").encodeURLParameter()}",
+            )
+        }
+        assertEquals(HttpStatusCode.Unauthorized, tampered.status)
+    }
+
+    @Test
     fun `session scheme requires Sessions to be installed before typed route`() = testApplication {
         val sessionScheme = session<UserSession, UserSession>("missing-session") {
             validate { session -> session }
@@ -234,6 +270,13 @@ class SessionAuthenticationSchemeTest {
             startApplication()
         }
         assertContains(failure.message.orEmpty(), "requires Sessions to be installed before authenticateWith")
+    }
+
+    private object SuffixIntegrityTransformer : SessionTransportTransformer {
+        override fun transformRead(transportValue: String): String? =
+            transportValue.removeSuffix(".sig").takeIf { it != transportValue }
+
+        override fun transformWrite(transportValue: String): String = "$transportValue.sig"
     }
 
     @Test

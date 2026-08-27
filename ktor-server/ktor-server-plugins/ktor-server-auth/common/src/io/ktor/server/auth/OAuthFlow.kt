@@ -480,7 +480,6 @@ public fun oauth2(name: String, configure: OAuth2FlowConfig.() -> Unit): OAuth2F
  *         call.respondRedirect("/home")
  *     }
  *     sessions {
- *         transport = SessionTransportType.Cookie()
  *         sessionCreator = { token -> UserSession(token.accessToken) }
  *         validate { session -> User(id = lookupUserId(session.accessToken)) }
  *     }
