@@ -14,6 +14,7 @@ import io.ktor.client.plugins.sse.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.test.base.*
+import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.serialization.kotlinx.json.*
@@ -709,12 +710,16 @@ class ServerSentEventsTest : ClientLoader() {
         config {
             install(SSE) {
                 reconnectionTime = 100.milliseconds
-                maxReconnectionAttempts = 1
+                maxReconnectionAttempts = 4
             }
         }
 
         test { client ->
             val events = mutableListOf<ServerSentEvent>()
+            var requests = 0
+            client.monitor.subscribe(HttpRequestCreated) {
+                requests++
+            }
 
             assertFailsWith<SSEClientException> {
                 client.sse("$TEST_SERVER/sse/exception-on-reconnection?count=5") {
@@ -727,6 +732,7 @@ class ServerSentEventsTest : ClientLoader() {
             }
 
             assertEquals(5, events.size)
+            assertEquals(2, requests)
             events.forEachIndexed { index, event ->
                 assertEquals("$index", event.id)
             }
@@ -758,36 +764,6 @@ class ServerSentEventsTest : ClientLoader() {
             assertEquals(15, events.size)
             events.forEachIndexed { index, event ->
                 assertEquals(index + 1, event.id?.toInt())
-            }
-        }
-    }
-
-    @Test
-    fun testMaxRetries() = clientTests {
-        config {
-            install(SSE) {
-                reconnectionTime = 10.milliseconds
-                maxReconnectionAttempts = 4
-            }
-        }
-
-        test { client ->
-            val events = mutableListOf<ServerSentEvent>()
-            var count = 0
-
-            client.sse("$TEST_SERVER/sse/exception-on-reconnection?count=5&count-of-reconnections=4") {
-                incoming.collect {
-                    events.add(it)
-                    count++
-                    if (count == 10) {
-                        cancel()
-                    }
-                }
-            }
-
-            assertEquals(10, events.size)
-            events.forEachIndexed { index, event ->
-                assertEquals(index % 5, event.id?.toInt())
             }
         }
     }

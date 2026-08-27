@@ -119,6 +119,8 @@ public class DefaultClientSSESession(
 
                     input = reconnectionResponse.rawContent
                     return@withContext
+                } catch (cause: SSEClientException) {
+                    throw cause
                 } catch (cause: Throwable) {
                     if (retries == maxReconnectionAttempts) {
                         LOGGER.trace {
