@@ -106,6 +106,10 @@ internal fun <P : Any> typedPrincipalKey(names: List<String>, type: TypeInfo): A
  * The handler receives the current [RoutingContext]. The map contains one [AuthenticationFailedCause] for each scheme
  * name that failed to authenticate the call.
  *
+ * The handler is expected to respond to the call, for example, with an error status or a redirect. If it completes
+ * without responding, the default challenges of the schemes run, and the call is rejected with `401 Unauthorized`
+ * when no challenge responds either; the route handler never runs for a failed authentication.
+ *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.MultiUnauthorizedHandler)
  */
 public fun interface MultiUnauthorizedHandler {

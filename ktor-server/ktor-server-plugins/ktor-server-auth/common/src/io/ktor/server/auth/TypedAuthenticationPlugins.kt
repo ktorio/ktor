@@ -8,6 +8,7 @@ package io.ktor.server.auth
 
 import io.ktor.server.application.*
 import io.ktor.server.request.*
+import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
 import io.ktor.utils.io.ExperimentalKtorApi
@@ -43,7 +44,9 @@ internal fun typedAuthPluginName(vararg parts: String): String {
  *
  * On success the resolved principal is stored in [principalKey] and [onAccepted] runs before the route handler.
  * Failure handling order: route-level [onUnauthorized], then [AuthenticationScheme.onUnauthorized], then provider
- * challenges. When [isOptional] is `true`, requests with no credentials skip failure handling.
+ * challenges. A handler that completes without responding falls back to provider challenges, and the call is
+ * rejected with `401 Unauthorized` if nothing responded, so an unauthenticated request never reaches the route
+ * handler. When [isOptional] is `true`, requests with no credentials skip failure handling.
  *
  * @param isOptional when `true`, requests without credentials continue without storing a principal.
  * @param onUnauthorized route-level handler; overrides the scheme default when non-null.
@@ -80,9 +83,20 @@ internal fun <P : Any> AuthenticationScheme<P, *>.createPlugin(
             with(unauthorizedHandler) {
                 call.toRoutingContext().onUnauthorized(cause = authContext.lastFailureOrNoCredentials())
             }
-            return@on
+            if (call.isHandled) return@on
         }
-        authContext.executeChallenges(call)
+        authContext.rejectUnhandledCall(call)
+    }
+}
+
+/**
+ * Runs provider challenges and guarantees a response: an unhandled call would otherwise proceed to the route
+ * handler without a principal.
+ */
+private suspend fun AuthenticationContext.rejectUnhandledCall(call: ApplicationCall) {
+    executeChallenges(call)
+    if (!call.isHandled) {
+        call.respond(UnauthorizedResponse())
     }
 }
 
@@ -91,7 +105,9 @@ internal fun <P : Any> AuthenticationScheme<P, *>.createPlugin(
  *
  * Tries each scheme in declaration order against a shared [AuthenticationContext]. The first successful principal
  * is stored in [principalKey]. When all schemes fail, failure handling order is: route-level [MultiUnauthorizedHandler],
- * then the first scheme-level [AuthenticationScheme.onUnauthorized], then [executeChallenges].
+ * then the first scheme-level [AuthenticationScheme.onUnauthorized], then [executeChallenges]. A handler that
+ * completes without responding falls back to challenges, and the call is rejected with `401 Unauthorized` if nothing
+ * responded, so an unauthenticated request never reaches the route handler.
  *
  * @param schemes typed schemes accepted by the route, tried in order.
  * @param principalKey attribute key used to expose the winning principal inside the route block.
@@ -134,18 +150,16 @@ internal fun <P : Any> createMultiPlugin(
                 with(onUnauthorized) {
                     call.toRoutingContext().onUnauthorized(failures)
                 }
-                return@on
-            }
-
-            if (schemeWithHandler != null) {
+                if (call.isHandled) return@on
+            } else if (schemeWithHandler != null) {
                 with(checkNotNull(schemeWithHandler.onUnauthorized)) {
                     val cause = failures.getValue(schemeWithHandler.name)
                     call.toRoutingContext().onUnauthorized(cause)
                 }
-                return@on
+                if (call.isHandled) return@on
             }
 
-            authContext.executeChallenges(call)
+            authContext.rejectUnhandledCall(call)
         }
     }
 }

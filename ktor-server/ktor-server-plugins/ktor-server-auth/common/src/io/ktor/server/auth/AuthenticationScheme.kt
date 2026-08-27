@@ -19,6 +19,10 @@ import kotlin.reflect.KClass
  * The handler receives the current [RoutingContext] and the [AuthenticationFailedCause] for the failed authentication
  * attempt.
  *
+ * The handler is expected to respond to the call, for example, with an error status or a redirect. If it completes
+ * without responding, the default challenge for the scheme runs, and the call is rejected with `401 Unauthorized`
+ * when no challenge responds either; the route handler never runs for a failed authentication.
+ *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.UnauthorizedHandler)
  */
 public fun interface UnauthorizedHandler {

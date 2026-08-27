@@ -17,6 +17,7 @@ import io.ktor.utils.io.ExperimentalKtorApi
 import io.ktor.utils.io.InternalAPI
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class UnauthorizedAndChallengesTest {
@@ -135,6 +136,77 @@ class UnauthorizedAndChallengesTest {
             header(HttpHeaders.Authorization, basicAuthHeader("wrong", "creds"))
         }
         assertEquals("InvalidCredentials", invalid.bodyAsText())
+    }
+
+    @Test
+    fun `onUnauthorized that does not respond falls back to default challenge`() = testApplication {
+        var handlerRan = false
+        var routeHandlerRan = false
+        val scheme = basic<TestUser>("silent-401") {
+            realm = "silent-realm"
+            validate { null }
+        }
+
+        routing {
+            authenticateWith(scheme, onUnauthorized = { _ -> handlerRan = true }) {
+                get("/protected") {
+                    routeHandlerRan = true
+                    call.respondText("secret")
+                }
+            }
+        }
+
+        val response = client.get("/protected")
+        assertEquals(HttpStatusCode.Unauthorized, response.status)
+        assertTrue(handlerRan, "custom onUnauthorized must still run")
+        assertFalse(routeHandlerRan, "route handler must not run for a failed authentication")
+        val wwwAuth = response.headers[HttpHeaders.WWWAuthenticate] ?: ""
+        assertTrue(wwwAuth.contains("silent-realm"), "default challenge must run as fallback")
+    }
+
+    @Test
+    fun `onUnauthorized that only sets status does not open the route handler`() = testApplication {
+        var routeHandlerRan = false
+        val scheme = basic<TestUser>("status-only-401") {
+            onUnauthorized = { _ ->
+                // Sets the status line but does not commit a response.
+                call.response.status(HttpStatusCode.Forbidden)
+            }
+            validate { null }
+        }
+
+        routing {
+            authenticateWith(scheme) {
+                get("/protected") {
+                    routeHandlerRan = true
+                    call.respondText("secret")
+                }
+            }
+        }
+
+        val response = client.get("/protected")
+        assertEquals(HttpStatusCode.Unauthorized, response.status)
+        assertFalse(routeHandlerRan, "route handler must not run for a failed authentication")
+    }
+
+    @Test
+    fun `anyOf onUnauthorized that does not respond falls back to challenges`() = testApplication {
+        var routeHandlerRan = false
+        val basicScheme = testBasicScheme("silent-anyof-basic")
+        val bearerScheme = testBearerScheme("silent-anyof-bearer")
+
+        routing {
+            authenticateWithAnyOf(basicScheme, bearerScheme, onUnauthorized = { _ -> }) {
+                get("/data") {
+                    routeHandlerRan = true
+                    call.respondText("secret")
+                }
+            }
+        }
+
+        val response = client.get("/data")
+        assertEquals(HttpStatusCode.Unauthorized, response.status)
+        assertFalse(routeHandlerRan, "route handler must not run for a failed authentication")
     }
 
     @Test
