@@ -150,6 +150,7 @@ public abstract class NettyApplicationResponse(
      */
     internal fun markAsSent() {
         responseMessageSent = true
+        @OptIn(InternalAPI::class)
         isSent = true
     }
 
