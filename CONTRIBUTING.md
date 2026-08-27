@@ -234,10 +234,17 @@ For significant changes to the API, please follow the process listed under [Desi
 [breaking-changes]: #breaking-changes
 
 All the following modifications to public APIs are considered breaking changes:
-1. Changes to existing public APIs.  Besides items marked with `@InternalApi` or `@ExperimentalKtorApi`, any red in the ABI snapshot diffs are considered breaking.
+1. Changes to existing public APIs.  Besides items marked with `@InternalAPI` or `@ExperimentalKtorApi`, any red in the ABI snapshot diffs are considered breaking.
 2. New members on extensible classes and interfaces.  Except for types marked with `@SubclassOptInRequired`, or opt-ins mentioned above, or new members that include default implementations.
-3. New sealed types or enum constants.  These force changes in exhaustive `when` expressions, so we generally must wait for major releases to include these.
+3. New sealed hierarchy subtypes or enum constants on existing enum classes.  These force changes in exhaustive `when` expressions, so we generally must wait for major releases to include these.
 4. Behavioral changes.  If there is a good chance that someone relies on an existing behavior, this is considered a breaking change.
+
+##### Avoiding breaking changes
+
+* When a breaking change is needed, it is best to find a way to deprecate the existing implementation and provide a new one while maintaining support for the existing.
+* For some cases, an implementation could be dangerous and does not have a direct replacement.  In these cases, it is better to deprecate the implementation with a clear explanation of the risks and alternatives.
+* When implementing type hierarchies, if change is likely, it's better to avoid sealed hierarchies and to use `@SubclassOptInRequired`.
+* For new features that are likely to change, it's best to annotate them with `@ExperimentalKtorApi`.  After the feature has stabilized, we can remove the opt-in requirement. 
 
 ## Documentation
 [documentation]: #documentation
