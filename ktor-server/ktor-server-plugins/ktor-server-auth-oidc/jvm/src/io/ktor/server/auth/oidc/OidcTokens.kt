@@ -332,7 +332,7 @@ private suspend fun OidcProvider.verifyJwtToken(
     }
 }
 
-private val AccessTokenUses = listOf("access_token")
+private val AccessTokenUses = listOf("access_token", "access")
 private val AccessTokenTypes = listOf("jwt", "at+jwt", "bearer")
 
 private fun DecodedJWT.requireAccessTokenPurpose() {
@@ -342,7 +342,7 @@ private fun DecodedJWT.requireAccessTokenPurpose() {
     }
     val typ = type?.lowercase()?.removePrefix("application/")
     requireToken(typ == null || typ in AccessTokenTypes) {
-        "JWT typ $type is not an access token"
+        "JWT 'typ' $type is not an access token"
     }
 }
 
@@ -401,11 +401,11 @@ private fun Jwk.curveSupportsAlgorithm(algorithm: SignatureAlgorithm): Boolean {
 
 private fun DecodedJWT.validateAtHash(accessToken: String?) {
     val actual = getClaim("at_hash").asString() ?: return
-    val token = accessToken ?: rejectToken("ID token contains at_hash but access token is missing")
+    val token = accessToken ?: rejectToken("ID token contains 'at_hash' but access token is missing")
     val signatureAlgorithm = SignatureAlgorithm.fromJwaName(algorithm)
-        ?: rejectToken("Cannot validate at_hash for unsupported JWT algorithm $algorithm")
+        ?: rejectToken("Cannot validate 'at_hash' for unsupported JWT algorithm $algorithm")
     val expected = signatureAlgorithm.hashAccessToken(token)
     requireToken(actual == expected) {
-        "ID token at_hash does not match the access token"
+        "ID token 'at_hash' does not match the access token"
     }
 }
