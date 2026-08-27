@@ -122,15 +122,17 @@ class OidcUserInfoTest {
             routing {
                 get("/verify") {
                     val result = runCatching {
-                        oidcProvider.buildIdToken(
-                            idToken = keys.idToken(subject = "userinfo-user") {
-                                audience = clientId
-                            },
-                            accessToken = "access-token",
-                            refreshToken = null,
-                            expectedAudience = clientId,
-                            fetchUserInfo = true,
-                        )
+                        oidcProvider.withCapturedState {
+                            oidcProvider.buildIdToken(
+                                idToken = keys.idToken(subject = "userinfo-user") {
+                                    audience = clientId
+                                },
+                                accessToken = "access-token",
+                                refreshToken = null,
+                                expectedAudience = clientId,
+                                fetchUserInfo = true,
+                            )
+                        }
                     }
                     val principal = result.getOrNull()
                     call.respondText(principal?.userInfo?.subject ?: result.exceptionOrNull()?.message.orEmpty())

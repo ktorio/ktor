@@ -14,17 +14,15 @@ import io.ktor.server.routing.*
 import io.ktor.server.sessions.serialization.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.json.Json
 import org.slf4j.Logger
 
 private const val HEADER_LOG_LIMIT: Int = 96
 
-internal fun OidcProvider.createJwtBearerScheme(
-    resourceMetadataUrl: String?,
-): SimpleAuthenticationScheme<OidcToken.Access> {
-    val extractor = bearerConfig.tokenExtractor
+internal fun OidcProvider.createJwtBearerScheme(): SimpleAuthenticationScheme<OidcToken.Access> {
     val typedConfig = TypedBearerAuthConfig<OidcToken.Access>().apply {
+        val extractor = bearerConfig.tokenExtractor
+
         description = "OpenID Connect JWT Bearer"
 
         authHeader { extractBearerHeader(extractor, logger.takeIf { developmentMode }) }
@@ -89,10 +87,9 @@ internal val OidcProvider.oauthFailureHandler: UnauthorizedHandler
         with(oauthConfig.onAuthenticationFailed) { onUnauthorized(cause) }
     }
 
-internal fun OidcProvider.createOauthFlow(): OAuth2Flow {
-    val config = oauthConfig
-    val loginPath = oidcRoutePath(config.loginUri)
-    val redirectPath = oidcRoutePath(config.redirectUri)
+internal fun OidcProvider.createOauthFlow(): OAuth2Flow = withCapturedState {
+    val loginPath = oidcRoutePath(oauthConfig.loginUri)
+    val redirectPath = oidcRoutePath(oauthConfig.redirectUri)
 
     return oauth2(name) {
         client = this@createOauthFlow.client
@@ -101,22 +98,15 @@ internal fun OidcProvider.createOauthFlow(): OAuth2Flow {
         this.loginPath = loginPath
 
         callback(redirectPath) callback@{ response ->
-            try {
-                val token = handleOAuthCallbackSuccess(response)
-                config.onAuthenticated(this, token)
-            } catch (cause: CancellationException) {
-                throw cause
-            } catch (cause: Exception) {
-                val failure = AuthenticationFailedCause.Error("Failed to complete OpenID Connect callback $cause")
-                return@callback with(oauthFailureHandler) { onUnauthorized(failure) }
-            }
+            val token = handleOAuthCallbackSuccess(response)
+            oauthConfig.onAuthenticated(this, token)
         }
     }
 }
 
 internal fun OidcProvider.createOAuthSession(
-    secure: Boolean
-): OAuth2SessionFlow<OidcToken.Id, OidcToken.Id> {
+    secureCookie: Boolean
+): OAuth2SessionFlow<OidcToken.Id, OidcToken.Id> = withCapturedState {
     val config = oauthConfig
     val sessionConfig = sessionConfig
     val loginPath = oidcRoutePath(config.loginUri)
@@ -143,14 +133,12 @@ internal fun OidcProvider.createOAuthSession(
             transport = SessionTransportType.CookieId(sessionConfig.storage) {
                 serializer = sessionSerializer
                 cookie.httpOnly = true
-                cookie.secure = secure
+                cookie.secure = secureCookie
                 cookie.extensions["SameSite"] = "lax"
                 sessionConfig.cookieConfigure?.invoke(this)
             }
 
-            sessionCreator = { response ->
-                handleOAuthCallbackSuccess(response)
-            }
+            sessionCreator = { response -> handleOAuthCallbackSuccess(response) }
 
             transformSession { refreshSessionIfNeeded(token = it) }
 
@@ -169,43 +157,43 @@ internal fun OidcProvider.createOAuthSession(
     )
 }
 
+context(state: OidcProvider.State)
 internal fun OidcProvider.oauthServerSettings(): OAuthServerSettings.OAuth2ServerSettings {
-    val config = oauthConfig
-    val metadata = currentMetadata()
     return OAuthServerSettings.OAuth2ServerSettings(
         name = name,
-        authorizeUrl = metadata.authorizationEndpoint,
-        accessTokenUrl = metadata.tokenEndpoint,
+        authorizeUrl = state.metadata.authorizationEndpoint,
+        accessTokenUrl = state.metadata.tokenEndpoint,
         requestMethod = HttpMethod.Post,
-        clientId = config.clientId,
-        clientSecret = config.clientSecret,
-        defaultScopes = config.scopes,
-        extraAuthParameters = config.resourceIndicators.map { "resource" to it },
-        extraTokenParameters = config.resourceIndicators.map { "resource" to it },
+        clientId = oauthConfig.clientId,
+        clientSecret = oauthConfig.clientSecret,
+        accessTokenRequiresBasicAuth = useBasicTokenEndpointAuth(),
+        defaultScopes = oauthConfig.scopes,
+        extraAuthParameters = oauthConfig.resourceIndicators.map { "resource" to it },
+        extraTokenParameters = oauthConfig.resourceIndicators.map { "resource" to it },
         authorizeUrlInterceptor = authorize@{ request ->
             val state = parameters[OAuth2RequestParameters.State]
             val transaction = state?.let {
                 request.call.readAuthorizationTransaction(stateCodec, it)
             } ?: return@authorize
             parameters.append("nonce", transaction.nonce)
-            config.codeChallengeMethod?.let { method ->
+            oauthConfig.codeChallengeMethod?.let { method ->
                 parameters.append("code_challenge", transaction.codeChallenge())
                 parameters.append("code_challenge_method", method.name)
             }
         },
         verifyState = { call, state ->
-            call.validateAuthorizationResponseIssuer(currentMetadata())
+            withCapturedState { call.validateAuthorizationResponseIssuer() }
             state != null && call.readAuthorizationTransaction(stateCodec, state) != null
         },
         extraTokenParametersProvider = provider@{ call, callback ->
-            if (config.codeChallengeMethod == null) {
+            if (oauthConfig.codeChallengeMethod == null) {
                 return@provider emptyList()
             }
             val transaction = call.readAuthorizationTransaction(stateCodec, callback.state)
             transaction?.let { listOf("code_verifier" to it.codeVerifier) }.orEmpty()
         },
         onStateCreated = { call, state ->
-            val method = config.codeChallengeMethod ?: CodeChallengeMethod.S256
+            val method = oauthConfig.codeChallengeMethod ?: CodeChallengeMethod.S256
             call.createAuthorizationTransaction(stateCodec, method, state)
         },
     )

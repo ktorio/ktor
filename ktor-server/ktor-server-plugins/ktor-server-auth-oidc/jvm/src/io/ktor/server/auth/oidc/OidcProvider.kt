@@ -67,7 +67,7 @@ public class OidcProvider internal constructor(
      * @throws IllegalStateException when metadata has not been initialized yet.
      */
     public fun currentMetadata(): OpenIdProviderMetadata =
-        checkNotNull(providerState) {
+        checkNotNull(state) {
             "OpenID Connect metadata is not initialized for provider $name"
         }.metadata
 
@@ -79,9 +79,16 @@ public class OidcProvider internal constructor(
      * @throws IllegalStateException when metadata has not been initialized yet.
      */
     public fun currentJwkProvider(): JwkProvider =
-        checkNotNull(providerState) {
+        checkNotNull(state) {
             "JWK provider is not initialized for OpenID Connect provider $name"
         }.jwkProvider
+
+    internal inline fun <R> withCapturedState(block: (context(State) () -> R)): R {
+        val currentState = checkNotNull(state) {
+            "JWK provider is not initialized for OpenID Connect provider $name"
+        }
+        return block.invoke(currentState)
+    }
 
     /**
      * Refreshes token material for this provider using the supplied refresh token.
@@ -94,7 +101,7 @@ public class OidcProvider internal constructor(
      * @return Raw token response fields and an optional verified ID-token principal.
      * @throws IllegalStateException when OAuth is not enabled.
      */
-    public suspend fun refreshToken(refreshToken: String): OidcTokenRefreshResult {
+    public suspend fun refreshToken(refreshToken: String): OidcTokenRefreshResult = withCapturedState {
         pruneCompletedTokenRefreshes()
 
         var existing = true
@@ -128,7 +135,7 @@ public class OidcProvider internal constructor(
      * @throws IllegalStateException when the provider was not configured with `bearer { }`.
      */
     public val jwtBearer: SimpleAuthenticationScheme<OidcToken.Access> by lazy {
-        createJwtBearerScheme(resourceMetadataUrl = resourceMetadataUrl)
+        createJwtBearerScheme()
     }
 
     /**
@@ -184,26 +191,25 @@ public class OidcProvider internal constructor(
     internal val logger: Logger = LoggerFactory.getLogger("io.ktor.server.auth.oidc.OidcProvider[$name]")
 
     @Volatile
-    private var providerState: OidcProviderState? = null
+    private var state: State? = null
 
     internal val oauthFlow by lazy { createOauthFlow() }
-    internal val oauthSessionFlow by lazy { createOAuthSession(secure = !developmentMode) }
+    internal val oauthSessionFlow by lazy { createOAuthSession(secureCookie = !developmentMode) }
 
     internal val stateCodec: OidcStateCodec by lazy { createStateCodec() }
 
     internal val tokenRefreshes = ConcurrentHashMap<String, CompletableDeferred<OidcTokenRefreshResult>>()
 
-    internal val canIntrospect: Boolean =
-        config.bearerConfig?.introspectionConfig != null
+    internal val canIntrospect: Boolean = config.bearerConfig?.introspectionConfig != null
 
     internal fun updateMetadata(newMetadata: OpenIdProviderMetadata) {
-        val currentState = providerState
+        val currentState = state
         val nextJwkProvider = if (currentState?.metadata?.jwksUri == newMetadata.jwksUri) {
             currentState.jwkProvider
         } else {
             computeJwkProvider(newMetadata.jwksUri)
         }
-        providerState = OidcProviderState(newMetadata, nextJwkProvider)
+        state = State(newMetadata, nextJwkProvider)
     }
 
     private fun computeJwkProvider(jwksUri: String): JwkProvider {
@@ -292,9 +298,9 @@ public class OidcProvider internal constructor(
             }
         }.buildString()
     }
-}
 
-private class OidcProviderState(
-    val metadata: OpenIdProviderMetadata,
-    val jwkProvider: JwkProvider,
-)
+    internal class State(
+        val metadata: OpenIdProviderMetadata,
+        val jwkProvider: JwkProvider,
+    )
+}

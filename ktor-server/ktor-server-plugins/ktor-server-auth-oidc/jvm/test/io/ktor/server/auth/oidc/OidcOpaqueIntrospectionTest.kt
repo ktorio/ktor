@@ -81,7 +81,7 @@ class OidcOpaqueIntrospectionTest {
 
         installOpaqueBearer(
             audience = "my api",
-            authMethod = TokenIntrospectionAuthMethod.ClientSecretPost,
+            authMethod = ClientAuthenticationMethod.ClientSecretPost,
         )
 
         assertOpaqueToken("spaced-audience-token", HttpStatusCode.OK, "primitive-user")
@@ -122,7 +122,7 @@ class OidcOpaqueIntrospectionTest {
 
     private fun ApplicationTestBuilder.installOpaqueBearer(
         audience: String,
-        authMethod: TokenIntrospectionAuthMethod = TokenIntrospectionAuthMethod.ClientSecretBasic,
+        authMethod: ClientAuthenticationMethod = ClientAuthenticationMethod.ClientSecretBasic,
     ) {
         val openIdClient = discoveryClient()
         application {

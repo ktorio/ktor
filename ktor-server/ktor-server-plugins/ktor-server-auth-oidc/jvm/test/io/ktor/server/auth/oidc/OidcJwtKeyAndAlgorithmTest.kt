@@ -242,18 +242,20 @@ class OidcJwtKeyAndAlgorithmTest {
 
             routing {
                 get("/verify") {
-                    val principal = provider.buildIdToken(
-                        idToken = keys.idToken(subject = "id-user") {
-                            audience = "client-id"
-                            nonce = "nonce-1"
-                            atHash = keys.algorithm.hashAccessToken(accessToken)
-                        },
-                        accessToken = accessToken,
-                        refreshToken = null,
-                        expectedAudience = "client-id",
-                        expectedNonce = "nonce-1",
-                    )
-                    call.respondText(principal.userInfo.subject)
+                    provider.withCapturedState {
+                        val principal = provider.buildIdToken(
+                            idToken = keys.idToken(subject = "id-user") {
+                                audience = "client-id"
+                                nonce = "nonce-1"
+                                atHash = keys.algorithm.hashAccessToken(accessToken)
+                            },
+                            accessToken = accessToken,
+                            refreshToken = null,
+                            expectedAudience = "client-id",
+                            expectedNonce = "nonce-1",
+                        )
+                        call.respondText(principal.userInfo.subject)
+                    }
                 }
             }
         }
@@ -290,14 +292,16 @@ class OidcJwtKeyAndAlgorithmTest {
             routing {
                 get("/verify") {
                     val failure = runCatching {
-                        provider.buildIdToken(
-                            idToken = keys.idToken(subject = "alg-user") {
-                                audience = "client-id"
-                            },
-                            accessToken = "",
-                            refreshToken = null,
-                            expectedAudience = "client-id",
-                        )
+                        provider.withCapturedState {
+                            provider.buildIdToken(
+                                idToken = keys.idToken(subject = "alg-user") {
+                                    audience = "client-id"
+                                },
+                                accessToken = "",
+                                refreshToken = null,
+                                expectedAudience = "client-id",
+                            )
+                        }
                     }.exceptionOrNull()
                     call.respondText(failure?.message.orEmpty())
                 }

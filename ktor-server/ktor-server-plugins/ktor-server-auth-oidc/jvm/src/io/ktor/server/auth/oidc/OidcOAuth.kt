@@ -87,18 +87,20 @@ internal fun Application.configureOAuthRoute(provider: OidcProvider) {
 context(context: RoutingContext)
 internal suspend fun OidcProvider.handleOAuthCallbackSuccess(
     response: OAuthAccessTokenResponse.OAuth2,
-): OidcToken.Id {
+): OidcToken.Id = withCapturedState {
     val call = context.call
-    call.validateAuthorizationResponseIssuer(currentMetadata())
+    call.validateAuthorizationResponseIssuer()
     val oauthState = response.state ?: call.request.queryParameters["state"]
-    val authorizationTransaction = oauthState?.let {
-        call.consumeAuthorizationTransaction(stateCodec, it)
+    val authorizationTransaction = oauthState?.let { state ->
+        call.consumeAuthorizationTransaction(stateCodec, state)
     }
     return buildOAuthToken(response, expectedNonce = authorizationTransaction?.nonce)
 }
 
-internal fun ApplicationCall.validateAuthorizationResponseIssuer(metadata: OpenIdProviderMetadata) {
+context(state: OidcProvider.State)
+internal fun ApplicationCall.validateAuthorizationResponseIssuer() {
     val responseIssuer = request.queryParameters["iss"]
+    val metadata = state.metadata
     if (responseIssuer == null) {
         require(metadata.authorizationResponseIssParameterSupported != true) {
             "OpenID Connect authorization response is missing 'iss' parameter"

@@ -417,7 +417,7 @@ public class OidcTokenIntrospectionConfig internal constructor() {
     /**
      * Client authentication method used for introspection requests.
      */
-    public var authMethod: TokenIntrospectionAuthMethod = TokenIntrospectionAuthMethod.ClientSecretBasic
+    public var authMethod: ClientAuthenticationMethod = ClientAuthenticationMethod.ClientSecretBasic
 
     internal fun validate() {
         require(::endpoint.isInitialized && endpoint.isNotBlank()) {
@@ -433,21 +433,26 @@ public class OidcTokenIntrospectionConfig internal constructor() {
 }
 
 /**
- * Client authentication methods supported for token introspection.
+ * Client authentication methods for provider endpoints that require client credentials, such as the token
+ * endpoint and the token introspection endpoint.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.TokenIntrospectionAuthMethod)
+ * Values correspond to the IANA "OAuth Token Endpoint Authentication Methods" registry, which both
+ * `token_endpoint_auth_methods_supported` and `introspection_endpoint_auth_methods_supported` metadata use.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.ClientAuthenticationMethod)
  */
 @ExperimentalKtorApi
-public enum class TokenIntrospectionAuthMethod {
+@SubclassOptInRequired(InternalKtorSubclassing::class)
+public interface ClientAuthenticationMethod {
     /**
      * Authenticate with HTTP Basic using the client ID and client secret.
      */
-    ClientSecretBasic,
+    public object ClientSecretBasic : ClientAuthenticationMethod
 
     /**
      * Authenticate by sending `client_id` and `client_secret` in the form body.
      */
-    ClientSecretPost,
+    public object ClientSecretPost : ClientAuthenticationMethod
 }
 
 @ExperimentalKtorApi
@@ -505,6 +510,23 @@ public class OidcOAuthConfig internal constructor(
      * Optional resource indicators added to authorization, token, and refresh requests.
      */
     public var resourceIndicators: List<String> = emptyList()
+
+    /**
+     * Client authentication method for token endpoint requests: authorization code exchange and token refresh.
+     *
+     * When `null` (default), the method is selected from
+     * [OpenIdProviderMetadata.tokenEndpointAuthMethodsSupported]:
+     * - [ClientAuthenticationMethod.ClientSecretPost] when the metadata lists `client_secret_post` as supported,
+     *   and when the metadata does not declare supported methods at all.
+     * - [ClientAuthenticationMethod.ClientSecretBasic] when the metadata declares supported methods and
+     *   `client_secret_post` is not among them.
+     *
+     * Set explicitly when your client registration requires a specific method — discovery metadata describes the
+     * provider's capabilities, not what this client was registered to use — or when provider metadata is inaccurate.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcOAuthConfig.tokenEndpointAuthMethod)
+     */
+    public var tokenEndpointAuthMethod: ClientAuthenticationMethod? = null
 
     /**
      * When `true`, requests the OpenID Provider UserInfo endpoint after token exchange and uses that

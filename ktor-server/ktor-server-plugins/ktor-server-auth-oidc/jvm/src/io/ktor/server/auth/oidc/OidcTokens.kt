@@ -6,7 +6,6 @@ package io.ktor.server.auth.oidc
 
 import com.auth0.jwk.Jwk
 import com.auth0.jwk.JwkException
-import com.auth0.jwk.JwkProvider
 import com.auth0.jwt.JWT
 import com.auth0.jwt.exceptions.JWTDecodeException
 import com.auth0.jwt.exceptions.JWTVerificationException
@@ -51,19 +50,35 @@ private enum class JwtTokenType {
 
 private val hmacAlgorithms = setOf("HS256", "HS384", "HS512")
 private const val BEARER_TOKEN_TYPE = "Bearer"
+private const val CLIENT_SECRET_POST = "client_secret_post"
 
+context(state: OidcProvider.State)
+internal fun OidcProvider.useBasicTokenEndpointAuth(): Boolean {
+    oauthConfig.tokenEndpointAuthMethod?.let { method ->
+        return method == ClientAuthenticationMethod.ClientSecretBasic
+    }
+    val supportedMethods = state.metadata.tokenEndpointAuthMethodsSupported ?: return false
+    return CLIENT_SECRET_POST !in supportedMethods
+}
+
+context(state: OidcProvider.State)
 internal suspend fun OidcProvider.refreshTokenInternal(refreshToken: String): OidcTokenRefreshResult {
-    val config = oauthConfig
-    val response = client.submitForm(
-        url = currentMetadata().tokenEndpoint,
-        formParameters = Parameters.build {
-            append("grant_type", "refresh_token")
-            append("refresh_token", refreshToken)
-            append("client_id", config.clientId)
-            append("client_secret", config.clientSecret)
-            config.resourceIndicators.forEach { append("resource", it) }
+    val useBasicAuth = useBasicTokenEndpointAuth()
+    val url = state.metadata.tokenEndpoint
+    val formParameters = Parameters.build {
+        append("grant_type", "refresh_token")
+        append("refresh_token", refreshToken)
+        if (!useBasicAuth) {
+            append("client_id", oauthConfig.clientId)
+            append("client_secret", oauthConfig.clientSecret)
         }
-    ).body<TokenRefreshResponse>()
+        oauthConfig.resourceIndicators.forEach { append("resource", it) }
+    }
+    val response = client.submitForm(url, formParameters) {
+        if (useBasicAuth) {
+            basicAuth(username = oauthConfig.clientId, password = oauthConfig.clientSecret)
+        }
+    }.body<TokenRefreshResponse>()
 
     val effectiveRefreshToken = response.refreshToken ?: refreshToken
     val idToken = response.idToken?.let { token ->
@@ -72,9 +87,9 @@ internal suspend fun OidcProvider.refreshTokenInternal(refreshToken: String): Oi
             idToken = token,
             accessToken = response.accessToken,
             refreshToken = effectiveRefreshToken,
-            expectedAudience = config.clientId,
+            expectedAudience = oauthConfig.clientId,
             requireNonceAbsent = true,
-            fetchUserInfo = config.fetchUserInfo,
+            fetchUserInfo = oauthConfig.fetchUserInfo,
         )
     }
 
@@ -88,11 +103,11 @@ internal suspend fun OidcProvider.refreshTokenInternal(refreshToken: String): Oi
     )
 }
 
+context(state: OidcProvider.State)
 internal suspend fun OidcProvider.buildOAuthToken(
     response: OAuthAccessTokenResponse.OAuth2,
     expectedNonce: String?,
 ): OidcToken.Id {
-    val config = oauthConfig
     val idToken = response.extraParameters["id_token"]
         ?: rejectToken("OAuth callback response is missing 'id_token'")
 
@@ -102,9 +117,9 @@ internal suspend fun OidcProvider.buildOAuthToken(
         idToken = idToken,
         accessToken = response.accessToken,
         refreshToken = response.refreshToken,
-        expectedAudience = config.clientId,
+        expectedAudience = oauthConfig.clientId,
         expectedNonce = nonce,
-        fetchUserInfo = config.fetchUserInfo,
+        fetchUserInfo = oauthConfig.fetchUserInfo,
     )
 }
 
@@ -114,20 +129,13 @@ private fun requireBearerTokenType(type: String?) {
     }
 }
 
-internal suspend fun OidcProvider.verifyJwtAccessToken(token: String): OidcToken.Access {
+internal suspend fun OidcProvider.verifyJwtAccessToken(token: String): OidcToken.Access = withCapturedState {
     val jwt = try {
         JWT.decode(token)
     } catch (cause: JWTDecodeException) {
         rejectToken(cause.message)
     }
-    val verifiedJwt = verifyJwtToken(
-        token = token,
-        jwt = jwt,
-        audience = bearerConfig.audience,
-        tokenType = JwtTokenType.AccessToken,
-        metadata = currentMetadata(),
-        jwkProvider = currentJwkProvider(),
-    )
+    val verifiedJwt = verifyJwtToken(token, jwt, bearerConfig.audience, tokenType = JwtTokenType.AccessToken)
     verifiedJwt.requireAccessTokenPurpose()
     val userInfo = verifiedJwt.takeIf { it.subject != null }?.extractUserInfo()
     return OidcToken.Access(token, userInfo)
@@ -175,19 +183,20 @@ private suspend fun HttpClient.introspectToken(
     val formParameters = Parameters.build {
         append("token", token)
         append("token_type_hint", "access_token")
-        if (config.authMethod == TokenIntrospectionAuthMethod.ClientSecretPost) {
+        if (config.authMethod == ClientAuthenticationMethod.ClientSecretPost) {
             append("client_id", config.clientId)
             append("client_secret", config.clientSecret)
         }
     }
     val response = submitForm(url = config.endpoint, formParameters = formParameters) {
-        if (config.authMethod == TokenIntrospectionAuthMethod.ClientSecretBasic) {
+        if (config.authMethod == ClientAuthenticationMethod.ClientSecretBasic) {
             basicAuth(username = config.clientId, password = config.clientSecret)
         }
     }
     return response.body<JsonObject>().toTokenIntrospection()
 }
 
+context(state: OidcProvider.State)
 internal suspend fun OidcProvider.buildIdToken(
     idToken: String,
     accessToken: String,
@@ -202,19 +211,23 @@ internal suspend fun OidcProvider.buildIdToken(
     } catch (cause: JWTDecodeException) {
         rejectToken(cause.message)
     }
-    val metadata = currentMetadata()
-    val jwkProvider = currentJwkProvider()
     val verifiedJwt = verifyJwtToken(
         token = idToken,
         jwt = decoded,
         audience = setOf(expectedAudience),
         tokenType = JwtTokenType.IdToken,
-        metadata = metadata,
-        jwkProvider = jwkProvider,
     )
 
+    // OIDC Core 2 requires exp and iat on ID tokens
+    requireToken(verifiedJwt.expiresAtAsInstant != null) {
+        "ID token 'exp' claim is required"
+    }
+    requireToken(verifiedJwt.issuedAtAsInstant != null) {
+        "ID token 'iat' claim is required"
+    }
+
     // OIDC Core 3.1.3.7 steps 4 and 5: a multi-audience token must name the authorized party,
-    // and a token authorized for another client must not be accepted as this client's login.
+    // and a token authorized for another client must not be accepted as this client's login
     val authorizedParty = verifiedJwt.getClaim("azp").asString()
     requireToken(verifiedJwt.audience.orEmpty().size <= 1 || authorizedParty != null) {
         "ID token with multiple audiences must contain an 'azp' claim"
@@ -235,14 +248,12 @@ internal suspend fun OidcProvider.buildIdToken(
     }
     verifiedJwt.validateAtHash(accessToken)
 
-    val userInfoEndpoint = metadata.userInfoEndpoint
+    val userInfoEndpoint = state.metadata.userInfoEndpoint
     val userInfo = if (fetchUserInfo && userInfoEndpoint != null) {
         fetchUserInfo(
             endpoint = userInfoEndpoint,
             accessToken = accessToken,
             expectedSubject = verifiedJwt.subject,
-            metadata = metadata,
-            jwkProvider = jwkProvider,
         )
     } else {
         verifiedJwt.extractUserInfo()
@@ -251,14 +262,15 @@ internal suspend fun OidcProvider.buildIdToken(
     return OidcToken.Id(value = idToken, accessToken, refreshToken, userInfo)
 }
 
+context(state: OidcProvider.State)
 private suspend fun OidcProvider.fetchUserInfo(
     endpoint: String,
     accessToken: String,
     expectedSubject: String,
-    metadata: OpenIdProviderMetadata,
-    jwkProvider: JwkProvider,
 ): OidcToken.UserInfo {
-    val response = client.get(endpoint) { bearerAuth(accessToken) }
+    val response = client.get(endpoint) {
+        bearerAuth(accessToken)
+    }
     val userInfo = if (response.contentType().isJwt()) {
         val token = response.bodyAsText()
         if (token.count { it == '.' } == 4) {
@@ -274,8 +286,6 @@ private suspend fun OidcProvider.fetchUserInfo(
             jwt = decoded,
             audience = setOf(oauthConfig.clientId),
             tokenType = JwtTokenType.UserInfo,
-            metadata = metadata,
-            jwkProvider = jwkProvider,
         ).extractUserInfo()
     } else {
         response.body<OidcToken.UserInfo>()
@@ -291,18 +301,17 @@ private fun ContentType?.isJwt(): Boolean =
     this?.withoutParameters()?.match(ContentType("application", "jwt")) == true
 
 // throws only OidcTokenRejectedException
+context(state: OidcProvider.State)
 private suspend fun OidcProvider.verifyJwtToken(
     token: String,
     jwt: DecodedJWT,
     audience: Set<String>,
     tokenType: JwtTokenType,
-    metadata: OpenIdProviderMetadata,
-    jwkProvider: JwkProvider,
 ): DecodedJWT {
-    val tokenAlgorithm = requireAllowedAlgorithm(jwt, tokenType, metadata)
+    val tokenAlgorithm = requireAllowedAlgorithm(jwt, tokenType)
     val keyId = jwt.keyId
     val jwk = try {
-        withContext(Dispatchers.IO) { jwkProvider.get(keyId) }
+        withContext(Dispatchers.IO) { state.jwkProvider.get(keyId) }
     } catch (cause: JwkException) {
         rejectToken("JWT kid $keyId does not match any JWK. ${cause.message}")
     }
@@ -313,7 +322,7 @@ private suspend fun OidcProvider.verifyJwtToken(
     return try {
         JWT
             .require(tokenAlgorithm.toJwtAlgorithm(jwk.publicKey))
-            .withIssuer(metadata.issuer)
+            .withIssuer(state.metadata.issuer)
             .withAnyOfAudience(*audience.toTypedArray())
             .acceptLeeway(jwtConfig.clockSkew.inWholeSeconds)
             .build()
@@ -338,10 +347,10 @@ private fun DecodedJWT.requireAccessTokenPurpose() {
 }
 
 // throws only OidcTokenRejectedException
+context(state: OidcProvider.State)
 private fun OidcProvider.requireAllowedAlgorithm(
     jwt: DecodedJWT,
     tokenType: JwtTokenType,
-    metadata: OpenIdProviderMetadata,
 ): SignatureAlgorithm {
     val algorithmName = jwt.algorithm ?: rejectToken("JWT algorithm is missing")
     requireToken(algorithmName != "none" && algorithmName !in hmacAlgorithms) {
@@ -353,8 +362,8 @@ private fun OidcProvider.requireAllowedAlgorithm(
     val allowedAlgorithms = jwtConfig.allowedAlgorithms
         ?.map { algorithm -> checkNotNull(algorithm.jwaName) }
         ?: when (tokenType) {
-            JwtTokenType.IdToken -> metadata.idTokenSigningAlgValuesSupported
-            JwtTokenType.UserInfo -> metadata.userinfoSigningAlgValuesSupported
+            JwtTokenType.IdToken -> state.metadata.idTokenSigningAlgValuesSupported
+            JwtTokenType.UserInfo -> state.metadata.userinfoSigningAlgValuesSupported
             JwtTokenType.AccessToken -> null
         }
     requireToken(allowedAlgorithms == null || algorithmName in allowedAlgorithms) {

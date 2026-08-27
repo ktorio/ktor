@@ -16,6 +16,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import io.ktor.util.*
 import io.ktor.utils.io.*
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.test.Test
@@ -23,6 +24,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.time.Duration.Companion.ZERO
+import kotlin.time.Duration.Companion.seconds
 
 class OidcOAuthCallbackTest {
 
@@ -433,9 +435,147 @@ class OidcOAuthCallbackTest {
         assertEquals(HttpStatusCode.NotFound, browser.post("/oidc/auth0/logout").status)
     }
 
+    @Test
+    fun `token requests use basic auth when provider does not support client_secret_post`() = testApplication {
+        val keys = testRsaKeys
+        val idTokensByState = ConcurrentHashMap<String, String>()
+        val tokenRequestAuth = ConcurrentHashMap<String, Pair<String?, String?>>()
+
+        externalServices {
+            hosts(ISSUER_URL) {
+                routing {
+                    post("/token") {
+                        val parameters = call.receiveParameters()
+                        val grantType = assertNotNull(parameters["grant_type"])
+                        tokenRequestAuth[grantType] =
+                            call.request.headers[HttpHeaders.Authorization] to parameters["client_secret"]
+                        when (grantType) {
+                            "authorization_code" -> {
+                                val state = assertNotNull(parameters["state"])
+                                call.respondText(
+                                    listOf(
+                                        "access_token" to keys.accessToken { subject = "token-user" },
+                                        "token_type" to "Bearer",
+                                        "expires_in" to "3600",
+                                        "refresh_token" to "refresh-token-1",
+                                        "id_token" to assertNotNull(idTokensByState[state]),
+                                    ).formUrlEncode(),
+                                    ContentType.Application.FormUrlEncoded,
+                                )
+                            }
+
+                            "refresh_token" -> respondRefreshedIdToken(keys)
+
+                            else -> call.respond(HttpStatusCode.BadRequest)
+                        }
+                    }
+                }
+            }
+        }
+
+        installSessionTestApp(
+            keys,
+            configureProvider = {
+                testIssuer(
+                    metadata = OpenIdProviderMetadata(
+                        issuer = ISSUER_URL,
+                        authorizationEndpoint = "$ISSUER_URL/authorize",
+                        tokenEndpoint = "$ISSUER_URL/token",
+                        jwksUri = "$ISSUER_URL/jwks",
+                        endSessionEndpoint = "$ISSUER_URL/logout",
+                        tokenEndpointAuthMethodsSupported = listOf("client_secret_basic"),
+                    ),
+                )
+                jwt(keys)
+            },
+        ) {
+            tokenRefreshStrategy = OidcTokenRefreshStrategy.Auto(beforeExpiry = 30.seconds)
+        }
+
+        val browser = noRedirectsClient()
+        val cookie = browser.signInWithIdToken(idTokensByState, keys, expiresIn = 10.seconds)
+        browser.assertMe(cookie, HttpStatusCode.OK, "refreshed-user")
+
+        val expectedAuth = "Basic " + "client-id:client-secret".encodeBase64()
+        assertEquals(expectedAuth to null, tokenRequestAuth["authorization_code"])
+        assertEquals(expectedAuth to null, tokenRequestAuth["refresh_token"])
+    }
+
+    @Test
+    fun `token endpoint auth method override forces basic auth`() = testApplication {
+        val keys = testRsaKeys
+        val idTokensByState = ConcurrentHashMap<String, String>()
+        var tokenRequestAuth: Pair<String?, String?>? = null
+
+        externalServices {
+            hosts(ISSUER_URL) {
+                routing {
+                    post("/token") {
+                        val parameters = call.receiveParameters()
+                        tokenRequestAuth =
+                            call.request.headers[HttpHeaders.Authorization] to parameters["client_secret"]
+                        val state = assertNotNull(parameters["state"])
+                        call.respondText(
+                            listOf(
+                                "access_token" to keys.accessToken { subject = "token-user" },
+                                "token_type" to "Bearer",
+                                "expires_in" to "3600",
+                                "id_token" to assertNotNull(idTokensByState[state]),
+                            ).formUrlEncode(),
+                            ContentType.Application.FormUrlEncoded,
+                        )
+                    }
+                }
+            }
+        }
+        installOAuthCallbackTestProvider(keys) {
+            tokenEndpointAuthMethod = ClientAuthenticationMethod.ClientSecretBasic
+        }
+
+        val browser = noRedirectsClient()
+        val login = browser.prepareOidcLogin()
+        idTokensByState[login.state] = keys.idToken(subject = "callback-user") {
+            audience = "client-id"
+            nonce = login.nonce
+        }
+        val callback = browser.completeOidcCallback(login)
+        assertEquals(HttpStatusCode.OK, callback.status)
+        assertEquals("Basic " + "client-id:client-secret".encodeBase64() to null, tokenRequestAuth)
+    }
+
+    @Test
+    fun `token exchange keeps form body credentials when provider supports client_secret_post`() = testApplication {
+        val keys = testRsaKeys
+        val idTokensByState = ConcurrentHashMap<String, String>()
+
+        openIdProvider(keys, idTokensByState)
+        installOAuthCallbackTestProvider(
+            keys,
+            metadata = OpenIdProviderMetadata(
+                issuer = ISSUER_URL,
+                authorizationEndpoint = "$ISSUER_URL/authorize",
+                tokenEndpoint = "$ISSUER_URL/token",
+                jwksUri = "$ISSUER_URL/jwks",
+                tokenEndpointAuthMethodsSupported = listOf("client_secret_basic", "client_secret_post"),
+            ),
+        )
+
+        val browser = noRedirectsClient()
+        val login = browser.prepareOidcLogin()
+        idTokensByState[login.state] = keys.idToken(subject = "callback-user") {
+            audience = "client-id"
+            nonce = login.nonce
+        }
+        val callback = browser.completeOidcCallback(login)
+        assertEquals(HttpStatusCode.OK, callback.status)
+        assertEquals("signed in callback-user", callback.bodyAsText())
+    }
+
     private fun ApplicationTestBuilder.installOAuthCallbackTestProvider(
         keys: OpenIdTestKeys,
         stateEncryptionKey: OidcStateEncryptionKey? = null,
+        metadata: OpenIdProviderMetadata = testOpenIdProviderMetadata(ISSUER_URL),
+        configureOAuth: OidcOAuthConfig.() -> Unit = {},
     ) {
         val openIdClient = discoveryClient()
         application {
@@ -444,7 +584,7 @@ class OidcOAuthCallbackTest {
                 discoveryRefreshInterval = ZERO
             }
             oidc.identityProvider("auth0") {
-                testIssuer()
+                testIssuer(metadata = metadata)
                 jwt(keys)
                 oauth {
                     clientId = "client-id"
@@ -453,6 +593,7 @@ class OidcOAuthCallbackTest {
                     onAuthenticated { idToken ->
                         call.respondText("signed in ${idToken.userInfo.subject}")
                     }
+                    configureOAuth()
                 }
             }
         }

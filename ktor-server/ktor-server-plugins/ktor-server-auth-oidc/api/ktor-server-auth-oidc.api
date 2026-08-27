@@ -1,3 +1,14 @@
+public abstract interface class io/ktor/server/auth/oidc/ClientAuthenticationMethod {
+}
+
+public final class io/ktor/server/auth/oidc/ClientAuthenticationMethod$ClientSecretBasic : io/ktor/server/auth/oidc/ClientAuthenticationMethod {
+	public static final field INSTANCE Lio/ktor/server/auth/oidc/ClientAuthenticationMethod$ClientSecretBasic;
+}
+
+public final class io/ktor/server/auth/oidc/ClientAuthenticationMethod$ClientSecretPost : io/ktor/server/auth/oidc/ClientAuthenticationMethod {
+	public static final field INSTANCE Lio/ktor/server/auth/oidc/ClientAuthenticationMethod$ClientSecretPost;
+}
+
 public abstract interface class io/ktor/server/auth/oidc/CodeChallengeMethod {
 	public abstract fun getName ()Ljava/lang/String;
 }
@@ -105,6 +116,7 @@ public final class io/ktor/server/auth/oidc/OidcOAuthConfig {
 	public final fun getResourceIndicators ()Ljava/util/List;
 	public final fun getScopes ()Ljava/util/List;
 	public final fun getStateEncryptionKey-aaX1N3g ()Ljava/util/List;
+	public final fun getTokenEndpointAuthMethod ()Lio/ktor/server/auth/oidc/ClientAuthenticationMethod;
 	public final fun logout (Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;)V
 	public final fun logout (Ljava/lang/String;Lkotlin/jvm/functions/Function2;)V
 	public static synthetic fun logout$default (Lio/ktor/server/auth/oidc/OidcOAuthConfig;Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;ILjava/lang/Object;)V
@@ -124,6 +136,7 @@ public final class io/ktor/server/auth/oidc/OidcOAuthConfig {
 	public final fun setResourceIndicators (Ljava/util/List;)V
 	public final fun setScopes (Ljava/util/List;)V
 	public final fun setStateEncryptionKey-HcXpOzs (Ljava/util/List;)V
+	public final fun setTokenEndpointAuthMethod (Lio/ktor/server/auth/oidc/ClientAuthenticationMethod;)V
 }
 
 public final class io/ktor/server/auth/oidc/OidcPluginConfig {
@@ -307,11 +320,11 @@ public final class io/ktor/server/auth/oidc/OidcTokenIntrospectionConfig {
 	public field clientId Ljava/lang/String;
 	public field clientSecret Ljava/lang/String;
 	public field endpoint Ljava/lang/String;
-	public final fun getAuthMethod ()Lio/ktor/server/auth/oidc/TokenIntrospectionAuthMethod;
+	public final fun getAuthMethod ()Lio/ktor/server/auth/oidc/ClientAuthenticationMethod;
 	public final fun getClientId ()Ljava/lang/String;
 	public final fun getClientSecret ()Ljava/lang/String;
 	public final fun getEndpoint ()Ljava/lang/String;
-	public final fun setAuthMethod (Lio/ktor/server/auth/oidc/TokenIntrospectionAuthMethod;)V
+	public final fun setAuthMethod (Lio/ktor/server/auth/oidc/ClientAuthenticationMethod;)V
 	public final fun setClientId (Ljava/lang/String;)V
 	public final fun setClientSecret (Ljava/lang/String;)V
 	public final fun setEndpoint (Ljava/lang/String;)V
@@ -576,13 +589,5 @@ public final synthetic class io/ktor/server/auth/oidc/TokenIntrospection$$serial
 
 public final class io/ktor/server/auth/oidc/TokenIntrospection$Companion {
 	public final fun serializer ()Lkotlinx/serialization/KSerializer;
-}
-
-public final class io/ktor/server/auth/oidc/TokenIntrospectionAuthMethod : java/lang/Enum {
-	public static final field ClientSecretBasic Lio/ktor/server/auth/oidc/TokenIntrospectionAuthMethod;
-	public static final field ClientSecretPost Lio/ktor/server/auth/oidc/TokenIntrospectionAuthMethod;
-	public static fun getEntries ()Lkotlin/enums/EnumEntries;
-	public static fun valueOf (Ljava/lang/String;)Lio/ktor/server/auth/oidc/TokenIntrospectionAuthMethod;
-	public static fun values ()[Lio/ktor/server/auth/oidc/TokenIntrospectionAuthMethod;
 }
 

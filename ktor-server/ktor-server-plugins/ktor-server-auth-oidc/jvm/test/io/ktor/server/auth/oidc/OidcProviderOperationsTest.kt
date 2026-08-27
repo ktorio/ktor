@@ -72,32 +72,34 @@ class OidcProviderOperationsTest {
                 }
             }
 
-            keysByAlgorithm.forEach { (_, keys) ->
-                val principal = provider.buildIdToken(
-                    idToken = keys.idToken(subject = "hash-user") {
-                        audience = "client-id"
-                        atHash = keys.algorithm.hashAccessToken(accessToken)
-                    },
-                    accessToken = accessToken,
-                    refreshToken = null,
-                    expectedAudience = "client-id",
-                )
-                assertEquals("hash-user", principal.userInfo.subject)
-            }
+            provider.withCapturedState {
+                keysByAlgorithm.forEach { (_, keys) ->
+                    val principal = provider.buildIdToken(
+                        idToken = keys.idToken(subject = "hash-user") {
+                            audience = "client-id"
+                            atHash = keys.algorithm.hashAccessToken(accessToken)
+                        },
+                        accessToken = accessToken,
+                        refreshToken = null,
+                        expectedAudience = "client-id",
+                    )
+                    assertEquals("hash-user", principal.userInfo.subject)
+                }
 
-            val keys = keysByAlgorithm.getValue(SignatureAlgorithm.RSA_SHA_256)
-            val failure = assertFailsWith<OidcTokenRejectedException> {
-                provider.buildIdToken(
-                    idToken = keys.idToken(subject = "hash-user") {
-                        audience = "client-id"
-                        atHash = "invalid"
-                    },
-                    accessToken = accessToken,
-                    refreshToken = null,
-                    expectedAudience = "client-id",
-                )
+                val keys = keysByAlgorithm.getValue(SignatureAlgorithm.RSA_SHA_256)
+                val failure = assertFailsWith<OidcTokenRejectedException> {
+                    provider.buildIdToken(
+                        idToken = keys.idToken(subject = "hash-user") {
+                            audience = "client-id"
+                            atHash = "invalid"
+                        },
+                        accessToken = accessToken,
+                        refreshToken = null,
+                        expectedAudience = "client-id",
+                    )
+                }
+                assertContains(failure.message.orEmpty(), "at_hash")
             }
-            assertContains(failure.message.orEmpty(), "at_hash")
         }
     }
 
