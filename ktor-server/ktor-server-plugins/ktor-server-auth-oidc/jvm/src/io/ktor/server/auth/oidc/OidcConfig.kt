@@ -87,6 +87,12 @@ public class OidcPluginConfig {
         require(initialDiscoveryRetryDelay.isFinite() && !initialDiscoveryRetryDelay.isNegative()) {
             "initialDiscoveryRetryDelay must be finite and non-negative"
         }
+        require(discoveryRefreshInterval.isFinite() && !discoveryRefreshInterval.isNegative()) {
+            "discoveryRefreshInterval must be finite and non-negative. Use Duration.ZERO to disable periodic refresh"
+        }
+        require(discoveryRefreshFailureDelay.isFinite() && discoveryRefreshFailureDelay.isPositive()) {
+            "discoveryRefreshFailureDelay must be finite and positive"
+        }
     }
 }
 
@@ -329,6 +335,9 @@ public class OidcJwtConfig internal constructor() {
     internal var jwkRateLimitConfigured: Boolean = false
 
     internal fun validate() {
+        require(clockSkew.isFinite() && !clockSkew.isNegative()) {
+            "clockSkew must be finite and non-negative"
+        }
         require(jwkProviderFactory == null || (!jwkCacheConfigured && !jwkRateLimitConfigured)) {
             "jwt { jwkProviderFactory = ... } cannot be combined with jwkCache or jwkRateLimit configuration"
         }
