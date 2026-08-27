@@ -8,6 +8,7 @@ package io.ktor.server.auth.oidc
 
 import io.ktor.server.routing.RoutingContext
 import io.ktor.util.annotations.InternalKtorSubclassing
+import io.ktor.utils.io.*
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
@@ -18,6 +19,7 @@ import kotlin.time.Instant
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcTokenRefreshStrategy)
  */
+@ExperimentalKtorApi
 @SubclassOptInRequired(InternalKtorSubclassing::class)
 public interface OidcTokenRefreshStrategy {
     /**

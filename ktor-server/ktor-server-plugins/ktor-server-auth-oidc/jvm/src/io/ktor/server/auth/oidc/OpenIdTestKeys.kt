@@ -67,6 +67,7 @@ import java.time.Instant as JavaInstant
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OpenIdTestKeys)
  */
+@ExperimentalKtorApi
 public class OpenIdTestKeys internal constructor(
     public val keyId: String,
     public val algorithm: SignatureAlgorithm,
@@ -216,6 +217,7 @@ public class OpenIdTestKeys internal constructor(
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OpenIdTestTokenBuilder)
  */
+@ExperimentalKtorApi
 @KtorDsl
 public abstract class OpenIdTestTokenBuilder internal constructor(
     public var issuer: String?,
@@ -308,6 +310,7 @@ public abstract class OpenIdTestTokenBuilder internal constructor(
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OpenIdTestAccessTokenBuilder)
  */
+@ExperimentalKtorApi
 @KtorDsl
 public class OpenIdTestAccessTokenBuilder internal constructor(
     issuer: String?,
@@ -329,6 +332,7 @@ public class OpenIdTestAccessTokenBuilder internal constructor(
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OpenIdTestIdTokenBuilder)
  */
+@ExperimentalKtorApi
 @KtorDsl
 public class OpenIdTestIdTokenBuilder internal constructor(
     issuer: String?,

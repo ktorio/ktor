@@ -4,6 +4,7 @@ package io.ktor.server.auth.oidc
 
 import com.auth0.jwt.interfaces.DecodedJWT
 import com.auth0.jwt.interfaces.Payload
+import io.ktor.utils.io.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.*
@@ -20,6 +21,7 @@ import kotlin.time.toKotlinInstant
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.TokenClaims)
  */
+@ExperimentalKtorApi
 public class TokenClaims internal constructor(private val jwt: DecodedJWT) {
     /**
      * Decoded JWT header as JSON.
@@ -134,6 +136,7 @@ public class TokenClaims internal constructor(private val jwt: DecodedJWT) {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.TokenIntrospection)
  */
+@ExperimentalKtorApi
 @Serializable
 public class TokenIntrospection(
     public val active: Boolean,

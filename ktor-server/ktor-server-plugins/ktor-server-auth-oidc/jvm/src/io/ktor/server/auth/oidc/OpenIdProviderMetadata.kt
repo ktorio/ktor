@@ -9,6 +9,7 @@ import io.ktor.client.call.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -115,6 +116,7 @@ import kotlinx.serialization.Serializable
  * @property checkSessionIframe URL of the OP iframe for session management (optional).
  *   See [OpenID Connect Session Management 1.0](https://openid.net/specs/openid-connect-session-1_0.html#OPMetadata).
  */
+@ExperimentalKtorApi
 @Serializable
 public class OpenIdProviderMetadata(
     public val issuer: String,
@@ -220,6 +222,7 @@ internal fun OpenIdProviderMetadata.validate(expectedIssuer: String) {
  * @throws IllegalArgumentException if the decoded metadata fails issuer or required endpoint validation
  *
  */
+@ExperimentalKtorApi
 public suspend fun HttpClient.fetchOpenIdMetadata(issuer: String): OpenIdProviderMetadata {
     val config = try {
         get {
@@ -242,4 +245,5 @@ public suspend fun HttpClient.fetchOpenIdMetadata(issuer: String): OpenIdProvide
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.DiscoveryException)
  *
  */
+@ExperimentalKtorApi
 public class OidcDiscoveryException(message: String, cause: Throwable? = null) : RuntimeException(message, cause)

@@ -28,6 +28,7 @@ import kotlin.time.Duration.Companion.seconds
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcPluginConfig)
  */
+@ExperimentalKtorApi
 @KtorDsl
 public class OidcPluginConfig {
     internal var protectedResourceConfig: ProtectedResourceMetadataConfig? = null
@@ -100,6 +101,7 @@ public class OidcPluginConfig {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcProviderConfig)
  */
+@ExperimentalKtorApi
 @KtorDsl
 public class OidcProviderConfig internal constructor(
     public val name: String
@@ -224,6 +226,7 @@ public typealias OidcTokenExtractor = RoutingContext.() -> String?
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcJwtConfig)
  */
+@ExperimentalKtorApi
 @KtorDsl
 public class OidcJwtConfig internal constructor() {
     internal class CacheConfig(
@@ -353,6 +356,7 @@ public class OidcJwtConfig internal constructor() {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcBearerConfig)
  */
+@ExperimentalKtorApi
 @KtorDsl
 public class OidcBearerConfig internal constructor() {
     /**
@@ -392,6 +396,7 @@ public class OidcBearerConfig internal constructor() {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcTokenIntrospectionConfig)
  */
+@ExperimentalKtorApi
 @KtorDsl
 public class OidcTokenIntrospectionConfig internal constructor() {
     /**
@@ -432,6 +437,7 @@ public class OidcTokenIntrospectionConfig internal constructor() {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.TokenIntrospectionAuthMethod)
  */
+@ExperimentalKtorApi
 public enum class TokenIntrospectionAuthMethod {
     /**
      * Authenticate with HTTP Basic using the client ID and client secret.
@@ -444,6 +450,7 @@ public enum class TokenIntrospectionAuthMethod {
     ClientSecretPost,
 }
 
+@ExperimentalKtorApi
 @SubclassOptInRequired(InternalKtorSubclassing::class)
 public interface CodeChallengeMethod {
     public val name: String
@@ -469,6 +476,7 @@ internal typealias OidcOAuthAuthenticatedHandler = suspend RoutingContext.(OidcT
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcOAuthConfig)
  */
+@ExperimentalKtorApi
 @KtorDsl
 public class OidcOAuthConfig internal constructor(
     internal val providerName: String,
@@ -732,6 +740,7 @@ public class OidcOAuthConfig internal constructor(
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcSessionsConfig)
  */
+@ExperimentalKtorApi
 @KtorDsl
 public class OidcSessionsConfig internal constructor() {
     /**

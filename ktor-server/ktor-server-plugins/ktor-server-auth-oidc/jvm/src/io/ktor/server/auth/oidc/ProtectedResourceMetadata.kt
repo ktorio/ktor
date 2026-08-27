@@ -4,6 +4,7 @@
 
 package io.ktor.server.auth.oidc
 
+import io.ktor.utils.io.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -31,6 +32,7 @@ import kotlinx.serialization.Serializable
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.ProtectedResourceMetadata)
  */
+@ExperimentalKtorApi
 @Serializable
 public class ProtectedResourceMetadata(
     public val resource: String,

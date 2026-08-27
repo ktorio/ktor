@@ -6,6 +6,7 @@ package io.ktor.server.auth.oidc
 
 import com.auth0.jwt.JWT
 import io.ktor.util.annotations.InternalKtorSubclassing
+import io.ktor.utils.io.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -23,6 +24,7 @@ import kotlinx.serialization.Serializable
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcToken)
  */
+@ExperimentalKtorApi
 @SubclassOptInRequired(InternalKtorSubclassing::class)
 public interface OidcToken {
     /**

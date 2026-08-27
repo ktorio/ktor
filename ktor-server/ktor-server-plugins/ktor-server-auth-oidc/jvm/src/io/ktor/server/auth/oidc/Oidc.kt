@@ -12,6 +12,7 @@ import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.sessions.*
 import io.ktor.util.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -22,6 +23,8 @@ private val ProviderNameRegex = Regex("[a-z0-9]+(?:-[a-z0-9]+)*")
 
 /**
  * First-class OpenID Connect plugin for Ktor server authentication.
+ *
+ * This API is experimental and may change in future releases.
  *
  * Installs per-issuer support for:
  * - **OAuth 2.0 / OIDC login** (`oauth { }`) — authorization code flow with login and callback routes.
@@ -182,6 +185,7 @@ private val ProviderNameRegex = Regex("[a-z0-9]+(?:-[a-z0-9]+)*")
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.Oidc)
  */
+@ExperimentalKtorApi
 public class Oidc internal constructor(
     private val application: Application,
     private val config: OidcPluginConfig,
@@ -477,6 +481,7 @@ public class Oidc internal constructor(
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcEnvConfig)
  */
+@ExperimentalKtorApi
 @Serializable
 public data class OidcEnvConfig(
     val issuer: String,
@@ -493,6 +498,7 @@ public data class OidcEnvConfig(
  * @property consecutiveFailures number of consecutive periodic refresh failures, reset after a successful refresh.
  * @property cause failure raised while fetching or validating discovery metadata.
  */
+@ExperimentalKtorApi
 public class OidcMetadataRefreshFailure(
     public val provider: OidcProvider,
     public val consecutiveFailures: Int,
@@ -505,6 +511,7 @@ public class OidcMetadataRefreshFailure(
  * Subscribe to this event with [Application.monitor]. Initial discovery failures are reported through provider
  * registration exceptions and do not raise this event.
  */
+@ExperimentalKtorApi
 public val OidcMetadataRefreshFailed: EventDefinition<OidcMetadataRefreshFailure> = EventDefinition()
 
 private fun defaultOpenIdHttpClient(): HttpClient = HttpClient {

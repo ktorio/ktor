@@ -4,6 +4,7 @@
 
 package io.ktor.server.auth.oidc
 
+import io.ktor.utils.io.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlin.time.Duration
@@ -40,6 +41,7 @@ internal data class TokenRefreshResponse(
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcTokenRefreshResult)
  */
+@ExperimentalKtorApi
 public class OidcTokenRefreshResult(
     public val accessToken: String,
     public val refreshToken: String? = null,

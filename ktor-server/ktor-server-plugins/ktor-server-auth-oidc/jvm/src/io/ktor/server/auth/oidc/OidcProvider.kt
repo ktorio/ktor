@@ -45,6 +45,7 @@ private val TokenRefreshCacheEvictor = Executors.newSingleThreadScheduledExecuto
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcProvider)
  */
+@ExperimentalKtorApi
 public class OidcProvider internal constructor(
     public val name: String,
     internal val client: HttpClient,

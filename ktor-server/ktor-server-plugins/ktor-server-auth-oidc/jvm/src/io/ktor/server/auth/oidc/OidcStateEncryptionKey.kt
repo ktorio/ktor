@@ -4,6 +4,7 @@
 
 package io.ktor.server.auth.oidc
 
+import io.ktor.utils.io.*
 import java.security.SecureRandom
 
 /**
@@ -15,6 +16,7 @@ import java.security.SecureRandom
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcStateEncryptionKey)
  */
+@ExperimentalKtorApi
 @JvmInline
 public value class OidcStateEncryptionKey private constructor(internal val keys: List<ByteArray>) {
     init {

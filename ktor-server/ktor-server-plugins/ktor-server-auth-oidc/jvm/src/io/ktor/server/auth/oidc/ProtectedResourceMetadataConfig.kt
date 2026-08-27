@@ -17,6 +17,7 @@ import io.ktor.utils.io.*
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.ProtectedResourceMetadataConfig)
  */
+@ExperimentalKtorApi
 @KtorDsl
 public class ProtectedResourceMetadataConfig internal constructor(
     public val resource: String,

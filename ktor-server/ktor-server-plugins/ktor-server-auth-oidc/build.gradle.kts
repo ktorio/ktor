@@ -10,6 +10,7 @@ plugins {
 kotlin {
     compilerOptions {
         freeCompilerArgs.add("-Xcontext-parameters")
+        optIn.add("io.ktor.utils.io.ExperimentalKtorApi")
     }
 
     sourceSets {
