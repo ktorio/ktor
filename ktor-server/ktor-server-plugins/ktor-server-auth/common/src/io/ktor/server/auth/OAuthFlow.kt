@@ -551,6 +551,9 @@ public fun Route.install(flow: OAuth2Flow) {
  * Routes protected later with [authenticateWith] using [OAuth2SessionFlow.session] are not covered by this redirect;
  * they respond with `401 Unauthorized` when no valid session exists.
  *
+ * For ID-based session transports, the callback stores the authenticated session under a freshly generated session ID.
+ * Any session ID arriving with the callback request is invalidated to prevent session fixation.
+ *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.install)
  *
  * @param oauth OAuth 2.0 flow with typed session authentication.
@@ -571,9 +574,7 @@ public fun <S : Any, P : Any> Route.install(oauth: OAuth2SessionFlow<S, P>) {
             val token = call.attributes[oauth.oauthScheme.principalKey]
             val session = oauth.sessionCreator(this, token) ?: run {
                 val error = AuthenticationFailedCause.Error("Failed to create OAuth session")
-                with(callback.failureHandler) {
-                    onUnauthorized(error)
-                }
+                with(callback.failureHandler) { onUnauthorized(error) }
                 return@callback
             }
 
@@ -586,6 +587,7 @@ public fun <S : Any, P : Any> Route.install(oauth: OAuth2SessionFlow<S, P>) {
 
             val sessionsScheme = oauth.session
             call.attributes.put(sessionsScheme.principalKey, principal)
+            call.discardPreAuthenticationSession(sessionsScheme.name)
             sessionsScheme.provideContext {
                 call.session = session
                 callback.successHandler(this@callback)
@@ -629,6 +631,22 @@ public fun Application.install(flow: OAuth2Flow) {
 @ExperimentalKtorApi
 public fun Application.install(oauth: OAuth2SessionFlow<*, *>) {
     routing { install(oauth) }
+}
+
+/**
+ * Prevents session fixation: the authenticated session must never be stored under a session ID that arrived with
+ * the callback request, because such an ID may have been planted by an attacker (for example, from a sibling
+ * subdomain). Invalidates the stored pre-login session and drops the tracked ID so that storing the new session
+ * generates a fresh one. No-op for by-value transports, where the client-held value is fully replaced anyway.
+ */
+private suspend fun ApplicationCall.discardPreAuthenticationSession(sessionName: String) {
+    val provider = application.attributes.getOrNull(SessionProvidersKey)
+        ?.firstOrNull { it.name == sessionName }
+    val tracker = provider?.tracker as? SessionTrackerById ?: return
+    // Deferred sessions load lazily on first access; force the load so the incoming
+    // session ID is tracked on the call before it is discarded.
+    sessions.get(sessionName)
+    tracker.clear(this)
 }
 
 private fun Route.installOAuthRoute(scheme: OAuth2Scheme): Route {

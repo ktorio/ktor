@@ -14,6 +14,7 @@ import io.ktor.http.*
 import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.server.sessions.*
 import io.ktor.server.testing.*
 import io.ktor.utils.io.*
 import kotlinx.serialization.Serializable
@@ -21,6 +22,7 @@ import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNotEquals
 
 @Serializable
 data class OAuthSession(val accessToken: String)
@@ -312,6 +314,63 @@ class OAuthFlowTest {
         }
         assertEquals(HttpStatusCode.OK, response.status)
         assertEquals("form_post", response.bodyAsText())
+    }
+
+    @Test
+    fun `oauth callback rotates session id planted before login`() = testApplication {
+        val storage = SessionStorageMemory()
+        val testClient = createClient { install(HttpCookies) }
+        val oauth = oauth2Session<OAuthPrincipal, OAuthSession>("test-oauth") {
+            client = testClient
+            settings = OAuthServerSettings.OAuth2ServerSettings(
+                name = "test-provider",
+                authorizeUrl = "http://oauth.test/authorize",
+                accessTokenUrl = "http://oauth.test/token",
+                clientId = "test-client-id",
+                clientSecret = "test-client-secret",
+                requestMethod = HttpMethod.Post,
+            )
+            loginPath = "/login"
+            callback("/callback") { call.respondText("ok") }
+            sessions {
+                name = "user_session"
+                transport = SessionTransportType.CookieId(storage)
+                sessionCreator = { OAuthSession(it.accessToken) }
+                validate { OAuthPrincipal(it.accessToken, source = "session") }
+            }
+        }
+        mockOAuthServices()
+
+        routing {
+            install(oauth)
+            authenticateWith(oauth.session) {
+                get("/protected") { call.respondText(call.principal.token) }
+            }
+        }
+
+        // The attacker completes a login of their own to get a session ID known to them.
+        val attackerCallback = performOAuthFlow(testClient)
+        assertEquals(HttpStatusCode.OK, attackerCallback.status)
+        val plantedId = attackerCallback.setCookie().first { it.name == "user_session" }.value
+
+        // The victim completes a login while the attacker's session ID is planted in their cookies.
+        val victim = createClient {}
+        val victimLogin = victim.get("/login")
+        val params = parseQueryString(victimLogin.bodyAsText())
+        val victimCallback = victim.get("/callback?code=${params["code"]!!}&state=${params["state"]!!}") {
+            header(HttpHeaders.Cookie, "user_session=$plantedId")
+        }
+        assertEquals(HttpStatusCode.OK, victimCallback.status)
+        val rotatedId = victimCallback.setCookie().first { it.name == "user_session" }.value
+
+        assertNotEquals(plantedId, rotatedId, "authenticated session must not be stored under a pre-login session ID")
+        assertFailsWith<NoSuchElementException>("planted session ID must be invalidated") { storage.read(plantedId) }
+
+        val replay = victim.get("/protected") { header(HttpHeaders.Cookie, "user_session=$plantedId") }
+        assertEquals(HttpStatusCode.Unauthorized, replay.status)
+
+        val victimAccess = victim.get("/protected") { header(HttpHeaders.Cookie, "user_session=$rotatedId") }
+        assertEquals(HttpStatusCode.OK, victimAccess.status)
     }
 
     @Test
