@@ -122,7 +122,26 @@ class StringsTest {
     }
 
     @Test
+    fun `readTextExactCharacters supports single-byte charset decoding`() {
+        val charsetName = when {
+            Charsets.isSupported("windows-1252") -> "windows-1252"
+            Charsets.isSupported("US-ASCII") -> "US-ASCII"
+            else -> return
+        }
+        val charset = Charsets.forName(charsetName)
+
+        val packet = buildPacket {
+            writeText("ABCZ", charset = charset)
+        }
+
+        assertEquals("ABC", packet.readTextExactCharacters(3, charset))
+        assertEquals("Z", packet.readText(charset))
+    }
+
+    @Test
     fun `readTextExactCharacters rejects unsupported charset`() {
+        if (!Charsets.isSupported("UTF-16")) return
+
         val packet = buildPacket {
             writeText("abc")
         }
@@ -173,6 +192,17 @@ class StringsTest {
 
         assertFailsWith<MalformedInputException> {
             packet.readTextExactCharacters(1, Charsets.UTF_8)
+        }
+    }
+
+    @Test
+    fun `readTextExactCharacters utf8 fails on malformed four-byte out-of-range code point`() {
+        val packet = buildPacket {
+            writeFully(byteArrayOf(0xF4.toByte(), 0x90.toByte(), 0x80.toByte(), 0x80.toByte()))
+        }
+
+        assertFailsWith<MalformedInputException> {
+            packet.readTextExactCharacters(2, Charsets.UTF_8)
         }
     }
 

@@ -86,7 +86,7 @@ public fun Source.readTextExact(charset: Charset = Charsets.UTF_8, n: Int): Stri
 /**
  * Read exactly [charactersCount] characters interpreting bytes in the specified [charset].
  *
- * @throws IllegalArgumentException if [charset] is not either ISO_8859_1 or UTF_8
+ * @throws IllegalArgumentException if [charset] is not UTF_8 and is not a supported single-byte charset
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.core.readTextExactCharacters)
  */
@@ -97,8 +97,21 @@ public fun Source.readTextExactCharacters(charactersCount: Int, charset: Charset
     return when (charset) {
         Charsets.UTF_8 -> readUtf8ExactCharacters(charactersCount)
         Charsets.ISO_8859_1 -> readIso88591ExactCharacters(charactersCount)
-        else -> throw IllegalArgumentException("Unsupported charset: $charset")
+        else -> readSingleByteExactCharacters(charactersCount, charset)
     }
+}
+
+private fun Source.readSingleByteExactCharacters(charactersCount: Int, charset: Charset): String {
+    if (!charset.supportsReadTextExactCharacters()) {
+        throw IllegalArgumentException("Unsupported charset: $charset")
+    }
+
+    val result = readText(charset, charactersCount)
+    if (result.length < charactersCount) {
+        prematureEndOfStreamToReadChars(charactersCount)
+    }
+
+    return result
 }
 
 private fun Source.readIso88591ExactCharacters(charactersCount: Int): String {
@@ -128,6 +141,11 @@ private fun Source.readUtf8ExactCharacters(charactersCount: Int): String {
             prematureEndOfStreamToReadChars(charactersCount)
         }
 
+        val decodedUnits = if (codePoint <= 0xFFFF) 1 else 2
+        if (decodedUnits != nextUnits) {
+            throw MalformedInputException("Invalid UTF-8 code point")
+        }
+
         if (codePoint <= 0xFFFF) {
             out.append(codePoint.toChar())
         } else {
@@ -138,7 +156,7 @@ private fun Source.readUtf8ExactCharacters(charactersCount: Int): String {
             out.append(low)
         }
 
-        remainingUnits -= nextUnits
+        remainingUnits -= decodedUnits
     }
 
     return out.toString()
@@ -181,6 +199,8 @@ private fun Source.readByteOrFail(): Byte =
     } catch (_: EOFException) {
         prematureEndOfStreamToReadChars(1)
     }
+
+internal expect fun Charset.supportsReadTextExactCharacters(): Boolean
 
 /**
  * Writes [text] characters in range \[[fromIndex] .. [toIndex]) with the specified [charset]

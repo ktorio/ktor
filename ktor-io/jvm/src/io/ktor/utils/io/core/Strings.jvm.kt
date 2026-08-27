@@ -23,3 +23,9 @@ public actual fun Source.readText(charset: Charset, max: Int): String =
             readString(minOf(buffer.size, max.toLong()), charset)
         }
     }
+
+internal actual fun Charset.supportsReadTextExactCharacters(): Boolean {
+    val encoder = newEncoder()
+    val decoder = newDecoder()
+    return encoder.maxBytesPerChar() == 1f && decoder.maxCharsPerByte() == 1f
+}

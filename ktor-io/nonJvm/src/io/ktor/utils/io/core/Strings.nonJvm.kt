@@ -7,6 +7,7 @@ package io.ktor.utils.io.core
 import io.ktor.utils.io.charsets.Charset
 import io.ktor.utils.io.charsets.Charsets
 import io.ktor.utils.io.charsets.decode
+import io.ktor.utils.io.charsets.name
 import kotlinx.io.InternalIoApi
 import kotlinx.io.Source
 import kotlinx.io.readString
@@ -23,4 +24,11 @@ public actual fun Source.readText(charset: Charset, max: Int): String {
     }
 
     return charset.newDecoder().decode(this, max)
+}
+
+internal actual fun Charset.supportsReadTextExactCharacters(): Boolean {
+    val normalized = name.uppercase()
+    return normalized == "US-ASCII" || normalized == "ASCII" || normalized == "WINDOWS-1252" ||
+        normalized == "CP1252" || normalized == "ISO-8859-1" || normalized == "ISO_8859-1" ||
+        normalized == "LATIN1"
 }
