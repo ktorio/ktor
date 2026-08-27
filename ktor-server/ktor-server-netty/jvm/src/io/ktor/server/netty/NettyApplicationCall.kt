@@ -91,6 +91,19 @@ public abstract class NettyApplicationCall(
     internal abstract fun isContextCloseRequired(): Boolean
 
     /**
+     * Flushes written response data right before the channel is closed by the response pipeline.
+     * Protocol-specific implementations may piggyback their end-of-stream signal on this flush.
+     *
+     * [lastFuture] is the future of the last response write. It may still be pending (for example,
+     * queued behind flow control) when this is called, so implementations that send an explicit
+     * end-of-stream signal on the underlying channel (rather than through this context) must wait
+     * for it to complete first, or risk racing ahead of not-yet-transmitted data.
+     */
+    internal open fun flushBeforeClose(context: ChannelHandlerContext, lastFuture: ChannelFuture) {
+        context.flush()
+    }
+
+    /**
      * Marks the call as ready to finish, without suspending the calling coroutine.
      *
      * The response writer runs on the Netty I/O thread and signals completion through
