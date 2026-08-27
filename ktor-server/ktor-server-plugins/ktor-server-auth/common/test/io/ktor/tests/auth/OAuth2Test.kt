@@ -418,7 +418,7 @@ class OAuth2Test {
             }
         }
 
-        // exception during redirect, for example user denied access
+        // exception during redirect, for example, user denied access
         client.get("/login?error=ERROR").apply {
             assertEquals(status, HttpStatusCode.OK)
             assertEquals("Redirected after fallback", bodyAsText())
@@ -637,9 +637,7 @@ class OAuth2Test {
     @Test
     fun testResourceOwnerPasswordCredentials() = testApplication {
         application { module() }
-        handleRequestWithBasic("/resource", "user", "pass").let { result ->
-            assertWWWAuthenticateHeaderExist(result)
-        }
+        assertWWWAuthenticateHeaderExist(handleRequestWithBasic("/resource", "user", "pass"))
 
         handleRequestWithBasic("/resource", "user1", "password1").let { result ->
             assertFailures()
@@ -670,8 +668,8 @@ class OAuth2Test {
             routing {
                 post("/oauth/access_token") {
                     // If these fail, you will see '401 Unauthorized' in test logs.
-                    assertEquals(call.request.queryParameters[OAuth2RequestParameters.Code], "mow", "Code is in URL")
-                    assertEquals(call.request.queryParameters[OAuth2RequestParameters.State], "wow", "State is in URL")
+                    assertEquals("mow", call.request.queryParameters[OAuth2RequestParameters.Code], "Code is in URL")
+                    assertEquals("wow", call.request.queryParameters[OAuth2RequestParameters.State], "State is in URL")
                     call.respondText("access_token=a_token", ContentType.Application.FormUrlEncoded)
                 }
                 authenticate("login") {
@@ -1069,8 +1067,18 @@ internal fun createOAuth2Server(server: OAuth2Server): Deferred<HttpClient> {
 
                         val values = call.parameters + formData
 
-                        val clientId = values.requireParameter(OAuth2RequestParameters.ClientId)
-                        val clientSecret = values.requireParameter(OAuth2RequestParameters.ClientSecret)
+                        val basicCredentials = call.request.headers[HttpHeaders.Authorization]
+                            ?.takeIf { it.startsWith("Basic ") }
+                            ?.removePrefix("Basic ")
+                            ?.let { Base64.decode(source = it).decodeToString() }
+                            ?.split(":", limit = 2)
+                            ?.takeIf { it.size == 2 }
+                        val clientId = values[OAuth2RequestParameters.ClientId]
+                            ?: basicCredentials?.get(0)
+                            ?: throw IllegalArgumentException("No parameter client_id specified")
+                        val clientSecret = values[OAuth2RequestParameters.ClientSecret]
+                            ?: basicCredentials?.get(1)
+                            ?: throw IllegalArgumentException("No parameter client_secret specified")
                         val grantType = values.requireParameter(OAuth2RequestParameters.GrantType)
                         val state = values[OAuth2RequestParameters.State]
                         val code = values[OAuth2RequestParameters.Code]

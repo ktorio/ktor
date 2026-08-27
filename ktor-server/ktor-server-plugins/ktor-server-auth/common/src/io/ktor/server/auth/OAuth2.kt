@@ -144,7 +144,11 @@ private suspend fun oauth2RequestAccessToken(
 
     val urlParameters = ParametersBuilder().apply {
         append(OAuth2RequestParameters.ClientId, clientId)
-        append(OAuth2RequestParameters.ClientSecret, clientSecret)
+        // RFC 6749 2.3: the client must not use more than one authentication method per request,
+        // so the secret goes in the Authorization header or the body, never both.
+        if (!useBasicAuth) {
+            append(OAuth2RequestParameters.ClientSecret, clientSecret)
+        }
         append(OAuth2RequestParameters.GrantType, grantType)
         if (state != null) {
             append(OAuth2RequestParameters.State, state)

@@ -12,10 +12,12 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.auth.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
 import io.ktor.server.testing.*
+import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.serialization.Serializable
 import kotlin.test.Test
@@ -23,6 +25,7 @@ import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotEquals
+import kotlin.test.assertNull
 
 @Serializable
 data class OAuthSession(val accessToken: String)
@@ -314,6 +317,55 @@ class OAuthFlowTest {
         }
         assertEquals(HttpStatusCode.OK, response.status)
         assertEquals("form_post", response.bodyAsText())
+    }
+
+    @Test
+    fun `basic auth token request omits client secret from body`() = testApplication {
+        var tokenAuthHeader: String? = null
+        var tokenBodyClientSecret: String? = null
+        externalServices {
+            hosts("http://oauth.test") {
+                routing {
+                    get("/authorize") {
+                        val state = call.parameters["state"]!!
+                        call.respondText("code=test_code&state=$state", ContentType.Application.FormUrlEncoded)
+                    }
+                    post("/token") {
+                        tokenAuthHeader = call.request.headers[HttpHeaders.Authorization]
+                        tokenBodyClientSecret = call.receiveParameters()["client_secret"]
+                        call.respondText(
+                            "access_token=test_token&token_type=bearer",
+                            ContentType.Application.FormUrlEncoded
+                        )
+                    }
+                }
+            }
+        }
+
+        val testClient = createClient { install(HttpCookies) }
+        val scheme = oauth2(name = "test-oauth") {
+            client = testClient
+            settings = OAuthServerSettings.OAuth2ServerSettings(
+                name = "test-provider",
+                authorizeUrl = "http://oauth.test/authorize",
+                accessTokenUrl = "http://oauth.test/token",
+                clientId = "test-client-id",
+                clientSecret = "test-client-secret",
+                requestMethod = HttpMethod.Post,
+                accessTokenRequiresBasicAuth = true,
+            )
+            loginPath = "/login"
+            callback("/callback") { call.respondText("done") }
+        }
+
+        routing {
+            install(scheme)
+        }
+
+        val response = performOAuthFlow(testClient)
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals("Basic " + "test-client-id:test-client-secret".encodeBase64(), tokenAuthHeader)
+        assertNull(tokenBodyClientSecret, "client_secret must not be sent in the body when Basic auth is used")
     }
 
     @Test
