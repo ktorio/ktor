@@ -2,7 +2,7 @@
  * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-@file:OptIn(ExperimentalKtorApi::class, InternalAPI::class)
+@file:OptIn(InternalAPI::class)
 
 package io.ktor.server.auth.oidc
 
@@ -87,13 +87,13 @@ internal val OidcProvider.oauthFailureHandler: UnauthorizedHandler
         with(oauthConfig.onAuthenticationFailed) { onUnauthorized(cause) }
     }
 
-internal fun OidcProvider.createOauthFlow(): OAuth2Flow = withCapturedState {
+internal fun OidcProvider.createOauthFlow(): OAuth2Flow {
     val loginPath = oidcRoutePath(oauthConfig.loginUri)
     val redirectPath = oidcRoutePath(oauthConfig.redirectUri)
 
     return oauth2(name) {
         client = this@createOauthFlow.client
-        settings = oauthServerSettings()
+        providerLookup = { withCapturedState { oauthServerSettings() } }
         onUnauthorized = oauthFailureHandler
         this.loginPath = loginPath
 
@@ -106,7 +106,7 @@ internal fun OidcProvider.createOauthFlow(): OAuth2Flow = withCapturedState {
 
 internal fun OidcProvider.createOAuthSession(
     secureCookie: Boolean
-): OAuth2SessionFlow<OidcToken.Id, OidcToken.Id> = withCapturedState {
+): OAuth2SessionFlow<OidcToken.Id, OidcToken.Id> {
     val config = oauthConfig
     val sessionConfig = sessionConfig
     val loginPath = oidcRoutePath(config.loginUri)
@@ -117,7 +117,7 @@ internal fun OidcProvider.createOAuthSession(
 
     val sessionFlowConfig = OAuthSessionFlowConfig<OidcToken.Id, OidcToken.Id>().apply {
         client = this@createOAuthSession.client
-        settings = oauthServerSettings()
+        providerLookup = { withCapturedState { oauthServerSettings() } }
         onUnauthorized = oauthFailureHandler
         this.loginPath = loginPath
 

@@ -1,9 +1,6 @@
 /*
  * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
-
-@file:OptIn(ExperimentalKtorApi::class)
-
 package io.ktor.server.auth.oidc
 
 import io.ktor.http.*
@@ -11,7 +8,6 @@ import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.utils.io.*
 import kotlinx.coroutines.CancellationException
 
 internal fun Application.configureOAuthRoute(provider: OidcProvider) {
@@ -68,14 +64,14 @@ internal fun Application.configureOAuthRoute(provider: OidcProvider) {
                         call.request.oidcRedirectUri(builder)
                     }
                     val idTokenHint = call.session.value
-                    call.clearSession()
+                    val logoutUrl = provider.buildLogoutUrl(idTokenHint, postLogoutRedirectUri)
 
+                    call.clearSession()
                     config.onLogout(this)
                     if (call.isHandled) {
                         return@post
                     }
 
-                    val logoutUrl = provider.buildLogoutUrl(idTokenHint, postLogoutRedirectUri)
                     call.response.headers.append(HttpHeaders.Location, logoutUrl)
                     call.respond(HttpStatusCode.SeeOther)
                 }

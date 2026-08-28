@@ -736,10 +736,10 @@ public class OidcOAuthConfig internal constructor(
     internal var onRefresh: suspend RoutingContext.() -> Unit = {}
 
     internal fun validate() {
-        require(::clientId.isInitialized) {
+        require(::clientId.isInitialized && clientId.isNotBlank()) {
             "clientId must be configured"
         }
-        require(::clientSecret.isInitialized) {
+        require(::clientSecret.isInitialized && clientSecret.isNotBlank()) {
             "clientSecret must be configured"
         }
         require("openid" in scopes) {

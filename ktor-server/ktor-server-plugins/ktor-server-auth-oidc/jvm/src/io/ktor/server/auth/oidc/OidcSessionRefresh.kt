@@ -2,7 +2,7 @@
  * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-@file:OptIn(ExperimentalKtorApi::class, ExperimentalTime::class)
+@file:OptIn(ExperimentalTime::class)
 
 package io.ktor.server.auth.oidc
 
@@ -10,8 +10,6 @@ import io.ktor.http.*
 import io.ktor.server.request.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
-import io.ktor.utils.io.*
-import kotlinx.coroutines.CancellationException
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.ExperimentalTime
@@ -27,9 +25,9 @@ internal suspend fun OidcProvider.refreshSessionIfNeeded(token: OidcToken.Id): O
     return when (val strategy = sessionConfig.tokenRefreshStrategy) {
         is OidcTokenRefreshStrategy.Auto -> refreshSessionAutomatically(token, strategy.beforeExpiry, now)
 
-        is OidcTokenRefreshStrategy.Disabled -> keepSessionIfNotExpired(token, now)
+        is OidcTokenRefreshStrategy.Disabled -> clearSessionIfExpired(token, now)
 
-        is OidcTokenRefreshStrategy.Custom -> refreshSession {
+        is OidcTokenRefreshStrategy.Custom -> refreshSession(token, now) {
             with(strategy) {
                 ctx.refresh(provider = this@refreshSessionIfNeeded, token, now)
             }
@@ -40,11 +38,11 @@ internal suspend fun OidcProvider.refreshSessionIfNeeded(token: OidcToken.Id): O
 }
 
 context(ctx: RoutingContext)
-private fun OidcProvider.keepSessionIfNotExpired(token: OidcToken.Id, now: Instant): OidcToken.Id? {
+private fun OidcProvider.clearSessionIfExpired(token: OidcToken.Id, now: Instant): OidcToken.Id? {
     if (!token.isExpired(now)) {
         return token
     }
-    logger.debug("OpenID Connect session expired")
+    logger.debug("OpenID Connect session expired. Removing session.")
     clearOidcSession()
     return null
 }
@@ -61,31 +59,33 @@ private suspend fun OidcProvider.refreshSessionAutomatically(
 
     val refreshTokenValue = token.refreshToken ?: run {
         logger.debug("OpenID Connect session has no refresh token")
-        clearOidcSession()
-        return null
+        return clearSessionIfExpired(token, now)
     }
 
-    return refreshSession { refreshToken(refreshTokenValue).idToken }
+    return refreshSession(token, now) { refreshToken(refreshTokenValue).idToken }
 }
 
 context(ctx: RoutingContext)
 private suspend fun OidcProvider.refreshSession(
+    token: OidcToken.Id,
+    now: Instant,
     refresh: suspend () -> OidcToken.Id?
 ): OidcToken.Id? {
     val newToken = try {
         refresh()
-    } catch (cause: CancellationException) {
+    } catch (cause: Exception) {
+        clearSessionIfExpired(token, now)
         throw cause
-    } catch (cause: Throwable) {
-        logger.debug("OpenID Connect session refresh failed: {}", cause.message)
-        clearOidcSession()
-        return null
     }
     return newToken ?: run {
-        logger.debug("OpenID Connect session refresh did not return an ID token")
-        clearOidcSession()
-        return@run null
+        logger.debug("OpenID Connect session refresh did not return an ID token.")
+        clearSessionIfExpired(token, now)
     }
+}
+
+context(ctx: RoutingContext)
+private fun OidcProvider.clearOidcSession() {
+    ctx.call.sessions.clear(oauthSessionFlow.session.name)
 }
 
 private fun OidcToken.Id.isExpired(now: Instant): Boolean =
@@ -93,11 +93,6 @@ private fun OidcToken.Id.isExpired(now: Instant): Boolean =
 
 private fun OidcToken.Id.shouldRefresh(now: Instant, beforeExpiry: Duration): Boolean =
     claims.expiresAt?.let { it <= now + beforeExpiry } ?: false
-
-context(ctx: RoutingContext)
-private fun OidcProvider.clearOidcSession() {
-    ctx.call.sessions.clear(oauthSessionFlow.session.name)
-}
 
 context(ctx: RoutingContext)
 private fun OidcProvider.managesRoute(): Boolean {

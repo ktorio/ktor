@@ -198,7 +198,7 @@ class OidcSessionRoutesTest {
     }
 
     @Test
-    fun `auto refresh clears session when refreshed response has no id token`() = testApplication {
+    fun `auto refresh without id token keeps session until token expiry`() = testApplication {
         val keys = testRsaKeys
         val idTokensByState = ConcurrentHashMap<String, String>()
 
@@ -216,6 +216,31 @@ class OidcSessionRoutesTest {
 
         val browser = noRedirectsClient()
         val cookie = browser.signInWithIdToken(idTokensByState, keys, expiresIn = 10.seconds)
+
+        browser.assertMe(cookie, HttpStatusCode.OK, "session-user")
+        browser.assertMe(cookie, HttpStatusCode.OK, "session-user")
+    }
+
+    @Test
+    fun `auto refresh clears expired session when refreshed response has no id token`() = testApplication {
+        val keys = testRsaKeys
+        val idTokensByState = ConcurrentHashMap<String, String>()
+
+        openIdRefreshProvider(idTokensByState) {
+            call.respondText(
+                openIdTestJson.encodeToString(
+                    TokenRefreshResponse(accessToken = "access-token-only", tokenType = "Bearer")
+                ),
+                ContentType.Application.Json,
+            )
+        }
+        installSessionTestApp(keys) {
+            tokenRefreshStrategy = OidcTokenRefreshStrategy.Auto(beforeExpiry = 30.seconds)
+        }
+
+        val browser = noRedirectsClient()
+        // Expired for session checks, but still inside the ID-token verifier's clock skew at sign-in.
+        val cookie = browser.signInWithIdToken(idTokensByState, keys, expiresIn = (-1).seconds)
 
         browser.assertMe(cookie, HttpStatusCode.Unauthorized)
         browser.assertMe(cookie, HttpStatusCode.Unauthorized)
@@ -250,7 +275,9 @@ class OidcSessionRoutesTest {
         browser.assertMe(cookie, HttpStatusCode.OK, "refreshed-user")
         assertEquals(1, refreshCalls.get())
 
-        browser.assertMe(cookie, HttpStatusCode.Unauthorized)
+        // Returning null keeps the session while the current token is still valid.
+        browser.assertMe(cookie, HttpStatusCode.OK, "refreshed-user")
+        assertEquals(1, refreshCalls.get())
     }
 
     @Test

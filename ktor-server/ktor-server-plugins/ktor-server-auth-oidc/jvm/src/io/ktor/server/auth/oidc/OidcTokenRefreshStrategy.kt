@@ -59,7 +59,9 @@ public interface OidcTokenRefreshStrategy {
          * Returns the effective ID-token session for this request.
          *
          * Return the current [token] to keep the session unchanged, a new [OidcToken.Id] to update stored
-         * session material, or `null` to invalidate the session.
+         * session material, or `null` when no refreshed token is available. On `null` (or a thrown exception),
+         * the session is kept while the current token is still valid and cleared once it has expired. To end
+         * a session immediately, clear it with the `Sessions` plugin instead.
          *
          * @param token current ID-token session.
          * @param now request time captured before the strategy runs; use this instead of reading the clock again.
