@@ -103,7 +103,7 @@ public class ApiKeyAuthenticationProvider internal constructor(
             }
         }
         if (principal != null) {
-            context.principal(principal)
+            context.principal(name, principal)
         }
     }
 

@@ -266,6 +266,20 @@ public class RoutingContext(
 )
 
 /**
+ * Creates a [RoutingContext] for this routing call.
+ *
+ * This function is intended for use by Ktor internal code only.
+ *
+ * @throws IllegalStateException if this call is neither a [RoutingCall] nor a [RoutingPipelineCall].
+ */
+@InternalAPI
+public fun ApplicationCall.toRoutingContext(): RoutingContext = when (this) {
+    is RoutingCall -> RoutingContext(call = this)
+    is RoutingPipelineCall -> RoutingContext(call = RoutingCall(this))
+    else -> error("Expected a routing call, but got ${this::class.simpleName}")
+}
+
+/**
  * A function that handles a [RoutingCall].
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.RoutingHandler)
