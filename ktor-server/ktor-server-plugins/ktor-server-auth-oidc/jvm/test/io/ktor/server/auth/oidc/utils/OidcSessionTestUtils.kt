@@ -2,7 +2,7 @@
  * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-@file:OptIn(ExperimentalKtorApi::class, ExperimentalTime::class)
+@file:OptIn(ExperimentalTime::class)
 
 package io.ktor.server.auth.oidc.utils
 
@@ -10,14 +10,13 @@ import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.server.application.install
+import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.oidc.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import io.ktor.utils.io.*
 import kotlinx.serialization.json.Json
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.test.assertEquals
@@ -57,7 +56,7 @@ internal fun TestApplicationBuilder.openIdRefreshProvider(
 
 internal suspend fun RoutingContext.respondRefreshedIdToken(
     keys: OpenIdTestKeys,
-    subject: String = "refreshed-user",
+    subject: String = "session-user",
     refreshCalls: AtomicInteger? = null,
 ) {
     refreshCalls?.incrementAndGet()
@@ -69,6 +68,7 @@ internal suspend fun RoutingContext.respondRefreshedIdToken(
                 refreshToken = "refresh-token-2",
                 idToken = keys.idToken(subject = subject) {
                     audience = "client-id"
+                    claim("email", "refreshed-user")
                 },
             )
         ),
@@ -81,7 +81,7 @@ internal fun ApplicationTestBuilder.installSessionTestApp(
     endSessionEndpoint: String? = "$ISSUER_URL/logout",
     configureProvider: OidcProviderConfig.() -> Unit = { jwt(keys) },
     meResponse: suspend RoutingContext.(OidcToken.Id) -> Unit = { idToken ->
-        call.respondText(idToken.userInfo.subject)
+        call.respondText(idToken.userInfo.email ?: idToken.userInfo.subject)
     },
     configureSessions: OidcSessionsConfig.() -> Unit = {},
 ) {

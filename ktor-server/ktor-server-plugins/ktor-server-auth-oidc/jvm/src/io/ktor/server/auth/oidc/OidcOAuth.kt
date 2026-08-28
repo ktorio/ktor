@@ -8,7 +8,6 @@ import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import kotlinx.coroutines.CancellationException
 
 internal fun Application.configureOAuthRoute(provider: OidcProvider) {
     val config = provider.oauthConfig
@@ -25,17 +24,16 @@ internal fun Application.configureOAuthRoute(provider: OidcProvider) {
         authenticateWith(provider.session) {
             config.refreshPath?.let { path ->
                 post(path) {
-                    val refreshToken = call.session.refreshToken ?: run {
-                        provider.logger.debug("Session has no refresh token, cannot refresh")
+                    val idToken = call.session
+                    val refreshToken = idToken.refreshToken ?: run {
+                        provider.logger.debug("Session has no refresh token, cannot refresh.")
                         return@post call.respond(HttpStatusCode.Unauthorized)
                     }
 
                     val refreshResult = try {
                         provider.refreshToken(refreshToken)
-                    } catch (cause: CancellationException) {
-                        throw cause
-                    } catch (cause: Exception) {
-                        provider.logger.debug("Failed to refresh token", cause)
+                    } catch (cause: OidcTokenRejectedException) {
+                        provider.logger.debug("Refreshed token is invalid.", cause)
                         null
                     }
 
@@ -43,10 +41,11 @@ internal fun Application.configureOAuthRoute(provider: OidcProvider) {
                         return@post call.respond(HttpStatusCode.Unauthorized)
                     }
 
-                    val refreshedPrincipal = refreshResult.idToken
+                    val refreshedIdToken = refreshResult.idToken
+                        ?.takeIf { provider.hasSameSubject(current = idToken, refreshed = it) }
                         ?: return@post call.respond(HttpStatusCode.Unauthorized)
 
-                    call.session = refreshedPrincipal
+                    call.session = refreshedIdToken
                     config.onRefresh(this)
                     if (!call.isHandled) {
                         call.respond(HttpStatusCode.OK)
@@ -56,7 +55,7 @@ internal fun Application.configureOAuthRoute(provider: OidcProvider) {
 
             config.logoutPath?.let { path ->
                 requireNotNull(provider.currentMetadata().endSessionEndpoint) {
-                    "Identity provider ${provider.name} doesn't support logout"
+                    "Identity provider ${provider.name} doesn't support logout."
                 }
 
                 post(path) {
@@ -99,11 +98,11 @@ internal fun ApplicationCall.validateAuthorizationResponseIssuer() {
     val metadata = state.metadata
     if (responseIssuer == null) {
         require(metadata.authorizationResponseIssParameterSupported != true) {
-            "OpenID Connect authorization response is missing 'iss' parameter"
+            "OpenID Connect authorization response is missing 'iss' parameter."
         }
         return
     }
     require(responseIssuer == metadata.issuer) {
-        "OpenID Connect authorization response issuer mismatch: expected ${metadata.issuer}, got $responseIssuer"
+        "OpenID Connect authorization response issuer mismatch: expected '${metadata.issuer}', got '$responseIssuer'."
     }
 }

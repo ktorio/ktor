@@ -222,6 +222,24 @@ class OidcSessionRoutesTest {
     }
 
     @Test
+    fun `auto refresh keeps session when refreshed id token has different subject`() = testApplication {
+        val keys = testRsaKeys
+        val idTokensByState = ConcurrentHashMap<String, String>()
+
+        openIdRefreshProvider(idTokensByState) {
+            respondRefreshedIdToken(keys, subject = "different-user")
+        }
+        installSessionTestApp(keys) {
+            tokenRefreshStrategy = OidcTokenRefreshStrategy.Auto(beforeExpiry = 30.seconds)
+        }
+
+        val browser = noRedirectsClient()
+        val cookie = browser.signInWithIdToken(idTokensByState, keys, expiresIn = 10.seconds)
+
+        browser.assertMe(cookie, HttpStatusCode.OK, "session-user")
+    }
+
+    @Test
     fun `auto refresh clears expired session when refreshed response has no id token`() = testApplication {
         val keys = testRsaKeys
         val idTokensByState = ConcurrentHashMap<String, String>()
@@ -293,6 +311,15 @@ class OidcSessionRoutesTest {
                     idToken = keys.idToken(subject = "refreshed-user") {
                         audience = "client-id"
                         nonce = "unexpected-nonce"
+                    },
+                )
+            },
+            "id token subject changes" to { keys: OpenIdTestKeys ->
+                TokenRefreshResponse(
+                    accessToken = "access-token-2",
+                    tokenType = "Bearer",
+                    idToken = keys.idToken(subject = "different-user") {
+                        audience = "client-id"
                     },
                 )
             },

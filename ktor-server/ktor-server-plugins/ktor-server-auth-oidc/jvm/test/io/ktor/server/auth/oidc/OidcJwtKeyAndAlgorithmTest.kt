@@ -2,8 +2,6 @@
  * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-@file:OptIn(ExperimentalKtorApi::class)
-
 package io.ktor.server.auth.oidc
 
 import io.ktor.client.request.*
@@ -16,7 +14,6 @@ import io.ktor.server.auth.oidc.utils.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import io.ktor.utils.io.*
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive

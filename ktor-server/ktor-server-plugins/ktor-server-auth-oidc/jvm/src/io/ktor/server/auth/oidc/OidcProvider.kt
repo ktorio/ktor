@@ -94,12 +94,15 @@ public class OidcProvider internal constructor(
      * Refreshes token material for this provider using the supplied refresh token.
      *
      * Concurrent callers with the same refresh token share one token-endpoint request. After success, the result
-     * remains available for [OidcProviderConfig.tokenRefreshCacheTtl] so stragglers reuse it. [Duration.ZERO]
-     * coalesces in-flight work only.
+     * remains available for [OidcProviderConfig.tokenRefreshCacheTtl] so stragglers reuse it.
+     * [Duration.ZERO] coalesces in-flight work only.
      *
      * @param refreshToken Refresh token to send to the provider token endpoint.
      * @return Raw token response fields and an optional verified ID-token principal.
      * @throws IllegalStateException when OAuth is not enabled.
+     * @throws OidcTokenRejectedException when tokens in the refresh response fail validation.
+     * @throws io.ktor.client.plugins.ResponseException when the provider rejects the request, for example,
+     * with an `invalid_grant` error response.
      */
     public suspend fun refreshToken(refreshToken: String): OidcTokenRefreshResult = withCapturedState {
         pruneCompletedTokenRefreshes()

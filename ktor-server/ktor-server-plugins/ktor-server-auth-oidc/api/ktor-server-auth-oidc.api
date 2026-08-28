@@ -358,6 +358,10 @@ public final class io/ktor/server/auth/oidc/OidcTokenRefreshStrategy$Disabled : 
 	public static final field INSTANCE Lio/ktor/server/auth/oidc/OidcTokenRefreshStrategy$Disabled;
 }
 
+public final class io/ktor/server/auth/oidc/OidcTokenRejectedException : java/lang/RuntimeException {
+	public fun <init> (Ljava/lang/String;)V
+}
+
 public final class io/ktor/server/auth/oidc/OpenIdProviderMetadata {
 	public static final field Companion Lio/ktor/server/auth/oidc/OpenIdProviderMetadata$Companion;
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/util/List;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/Boolean;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;)V

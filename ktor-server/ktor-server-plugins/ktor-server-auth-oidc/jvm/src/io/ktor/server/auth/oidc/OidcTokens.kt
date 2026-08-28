@@ -12,12 +12,14 @@ import com.auth0.jwt.exceptions.JWTVerificationException
 import com.auth0.jwt.interfaces.DecodedJWT
 import io.ktor.client.*
 import io.ktor.client.call.*
+import io.ktor.client.plugins.expectSuccess
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
 import io.ktor.server.auth.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonObject
@@ -28,7 +30,15 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
-internal class OidcTokenRejectedException(message: String?) : RuntimeException(message)
+/**
+ * Thrown when a token fails OpenID Connect validation and must not be trusted.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcTokenRejectedException)
+ *
+ * @param message describes why the token was rejected.
+ */
+@ExperimentalKtorApi
+public class OidcTokenRejectedException(message: String?) : RuntimeException(message)
 
 private fun rejectToken(message: String?): Nothing =
     throw OidcTokenRejectedException(message)
@@ -74,7 +84,9 @@ internal suspend fun OidcProvider.refreshTokenInternal(refreshToken: String): Oi
         }
         oauthConfig.resourceIndicators.forEach { append("resource", it) }
     }
+
     val response = client.submitForm(url, formParameters) {
+        expectSuccess = true
         if (useBasicAuth) {
             basicAuth(username = oauthConfig.clientId, password = oauthConfig.clientSecret)
         }

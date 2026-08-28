@@ -2,7 +2,7 @@
  * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-@file:OptIn(ExperimentalKtorApi::class, ExperimentalTime::class)
+@file:OptIn(ExperimentalTime::class)
 
 package io.ktor.server.auth.oidc
 
@@ -16,8 +16,7 @@ import io.ktor.server.auth.oidc.utils.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import io.ktor.utils.io.*
-import kotlinx.serialization.json.*
+import kotlinx.serialization.json.jsonPrimitive
 import kotlin.test.*
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds

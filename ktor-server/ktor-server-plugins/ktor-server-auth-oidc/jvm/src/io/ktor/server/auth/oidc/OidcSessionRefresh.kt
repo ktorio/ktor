@@ -62,7 +62,21 @@ private suspend fun OidcProvider.refreshSessionAutomatically(
         return clearSessionIfExpired(token, now)
     }
 
-    return refreshSession(token, now) { refreshToken(refreshTokenValue).idToken }
+    return refreshSession(token, now) {
+        refreshToken(refreshTokenValue).idToken?.takeIf { hasSameSubject(current = token, refreshed = it) }
+    }
+}
+
+/**
+ * OIDC Core 12.2 requires an ID token issued from a refresh request to keep the `sub` claim of the ID token
+ * issued at the original authentication.
+ */
+internal fun OidcProvider.hasSameSubject(current: OidcToken.Id, refreshed: OidcToken.Id): Boolean {
+    if (current.claims.subject == refreshed.claims.subject) {
+        return true
+    }
+    logger.warn("OpenID Connect refresh returned an ID token for a different subject. Discarding it.")
+    return false
 }
 
 context(ctx: RoutingContext)

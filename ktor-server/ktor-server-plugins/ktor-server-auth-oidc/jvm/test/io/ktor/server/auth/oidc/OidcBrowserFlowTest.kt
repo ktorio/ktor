@@ -1,30 +1,22 @@
 /*
  * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
-
-@file:OptIn(ExperimentalKtorApi::class)
-
 package io.ktor.server.auth.oidc
 
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.server.application.install
+import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.oidc.utils.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import io.ktor.utils.io.*
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 class OidcBrowserFlowTest {
 
@@ -198,7 +190,7 @@ class OidcBrowserFlowTest {
             sessionCookie()
         }
         assertEquals(HttpStatusCode.OK, refreshedProfile.status)
-        assertEquals("refreshed-user:Refreshed User", refreshedProfile.bodyAsText())
+        assertEquals("browser-user:Refreshed User", refreshedProfile.bodyAsText())
 
         val logout = browser.post("/oidc/auth0/logout") {
             sessionCookie()
@@ -260,7 +252,7 @@ class OidcBrowserFlowTest {
                     assertEquals("client-id", parameters["client_id"])
                     assertEquals("client-secret", parameters["client_secret"])
 
-                    val idToken = keys.idToken(subject = "refreshed-user") {
+                    val idToken = keys.idToken(subject = "browser-user") {
                         audience = "client-id"
                         name = "Refreshed Token Subject"
                     }
@@ -293,7 +285,7 @@ class OidcBrowserFlowTest {
                 }
 
                 "Bearer access-token-2" -> {
-                    """{"sub":"refreshed-user","name":"Refreshed User","email":"refresh@example.com"}"""
+                    """{"sub":"browser-user","name":"Refreshed User","email":"refresh@example.com"}"""
                 }
 
                 else -> return@get call.respond(HttpStatusCode.Unauthorized)
