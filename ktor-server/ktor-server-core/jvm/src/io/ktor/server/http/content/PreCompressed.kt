@@ -31,6 +31,54 @@ public enum class CompressedFileType(public val extension: String, public val en
     DEFLATE("deflate"),
 }
 
+/**
+ * Chooses which pre-compressed variant to serve when multiple types configured via
+ * [StaticContentConfig.preCompressed] are accepted by the client and exist.
+ *
+ * Implement this functional interface to customize selection. [FirstMatch] and [Smallest] are
+ * provided as built-in strategies.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.PreCompressedFileStrategy)
+ */
+public fun interface PreCompressedFileStrategy {
+    /**
+     * Selects one candidate from [candidates], or `null` to serve the uncompressed content instead.
+     *
+     * [candidates] is produced lazily in the order configured via [StaticContentConfig.preCompressed].
+     * Consuming it without accessing [Candidate.size] (for example with `firstOrNull()`) avoids
+     * computing the size of candidates that are never inspected.
+     */
+    public fun select(candidates: Sequence<Candidate>): Candidate?
+
+    /**
+     * A single accepted, existing pre-compressed variant considered by a [PreCompressedFileStrategy].
+     * [size] is computed lazily the first time it's accessed.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.PreCompressedFileStrategy.Candidate)
+     */
+    public class Candidate internal constructor(
+        public val type: CompressedFileType,
+        sizeProvider: () -> Long,
+    ) {
+        public val size: Long by lazy(LazyThreadSafetyMode.NONE, sizeProvider)
+    }
+
+    public companion object {
+        /**
+         * Serves the first configured, accepted, existing type. This matches the priority order
+         * described in [StaticContentConfig.preCompressed] and is the default strategy.
+         */
+        public val FirstMatch: PreCompressedFileStrategy = PreCompressedFileStrategy { it.firstOrNull() }
+
+        /**
+         * Compares every accepted, existing variant by [Candidate.size] and serves the smallest.
+         * Unlike [FirstMatch], this evaluates the size of every candidate.
+         */
+        public val Smallest: PreCompressedFileStrategy =
+            PreCompressedFileStrategy { it.minByOrNull(Candidate::size) }
+    }
+}
+
 internal val compressedKey = AttributeKey<List<CompressedFileType>>("StaticContentCompressed")
 
 internal val Route.staticContentEncodedTypes: List<CompressedFileType>?
@@ -96,40 +144,38 @@ internal fun bestCompressionFit(
     file: File,
     compressedTypes: Array<CompressedFileType>,
     acceptedEncodings: List<AcceptEncoding>,
+    strategy: PreCompressedFileStrategy,
 ): Pair<File, CompressedFileType>? {
-    // Find the smallest file in the accepted encodings
-    var smallestType: CompressedFileType? = null
-    var smallestFile: File? = null
-    var smallestSize: Long = Long.MAX_VALUE
-
     if (compressedTypes.isEmpty()) {
         return null
     }
 
-    for (compressedType in compressedTypes) {
-        if (acceptedEncodings.none {
-                it.quality > 0.0 && it.value.equals(compressedType.encoding, ignoreCase = true)
+    val basePath = file.absolutePath
+
+    val candidates = sequence {
+        for (compressedType in compressedTypes) {
+            if (acceptedEncodings.none {
+                    it.quality > 0.0 && it.value.equals(compressedType.encoding, ignoreCase = true)
+                }
+            ) {
+                continue
             }
-        ) {
-            continue
-        }
 
-        val compressedFile = File("${file.absolutePath}.${compressedType.extension}")
+            val compressedFile = File("$basePath.${compressedType.extension}")
+            val compressedSize = compressedFile.length()
 
-        if (!compressedFile.isFile) {
-            continue
-        }
+            // A missing file also reports length() == 0, and real compressed output is never
+            // empty, so this doubles as the existence check without a separate isFile() stat.
+            if (compressedSize <= 0) {
+                continue
+            }
 
-        val compressedSize = compressedFile.length()
-
-        if (smallestSize > compressedSize) {
-            smallestType = compressedType
-            smallestFile = compressedFile
-            smallestSize = compressedSize
+            yield(PreCompressedFileStrategy.Candidate(compressedType) { compressedSize })
         }
     }
 
-    return (smallestFile ?: return null) to (smallestType ?: return null)
+    val selected = strategy.select(candidates) ?: return null
+    return File("$basePath.${selected.type.extension}") to selected.type
 }
 
 internal fun bestCompressionFit(
@@ -137,60 +183,63 @@ internal fun bestCompressionFit(
     path: Path,
     compressedTypes: Array<CompressedFileType>,
     acceptedEncodings: List<AcceptEncoding>,
+    strategy: PreCompressedFileStrategy,
 ): Pair<Path, CompressedFileType>? {
-    // Find the smallest file in the accepted encodings
-    var smallestType: CompressedFileType? = null
-    var smallestPath: Path? = null
-    var smallestSize: Long = Long.MAX_VALUE
+    if (compressedTypes.isEmpty()) {
+        return null
+    }
 
-    for (compressedType in compressedTypes) {
-        if (acceptedEncodings.none {
-                it.quality > 0.0 && it.value.equals(compressedType.encoding, ignoreCase = true)
+    val basePath = path.pathString
+
+    val candidates = sequence {
+        for (compressedType in compressedTypes) {
+            if (acceptedEncodings.none {
+                    it.quality > 0.0 && it.value.equals(compressedType.encoding, ignoreCase = true)
+                }
+            ) {
+                continue
             }
-        ) {
-            continue
-        }
 
-        val compressedPath = fileSystem.getPath("${path.pathString}.${compressedType.extension}")
+            val compressedPath = fileSystem.getPath("$basePath.${compressedType.extension}")
 
-        if (!compressedPath.isRegularFile()) {
-            continue
-        }
+            if (!compressedPath.isRegularFile()) {
+                continue
+            }
 
-        val compressedSize = compressedPath.fileSize()
-
-        if (smallestSize > compressedSize) {
-            smallestType = compressedType
-            smallestPath = compressedPath
-            smallestSize = compressedSize
+            yield(PreCompressedFileStrategy.Candidate(compressedType) { compressedPath.fileSize() })
         }
     }
 
-    return (smallestPath ?: return null) to (smallestType ?: return null)
+    val selected = strategy.select(candidates) ?: return null
+    return fileSystem.getPath("$basePath.${selected.type.extension}") to selected.type
 }
 
 internal fun <T : Any> bestCompressionFit(
     compressedFiles: Array<Pair<CachedStaticFile<T>, CompressedFileType>>,
     acceptEncoding: List<AcceptEncoding>,
+    strategy: PreCompressedFileStrategy,
 ): Pair<CachedStaticFile<T>, CompressedFileType>? {
-    // Find the smallest file in the accepted encodings
-    var smallest: Pair<CachedStaticFile<T>, CompressedFileType>? = null
-    var smallestSize: Int = Int.MAX_VALUE
+    if (compressedFiles.isEmpty()) {
+        return null
+    }
 
-    for (compressedFile in compressedFiles) {
-        val (file, compressedType) = compressedFile
+    val candidates = sequence {
+        for (compressedFile in compressedFiles) {
+            val (file, compressedType) = compressedFile
 
-        if (acceptEncoding.none { it.quality > 0.0 && it.value.equals(compressedType.encoding, ignoreCase = true) }) {
-            continue
-        }
+            if (acceptEncoding.none {
+                    it.quality > 0.0 && it.value.equals(compressedType.encoding, ignoreCase = true)
+                }
+            ) {
+                continue
+            }
 
-        if (smallestSize > file.bytes.size) {
-            smallest = compressedFile
-            smallestSize = file.bytes.size
+            yield(PreCompressedFileStrategy.Candidate(compressedType) { file.bytes.size.toLong() })
         }
     }
 
-    return smallest
+    val selected = strategy.select(candidates) ?: return null
+    return compressedFiles.first { it.second == selected.type }
 }
 
 internal class CompressedResource(
@@ -204,35 +253,41 @@ internal fun bestCompressionFit(
     resource: String,
     compressedTypes: Array<CompressedFileType>,
     acceptedEncodings: List<AcceptEncoding>,
-    contentType: (URL) -> ContentType
+    contentType: (URL) -> ContentType,
+    strategy: PreCompressedFileStrategy,
 ): CompressedResource? {
-    // We respect the order in compressedTypes, not the one in Accept header
-
     if (compressedTypes.isEmpty()) {
         return null
     }
 
-    for (compressedType in compressedTypes) {
-        if (acceptedEncodings.none {
-                it.quality > 0.0 && it.value.equals(compressedType.encoding, ignoreCase = true)
+    val resolvedByType = HashMap<CompressedFileType, Pair<URL, OutgoingContent.ReadChannelContent>>()
+
+    val candidates = sequence {
+        for (compressedType in compressedTypes) {
+            if (acceptedEncodings.none {
+                    it.quality > 0.0 && it.value.equals(compressedType.encoding, ignoreCase = true)
+                }
+            ) {
+                continue
             }
-        ) {
-            continue
+
+            val compressed = "$resource.${compressedType.extension}"
+            val resolved = call.application.resolveResource(compressed) { url ->
+                val requestPath = url.path.replace(
+                    Regex("${Regex.escapeReplacement(compressed.substringAfterLast('/'))}$"),
+                    resource.substringAfterLast('/')
+                )
+                contentType(URL(url.protocol, url.host, url.port, requestPath))
+            } ?: continue
+
+            resolvedByType[compressedType] = resolved
+            yield(PreCompressedFileStrategy.Candidate(compressedType) { resolved.second.contentLength ?: 0L })
         }
-
-        val compressed = "$resource.${compressedType.extension}"
-        val resolved = call.application.resolveResource(compressed) { url ->
-            val requestPath = url.path.replace(
-                Regex("${Regex.escapeReplacement(compressed.substringAfterLast('/'))}$"),
-                resource.substringAfterLast('/')
-            )
-            contentType(URL(url.protocol, url.host, url.port, requestPath))
-        } ?: continue
-
-        return CompressedResource(resolved.first, resolved.second, compressedType)
     }
 
-    return null
+    val selected = strategy.select(candidates) ?: return null
+    val (url, content) = resolvedByType.getValue(selected.type)
+    return CompressedResource(url, content, selected.type)
 }
 
 internal suspend fun ApplicationCall.respondStaticFile(
@@ -243,7 +298,8 @@ internal suspend fun ApplicationCall.respondStaticFile(
     cacheControl: (File) -> List<CacheControl> = { emptyList() },
     lastModified: (File) -> GMTDate? = { null },
     etag: ETagProvider = ETagProvider { null },
-    modify: suspend (File, ApplicationCall) -> Unit = { _, _ -> }
+    modify: suspend (File, ApplicationCall) -> Unit = { _, _ -> },
+    strategy: PreCompressedFileStrategy = PreCompressedFileStrategy.FirstMatch,
 ) {
     if (!requestedFile.isFile) {
         return
@@ -255,7 +311,7 @@ internal suspend fun ApplicationCall.respondStaticFile(
 
     response.addCacheControlHeader(cacheControl(requestedFile))
 
-    val bestCompressionFit = bestCompressionFit(requestedFile, compressedTypes, acceptedEncodings)
+    val bestCompressionFit = bestCompressionFit(requestedFile, compressedTypes, acceptedEncodings, strategy)
 
     if (bestCompressionFit == null) {
         modify(requestedFile, this)
@@ -288,6 +344,7 @@ internal suspend fun ApplicationCall.respondStaticPath(
     modify: suspend (Path, ApplicationCall) -> Unit = { _, _ -> },
     lastModified: (Path) -> GMTDate? = { null },
     etag: ETagProvider = ETagProvider { null },
+    strategy: PreCompressedFileStrategy = PreCompressedFileStrategy.FirstMatch,
 ) {
     if (!requestedPath.exists()) {
         return
@@ -300,7 +357,7 @@ internal suspend fun ApplicationCall.respondStaticPath(
     response.addCacheControlHeader(cacheControl(requestedPath))
 
     val bestCompressionFit =
-        bestCompressionFit(fileSystem, requestedPath, compressedTypes, acceptEncoding)
+        bestCompressionFit(fileSystem, requestedPath, compressedTypes, acceptEncoding, strategy)
 
     if (bestCompressionFit == null) {
         modify(requestedPath, this)
@@ -328,13 +385,14 @@ internal suspend fun <T : Any> ApplicationCall.respondCachedStaticFile(
     cachedFile: CachedStaticFile<T>,
     cachedCompressedFiles: Array<Pair<CachedStaticFile<T>, CompressedFileType>>,
     acceptedEncodings: List<AcceptEncoding>,
-    modify: suspend (T, ApplicationCall) -> Unit = { _, _ -> }
+    modify: suspend (T, ApplicationCall) -> Unit = { _, _ -> },
+    strategy: PreCompressedFileStrategy = PreCompressedFileStrategy.FirstMatch,
 ) {
     attributes.put(StaticFileLocationProperty, requestedPath.toString())
 
     response.addCacheControlHeader(cachedFile.cacheControl)
 
-    val bestCompressionFit = bestCompressionFit(cachedCompressedFiles, acceptedEncodings)
+    val bestCompressionFit = bestCompressionFit(cachedCompressedFiles, acceptedEncodings, strategy)
 
     if (bestCompressionFit == null) {
         modify(requestedPath, this)
@@ -366,6 +424,7 @@ internal suspend fun ApplicationCall.respondStaticResource(
     modifier: suspend (URL, ApplicationCall) -> Unit = { _, _ -> },
     lastModified: (URL) -> GMTDate? = { null },
     etag: ETagProvider = ETagProvider { null },
+    strategy: PreCompressedFileStrategy = PreCompressedFileStrategy.FirstMatch,
 ) {
     attributes.put(StaticFileLocationProperty, normalizedResourcePath)
 
@@ -374,7 +433,8 @@ internal suspend fun ApplicationCall.respondStaticResource(
         resource = normalizedResourcePath,
         compressedTypes = compressedTypes,
         acceptedEncodings = acceptedEncodings,
-        contentType = contentType
+        contentType = contentType,
+        strategy = strategy,
     )
 
     if (bestCompressionFit == null) {

@@ -89,6 +89,7 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
     internal var defaultPath: String? = null
     internal var fallback: suspend (String, ApplicationCall) -> Unit = { _, _ -> }
     internal var preCompressedFileTypes: Array<CompressedFileType> = emptyArray()
+    internal var preCompressedFileStrategy: PreCompressedFileStrategy = PreCompressedFileStrategy.FirstMatch
     internal var autoHeadResponse: Boolean = false
     internal var lastModifiedExtractor: (Resource) -> GMTDate? = { null }
     internal var etagExtractor: ETagProvider = ETagProvider { null }
@@ -102,12 +103,23 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
      * Sets appropriate headers and suppresses compression if a pre-compressed file is found.
      *
      * The order in types is *important*.
-     * It will determine the priority of serving one versus serving another.
+     * By default, it determines the priority of serving one versus serving another: the first
+     * configured type that the client accepts and that exists is served, per [PreCompressedFileStrategy.FirstMatch].
+     *
+     * Pass a different [strategy], such as [PreCompressedFileStrategy.Smallest] or a custom
+     * implementation, to opt into a different selection behavior. Note that strategies other than
+     * [PreCompressedFileStrategy.FirstMatch] may need to inspect the size of every accepted, existing
+     * variant, which costs more per request.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.StaticContentConfig.preCompressed)
      */
-    public fun preCompressed(vararg types: CompressedFileType) {
+    @JvmOverloads
+    public fun preCompressed(
+        vararg types: CompressedFileType,
+        strategy: PreCompressedFileStrategy = PreCompressedFileStrategy.FirstMatch,
+    ) {
         preCompressedFileTypes = types.toList().toTypedArray() // workaround for annoying cast warnings
+        preCompressedFileStrategy = strategy
     }
 
     /**
@@ -312,6 +324,7 @@ public fun Route.staticFiles(
     val staticRoute = StaticContentConfig<File>().apply(block)
     val autoHead = staticRoute.autoHeadResponse
     val compressedTypes = staticRoute.preCompressedFileTypes
+    val strategy = staticRoute.preCompressedFileStrategy
     val contentType = staticRoute.contentType
     val cacheControl = staticRoute.cacheControl
     val extensions = staticRoute.extensions
@@ -392,6 +405,7 @@ public fun Route.staticFiles(
             modify = modify,
             exclude = exclude,
             extensions = extensions,
+            strategy = strategy,
         )
 
         if (isHandled) return@staticContentRoute
@@ -400,7 +414,14 @@ public fun Route.staticFiles(
             val cachedCompressedFiles = defaultCompressedFiles
             if (cachedFile != null && cachedCompressedFiles != null) {
                 // watcher was able to be registered & default file exists
-                respondCachedStaticFile(defaultPath, cachedFile, cachedCompressedFiles, acceptedEncodings, modify)
+                respondCachedStaticFile(
+                    defaultPath,
+                    cachedFile,
+                    cachedCompressedFiles,
+                    acceptedEncodings,
+                    modify,
+                    strategy,
+                )
             } else {
                 // watcher might have failed to register or default file was deleted/doesn't exist
                 respondStaticFile(
@@ -411,7 +432,8 @@ public fun Route.staticFiles(
                     cacheControl = cacheControl,
                     lastModified = lastModified,
                     etag = etag,
-                    modify = modify
+                    modify = modify,
+                    strategy = strategy,
                 )
             }
         }
@@ -442,6 +464,7 @@ public fun Route.staticResources(
     val staticRoute = StaticContentConfig<URL>().apply(block)
     val autoHead = staticRoute.autoHeadResponse
     val compressedTypes = staticRoute.preCompressedFileTypes
+    val strategy = staticRoute.preCompressedFileStrategy
     val contentType = staticRoute.contentType
     val cacheControl = staticRoute.cacheControl
     val extensions = staticRoute.extensions
@@ -475,6 +498,7 @@ public fun Route.staticResources(
             modifier = modifier,
             exclude = exclude,
             extensions = extensions,
+            strategy = strategy,
         )
 
         if (isHandled) return@staticContentRoute
@@ -488,6 +512,7 @@ public fun Route.staticResources(
                 modifier = modifier,
                 lastModified = lastModified,
                 etag = etag,
+                strategy = strategy,
             )
         }
 
@@ -634,6 +659,7 @@ public fun Route.staticFileSystem(
     val staticRoute = StaticContentConfig<Path>().apply(block)
     val autoHead = staticRoute.autoHeadResponse
     val compressedTypes = staticRoute.preCompressedFileTypes
+    val strategy = staticRoute.preCompressedFileStrategy
     val contentType = staticRoute.contentType
     val cacheControl = staticRoute.cacheControl
     val extensions = staticRoute.extensions
@@ -713,6 +739,7 @@ public fun Route.staticFileSystem(
             modify = modify,
             exclude = exclude,
             extensions = extensions,
+            strategy = strategy,
         )
 
         if (isHandled) return@staticContentRoute
@@ -721,7 +748,14 @@ public fun Route.staticFileSystem(
             val cachedCompressedFiles = defaultCompressedFiles
             if (cachedFile != null && cachedCompressedFiles != null) {
                 // watcher was able to be registered & default file exists
-                respondCachedStaticFile(defaultPath, cachedFile, cachedCompressedFiles, acceptedEncodings, modify)
+                respondCachedStaticFile(
+                    defaultPath,
+                    cachedFile,
+                    cachedCompressedFiles,
+                    acceptedEncodings,
+                    modify,
+                    strategy,
+                )
             } else {
                 // watcher might have failed to register or default file was deleted/doesn't exist
                 respondStaticPath(
@@ -733,7 +767,8 @@ public fun Route.staticFileSystem(
                     cacheControl = cacheControl,
                     modify = modify,
                     lastModified = lastModified,
-                    etag = etag
+                    etag = etag,
+                    strategy = strategy,
                 )
             }
         }
@@ -1180,6 +1215,7 @@ private suspend fun ApplicationCall.respondStaticFile(
     modify: suspend (File, ApplicationCall) -> Unit,
     exclude: (File) -> Boolean,
     extensions: Array<String>,
+    strategy: PreCompressedFileStrategy,
 ) {
     val requestedFile = dir.combineSafe(relativePath)
 
@@ -1203,7 +1239,8 @@ private suspend fun ApplicationCall.respondStaticFile(
             cacheControl = cacheControl,
             lastModified = lastModified,
             etag = etag,
-            modify = modify
+            modify = modify,
+            strategy = strategy,
         )
     } else if (!isDirectory) {
         respondStaticFile(
@@ -1214,7 +1251,8 @@ private suspend fun ApplicationCall.respondStaticFile(
             cacheControl = cacheControl,
             lastModified = lastModified,
             etag = etag,
-            modify = modify
+            modify = modify,
+            strategy = strategy,
         )
 
         if (isHandled) return
@@ -1238,7 +1276,8 @@ private suspend fun ApplicationCall.respondStaticFile(
                 cacheControl = cacheControl,
                 lastModified = lastModified,
                 etag = etag,
-                modify = modify
+                modify = modify,
+                strategy = strategy,
             )
 
             if (isHandled) return
@@ -1264,6 +1303,7 @@ private suspend fun ApplicationCall.respondStaticPath(
     modify: suspend (Path, ApplicationCall) -> Unit,
     exclude: (Path) -> Boolean,
     extensions: Array<String>,
+    strategy: PreCompressedFileStrategy,
 ) {
     val requestedPath = (dir ?: fileSystem.getPath("")).combineSafe(fileSystem.getPath(relativePath))
 
@@ -1288,7 +1328,8 @@ private suspend fun ApplicationCall.respondStaticPath(
             cacheControl,
             modify,
             lastModified,
-            etag
+            etag,
+            strategy,
         )
     } else if (!isDirectory) {
         respondStaticPath(
@@ -1300,7 +1341,8 @@ private suspend fun ApplicationCall.respondStaticPath(
             cacheControl,
             modify,
             lastModified,
-            etag
+            etag,
+            strategy,
         )
 
         if (isHandled) return
@@ -1325,7 +1367,8 @@ private suspend fun ApplicationCall.respondStaticPath(
                 cacheControl,
                 modify,
                 lastModified,
-                etag
+                etag,
+                strategy,
             )
 
             if (isHandled) return
@@ -1350,6 +1393,7 @@ private suspend fun ApplicationCall.respondStaticResource(
     modifier: suspend (URL, ApplicationCall) -> Unit,
     exclude: (URL) -> Boolean,
     extensions: Array<String>,
+    strategy: PreCompressedFileStrategy,
 ) {
     val normalizedPath = normalisedPath(basePackage, relativePath)
     if (normalizedPath != null) {
@@ -1367,7 +1411,8 @@ private suspend fun ApplicationCall.respondStaticResource(
             cacheControl = cacheControl,
             modifier = modifier,
             lastModified = lastModified,
-            etag = etag
+            etag = etag,
+            strategy = strategy,
         )
 
         if (isHandled) return
@@ -1391,7 +1436,8 @@ private suspend fun ApplicationCall.respondStaticResource(
                 cacheControl = cacheControl,
                 modifier = modifier,
                 lastModified = lastModified,
-                etag = etag
+                etag = etag,
+                strategy = strategy,
             )
 
             if (isHandled) return
@@ -1422,7 +1468,8 @@ private suspend fun ApplicationCall.respondStaticResource(
             cacheControl = cacheControl,
             modifier = modifier,
             lastModified = lastModified,
-            etag = etag
+            etag = etag,
+            strategy = strategy,
         )
     }
 }
