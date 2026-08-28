@@ -7,6 +7,7 @@ package io.ktor.server.http.content
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
@@ -82,81 +83,86 @@ private fun OutgoingContent.preCompressedHeaders(compressedType: CompressedFileT
 
 internal data class AcceptEncoding(val value: String, val quality: Double)
 
+/**
+ * Parses the `Accept-Encoding` header only when precompressed content is actually configured,
+ * avoiding an allocation on every request when [compressedTypes] is empty.
+ */
+internal fun ApplicationRequest.acceptedEncodings(compressedTypes: Array<CompressedFileType>): List<AcceptEncoding> {
+    if (compressedTypes.isEmpty()) return emptyList()
+    return acceptEncodingItems().map { AcceptEncoding(it.value, it.quality) }
+}
+
+/**
+ * Returns the first matching compressed type, or the next available if it is smaller.
+ */
 internal fun bestCompressionFit(
     file: File,
     compressedTypes: Array<CompressedFileType>,
     acceptedEncodings: List<AcceptEncoding>,
-): Pair<File, CompressedFileType>? {
-    // Find the smallest file in the accepted encodings
-    var smallestType: CompressedFileType? = null
-    var smallestFile: File? = null
-    var smallestSize: Long = Long.MAX_VALUE
+): Pair<File, CompressedFileType>? = bestCompressionFit(
+    compressedTypes,
+    acceptedEncodings,
+    resolve = { compressedType -> File("${file.absolutePath}.${compressedType.extension}") },
+    sizeOrNull = { file -> if (!file.isFile) null else file.length().takeIf { it > 0L } },
+)
 
-    if (compressedTypes.isEmpty()) {
-        return null
-    }
-
-    for (compressedType in compressedTypes) {
-        if (acceptedEncodings.none {
-                it.quality > 0.0 && it.value.equals(compressedType.encoding, ignoreCase = true)
-            }
-        ) {
-            continue
-        }
-
-        val compressedFile = File("${file.absolutePath}.${compressedType.extension}")
-
-        if (!compressedFile.isFile) {
-            continue
-        }
-
-        val compressedSize = compressedFile.length()
-
-        if (smallestSize > compressedSize) {
-            smallestType = compressedType
-            smallestFile = compressedFile
-            smallestSize = compressedSize
-        }
-    }
-
-    return (smallestFile ?: return null) to (smallestType ?: return null)
-}
-
+/**
+ * Returns the first matching compressed type, or the next available if it is smaller.
+ */
 internal fun bestCompressionFit(
     fileSystem: FileSystemPaths,
     path: Path,
     compressedTypes: Array<CompressedFileType>,
     acceptedEncodings: List<AcceptEncoding>,
-): Pair<Path, CompressedFileType>? {
-    // Find the smallest file in the accepted encodings
-    var smallestType: CompressedFileType? = null
-    var smallestPath: Path? = null
-    var smallestSize: Long = Long.MAX_VALUE
+): Pair<Path, CompressedFileType>? = bestCompressionFit(
+    compressedTypes,
+    acceptedEncodings,
+    resolve = { compressedType -> fileSystem.getPath("${path.pathString}.${compressedType.extension}") },
+    sizeOrNull = { if (!it.isRegularFile()) null else it.fileSize() },
+)
+
+/**
+ * Shared scan behind the file- and path-based [bestCompressionFit] overloads: takes the first accepted,
+ * existing compressed resource (in configured priority order), then compares it against only its
+ * immediate neighbour rather than scanning every remaining type, keeping the common case to a single
+ * size lookup per candidate. Inlined so [resolve] and [sizeOrNull] don't allocate on this hot path.
+ */
+private inline fun <T : Any> bestCompressionFit(
+    compressedTypes: Array<CompressedFileType>,
+    acceptedEncodings: List<AcceptEncoding>,
+    resolve: (CompressedFileType) -> T,
+    sizeOrNull: (T) -> Long?,
+): Pair<T, CompressedFileType>? {
+    var bestResource: T? = null
+    var bestType: CompressedFileType? = null
+    var bestSize = Long.MAX_VALUE
 
     for (compressedType in compressedTypes) {
-        if (acceptedEncodings.none {
-                it.quality > 0.0 && it.value.equals(compressedType.encoding, ignoreCase = true)
-            }
-        ) {
+        if (!acceptedEncodings.accepts(compressedType)) {
             continue
         }
 
-        val compressedPath = fileSystem.getPath("${path.pathString}.${compressedType.extension}")
+        val candidate = resolve(compressedType)
+        val size = sizeOrNull(candidate) ?: continue
 
-        if (!compressedPath.isRegularFile()) {
+        if (bestResource == null) {
+            bestResource = candidate
+            bestType = compressedType
+            bestSize = size
             continue
         }
 
-        val compressedSize = compressedPath.fileSize()
-
-        if (smallestSize > compressedSize) {
-            smallestType = compressedType
-            smallestPath = compressedPath
-            smallestSize = compressedSize
+        if (size < bestSize) {
+            bestResource = candidate
+            bestType = compressedType
         }
+        break
+    }
+    if (bestResource == null || bestType == null) {
+        return null
     }
 
-    return (smallestPath ?: return null) to (smallestType ?: return null)
+    return bestResource to bestType
 }
 
 internal fun <T : Any> bestCompressionFit(
@@ -170,7 +176,7 @@ internal fun <T : Any> bestCompressionFit(
     for (compressedFile in compressedFiles) {
         val (file, compressedType) = compressedFile
 
-        if (acceptEncoding.none { it.quality > 0.0 && it.value.equals(compressedType.encoding, ignoreCase = true) }) {
+        if (!acceptEncoding.accepts(compressedType)) {
             continue
         }
 
@@ -182,6 +188,9 @@ internal fun <T : Any> bestCompressionFit(
 
     return smallest
 }
+
+internal fun List<AcceptEncoding>.accepts(compressedType: CompressedFileType) =
+    any { it.quality > 0.0 && it.value.equals(compressedType.encoding, ignoreCase = true) }
 
 internal class CompressedResource(
     val url: URL,
@@ -235,18 +244,15 @@ internal suspend fun ApplicationCall.respondStaticFile(
     etag: ETagProvider = ETagProvider { null },
     modify: suspend (File, ApplicationCall) -> Unit = { _, _ -> }
 ) {
-    if (!requestedFile.isFile) {
-        return
-    }
+    if (!requestedFile.isFile) return
+
+    val bestCompressionFit = bestCompressionFit(requestedFile, compressedTypes, acceptedEncodings)
 
     attributes.put(StaticFileLocationProperty, requestedFile.path)
 
     val responseContentType = contentType(requestedFile)
-    val cacheControlValues = cacheControl(requestedFile).joinToString(", ")
 
-    response.addCacheControlHeader(cacheControlValues)
-
-    val bestCompressionFit = bestCompressionFit(requestedFile, compressedTypes, acceptedEncodings)
+    response.addCacheControlHeader(cacheControl(requestedFile))
 
     if (bestCompressionFit == null) {
         modify(requestedFile, this)
@@ -280,19 +286,20 @@ internal suspend fun ApplicationCall.respondStaticPath(
     lastModified: (Path) -> GMTDate? = { null },
     etag: ETagProvider = ETagProvider { null },
 ) {
-    if (!requestedPath.exists()) {
+    val bestCompressionFit =
+        bestCompressionFit(fileSystem, requestedPath, compressedTypes, acceptEncoding)
+
+    // Skip the extra existence check for requestedPath when a precompressed variant already confirms
+    // the resource exists; otherwise it's the only check we have.
+    if (bestCompressionFit == null && !requestedPath.exists()) {
         return
     }
 
     attributes.put(StaticFileLocationProperty, requestedPath.toString())
 
     val responseContentType = contentType(requestedPath)
-    val cacheControlValues = cacheControl(requestedPath).joinToString(", ")
 
-    response.addCacheControlHeader(cacheControlValues)
-
-    val bestCompressionFit =
-        bestCompressionFit(fileSystem, requestedPath, compressedTypes, acceptEncoding)
+    response.addCacheControlHeader(cacheControl(requestedPath))
 
     if (bestCompressionFit == null) {
         modify(requestedPath, this)
@@ -324,9 +331,7 @@ internal suspend fun <T : Any> ApplicationCall.respondCachedStaticFile(
 ) {
     attributes.put(StaticFileLocationProperty, requestedPath.toString())
 
-    val cacheControlValues = cachedFile.cacheControl.joinToString(", ")
-
-    response.addCacheControlHeader(cacheControlValues)
+    response.addCacheControlHeader(cachedFile.cacheControl)
 
     val bestCompressionFit = bestCompressionFit(cachedCompressedFiles, acceptedEncodings)
 
@@ -378,9 +383,7 @@ internal suspend fun ApplicationCall.respondStaticResource(
         )
 
         if (content != null) {
-            val cacheControlValues = cacheControl(content.first).joinToString(", ")
-
-            response.addCacheControlHeader(cacheControlValues)
+            response.addCacheControlHeader(cacheControl(content.first))
 
             modifier(content.first, this)
 
@@ -390,9 +393,7 @@ internal suspend fun ApplicationCall.respondStaticResource(
     } else {
         suppressCompression()
 
-        val cacheControlValues = cacheControl(bestCompressionFit.url).joinToString(", ")
-
-        response.addCacheControlHeader(cacheControlValues)
+        response.addCacheControlHeader(cacheControl(bestCompressionFit.url))
 
         modifier(bestCompressionFit.url, this)
 
@@ -413,6 +414,8 @@ private fun <Content : OutgoingContent> Content.provideVersions(
     etag: EntityTagVersion?,
     lastModified: GMTDate?,
 ): Content {
+    if (etag == null && lastModified == null) return this
+
     val newVersions = versions.toMutableList()
     if (etag != null) newVersions.add(etag)
     if (lastModified != null) newVersions.add(LastModifiedVersion(lastModified))
@@ -420,8 +423,8 @@ private fun <Content : OutgoingContent> Content.provideVersions(
     return this
 }
 
-private fun ApplicationResponse.addCacheControlHeader(cacheControlValues: String) {
+private fun ApplicationResponse.addCacheControlHeader(cacheControlValues: List<CacheControl>) {
     if (cacheControlValues.isNotEmpty()) {
-        header(HttpHeaders.CacheControl, cacheControlValues)
+        header(HttpHeaders.CacheControl, cacheControlValues.joinToString(", "))
     }
 }
