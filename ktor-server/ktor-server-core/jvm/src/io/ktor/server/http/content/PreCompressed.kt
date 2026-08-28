@@ -7,6 +7,7 @@ package io.ktor.server.http.content
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
@@ -81,6 +82,15 @@ private fun OutgoingContent.preCompressedHeaders(compressedType: CompressedFileT
 }
 
 internal data class AcceptEncoding(val value: String, val quality: Double)
+
+/**
+ * Parses the `Accept-Encoding` header only when precompressed content is actually configured,
+ * avoiding an allocation on every request when [compressedTypes] is empty.
+ */
+internal fun ApplicationRequest.acceptedEncodings(compressedTypes: Array<CompressedFileType>): List<AcceptEncoding> {
+    if (compressedTypes.isEmpty()) return emptyList()
+    return acceptEncodingItems().map { AcceptEncoding(it.value, it.quality) }
+}
 
 internal fun bestCompressionFit(
     file: File,
@@ -242,9 +252,8 @@ internal suspend fun ApplicationCall.respondStaticFile(
     attributes.put(StaticFileLocationProperty, requestedFile.path)
 
     val responseContentType = contentType(requestedFile)
-    val cacheControlValues = cacheControl(requestedFile).joinToString(", ")
 
-    response.addCacheControlHeader(cacheControlValues)
+    response.addCacheControlHeader(cacheControl(requestedFile))
 
     val bestCompressionFit = bestCompressionFit(requestedFile, compressedTypes, acceptedEncodings)
 
@@ -287,9 +296,8 @@ internal suspend fun ApplicationCall.respondStaticPath(
     attributes.put(StaticFileLocationProperty, requestedPath.toString())
 
     val responseContentType = contentType(requestedPath)
-    val cacheControlValues = cacheControl(requestedPath).joinToString(", ")
 
-    response.addCacheControlHeader(cacheControlValues)
+    response.addCacheControlHeader(cacheControl(requestedPath))
 
     val bestCompressionFit =
         bestCompressionFit(fileSystem, requestedPath, compressedTypes, acceptEncoding)
@@ -324,9 +332,7 @@ internal suspend fun <T : Any> ApplicationCall.respondCachedStaticFile(
 ) {
     attributes.put(StaticFileLocationProperty, requestedPath.toString())
 
-    val cacheControlValues = cachedFile.cacheControl.joinToString(", ")
-
-    response.addCacheControlHeader(cacheControlValues)
+    response.addCacheControlHeader(cachedFile.cacheControl)
 
     val bestCompressionFit = bestCompressionFit(cachedCompressedFiles, acceptedEncodings)
 
@@ -378,9 +384,7 @@ internal suspend fun ApplicationCall.respondStaticResource(
         )
 
         if (content != null) {
-            val cacheControlValues = cacheControl(content.first).joinToString(", ")
-
-            response.addCacheControlHeader(cacheControlValues)
+            response.addCacheControlHeader(cacheControl(content.first))
 
             modifier(content.first, this)
 
@@ -390,9 +394,7 @@ internal suspend fun ApplicationCall.respondStaticResource(
     } else {
         suppressCompression()
 
-        val cacheControlValues = cacheControl(bestCompressionFit.url).joinToString(", ")
-
-        response.addCacheControlHeader(cacheControlValues)
+        response.addCacheControlHeader(cacheControl(bestCompressionFit.url))
 
         modifier(bestCompressionFit.url, this)
 
@@ -413,6 +415,8 @@ private fun <Content : OutgoingContent> Content.provideVersions(
     etag: EntityTagVersion?,
     lastModified: GMTDate?,
 ): Content {
+    if (etag == null && lastModified == null) return this
+
     val newVersions = versions.toMutableList()
     if (etag != null) newVersions.add(etag)
     if (lastModified != null) newVersions.add(LastModifiedVersion(lastModified))
@@ -420,8 +424,8 @@ private fun <Content : OutgoingContent> Content.provideVersions(
     return this
 }
 
-private fun ApplicationResponse.addCacheControlHeader(cacheControlValues: String) {
+private fun ApplicationResponse.addCacheControlHeader(cacheControlValues: List<CacheControl>) {
     if (cacheControlValues.isNotEmpty()) {
-        header(HttpHeaders.CacheControl, cacheControlValues)
+        header(HttpHeaders.CacheControl, cacheControlValues.joinToString(", "))
     }
 }
