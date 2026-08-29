@@ -456,7 +456,7 @@ class StaticContentTest {
     }
 
     @Test
-    fun testPreCompressedDefaultStrategyServesFirstConfiguredMatch(@TempDir filesDir: File) = testApplication {
+    fun testPreCompressedDefaultServesFirstConfiguredMatch(@TempDir filesDir: File) = testApplication {
         File(filesDir, "file.txt").writeText("plain")
         File(filesDir, "file.txt.br").writeText("br")
         File(filesDir, "file.txt.gz").writeText("gzip-much-longer-content")
@@ -491,25 +491,23 @@ class StaticContentTest {
     }
 
     @Test
-    fun testPreCompressedSmallestStrategy(@TempDir filesDir: File) = testApplication {
+    fun testPreCompressedAlwaysServeSmallest(@TempDir filesDir: File) = testApplication {
         File(filesDir, "file.txt").writeText("plain")
         File(filesDir, "file.txt.br").writeText("br")
         File(filesDir, "file.txt.gz").writeText("gzip-much-longer-content")
 
-        val smallest = PreCompressedFileStrategy.Smallest
-
         routing {
             staticFiles("smallestFirstBr", filesDir) {
-                preCompressed(CompressedFileType.BROTLI, CompressedFileType.GZIP, strategy = smallest)
+                preCompressed(CompressedFileType.BROTLI, CompressedFileType.GZIP, smallestFile = true)
             }
             staticFiles("smallestFirstGz", filesDir) {
-                preCompressed(CompressedFileType.GZIP, CompressedFileType.BROTLI, strategy = smallest)
+                preCompressed(CompressedFileType.GZIP, CompressedFileType.BROTLI, smallestFile = true)
             }
             staticFileSystem("smallestFirstBrFs", filesDir.toPath()) {
-                preCompressed(CompressedFileType.BROTLI, CompressedFileType.GZIP, strategy = smallest)
+                preCompressed(CompressedFileType.BROTLI, CompressedFileType.GZIP, smallestFile = true)
             }
             staticResources("smallestResources", "public") {
-                preCompressed(CompressedFileType.GZIP, CompressedFileType.BROTLI, strategy = smallest)
+                preCompressed(CompressedFileType.GZIP, CompressedFileType.BROTLI, smallestFile = true)
             }
         }
 
@@ -532,29 +530,6 @@ class StaticContentTest {
         }
         assertEquals(HttpStatusCode.OK, resourceResponse.status)
         assertEquals("br", resourceResponse.headers[HttpHeaders.ContentEncoding])
-    }
-
-    @Test
-    fun testPreCompressedCustomStrategy(@TempDir filesDir: File) = testApplication {
-        File(filesDir, "file.txt").writeText("plain")
-        File(filesDir, "file.txt.br").writeText("br")
-        File(filesDir, "file.txt.gz").writeText("gzip-content")
-
-        val excludeBrotli = PreCompressedFileStrategy { candidates ->
-            candidates.firstOrNull { it.type != CompressedFileType.BROTLI }
-        }
-
-        routing {
-            staticFiles("custom", filesDir) {
-                preCompressed(CompressedFileType.BROTLI, CompressedFileType.GZIP, strategy = excludeBrotli)
-            }
-        }
-
-        val response = client.get("custom/file.txt") {
-            header(HttpHeaders.AcceptEncoding, "br, gzip")
-        }
-        assertEquals(HttpStatusCode.OK, response.status)
-        assertEquals("gzip", response.headers[HttpHeaders.ContentEncoding])
     }
 
     @Test

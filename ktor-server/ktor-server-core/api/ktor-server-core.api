@@ -911,21 +911,6 @@ public final class io/ktor/server/http/content/LocalPathContent : io/ktor/http/c
 	public fun readFrom (Lkotlin/ranges/LongRange;)Lio/ktor/utils/io/ByteReadChannel;
 }
 
-public abstract interface class io/ktor/server/http/content/PreCompressedFileStrategy {
-	public static final field Companion Lio/ktor/server/http/content/PreCompressedFileStrategy$Companion;
-	public abstract fun select (Lkotlin/sequences/Sequence;)Lio/ktor/server/http/content/PreCompressedFileStrategy$Candidate;
-}
-
-public final class io/ktor/server/http/content/PreCompressedFileStrategy$Candidate {
-	public final fun getSize ()J
-	public final fun getType ()Lio/ktor/server/http/content/CompressedFileType;
-}
-
-public final class io/ktor/server/http/content/PreCompressedFileStrategy$Companion {
-	public final fun getFirstMatch ()Lio/ktor/server/http/content/PreCompressedFileStrategy;
-	public final fun getSmallest ()Lio/ktor/server/http/content/PreCompressedFileStrategy;
-}
-
 public final class io/ktor/server/http/content/SPAConfig {
 	public fun <init> ()V
 	public fun <init> (Ljava/lang/String;Ljava/lang/String;Ljava/lang/String;ZLjava/util/List;)V
@@ -964,8 +949,8 @@ public final class io/ktor/server/http/content/StaticContentConfig {
 	public final fun lastModified (Lkotlin/jvm/functions/Function1;)V
 	public final fun modify (Lkotlin/jvm/functions/Function3;)V
 	public final fun preCompressed ([Lio/ktor/server/http/content/CompressedFileType;)V
-	public final fun preCompressed ([Lio/ktor/server/http/content/CompressedFileType;Lio/ktor/server/http/content/PreCompressedFileStrategy;)V
-	public static synthetic fun preCompressed$default (Lio/ktor/server/http/content/StaticContentConfig;[Lio/ktor/server/http/content/CompressedFileType;Lio/ktor/server/http/content/PreCompressedFileStrategy;ILjava/lang/Object;)V
+	public final fun preCompressed ([Lio/ktor/server/http/content/CompressedFileType;Z)V
+	public static synthetic fun preCompressed$default (Lio/ktor/server/http/content/StaticContentConfig;[Lio/ktor/server/http/content/CompressedFileType;ZILjava/lang/Object;)V
 }
 
 public final class io/ktor/server/http/content/StaticContentKt {

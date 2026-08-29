@@ -89,7 +89,7 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
     internal var defaultPath: String? = null
     internal var fallback: suspend (String, ApplicationCall) -> Unit = { _, _ -> }
     internal var preCompressedFileTypes: Array<CompressedFileType> = emptyArray()
-    internal var preCompressedFileStrategy: PreCompressedFileStrategy = PreCompressedFileStrategy.FirstMatch
+    internal var preCompressedAlwaysServeSmallest: Boolean = false
     internal var autoHeadResponse: Boolean = false
     internal var lastModifiedExtractor: (Resource) -> GMTDate? = { null }
     internal var etagExtractor: ETagProvider = ETagProvider { null }
@@ -104,22 +104,21 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
      *
      * The order in types is *important*.
      * By default, it determines the priority of serving one versus serving another: the first
-     * configured type that the client accepts and that exists is served, per [PreCompressedFileStrategy.FirstMatch].
+     * configured type that the client accepts and that exists is served.
      *
-     * Pass a different [strategy], such as [PreCompressedFileStrategy.Smallest] or a custom
-     * implementation, to opt into a different selection behavior. Note that strategies other than
-     * [PreCompressedFileStrategy.FirstMatch] may need to inspect the size of every accepted, existing
-     * variant, which costs more per request.
+     * Set [smallestFile] to `true` to instead compare every accepted, existing variant by
+     * size and serve the smallest, regardless of configured order. This costs an extra size check
+     * per accepted, existing variant.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.StaticContentConfig.preCompressed)
      */
     @JvmOverloads
     public fun preCompressed(
         vararg types: CompressedFileType,
-        strategy: PreCompressedFileStrategy = PreCompressedFileStrategy.FirstMatch,
+        smallestFile: Boolean = false,
     ) {
         preCompressedFileTypes = types.toList().toTypedArray() // workaround for annoying cast warnings
-        preCompressedFileStrategy = strategy
+        preCompressedAlwaysServeSmallest = smallestFile
     }
 
     /**
@@ -324,7 +323,7 @@ public fun Route.staticFiles(
     val staticRoute = StaticContentConfig<File>().apply(block)
     val autoHead = staticRoute.autoHeadResponse
     val compressedTypes = staticRoute.preCompressedFileTypes
-    val strategy = staticRoute.preCompressedFileStrategy
+    val alwaysServeSmallest = staticRoute.preCompressedAlwaysServeSmallest
     val contentType = staticRoute.contentType
     val cacheControl = staticRoute.cacheControl
     val extensions = staticRoute.extensions
@@ -405,7 +404,7 @@ public fun Route.staticFiles(
             modify = modify,
             exclude = exclude,
             extensions = extensions,
-            strategy = strategy,
+            findSmallestFile = alwaysServeSmallest,
         )
 
         if (isHandled) return@staticContentRoute
@@ -420,7 +419,7 @@ public fun Route.staticFiles(
                     cachedCompressedFiles,
                     acceptedEncodings,
                     modify,
-                    strategy,
+                    alwaysServeSmallest,
                 )
             } else {
                 // watcher might have failed to register or default file was deleted/doesn't exist
@@ -433,7 +432,7 @@ public fun Route.staticFiles(
                     lastModified = lastModified,
                     etag = etag,
                     modify = modify,
-                    strategy = strategy,
+                    alwaysServeSmallest = alwaysServeSmallest,
                 )
             }
         }
@@ -464,7 +463,7 @@ public fun Route.staticResources(
     val staticRoute = StaticContentConfig<URL>().apply(block)
     val autoHead = staticRoute.autoHeadResponse
     val compressedTypes = staticRoute.preCompressedFileTypes
-    val strategy = staticRoute.preCompressedFileStrategy
+    val alwaysServeSmallest = staticRoute.preCompressedAlwaysServeSmallest
     val contentType = staticRoute.contentType
     val cacheControl = staticRoute.cacheControl
     val extensions = staticRoute.extensions
@@ -498,7 +497,7 @@ public fun Route.staticResources(
             modifier = modifier,
             exclude = exclude,
             extensions = extensions,
-            strategy = strategy,
+            alwaysServeSmallest = alwaysServeSmallest,
         )
 
         if (isHandled) return@staticContentRoute
@@ -512,7 +511,7 @@ public fun Route.staticResources(
                 modifier = modifier,
                 lastModified = lastModified,
                 etag = etag,
-                strategy = strategy,
+                alwaysServeSmallest = alwaysServeSmallest,
             )
         }
 
@@ -659,7 +658,7 @@ public fun Route.staticFileSystem(
     val staticRoute = StaticContentConfig<Path>().apply(block)
     val autoHead = staticRoute.autoHeadResponse
     val compressedTypes = staticRoute.preCompressedFileTypes
-    val strategy = staticRoute.preCompressedFileStrategy
+    val alwaysServeSmallest = staticRoute.preCompressedAlwaysServeSmallest
     val contentType = staticRoute.contentType
     val cacheControl = staticRoute.cacheControl
     val extensions = staticRoute.extensions
@@ -739,7 +738,7 @@ public fun Route.staticFileSystem(
             modify = modify,
             exclude = exclude,
             extensions = extensions,
-            strategy = strategy,
+            alwaysServeSmallest = alwaysServeSmallest,
         )
 
         if (isHandled) return@staticContentRoute
@@ -754,7 +753,7 @@ public fun Route.staticFileSystem(
                     cachedCompressedFiles,
                     acceptedEncodings,
                     modify,
-                    strategy,
+                    alwaysServeSmallest,
                 )
             } else {
                 // watcher might have failed to register or default file was deleted/doesn't exist
@@ -768,7 +767,7 @@ public fun Route.staticFileSystem(
                     modify = modify,
                     lastModified = lastModified,
                     etag = etag,
-                    strategy = strategy,
+                    alwaysServeSmallest = alwaysServeSmallest,
                 )
             }
         }
@@ -1215,7 +1214,7 @@ private suspend fun ApplicationCall.respondStaticFile(
     modify: suspend (File, ApplicationCall) -> Unit,
     exclude: (File) -> Boolean,
     extensions: Array<String>,
-    strategy: PreCompressedFileStrategy,
+    findSmallestFile: Boolean,
 ) {
     val requestedFile = dir.combineSafe(relativePath)
 
@@ -1240,7 +1239,7 @@ private suspend fun ApplicationCall.respondStaticFile(
             lastModified = lastModified,
             etag = etag,
             modify = modify,
-            strategy = strategy,
+            alwaysServeSmallest = findSmallestFile,
         )
     } else if (!isDirectory) {
         respondStaticFile(
@@ -1252,7 +1251,7 @@ private suspend fun ApplicationCall.respondStaticFile(
             lastModified = lastModified,
             etag = etag,
             modify = modify,
-            strategy = strategy,
+            alwaysServeSmallest = findSmallestFile,
         )
 
         if (isHandled) return
@@ -1277,7 +1276,7 @@ private suspend fun ApplicationCall.respondStaticFile(
                 lastModified = lastModified,
                 etag = etag,
                 modify = modify,
-                strategy = strategy,
+                alwaysServeSmallest = findSmallestFile,
             )
 
             if (isHandled) return
@@ -1303,7 +1302,7 @@ private suspend fun ApplicationCall.respondStaticPath(
     modify: suspend (Path, ApplicationCall) -> Unit,
     exclude: (Path) -> Boolean,
     extensions: Array<String>,
-    strategy: PreCompressedFileStrategy,
+    alwaysServeSmallest: Boolean,
 ) {
     val requestedPath = (dir ?: fileSystem.getPath("")).combineSafe(fileSystem.getPath(relativePath))
 
@@ -1329,7 +1328,7 @@ private suspend fun ApplicationCall.respondStaticPath(
             modify,
             lastModified,
             etag,
-            strategy,
+            alwaysServeSmallest,
         )
     } else if (!isDirectory) {
         respondStaticPath(
@@ -1342,7 +1341,7 @@ private suspend fun ApplicationCall.respondStaticPath(
             modify,
             lastModified,
             etag,
-            strategy,
+            alwaysServeSmallest,
         )
 
         if (isHandled) return
@@ -1368,7 +1367,7 @@ private suspend fun ApplicationCall.respondStaticPath(
                 modify,
                 lastModified,
                 etag,
-                strategy,
+                alwaysServeSmallest,
             )
 
             if (isHandled) return
@@ -1393,7 +1392,7 @@ private suspend fun ApplicationCall.respondStaticResource(
     modifier: suspend (URL, ApplicationCall) -> Unit,
     exclude: (URL) -> Boolean,
     extensions: Array<String>,
-    strategy: PreCompressedFileStrategy,
+    alwaysServeSmallest: Boolean,
 ) {
     val normalizedPath = normalisedPath(basePackage, relativePath)
     if (normalizedPath != null) {
@@ -1412,7 +1411,7 @@ private suspend fun ApplicationCall.respondStaticResource(
             modifier = modifier,
             lastModified = lastModified,
             etag = etag,
-            strategy = strategy,
+            alwaysServeSmallest = alwaysServeSmallest,
         )
 
         if (isHandled) return
@@ -1437,7 +1436,7 @@ private suspend fun ApplicationCall.respondStaticResource(
                 modifier = modifier,
                 lastModified = lastModified,
                 etag = etag,
-                strategy = strategy,
+                alwaysServeSmallest = alwaysServeSmallest,
             )
 
             if (isHandled) return
@@ -1469,7 +1468,7 @@ private suspend fun ApplicationCall.respondStaticResource(
             modifier = modifier,
             lastModified = lastModified,
             etag = etag,
-            strategy = strategy,
+            alwaysServeSmallest = alwaysServeSmallest,
         )
     }
 }
