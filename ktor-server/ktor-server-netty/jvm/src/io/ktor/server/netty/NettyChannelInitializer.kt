@@ -22,6 +22,7 @@ import io.netty.handler.codec.http2.Http2CodecUtil
 import io.netty.handler.codec.http2.Http2MultiplexCodecBuilder
 import io.netty.handler.codec.http2.Http2SecurityUtil
 import io.netty.handler.codec.http2.Http2ServerUpgradeCodec
+import io.netty.handler.flush.FlushConsolidationHandler
 import io.netty.handler.ssl.ApplicationProtocolConfig
 import io.netty.handler.ssl.ApplicationProtocolNames
 import io.netty.handler.ssl.ApplicationProtocolNegotiationHandler
@@ -143,6 +144,15 @@ public class NettyChannelInitializer(
 
     override fun initChannel(ch: SocketChannel) {
         with(ch.pipeline()) {
+            // Consolidates back-to-back flush() calls (e.g. from pipelined responses) into a
+            // single transport write. Added first so it sees every flush regardless of which
+            // protocol handler further up the pipeline issues it. See Netty's own KDoc: this
+            // handler is most effective as the first in the pipeline.
+            addLast(
+                "flushConsolidation",
+                FlushConsolidationHandler(FlushConsolidationHandler.DEFAULT_EXPLICIT_FLUSH_AFTER_FLUSHES, true)
+            )
+
             when {
                 connector is EngineSSLConnectorConfig -> {
                     val sslEngine = sslContext!!.newEngine(ch.alloc()).apply {
