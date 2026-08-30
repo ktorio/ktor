@@ -22,6 +22,7 @@ import io.netty.handler.codec.http2.Http2CodecUtil
 import io.netty.handler.codec.http2.Http2MultiplexCodecBuilder
 import io.netty.handler.codec.http2.Http2SecurityUtil
 import io.netty.handler.codec.http2.Http2ServerUpgradeCodec
+import io.netty.handler.flush.FlushConsolidationHandler
 import io.netty.handler.ssl.ApplicationProtocolConfig
 import io.netty.handler.ssl.ApplicationProtocolNames
 import io.netty.handler.ssl.ApplicationProtocolNegotiationHandler
@@ -63,6 +64,7 @@ public class NettyChannelInitializer(
     private val channelPipelineConfig: ChannelPipeline.() -> Unit,
     private val enableHttp2: Boolean,
     private val enableH2c: Boolean,
+    private val enableFlushConsolidation: Boolean,
 ) : ChannelInitializer<SocketChannel>() {
     private var sslContext: SslContext? = null
 
@@ -110,9 +112,10 @@ public class NettyChannelInitializer(
         message = "Use main constructor",
         replaceWith = ReplaceWith(
             "NettyChannelInitializer(" +
-                "applicationProvider, enginePipeline, environment, callEventGroup, engineContext, " +
-                "userContext, connector, runningLimit, responseWriteTimeout, requestReadTimeout, " +
-                "httpServerCodec, channelPipelineConfig, enableHttp2, enableH2c, shareWorkGroup)"
+                "applicationProvider, enginePipeline, environment, " +
+                "callExecutorResolver(callEventGroup, false), engineContext, userContext, connector, " +
+                "runningLimit, responseWriteTimeout, requestReadTimeout, httpServerCodec, " +
+                "channelPipelineConfig, enableHttp2, enableH2c, false)"
         )
     )
     public constructor(
@@ -134,7 +137,7 @@ public class NettyChannelInitializer(
         applicationProvider = applicationProvider,
         enginePipeline = enginePipeline,
         environment = environment,
-        callEventGroup = callEventGroup,
+        resolveCallExecutor = callExecutorResolver(callEventGroup, false),
         engineContext = engineContext,
         userContext = userContext,
         connector = connector,
@@ -145,50 +148,7 @@ public class NettyChannelInitializer(
         channelPipelineConfig = channelPipelineConfig,
         enableHttp2 = enableHttp2,
         enableH2c = enableH2c,
-        shareWorkGroup = false
-    )
-
-    @Deprecated(
-        message = "Use main constructor",
-        replaceWith = ReplaceWith(
-            "NettyChannelInitializer(" +
-                "applicationProvider, enginePipeline, environment, " +
-                "callExecutorResolver(callEventGroup, shareWorkGroup), engineContext, userContext, " +
-                "connector, runningLimit, responseWriteTimeout, requestReadTimeout, httpServerCodec, " +
-                "channelPipelineConfig, enableHttp2, enableH2c)"
-        )
-    )
-    public constructor(
-        applicationProvider: () -> Application,
-        enginePipeline: EnginePipeline,
-        environment: ApplicationEnvironment,
-        callEventGroup: EventExecutorGroup,
-        engineContext: CoroutineContext,
-        userContext: CoroutineContext,
-        connector: EngineConnectorConfig,
-        runningLimit: Int,
-        responseWriteTimeout: Int,
-        requestReadTimeout: Int,
-        httpServerCodec: () -> HttpServerCodec,
-        channelPipelineConfig: ChannelPipeline.() -> Unit,
-        enableHttp2: Boolean,
-        enableH2c: Boolean,
-        shareWorkGroup: Boolean,
-    ) : this(
-        applicationProvider = applicationProvider,
-        enginePipeline = enginePipeline,
-        environment = environment,
-        resolveCallExecutor = callExecutorResolver(callEventGroup, shareWorkGroup),
-        engineContext = engineContext,
-        userContext = userContext,
-        connector = connector,
-        runningLimit = runningLimit,
-        responseWriteTimeout = responseWriteTimeout,
-        requestReadTimeout = requestReadTimeout,
-        httpServerCodec = httpServerCodec,
-        channelPipelineConfig = channelPipelineConfig,
-        enableHttp2 = enableHttp2,
-        enableH2c = enableH2c
+        enableFlushConsolidation = false
     )
 
     init {
@@ -229,6 +189,16 @@ public class NettyChannelInitializer(
 
     override fun initChannel(ch: SocketChannel) {
         with(ch.pipeline()) {
+            if (enableFlushConsolidation) {
+                addLast(
+                    "flushConsolidation",
+                    FlushConsolidationHandler(
+                        FlushConsolidationHandler.DEFAULT_EXPLICIT_FLUSH_AFTER_FLUSHES,
+                        false
+                    )
+                )
+            }
+
             when {
                 connector is EngineSSLConnectorConfig -> {
                     val sslEngine = sslContext!!.newEngine(ch.alloc()).apply {
