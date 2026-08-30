@@ -167,6 +167,16 @@ public class NettyApplicationEngine(
         public var channelPipelineConfig: ChannelPipeline.() -> Unit = {}
 
         /**
+         * If set to `true`, adds Netty's [io.netty.handler.flush.FlushConsolidationHandler] as the first
+         * handler in the channel pipeline. It batches back-to-back `flush()` calls (for example, from
+         * pipelined responses) into a single transport write, which can improve throughput under
+         * concurrent load at the cost of slightly delaying individual flushes.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.NettyApplicationEngine.Configuration.enableFlushConsolidation)
+         */
+        public var enableFlushConsolidation: Boolean = false
+
+        /**
          * Holds the HTTP/3 configuration when HTTP/3 is enabled, or `null` when disabled.
          *
          * Configured via [enableHttp3].
@@ -297,7 +307,8 @@ public class NettyApplicationEngine(
                     configuration.httpServerCodec,
                     configuration.channelPipelineConfig,
                     configuration.enableHttp2,
-                    configuration.enableH2c
+                    configuration.enableH2c,
+                    configuration.enableFlushConsolidation
                 )
             )
             if (configuration.tcpKeepAlive) {
