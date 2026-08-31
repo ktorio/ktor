@@ -7,14 +7,14 @@ package io.ktor.server.application
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.plugins.*
+import io.ktor.server.plugins.ContentTransformationException
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
-import kotlin.coroutines.*
+import kotlinx.coroutines.CoroutineScope
 
 private val RECEIVE_TYPE_KEY: AttributeKey<TypeInfo> = AttributeKey("ReceiveType")
 
@@ -63,6 +63,27 @@ public interface ApplicationCall : CoroutineScope {
     public val parameters: Parameters
 
     /**
+     * Receives content for this request according to [typeInfo].
+     *
+     * This function returns `null` only when [TypeInfo.isNullable] is `true`.
+     * The caller is responsible for ensuring that [typeInfo] represents the same type as [T].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ApplicationCall.receive)
+     *
+     * @param typeInfo instance specifying the type to be received.
+     * @return an instance of [T] received from this call.
+     * @throws ContentTransformationException when content cannot be transformed to the requested type.
+     */
+    public suspend fun <T> receive(typeInfo: TypeInfo): T {
+        @Suppress("DEPRECATION")
+        val result = receiveNullable<T>(typeInfo)
+        if (!typeInfo.isNullable && result == null) throw CannotTransformContentToTypeException(typeInfo)
+
+        @Suppress("UNCHECKED_CAST")
+        return result as T
+    }
+
+    /**
      * Receives content for this request.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ApplicationCall.receiveNullable)
@@ -71,6 +92,7 @@ public interface ApplicationCall : CoroutineScope {
      * @return instance of [T] received from this call.
      * @throws ContentTransformationException when content cannot be transformed to the requested type.
      */
+    @Deprecated("Use 'receive<T>(typeInfo)' with nullable T instead", ReplaceWith("receive<T?>(typeInfo)"))
     public suspend fun <T> receiveNullable(typeInfo: TypeInfo): T?
 
     /**
@@ -119,7 +141,7 @@ public interface PipelineCall : ApplicationCall {
         when {
             transformed == NullBody -> return null
             transformed === DoubleReceivePreventionToken -> throw RequestAlreadyConsumedException()
-            !typeInfo.type.isInstance(transformed) -> throw CannotTransformContentToTypeException(typeInfo.kotlinType!!)
+            !typeInfo.type.isInstance(transformed) -> throw CannotTransformContentToTypeException(typeInfo)
         }
 
         @Suppress("UNCHECKED_CAST")

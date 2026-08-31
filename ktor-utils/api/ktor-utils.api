@@ -1080,10 +1080,13 @@ public final class io/ktor/util/reflect/TypeInfo {
 	public synthetic fun <init> (Lkotlin/reflect/KClass;Ljava/lang/reflect/Type;Lkotlin/reflect/KType;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun <init> (Lkotlin/reflect/KClass;Lkotlin/reflect/KType;)V
 	public synthetic fun <init> (Lkotlin/reflect/KClass;Lkotlin/reflect/KType;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lkotlin/reflect/KClass;ZLkotlin/reflect/KType;)V
+	public synthetic fun <init> (Lkotlin/reflect/KClass;ZLkotlin/reflect/KType;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getKotlinType ()Lkotlin/reflect/KType;
 	public final fun getType ()Lkotlin/reflect/KClass;
 	public fun hashCode ()I
+	public final fun isNullable ()Z
 	public fun toString ()Ljava/lang/String;
 }
 

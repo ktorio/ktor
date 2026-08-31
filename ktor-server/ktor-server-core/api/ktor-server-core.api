@@ -15,8 +15,13 @@ public abstract interface class io/ktor/server/application/ApplicationCall : kot
 	public abstract fun getParameters ()Lio/ktor/http/Parameters;
 	public abstract fun getRequest ()Lio/ktor/server/request/ApplicationRequest;
 	public abstract fun getResponse ()Lio/ktor/server/response/ApplicationResponse;
+	public fun receive (Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun receiveNullable (Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun respond (Ljava/lang/Object;Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public final class io/ktor/server/application/ApplicationCall$DefaultImpls {
+	public static fun receive (Lio/ktor/server/application/ApplicationCall;Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public class io/ktor/server/application/ApplicationCallPipeline : io/ktor/util/pipeline/Pipeline {
@@ -173,6 +178,7 @@ public abstract interface class io/ktor/server/application/PipelineCall : io/kto
 }
 
 public final class io/ktor/server/application/PipelineCall$DefaultImpls {
+	public static fun receive (Lio/ktor/server/application/PipelineCall;Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static fun receiveNullable (Lio/ktor/server/application/PipelineCall;Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static fun respond (Lio/ktor/server/application/PipelineCall;Ljava/lang/Object;Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
@@ -469,6 +475,7 @@ public abstract class io/ktor/server/engine/BaseApplicationCall : io/ktor/server
 	public abstract fun getResponse ()Lio/ktor/server/engine/BaseApplicationResponse;
 	protected final fun putResponseAttribute (Lio/ktor/server/engine/BaseApplicationResponse;)V
 	public static synthetic fun putResponseAttribute$default (Lio/ktor/server/engine/BaseApplicationCall;Lio/ktor/server/engine/BaseApplicationResponse;ILjava/lang/Object;)V
+	public fun receive (Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun receiveNullable (Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun respond (Ljava/lang/Object;Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
@@ -1108,7 +1115,7 @@ public final class io/ktor/server/request/ApplicationReceiveFunctionsJvmKt {
 
 public final class io/ktor/server/request/ApplicationReceiveFunctionsKt {
 	public static final fun getFormFieldLimit (Lio/ktor/server/application/ApplicationCall;)J
-	public static final fun receive (Lio/ktor/server/application/ApplicationCall;Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static final synthetic fun receive (Lio/ktor/server/application/ApplicationCall;Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun receive (Lio/ktor/server/application/ApplicationCall;Lkotlin/reflect/KClass;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun receiveChannel (Lio/ktor/server/application/ApplicationCall;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static final fun receiveMultipart (Lio/ktor/server/application/ApplicationCall;JLkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -1823,6 +1830,7 @@ public final class io/ktor/server/routing/RoutingCall : io/ktor/server/applicati
 	public synthetic fun getResponse ()Lio/ktor/server/response/ApplicationResponse;
 	public fun getResponse ()Lio/ktor/server/routing/RoutingResponse;
 	public final fun getRoute ()Lio/ktor/server/routing/RoutingNode;
+	public fun receive (Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun receiveNullable (Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun respond (Ljava/lang/Object;Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
@@ -1919,6 +1927,7 @@ public final class io/ktor/server/routing/RoutingPipelineCall : io/ktor/server/a
 	public synthetic fun getResponse ()Lio/ktor/server/response/PipelineResponse;
 	public fun getResponse ()Lio/ktor/server/routing/RoutingPipelineResponse;
 	public final fun getRoute ()Lio/ktor/server/routing/RoutingNode;
+	public fun receive (Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun receiveNullable (Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun respond (Ljava/lang/Object;Lio/ktor/util/reflect/TypeInfo;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun toString ()Ljava/lang/String;
