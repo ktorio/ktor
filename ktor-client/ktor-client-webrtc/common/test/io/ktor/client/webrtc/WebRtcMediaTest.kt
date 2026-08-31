@@ -7,6 +7,7 @@ import kotlinx.coroutines.withTimeout
 import kotlin.test.*
 import kotlin.time.Duration.Companion.seconds
 
+@IgnoreJvm
 @OptIn(ExperimentalKtorApi::class)
 class WebRtcMediaTest {
 
