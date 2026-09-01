@@ -5,6 +5,7 @@
 package test.server.tests
 
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -101,6 +102,17 @@ internal fun Application.serverSentEvents() {
             get("/content-type-text-plain") {
                 call.response.header(HttpHeaders.ContentType, ContentType.Text.Plain.toString())
                 call.respond(HttpStatusCode.OK)
+            }
+
+            get("/content-type-missing") {
+                val lastEventId = call.request.header(HttpHeaders.LastEventID)?.toIntOrNull() ?: 0
+                call.respond(
+                    object : OutgoingContent.WriteChannelContent() {
+                        override suspend fun writeTo(channel: ByteWriteChannel) {
+                            channel.writeStringUtf8("id: ${lastEventId + 1}\ndata: hello\n\n")
+                        }
+                    }
+                )
             }
 
             get("/person") {
