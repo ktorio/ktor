@@ -17,6 +17,7 @@ import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.serialization.kotlinx.json.*
+import io.ktor.test.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
@@ -66,8 +67,11 @@ class ContentTest : ClientLoader(timeout = 1.minutes) {
         }
     }
 
+    // WinHttp hangs on some of the larger echo payloads and the test body never completes (~10% of
+    // mingwX64 runs, every failure on that engine alone).
+    @Flaky("KTOR-9789")
     @Test
-    fun testByteArray() = clientTests(except("web:CIO")) {
+    fun testByteArray_flaky() = clientTests(except("web:CIO")) {
         test { client ->
             testArrays.forEach { content ->
                 val response = client.echo<ByteArray>(content)
@@ -407,7 +411,7 @@ class ContentTest : ClientLoader(timeout = 1.minutes) {
                 val cause = CancellationException("Test exception")
                 job.cancel(cause)
 
-                waitForCondition("body to be closed", timeout = 2.seconds) { body.closedCause != null }
+                assertEventually("body to be closed", timeout = 2.seconds) { body.closedCause != null }
                 assertEquals(cause.message, body.closedCause!!.message)
             }
         }

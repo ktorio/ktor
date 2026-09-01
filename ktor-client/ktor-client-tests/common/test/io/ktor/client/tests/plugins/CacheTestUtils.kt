@@ -23,6 +23,7 @@ import kotlinx.coroutines.*
 import kotlin.test.*
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 import io.ktor.client.plugins.cache.HttpCache.Config as HttpCacheConfig
 
 internal const val REVALIDATE_CACHE_CONTROL = "max-age=0, must-revalidate"
@@ -239,6 +240,11 @@ internal fun assertHopByHopAbsent(headers: Headers, includeProxyAuth: Boolean = 
     if (includeProxyAuth) {
         assertNull(headers[HttpHeaders.ProxyAuthenticate])
     }
+}
+
+/** Delays until [deadline] is strictly in the past, as measured by [GMTDate]. */
+private suspend fun delayUntil(deadline: GMTDate) {
+    while (GMTDate() <= deadline) delay(50.milliseconds)
 }
 
 /**
@@ -473,22 +479,26 @@ internal suspend fun testExpiresScenario(
     client: HttpClient,
     url: Url,
     expiresOffset: Duration,
-    expireDelay: Duration,
 ) {
-    val now = GMTDate() + expiresOffset
+    // `toHttpDate()` formats with second granularity, so it truncates up to 999ms off the deadline.
+    // Add a whole second so the full `expiresOffset` survives the truncation: without it a 2s offset
+    // leaves as little as 1s of freshness, which the two round trips below can outlive on a loaded
+    // agent, making the `second` request miss the cache.
+    val expiresAt = GMTDate() + expiresOffset + 1.seconds
 
     suspend fun getWithHeader(expires: String): String {
         delayGMTDate(1)
         return client.get(url) { header("X-Expires", expires) }.body()
     }
 
-    val first = getWithHeader(now.toHttpDate())
+    val first = getWithHeader(expiresAt.toHttpDate())
     assertEquals(1, cache.publicEntries(url).size)
 
     val second = client.get(url).body<String>()
 
     assertEquals(first, second)
-    delay(expireDelay)
+    // Wait out the actual deadline rather than a separately supplied delay
+    delayUntil(expiresAt)
 
     val third = client.get(url).body<String>()
     assertNotEquals(first, third)

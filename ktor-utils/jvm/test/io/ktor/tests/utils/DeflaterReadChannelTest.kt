@@ -4,6 +4,7 @@
 
 package io.ktor.tests.utils
 
+import io.ktor.test.*
 import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
@@ -18,7 +19,7 @@ import java.util.zip.GZIPInputStream
 import kotlin.random.Random
 import kotlin.test.*
 
-@Ignore("KTOR-9179 Fix races in DeflaterReadChannelTest")
+@Flaky("KTOR-9179")
 @CoroutinesTimeout(60_000)
 class DeflaterReadChannelTest : CoroutineScope {
     private val testJob = Job()

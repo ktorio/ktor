@@ -87,6 +87,8 @@ sealed interface TestExecutionResult<T> {
  * @param context Optional coroutine context for test execution. Defaults to [EmptyCoroutineContext].
  * @param timeout Maximum duration allowed for each test attempt. Defaults to 1 minute.
  * @param retries Number of additional attempts after initial failure (`0` means no retries).
+ *  Only transient failures are retried: an assertion failed by the test body is deterministic,
+ *  so it is reported immediately instead of being retried and masked.
  * @param afterEach Called after each test case attempt, regardless of success or failure.
  *  Receives the test case and error (if any occurred).
  * @param handleFailures Called after all tests finished if any failures occurred.
@@ -114,20 +116,27 @@ fun <T> runTestWithData(
     return runTestForEach(testCases) { data ->
         retryTest(retries) { retry ->
             val testCase = TestCase(data, retry)
+            var assertionFailure = false
 
             testWithRecover(
                 recover = { cause ->
                     val failure = TestFailure(testCase, cause, start?.elapsedNow() ?: Duration.ZERO)
                     afterEach(failure)
-                    // Don't rethrow the exception on the last retry,
-                    // save it instead to pass in handleFailures later
-                    if (retry == retries) failures += failure else throw cause
+                    // Record and stop (as on the last retry) to let the failure surface.
+                    // Non-retried failures are reported by handleFailures.
+                    if (retry == retries || assertionFailure) failures += failure else throw cause
                 }
             ) {
                 runTest(context, timeout = timeout) {
-                    start = timeSource.markNow()
-                    test(testCase)
-                    afterEach(TestSuccess(testCase, start.elapsedNow()))
+                    val mark = timeSource.markNow()
+                    start = mark
+                    try {
+                        test(testCase)
+                    } catch (cause: Throwable) {
+                        assertionFailure = cause is AssertionError
+                        throw cause
+                    }
+                    afterEach(TestSuccess(testCase, mark.elapsedNow()))
                 }
             }
         }

@@ -371,9 +371,10 @@ class WebSocketTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
         }
     }
 
+    // The `_flaky` token is what excludes this on Native/JS/Wasm, where @Flaky isn't enforced.
     @Test
-    @Ignore // TODO KTOR-7088
-    fun testImmediateReceiveAfterConnect() = clientTests(except("Darwin", "WinHttp")) {
+    @Flaky("KTOR-7088")
+    fun testImmediateReceiveAfterConnect_flaky() = clientTests(except("Darwin", "WinHttp")) {
         config {
             install(WebSockets)
         }

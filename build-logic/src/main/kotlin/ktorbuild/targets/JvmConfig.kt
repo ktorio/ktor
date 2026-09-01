@@ -41,9 +41,15 @@ internal fun Project.configureJvm() {
 }
 
 private fun Project.configureTests() {
+    val flakyTestsMode = flakyTestsMode()
+
     val jvmTest = tasks.named<KotlinJvmTest>("jvmTest") {
         maxHeapSize = "2g"
         exclude("**/*StressTest*")
+        // Auto-register FlakyTestCondition so @Flaky tests are excluded from the default run (they
+        // run only in the `flakyTest` task below, or with -Pktor.tests.flaky=only|all).
+        systemProperty("junit.jupiter.extensions.autodetection.enabled", "true")
+        systemProperty(FLAKY_MODE_PROPERTY, flakyTestsMode.propertyValue)
         useJUnitPlatform()
         configureJavaToolchain(java.toolchain.languageVersion, ktorBuild.jvmTestToolchain)
     }
@@ -57,6 +63,26 @@ private fun Project.configureTests() {
         setForkEvery(1)
         systemProperty("enable.stress.tests", "true")
         include("**/*StressTest*")
+        useJUnitPlatform()
+        configureJavaToolchain(java.toolchain.languageVersion, ktorBuild.jvmTestToolchain)
+    }
+
+    // Runs ONLY @Flaky-annotated tests (excluded from the default `jvmTest`). Intended for a
+    // nightly/dedicated job that publishes to Develocity so quarantined tests stay tracked.
+    // (Selection is by annotation, resolved at execution time; the `_flaky` name token — same
+    // property, applied by `configureFlakyTests` — is the equivalent for Native/JS/Wasm, which have
+    // no JUnit Platform.)
+    tasks.register<Test>(FLAKY_TEST_TASK) {
+        classpath = files(jvmTest.map { it.classpath })
+        testClassesDirs = files(jvmTest.map { it.testClassesDirs })
+
+        maxHeapSize = "2g"
+        // A quarantined test flipping is the expected outcome here, not a regression to block on.
+        // Failures still land in the test reports and in Develocity, which is where the flip rate is tracked.
+        ignoreFailures = true
+        systemProperty(FLAKY_MODE_PROPERTY, FlakyTestsMode.ONLY.propertyValue)
+        systemProperty("junit.jupiter.extensions.autodetection.enabled", "true")
+        exclude("**/*StressTest*")
         useJUnitPlatform()
         configureJavaToolchain(java.toolchain.languageVersion, ktorBuild.jvmTestToolchain)
     }

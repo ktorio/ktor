@@ -20,6 +20,7 @@ private const val FRAMES_COUNT = 100
 
 private val NON_CALLBACK_BASED_WS_CLIENTS = listOf("CIO", "Darwin", "Java", "WinHttp")
 private val CALLBACK_BASED_WS_CLIENTS = listOf("OkHttp", "JS", "Curl")
+private val CLOSE_TIMEOUT = 5.seconds
 
 class WebSocketBackpressureTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
 
@@ -92,15 +93,11 @@ class WebSocketBackpressureTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
         test { client ->
             try {
                 client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/receive-backpressure") {
-                    val incomingChannelClosed = CompletableDeferred<Unit>()
+                    val closeCause = CompletableDeferred<Throwable?>()
                     // Cast it only for testing purposes!
-                    (incoming as Channel<*>).invokeOnClose {
-                        assertTrue(it.isChannelOverflow, "Unexpected exception: $it")
-                        incomingChannelClosed.complete(Unit)
-                    }
-                    withTimeout(30.seconds) {
-                        incomingChannelClosed.await()
-                    }
+                    (incoming as Channel<*>).invokeOnClose { closeCause.complete(it) }
+                    val cause = withTimeout(CLOSE_TIMEOUT) { closeCause.await() }
+                    assertTrue(cause.isChannelOverflow, "Unexpected exception: $cause")
                     close()
                 }
             } catch (e: Exception) {
@@ -122,11 +119,8 @@ class WebSocketBackpressureTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
 
         test { client ->
             client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
-                val outgoingChannelClosed = CompletableDeferred<Unit>()
-                outgoing.invokeOnClose {
-                    assertTrue(it.isChannelOverflow, "Unexpected exception: $it")
-                    outgoingChannelClosed.complete(Unit)
-                }
+                val closeCause = CompletableDeferred<Throwable?>()
+                outgoing.invokeOnClose { closeCause.complete(it) }
 
                 // Fill the outgoing buffer beyond capacity without waiting
                 runCatching {
@@ -136,9 +130,8 @@ class WebSocketBackpressureTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
                 }.onSuccess {
                     fail("Expected overflow exception but got success")
                 }
-                withTimeout(1.seconds) {
-                    outgoingChannelClosed.await()
-                }
+                val cause = withTimeout(CLOSE_TIMEOUT) { closeCause.await() }
+                assertTrue(cause.isChannelOverflow, "Unexpected exception: $cause")
             }
         }
     }
