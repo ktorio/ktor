@@ -5,6 +5,7 @@
 package io.ktor.client.tests
 
 import io.ktor.client.*
+import io.ktor.client.engine.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.api.*
 import io.ktor.client.plugins.auth.*
@@ -94,7 +95,15 @@ class WebSocketTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
     }
 
     @Test
-    fun testParallelWebsocketSessions() = clientTests {
+    fun testParallelWebsocketSessions() = clientTests(except("WinHttp")) { runParallelWebsocketSessions() }
+
+    // WinHttp stalls part-way through the two 100-frame echo loops and the test body never
+    // completes. Only the WinHttp branch is quarantined; every other engine keeps the coverage.
+    @Flaky("KTOR-9789")
+    @Test
+    fun testParallelWebsocketSessions_flaky() = clientTests(only("WinHttp")) { runParallelWebsocketSessions() }
+
+    private fun TestClientBuilder<HttpClientEngineConfig>.runParallelWebsocketSessions() {
         config {
             install(WebSockets)
         }
@@ -371,9 +380,10 @@ class WebSocketTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
         }
     }
 
+    // The `_flaky` token is what excludes this on Native/JS/Wasm, where @Flaky isn't enforced.
     @Test
-    @Ignore // TODO KTOR-7088
-    fun testImmediateReceiveAfterConnect() = clientTests(except("Darwin", "WinHttp")) {
+    @Flaky("KTOR-7088")
+    fun testImmediateReceiveAfterConnect_flaky() = clientTests(except("Darwin", "WinHttp")) {
         config {
             install(WebSockets)
         }

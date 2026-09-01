@@ -110,7 +110,6 @@ class CacheLegacyStorageTest : ClientLoader() {
                 client,
                 Url("$TEST_SERVER/cache/expires"),
                 expiresOffset = 4000.milliseconds,
-                expireDelay = 5000.milliseconds,
             )
         }
     }

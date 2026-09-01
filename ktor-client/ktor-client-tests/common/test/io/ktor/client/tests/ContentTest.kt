@@ -6,6 +6,7 @@ package io.ktor.client.tests
 
 import io.ktor.client.*
 import io.ktor.client.call.*
+import io.ktor.client.engine.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
@@ -17,6 +18,7 @@ import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.serialization.kotlinx.json.*
+import io.ktor.test.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
@@ -66,8 +68,16 @@ class ContentTest : ClientLoader(timeout = 1.minutes) {
         }
     }
 
+    // WinHttp stalls part-way through the `testArrays` echo loop — the largest payload is 8 MB — and
+    // the test body never completes.
     @Test
-    fun testByteArray() = clientTests(except("web:CIO")) {
+    fun testByteArray() = clientTests(except("web:CIO", "WinHttp")) { echoByteArrays() }
+
+    @Flaky("KTOR-9789")
+    @Test
+    fun testByteArray_flaky() = clientTests(only("WinHttp")) { echoByteArrays() }
+
+    private fun TestClientBuilder<*>.echoByteArrays() {
         test { client ->
             testArrays.forEach { content ->
                 val response = client.echo<ByteArray>(content)
@@ -82,7 +92,13 @@ class ContentTest : ClientLoader(timeout = 1.minutes) {
     }
 
     @Test
-    fun testByteReadChannel() = clientTests {
+    fun testByteReadChannel() = clientTests(except("WinHttp")) { echoByteReadChannels() }
+
+    @Flaky("KTOR-9789")
+    @Test
+    fun testByteReadChannel_flaky() = clientTests(only("WinHttp")) { echoByteReadChannels() }
+
+    private fun TestClientBuilder<HttpClientEngineConfig>.echoByteReadChannels() {
         config {
             install(HttpTimeout) {
                 socketTimeoutMillis = 1.minutes.inWholeMilliseconds
@@ -407,7 +423,7 @@ class ContentTest : ClientLoader(timeout = 1.minutes) {
                 val cause = CancellationException("Test exception")
                 job.cancel(cause)
 
-                waitForCondition("body to be closed", timeout = 2.seconds) { body.closedCause != null }
+                assertEventually("body to be closed", timeout = 2.seconds) { body.closedCause != null }
                 assertEquals(cause.message, body.closedCause!!.message)
             }
         }
