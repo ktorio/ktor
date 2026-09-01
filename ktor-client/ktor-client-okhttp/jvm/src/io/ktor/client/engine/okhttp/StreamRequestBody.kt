@@ -5,17 +5,14 @@
 package io.ktor.client.engine.okhttp
 
 import io.ktor.utils.io.*
+import io.ktor.utils.io.CancellationException
 import io.ktor.utils.io.jvm.javaio.*
 import io.ktor.utils.io.streams.*
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.job
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import okhttp3.MediaType
 import okhttp3.RequestBody
 import okio.BufferedSink
 import okio.IOException
-import okio.source
 import okio.use
 import kotlin.coroutines.CoroutineContext
 
@@ -54,8 +51,14 @@ internal class StreamRequestBody(
             }
         } else {
             try {
-                block().toInputStream(callContext.job).source().use {
-                    sink.writeAll(it)
+                val channel = block()
+                try {
+                    runBlocking(callContext.job) {
+                        channel.copyTo(sink.outputStream())
+                    }
+                } catch (cause: Throwable) {
+                    channel.cancel(cause)
+                    throw cause
                 }
             } catch (cause: IOException) {
                 throw cause
