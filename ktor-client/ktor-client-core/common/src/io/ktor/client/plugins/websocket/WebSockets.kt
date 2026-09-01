@@ -16,6 +16,7 @@ import io.ktor.util.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import io.ktor.websocket.*
+import kotlin.coroutines.cancellation.CancellationException
 
 private val REQUEST_EXTENSIONS_KEY = AttributeKey<List<WebSocketExtension<*>>>("Websocket extensions")
 
@@ -240,6 +241,8 @@ public class WebSockets internal constructor(
                 if (status != HttpStatusCode.SwitchingProtocols) {
                     val failedResponse = try {
                         context.save().also { it.attributes.put(FAILED_HANDSHAKE_RESPONSE_KEY, Unit) }.response
+                    } catch (cause: CancellationException) {
+                        throw cause
                     } catch (cause: Exception) {
                         LOGGER.trace { "Failed to read response body of failed WebSocket handshake: $cause" }
                         null
