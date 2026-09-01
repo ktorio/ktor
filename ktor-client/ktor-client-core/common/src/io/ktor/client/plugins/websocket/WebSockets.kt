@@ -294,6 +294,8 @@ public class WebSockets internal constructor(
 }
 
 /**
+ * This exception is thrown when a WebSocket handshake fails.
+ *
  * @property response the HTTP response from a failed handshake, exposing the status, headers, and body returned
  * by the server. Availability varies by engine.
  */
