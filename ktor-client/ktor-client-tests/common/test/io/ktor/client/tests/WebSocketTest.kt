@@ -579,7 +579,7 @@ class WebSocketTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
     }
 
     @Test
-    fun testFailedHandshakeExposesResponse() = clientTests(only("CIO", "OkHttp")) {
+    fun testFailedHandshakeExposesResponse() = clientTests(only("CIO", "OkHttp", "Java")) {
         config {
             install(WebSockets)
         }
@@ -600,8 +600,6 @@ class WebSocketTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
 
     @Test
     fun testFailedHandshakeExposesResponseStatus() = clientTests(only("CIO", "OkHttp", "Java")) {
-        // The Java engine only surfaces the failed-handshake response for 401 Unauthorized;
-        // CIO and OkHttp surface it for any non-101 status (and additionally expose the body, see the test above).
         config {
             install(WebSockets)
         }

@@ -170,17 +170,20 @@ internal class JavaHttpWebSocket(
 
         var status = HttpStatusCode.SwitchingProtocols
         var headers: Headers
+        var body: Any = this
         try {
             webSocket = builder.buildAsync(requestData.url.toURI(), this).await()
             val protocol = webSocket.subprotocol?.takeIf { it.isNotEmpty() }
             headers = if (protocol != null) headersOf(HttpHeaders.SecWebSocketProtocol, protocol) else Headers.Empty
         } catch (cause: WebSocketHandshakeException) {
-            if (cause.response.statusCode() == HttpStatusCode.Unauthorized.value) {
-                status = HttpStatusCode.Unauthorized
-                headers = headersOf(cause.response.headers().map())
-            } else {
-                throw cause
-            }
+            // A failed handshake - expose the response.
+            val response = cause.response ?: throw cause
+            status = HttpStatusCode.fromValue(response.statusCode())
+            headers = headersOf(response.headers().map())
+
+            // NOTE: For current OpenJDKs, response.body() is either null or String, but this isn't part of the
+            // public API and could theoretically change in the future.
+            (response.body() as? String)?.let { body = ByteReadChannel(it.toByteArray()) }
         }
 
         return HttpResponseData(
@@ -188,7 +191,7 @@ internal class JavaHttpWebSocket(
             requestTime,
             headers,
             HttpProtocolVersion.HTTP_1_1,
-            this,
+            body,
             callContext
         )
     }
