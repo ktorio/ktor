@@ -144,7 +144,7 @@ internal class NettyHttp1Handler(
                     context.fireExceptionCaught(cause)
                     return
                 }
-                context.respond408RequestTimeoutHttp1()
+                context.respond408RequestTimeoutHttp1(activeCalls)
                 activeCalls.forEach { call ->
                     call.coroutineContext.cancel(CancellationException(cause))
                 }
