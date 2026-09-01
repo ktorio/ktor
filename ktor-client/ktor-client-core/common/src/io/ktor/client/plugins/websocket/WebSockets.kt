@@ -247,9 +247,9 @@ public class WebSockets internal constructor(
                         LOGGER.trace { "Failed to read response body of failed WebSocket handshake: $cause" }
                         null
                     }
-                    @Suppress("ktlint:standard:max-line-length")
                     throw WebSocketException(
-                        "Handshake exception, expected status code ${HttpStatusCode.SwitchingProtocols.value} but was ${status.value}",
+                        "Handshake exception, expected status code ${HttpStatusCode.SwitchingProtocols.value} " +
+                            "but was ${status.value}",
                         cause = null,
                         response = failedResponse,
                     )
