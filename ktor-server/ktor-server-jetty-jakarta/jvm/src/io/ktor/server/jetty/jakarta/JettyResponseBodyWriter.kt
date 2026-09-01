@@ -34,7 +34,7 @@ internal fun CoroutineScope.bodyWriter(response: Response): ReaderJob =
                 // call, the Jetty exchange and the borrowed buffer for every aborted response.
                 continuation?.resumeWithException(cause)
             }
-            override fun getInvocationType(): Invocable.InvocationType? =
+            override fun getInvocationType(): Invocable.InvocationType =
                 Invocable.InvocationType.NON_BLOCKING
         }
         try {
