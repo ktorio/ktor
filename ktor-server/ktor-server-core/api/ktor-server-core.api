@@ -956,6 +956,8 @@ public final class io/ktor/server/http/content/StaticContentConfig {
 	public final fun lastModified (Lkotlin/jvm/functions/Function1;)V
 	public final fun modify (Lkotlin/jvm/functions/Function3;)V
 	public final fun preCompressed ([Lio/ktor/server/http/content/CompressedFileType;)V
+	public final fun preCompressed ([Lio/ktor/server/http/content/CompressedFileType;Z)V
+	public static synthetic fun preCompressed$default (Lio/ktor/server/http/content/StaticContentConfig;[Lio/ktor/server/http/content/CompressedFileType;ZILjava/lang/Object;)V
 }
 
 public final class io/ktor/server/http/content/StaticContentKt {

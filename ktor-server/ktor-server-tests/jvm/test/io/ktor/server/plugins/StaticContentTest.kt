@@ -456,6 +456,83 @@ class StaticContentTest {
     }
 
     @Test
+    fun testPreCompressedDefaultServesFirstConfiguredMatch(@TempDir filesDir: File) = testApplication {
+        File(filesDir, "file.txt").writeText("plain")
+        File(filesDir, "file.txt.br").writeText("br")
+        File(filesDir, "file.txt.gz").writeText("gzip-much-longer-content")
+
+        routing {
+            staticFiles("firstBr", filesDir) {
+                preCompressed(CompressedFileType.BROTLI, CompressedFileType.GZIP)
+            }
+            staticFiles("firstGz", filesDir) {
+                preCompressed(CompressedFileType.GZIP, CompressedFileType.BROTLI)
+            }
+            staticFileSystem("firstBrFs", filesDir.toPath()) {
+                preCompressed(CompressedFileType.BROTLI, CompressedFileType.GZIP)
+            }
+            staticFileSystem("firstGzFs", filesDir.toPath()) {
+                preCompressed(CompressedFileType.GZIP, CompressedFileType.BROTLI)
+            }
+        }
+
+        suspend fun testEncoding(path: String, expectedEncoding: String) {
+            val response = client.get(path) {
+                header(HttpHeaders.AcceptEncoding, "br, gzip")
+            }
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals(expectedEncoding, response.headers[HttpHeaders.ContentEncoding])
+        }
+
+        testEncoding("firstBr/file.txt", "br")
+        testEncoding("firstGz/file.txt", "gzip")
+        testEncoding("firstBrFs/file.txt", "br")
+        testEncoding("firstGzFs/file.txt", "gzip")
+    }
+
+    @Test
+    fun testPreCompressedAlwaysServeSmallest(@TempDir filesDir: File) = testApplication {
+        File(filesDir, "file.txt").writeText("plain")
+        File(filesDir, "file.txt.br").writeText("br")
+        File(filesDir, "file.txt.gz").writeText("gzip-much-longer-content")
+
+        routing {
+            staticFiles("smallestFirstBr", filesDir) {
+                preCompressed(CompressedFileType.BROTLI, CompressedFileType.GZIP, smallestFile = true)
+            }
+            staticFiles("smallestFirstGz", filesDir) {
+                preCompressed(CompressedFileType.GZIP, CompressedFileType.BROTLI, smallestFile = true)
+            }
+            staticFileSystem("smallestFirstBrFs", filesDir.toPath()) {
+                preCompressed(CompressedFileType.BROTLI, CompressedFileType.GZIP, smallestFile = true)
+            }
+            staticResources("smallestResources", "public") {
+                preCompressed(CompressedFileType.GZIP, CompressedFileType.BROTLI, smallestFile = true)
+            }
+        }
+
+        suspend fun testEncoding(path: String, expectedEncoding: String) {
+            val response = client.get(path) {
+                header(HttpHeaders.AcceptEncoding, "br, gzip")
+            }
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals(expectedEncoding, response.headers[HttpHeaders.ContentEncoding])
+        }
+
+        // "br" is the smaller file regardless of configured order.
+        testEncoding("smallestFirstBr/file.txt", "br")
+        testEncoding("smallestFirstGz/file.txt", "br")
+        testEncoding("smallestFirstBrFs/file.txt", "br")
+
+        // sized/small.txt.gz is deliberately larger than sized/small.txt.br, "br" should win.
+        val resourceResponse = client.get("smallestResources/sized/small.txt") {
+            header(HttpHeaders.AcceptEncoding, "br, gzip")
+        }
+        assertEquals(HttpStatusCode.OK, resourceResponse.status)
+        assertEquals("br", resourceResponse.headers[HttpHeaders.ContentEncoding])
+    }
+
+    @Test
     fun testAutoHead() = testApplication {
         routing {
             staticFiles("staticFiles", basedir, "/plugins/StaticContentTest.kt") {
