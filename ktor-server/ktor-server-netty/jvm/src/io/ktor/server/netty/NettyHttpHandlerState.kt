@@ -15,10 +15,12 @@ internal class NettyHttpHandlerState(private val runningLimit: Int) {
     internal val skippedRead: AtomicBoolean = atomic(false)
 
     internal fun onLastResponseMessage(context: ChannelHandlerContext) {
-        activeRequests.decrementAndGet()
-
-        if (skippedRead.compareAndSet(expect = false, update = true) && activeRequests.value < runningLimit) {
+        // always skip read when over limit
+        if (activeRequests.decrementAndGet() >= runningLimit) return
+        // read when skipped earlier
+        if (skippedRead.compareAndSet(expect = true, update = false)) {
             context.read()
         }
     }
+
 }
