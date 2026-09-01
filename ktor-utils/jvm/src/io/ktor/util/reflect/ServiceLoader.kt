@@ -29,7 +29,6 @@ public inline fun <reified T : Any> loadServicesAsSequence(): Sequence<T> = Serv
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.reflect.loadServices)
  *
- * @see loadServiceOrNull
  * @see loadServicesAsSequence
  */
 @InternalAPI
@@ -43,5 +42,6 @@ public inline fun <reified T : Any> loadServices(): List<T> = loadServicesAsSequ
  *
  * @see loadServices
  */
+@Deprecated("Use loadServicesAsSequence().firstOrNull() instead", ReplaceWith("loadServicesAsSequence().firstOrNull()"))
 @InternalAPI
 public inline fun <reified T : Any> loadServiceOrNull(): T? = loadServicesAsSequence<T>().firstOrNull()

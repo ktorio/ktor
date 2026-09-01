@@ -13,8 +13,8 @@ import java.util.*
  * Constructs an asynchronous [HttpClient] using optional [block] for configuring this client.
  *
  * The [HttpClientEngine] is selected from the dependencies using [ServiceLoader].
- * The first found implementation that provides [HttpClientEngineContainer] service implementation is used.
- * An exception is thrown if no implementations found.
+ * All [HttpClientEngineContainer] implementations found on the classpath are ranked by [HttpClientEngineContainer.priority]
+ * and the one with the highest priority is used. An exception is thrown if no implementations are found.
  *
  * See https://ktor.io/docs/http-client-engines.html
  *
@@ -24,23 +24,7 @@ public actual fun HttpClient(
     block: HttpClientConfig<*>.() -> Unit
 ): HttpClient = HttpClient(FACTORY, block)
 
-/**
- * A container is searched across dependencies using [ServiceLoader] to find client implementations.
- * An implementation of this interface provides HTTP client [factory] and only used
- * to find the default client engine
- * when [HttpClient] function is called with no particular client implementation specified
- *
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.HttpClientEngineContainer)
- *
- * @property factory that produces HTTP client instances
- */
-public interface HttpClientEngineContainer {
-    public val factory: HttpClientEngineFactory<*>
-}
-
 @OptIn(InternalAPI::class)
-private val FACTORY = loadServiceOrNull<HttpClientEngineContainer>()?.factory ?: error(
-    "Failed to find HTTP client engine implementation: consider adding client engine dependency. " +
-        "See https://ktor.io/docs/http-client-engines.html"
-)
+private val FACTORY: HttpClientEngineFactory<*> by lazy {
+    selectDefaultHttpClientEngine(loadServices())
+}
