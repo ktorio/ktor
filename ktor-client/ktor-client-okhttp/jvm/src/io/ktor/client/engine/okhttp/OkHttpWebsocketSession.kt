@@ -151,7 +151,7 @@ internal class OkHttpWebsocketSession(
         super.onFailure(webSocket, t, response)
 
         if (response == null || response.code == HttpStatusCode.SwitchingProtocols.value) {
-            // Network error or post-handshake failure.
+            // Network error (no response) or post-handshake failure (status code 101).
             originResponse.completeExceptionally(t)
             _closeReason.completeExceptionally(t)
             _incoming.close(t)
