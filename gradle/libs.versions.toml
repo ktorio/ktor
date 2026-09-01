@@ -42,6 +42,7 @@ jackson3 = "3.1.3"
 jackson-annotations = "2.22"
 
 junit = "5.14.4"
+konsist = "0.17.3"
 slf4j = "2.0.18"
 logback = "1.5.38"
 
@@ -212,6 +213,7 @@ slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
 logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback" }
 junit = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
+konsist = { module = "com.lemonappdev:konsist", version.ref = "konsist" }
 
 apache-httpasyncclient = { module = "org.apache.httpcomponents:httpasyncclient", version.ref = "apache" }
 apache-client5 = { module = "org.apache.httpcomponents.client5:httpclient5", version.ref = "apache5" }

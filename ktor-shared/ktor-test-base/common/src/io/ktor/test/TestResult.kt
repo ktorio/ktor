@@ -38,7 +38,14 @@ internal expect inline fun <T> runTestForEach(items: Iterable<T>, crossinline te
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.test.retryTest)
  *
  * @param retries The number of retries to attempt after an initial failure. Must be a non-negative integer.
+ * @param shouldRetry Decides whether a failure is worth another attempt. Returning `false` stops the
+ *  loop and re-throws that failure immediately, instead of burning the remaining attempts on a
+ *  verdict that is already known. Defaults to retrying every failure.
  * @param test A test to execute, which accepts the current retry attempt (starting at 0) as an argument.
  * @return A [TestResult] representing the outcome of the test after all attempts.
  */
-expect inline fun retryTest(retries: Int, crossinline test: (Int) -> TestResult): TestResult
+expect inline fun retryTest(
+    retries: Int,
+    crossinline shouldRetry: (Throwable) -> Boolean = { true },
+    crossinline test: (Int) -> TestResult,
+): TestResult

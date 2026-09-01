@@ -14,9 +14,17 @@ internal actual inline fun testWithRecover(
 internal actual inline fun <T> runTestForEach(items: Iterable<T>, crossinline test: (T) -> TestResult): TestResult =
     items.fold(DummyTestResult) { acc, item -> acc.andThen { test(item) } }
 
-actual inline fun retryTest(retries: Int, crossinline test: (Int) -> TestResult): TestResult {
+actual inline fun retryTest(
+    retries: Int,
+    crossinline shouldRetry: (Throwable) -> Boolean,
+    crossinline test: (Int) -> TestResult,
+): TestResult {
     check(retries >= 0) { "Retries count shouldn't be negative but it is $retries" }
-    return (1..retries).fold(test(0)) { acc, retry -> acc.catch { test(retry) } }
+    // Rethrowing rejects the promise, which the remaining `catch` links pass along untouched — the
+    // web equivalent of breaking out of the loop.
+    return (1..retries).fold(test(0)) { acc, retry ->
+        acc.catch { cause -> if (shouldRetry(cause)) test(retry) else throw cause }
+    }
 }
 
 @PublishedApi
