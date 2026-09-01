@@ -79,11 +79,8 @@ public actual typealias CharsetDecoder = java.nio.charset.CharsetDecoder
 public actual val CharsetDecoder.charset: Charset get() = charset()!!
 
 public actual fun CharsetDecoder.decode(input: Source, dst: Appendable, max: Int): Int {
-    if (charset == Charsets.UTF_8) {
-        return input.readString().also { dst.append(it) }.length
-    }
-    // ensure buffer is filled
     val maxBytes = max.toLong()
+    // ensure buffer is filled
     input.request(maxBytes)
     val count = minOf(input.remaining, maxBytes)
     dst.append(input.readString(count, charset))
