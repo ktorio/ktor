@@ -125,7 +125,7 @@ internal class NettyHttp2Handler(
     }
 
     private fun startHttp2(context: ChannelHandlerContext, headers: Http2Headers) {
-        val callJob = Job(parent = parentJob)
+        val callJob = Job(parent = handlerJob)
         val callExecutor = pinnedCallExecutor(context, callEventGroup)
         // Combine the cached static context with the per-stream dispatcher and per-call [Job] only.
         val callContext = staticCallContext +
@@ -274,8 +274,14 @@ internal class NettyHttp2Handler(
         }
     }
 
-    internal fun cancel() {
-        handlerJob.cancel()
+    // Marks handlerJob as completing rather than cancelling it: individual streams already get
+    // their specific cancellation cause (if any) via onStreamClose()'s HttpRequestCloseHandlerKey
+    // invocation as each Http2StreamChannel becomes inactive during connection teardown. Forcibly
+    // cancelling handlerJob here would race a generic cause against that specific one, and would
+    // also kill calls that never opted into cancelCallOnClose. complete() still lets handlerJob
+    // detach from its parent once every in-flight callJob finishes, avoiding a leak.
+    internal fun onConnectionClose() {
+        handlerJob.complete()
     }
 
     companion object {

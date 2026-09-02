@@ -202,17 +202,18 @@ public class NettyChannelInitializer(
                 // would reach Netty's tail handler and trigger "Discarded inbound message" warnings.
                 pipeline.addLast(NettyHttp2ConnectionSink)
                 pipeline.channel().closeFuture().addListener {
-                    handler.cancel()
+                    handler.onConnectionClose()
                 }
                 channelPipelineConfig(pipeline)
             }
 
             Http2CodecUtil.HTTP_UPGRADE_PROTOCOL_NAME.toString() -> {
+                val application = applicationProvider()
                 val handler = NettyHttp2Handler(
                     enginePipeline,
-                    applicationProvider(),
+                    application,
                     callEventGroup,
-                    userContext,
+                    application.coroutineContext + userContext,
                     runningLimit
                 )
 
@@ -271,7 +272,7 @@ public class NettyChannelInitializer(
                 })
 
                 pipeline.channel().closeFuture().addListener {
-                    handler.cancel()
+                    handler.onConnectionClose()
                 }
                 channelPipelineConfig(pipeline)
             }
