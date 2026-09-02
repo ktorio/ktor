@@ -6,7 +6,11 @@ package io.ktor.utils.io.jvm.javaio
 
 import io.ktor.test.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.core.*
+import kotlinx.io.Buffer
 import kotlinx.io.IOException
+import kotlinx.io.RawSource
+import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
@@ -47,5 +51,19 @@ class RawSourceChannelTest {
         assertFailsWith<CancellationException> {
             channel.awaitContent(1)
         }
+    }
+
+    @OptIn(InternalAPI::class)
+    @Test
+    fun `awaitContent does not buffer more than CHANNEL_MAX_SIZE from a greedy source`() = runTest {
+        val source = Buffer().apply { write(ByteArray(2 * CHANNEL_MAX_SIZE)) }
+
+        val channel = RawSourceChannel(source, EmptyCoroutineContext)
+        assertTrue(channel.awaitContent(1))
+
+        assertTrue(
+            channel.readBuffer.remaining <= CHANNEL_MAX_SIZE,
+            "buffered ${channel.readBuffer.remaining} bytes, expected at most $CHANNEL_MAX_SIZE"
+        )
     }
 }

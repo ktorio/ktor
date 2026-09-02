@@ -81,7 +81,7 @@ internal class RawSourceChannel(
             var result = 0L
             while (buffer.remaining < min && result >= 0) {
                 result = try {
-                    source.readAtMostTo(buffer, Long.MAX_VALUE)
+                    source.readAtMostTo(buffer, CHANNEL_MAX_SIZE.toLong())
                 } catch (_: EOFException) {
                     -1L
                 } catch (cause: IOException) {
