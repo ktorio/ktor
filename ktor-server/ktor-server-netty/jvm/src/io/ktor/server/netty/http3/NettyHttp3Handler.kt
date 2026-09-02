@@ -100,7 +100,7 @@ internal class NettyHttp3Handler(
     }
 
     private fun startHttp3(context: ChannelHandlerContext, headers: Http3Headers) {
-        val callJob = Job(parent = parentJob)
+        val callJob = Job(parent = handlerJob)
         val callExecutor = pinnedCallExecutor(context, callEventGroup)
         // Combine the cached static context with the per-stream dispatcher and per-call [Job] only.
         val callContext = staticCallContext + NettyDispatcher.CurrentContext(context, callExecutor) + callJob
@@ -132,6 +132,12 @@ internal class NettyHttp3Handler(
     }
 
     companion object {
+        // Attribute holding the per-[QuicChannel] connection-scoped [Job] that connection-level
+        // [SupervisorJob]s are parented to, so per-call [Job]s fan out across many small
+        // per-connection children lists instead of contending on the single shared
+        // `Application.applicationJob` list.
+        internal val ConnectionJobKey: AttributeKey<Job> = AttributeKey.valueOf("ktor.Http3ConnectionJob")
+
         private val ApplicationCallKey = AttributeKey.valueOf<NettyHttp3ApplicationCall>("ktor.Http3ApplicationCall")
 
         private var ChannelHandlerContext.applicationCall: NettyHttp3ApplicationCall?
