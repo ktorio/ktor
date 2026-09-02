@@ -125,7 +125,7 @@ internal class NettyHttp2Handler(
     }
 
     private fun startHttp2(context: ChannelHandlerContext, headers: Http2Headers) {
-        val callJob = Job(parent = parentJob)
+        val callJob = Job(parent = handlerJob)
         val callExecutor = pinnedCallExecutor(context, callEventGroup)
         // Combine the cached static context with the per-stream dispatcher and per-call [Job] only.
         val callContext = staticCallContext +
@@ -274,8 +274,8 @@ internal class NettyHttp2Handler(
         }
     }
 
-    internal fun cancel() {
-        handlerJob.cancel()
+    internal fun onConnectionClose() {
+        handlerJob.complete()
     }
 
     companion object {

@@ -7,7 +7,10 @@ package io.ktor.server.netty
 import io.netty.channel.*
 import kotlinx.atomicfu.*
 
-internal class NettyHttpHandlerState(private val runningLimit: Int) {
+internal class NettyHttpHandlerState(
+    private val runningLimit: Int,
+    private val onCapacityAvailable: (ChannelHandlerContext) -> Unit = {}
+) {
 
     internal val activeRequests: AtomicLong = atomic(0L)
     internal val isCurrentRequestFullyRead: AtomicBoolean = atomic(false)
@@ -20,5 +23,6 @@ internal class NettyHttpHandlerState(private val runningLimit: Int) {
         if (skippedRead.compareAndSet(expect = false, update = true) && activeRequests.value < runningLimit) {
             context.read()
         }
+        onCapacityAvailable(context)
     }
 }

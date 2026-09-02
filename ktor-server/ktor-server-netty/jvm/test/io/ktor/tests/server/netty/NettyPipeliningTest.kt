@@ -15,6 +15,7 @@ import io.ktor.server.test.base.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlin.test.*
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 class NettyPipeliningTest :
@@ -75,6 +76,77 @@ class NettyPipeliningTest :
 
                     val slowResponse = withTimeout(5.seconds) { readChannel.readHttpResponse() }
                     assertTrue(slowResponse.contains("slow-response"), "Expected slow response, got:\n$slowResponse")
+                }
+            }
+        } finally {
+            server.stop()
+        }
+    }
+
+    @Test
+    fun `pipelined burst does not exceed running limit even when decoded in a single read`() = runTest {
+        val firstRequestStarted = CompletableDeferred<Unit>()
+        val secondRequestStarted = CompletableDeferred<Unit>()
+        val releaseFirstResponse = CompletableDeferred<Unit>()
+
+        val server = embeddedServer(
+            Netty,
+            module = {
+                routing {
+                    get("/first") {
+                        firstRequestStarted.complete(Unit)
+                        releaseFirstResponse.await()
+                        call.respondText("first-response")
+                    }
+                    get("/second") {
+                        secondRequestStarted.complete(Unit)
+                        call.respondText("second-response")
+                    }
+                }
+            },
+            configure = {
+                runningLimit = 1
+                connector {
+                    port = this@NettyPipeliningTest.port
+                    host = TEST_SERVER_HOST
+                }
+            }
+        )
+        server.start(wait = false)
+
+        try {
+            SelectorManager().use { selector ->
+                aSocket(selector).tcp().connect(TEST_SERVER_HOST, port).use { socket ->
+                    val writeChannel = socket.openWriteChannel()
+                    val readChannel = socket.openReadChannel()
+
+                    // Write both requests before the server has read anything, so Netty's HTTP codec
+                    // decodes and delivers both HttpRequest messages from a single physical socket read,
+                    // in one dispatch batch, before the running-limit check ever runs.
+                    writeChannel.writeStringUtf8(pipelinedRequest("/first") + pipelinedRequest("/second"))
+                    writeChannel.flush()
+
+                    withTimeout(5.seconds) { firstRequestStarted.await() }
+
+                    // With runningLimit = 1, /second must stay queued until /first completes, even though
+                    // both requests were already decoded together in the same read.
+                    delay(200.milliseconds)
+                    assertFalse(secondRequestStarted.isCompleted, "second request started before first completed")
+
+                    releaseFirstResponse.complete(Unit)
+
+                    val firstResponse = withTimeout(5.seconds) { readChannel.readHttpResponse() }
+                    assertTrue(
+                        firstResponse.contains("first-response"),
+                        "Expected first response, got:\n$firstResponse"
+                    )
+
+                    withTimeout(5.seconds) { secondRequestStarted.await() }
+                    val secondResponse = withTimeout(5.seconds) { readChannel.readHttpResponse() }
+                    assertTrue(
+                        secondResponse.contains("second-response"),
+                        "Expected second response, got:\n$secondResponse"
+                    )
                 }
             }
         } finally {
