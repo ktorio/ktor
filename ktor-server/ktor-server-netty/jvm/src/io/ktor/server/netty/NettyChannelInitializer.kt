@@ -62,7 +62,8 @@ public class NettyChannelInitializer(
     private val httpServerCodec: () -> HttpServerCodec,
     private val channelPipelineConfig: ChannelPipeline.() -> Unit,
     private val enableHttp2: Boolean,
-    private val enableH2c: Boolean
+    private val enableH2c: Boolean,
+    private val dispatchCallStartOnIoExecutor: Boolean
 ) : ChannelInitializer<SocketChannel>() {
     private var sslContext: SslContext? = null
 
@@ -104,6 +105,48 @@ public class NettyChannelInitializer(
         channelPipelineConfig = channelPipelineConfig,
         enableHttp2 = enableHttp2,
         enableH2c = false
+    )
+
+    @Deprecated(
+        message = "Use main constructor",
+        replaceWith = ReplaceWith(
+            "NettyChannelInitializer(" +
+                "applicationProvider, enginePipeline, environment, callEventGroup, engineContext, " +
+                "userContext, connector, runningLimit, responseWriteTimeout, requestReadTimeout, " +
+                "httpServerCodec, channelPipelineConfig, enableHttp2, enableH2c, dispatchCallStartOnIoExecutor)"
+        )
+    )
+    public constructor(
+        applicationProvider: () -> Application,
+        enginePipeline: EnginePipeline,
+        environment: ApplicationEnvironment,
+        callEventGroup: EventExecutorGroup,
+        engineContext: CoroutineContext,
+        userContext: CoroutineContext,
+        connector: EngineConnectorConfig,
+        runningLimit: Int,
+        responseWriteTimeout: Int,
+        requestReadTimeout: Int,
+        httpServerCodec: () -> HttpServerCodec,
+        channelPipelineConfig: ChannelPipeline.() -> Unit,
+        enableHttp2: Boolean,
+        enableH2c: Boolean,
+    ) : this(
+        applicationProvider = applicationProvider,
+        enginePipeline = enginePipeline,
+        environment = environment,
+        callEventGroup = callEventGroup,
+        engineContext = engineContext,
+        userContext = userContext,
+        connector = connector,
+        runningLimit = runningLimit,
+        responseWriteTimeout = responseWriteTimeout,
+        requestReadTimeout = requestReadTimeout,
+        httpServerCodec = httpServerCodec,
+        channelPipelineConfig = channelPipelineConfig,
+        enableHttp2 = enableHttp2,
+        enableH2c = enableH2c,
+        dispatchCallStartOnIoExecutor = false
     )
 
     init {
@@ -193,7 +236,8 @@ public class NettyChannelInitializer(
                     application,
                     callEventGroup,
                     application.coroutineContext + userContext,
-                    runningLimit
+                    runningLimit,
+                    dispatchCallStartOnIoExecutor
                 )
 
                 pipeline.addLast(Http2MultiplexCodecBuilder.forServer(handler).build())
@@ -202,18 +246,20 @@ public class NettyChannelInitializer(
                 // would reach Netty's tail handler and trigger "Discarded inbound message" warnings.
                 pipeline.addLast(NettyHttp2ConnectionSink)
                 pipeline.channel().closeFuture().addListener {
-                    handler.cancel()
+                    handler.onConnectionClose()
                 }
                 channelPipelineConfig(pipeline)
             }
 
             Http2CodecUtil.HTTP_UPGRADE_PROTOCOL_NAME.toString() -> {
+                val application = applicationProvider()
                 val handler = NettyHttp2Handler(
                     enginePipeline,
-                    applicationProvider(),
+                    application,
                     callEventGroup,
-                    userContext,
-                    runningLimit
+                    application.coroutineContext + userContext,
+                    runningLimit,
+                    dispatchCallStartOnIoExecutor
                 )
 
                 val multiplexHandler = Http2MultiplexCodecBuilder.forServer(handler).build()
@@ -250,7 +296,8 @@ public class NettyChannelInitializer(
                             callEventGroup,
                             engineContext,
                             userContext,
-                            runningLimit
+                            runningLimit,
+                            dispatchCallStartOnIoExecutor
                         )
 
                         if (requestReadTimeout > 0) {
@@ -271,7 +318,7 @@ public class NettyChannelInitializer(
                 })
 
                 pipeline.channel().closeFuture().addListener {
-                    handler.cancel()
+                    handler.onConnectionClose()
                 }
                 channelPipelineConfig(pipeline)
             }
@@ -284,7 +331,8 @@ public class NettyChannelInitializer(
                     callEventGroup,
                     engineContext,
                     userContext,
-                    runningLimit
+                    runningLimit,
+                    dispatchCallStartOnIoExecutor
                 )
 
                 with(pipeline) {

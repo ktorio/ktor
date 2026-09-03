@@ -25,17 +25,24 @@ internal class NettyHttp3RequestStreamInitializer(
     private val application: Application,
     private val userCoroutineContext: CoroutineContext,
     private val callEventGroup: EventExecutorGroup,
-    private val runningLimit: Int
+    private val runningLimit: Int,
+    private val dispatchCallStartOnIoExecutor: Boolean = false
 ) : ChannelInitializer<QuicStreamChannel>() {
 
     override fun initChannel(ch: QuicStreamChannel) {
+        // The connection-scoped Job attached in NettyHttp3ChannelInitializer's per-QuicChannel
+        // initializer; folded in here so NettyHttp3Handler's parentJob resolves to it instead of
+        // bypassing straight to the application's job.
+        val connectionJob = ch.parent()?.attr(NettyHttp3Handler.ConnectionJobKey)?.get()
+        val context = if (connectionJob != null) userCoroutineContext + connectionJob else userCoroutineContext
         ch.pipeline().addLast(
             NettyHttp3Handler(
                 enginePipeline,
                 application,
                 callEventGroup,
-                userCoroutineContext,
-                runningLimit
+                context,
+                runningLimit,
+                dispatchCallStartOnIoExecutor
             )
         )
     }

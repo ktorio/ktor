@@ -82,6 +82,16 @@ public class NettyApplicationEngine(
         public var shareWorkGroup: Boolean = false
 
         /**
+         * If set to `true`, the initial dispatch of a call's coroutine is scheduled directly on the
+         * channel's own I/O executor instead of the dedicated call event group, skipping a cross-thread
+         * hop for calls that complete without suspending.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.NettyApplicationEngine.Configuration.dispatchCallStartOnIoExecutor)
+         */
+        @ExperimentalKtorApi
+        public var dispatchCallStartOnIoExecutor: Boolean = false
+
+        /**
          * User-provided function to configure Netty's [ServerBootstrap]
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.NettyApplicationEngine.Configuration.configureBootstrap)
@@ -272,6 +282,7 @@ public class NettyApplicationEngine(
                     NettyDispatcher +
                     DefaultUncaughtExceptionHandler(environment.log)
 
+            @OptIn(ExperimentalKtorApi::class)
             childHandler(
                 NettyChannelInitializer(
                     applicationProvider,
@@ -287,7 +298,8 @@ public class NettyApplicationEngine(
                     configuration.httpServerCodec,
                     configuration.channelPipelineConfig,
                     configuration.enableHttp2,
-                    configuration.enableH2c
+                    configuration.enableH2c,
+                    configuration.dispatchCallStartOnIoExecutor
                 )
             )
             if (configuration.tcpKeepAlive) {
@@ -402,6 +414,7 @@ public class NettyApplicationEngine(
             if (http3Configuration.udpSendBufferSize > 0) {
                 option(ChannelOption.SO_SNDBUF, http3Configuration.udpSendBufferSize)
             }
+            @OptIn(ExperimentalKtorApi::class)
             handler(
                 NettyHttp3ChannelInitializer(
                     applicationProvider,
@@ -411,7 +424,8 @@ public class NettyApplicationEngine(
                     configuration.runningLimit,
                     quicSslContext,
                     http3Configuration,
-                    useCodecDispatcher = http3SocketCount > 1
+                    useCodecDispatcher = http3SocketCount > 1,
+                    dispatchCallStartOnIoExecutor = configuration.dispatchCallStartOnIoExecutor
                 )
             )
         }

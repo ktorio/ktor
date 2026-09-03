@@ -20,6 +20,8 @@ import io.netty.handler.codec.quic.QuicCodecDispatcher
 import io.netty.handler.codec.quic.QuicConnectionIdGenerator
 import io.netty.handler.codec.quic.QuicSslContext
 import io.netty.util.concurrent.EventExecutorGroup
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.CoroutineContext
 
@@ -45,6 +47,7 @@ internal class NettyHttp3ChannelInitializer(
     private val quicSslContext: QuicSslContext,
     private val http3Configuration: NettyHttp3Configuration,
     useCodecDispatcher: Boolean,
+    private val dispatchCallStartOnIoExecutor: Boolean = false,
 ) : ChannelInitializer<DatagramChannel>() {
 
     /**
@@ -85,7 +88,8 @@ internal class NettyHttp3ChannelInitializer(
             application,
             userContext,
             callEventGroup,
-            runningLimit
+            runningLimit,
+            dispatchCallStartOnIoExecutor
         )
 
         val builder = Http3.newQuicServerCodecBuilder()
@@ -118,6 +122,12 @@ internal class NettyHttp3ChannelInitializer(
         // Http3ServerConnectionHandler is not sharable: one instance per connection
         builder.handler(object : ChannelInitializer<QuicChannel>() {
             override fun initChannel(ch: QuicChannel) {
+                // One [SupervisorJob] per QUIC connection, parented to the application's job so that
+                // per-request [Job]s fan out across many small per-connection children lists instead
+                // of contending on the single shared `Application.applicationJob` list.
+                val connectionJob = SupervisorJob(application.coroutineContext[Job])
+                ch.attr(NettyHttp3Handler.ConnectionJobKey).set(connectionJob)
+                ch.closeFuture().addListener { connectionJob.cancel() }
                 ch.pipeline().addLast(Http3ServerConnectionHandler(streamInitializer))
             }
         })

@@ -25,7 +25,8 @@ internal class NettyHttp3Handler(
     private val application: Application,
     private val callEventGroup: EventExecutorGroup,
     private val userCoroutineContext: CoroutineContext,
-    runningLimit: Int
+    runningLimit: Int,
+    private val dispatchCallStartOnIoExecutor: Boolean = false
 ) : Http3RequestStreamInboundHandler(), CoroutineScope {
     // Parent [Job] for per-call [Job]s. Cached to avoid re-running `userCoroutineContext[Job]` per request.
     private val parentJob: Job? = userCoroutineContext[Job]
@@ -100,7 +101,7 @@ internal class NettyHttp3Handler(
     }
 
     private fun startHttp3(context: ChannelHandlerContext, headers: Http3Headers) {
-        val callJob = Job(parent = parentJob)
+        val callJob = Job(parent = handlerJob)
         val callExecutor = pinnedCallExecutor(context, callEventGroup)
         // Combine the cached static context with the per-stream dispatcher and per-call [Job] only.
         val callContext = staticCallContext + NettyDispatcher.CurrentContext(context, callExecutor) + callJob
@@ -117,7 +118,12 @@ internal class NettyHttp3Handler(
 
         // Dispatching to the call event group keeps user handler code off the QUIC event loop,
         // which drives every connection and stream of this connector (same model as HTTP/1/2).
-        callExecutor.execute {
+        // When dispatchCallStartOnIoExecutor is enabled, calls that never suspend skip that hop
+        // entirely and run on the QUIC event loop instead; calls that do suspend still resume on
+        // callExecutor via NettyDispatcher, since callExecutor above is unconditionally what's
+        // captured in CurrentContext.
+        val startExecutor = if (dispatchCallStartOnIoExecutor) context.executor() else callExecutor
+        startExecutor.execute {
             val callScope = CoroutineScope(context = callContext)
             callScope.launch(start = CoroutineStart.UNDISPATCHED) {
                 try {
@@ -132,6 +138,12 @@ internal class NettyHttp3Handler(
     }
 
     companion object {
+        // Attribute holding the per-[QuicChannel] connection-scoped [Job] that connection-level
+        // [SupervisorJob]s are parented to, so per-call [Job]s fan out across many small
+        // per-connection children lists instead of contending on the single shared
+        // `Application.applicationJob` list.
+        internal val ConnectionJobKey: AttributeKey<Job> = AttributeKey.valueOf("ktor.Http3ConnectionJob")
+
         private val ApplicationCallKey = AttributeKey.valueOf<NettyHttp3ApplicationCall>("ktor.Http3ApplicationCall")
 
         private var ChannelHandlerContext.applicationCall: NettyHttp3ApplicationCall?
