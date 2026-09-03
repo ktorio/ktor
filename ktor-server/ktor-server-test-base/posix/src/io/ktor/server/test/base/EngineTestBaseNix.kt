@@ -37,11 +37,22 @@ actual constructor(
     @Retention
     protected actual annotation class Http1Only actual constructor()
 
+    @Target(AnnotationTarget.FUNCTION)
+    @Retention
+    protected actual annotation class Http3Only actual constructor()
+
+    @Target(AnnotationTarget.FUNCTION)
+    @Retention
+    protected actual annotation class Http3Excluded actual constructor()
+
     protected actual var port: Int = 0
     protected actual var sslPort: Int = 0
     protected actual var server: EmbeddedServer<TEngine, TConfiguration>? = null
 
     protected actual var enableHttp2: Boolean = false
+
+    // HTTP/3 is only supported by JVM engines.
+    protected actual var enableHttp3: Boolean = false
     protected actual var enableSsl: Boolean = false
     protected actual var enableCertVerify: Boolean = false
 

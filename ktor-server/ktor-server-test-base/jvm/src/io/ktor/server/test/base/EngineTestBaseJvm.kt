@@ -61,13 +61,22 @@ actual abstract class EngineTestBase<
             .any { "-agentlib:jdwp" in it }
 
     protected actual var port: Int = findFreePort()
-    protected actual var sslPort: Int = findFreePort()
+
+    // Allocated UDP-aware because an HTTP/3 server binds UDP on its TCP SSL connector's port.
+    protected actual var sslPort: Int = findFreeUdpPort()
     protected actual var server: EmbeddedServer<TEngine, TConfiguration>? = null
     protected var callGroupSize: Int = -1
         private set
     protected actual var enableHttp2: Boolean = System.getProperty("enable.http2") == "true"
+    protected actual var enableHttp3: Boolean = System.getProperty("enable.http3") == "true"
     protected actual var enableSsl: Boolean = System.getProperty("enable.ssl") != "false"
     protected actual var enableCertVerify: Boolean = System.getProperty("enable.cert.verify") == "true"
+
+    /**
+     * Restricts [withUrl] to the HTTP/3 leg, so a dedicated HTTP/3 test run does not re-run every
+     * shared suite case over HTTP/1.1 and HTTP/2 as well.
+     */
+    protected var http3Only: Boolean = System.getProperty("enable.http3.only") == "true"
 
     private val allConnections = CopyOnWriteArrayList<HttpURLConnection>()
 
@@ -80,6 +89,14 @@ actual abstract class EngineTestBase<
     @Target(AnnotationTarget.FUNCTION)
     @Retention
     protected actual annotation class Http1Only actual constructor()
+
+    @Target(AnnotationTarget.FUNCTION)
+    @Retention
+    protected actual annotation class Http3Only actual constructor()
+
+    @Target(AnnotationTarget.FUNCTION)
+    @Retention
+    protected actual annotation class Http3Excluded actual constructor()
 
     actual override val coroutineContext: CoroutineContext
         get() = testJob + testDispatcher
@@ -98,8 +115,19 @@ actual abstract class EngineTestBase<
         if (method.isAnnotationPresent(Http2Only::class.java)) {
             assumeTrue(enableHttp2, "http2 is not enabled")
         }
+        if (method.isAnnotationPresent(Http3Only::class.java)) {
+            assumeTrue(enableHttp3, "http3 is not enabled")
+        }
         if (method.isAnnotationPresent(Http1Only::class.java)) {
+            // An http1-only test has no leg left to run when the run is restricted to HTTP/3.
+            assumeTrue(!http3Only, "test is http1-only")
             enableHttp2 = false
+            enableHttp3 = false
+        }
+        if (method.isAnnotationPresent(Http3Excluded::class.java)) {
+            // In a dedicated HTTP/3 run there is no other leg left to exercise, so skip outright.
+            assumeTrue(!http3Only, "test is excluded from the http3 leg")
+            enableHttp3 = false
         }
 
         testLog.trace { "Starting server on port $port (SSL $sslPort)" }
@@ -111,6 +139,7 @@ actual abstract class EngineTestBase<
             testLog.trace { "Disposing server on port $port (SSL $sslPort)" }
             server?.stop(0, 500, TimeUnit.MILLISECONDS)
         } finally {
+            resetHttp3Client()
             testJob.cancel()
             FreePorts.recycle(port)
             FreePorts.recycle(sslPort)
@@ -194,7 +223,7 @@ actual abstract class EngineTestBase<
                     FreePorts.recycle(sslPort)
 
                     port = findFreePort()
-                    sslPort = findFreePort()
+                    sslPort = findFreeUdpPort()
                     server.stop()
                     lastFailures = failures
                 }
@@ -211,6 +240,7 @@ actual abstract class EngineTestBase<
 
     @OptIn(DelicateCoroutinesApi::class)
     protected actual suspend fun startServer(server: EmbeddedServer<TEngine, TConfiguration>): List<Throwable> {
+        resetHttp3Client()
         this.server = server
 
         // we start it on the global scope because we don't want it to fail the whole test
@@ -254,23 +284,74 @@ actual abstract class EngineTestBase<
         return false
     }
 
+    /**
+     * Drops the HTTP/3 client and with it its QUIC connection.
+     *
+     * QUIC learns that a peer is gone only by idle timeout, so a connection to a server that has
+     * just been stopped still reports itself active. Several suite tests replace the server within
+     * one test, on the port the previous one just released, so the connection has to be dropped
+     * whenever a server starts or a test ends — otherwise requests go to a peer that is no longer
+     * listening and simply hang.
+     */
+    private fun resetHttp3Client() {
+        http3Client?.let {
+            it.close()
+            http3Client = null
+        }
+    }
+
     protected fun findFreePort(): Int = FreePorts.select()
+
+    /**
+     * Returns a port that is free for both TCP and UDP, as an HTTP/3 connector needs: it binds UDP
+     * on the same port its TCP SSL connector listens on.
+     */
+    protected fun findFreeUdpPort(): Int = FreePorts.selectTcpAndUdp()
 
     protected actual suspend fun withUrl(
         path: String,
         builder: suspend HttpRequestBuilder.() -> Unit,
         block: suspend HttpResponse.(Int) -> Unit
     ) {
-        withHttp1("http://127.0.0.1:$port$path", port, builder, block)
-
-        if (enableSsl) {
-            withHttp1("https://127.0.0.1:$sslPort$path", sslPort, builder, block)
+        check(withUrlLegCount > 0) {
+            "No protocol leg is enabled, so this call would assert nothing. In an http3-only run " +
+                "this means the test disabled SSL, which HTTP/3 requires: mark it @Http3Excluded."
         }
 
-        if (enableHttp2 && enableSsl) {
-            withHttp2("https://127.0.0.1:$sslPort$path", sslPort, builder, block)
+        if (!http3Only) {
+            withHttp1("http://127.0.0.1:$port$path", port, builder, block)
+
+            if (enableSsl) {
+                withHttp1("https://127.0.0.1:$sslPort$path", sslPort, builder, block)
+            }
+
+            if (enableHttp2 && enableSsl) {
+                withHttp2("https://127.0.0.1:$sslPort$path", sslPort, builder, block)
+            }
+        }
+
+        if (enableHttp3 && enableSsl) {
+            withHttp3("https://127.0.0.1:$sslPort$path", sslPort, builder, block)
         }
     }
+
+    /**
+     * How many protocol legs one [withUrl] call runs.
+     *
+     * Tests that count server-side invocations must scale by this rather than deriving it from the
+     * `enable*` flags themselves, so they stay correct as legs are added or suppressed.
+     */
+    protected val withUrlLegCount: Int
+        get() {
+            var legs = 0
+            if (!http3Only) {
+                legs++
+                if (enableSsl) legs++
+                if (enableHttp2 && enableSsl) legs++
+            }
+            if (enableHttp3 && enableSsl) legs++
+            return legs
+        }
 
     protected inline fun socket(block: Socket.() -> Unit) {
         Socket().use { socket ->
@@ -312,11 +393,35 @@ actual abstract class EngineTestBase<
         }
     }
 
+    /**
+     * Runs the request over HTTP/3.
+     *
+     * Ktor has no HTTP/3 client engine, so this leg is driven by [Http3TestClientEngine]. The
+     * client is shared like [http2Client]; its engine holds one live QUIC connection and reopens it
+     * whenever the authority changes, which it does for every test that starts a fresh server.
+     */
+    protected suspend fun withHttp3(
+        url: String,
+        port: Int,
+        builder: suspend HttpRequestBuilder.() -> Unit,
+        block: suspend HttpResponse.(Int) -> Unit
+    ) {
+        val client = http3Client ?: createHttp3Client().also {
+            http3Client = it
+        }
+        client.prepareRequest(url) {
+            builder()
+        }.execute { response ->
+            block(response, port)
+        }
+    }
+
     companion object {
         val keyStoreFile: File = File("build/temp.jks")
         val keyStore: KeyStore by lazy { generateCertificate(keyStoreFile) }
         lateinit var client: HttpClient
         var http2Client: HttpClient? = null
+        var http3Client: HttpClient? = null
 
         fun createTrustManager(): X509TrustManager {
             val sslContext = SSLContext.getInstance("TLS")
@@ -354,6 +459,17 @@ actual abstract class EngineTestBase<
             }
         }
 
+        /**
+         * The engine reconnects when the authority changes, so one client can serve every test in
+         * the run even though each test starts its server on a fresh port.
+         */
+        fun createHttp3Client(): HttpClient {
+            return HttpClient(Http3TestEngine) {
+                followRedirects = false
+                expectSuccess = false
+            }
+        }
+
         @BeforeAll
         @JvmStatic
         fun setupAll() {
@@ -367,6 +483,10 @@ actual abstract class EngineTestBase<
             http2Client?.let {
                 it.close()
                 http2Client = null
+            }
+            http3Client?.let {
+                it.close()
+                http3Client = null
             }
         }
 

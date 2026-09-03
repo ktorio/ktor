@@ -50,7 +50,9 @@ projects {
         +"ktor-server-servlet-jakarta"
         +"ktor-server-tomcat"
         +"ktor-server-tomcat-jakarta"
-        +"ktor-server-netty"
+        +"ktor-server-netty" including {
+            +"ktor-server-netty-test-http3"
+        }
         +"ktor-server-cio"
 
         +"ktor-server-test-host"

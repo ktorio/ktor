@@ -23,6 +23,10 @@ kotlin {
             api(projects.ktorServerCallLogging)
 
             api(libs.logback.classic)
+
+            // Http3TestClient only: compileOnly so the HTTP/3 stack stays off the test classpath of
+            // engines that don't support it. Consumers of Http3TestClient bring Netty themselves.
+            compileOnly(libs.netty.codec.http3)
         }
     }
 }

@@ -6,7 +6,11 @@ package io.ktor.tests.server.netty
 
 import io.ktor.server.netty.http3.*
 import io.netty.buffer.*
+import io.netty.handler.codec.quic.Quic
 import java.net.*
+import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import kotlin.test.*
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -194,5 +198,105 @@ class HmacQuicTokenHandlerTest {
 
         out.release()
         dcid.release()
+    }
+
+    @Test
+    fun `future dated token is rejected`() {
+        val out = Unpooled.buffer()
+        val dcid = Unpooled.wrappedBuffer(ByteArray(8) { it.toByte() })
+        val address = InetSocketAddress(InetAddress.getByName("127.0.0.1"), 12345)
+
+        handler.writeToken(out, dcid, address)
+
+        // A clock skewed forward, or an attacker extending a token's life, must not be accepted:
+        // a timestamp ahead of now never satisfies the age check.
+        out.setLong(out.readerIndex(), System.currentTimeMillis() + 60_000)
+
+        val offset = handler.validateToken(out, address)
+        assertEquals(-1, offset, "Token dated in the future should be rejected")
+
+        out.release()
+        dcid.release()
+    }
+
+    @Test
+    fun `token with an oversized dcid is rejected`() {
+        val out = Unpooled.buffer()
+        val dcid = Unpooled.wrappedBuffer(ByteArray(8) { it.toByte() })
+        val address = InetSocketAddress(InetAddress.getByName("127.0.0.1"), 12345)
+
+        handler.writeToken(out, dcid, address)
+        // Push the dcid past Quic.MAX_CONN_ID_LEN so the length check has to reject it before
+        // any HMAC work is done.
+        out.writeBytes(ByteArray(Quic.MAX_CONN_ID_LEN))
+
+        val offset = handler.validateToken(out, address)
+        assertEquals(-1, offset, "Token whose dcid exceeds the maximum connection id length should be rejected")
+
+        out.release()
+        dcid.release()
+    }
+
+    @Test
+    fun `tokens validate across instances that share a key`() {
+        // The documented reason for the keyGen parameter: several servers behind a load balancer
+        // must accept each other's Retry tokens, since the client may retry against a different one.
+        val sharedKey = HmacQuicTokenHandler.generateDefaultKey()
+        val writer = HmacQuicTokenHandler(keyGen = { sharedKey })
+        val reader = HmacQuicTokenHandler(keyGen = { sharedKey })
+
+        val out = Unpooled.buffer()
+        val dcid = Unpooled.wrappedBuffer(ByteArray(8) { it.toByte() })
+        val address = InetSocketAddress(InetAddress.getByName("127.0.0.1"), 12345)
+
+        writer.writeToken(out, dcid, address)
+
+        assertEquals(40, reader.validateToken(out, address), "A token signed with the shared key should be accepted")
+
+        out.release()
+        dcid.release()
+    }
+
+    /**
+     * The handler keeps one `Mac` per thread precisely because `Mac` is not thread-safe. If that
+     * ever regressed to a shared instance, concurrent signing would interleave `update` calls and
+     * produce tokens that fail their own validation.
+     */
+    @Test
+    fun `concurrent writeToken and validateToken produce valid tokens`() {
+        val threads = 8
+        val iterations = 200
+        val failures = CopyOnWriteArrayList<String>()
+        val start = CountDownLatch(1)
+        val done = CountDownLatch(threads)
+
+        repeat(threads) { threadIndex ->
+            Thread {
+                try {
+                    start.await()
+                    val address = InetSocketAddress(InetAddress.getByName("127.0.0.1"), 10_000 + threadIndex)
+                    repeat(iterations) { iteration ->
+                        val out = Unpooled.buffer()
+                        val dcid = Unpooled.wrappedBuffer(ByteArray(8) { (threadIndex + iteration).toByte() })
+                        try {
+                            handler.writeToken(out, dcid, address)
+                            val offset = handler.validateToken(out, address)
+                            if (offset != 40) failures += "thread $threadIndex iteration $iteration: offset $offset"
+                        } finally {
+                            out.release()
+                            dcid.release()
+                        }
+                    }
+                } catch (cause: Throwable) {
+                    failures += "thread $threadIndex threw ${cause::class.simpleName}: ${cause.message}"
+                } finally {
+                    done.countDown()
+                }
+            }.start()
+        }
+
+        start.countDown()
+        assertTrue(done.await(60, TimeUnit.SECONDS), "concurrent token signing did not finish in time")
+        assertTrue(failures.isEmpty(), "concurrent token signing failed: ${failures.take(5)}")
     }
 }

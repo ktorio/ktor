@@ -10,20 +10,9 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.test.base.*
 import io.ktor.utils.io.*
-import io.netty.bootstrap.Bootstrap
-import io.netty.channel.*
-import io.netty.channel.nio.NioEventLoopGroup
-import io.netty.channel.socket.nio.NioDatagramChannel
-import io.netty.handler.codec.http3.*
-import io.netty.handler.codec.quic.*
-import java.net.InetSocketAddress
-import java.util.concurrent.LinkedBlockingQueue
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
-import kotlin.system.measureTimeMillis
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
+import kotlin.time.Duration.Companion.seconds
 
 /**
  * Regression test: the HTTP/3 listener must serve more than one QUIC connection.
@@ -38,11 +27,6 @@ class NettyHttp3MultipleConnectionsTest :
 
     init {
         enableSsl = true
-        // FreePorts probes with TCP sockets, but HTTP/3 binds UDP on sslPort; on Windows,
-        // TCP-free ports often fall into Hyper-V/WSL UDP excluded ranges and fail the bind.
-        // Pin ports outside the dynamic range for stability.
-        port = 24440
-        sslPort = 24441
     }
 
     @OptIn(ExperimentalKtorApi::class)
@@ -50,132 +34,36 @@ class NettyHttp3MultipleConnectionsTest :
         configuration.enableHttp3()
     }
 
-    private class H3Conn(
-        val group: NioEventLoopGroup,
-        val udp: Channel,
-        val quic: QuicChannel
-    ) {
-        fun close() {
-            runCatching { quic.close().sync() }
-            runCatching { udp.close().sync() }
-            runCatching { group.shutdownGracefully(0, 500, TimeUnit.MILLISECONDS).sync() }
-        }
-    }
-
-    private fun openConn(label: String): H3Conn? {
-        val group = NioEventLoopGroup(1)
-        try {
-            val sslContext = QuicSslContextBuilder.forClient()
-                .trustManager(io.netty.handler.ssl.util.InsecureTrustManagerFactory.INSTANCE)
-                .applicationProtocols(*Http3.supportedApplicationProtocols())
-                .build()
-            val codec = Http3.newQuicClientCodecBuilder()
-                .sslContext(sslContext)
-                .maxIdleTimeout(30_000, TimeUnit.MILLISECONDS)
-                .initialMaxData(10_000_000)
-                .initialMaxStreamDataBidirectionalLocal(1_000_000)
-                .initialMaxStreamDataBidirectionalRemote(1_000_000)
-                .initialMaxStreamsBidirectional(100)
-                .build()
-            val udp = Bootstrap()
-                .group(group)
-                .channel(NioDatagramChannel::class.java)
-                .handler(codec)
-                .bind(0).sync().channel()
-            val quic: QuicChannel
-            val ms = measureTimeMillis {
-                quic = QuicChannel.newBootstrap(udp)
-                    .handler(Http3ClientConnectionHandler())
-                    .remoteAddress(InetSocketAddress("127.0.0.1", sslPort))
-                    .connect().get(5, TimeUnit.SECONDS)
-            }
-            println("[probe] $label: connected in ${ms}ms")
-            return H3Conn(group, udp, quic)
-        } catch (ignored: TimeoutException) {
-            println("[probe] $label: CONNECT TIMED OUT after 5s")
-            group.shutdownGracefully(0, 500, TimeUnit.MILLISECONDS)
-            return null
-        } catch (cause: Throwable) {
-            println("[probe] $label: connect failed: ${cause::class.simpleName}: ${cause.message}")
-            group.shutdownGracefully(0, 500, TimeUnit.MILLISECONDS)
-            return null
-        }
-    }
-
-    private fun get(conn: H3Conn, label: String): String? {
-        val responses = LinkedBlockingQueue<String>()
-        val handler = object : ChannelInboundHandlerAdapter() {
-            val body = StringBuilder()
-            override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
-                when (msg) {
-                    is Http3HeadersFrame -> Unit
-
-                    is Http3DataFrame -> {
-                        body.append(msg.content().toString(Charsets.UTF_8))
-                        msg.release()
-                    }
-
-                    else -> super.channelRead(ctx, msg)
-                }
-            }
-
-            override fun channelInactive(ctx: ChannelHandlerContext) {
-                responses.offer(body.toString())
-                super.channelInactive(ctx)
-            }
-        }
-        return try {
-            val stream = Http3.newRequestStream(conn.quic, handler).sync().getNow()
-            val headers = DefaultHttp3Headers().apply {
-                method("GET")
-                path("/i")
-                scheme("https")
-                authority("localhost:$sslPort")
-            }
-            stream.writeAndFlush(DefaultHttp3HeadersFrame(headers)).sync()
-            stream.shutdownOutput().sync()
-            val body = responses.poll(5, TimeUnit.SECONDS)
-            println("[probe] $label: GET /i -> ${body ?: "TIMED OUT"}")
-            body
-        } catch (cause: Throwable) {
-            println("[probe] $label: request failed: ${cause::class.simpleName}: ${cause.message}")
-            null
-        }
-    }
-
     @Test
-    fun `probe multiple QUIC connections to one listener`() = runTest {
+    fun `listener serves multiple QUIC connections`() = runTest {
         createAndStartServer {
             application.routing {
                 get("/i") { call.respondText("ok") }
             }
         }
 
-        val connections = mutableListOf<H3Conn>()
-        try {
-            val conn1 = assertNotNull(openConn("conn1 (fresh listener)"), "first connection must connect")
-            connections += conn1
-            assertEquals("ok", get(conn1, "conn1"))
+        withHttp3Client(sslPort) { first ->
+            assertEquals("ok", first.request(path = "/i").bodyText, "the first connection must be served")
 
-            val conn2 = assertNotNull(
-                openConn("conn2 (while conn1 still open)"),
-                "a second concurrent QUIC connection must be accepted"
-            )
-            connections += conn2
-            assertEquals("ok", get(conn2, "conn2"))
-
-            conn1.close()
-            println("[probe] conn1 closed")
-
-            val conn3 = assertNotNull(
-                openConn("conn3 (after conn1 closed)"),
-                "a new QUIC connection after a previous one closed must be accepted"
-            )
-            connections += conn3
-            assertEquals("ok", get(conn3, "conn3"))
-            println("[probe] done")
-        } finally {
-            connections.asReversed().forEach { it.close() }
+            // A second connection, while the first is still open, exercises the handler instance
+            // that the regression made unusable. The listener is known to be up by now, so a
+            // short timeout keeps a re-regression from stalling for the full connect budget.
+            withHttp3Client(sslPort, connectTimeout = SUBSEQUENT_CONNECT_TIMEOUT) { second ->
+                assertEquals(
+                    "ok",
+                    second.request(path = "/i").bodyText,
+                    "a second concurrent connection must be accepted"
+                )
+            }
         }
+
+        // Both previous connections are closed here: a fresh handshake must still be accepted.
+        withHttp3Client(sslPort, connectTimeout = SUBSEQUENT_CONNECT_TIMEOUT) { third ->
+            assertEquals("ok", third.request(path = "/i").bodyText, "a connection after a close must be accepted")
+        }
+    }
+
+    private companion object {
+        private val SUBSEQUENT_CONNECT_TIMEOUT = 5.seconds
     }
 }

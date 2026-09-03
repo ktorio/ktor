@@ -370,11 +370,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
                 errors.first()
             )
         }
-        var multiplier = 1
-        if (enableHttp2) multiplier++
-        if (enableSsl) multiplier++
-
-        assertEquals(count * multiplier, completed.get())
+        assertEquals(count * withUrlLegCount, completed.get())
     }
 
     @OptIn(InternalAPI::class)

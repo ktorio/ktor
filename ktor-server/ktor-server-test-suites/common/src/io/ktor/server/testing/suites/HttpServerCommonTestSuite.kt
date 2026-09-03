@@ -878,6 +878,9 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
+    // Pins the run to a single plain HTTP/1.1 leg via `enableSsl = false`, and HTTP/3 requires an
+    // SSL connector, so there is no leg left for an http3-only run to exercise.
+    @Http3Excluded
     fun testResponseSentCalledOnce() = runTest {
         var responseSentCalled = 0
         createAndStartServer {

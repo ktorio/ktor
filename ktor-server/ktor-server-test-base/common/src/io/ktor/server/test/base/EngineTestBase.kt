@@ -27,9 +27,24 @@ expect abstract class EngineTestBase<TEngine : ApplicationEngine, TConfiguration
     @Retention
     protected annotation class Http1Only()
 
+    /** Runs only when the HTTP/3 leg is enabled, and is skipped otherwise. */
+    @Target(AnnotationTarget.FUNCTION)
+    @Retention
+    protected annotation class Http3Only()
+
+    /**
+     * Excluded from the HTTP/3 leg: the test asserts something HTTP/3 cannot express (a protocol
+     * upgrade, TCP framing, mTLS). Give the reason in a comment — this annotation is for protocol
+     * limitations, never for working around a defect.
+     */
+    @Target(AnnotationTarget.FUNCTION)
+    @Retention
+    protected annotation class Http3Excluded()
+
     val applicationEngineFactory: ApplicationEngineFactory<TEngine, TConfiguration>
 
     protected var enableHttp2: Boolean
+    protected var enableHttp3: Boolean
     protected var enableSsl: Boolean
     protected var enableCertVerify: Boolean
 

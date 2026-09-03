@@ -22,35 +22,20 @@ import io.ktor.server.testing.suites.*
 import io.ktor.server.websocket.*
 import io.ktor.utils.io.*
 import io.ktor.websocket.*
-import io.netty.bootstrap.Bootstrap
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
-import io.netty.channel.ChannelHandlerContext
-import io.netty.channel.ChannelInboundHandlerAdapter
-import io.netty.channel.MultiThreadIoEventLoopGroup
 import io.netty.channel.epoll.Epoll
 import io.netty.channel.kqueue.KQueue
-import io.netty.channel.nio.NioEventLoopGroup
-import io.netty.channel.nio.NioIoHandler
-import io.netty.channel.socket.nio.NioDatagramChannel
 import io.netty.handler.codec.http.HttpResponseStatus
 import io.netty.handler.codec.http2.*
 import io.netty.handler.codec.http2.Http2CodecUtil.readUnsignedInt
-import io.netty.handler.codec.http3.*
-import io.netty.handler.codec.quic.QuicChannel
-import io.netty.handler.codec.quic.QuicSslContextBuilder
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.consumeAsFlow
-import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import org.junit.jupiter.api.Assumptions.assumeTrue
-import java.net.InetSocketAddress
 import java.net.StandardSocketOptions
-import java.util.concurrent.LinkedBlockingQueue
-import java.util.concurrent.TimeUnit
 import kotlin.test.*
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -747,10 +732,10 @@ open class NettyHttp3Test :
             }
         }
 
-        withHttp3Client { quicChannel ->
-            val response = sendHttp3Request(quicChannel, "GET", "/")
+        withHttp3Client(sslPort) { connection ->
+            val response = connection.request(path = "/")
             assertEquals("200", response.status)
-            assertEquals("Hello, HTTP/3!", response.body)
+            assertEquals("Hello, HTTP/3!", response.bodyText)
         }
     }
 
@@ -765,10 +750,10 @@ open class NettyHttp3Test :
             }
         }
 
-        withHttp3Client { quicChannel ->
-            val response = sendHttp3Request(quicChannel, "GET", "/greet?name=Ktor")
+        withHttp3Client(sslPort) { connection ->
+            val response = connection.request(path = "/greet?name=Ktor")
             assertEquals("200", response.status)
-            assertEquals("Hello, Ktor!", response.body)
+            assertEquals("Hello, Ktor!", response.bodyText)
         }
     }
 
@@ -783,11 +768,11 @@ open class NettyHttp3Test :
             }
         }
 
-        withHttp3Client { quicChannel ->
+        withHttp3Client(sslPort) { connection ->
             val body = "Hello from HTTP/3 client"
-            val response = sendHttp3Request(quicChannel, "POST", "/echo", body)
+            val response = connection.request(method = "POST", path = "/echo", body = body.toByteArray())
             assertEquals("200", response.status)
-            assertEquals(body, response.body)
+            assertEquals(body, response.bodyText)
         }
     }
 
@@ -802,11 +787,11 @@ open class NettyHttp3Test :
             }
         }
 
-        withHttp3Client { quicChannel ->
-            val response = sendHttp3Request(quicChannel, "GET", "/headers")
+        withHttp3Client(sslPort) { connection ->
+            val response = connection.request(path = "/headers")
             assertEquals("200", response.status)
             assertEquals("custom-value", response.headers["x-custom-header"])
-            assertEquals("ok", response.body)
+            assertEquals("ok", response.bodyText)
         }
     }
 
@@ -820,8 +805,8 @@ open class NettyHttp3Test :
             }
         }
 
-        withHttp3Client { quicChannel ->
-            val response = sendHttp3Request(quicChannel, "GET", "/not-found")
+        withHttp3Client(sslPort) { connection ->
+            val response = connection.request(path = "/not-found")
             assertEquals("404", response.status)
         }
     }
@@ -837,11 +822,11 @@ open class NettyHttp3Test :
             }
         }
 
-        withHttp3Client { quicChannel ->
+        withHttp3Client(sslPort) { connection ->
             for (i in 1..3) {
-                val response = sendHttp3Request(quicChannel, "GET", "/count/$i")
+                val response = connection.request(path = "/count/$i")
                 assertEquals("200", response.status)
-                assertEquals("Request $i", response.body)
+                assertEquals("Request $i", response.bodyText)
             }
         }
     }
@@ -857,157 +842,17 @@ open class NettyHttp3Test :
             }
         }
 
-        withHttp3Client { quicChannel ->
-            val responseHandler = Http3ResponseHandler()
-            val stream = Http3.newRequestStream(quicChannel, responseHandler).sync().getNow()
-
-            val headers = DefaultHttp3Headers().apply {
-                method("POST")
-                path("/echo-with-trailers")
-                scheme("https")
-                authority("localhost:$sslPort")
-            }
-            stream.writeAndFlush(DefaultHttp3HeadersFrame(headers)).sync()
-
+        withHttp3Client(sslPort) { connection ->
             val body = "Hello with trailers"
-            val buf = Unpooled.copiedBuffer(body, Charsets.UTF_8)
-            stream.writeAndFlush(DefaultHttp3DataFrame(buf)).sync()
-
-            // Send trailing HEADERS frame (trailers)
-            val trailers = DefaultHttp3Headers().apply {
-                add("x-checksum", "abc123")
-            }
-            stream.writeAndFlush(DefaultHttp3HeadersFrame(trailers)).sync()
-
-            stream.shutdownOutput().sync()
-
-            val response = responseHandler.responseQueue.poll(10, TimeUnit.SECONDS)
-                ?: error("Timed out waiting for HTTP/3 response")
+            val response = connection.request(
+                method = "POST",
+                path = "/echo-with-trailers",
+                body = body.toByteArray(),
+                trailers = mapOf("x-checksum" to "abc123"),
+            )
             assertEquals("200", response.status)
-            assertEquals(body, response.body)
+            assertEquals(body, response.bodyText)
         }
-    }
-
-    private data class Http3Response(
-        val status: String,
-        val headers: Map<String, String>,
-        val body: String
-    )
-
-    private class Http3ResponseHandler : ChannelInboundHandlerAdapter() {
-        val responseQueue = LinkedBlockingQueue<Http3Response>()
-        private var status: String = ""
-        private var headers: MutableMap<String, String> = mutableMapOf()
-        private val bodyParts = mutableListOf<ByteArray>()
-
-        override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
-            when (msg) {
-                is Http3HeadersFrame -> {
-                    val h = msg.headers()
-                    status = h.status()?.toString() ?: ""
-                    h.forEach { (name, value) ->
-                        val nameStr = name.toString()
-                        if (!nameStr.startsWith(":")) {
-                            headers[nameStr] = value.toString()
-                        }
-                    }
-                }
-
-                is Http3DataFrame -> {
-                    val content = msg.content()
-                    val bytes = ByteArray(content.readableBytes())
-                    content.readBytes(bytes)
-                    bodyParts.add(bytes)
-                    msg.release()
-                }
-
-                else -> {
-                    super.channelRead(ctx, msg)
-                }
-            }
-        }
-
-        override fun channelInactive(ctx: ChannelHandlerContext) {
-            val body = bodyParts.joinToString("") { String(it, Charsets.UTF_8) }
-            responseQueue.offer(Http3Response(status, headers, body))
-            status = ""
-            headers = mutableMapOf()
-            bodyParts.clear()
-            super.channelInactive(ctx)
-        }
-    }
-
-    private suspend fun withHttp3Client(block: suspend (QuicChannel) -> Unit) {
-        val group = MultiThreadIoEventLoopGroup(NioIoHandler.newFactory())
-        try {
-            withContext(Dispatchers.IO) {
-                val quicSslContext = QuicSslContextBuilder.forClient()
-                    .trustManager(io.netty.handler.ssl.util.InsecureTrustManagerFactory.INSTANCE)
-                    .applicationProtocols(*Http3.supportedApplicationProtocols())
-                    .build()
-
-                val quicClientCodec = Http3.newQuicClientCodecBuilder()
-                    .sslContext(quicSslContext)
-                    .maxIdleTimeout(30_000, TimeUnit.MILLISECONDS)
-                    .initialMaxData(10_000_000)
-                    .initialMaxStreamDataBidirectionalLocal(1_000_000)
-                    .initialMaxStreamDataBidirectionalRemote(1_000_000)
-                    .initialMaxStreamsBidirectional(100)
-                    .build()
-
-                val udpChannel = Bootstrap()
-                    .group(group)
-                    .channel(NioDatagramChannel::class.java)
-                    .handler(quicClientCodec)
-                    .bind(0)
-                    .sync()
-                    .channel()
-
-                val quicChannel = QuicChannel.newBootstrap(udpChannel)
-                    .handler(Http3ClientConnectionHandler())
-                    .remoteAddress(InetSocketAddress("127.0.0.1", sslPort))
-                    .connect()
-                    .get()
-
-                try {
-                    block(quicChannel)
-                } finally {
-                    quicChannel.close().sync()
-                    udpChannel.close().sync()
-                }
-            }
-        } finally {
-            group.shutdownGracefully().sync()
-        }
-    }
-
-    private fun sendHttp3Request(
-        quicChannel: QuicChannel,
-        method: String,
-        path: String,
-        body: String? = null
-    ): Http3Response {
-        val responseHandler = Http3ResponseHandler()
-
-        val stream = Http3.newRequestStream(quicChannel, responseHandler).sync().getNow()
-
-        val headers = DefaultHttp3Headers().apply {
-            method(method)
-            path(path)
-            scheme("https")
-            authority("localhost:$sslPort")
-        }
-        stream.writeAndFlush(DefaultHttp3HeadersFrame(headers)).sync()
-
-        if (body != null) {
-            val buf = Unpooled.copiedBuffer(body, Charsets.UTF_8)
-            stream.writeAndFlush(DefaultHttp3DataFrame(buf)).sync()
-        }
-
-        stream.shutdownOutput().sync()
-
-        return responseHandler.responseQueue.poll(10, TimeUnit.SECONDS)
-            ?: error("Timed out waiting for HTTP/3 response")
     }
 }
 

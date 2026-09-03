@@ -389,6 +389,9 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     }
 
     @Test
+    // Drives a raw TCP socket speaking HTTP/1.1 with `Transfer-Encoding: chunked`; HTTP/3 frames
+    // bodies in DATA frames and forbids the header outright.
+    @Http3Excluded
     open fun funkyChunked() = runTest {
         // echo the request body
         createAndStartServer {
