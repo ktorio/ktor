@@ -66,6 +66,8 @@ class ReceiveBlockingPrimitiveTest {
             }
         }
     ) {
+        private val callJob = Job()
+
         init {
             application.receivePipeline.installDefaultTransformations()
         }
@@ -127,10 +129,10 @@ class ReceiveBlockingPrimitiveTest {
         override val response: BaseApplicationResponse
             get() = error("Shouldn't be invoked")
 
-        override val coroutineContext: CoroutineContext
-            get() = TODO("Not yet implemented")
+        override val coroutineContext: CoroutineContext = callJob
 
         fun close() {
+            callJob.cancel()
             application.dispose()
         }
     }

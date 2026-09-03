@@ -19,9 +19,12 @@ import io.ktor.server.test.base.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
-import java.io.*
-import java.util.zip.*
-import kotlin.test.*
+import kotlinx.coroutines.job
+import java.io.ByteArrayInputStream
+import java.util.zip.GZIPInputStream
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 abstract class CompressionTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
@@ -42,7 +45,10 @@ abstract class CompressionTestSuite<TEngine : ApplicationEngine, TConfiguration 
 
         withUrl("/", { header(HttpHeaders.AcceptEncoding, "gzip") }) {
             assertEquals(200, status.value)
-            assertEquals(file.readText(), GZIPInputStream(rawContent.toInputStream()).reader().use { it.readText() })
+            assertEquals(
+                file.readText(),
+                GZIPInputStream(rawContent.asInputStream(coroutineContext.job)).reader().use { it.readText() }
+            )
             assertEquals("gzip", headers[HttpHeaders.ContentEncoding])
         }
     }
@@ -68,7 +74,10 @@ abstract class CompressionTestSuite<TEngine : ApplicationEngine, TConfiguration 
 
         withUrl("/", { header(HttpHeaders.AcceptEncoding, "gzip") }) {
             assertEquals(200, status.value)
-            assertEquals("Hello!", GZIPInputStream(rawContent.toInputStream()).reader().use { it.readText() })
+            assertEquals(
+                "Hello!",
+                GZIPInputStream(rawContent.asInputStream(coroutineContext.job)).reader().use { it.readText() },
+            )
             assertEquals("gzip", headers[HttpHeaders.ContentEncoding])
         }
     }

@@ -580,6 +580,8 @@ public final class io/ktor/utils/io/core/internal/NumbersKt {
 }
 
 public final class io/ktor/utils/io/jvm/javaio/BlockingKt {
+	public static final fun asInputStream (Lio/ktor/utils/io/ByteReadChannel;Lkotlinx/coroutines/Job;)Ljava/io/InputStream;
+	public static final fun asOutputStream (Lio/ktor/utils/io/ByteWriteChannel;Lkotlinx/coroutines/Job;)Ljava/io/OutputStream;
 	public static final fun toInputStream (Lio/ktor/utils/io/ByteReadChannel;Lkotlinx/coroutines/Job;)Ljava/io/InputStream;
 	public static synthetic fun toInputStream$default (Lio/ktor/utils/io/ByteReadChannel;Lkotlinx/coroutines/Job;ILjava/lang/Object;)Ljava/io/InputStream;
 	public static final fun toOutputStream (Lio/ktor/utils/io/ByteWriteChannel;)Ljava/io/OutputStream;
