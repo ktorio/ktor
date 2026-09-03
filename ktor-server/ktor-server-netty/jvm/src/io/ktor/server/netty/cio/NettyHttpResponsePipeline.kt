@@ -95,7 +95,11 @@ internal class NettyHttpResponsePipeline(
         } catch (actualException: Throwable) {
             respondWithFailure(call, actualException)
         } finally {
-            call.responseWriteJob.cancel()
+            // On the failure path above, responseWriteJob is already cancelled by respondWithFailure;
+            // completing it here again is then a no-op. On the (overwhelmingly common) success path,
+            // this is the actual completion signal, so it goes through complete()'s fast path rather
+            // than cancel()'s always-slow-path Finishing/exception-aggregation machinery.
+            call.completeResponseWriteJob()
         }
     }
 
