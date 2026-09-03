@@ -16,14 +16,14 @@ import io.netty.handler.codec.http3.Http3Headers
 import io.netty.handler.codec.http3.Http3HeadersFrame
 import io.netty.handler.codec.http3.Http3RequestStreamInboundHandler
 import io.netty.util.AttributeKey
-import io.netty.util.concurrent.EventExecutorGroup
+import io.netty.util.concurrent.EventExecutor
 import kotlinx.coroutines.*
 import kotlin.coroutines.CoroutineContext
 
 internal class NettyHttp3Handler(
     private val enginePipeline: EnginePipeline,
     private val application: Application,
-    private val callEventGroup: EventExecutorGroup,
+    private val resolveCallExecutor: (ChannelHandlerContext) -> EventExecutor,
     private val userCoroutineContext: CoroutineContext,
     runningLimit: Int
 ) : Http3RequestStreamInboundHandler(), CoroutineScope {
@@ -101,7 +101,7 @@ internal class NettyHttp3Handler(
 
     private fun startHttp3(context: ChannelHandlerContext, headers: Http3Headers) {
         val callJob = Job(parent = handlerJob)
-        val callExecutor = pinnedCallExecutor(context, callEventGroup)
+        val callExecutor = resolveCallExecutor(context)
         // Combine the cached static context with the per-stream dispatcher and per-call [Job] only.
         val callContext = staticCallContext + NettyDispatcher.CurrentContext(context, callExecutor) + callJob
         val call = NettyHttp3ApplicationCall(
@@ -115,8 +115,11 @@ internal class NettyHttp3Handler(
 
         responseWriter.processResponse(call)
 
-        // Dispatching to the call event group keeps user handler code off the QUIC event loop,
+        // Dispatching to the call executor keeps user handler code off the QUIC event loop,
         // which drives every connection and stream of this connector (same model as HTTP/1/2).
+        // When resolveCallExecutor is pinned directly to context.executor() (shareWorkGroup), calls that
+        // never suspend skip that hop entirely and run on the QUIC event loop instead; calls that do
+        // suspend still resume on that same thread via NettyDispatcher.
         callExecutor.execute {
             val callScope = CoroutineScope(context = callContext)
             callScope.launch(start = CoroutineStart.UNDISPATCHED) {

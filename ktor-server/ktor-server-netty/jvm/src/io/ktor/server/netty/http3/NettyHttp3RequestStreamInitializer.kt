@@ -6,9 +6,10 @@ package io.ktor.server.netty.http3
 
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
+import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelInitializer
 import io.netty.handler.codec.quic.QuicStreamChannel
-import io.netty.util.concurrent.EventExecutorGroup
+import io.netty.util.concurrent.EventExecutor
 import kotlin.coroutines.CoroutineContext
 
 /**
@@ -24,7 +25,7 @@ internal class NettyHttp3RequestStreamInitializer(
     private val enginePipeline: EnginePipeline,
     private val application: Application,
     private val userCoroutineContext: CoroutineContext,
-    private val callEventGroup: EventExecutorGroup,
+    private val resolveCallExecutor: (ChannelHandlerContext) -> EventExecutor,
     private val runningLimit: Int
 ) : ChannelInitializer<QuicStreamChannel>() {
 
@@ -38,7 +39,7 @@ internal class NettyHttp3RequestStreamInitializer(
             NettyHttp3Handler(
                 enginePipeline,
                 application,
-                callEventGroup,
+                resolveCallExecutor,
                 context,
                 runningLimit
             )

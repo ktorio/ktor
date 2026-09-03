@@ -75,7 +75,8 @@ public class NettyApplicationEngine(
         public var runningLimit: Int = 32
 
         /**
-         * Do not create separate call event group and reuse worker group for processing calls
+         * All tasks use a common event group, and call dispatchers wrap this event group without thread pinning.
+         * This setting reduces some overhead in scheduling at the expense of the safety provided by segregating the work and call groups.
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.NettyApplicationEngine.Configuration.shareWorkGroup)
          */
@@ -240,6 +241,15 @@ public class NettyApplicationEngine(
         workerEventGroup.asCoroutineDispatcher()
     }
 
+    /**
+     * Resolves the [io.netty.util.concurrent.EventExecutor] a call's coroutine should be dispatched onto
+     * and resumed on, for a given channel. Built once since [callEventGroup] and
+     * [Configuration.shareWorkGroup] are both stable for the lifetime of this engine.
+     */
+    private val resolveCallExecutor by lazy {
+        callExecutorResolver(callEventGroup, configuration.shareWorkGroup)
+    }
+
     private var cancellationJob: CompletableJob? = null
 
     private var channels: List<Channel>? = null
@@ -277,7 +287,7 @@ public class NettyApplicationEngine(
                     applicationProvider,
                     pipeline,
                     environment,
-                    callEventGroup,
+                    resolveCallExecutor,
                     workerDispatcher,
                     userContext,
                     connector,
@@ -407,7 +417,7 @@ public class NettyApplicationEngine(
                     applicationProvider,
                     pipeline,
                     userContext,
-                    callEventGroup,
+                    resolveCallExecutor,
                     configuration.runningLimit,
                     quicSslContext,
                     http3Configuration,
