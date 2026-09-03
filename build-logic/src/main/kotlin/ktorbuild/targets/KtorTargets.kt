@@ -263,7 +263,7 @@ internal fun KotlinMultiplatformExtension.addTargets(targets: KtorTargets, isCI:
     // See: https://kotlinlang.org/docs/native-target-support.html
 
     // Tier 1
-    @Suppress("DEPRECATION") // Deprecated in Kotlin, but Ktor still publishes it
+    @Suppress("DEPRECATION", "DEPRECATION_ERROR") // Ktor still publishes these targets; see KT-84955.
     if (targets.isEnabled("macosX64")) macosX64()
     if (targets.isEnabled("macosArm64")) macosArm64()
     if (targets.isEnabled("iosArm64")) iosArm64()
@@ -274,11 +274,11 @@ internal fun KotlinMultiplatformExtension.addTargets(targets: KtorTargets, isCI:
     if (targets.isEnabled("linuxArm64")) linuxArm64()
     if (targets.isEnabled("linuxX64")) linuxX64()
     if (targets.isEnabled("watchosArm64")) watchosArm64()
-    @Suppress("DEPRECATION") // Deprecated in Kotlin, but Ktor still publishes it
+    @Suppress("DEPRECATION", "DEPRECATION_ERROR") // Ktor still publishes these targets; see KT-84955.
     if (targets.isEnabled("watchosX64")) watchosX64()
     if (targets.isEnabled("watchosSimulatorArm64")) watchosSimulatorArm64()
     if (targets.isEnabled("tvosArm64")) tvosArm64()
-    @Suppress("DEPRECATION") // Deprecated in Kotlin, but Ktor still publishes it
+    @Suppress("DEPRECATION", "DEPRECATION_ERROR") // Ktor still publishes these targets; see KT-84955.
     if (targets.isEnabled("tvosX64")) tvosX64()
     if (targets.isEnabled("tvosSimulatorArm64")) tvosSimulatorArm64()
 
