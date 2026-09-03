@@ -25,7 +25,8 @@ internal class NettyHttp3RequestStreamInitializer(
     private val application: Application,
     private val userCoroutineContext: CoroutineContext,
     private val callEventGroup: EventExecutorGroup,
-    private val runningLimit: Int
+    private val runningLimit: Int,
+    private val dispatchCallStartOnIoExecutor: Boolean = false
 ) : ChannelInitializer<QuicStreamChannel>() {
 
     override fun initChannel(ch: QuicStreamChannel) {
@@ -40,7 +41,8 @@ internal class NettyHttp3RequestStreamInitializer(
                 application,
                 callEventGroup,
                 context,
-                runningLimit
+                runningLimit,
+                dispatchCallStartOnIoExecutor
             )
         )
     }

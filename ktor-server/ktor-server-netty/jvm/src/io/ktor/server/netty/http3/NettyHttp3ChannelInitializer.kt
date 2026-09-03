@@ -47,6 +47,7 @@ internal class NettyHttp3ChannelInitializer(
     private val quicSslContext: QuicSslContext,
     private val http3Configuration: NettyHttp3Configuration,
     useCodecDispatcher: Boolean,
+    private val dispatchCallStartOnIoExecutor: Boolean = false,
 ) : ChannelInitializer<DatagramChannel>() {
 
     /**
@@ -87,7 +88,8 @@ internal class NettyHttp3ChannelInitializer(
             application,
             userContext,
             callEventGroup,
-            runningLimit
+            runningLimit,
+            dispatchCallStartOnIoExecutor
         )
 
         val builder = Http3.newQuicServerCodecBuilder()

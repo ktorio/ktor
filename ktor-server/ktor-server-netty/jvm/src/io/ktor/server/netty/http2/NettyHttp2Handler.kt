@@ -32,7 +32,8 @@ internal class NettyHttp2Handler(
     private val application: Application,
     private val callEventGroup: EventExecutorGroup,
     private val userCoroutineContext: CoroutineContext,
-    runningLimit: Int
+    runningLimit: Int,
+    private val dispatchCallStartOnIoExecutor: Boolean = false
 ) : ChannelInboundHandlerAdapter() {
     // Parent [Job] for per-call [Job]s. Cached to avoid re-running `userCoroutineContext[Job]` per request.
     private val parentJob: Job? = userCoroutineContext[Job]
@@ -151,8 +152,12 @@ internal class NettyHttp2Handler(
         // deliver subsequent Http2DataFrame messages. Without this, the coroutine runs on the event loop,
         // blocking data frame delivery and causing EOFException.
         // Dispatching to the call event group also ensures user handler code does not run on the I/O worker
-        // event loop.
-        callExecutor.execute {
+        // event loop. When dispatchCallStartOnIoExecutor is enabled, calls that never suspend skip that
+        // hop entirely and run on the I/O thread instead; calls that do suspend still resume on
+        // callExecutor via NettyDispatcher, since callExecutor above is unconditionally what's captured
+        // in CurrentContext.
+        val startExecutor = if (dispatchCallStartOnIoExecutor) context.executor() else callExecutor
+        startExecutor.execute {
             val callScope = CoroutineScope(context = callContext)
             callScope.launch(start = CoroutineStart.UNDISPATCHED) {
                 try {

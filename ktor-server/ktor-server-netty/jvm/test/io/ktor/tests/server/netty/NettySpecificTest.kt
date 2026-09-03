@@ -421,6 +421,50 @@ class NettySpecificTest {
         }
     }
 
+    @OptIn(ExperimentalKtorApi::class)
+    @Test
+    fun `request handler runs on io executor when dispatchCallStartOnIoExecutor is enabled`() = runTestWithRealTime {
+        val handlerThread = AtomicReference<Thread>()
+
+        val server = embeddedServer(
+            factory = Netty,
+            rootConfig = serverConfig {
+                module {
+                    routing {
+                        get("/") {
+                            handlerThread.set(Thread.currentThread())
+                            call.respondText("ok")
+                        }
+                    }
+                }
+            },
+            configure = {
+                connector { port = 0 }
+                shareWorkGroup = false
+                dispatchCallStartOnIoExecutor = true
+            }
+        )
+        server.startSuspend(wait = false)
+
+        try {
+            val connector = server.engine.resolvedConnectors().first()
+            HttpClient(CIO).use { it.get("http://${connector.host}:${connector.port}/") }
+
+            val callEventGroup = NettyApplicationEngine::class.java
+                .getDeclaredMethod("getCallEventGroup")
+                .apply { isAccessible = true }
+                .invoke(server.engine) as EventLoopGroup
+
+            val thread = handlerThread.get()
+            assertFalse(
+                callEventGroup.any { it.inEventLoop(thread) },
+                "Handler ran on '${thread.name}', which is in the call event group"
+            )
+        } finally {
+            server.stopSuspend()
+        }
+    }
+
     @Test
     fun `no messages are discarded from the netty pipeline for HTTP1`() = noDiscardedMessagesTest(enableH2c = false) {
         val connector = engine.resolvedConnectors().first()

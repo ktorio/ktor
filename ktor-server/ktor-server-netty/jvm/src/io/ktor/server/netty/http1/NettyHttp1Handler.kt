@@ -34,7 +34,8 @@ internal class NettyHttp1Handler(
     private val callEventGroup: EventExecutorGroup,
     private val engineContext: CoroutineContext,
     private val userContext: CoroutineContext,
-    private val runningLimit: Int
+    private val runningLimit: Int,
+    private val dispatchCallStartOnIoExecutor: Boolean = false
 ) : ChannelInboundHandlerAdapter() {
     private lateinit var handlerJob: CompletableJob
 
@@ -262,8 +263,12 @@ internal class NettyHttp1Handler(
         // early instead of buffering them, which is required when the client waits for response headers
         // before sending the request body.
         // Dispatching to the call event group also ensures user handler code does not run on the I/O worker
-        // event loop.
-        callExecutor.execute {
+        // event loop. When dispatchCallStartOnIoExecutor is enabled, calls that never suspend skip that
+        // hop entirely and run on the I/O thread instead; calls that do suspend still resume on
+        // callExecutor via NettyDispatcher, since callExecutor above is unconditionally what's captured
+        // in CurrentContext.
+        val startExecutor = if (dispatchCallStartOnIoExecutor) context.executor() else callExecutor
+        startExecutor.execute {
             val callScope = CoroutineScope(context = callContext)
             callScope.launch(start = CoroutineStart.UNDISPATCHED) {
                 try {
