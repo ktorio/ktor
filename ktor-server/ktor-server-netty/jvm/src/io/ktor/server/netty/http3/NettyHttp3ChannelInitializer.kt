@@ -8,6 +8,7 @@ import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.netty.channel.Channel
 import io.netty.channel.ChannelHandler
+import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelInitializer
 import io.netty.channel.epoll.Epoll
 import io.netty.channel.socket.DatagramChannel
@@ -19,7 +20,7 @@ import io.netty.handler.codec.quic.QuicChannelOption
 import io.netty.handler.codec.quic.QuicCodecDispatcher
 import io.netty.handler.codec.quic.QuicConnectionIdGenerator
 import io.netty.handler.codec.quic.QuicSslContext
-import io.netty.util.concurrent.EventExecutorGroup
+import io.netty.util.concurrent.EventExecutor
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import java.util.concurrent.TimeUnit
@@ -42,7 +43,7 @@ internal class NettyHttp3ChannelInitializer(
     private val applicationProvider: () -> Application,
     private val enginePipeline: EnginePipeline,
     private val userContext: CoroutineContext,
-    private val callEventGroup: EventExecutorGroup,
+    private val resolveCallExecutor: (ChannelHandlerContext) -> EventExecutor,
     private val runningLimit: Int,
     private val quicSslContext: QuicSslContext,
     private val http3Configuration: NettyHttp3Configuration,
@@ -86,7 +87,7 @@ internal class NettyHttp3ChannelInitializer(
             enginePipeline,
             application,
             userContext,
-            callEventGroup,
+            resolveCallExecutor,
             runningLimit
         )
 

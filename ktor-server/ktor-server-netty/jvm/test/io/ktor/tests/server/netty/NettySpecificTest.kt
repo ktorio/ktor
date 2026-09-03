@@ -29,6 +29,8 @@ import io.ktor.test.dispatcher.*
 import io.ktor.utils.io.*
 import io.mockk.mockk
 import io.netty.channel.Channel
+import io.netty.channel.ChannelHandlerContext
+import io.netty.channel.ChannelInboundHandlerAdapter
 import io.netty.channel.EventLoopGroup
 import io.netty.channel.embedded.EmbeddedChannel
 import io.netty.channel.nio.NioEventLoopGroup
@@ -285,7 +287,7 @@ class NettySpecificTest {
             applicationProvider = { mockk(relaxed = true) },
             enginePipeline = mockk(relaxed = true),
             environment = environment,
-            callEventGroup = callEventGroup,
+            resolveCallExecutor = callExecutorResolver(callEventGroup, shareWorkGroup = false),
             engineContext = EmptyCoroutineContext,
             userContext = EmptyCoroutineContext,
             runningLimit = 32
@@ -413,6 +415,52 @@ class NettySpecificTest {
             assertTrue(
                 callEventGroup.any { it.inEventLoop(thread) },
                 "Handler ran on '${thread.name}', not on any call event group thread"
+            )
+        } finally {
+            server.stopSuspend()
+        }
+    }
+
+    @Test
+    fun `request handler runs on channel event loop when shareWorkGroup is enabled`() = runTestWithRealTime {
+        val ioThread = AtomicReference<Thread>()
+        val handlerThread = AtomicReference<Thread>()
+
+        val server = embeddedServer(
+            factory = Netty,
+            rootConfig = serverConfig {
+                module {
+                    routing {
+                        get("/") {
+                            handlerThread.set(Thread.currentThread())
+                            call.respondText("ok")
+                        }
+                    }
+                }
+            },
+            configure = {
+                connector { port = 0 }
+                shareWorkGroup = true
+                channelPipelineConfig = {
+                    addLast(object : ChannelInboundHandlerAdapter() {
+                        override fun channelRead(ctx: ChannelHandlerContext, msg: Any) {
+                            ioThread.set(Thread.currentThread())
+                            ctx.fireChannelRead(msg)
+                        }
+                    })
+                }
+            }
+        )
+        server.startSuspend(wait = false)
+
+        try {
+            val connector = server.engine.resolvedConnectors().first()
+            HttpClient(CIO).use { it.get("http://${connector.host}:${connector.port}/") }
+
+            assertSame(
+                ioThread.get(),
+                handlerThread.get(),
+                "Expected the call to start on the channel's own event loop thread when shareWorkGroup is enabled"
             )
         } finally {
             server.stopSuspend()

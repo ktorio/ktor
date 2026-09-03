@@ -33,6 +33,7 @@ import io.netty.handler.ssl.SupportedCipherSuiteFilter
 import io.netty.handler.timeout.ReadTimeoutException
 import io.netty.handler.timeout.ReadTimeoutHandler
 import io.netty.handler.timeout.WriteTimeoutHandler
+import io.netty.util.concurrent.EventExecutor
 import io.netty.util.concurrent.EventExecutorGroup
 import java.io.FileInputStream
 import java.nio.channels.ClosedChannelException
@@ -51,7 +52,7 @@ public class NettyChannelInitializer(
     private val applicationProvider: () -> Application,
     private val enginePipeline: EnginePipeline,
     private val environment: ApplicationEnvironment,
-    private val callEventGroup: EventExecutorGroup,
+    private val resolveCallExecutor: (ChannelHandlerContext) -> EventExecutor,
     private val engineContext: CoroutineContext,
     private val userContext: CoroutineContext,
     private val connector: EngineConnectorConfig,
@@ -61,7 +62,7 @@ public class NettyChannelInitializer(
     private val httpServerCodec: () -> HttpServerCodec,
     private val channelPipelineConfig: ChannelPipeline.() -> Unit,
     private val enableHttp2: Boolean,
-    private val enableH2c: Boolean
+    private val enableH2c: Boolean,
 ) : ChannelInitializer<SocketChannel>() {
     private var sslContext: SslContext? = null
 
@@ -103,6 +104,91 @@ public class NettyChannelInitializer(
         channelPipelineConfig = channelPipelineConfig,
         enableHttp2 = enableHttp2,
         enableH2c = false
+    )
+
+    @Deprecated(
+        message = "Use main constructor",
+        replaceWith = ReplaceWith(
+            "NettyChannelInitializer(" +
+                "applicationProvider, enginePipeline, environment, callEventGroup, engineContext, " +
+                "userContext, connector, runningLimit, responseWriteTimeout, requestReadTimeout, " +
+                "httpServerCodec, channelPipelineConfig, enableHttp2, enableH2c, shareWorkGroup)"
+        )
+    )
+    public constructor(
+        applicationProvider: () -> Application,
+        enginePipeline: EnginePipeline,
+        environment: ApplicationEnvironment,
+        callEventGroup: EventExecutorGroup,
+        engineContext: CoroutineContext,
+        userContext: CoroutineContext,
+        connector: EngineConnectorConfig,
+        runningLimit: Int,
+        responseWriteTimeout: Int,
+        requestReadTimeout: Int,
+        httpServerCodec: () -> HttpServerCodec,
+        channelPipelineConfig: ChannelPipeline.() -> Unit,
+        enableHttp2: Boolean,
+        enableH2c: Boolean,
+    ) : this(
+        applicationProvider = applicationProvider,
+        enginePipeline = enginePipeline,
+        environment = environment,
+        callEventGroup = callEventGroup,
+        engineContext = engineContext,
+        userContext = userContext,
+        connector = connector,
+        runningLimit = runningLimit,
+        responseWriteTimeout = responseWriteTimeout,
+        requestReadTimeout = requestReadTimeout,
+        httpServerCodec = httpServerCodec,
+        channelPipelineConfig = channelPipelineConfig,
+        enableHttp2 = enableHttp2,
+        enableH2c = enableH2c,
+        shareWorkGroup = false
+    )
+
+    @Deprecated(
+        message = "Use main constructor",
+        replaceWith = ReplaceWith(
+            "NettyChannelInitializer(" +
+                "applicationProvider, enginePipeline, environment, " +
+                "callExecutorResolver(callEventGroup, shareWorkGroup), engineContext, userContext, " +
+                "connector, runningLimit, responseWriteTimeout, requestReadTimeout, httpServerCodec, " +
+                "channelPipelineConfig, enableHttp2, enableH2c)"
+        )
+    )
+    public constructor(
+        applicationProvider: () -> Application,
+        enginePipeline: EnginePipeline,
+        environment: ApplicationEnvironment,
+        callEventGroup: EventExecutorGroup,
+        engineContext: CoroutineContext,
+        userContext: CoroutineContext,
+        connector: EngineConnectorConfig,
+        runningLimit: Int,
+        responseWriteTimeout: Int,
+        requestReadTimeout: Int,
+        httpServerCodec: () -> HttpServerCodec,
+        channelPipelineConfig: ChannelPipeline.() -> Unit,
+        enableHttp2: Boolean,
+        enableH2c: Boolean,
+        shareWorkGroup: Boolean,
+    ) : this(
+        applicationProvider = applicationProvider,
+        enginePipeline = enginePipeline,
+        environment = environment,
+        resolveCallExecutor = callExecutorResolver(callEventGroup, shareWorkGroup),
+        engineContext = engineContext,
+        userContext = userContext,
+        connector = connector,
+        runningLimit = runningLimit,
+        responseWriteTimeout = responseWriteTimeout,
+        requestReadTimeout = requestReadTimeout,
+        httpServerCodec = httpServerCodec,
+        channelPipelineConfig = channelPipelineConfig,
+        enableHttp2 = enableHttp2,
+        enableH2c = enableH2c
     )
 
     init {
@@ -181,7 +267,7 @@ public class NettyChannelInitializer(
                 val handler = NettyHttp2Handler(
                     enginePipeline,
                     application,
-                    callEventGroup,
+                    resolveCallExecutor,
                     application.coroutineContext + userContext,
                     runningLimit
                 )
@@ -202,7 +288,7 @@ public class NettyChannelInitializer(
                 val handler = NettyHttp2Handler(
                     enginePipeline,
                     application,
-                    callEventGroup,
+                    resolveCallExecutor,
                     application.coroutineContext + userContext,
                     runningLimit
                 )
@@ -238,7 +324,7 @@ public class NettyChannelInitializer(
                             applicationProvider,
                             enginePipeline,
                             environment,
-                            callEventGroup,
+                            resolveCallExecutor,
                             engineContext,
                             userContext,
                             runningLimit
@@ -272,7 +358,7 @@ public class NettyChannelInitializer(
                     applicationProvider,
                     enginePipeline,
                     environment,
-                    callEventGroup,
+                    resolveCallExecutor,
                     engineContext,
                     userContext,
                     runningLimit

@@ -19,7 +19,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter
 import io.netty.handler.codec.http.*
 import io.netty.handler.timeout.ReadTimeoutException
 import io.netty.util.ReferenceCountUtil
-import io.netty.util.concurrent.EventExecutorGroup
+import io.netty.util.concurrent.EventExecutor
 import kotlinx.coroutines.*
 import java.io.IOException
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -31,7 +31,7 @@ internal class NettyHttp1Handler(
     private val applicationProvider: () -> Application,
     private val enginePipeline: EnginePipeline,
     private val environment: ApplicationEnvironment,
-    private val callEventGroup: EventExecutorGroup,
+    private val resolveCallExecutor: (ChannelHandlerContext) -> EventExecutor,
     private val engineContext: CoroutineContext,
     private val userContext: CoroutineContext,
     private val runningLimit: Int
@@ -219,7 +219,7 @@ internal class NettyHttp1Handler(
     }
 
     private fun handleRequest(context: ChannelHandlerContext, message: HttpRequest) {
-        val callExecutor = pinnedCallExecutor(context, callEventGroup)
+        val callExecutor = resolveCallExecutor(context)
         val application = applicationProvider()
         // Building the coroutine context is quite expensive, so we cache most of the elements.
         val baseContext = when {
@@ -254,8 +254,10 @@ internal class NettyHttp1Handler(
         // This allows the response pipeline to detect that the request body is still being received and flush headers
         // early instead of buffering them, which is required when the client waits for response headers
         // before sending the request body.
-        // Dispatching to the call event group also ensures user handler code does not run on the I/O worker
-        // event loop.
+        // Dispatching to the call executor also ensures user handler code does not run on the I/O worker
+        // event loop. When resolveCallExecutor is pinned directly to context.executor() (shareWorkGroup),
+        // calls that never suspend skip that hop entirely and run on the I/O thread instead; calls that do
+        // suspend still resume on that same thread via NettyDispatcher.
         callExecutor.execute {
             val callScope = CoroutineScope(context = callContext)
             callScope.launch(start = CoroutineStart.UNDISPATCHED) {
