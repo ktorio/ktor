@@ -193,7 +193,10 @@ public class NettyChannelInitializer(
             // handler is most effective as the first in the pipeline.
             addLast(
                 "flushConsolidation",
-                FlushConsolidationHandler(FlushConsolidationHandler.DEFAULT_EXPLICIT_FLUSH_AFTER_FLUSHES, true)
+                FlushConsolidationHandler(
+                    FlushConsolidationHandler.DEFAULT_EXPLICIT_FLUSH_AFTER_FLUSHES,
+                    false
+                )
             )
 
             when {
