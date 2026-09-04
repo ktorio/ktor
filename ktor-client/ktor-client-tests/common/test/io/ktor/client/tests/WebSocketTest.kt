@@ -665,7 +665,7 @@ class WebSocketTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
         }
 
         test { client ->
-            val exception = assertFailsWith<WebSocketException> {
+            val exception = assertFailsWith<WebSocketHandshakeException> {
                 client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/handshake-403") {
                     fail("Unreachable")
                 }
