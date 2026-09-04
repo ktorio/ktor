@@ -31,11 +31,13 @@ internal class WebSocketContent : ClientUpgradeContent() {
 
     override fun verify(headers: Headers) {
         val serverAccept = headers[HttpHeaders.SecWebSocketAccept]
-            ?: error("Server should specify header ${HttpHeaders.SecWebSocketAccept}")
+            ?: throw WebSocketHandshakeException("Server should specify header ${HttpHeaders.SecWebSocketAccept}")
 
         val expectedAccept = websocketServerAccept(nonce)
-        check(expectedAccept == serverAccept) {
-            "Failed to verify server accept header. Expected: $expectedAccept, received: $serverAccept"
+        if (expectedAccept != serverAccept) {
+            throw WebSocketHandshakeException(
+                "Failed to verify server accept header. Expected: $expectedAccept, received: $serverAccept"
+            )
         }
     }
 

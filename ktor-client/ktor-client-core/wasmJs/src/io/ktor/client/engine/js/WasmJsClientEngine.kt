@@ -144,7 +144,7 @@ private suspend fun WebSocket.awaitConnection(): WebSocket = suspendCancellableC
     val disposable = addEventListener<Event>("open", "error", once = true) { event ->
         when (event.type) {
             "open" -> continuation.resume(this)
-            "error" -> continuation.resumeWithException(WebSocketException(event.asString()))
+            "error" -> continuation.resumeWithException(WebSocketHandshakeException(event.asString()))
         }
     }
 
