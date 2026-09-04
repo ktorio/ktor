@@ -16,7 +16,7 @@ import kotlin.experimental.*
 private const val MAX_TLS_FRAME_SIZE = 0x4800
 
 internal suspend fun ByteReadChannel.readTLSRecord(): TLSRecord {
-    val type = TLSRecordType.byCode(readByte().toInt() and 0xff)
+    val type = readTLSRecordType()
     val version = readTLSVersion()
 
     val length = readShortCompatible() and 0xffff
@@ -136,8 +136,26 @@ internal fun Source.readECPoint(fieldSize: Int): ECPoint {
     )
 }
 
-private suspend fun ByteReadChannel.readTLSVersion() =
-    TLSVersion.byCode(readShortCompatible() and 0xffff)
+// The record header comes straight off the wire, so an unknown code is malformed peer input rather than
+// a programming error. It is reported as a TlsException (an IOException) so that it doesn't escape the
+// `catch (cause: IOException)` handlers callers use for connection failures.
+private suspend fun ByteReadChannel.readTLSRecordType(): TLSRecordType {
+    val code = readByte().toInt() and 0xff
+    return try {
+        TLSRecordType.byCode(code)
+    } catch (cause: IllegalArgumentException) {
+        throw TlsException("Invalid TLS record type code: $code", cause)
+    }
+}
+
+private suspend fun ByteReadChannel.readTLSVersion(): TLSVersion {
+    val code = readShortCompatible() and 0xffff
+    return try {
+        TLSVersion.byCode(code)
+    } catch (cause: IllegalArgumentException) {
+        throw TlsException("Invalid TLS version code: $code", cause)
+    }
+}
 
 private fun Source.readTLSVersion() =
     TLSVersion.byCode(readShort().toInt() and 0xffff)

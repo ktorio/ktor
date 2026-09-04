@@ -62,4 +62,17 @@ class KTOR9868ReproTest {
             oversized.readTLSRecord()
         }
     }
+
+    /**
+     * The version occupies the same 5-byte record header and is read by the same function, so an
+     * unknown version code has to be reported the same way as an unknown record type.
+     */
+    @Test
+    fun `unknown record version code is reported as an IO failure`() = runTest {
+        val malformed = ByteReadChannel(byteArrayOf(0x16, 0x09, 0x09, 0x00, 0x00))
+
+        assertFailsWith<IOException> {
+            malformed.readTLSRecord()
+        }
+    }
 }
