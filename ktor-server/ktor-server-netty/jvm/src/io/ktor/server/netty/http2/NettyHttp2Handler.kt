@@ -56,6 +56,12 @@ internal class NettyHttp2Handler(
                 state.isChannelReadCompleted.compareAndSet(expect = true, update = false)
                 state.activeRequests.incrementAndGet()
                 startHttp2(context, message.headers())
+                if (message.isEndStream) {
+                    context.applicationCall?.request?.apply {
+                        contentActor.close()
+                        state.isCurrentRequestFullyRead.compareAndSet(expect = false, update = true)
+                    }
+                }
             }
 
             is Http2DataFrame -> {

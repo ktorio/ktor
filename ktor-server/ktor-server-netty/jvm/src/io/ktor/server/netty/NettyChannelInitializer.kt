@@ -187,18 +187,6 @@ public class NettyChannelInitializer(
 
     override fun initChannel(ch: SocketChannel) {
         with(ch.pipeline()) {
-            // Consolidates back-to-back flush() calls (e.g. from pipelined responses) into a
-            // single transport write. Added first so it sees every flush regardless of which
-            // protocol handler further up the pipeline issues it. See Netty's own KDoc: this
-            // handler is most effective as the first in the pipeline.
-            addLast(
-                "flushConsolidation",
-                FlushConsolidationHandler(
-                    FlushConsolidationHandler.DEFAULT_EXPLICIT_FLUSH_AFTER_FLUSHES,
-                    false
-                )
-            )
-
             when {
                 connector is EngineSSLConnectorConfig -> {
                     val sslEngine = sslContext!!.newEngine(ch.alloc()).apply {
