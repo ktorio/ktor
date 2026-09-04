@@ -12,6 +12,8 @@ import io.ktor.server.http.content.*
 import io.ktor.server.routing.*
 import io.ktor.utils.io.*
 
+private val packageQualifierRegex by lazy { Regex("\\b[a-z]\\w*\\.") }
+
 /**
  * Finds all [PathItem]s under the given [Route], and extracts object schema as references.
  *
@@ -22,6 +24,7 @@ public fun Sequence<Route>.mapToPathItemsAndSchema(): Pair<Map<String, PathItem>
     val qualifiedNameMap = mutableMapOf<String, String>()
     // original qualified title -> component name, for rewriting discriminator $ref values after collection
     val schemaComponentNameMapping = mutableMapOf<String, String>()
+    val schemaOriginalTitleMapping = mutableMapOf<String, String>()
     val jsonSchema = mutableMapOf<String, JsonSchema>()
 
     // Allocates a unique component name when distinct schemas share the same title (for example,
@@ -40,7 +43,7 @@ public fun Sequence<Route>.mapToPathItemsAndSchema(): Pair<Map<String, PathItem>
     val pathItems = mapToPathItems(
         PopulateMediaTypeDefaults + CollectSchemaReferences { schema ->
             val title = schema.title ?: return@CollectSchemaReferences null
-            val unqualifiedTitle = title.substringAfterLast('.')
+            val unqualifiedTitle = title.replace(packageQualifierRegex, "")
             val existingQualifiedTitle = qualifiedNameMap[unqualifiedTitle] ?: title
             // if the shortened title is already in use by a different type, use the full title instead
             val componentName = if (existingQualifiedTitle != title) {
@@ -51,11 +54,14 @@ public fun Sequence<Route>.mapToPathItemsAndSchema(): Pair<Map<String, PathItem>
             }
             jsonSchema[componentName] = schema.copy(title = componentName)
             schemaComponentNameMapping[title] = componentName
+            schemaOriginalTitleMapping[componentName] = title
             componentName
         }
     )
     for ((key, schema) in jsonSchema.toMap()) {
-        jsonSchema[key] = schema.rewriteSchemaComponentReferences(schemaComponentNameMapping)
+        val recursiveReferenceName = schemaOriginalTitleMapping.getValue(key).substringAfterLast('.')
+        val localSchemaComponentNameMapping = schemaComponentNameMapping + (recursiveReferenceName to key)
+        jsonSchema[key] = schema.rewriteSchemaComponentReferences(localSchemaComponentNameMapping)
     }
     return pathItems to jsonSchema
 }

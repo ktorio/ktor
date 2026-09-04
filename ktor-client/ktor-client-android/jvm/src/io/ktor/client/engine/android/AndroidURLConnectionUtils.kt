@@ -66,6 +66,13 @@ internal suspend fun <T> HttpURLConnection.timeoutAwareConnection(
     }
 }
 
+@OptIn(InternalCoroutinesApi::class)
+internal fun HttpURLConnection.disconnectOnCancellation(callContext: CoroutineContext) {
+    callContext.job.invokeOnCompletion(onCancelling = true) { cause ->
+        if (cause != null) disconnect()
+    }
+}
+
 /**
  * Establish connection and return correspondent [ByteReadChannel].
  */

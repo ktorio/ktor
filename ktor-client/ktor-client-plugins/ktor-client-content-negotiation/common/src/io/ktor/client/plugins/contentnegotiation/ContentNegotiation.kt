@@ -19,6 +19,16 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import kotlin.reflect.*
 
+// Media types of the underlying representations mapped to the structured syntax suffixes
+// registered in RFC 6839. The `+ber` and `+der` suffixes are omitted as the RFC defines
+// no generic media type for them, so there is no content type to register a converter for.
+private val supportedSuffixTypes = mapOf(
+    ContentType.Application.Json to "json",
+    ContentType.Application.Xml to "xml",
+    ContentType("application", "fastinfoset") to "fastinfoset",
+    ContentType("application", "vnd.wap.wbxml") to "wbxml",
+    ContentType.Application.Zip to "zip",
+)
 private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.contentnegotiation.ContentNegotiation")
 
 internal val DefaultCommonIgnoredTypes: Set<KClass<*>> = setOf(
@@ -130,6 +140,10 @@ public class ContentNegotiationConfig : Configuration {
     /**
      * Registers a [contentType] to a specified [converter] with an optional [configuration] script for a converter.
      *
+     * Besides the exact matches, the converter is used for content types with the matching
+     * structured syntax suffix as registered in [RFC 6839](https://datatracker.ietf.org/doc/html/rfc6839).
+     * For example, a converter registered for `application/json` also handles `application/problem+json`.
+     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.contentnegotiation.ContentNegotiationConfig.register)
      */
     public override fun <T : ContentConverter> register(
@@ -137,11 +151,7 @@ public class ContentNegotiationConfig : Configuration {
         converter: T,
         configuration: T.() -> Unit
     ) {
-        val matcher = when {
-            contentType.match(ContentType.Application.Json) -> JsonContentTypeMatcher
-            else -> defaultMatcher(contentType)
-        }
-        register(contentType, converter, matcher, configuration)
+        register(contentType, converter, defaultMatcher(contentType), configuration)
     }
 
     /**
@@ -214,7 +224,21 @@ public class ContentNegotiationConfig : Configuration {
     }
 
     private fun defaultMatcher(pattern: ContentType): ContentTypeMatcher = object : ContentTypeMatcher {
-        override fun contains(contentType: ContentType): Boolean = contentType.match(pattern)
+        // RFC 6839 doesn't restrict suffixed types to any top-level type,
+        // so only the subtype suffix is checked (e.g., image/svg+xml matches application/xml).
+        private val subtypeSuffix by lazy {
+            supportedSuffixTypes[pattern.withoutParameters()]?.let { "+$it" }
+        }
+
+        override fun contains(contentType: ContentType): Boolean {
+            if (contentType.match(pattern)) {
+                return true
+            }
+
+            val subtypeSuffix = subtypeSuffix ?: return false
+
+            return contentType.contentSubtype.endsWith(subtypeSuffix, ignoreCase = true)
+        }
     }
 }
 
@@ -252,38 +276,37 @@ public val ContentNegotiation: ClientPlugin<ContentNegotiationConfig> = createCl
                     null -> contentType
                     else -> contentType.withParameter("q", qValue.toString())
                 }
-                LOGGER.trace("Adding Accept=$contentTypeToSend header for ${request.url}")
+                LOGGER.trace { "Adding Accept=$contentTypeToSend header for ${request.url}" }
                 request.accept(contentTypeToSend)
             }
 
         if (body is OutgoingContent || ignoredTypes.any { it.isInstance(body) }) {
-            LOGGER.trace(
-                "Body type ${body::class} is in ignored types. " +
-                    "Skipping ContentNegotiation for ${request.url}."
-            )
+            LOGGER.trace {
+                "Body type ${body::class} is in ignored types. Skipping ContentNegotiation for ${request.url}."
+            }
             return null
         }
         val contentType = request.contentType() ?: run {
-            LOGGER.trace("Request doesn't have Content-Type header. Skipping ContentNegotiation for ${request.url}.")
+            LOGGER.trace { "Request doesn't have Content-Type header. Skipping ContentNegotiation for ${request.url}." }
             return null
         }
 
         if (body is Unit) {
-            LOGGER.trace("Sending empty body for ${request.url}")
+            LOGGER.trace { "Sending empty body for ${request.url}" }
             request.headers.remove(HttpHeaders.ContentType)
             return EmptyContent
         }
 
         val matchingRegistrations = registrations.filter { it.contentTypeMatcher.contains(contentType) }
             .takeIf { it.isNotEmpty() } ?: run {
-            LOGGER.trace(
+            LOGGER.trace {
                 "None of the registered converters match request Content-Type=$contentType. " +
                     "Skipping ContentNegotiation for ${request.url}."
-            )
+            }
             return null
         }
         if (request.bodyType == null) {
-            LOGGER.trace("Request has unknown body type. Skipping ContentNegotiation for ${request.url}.")
+            LOGGER.trace { "Request has unknown body type. Skipping ContentNegotiation for ${request.url}." }
             return null
         }
         request.headers.remove(HttpHeaders.ContentType)
@@ -297,7 +320,7 @@ public val ContentNegotiation: ClientPlugin<ContentNegotiationConfig> = createCl
                 body.takeIf { it != NullBody }
             )
             if (result != null) {
-                LOGGER.trace("Converted request body using ${registration.converter} for ${request.url}")
+                LOGGER.trace { "Converted request body using ${registration.converter} for ${request.url}" }
             }
             result
         } ?: throw ContentConverterException(
@@ -317,14 +340,13 @@ public val ContentNegotiation: ClientPlugin<ContentNegotiationConfig> = createCl
         charset: Charset = Charsets.UTF_8
     ): Any? {
         if (body !is ByteReadChannel) {
-            LOGGER.trace("Response body is already transformed. Skipping ContentNegotiation for $requestUrl.")
+            LOGGER.trace { "Response body is already transformed. Skipping ContentNegotiation for $requestUrl." }
             return null
         }
         if (info.type in ignoredTypes) {
-            LOGGER.trace(
-                "Response body type ${info.type} is in ignored types. " +
-                    "Skipping ContentNegotiation for $requestUrl."
-            )
+            LOGGER.trace {
+                "Response body type ${info.type} is in ignored types. Skipping ContentNegotiation for $requestUrl."
+            }
             return null
         }
 
@@ -333,15 +355,15 @@ public val ContentNegotiation: ClientPlugin<ContentNegotiationConfig> = createCl
             .map { it.converter }
             .takeIf { it.isNotEmpty() }
             ?: run {
-                LOGGER.trace(
+                LOGGER.trace {
                     "None of the registered converters match response with Content-Type=$responseContentType. " +
                         "Skipping ContentNegotiation for $requestUrl."
-                )
+                }
                 return null
             }
 
         val result = suitableConverters.deserialize(body, info, charset)
-        if (result !is ByteReadChannel) {
+        if (LOGGER.isTraceEnabled && result !is ByteReadChannel) {
             LOGGER.trace("Response body was converted to ${result::class} for $requestUrl.")
         }
         return result

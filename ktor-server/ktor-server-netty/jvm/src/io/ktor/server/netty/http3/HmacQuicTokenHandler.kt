@@ -16,6 +16,8 @@ import java.security.SecureRandom
 import javax.crypto.KeyGenerator
 import javax.crypto.Mac
 import javax.crypto.SecretKey
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Maximum age of a valid token in milliseconds (default: 60 seconds).
@@ -38,6 +40,11 @@ private const val TIMESTAMP_LENGTH = 8
  * and are cryptographically signed to prevent forgery. Expired tokens are
  * rejected to mitigate replay attacks.
  *
+ * Assign an instance to [NettyHttp3Configuration.quicTokenHandler] to enable
+ * QUIC address validation via stateless Retry. Note that this adds one round trip
+ * to every connection handshake; see [NettyHttp3Configuration.quicTokenHandler]
+ * for the trade-offs.
+ *
  * Token format:
  * ```
  * [timestamp (8 bytes)] [HMAC-SHA256 (32 bytes)] [dcid (variable)]
@@ -52,15 +59,28 @@ private const val TIMESTAMP_LENGTH = 8
  * implementation can extract it at the offset returned by [validateToken].
  *
  * @param keyGen a function for providing the secret key used in HMAC signing and validation.
- *   If not provided, a random 256-bit key is generated.
- * @param tokenLifetimeMillis maximum age of a valid token in milliseconds.
+ *   If not provided, a random 256-bit key is generated. Provide a shared key when tokens
+ *   must validate across multiple server instances.
+ * @param tokenLifetime maximum age of a valid token.
  */
-internal class HmacQuicTokenHandler(
+public class HmacQuicTokenHandler(
     keyGen: () -> SecretKey = ::generateDefaultKey,
-    private val tokenLifetimeMillis: Long = TOKEN_LIFETIME_MS,
+    private val tokenLifetime: Duration = TOKEN_LIFETIME_MS.milliseconds,
 ) : QuicTokenHandler {
 
+    init {
+        require(tokenLifetime.isPositive()) {
+            "tokenLifetimeMillis must be strictly positive, but was $tokenLifetime"
+        }
+    }
+
     private val secretKey: SecretKey by lazy(keyGen)
+
+    // Mac instances are not thread-safe and are relatively expensive to instantiate and key,
+    // so keep one initialized instance per thread. doFinal() resets the Mac for reuse.
+    private val macs: ThreadLocal<Mac> = ThreadLocal.withInitial {
+        Mac.getInstance("HmacSHA256").apply { init(secretKey) }
+    }
 
     override fun writeToken(out: ByteBuf, dcid: ByteBuf, address: InetSocketAddress): Boolean {
         val timestamp = System.currentTimeMillis()
@@ -88,7 +108,7 @@ internal class HmacQuicTokenHandler(
         val timestamp = token.getLong(token.readerIndex())
 
         val now = System.currentTimeMillis()
-        if (now - timestamp > tokenLifetimeMillis || timestamp > now) return -1
+        if (now - timestamp > tokenLifetime.inWholeMilliseconds || timestamp > now) return -1
 
         val receivedMac = ByteArray(HMAC_LENGTH)
         token.getBytes(token.readerIndex() + TIMESTAMP_LENGTH, receivedMac)
@@ -111,8 +131,7 @@ internal class HmacQuicTokenHandler(
     override fun maxTokenLength(): Int = TIMESTAMP_LENGTH + HMAC_LENGTH + Quic.MAX_CONN_ID_LEN
 
     private fun computeHmac(timestamp: Long, address: InetSocketAddress, dcidBytes: ByteBuffer): ByteArray {
-        val mac = Mac.getInstance("HmacSHA256")
-        mac.init(secretKey)
+        val mac = macs.get()
 
         KtorDefaultPool.useInstance { timestampBuffer ->
             timestampBuffer.limit(TIMESTAMP_LENGTH)

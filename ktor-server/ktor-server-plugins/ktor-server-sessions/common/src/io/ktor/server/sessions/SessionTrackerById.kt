@@ -6,6 +6,7 @@ package io.ktor.server.sessions
 
 import io.ktor.server.application.*
 import io.ktor.util.*
+import io.ktor.util.logging.*
 import io.ktor.utils.io.InternalAPI
 import kotlin.reflect.*
 
@@ -138,10 +139,7 @@ public class SessionTrackerById<S : Any> private constructor(
             val serialized = storage.read(sessionId)
             return serializer.deserialize(serialized)
         } catch (notFound: NoSuchElementException) {
-            call.application.log.debug(
-                "Failed to lookup session: ${notFound.message ?: notFound.toString()}. " +
-                    "The session id is wrong or outdated."
-            )
+            call.application.log.debug(notFound) { "Failed to lookup session: The session id is wrong or outdated." }
         }
 
         // Remove the wrong session identifier if no related session was found

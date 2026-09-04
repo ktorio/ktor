@@ -10,6 +10,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
+import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 
 /**
@@ -50,6 +51,9 @@ public class RefreshTokensParams(
 
     /**
      * Marks that this request is for refreshing auth tokens, resulting in a special handling of it.
+     *
+     * When a request is marked, no additional Authorization headers are included, and any custom
+     * Authorization headers are kept.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.providers.RefreshTokensParams.markAsRefreshTokenRequest)
      */
@@ -207,7 +211,7 @@ public class BearerAuthProvider(
      */
     override fun isApplicable(auth: HttpAuthHeader): Boolean {
         if (auth.authScheme != AuthScheme.Bearer) {
-            LOGGER.trace("Bearer Auth Provider is not applicable for $auth")
+            LOGGER.trace { "Bearer Auth Provider is not applicable for $auth" }
             return false
         }
         val isSameRealm = when {
@@ -227,16 +231,12 @@ public class BearerAuthProvider(
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.providers.BearerAuthProvider.addRequestHeaders)
      */
     override suspend fun addRequestHeaders(request: HttpRequestBuilder, authHeader: HttpAuthHeader?) {
+        if (request.attributes.contains(AuthCircuitBreaker)) return
         val token = tokensHolder.loadToken() ?: return
 
         request.headers {
             val tokenValue = "Bearer ${token.accessToken}"
-            if (contains(HttpHeaders.Authorization)) {
-                remove(HttpHeaders.Authorization)
-            }
-            if (request.attributes.contains(AuthCircuitBreaker).not()) {
-                append(HttpHeaders.Authorization, tokenValue)
-            }
+            this[HttpHeaders.Authorization] = tokenValue
         }
     }
 

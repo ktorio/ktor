@@ -22,6 +22,7 @@ import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlin.io.use
 import kotlin.test.*
+import kotlin.time.Duration.Companion.milliseconds
 
 class NettyReadRequestTimeoutTest :
     EngineTestBase<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
@@ -95,12 +96,36 @@ class NettyReadRequestTimeoutTest :
         client.performAndCheckRequestWithTimeout()
     }
 
+    @Test
+    fun `request timeout response is written before connection is closed`() =
+        requestTimeoutTest(timeout = 1) { writer, reader ->
+            writer.writeHeaders("/echo")
+
+            val response = withTimeout(5000.milliseconds) {
+                reader.readRemaining().readText()
+            }
+
+            assertTrue(
+                response.contains(REQUEST_TIMEOUT_RESPONSE),
+                "Expected 408 response, but got:\n$response"
+            )
+            assertTrue(
+                response.contains("Content-Length: 0"),
+                "Expected zero-length response, but got:\n$response"
+            )
+            assertTrue(
+                response.contains("Connection: close"),
+                "Expected connection close header, but got:\n$response"
+            )
+            assertTrue(reader.isClosedForRead)
+        }
+
     private suspend fun HttpClient.performAndCheckRequestWithTimeout() {
         get {
             url(host = TEST_SERVER_HOST, path = "/echo", port = this@NettyReadRequestTimeoutTest.port)
             setBody(object : OutgoingContent.WriteChannelContent() {
                 override suspend fun writeTo(channel: ByteWriteChannel) {
-                    delay(1100)
+                    delay(1100.milliseconds)
                     channel.writeFully("Hello world".toByteArray())
                 }
             })

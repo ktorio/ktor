@@ -30,7 +30,17 @@ internal class StreamRequestBody(
             CoroutineScope(callContext).launch(Dispatchers.IO) {
                 try {
                     val channel = block()
-                    channel.copyTo(sink.outputStream().asByteWriteChannel())
+                    sink.use {
+                        try {
+                            channel.copyTo(it.outputStream().asByteWriteChannel())
+                        } catch (cause: CancellationException) {
+                            // A failing flush() completes the request body, while close() alone would
+                            // throw ProtocolException for a partially written fixed-length body
+                            // without releasing the connection.
+                            runCatching { it.flush() }
+                            throw cause
+                        }
+                    }
                 } catch (cause: IOException) {
                     throw cause
                 } catch (cause: Throwable) {

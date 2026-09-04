@@ -10,7 +10,7 @@ plugins {
     id("ktorbuild.project.server-plugin")
 }
 
-val generateKtorVersionFile by tasks.registering {
+val generateKtorVersionFile = tasks.register("generateKtorVersionFile") {
     val ktorVersion = project.version
     inputs.property("ktor_version", ktorVersion)
 

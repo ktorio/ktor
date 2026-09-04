@@ -31,7 +31,7 @@ public val UserAgent: ClientPlugin<UserAgentConfig> = createClientPlugin("UserAg
 
     onRequest { request, _ ->
         if (!request.headers.contains(HttpHeaders.UserAgent)) {
-            LOGGER.trace("Adding User-Agent header: agent for ${request.url}")
+            LOGGER.trace { "Adding User-Agent header: agent for ${request.url}" }
             request.header(HttpHeaders.UserAgent, agent)
         }
     }

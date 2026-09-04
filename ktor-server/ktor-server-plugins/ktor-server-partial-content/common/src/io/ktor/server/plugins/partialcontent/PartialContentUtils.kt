@@ -12,6 +12,7 @@ import io.ktor.server.plugins.conditionalheaders.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.util.date.*
+import io.ktor.util.logging.*
 import kotlin.coroutines.*
 import kotlin.random.*
 
@@ -76,7 +77,7 @@ internal suspend fun BodyTransformedHook.Context.processRange(
     require(length >= 0L)
     val merged = rangesSpecifier.merge(length, maxRangeCount)
     if (merged.isEmpty()) {
-        LOGGER.trace("Responding 416 RequestedRangeNotSatisfiable for ${call.request.uri}: range is empty")
+        LOGGER.trace { "Responding 416 RequestedRangeNotSatisfiable for ${call.request.uri}: range is empty" }
         call.response.contentRange(
             range = null,
             fullLength = length
@@ -107,7 +108,7 @@ internal fun BodyTransformedHook.Context.processSingleRange(
     range: LongRange,
     length: Long
 ) {
-    LOGGER.trace("Responding 206 PartialContent for ${call.request.uri}: single range $range")
+    LOGGER.trace { "Responding 206 PartialContent for ${call.request.uri}: single range $range" }
     transformBodyTo(PartialOutgoingContent.Single(call.isGet(), content, range, length))
 }
 
@@ -120,9 +121,9 @@ internal suspend fun BodyTransformedHook.Context.processMultiRange(
 
     call.suppressCompression() // multirange with compression is not supported yet (KTOR-5794)
 
-    LOGGER.trace(
+    LOGGER.trace {
         "Responding 206 PartialContent for ${call.request.uri}: multiple range ${ranges.joinToString(",")}"
-    )
+    }
     transformBodyTo(PartialOutgoingContent.Multiple(coroutineContext, call.isGet(), content, ranges, length, boundary))
 }
 

@@ -25,7 +25,10 @@ internal actual fun Application.installReference(
         // If this is a class reference,
         // treat it as a `create(Object::class)` call
         val kotlinType = clazz.kotlin
-        val classTypeInfo = TypeInfo(kotlinType, kotlinType.starProjectedType)
+        val classTypeInfo = TypeInfo(
+            type = kotlinType,
+            kotlinType = kotlinType.starProjectedType,
+        )
 
         registry.set(DependencyKey(classTypeInfo)) {
             reflection.create(kotlinType, ::get)
@@ -39,7 +42,10 @@ internal actual fun Application.installReference(
             ?: throw InvalidDependencyReferenceException("Missing function reference", reference)
         val returnType = functionCandidates.map { it.returnType }.distinct().singleOrNull()
             ?: throw InvalidDependencyReferenceException("Ambiguous return types", reference)
-        val returnTypeInfo = TypeInfo(returnType.jvmErasure, returnType)
+        val returnTypeInfo = TypeInfo(
+            type = returnType.jvmErasure,
+            kotlinType = returnType,
+        )
 
         registry.set(DependencyKey(returnTypeInfo)) {
             var lastError: Throwable? = null

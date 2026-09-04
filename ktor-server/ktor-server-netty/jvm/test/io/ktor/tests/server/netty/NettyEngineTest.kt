@@ -12,6 +12,7 @@ import io.ktor.http.*
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
 import io.ktor.server.application.*
+import io.ktor.server.http.*
 import io.ktor.server.netty.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -24,23 +25,34 @@ import io.ktor.websocket.*
 import io.netty.bootstrap.Bootstrap
 import io.netty.buffer.ByteBuf
 import io.netty.buffer.Unpooled
-import io.netty.channel.*
+import io.netty.channel.ChannelHandlerContext
+import io.netty.channel.ChannelInboundHandlerAdapter
+import io.netty.channel.MultiThreadIoEventLoopGroup
+import io.netty.channel.epoll.Epoll
+import io.netty.channel.kqueue.KQueue
 import io.netty.channel.nio.NioEventLoopGroup
+import io.netty.channel.nio.NioIoHandler
 import io.netty.channel.socket.nio.NioDatagramChannel
 import io.netty.handler.codec.http.HttpResponseStatus
 import io.netty.handler.codec.http2.*
 import io.netty.handler.codec.http2.Http2CodecUtil.readUnsignedInt
 import io.netty.handler.codec.http3.*
-import io.netty.handler.codec.quic.*
-import kotlinx.coroutines.*
+import io.netty.handler.codec.quic.QuicChannel
+import io.netty.handler.codec.quic.QuicSslContextBuilder
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.consumeAsFlow
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
+import org.junit.jupiter.api.Assumptions.assumeTrue
 import java.net.InetSocketAddress
+import java.net.StandardSocketOptions
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
-import kotlin.test.Ignore
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import kotlin.test.*
+import kotlin.time.Duration.Companion.milliseconds
 
 class NettyCompressionTest : CompressionTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
     init {
@@ -402,6 +414,42 @@ class NettyH2cEnabledTest :
     }
 }
 
+class NettyH2cWithSslTest :
+    HttpServerJvmTestSuite<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
+
+    init {
+        enableSsl = true
+        enableHttp2 = true
+    }
+
+    override fun configure(configuration: NettyApplicationEngine.Configuration) {
+        configuration.enableH2c = true
+    }
+
+    @Test
+    fun testH2cConnectorAndSslConnectorServeConcurrently() = runTest {
+        createAndStartServer {
+            get("/") {
+                call.respondText("Hello, world")
+            }
+        }
+
+        withHttp1("http://127.0.0.1:$port/", port, {}) {
+            assertEquals("Hello, world", bodyAsText())
+            assertEquals(HttpProtocolVersion.HTTP_1_1, version)
+        }
+
+        withHttp1("https://127.0.0.1:$sslPort/", sslPort, {}) {
+            assertEquals("Hello, world", bodyAsText())
+        }
+
+        withHttp2("https://127.0.0.1:$sslPort/", sslPort, {}) {
+            assertEquals("Hello, world", bodyAsText())
+            assertEquals(HttpProtocolVersion.HTTP_2_0, version)
+        }
+    }
+}
+
 class NettyH2cFlushTest :
     EngineTestBase<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
 
@@ -474,7 +522,7 @@ class NettyH2cFlushTest :
                     // Wait for SSE DATA on the wire — once we receive it, the SSE's
                     // writeAndFlush on the child channel is complete and respondWithBigBody
                     // is suspended in awaitContent(). No more flushes from SSE.
-                    withTimeout(5_000) {
+                    withTimeout(5_000.milliseconds) {
                         waitForDataOnStream(reader, SSE_STREAM_ID)
                     }
 
@@ -485,11 +533,115 @@ class NettyH2cFlushTest :
                     // Without the fix, this hangs: the regular response is written to the
                     // channel but never flushed because flushIfNeeded() checks
                     // activeRequests == 0, which is false (SSE stream is still active).
-                    val regularData = withTimeout(3_000) {
+                    val regularData = withTimeout(3_000.milliseconds) {
                         readResponseForStream(reader, REGULAR_STREAM_ID)
                     }
 
                     assertEquals("ok", regularData)
+                }
+            }
+        } finally {
+            server.stop()
+        }
+    }
+
+    @Test
+    fun `H2 RST stream does not poison connection`() = runTest {
+        val requestReceived = CompletableDeferred<Unit>()
+        // Completed by HttpRequestCloseHandlerKey when stream 3's channel becomes inactive
+        val stream3ChannelClosed = CompletableDeferred<Unit>()
+        // Completed by the /data handler just before calling respondText
+        val dataReachedResponse = CompletableDeferred<Unit>()
+        // Completed by the test to allow /slow to proceed with its (failing) respondText call
+        val slowCanRespond = CompletableDeferred<Unit>()
+
+        val server = createServer {
+            routing {
+                get("/slow") {
+                    // Register a close callback so we know when the channel is truly gone
+                    @OptIn(InternalAPI::class)
+                    call.attributes.put(HttpRequestCloseHandlerKey) {
+                        stream3ChannelClosed.complete(Unit)
+                    }
+                    requestReceived.complete(Unit)
+                    // Suspend until the channel is closed (by the client's RST_STREAM), then wait
+                    // for the test to send /data and reach the response path before allowing
+                    // respondWithFailure to run and decrement activeRequests.
+                    stream3ChannelClosed.await()
+                    slowCanRespond.await()
+                    runCatching { call.respondText("slow ok") }
+                }
+                get("/data") {
+                    // Signal that /data has reached the response/flush path before handing off
+                    // to respondText, so the test can assert the flush is still blocked.
+                    dataReachedResponse.complete(Unit)
+                    call.respondText("data ok")
+                }
+            }
+        }
+        server.start(wait = false)
+
+        try {
+            SelectorManager().use { selector ->
+                aSocket(selector).tcp().connect("127.0.0.1", port).use { socket ->
+                    val writer = socket.openWriteChannel()
+                    val reader = socket.openReadChannel()
+
+                    writer.writeStringUtf8("PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n")
+                    writer.flush()
+                    writer.writeFully(h2Frame(null, Http2FrameTypes.SETTINGS, Http2Flags(), 0))
+                    writer.flush()
+
+                    val serverSettings = reader.readH2Frame()
+                    assertEquals(Http2FrameTypes.SETTINGS, serverSettings.frameType)
+                    val serverAck = reader.readH2Frame()
+                    assertEquals(Http2FrameTypes.SETTINGS, serverAck.frameType)
+                    assertTrue(serverAck.flags.ack())
+
+                    writer.writeFully(h2Frame(null, Http2FrameTypes.SETTINGS, Http2Flags().ack(true), 0))
+                    writer.flush()
+
+                    // Phase 1: send /slow, wait for the server to receive it, then cancel with RST_STREAM
+                    writer.writeFully(h2HeadersFrame("/slow", 3))
+                    writer.flush()
+                    withTimeout(5_000.milliseconds) { requestReceived.await() }
+
+                    val rstPayload = Unpooled.buffer(4)
+                    rstPayload.writeInt(Http2Error.CANCEL.code().toInt())
+                    writer.writeFully(h2Frame(rstPayload, Http2FrameTypes.RST_STREAM, Http2Flags(), 3))
+                    writer.flush()
+
+                    // Wait until stream 3's channel is fully closed server-side; the /slow handler
+                    // has resumed from stream3ChannelClosed.await() and is now suspended on
+                    // slowCanRespond — activeRequests is still 1 from /slow's increment.
+                    withTimeout(5_000.milliseconds) { stream3ChannelClosed.await() }
+
+                    // Phase 2: send /data while /slow has not yet run its failure path.
+                    // activeRequests == 1 (from /slow); /data's response will be written to Netty's
+                    // outbound buffer but flushIfNeeded() cannot fire until activeRequests drops to 0.
+                    writer.writeFully(h2HeadersFrame("/data", 5))
+                    writer.flush()
+
+                    // Read /data response concurrently — this will block until the flush fires.
+                    val dataResponseDeferred = async { readResponseForStream(reader, 5) }
+
+                    // Wait until /data's handler has been invoked and is about to call respondText.
+                    withTimeout(3_000.milliseconds) { dataReachedResponse.await() }
+
+                    // The /data response is not yet on the wire: /slow still holds activeRequests at
+                    // a non-zero value, preventing flushIfNeeded() from issuing context.flush().
+                    assertFalse(
+                        dataResponseDeferred.isCompleted,
+                        "/data response should be blocked until /slow cleanup"
+                    )
+
+                    // Release /slow → it calls respondText on a closed channel → respondWithFailure
+                    // → activeRequests.decrementAndGet() → flushIfNeeded() → context.flush()
+                    // → /data response delivered.
+                    slowCanRespond.complete(Unit)
+
+                    val body = withTimeout(3_000.milliseconds) { dataResponseDeferred.await() }
+                    assertEquals("data ok", body)
                 }
             }
         } finally {
@@ -573,7 +725,7 @@ class NettyH2cFlushTest :
     )
 }
 
-class NettyHttp3Test :
+open class NettyHttp3Test :
     EngineTestBase<NettyApplicationEngine, NettyApplicationEngine.Configuration>(Netty) {
 
     init {
@@ -786,41 +938,43 @@ class NettyHttp3Test :
     }
 
     private suspend fun withHttp3Client(block: suspend (QuicChannel) -> Unit) {
-        val group = NioEventLoopGroup(1)
+        val group = MultiThreadIoEventLoopGroup(NioIoHandler.newFactory())
         try {
-            val quicSslContext = QuicSslContextBuilder.forClient()
-                .trustManager(io.netty.handler.ssl.util.InsecureTrustManagerFactory.INSTANCE)
-                .applicationProtocols(*Http3.supportedApplicationProtocols())
-                .build()
+            withContext(Dispatchers.IO) {
+                val quicSslContext = QuicSslContextBuilder.forClient()
+                    .trustManager(io.netty.handler.ssl.util.InsecureTrustManagerFactory.INSTANCE)
+                    .applicationProtocols(*Http3.supportedApplicationProtocols())
+                    .build()
 
-            val quicClientCodec = Http3.newQuicClientCodecBuilder()
-                .sslContext(quicSslContext)
-                .maxIdleTimeout(30_000, TimeUnit.MILLISECONDS)
-                .initialMaxData(10_000_000)
-                .initialMaxStreamDataBidirectionalLocal(1_000_000)
-                .initialMaxStreamDataBidirectionalRemote(1_000_000)
-                .initialMaxStreamsBidirectional(100)
-                .build()
+                val quicClientCodec = Http3.newQuicClientCodecBuilder()
+                    .sslContext(quicSslContext)
+                    .maxIdleTimeout(30_000, TimeUnit.MILLISECONDS)
+                    .initialMaxData(10_000_000)
+                    .initialMaxStreamDataBidirectionalLocal(1_000_000)
+                    .initialMaxStreamDataBidirectionalRemote(1_000_000)
+                    .initialMaxStreamsBidirectional(100)
+                    .build()
 
-            val udpChannel = Bootstrap()
-                .group(group)
-                .channel(NioDatagramChannel::class.java)
-                .handler(quicClientCodec)
-                .bind(0)
-                .sync()
-                .channel()
+                val udpChannel = Bootstrap()
+                    .group(group)
+                    .channel(NioDatagramChannel::class.java)
+                    .handler(quicClientCodec)
+                    .bind(0)
+                    .sync()
+                    .channel()
 
-            val quicChannel = QuicChannel.newBootstrap(udpChannel)
-                .handler(Http3ClientConnectionHandler())
-                .remoteAddress(InetSocketAddress("127.0.0.1", sslPort))
-                .connect()
-                .get()
+                val quicChannel = QuicChannel.newBootstrap(udpChannel)
+                    .handler(Http3ClientConnectionHandler())
+                    .remoteAddress(InetSocketAddress("127.0.0.1", sslPort))
+                    .connect()
+                    .get()
 
-            try {
-                block(quicChannel)
-            } finally {
-                quicChannel.close().sync()
-                udpChannel.close().sync()
+                try {
+                    block(quicChannel)
+                } finally {
+                    quicChannel.close().sync()
+                    udpChannel.close().sync()
+                }
             }
         } finally {
             group.shutdownGracefully().sync()
@@ -854,6 +1008,33 @@ class NettyHttp3Test :
 
         return responseHandler.responseQueue.poll(10, TimeUnit.SECONDS)
             ?: error("Timed out waiting for HTTP/3 response")
+    }
+}
+
+/**
+ * Runs the full [NettyHttp3Test] suite with multiple `SO_REUSEPORT` datagram sockets, exercising
+ * the [io.netty.handler.codec.quic.QuicCodecDispatcher] path where the socket index is encoded
+ * into server connection IDs. On platforms without kernel-side UDP reuseport balancing (macOS),
+ * all datagrams land on one of the sockets, which still validates dispatcher-managed connection-id
+ * generation end to end.
+ *
+ * Skipped when `SO_REUSEPORT` is unavailable: the NIO transport needs the Java 9+ socket option,
+ * so on Java 8 the tests only run with a native transport (epoll/kqueue) on the classpath.
+ */
+class NettyHttp3MultiSocketTest : NettyHttp3Test() {
+
+    @BeforeTest
+    fun assumeReusePortSupported() {
+        val reusePortSupported = Epoll.isAvailable() || KQueue.isAvailable() ||
+            runCatching { StandardSocketOptions::class.java.getField("SO_REUSEPORT") }.isSuccess
+        assumeTrue(reusePortSupported, "SO_REUSEPORT is not supported in this environment")
+    }
+
+    @OptIn(ExperimentalKtorApi::class)
+    override fun configure(configuration: NettyApplicationEngine.Configuration) {
+        configuration.enableHttp3 {
+            udpSocketCount = 2
+        }
     }
 }
 

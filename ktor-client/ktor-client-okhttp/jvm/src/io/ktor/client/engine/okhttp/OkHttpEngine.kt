@@ -107,7 +107,16 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
         val response = engine.execute(engineRequest, requestData, callContext)
 
         val body = response.body
-        callContext.job.invokeOnCompletion { body.close() }
+        // ResponseBody.close() may perform blocking I/O, so run it on the engine dispatcher instead of the
+        // thread completing callContext. Register the child now so requestsJob waits for cleanup during shutdown.
+        CoroutineScope(requestsJob + dispatcher + CoroutineName("okhttp-response-body-close"))
+            .launch(start = CoroutineStart.ATOMIC) {
+                try {
+                    callContext.job.join()
+                } finally {
+                    runCatching { body.close() }
+                }
+            }
 
         val responseContent = body.source().toChannel(callContext, requestData)
         return buildResponseData(response, requestTime, responseContent, callContext, requestData)

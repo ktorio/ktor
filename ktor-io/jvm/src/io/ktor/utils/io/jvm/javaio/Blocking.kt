@@ -5,9 +5,12 @@
 package io.ktor.utils.io.jvm.javaio
 
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
-import java.io.*
-import kotlin.math.*
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.runBlocking
+import kotlinx.io.InternalIoApi
+import java.io.InputStream
+import java.io.OutputStream
+import kotlin.math.min
 
 /**
  * Create blocking [java.io.InputStream] for this channel that does block every time the channel suspends at read
@@ -54,20 +57,50 @@ public fun ByteReadChannel.toInputStream(parent: Job? = null): InputStream = obj
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.jvm.javaio.toOutputStream)
  */
-public fun ByteWriteChannel.toOutputStream(): OutputStream = object : OutputStream() {
+public fun ByteWriteChannel.toOutputStream(): OutputStream =
+    ByteChannelOutputStream(this)
+
+private const val FLUSH_THRESHOLD: Long = CHANNEL_MAX_SIZE.toLong()
+
+internal class ByteChannelOutputStream(
+    private val channel: ByteWriteChannel
+) : OutputStream() {
+    @OptIn(InternalAPI::class)
+    private val channelWriteBuffer = channel.writeBuffer
+
     override fun write(b: Int) {
-        runBlocking { this@toOutputStream.writeByte(b.toByte()) }
+        throwIfClosed()
+        channelWriteBuffer.writeByte(b.toByte())
+        flushIfNeeded()
     }
 
     override fun write(b: ByteArray, off: Int, len: Int) {
-        runBlocking { this@toOutputStream.writeFully(b, off, off + len) }
+        throwIfClosed()
+        channelWriteBuffer.write(b, off, off + len)
+        flushIfNeeded()
+    }
+
+    @OptIn(InternalIoApi::class)
+    private fun flushIfNeeded() {
+        if (channelWriteBuffer.buffer.size >= FLUSH_THRESHOLD) {
+            flush()
+        }
     }
 
     override fun flush() {
-        runBlocking { this@toOutputStream.flush() }
+        throwIfClosed()
+        runBlocking {
+            channel.flush()
+        }
+    }
+
+    private fun throwIfClosed() {
+        if (channel.isClosedForWrite) throw channel.closedCause ?: ClosedWriteChannelException()
     }
 
     override fun close() {
-        runBlocking { flushAndClose() }
+        runBlocking {
+            channel.flushAndClose()
+        }
     }
 }

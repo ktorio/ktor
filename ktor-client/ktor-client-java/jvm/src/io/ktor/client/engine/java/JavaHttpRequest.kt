@@ -50,7 +50,11 @@ internal fun HttpRequestData.convertToHttpRequest(callContext: CoroutineContext)
             }
         }
 
-        method(method.value, body.convertToHttpRequestBody(callContext))
+        if (method == HttpMethod.Get && body.isEmpty()) {
+            GET()
+        } else {
+            method(method.value, body.convertToHttpRequestBody(callContext))
+        }
     }
 
     return builder.build()

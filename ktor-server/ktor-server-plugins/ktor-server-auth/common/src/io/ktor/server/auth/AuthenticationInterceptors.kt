@@ -19,14 +19,12 @@ import kotlinx.io.readByteArray
 internal val LOGGER = KtorSimpleLogger("io.ktor.server.auth.Authentication")
 
 internal object AuthenticationHook : Hook<suspend (ApplicationCall) -> Unit> {
-    internal val AuthenticatePhase: PipelinePhase = PipelinePhase("Authenticate")
 
     override fun install(
         pipeline: ApplicationCallPipeline,
         handler: suspend (ApplicationCall) -> Unit
     ) {
-        pipeline.insertPhaseAfter(ApplicationCallPipeline.Plugins, AuthenticatePhase)
-        pipeline.intercept(AuthenticatePhase) { handler(call) }
+        pipeline.intercept(ApplicationCallPipeline.Validators) { handler(call) }
     }
 }
 
@@ -44,8 +42,8 @@ public object AuthenticationChecked : Hook<suspend (ApplicationCall) -> Unit> {
         pipeline: ApplicationCallPipeline,
         handler: suspend (ApplicationCall) -> Unit
     ) {
-        pipeline.insertPhaseAfter(ApplicationCallPipeline.Plugins, AuthenticationHook.AuthenticatePhase)
-        pipeline.insertPhaseAfter(AuthenticationHook.AuthenticatePhase, AfterAuthenticationPhase)
+        @Suppress("INVISIBLE_REFERENCE")
+        pipeline.insertPhaseAfter(ApplicationCallPipeline.Validators, AfterAuthenticationPhase)
         pipeline.intercept(AfterAuthenticationPhase) { handler(call) }
     }
 }
@@ -74,6 +72,90 @@ public val AuthenticationInterceptors: RouteScopedPlugin<RouteAuthenticationConf
         requiredProviders - firstSuccessfulProviders
 
     // To cache the request body which can be consumed by the OAuth2 callback handler
+    installOAuthBodyCache()
+
+    on(AuthenticationHook) { call ->
+        if (call.isHandled) return@on
+
+        val authenticationContext = AuthenticationContext.from(call)
+        if (authenticationContext.principal<Any>() != null) return@on
+
+        var count = 0
+        for (provider in requiredProviders) {
+            if (provider.skipWhen.any { skipCondition -> skipCondition(call) }) {
+                LOGGER.trace { "Skipping authentication provider ${provider.name} for ${call.request.uri}" }
+                continue
+            }
+
+            LOGGER.trace { "Trying to authenticate ${call.request.uri} with required ${provider.name}" }
+            provider.onAuthenticate(authenticationContext)
+            count++
+            if (authenticationContext._principal.principals.size < count) {
+                LOGGER.trace { "Authentication failed for ${call.request.uri} with provider $provider" }
+                authenticationContext.executeChallenges(call)
+                return@on
+            }
+            LOGGER.trace { "Authentication succeeded for ${call.request.uri} with provider $provider" }
+        }
+
+        for (provider in notRequiredProviders) {
+            if (authenticationContext._principal.principals.isNotEmpty()) {
+                LOGGER.trace { "Authenticate for ${call.request.uri} succeed. Skipping other providers" }
+                break
+            }
+            if (provider.skipWhen.any { skipCondition -> skipCondition(call) }) {
+                LOGGER.trace { "Skipping authentication provider ${provider.name} for ${call.request.uri}" }
+                continue
+            }
+
+            LOGGER.trace { "Trying to authenticate ${call.request.uri} with ${provider.name}" }
+            provider.onAuthenticate(authenticationContext)
+
+            if (authenticationContext._principal.principals.isNotEmpty()) {
+                LOGGER.trace { "Authentication succeeded for ${call.request.uri} with provider $provider" }
+            } else {
+                LOGGER.trace { "Authentication failed for ${call.request.uri} with provider $provider" }
+            }
+        }
+
+        if (authenticationContext._principal.principals.isNotEmpty()) return@on
+        val isOptional = optionalProviders.isNotEmpty() &&
+            firstSuccessfulProviders.isEmpty() &&
+            requiredProviders.isEmpty()
+        val isNoInvalidCredentials = authenticationContext.allFailures
+            .none { it == AuthenticationFailedCause.InvalidCredentials }
+        if (isOptional && isNoInvalidCredentials) {
+            LOGGER.trace { "Authentication is optional and no credentials were provided for ${call.request.uri}" }
+            return@on
+        }
+
+        authenticationContext.executeChallenges(call)
+    }
+}
+
+internal val cacheOAuthFormReceiveKey = AttributeKey<Unit>("OauthFormReceiveKey")
+
+internal val formCacheKey = AttributeKey<ByteArray>("AuthFormCacheKey")
+
+internal object ReceiveBytes : Hook<suspend (ApplicationCall, Any) -> Any> {
+    override fun install(
+        pipeline: ApplicationCallPipeline,
+        handler: suspend (ApplicationCall, Any) -> Any
+    ) {
+        pipeline.receivePipeline.intercept(ApplicationReceivePipeline.Before) {
+            val body = handler(call, it)
+            proceedWith(body)
+        }
+    }
+}
+
+/**
+ * Installs the OAuth body cache hook.
+ *
+ * OAuth providers may consume the request body during authentication.
+ * This hook caches form bodies so they can be read again by the route handler.
+ */
+internal fun RouteScopedPluginBuilder<*>.installOAuthBodyCache() {
     on(ReceiveBytes) { call, body ->
         var newBody: Any = body
 
@@ -89,7 +171,6 @@ public val AuthenticationInterceptors: RouteScopedPlugin<RouteAuthenticationConf
             }
         } else {
             val cache = call.attributes.getOrNull(formCacheKey)
-
             if (cache != null) {
                 newBody = ByteReadChannel(cache)
             }
@@ -97,83 +178,16 @@ public val AuthenticationInterceptors: RouteScopedPlugin<RouteAuthenticationConf
 
         newBody
     }
-
-    on(AuthenticationHook) { call ->
-        if (call.isHandled) return@on
-
-        val authenticationContext = AuthenticationContext.from(call)
-        if (authenticationContext.principal<Any>() != null) return@on
-
-        var count = 0
-        for (provider in requiredProviders) {
-            if (provider.skipWhen.any { skipCondition -> skipCondition(call) }) {
-                LOGGER.trace("Skipping authentication provider ${provider.name} for ${call.request.uri}")
-                continue
-            }
-
-            LOGGER.trace("Trying to authenticate ${call.request.uri} with required ${provider.name}")
-            provider.onAuthenticate(authenticationContext)
-            count++
-            if (authenticationContext._principal.principals.size < count) {
-                LOGGER.trace("Authentication failed for ${call.request.uri} with provider $provider")
-                authenticationContext.executeChallenges(call)
-                return@on
-            }
-            LOGGER.trace("Authentication succeeded for ${call.request.uri} with provider $provider")
-        }
-
-        for (provider in notRequiredProviders) {
-            if (authenticationContext._principal.principals.isNotEmpty()) {
-                LOGGER.trace("Authenticate for ${call.request.uri} succeed. Skipping other providers")
-                break
-            }
-            if (provider.skipWhen.any { skipCondition -> skipCondition(call) }) {
-                LOGGER.trace("Skipping authentication provider ${provider.name} for ${call.request.uri}")
-                continue
-            }
-
-            LOGGER.trace("Trying to authenticate ${call.request.uri} with ${provider.name}")
-            provider.onAuthenticate(authenticationContext)
-
-            if (authenticationContext._principal.principals.isNotEmpty()) {
-                LOGGER.trace("Authentication succeeded for ${call.request.uri} with provider $provider")
-            } else {
-                LOGGER.trace("Authentication failed for ${call.request.uri} with provider $provider")
-            }
-        }
-
-        if (authenticationContext._principal.principals.isNotEmpty()) return@on
-        val isOptional = optionalProviders.isNotEmpty() &&
-            firstSuccessfulProviders.isEmpty() &&
-            requiredProviders.isEmpty()
-        val isNoInvalidCredentials = authenticationContext.allFailures
-            .none { it == AuthenticationFailedCause.InvalidCredentials }
-        if (isOptional && isNoInvalidCredentials) {
-            LOGGER.trace("Authentication is optional and no credentials were provided for ${call.request.uri}")
-            return@on
-        }
-
-        authenticationContext.executeChallenges(call)
-    }
 }
 
-internal val cacheOAuthFormReceiveKey = AttributeKey<Unit>("OauthFormReceiveKey")
-
-private val formCacheKey = AttributeKey<ByteArray>("AuthFormCacheKey")
-
-private object ReceiveBytes : Hook<suspend (ApplicationCall, Any) -> Any> {
-    override fun install(
-        pipeline: ApplicationCallPipeline,
-        handler: suspend (ApplicationCall, Any) -> Any
-    ) {
-        pipeline.receivePipeline.intercept(ApplicationReceivePipeline.Before) {
-            val body = handler(call, it)
-            proceedWith(body)
-        }
-    }
+/**
+ * Creates a standalone route-scoped plugin that installs the OAuth body cache.
+ */
+internal fun createOAuthBodyCachePlugin() = createRouteScopedPlugin("OAuthBodyCache") {
+    installOAuthBodyCache()
 }
 
-private suspend fun AuthenticationContext.executeChallenges(call: ApplicationCall) {
+internal suspend fun AuthenticationContext.executeChallenges(call: ApplicationCall) {
     val challenges = challenge.challenges
 
     if (this.executeChallenges(challenges, call)) return
@@ -182,7 +196,7 @@ private suspend fun AuthenticationContext.executeChallenges(call: ApplicationCal
 
     for (error in allErrors) {
         if (!challenge.completed) {
-            LOGGER.trace("Authentication failed for ${call.request.uri} with error ${error.message}")
+            LOGGER.trace { "Authentication failed for ${call.request.uri} with error ${error.message}" }
             if (!call.isHandled) {
                 call.respond(UnauthorizedResponse())
             }
@@ -192,7 +206,7 @@ private suspend fun AuthenticationContext.executeChallenges(call: ApplicationCal
     }
 }
 
-private suspend fun AuthenticationContext.executeChallenges(
+internal suspend fun AuthenticationContext.executeChallenges(
     challenges: List<ChallengeFunction>,
     call: ApplicationCall
 ): Boolean {
@@ -277,6 +291,11 @@ public fun Route.authenticate(
  * Creates a route that allows you to define authorization scope for application resources.
  * This function accepts names of authentication providers defined in the [Authentication] plugin configuration.
  *
+ * When combined with other route-scoped guard plugins such as [io.ktor.server.plugins.ratelimit.rateLimit],
+ * the relative execution order follows route nesting: interceptors on parent routes run before interceptors
+ * on child routes. To use a principal in a rate limit [io.ktor.server.plugins.ratelimit.RateLimitProviderConfig.requestKey],
+ * nest [rateLimit] inside [authenticate].
+ *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.authenticate)
  *
  * @see [Authentication]
@@ -339,10 +358,8 @@ public class RouteAuthenticationConfig {
  *
  * @param names of authentication providers to be applied to this route.
  */
-public class AuthenticationRouteSelector(public val names: List<String?>) : RouteSelector() {
-    override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
-        return RouteSelectorEvaluation.Transparent
-    }
+@OptIn(InternalAPI::class)
+public class AuthenticationRouteSelector(public val names: List<String?>) : TransparentRouteSelector() {
 
     override fun toString(): String = "(authenticate ${names.joinToString { it ?: "\"$DEFAULT_NAME\"" }})"
 

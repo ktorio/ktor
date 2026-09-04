@@ -80,7 +80,7 @@ public val HttpRedirect: ClientPlugin<HttpRedirectConfig> = createClientPlugin(
             }
 
             client.monitor.raise(HttpResponseRedirectEvent, call.response)
-            LOGGER.trace("Received redirect response to $location for request ${call.request.url}")
+            LOGGER.trace { "Received redirect response to $location for request ${call.request.url}" }
 
             requestBuilder = HttpRequestBuilder().apply {
                 takeFromWithExecutionContext(requestBuilder)
@@ -89,16 +89,16 @@ public val HttpRedirect: ClientPlugin<HttpRedirectConfig> = createClientPlugin(
 
                 // Disallow redirect with a security downgrade.
                 if (!allowHttpsDowngrade && previousProtocol.isSecure() && !url.protocol.isSecure()) {
-                    LOGGER.trace("Blocked redirect from ${call.request.url} to $location due to HTTPS downgrade")
+                    LOGGER.trace { "Blocked redirect from ${call.request.url} to $location due to HTTPS downgrade" }
                     return call
                 }
 
                 if (previousAuthority != url.authority) {
                     headers.remove(HttpHeaders.Authorization)
-                    LOGGER.trace(
+                    LOGGER.trace {
                         "Removing Authorization header for cross-authority redirect: " +
                             "$previousAuthority -> ${url.buildString()}"
-                    )
+                    }
                 }
             }
 

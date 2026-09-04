@@ -9,6 +9,7 @@ import io.ktor.server.netty.*
 import io.netty.buffer.*
 import io.netty.channel.*
 import io.netty.handler.codec.http3.*
+import io.netty.handler.codec.quic.QuicStreamChannel
 import kotlin.coroutines.*
 
 internal class NettyHttp3ApplicationCall(
@@ -41,6 +42,23 @@ internal class NettyHttp3ApplicationCall(
         }
         // HTTP/3 signals end of stream by closing the QUIC stream, not via a frame flag
         return null
+    }
+
+    override fun flushBeforeClose(context: ChannelHandlerContext, lastFuture: ChannelFuture) {
+        if (isByteBufferContent) {
+            return super.flushBeforeClose(context, lastFuture)
+        }
+        val channel = context.channel() as? QuicStreamChannel
+        if (channel == null) {
+            context.flush()
+            return
+        }
+        // lastFuture is the future of a queued write and won't complete until flushed; flush now
+        // so the write actually reaches the wire before the FIN is sent via shutdownOutput()
+        context.flush()
+        lastFuture.addListener {
+            channel.shutdownOutput()
+        }
     }
 
     override fun upgrade(dst: ChannelHandlerContext) {

@@ -15,8 +15,10 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import kotlinx.serialization.*
-import kotlin.test.*
+import kotlinx.serialization.Serializable
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertNull
 
 abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
     protected open val extraFieldResult = HttpStatusCode.OK
@@ -171,7 +173,7 @@ abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
         }
         routing {
             post("/") {
-                val request = call.receiveNullable<Wrapper?>()
+                val request = call.receive<Wrapper?>()
                 assertEquals(null, request)
                 call.respondNullable(request)
             }
@@ -318,6 +320,24 @@ abstract class JsonContentNegotiationTest(val converter: ContentConverter) {
         }.get("/").let { response ->
             assertEquals(HttpStatusCode.OK, response.status)
             assertEquals("""{"value":{"value":"abc"}}""", response.bodyAsText())
+        }
+    }
+
+    @Test
+    open fun testContentNegotiationWithSuffix() = testApplication {
+        routing {
+            get("/") {
+                call.respondText("""{"value":"abc"}""", contentType = ContentType.Application.ProblemJson)
+            }
+        }
+
+        createClient {
+            install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
+                register(ContentType.Application.Json, converter)
+            }
+        }.get("/").let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals(Wrapper("abc"), response.body<Wrapper>())
         }
     }
 }

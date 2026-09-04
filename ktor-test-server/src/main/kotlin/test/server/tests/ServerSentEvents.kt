@@ -14,6 +14,7 @@ import io.ktor.utils.io.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
 internal fun Application.serverSentEvents() {
@@ -71,6 +72,14 @@ internal fun Application.serverSentEvents() {
                 val contentType = ContentType.Text.EventStream.withCharset(Charsets.UTF_8)
                 call.respondBytesWriter(contentType = contentType) {
                     writeSseEvents(events)
+                }
+            }
+            route("/content-length") {
+                handle {
+                    val events = flowOf(
+                        SseEvent(call.request.headers[HttpHeaders.ContentLength].orEmpty())
+                    )
+                    call.respondSseEvents(events)
                 }
             }
             post("/echo") {

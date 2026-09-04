@@ -14,7 +14,6 @@ import kotlin.jvm.JvmInline
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.htmx.hx)
  */
-@ExperimentalKtorApi
 public val Route.hx: HxRoute get() = HxRoute.wrap(this)
 
 /**
@@ -22,7 +21,6 @@ public val Route.hx: HxRoute get() = HxRoute.wrap(this)
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.htmx.hx)
  */
-@ExperimentalKtorApi
 public fun Route.hx(configuration: HxRoute.() -> Unit): Route = hx.apply(configuration)
 
 /**
@@ -30,7 +28,6 @@ public fun Route.hx(configuration: HxRoute.() -> Unit): Route = hx.apply(configu
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.htmx.HxRoute)
  */
-@ExperimentalKtorApi
 @KtorDsl
 @JvmInline
 public value class HxRoute internal constructor(private val route: Route) : Route by route {
