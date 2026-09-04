@@ -35,7 +35,6 @@ import io.netty.handler.codec.quic.QuicSslContext
 import io.netty.handler.codec.quic.QuicSslContextBuilder
 import kotlinx.coroutines.CompletableJob
 import kotlinx.coroutines.asCoroutineDispatcher
-import java.net.BindException
 import java.net.SocketOption
 import java.net.StandardSocketOptions
 import java.security.PrivateKey

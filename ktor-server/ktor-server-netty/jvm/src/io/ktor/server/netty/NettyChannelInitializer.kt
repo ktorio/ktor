@@ -193,7 +193,10 @@ public class NettyChannelInitializer(
             // handler is most effective as the first in the pipeline.
             addLast(
                 "flushConsolidation",
-                FlushConsolidationHandler(FlushConsolidationHandler.DEFAULT_EXPLICIT_FLUSH_AFTER_FLUSHES, true)
+                FlushConsolidationHandler(
+                    FlushConsolidationHandler.DEFAULT_EXPLICIT_FLUSH_AFTER_FLUSHES,
+                    false
+                )
             )
 
             when {
@@ -284,7 +287,9 @@ public class NettyChannelInitializer(
                 // sink is a no-op.
                 pipeline.addLast(NettyHttp2ConnectionSink)
 
-                pipeline.addLast(object : SimpleChannelInboundHandler<HttpMessage>() {
+                // autoRelease = false: channelRead0 always forwards msg via fireChannelRead without
+                // retaining it first, so the default auto-release would drop its refCnt a second time.
+                pipeline.addLast(object : SimpleChannelInboundHandler<HttpMessage>(false) {
                     @Throws(Exception::class)
                     override fun channelRead0(ctx: ChannelHandlerContext, msg: HttpMessage) {
                         val pipe = ctx.pipeline()
