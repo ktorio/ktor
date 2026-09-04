@@ -7,6 +7,7 @@ package io.ktor.client.engine.java
 import io.ktor.client.engine.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.websocket.*
+import io.ktor.client.plugins.websocket.WebSocketHandshakeException
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.HttpHeaders
@@ -29,6 +30,7 @@ import java.util.concurrent.CompletionStage
 import kotlin.coroutines.CoroutineContext
 import kotlin.text.String
 import kotlin.text.toByteArray
+import java.net.http.WebSocketHandshakeException as JdkWebSocketHandshakeException
 
 private val ILLEGAL_HEADERS = TreeSet(String.CASE_INSENSITIVE_ORDER).apply {
     addAll(
@@ -175,9 +177,10 @@ internal class JavaHttpWebSocket(
             webSocket = builder.buildAsync(requestData.url.toURI(), this).await()
             val protocol = webSocket.subprotocol?.takeIf { it.isNotEmpty() }
             headers = if (protocol != null) headersOf(HttpHeaders.SecWebSocketProtocol, protocol) else Headers.Empty
-        } catch (cause: WebSocketHandshakeException) {
+        } catch (cause: JdkWebSocketHandshakeException) {
             // A failed handshake - expose the response.
-            val response = cause.response ?: throw cause
+            val response = cause.response
+                ?: throw WebSocketHandshakeException(cause.message ?: "WebSocket handshake failed", cause)
             status = HttpStatusCode.fromValue(response.statusCode())
             headers = headersOf(response.headers().map())
 
