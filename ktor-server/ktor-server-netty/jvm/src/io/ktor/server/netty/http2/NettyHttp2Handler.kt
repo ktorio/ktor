@@ -32,7 +32,8 @@ internal class NettyHttp2Handler(
     private val application: Application,
     private val callEventGroup: EventExecutorGroup,
     private val userCoroutineContext: CoroutineContext,
-    runningLimit: Int
+    runningLimit: Int,
+    private val dispatchCallStartOnIoExecutor: Boolean = false
 ) : ChannelInboundHandlerAdapter() {
     // Parent [Job] for per-call [Job]s. Cached to avoid re-running `userCoroutineContext[Job]` per request.
     private val parentJob: Job? = userCoroutineContext[Job]
@@ -55,6 +56,12 @@ internal class NettyHttp2Handler(
                 state.isChannelReadCompleted.compareAndSet(expect = true, update = false)
                 state.activeRequests.incrementAndGet()
                 startHttp2(context, message.headers())
+                if (message.isEndStream) {
+                    context.applicationCall?.request?.apply {
+                        contentActor.close()
+                        state.isCurrentRequestFullyRead.compareAndSet(expect = false, update = true)
+                    }
+                }
             }
 
             is Http2DataFrame -> {
@@ -125,7 +132,7 @@ internal class NettyHttp2Handler(
     }
 
     private fun startHttp2(context: ChannelHandlerContext, headers: Http2Headers) {
-        val callJob = Job(parent = parentJob)
+        val callJob = Job(parent = handlerJob)
         val callExecutor = pinnedCallExecutor(context, callEventGroup)
         // Combine the cached static context with the per-stream dispatcher and per-call [Job] only.
         val callContext = staticCallContext +
@@ -151,8 +158,12 @@ internal class NettyHttp2Handler(
         // deliver subsequent Http2DataFrame messages. Without this, the coroutine runs on the event loop,
         // blocking data frame delivery and causing EOFException.
         // Dispatching to the call event group also ensures user handler code does not run on the I/O worker
-        // event loop.
-        callExecutor.execute {
+        // event loop. When dispatchCallStartOnIoExecutor is enabled, calls that never suspend skip that
+        // hop entirely and run on the I/O thread instead; calls that do suspend still resume on
+        // callExecutor via NettyDispatcher, since callExecutor above is unconditionally what's captured
+        // in CurrentContext.
+        val startExecutor = if (dispatchCallStartOnIoExecutor) context.executor() else callExecutor
+        startExecutor.execute {
             val callScope = CoroutineScope(context = callContext)
             callScope.launch(start = CoroutineStart.UNDISPATCHED) {
                 try {
@@ -274,8 +285,14 @@ internal class NettyHttp2Handler(
         }
     }
 
-    internal fun cancel() {
-        handlerJob.cancel()
+    // Marks handlerJob as completing rather than cancelling it: individual streams already get
+    // their specific cancellation cause (if any) via onStreamClose()'s HttpRequestCloseHandlerKey
+    // invocation as each Http2StreamChannel becomes inactive during connection teardown. Forcibly
+    // cancelling handlerJob here would race a generic cause against that specific one, and would
+    // also kill calls that never opted into cancelCallOnClose. complete() still lets handlerJob
+    // detach from its parent once every in-flight callJob finishes, avoiding a leak.
+    internal fun onConnectionClose() {
+        handlerJob.complete()
     }
 
     companion object {

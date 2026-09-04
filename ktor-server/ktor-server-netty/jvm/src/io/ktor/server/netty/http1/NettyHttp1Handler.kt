@@ -18,6 +18,7 @@ import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelInboundHandlerAdapter
 import io.netty.handler.codec.http.*
 import io.netty.handler.timeout.ReadTimeoutException
+import io.netty.util.ReferenceCountUtil
 import io.netty.util.concurrent.EventExecutorGroup
 import kotlinx.coroutines.*
 import java.io.IOException
@@ -33,15 +34,23 @@ internal class NettyHttp1Handler(
     private val callEventGroup: EventExecutorGroup,
     private val engineContext: CoroutineContext,
     private val userContext: CoroutineContext,
-    private val runningLimit: Int
+    private val runningLimit: Int,
+    private val dispatchCallStartOnIoExecutor: Boolean = false
 ) : ChannelInboundHandlerAdapter() {
-    private val handlerJob = CompletableDeferred<Nothing>()
+    private lateinit var handlerJob: CompletableJob
 
     private var skipEmpty = false
 
     private lateinit var responseWriter: NettyHttpResponsePipeline
 
-    private val state = NettyHttpHandlerState(runningLimit)
+    private val state = NettyHttpHandlerState(runningLimit, onCapacityAvailable = ::drainPending)
+
+    // Decoded messages that arrived while activeRequests >= runningLimit. Netty's HTTP codec can decode
+    // and deliver many complete pipelined HttpRequest (and follow-up HttpContent) messages from a single
+    // physical socket read, all before callReadIfNeeded ever gets a chance to gate anything - so the only
+    // way to make runningLimit an actual hard cap is to buffer messages here instead of dispatching them,
+    // and replay them in order once a slot frees up. Access is confined to this channel's event loop.
+    private val pendingMessages = ArrayDeque<Any>()
 
     private val activeCalls = ConcurrentLinkedQueue<NettyHttp1ApplicationCall>()
 
@@ -65,6 +74,8 @@ internal class NettyHttp1Handler(
         }
         activated = true
 
+        handlerJob = SupervisorJob(applicationProvider().coroutineContext[Job])
+
         responseWriter = NettyHttpResponsePipeline(
             context = context,
             httpHandlerState = state,
@@ -86,16 +97,41 @@ internal class NettyHttp1Handler(
     }
 
     override fun channelRead(context: ChannelHandlerContext, message: Any) {
+        // These flags track the state of the *live* physical read cycle currently in progress, so they must
+        // only be touched here, for messages as they are actually decoded - never from drainPending, which
+        // replays messages decoded during a past, already-completed read cycle.
         if (message is LastHttpContent) {
             state.isCurrentRequestFullyRead.compareAndSet(expect = false, update = true)
         }
+        if (message is HttpRequest) {
+            if (message !is LastHttpContent) {
+                state.isCurrentRequestFullyRead.compareAndSet(expect = true, update = false)
+            }
+            state.isChannelReadCompleted.compareAndSet(expect = true, update = false)
+        }
 
+        // A pipelined connection can have several complete requests (and their body content) decoded from
+        // one physical read. HTTP/1.1 requests on a connection never interleave on the wire, so once one
+        // message has been deferred, every message after it - whether it's the rest of that request's body
+        // or the start of the next pipelined request - must stay queued in order until we catch up.
+        if (pendingMessages.isNotEmpty()) {
+            pendingMessages.addLast(message)
+            return
+        }
+        dispatchOrDefer(context, message)
+    }
+
+    private fun dispatchOrDefer(context: ChannelHandlerContext, message: Any) {
+        if (message is HttpRequest && state.activeRequests.value >= runningLimit) {
+            pendingMessages.addLast(message)
+            return
+        }
+        dispatchMessage(context, message)
+    }
+
+    private fun dispatchMessage(context: ChannelHandlerContext, message: Any) {
         when (message) {
             is HttpRequest -> {
-                if (message !is LastHttpContent) {
-                    state.isCurrentRequestFullyRead.compareAndSet(expect = true, update = false)
-                }
-                state.isChannelReadCompleted.compareAndSet(expect = true, update = false)
                 state.activeRequests.incrementAndGet()
 
                 handleRequest(context, message)
@@ -114,6 +150,20 @@ internal class NettyHttp1Handler(
         }
     }
 
+    /**
+     * Replays messages that were buffered by [dispatchOrDefer] while over [runningLimit], now that a slot
+     * has freed up. Stops as soon as the next queued message is a new request that would exceed the limit
+     * again, leaving it (and everything after it) queued for the next call.
+     */
+    private fun drainPending(context: ChannelHandlerContext) {
+        while (true) {
+            val next = pendingMessages.firstOrNull() ?: return
+            if (next is HttpRequest && state.activeRequests.value >= runningLimit) return
+            pendingMessages.removeFirst()
+            dispatchMessage(context, next)
+        }
+    }
+
     override fun channelInactive(context: ChannelHandlerContext) {
         onConnectionClose(context)
         context.fireChannelInactive()
@@ -123,19 +173,31 @@ internal class NettyHttp1Handler(
         if (context.channel().isActive) {
             return
         }
+        while (pendingMessages.isNotEmpty()) {
+            ReferenceCountUtil.release(pendingMessages.removeFirst())
+        }
         while (true) {
             val call = activeCalls.poll() ?: break
             @OptIn(InternalAPI::class)
             call.attributes.getOrNull(HttpRequestCloseHandlerKey)?.invoke()
         }
+        // Marks handlerJob as completing rather than cancelling it: calls that didn't opt into
+        // HttpRequestLifecycle's cancelCallOnClose (invoked above) are allowed to keep running to
+        // completion — only once every in-flight callJob finishes does handlerJob actually complete
+        // and detach from applicationJob's children list.
+        handlerJob.complete()
     }
 
     @Suppress("OverridingDeprecatedMember")
     override fun exceptionCaught(context: ChannelHandlerContext, cause: Throwable) {
         when (cause) {
             is IOException -> {
+                // Cancellation of in-flight calls and completion of handlerJob is left to
+                // onConnectionClose(), triggered by the channelInactive() that follows this close():
+                // that path invokes each call's HttpRequestCloseHandlerKey callback (giving opted-in
+                // calls their specific ConnectionClosedException cause) before touching handlerJob,
+                // so doing it here too would race a generic cause against that specific one.
                 environment.log.trace("I/O operation failed", cause)
-                handlerJob.cancel()
                 context.close()
             }
 
@@ -151,7 +213,8 @@ internal class NettyHttp1Handler(
             }
 
             else -> {
-                handlerJob.completeExceptionally(cause)
+                // See the IOException branch above: cleanup is left to the channelInactive()/
+                // onConnectionClose() that follows this close().
                 context.close()
             }
         }
@@ -181,7 +244,7 @@ internal class NettyHttp1Handler(
                 newContext
             }
         }
-        val callJob = Job(parent = baseContext[Job])
+        val callJob = Job(parent = handlerJob)
 
         // Only the per-call [Job] is combined per request; the rest of the context is cached on the
         // handler instance and reused across all calls on this connection.
@@ -200,8 +263,12 @@ internal class NettyHttp1Handler(
         // early instead of buffering them, which is required when the client waits for response headers
         // before sending the request body.
         // Dispatching to the call event group also ensures user handler code does not run on the I/O worker
-        // event loop.
-        callExecutor.execute {
+        // event loop. When dispatchCallStartOnIoExecutor is enabled, calls that never suspend skip that
+        // hop entirely and run on the I/O thread instead; calls that do suspend still resume on
+        // callExecutor via NettyDispatcher, since callExecutor above is unconditionally what's captured
+        // in CurrentContext.
+        val startExecutor = if (dispatchCallStartOnIoExecutor) context.executor() else callExecutor
+        startExecutor.execute {
             val callScope = CoroutineScope(context = callContext)
             callScope.launch(start = CoroutineStart.UNDISPATCHED) {
                 try {

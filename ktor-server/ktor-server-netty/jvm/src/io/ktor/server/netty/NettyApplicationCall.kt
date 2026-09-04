@@ -46,6 +46,8 @@ public abstract class NettyApplicationCall(
     public lateinit var responseWriteJob: Job
         private set
 
+    private lateinit var completableResponseWriteJob: CompletableJob
+
     /**
      * Initializes [responseWriteJob] as a child of the call's coroutine [Job]. Called synchronously
      * on the Netty I/O thread right after the call is constructed and before the user handler
@@ -56,13 +58,22 @@ public abstract class NettyApplicationCall(
         val callJob = coroutineContext[Job]
         val job = Job(parent = callJob)
         job.invokeOnCompletion { onResponseWriteCompleted() }
+        completableResponseWriteJob = job
         responseWriteJob = job
+    }
+
+    /**
+     * Marks [responseWriteJob] as successfully completed. Used on the normal (non-error) path once the
+     * response write has been dispatched, so completion goes through [CompletableJob.complete]'s fast
+     * path instead of the cancellation machinery that [Job.cancel] always incurs.
+     */
+    internal fun completeResponseWriteJob() {
+        completableResponseWriteJob.complete()
     }
 
     private val messageReleased = atomic(false)
 
     internal var isByteBufferContent = false
-    internal var isStreamingResponse = false
 
     /**
      * Returns http content object with [buf] content if [isByteBufferContent] is false,
