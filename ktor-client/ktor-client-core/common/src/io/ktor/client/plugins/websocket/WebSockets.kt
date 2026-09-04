@@ -28,7 +28,7 @@ internal val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.websocket.WebSock
 internal const val DEFAULT_MAX_FRAME_SIZE: Long = Int.MAX_VALUE.toLong()
 
 // Marks a call whose failed-handshake response has already been captured, so reading that
-// response's body (via WebSocketException.response) doesn't re-enter the handshake handling below.
+// response's body (via WebSocketHandshakeException.response) doesn't re-enter the handshake handling below.
 private val FAILED_HANDSHAKE_RESPONSE_KEY = AttributeKey<Unit>("WebSocketFailedHandshakeResponse")
 
 /**
@@ -242,7 +242,7 @@ public class WebSockets internal constructor(
                     return@intercept
                 }
                 if (context.attributes.contains(FAILED_HANDSHAKE_RESPONSE_KEY)) {
-                    // Reading the body of an already-captured failed handshake (WebSocketException.response);
+                    // Reading the body of an already-captured failed handshake (WebSocketHandshakeException.response);
                     // let the default transformers produce the body instead of handling the handshake again.
                     return@intercept
                 }
@@ -255,15 +255,14 @@ public class WebSockets internal constructor(
                         LOGGER.trace { "Failed to read response body of failed WebSocket handshake: $cause" }
                         null
                     }
-                    throw WebSocketException(
+                    throw WebSocketHandshakeException(
                         "Handshake exception, expected status code ${HttpStatusCode.SwitchingProtocols.value} " +
                             "but was ${status.value}",
-                        cause = null,
                         response = failedResponse,
                     )
                 }
                 if (session !is WebSocketSession) {
-                    throw WebSocketException(
+                    throw WebSocketHandshakeException(
                         "Handshake exception, expected `WebSocketSession` content but was ${session::class}"
                     )
                 }
@@ -302,17 +301,26 @@ public class WebSockets internal constructor(
 }
 
 /**
- * This exception is thrown when a WebSocket handshake fails.
+ * This exception is thrown when a WebSocket session fails.
  *
- * @property response the HTTP response from a failed handshake, exposing the status, headers, and body returned
- * by the server. Availability varies by engine.
+ * Failures of the handshake itself are reported as [WebSocketHandshakeException].
  */
-public class WebSocketException(
-    message: String,
-    cause: Throwable?,
-    public val response: HttpResponse?,
-) : IllegalStateException(message, cause) {
+public open class WebSocketException(message: String, cause: Throwable?) : IllegalStateException(message, cause) {
     // required for backwards binary compatibility
-    public constructor(message: String) : this(message, cause = null, response = null)
-    public constructor(message: String, cause: Throwable?) : this(message, cause, response = null)
+    public constructor(message: String) : this(message, cause = null)
 }
+
+/**
+ * This exception is thrown when a WebSocket handshake fails, before session starts.
+ *
+ * @property response the HTTP response of the failed handshake: the status, the headers, and the body from the server.
+ * What is available depends on the engine:
+ * - Some engines give the full response.
+ * - Some engines give the status and the headers only. On these engines, the [HttpResponse.body] is empty.
+ * - Some engines don't give the response. On these engines, [response] is `null`.
+ */
+public class WebSocketHandshakeException(
+    message: String,
+    cause: Throwable? = null,
+    public val response: HttpResponse? = null,
+) : WebSocketException(message, cause)
