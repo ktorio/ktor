@@ -29,9 +29,11 @@ public final class io/ktor/utils/io/ByteChannel : io/ktor/utils/io/BufferedByteW
 
 public final class io/ktor/utils/io/ByteChannelCtorKt {
 	public static final fun ByteReadChannel (Ljava/lang/String;Ljava/nio/charset/Charset;)Lio/ktor/utils/io/ByteReadChannel;
+	public static final fun ByteReadChannel (Lkotlinx/io/RawSource;Lkotlin/coroutines/CoroutineContext;)Lio/ktor/utils/io/ByteReadChannel;
 	public static final fun ByteReadChannel (Lkotlinx/io/Source;)Lio/ktor/utils/io/ByteReadChannel;
 	public static final fun ByteReadChannel ([BII)Lio/ktor/utils/io/ByteReadChannel;
 	public static synthetic fun ByteReadChannel$default (Ljava/lang/String;Ljava/nio/charset/Charset;ILjava/lang/Object;)Lio/ktor/utils/io/ByteReadChannel;
+	public static synthetic fun ByteReadChannel$default (Lkotlinx/io/RawSource;Lkotlin/coroutines/CoroutineContext;ILjava/lang/Object;)Lio/ktor/utils/io/ByteReadChannel;
 	public static synthetic fun ByteReadChannel$default ([BIIILjava/lang/Object;)Lio/ktor/utils/io/ByteReadChannel;
 }
 

@@ -5,7 +5,6 @@
 package io.ktor.utils.io.jvm.nio
 
 import io.ktor.utils.io.*
-import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.*
 import kotlinx.io.*
 import kotlinx.io.Buffer

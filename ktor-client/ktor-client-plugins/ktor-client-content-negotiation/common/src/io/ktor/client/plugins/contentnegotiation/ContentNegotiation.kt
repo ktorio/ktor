@@ -17,6 +17,7 @@ import io.ktor.util.logging.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
+import kotlinx.io.RawSource
 import kotlin.reflect.*
 
 // Media types of the underlying representations mapped to the structured syntax suffixes
@@ -36,6 +37,7 @@ internal val DefaultCommonIgnoredTypes: Set<KClass<*>> = setOf(
     String::class,
     HttpStatusCode::class,
     ByteReadChannel::class,
+    RawSource::class,
     OutgoingContent::class,
     ClientSSESession::class,
     ClientSSESessionWithDeserialization::class,
