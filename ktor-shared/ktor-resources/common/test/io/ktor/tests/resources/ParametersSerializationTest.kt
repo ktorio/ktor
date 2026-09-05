@@ -5,9 +5,12 @@
 package io.ktor.tests.resources
 
 import io.ktor.http.*
+import io.ktor.resources.MissingRequiredParameterException
 import io.ktor.resources.Resource
 import io.ktor.resources.serialization.*
 import kotlinx.serialization.*
+import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.encoding.*
 import kotlin.test.*
 
 class ParametersSerializationTest {
@@ -176,6 +179,38 @@ class ParametersSerializationTest {
         assertEquals("value", encoded["stringValue"])
     }
 
+    @Test
+    fun testMissingRequiredParameterThrowsSerializationException() {
+        // MissingRequiredParameterException, not ResourceSerializationException, which is deliberately not a
+        // SerializationException itself so it doesn't shadow existing `catch (SerializationException)` blocks.
+        assertFailsWith<MissingRequiredParameterException> {
+            resourcesFormat.decodeFromParameters(PrimitivesLocations.serializer(), parametersOf())
+        }
+    }
+
+    object StrictEvenIntSerializer : KSerializer<Int> {
+        override val descriptor = PrimitiveSerialDescriptor("StrictEvenInt", PrimitiveKind.INT)
+
+        override fun serialize(encoder: Encoder, value: Int) = encoder.encodeInt(value)
+
+        override fun deserialize(decoder: Decoder): Int {
+            val value = decoder.decodeInt()
+            if (value % 2 != 0) throw SerializationException("value ($value) must be even")
+            return value
+        }
+    }
+
+    @Serializable
+    data class EvenNumberLocation(@Serializable(with = StrictEvenIntSerializer::class) val value: Int)
+
+    @Test
+    fun testPropertySerializerExceptionPropagatesWithOriginalType() {
+        val exception = assertFailsWith<SerializationException> {
+            resourcesFormat.decodeFromParameters(EvenNumberLocation.serializer(), parametersOf("value", "3"))
+        }
+        assertEquals("value (3) must be even", exception.message)
+    }
+
     @Resource("v1")
     private data object V1 {
         @Resource("api")
@@ -185,5 +220,22 @@ class ParametersSerializationTest {
     @Test
     fun testQueryParamsDoNotContainsObjectParent() {
         assertEquals(emptySet(), resourcesFormat.encodeToQueryParameters(serializer = serializer<V1.Api>()))
+    }
+
+    class ThrowingException(message: String) : IllegalStateException(message)
+
+    @Resource("throwing")
+    private class ThrowingResource(val value: Int) {
+        init {
+            if (value < 0) throw ThrowingException("value must be non-negative")
+        }
+    }
+
+    @Test
+    fun testDecodeFromParametersThrowsOriginalConstructorException() {
+        val exception = assertFailsWith<ThrowingException> {
+            resourcesFormat.decodeFromParameters(ThrowingResource.serializer(), parametersOf("value", "-1"))
+        }
+        assertEquals("value must be non-negative", exception.message)
     }
 }
