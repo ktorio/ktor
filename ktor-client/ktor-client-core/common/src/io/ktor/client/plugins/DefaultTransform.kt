@@ -20,7 +20,6 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.job
 import kotlinx.io.RawSource
 import kotlinx.io.Source
-import kotlinx.io.buffered
 
 private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.defaultTransformers")
 
@@ -59,7 +58,7 @@ public fun HttpClient.defaultTransformers() {
             is RawSource -> object : OutgoingContent.ReadChannelContent() {
                 override val contentLength = context.headers[HttpHeaders.ContentLength]?.toLong()
                 override val contentType: ContentType = contentType ?: ContentType.Application.OctetStream
-                override fun readFrom(): ByteReadChannel = ByteReadChannel(body as? Source ?: body.buffered())
+                override fun readFrom(): ByteReadChannel = ByteReadChannel(body)
             }
 
             is OutgoingContent -> body
