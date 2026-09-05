@@ -9,4 +9,15 @@ package io.ktor.resources
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.resources.ResourceSerializationException)
  */
-public class ResourceSerializationException(message: String) : Exception(message)
+public class ResourceSerializationException : Exception {
+    /**
+     * @param message describes the reason (de)serialization failed
+     */
+    public constructor(message: String) : super(message)
+
+    /**
+     * @param message describes the reason (de)serialization failed
+     * @param cause the original exception that caused (de)serialization to fail, preserved as [Throwable.cause]
+     */
+    public constructor(message: String, cause: Throwable) : super(message, cause)
+}

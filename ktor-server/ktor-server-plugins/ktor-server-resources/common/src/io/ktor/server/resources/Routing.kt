@@ -5,11 +5,14 @@
 package io.ktor.server.resources
 
 import io.ktor.http.*
+import io.ktor.resources.*
+import io.ktor.resources.serialization.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.*
 import io.ktor.server.request.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
+import io.ktor.utils.io.*
 import kotlinx.serialization.*
 
 /**
@@ -284,6 +287,14 @@ public fun <T : Any> Route.resource(
  *
  * @param serializer is used to decode the parameters of the request to an instance of the typed resource [T].
  * @param body receives an instance of the typed resource [T] as the first parameter.
+ *
+ * If decoding the request parameters fails (for example a value can't be converted to the expected type),
+ * a [io.ktor.server.plugins.BadRequestException] is thrown. Any other exception thrown while constructing
+ * the resource instance, for example from an `init` block performing custom validation, propagates unchanged
+ * so it can be handled by a `StatusPages` handler registered for its own type. This only applies when
+ * [serializer] is the compiler-generated one for [T] (the usual case); a custom/delegating [serializer] only
+ * gets this treatment for classes it decodes via `decoder.decodeSerializableValue(nested)`, not via
+ * `nested.deserialize(decoder)` directly.
  */
 public fun <T : Any> Route.handle(
     serializer: KSerializer<T>,
@@ -304,15 +315,28 @@ private class ResourceInstancePluginConfig {
     lateinit var serializer: KSerializer<*>
 }
 
+@OptIn(InternalAPI::class)
 private val ResourceInstancePlugin = createRouteScopedPlugin("ResourceInstancePlugin", ::ResourceInstancePluginConfig) {
     val serializer = pluginConfig.serializer
     onCall { call ->
         val resources = call.application.plugin(Resources)
         try {
-            val resource = resources.resourcesFormat.decodeFromParameters(serializer, call.parameters) as Any
+            val resource = resources.resourcesFormat
+                .decodeFromParametersOrThrowConstructionFailure(serializer, call.parameters) as Any
             call.attributes.put(ResourceInstanceKey, resource)
+        } catch (construction: ResourceConstructionFailure) {
+            // Unwrapped before the check below, since `original` may coincidentally be a SerializationException.
+            throw construction.original
         } catch (cause: Throwable) {
-            throw BadRequestException("Can't transform call to resource", cause)
+            when (cause) {
+                is SerializationException,
+                is ResourceSerializationException -> throw BadRequestException(
+                    "Can't transform call to resource",
+                    cause
+                )
+
+                else -> throw cause
+            }
         }
     }
 }

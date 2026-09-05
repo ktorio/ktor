@@ -6,6 +6,7 @@ package io.ktor.resources.serialization
 
 import io.ktor.http.*
 import io.ktor.resources.*
+import io.ktor.utils.io.*
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.modules.*
@@ -106,7 +107,31 @@ public class ResourcesFormat(
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.resources.serialization.ResourcesFormat.decodeFromParameters)
      */
+    @OptIn(InternalAPI::class)
     public fun <T> decodeFromParameters(deserializer: KSerializer<T>, parameters: Parameters): T {
+        return try {
+            decodeFromParametersOrThrowConstructionFailure(deserializer, parameters)
+        } catch (construction: ResourceConstructionFailure) {
+            throw construction.original
+        } catch (decode: ResourceSerializationException) {
+            // Unwrapped so a property serializer's own exception (e.g. a plain SerializationException) keeps
+            // its original type for direct callers; ResourceSerializationException only exists so
+            // decodeNestedResourceOrMark can recognize it as a decode failure, not a constructor failure.
+            throw decode.cause ?: decode
+        }
+    }
+
+    /**
+     * Same as [decodeFromParameters], except a failure from [T]'s own constructor or `init` block throws
+     * [ResourceConstructionFailure] wrapping that exception, instead of the exception itself, so a caller can
+     * tell it apart from a genuine decode failure. For `ktor-server-resources`'s own use; [decodeFromParameters]
+     * remains the public entry point and keeps unwrapping this for its existing callers.
+     */
+    @InternalAPI
+    public fun <T> decodeFromParametersOrThrowConstructionFailure(
+        deserializer: KSerializer<T>,
+        parameters: Parameters
+    ): T {
         val input = ParametersDecoder(serializersModule, parameters, emptyList())
         return input.decodeSerializableValue(deserializer)
     }

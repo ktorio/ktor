@@ -15,5 +15,9 @@ kotlin {
             api(projects.ktorResources)
             api(libs.kotlinx.serialization.core)
         }
+
+        commonTest.dependencies {
+            implementation(projects.ktorServerStatusPages)
+        }
     }
 }
