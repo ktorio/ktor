@@ -26,3 +26,22 @@ internal fun rawSourceOf(text: String): RawSource = object : RawSource {
     override fun readAtMostTo(sink: Buffer, byteCount: Long): Long = buffer.readAtMostTo(sink, byteCount)
     override fun close() = buffer.close()
 }
+
+/** Same as [rawSourceOf], but tracks whether the source has been closed. */
+internal fun trackingSourceOf(text: String): TrackingRawSource = TrackingRawSource(rawSourceOf(text))
+
+/**
+ * Tracks closing of [delegate]: no source reports being closed on its own,
+ * so the only portable way to observe it is to wrap it.
+ */
+internal class TrackingRawSource(private val delegate: RawSource) : RawSource {
+    var closed: Boolean = false
+        private set
+
+    override fun readAtMostTo(sink: Buffer, byteCount: Long): Long = delegate.readAtMostTo(sink, byteCount)
+
+    override fun close() {
+        closed = true
+        delegate.close()
+    }
+}

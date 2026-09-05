@@ -10,11 +10,8 @@ import io.ktor.client.engine.mock.*
 import io.ktor.client.request.*
 import io.ktor.client.tests.utils.*
 import io.ktor.http.*
-import io.ktor.http.content.*
 import io.ktor.test.*
-import io.ktor.utils.io.*
 import kotlinx.io.Buffer
-import kotlinx.io.RawSource
 import kotlinx.io.writeString
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -102,48 +99,11 @@ class DefaultTransformTest {
 
     @Test
     fun `raw source body is closed once it is fully sent`() = runTest {
-        var closed = false
-        val source = object : RawSource {
-            private val buffer = Buffer().apply { writeString("hello raw source") }
-            override fun readAtMostTo(sink: Buffer, byteCount: Long): Long = buffer.readAtMostTo(sink, byteCount)
-            override fun close() {
-                closed = true
-                buffer.close()
-            }
-        }
+        val source = trackingSourceOf("hello raw source")
 
         val content = renderBody { setBody(source) }
         assertEquals("hello raw source", content.toByteArray().decodeToString())
 
-        assertTrue(closed, "The source should be closed once it is exhausted")
-    }
-
-    @OptIn(InternalAPI::class)
-    private suspend fun renderHeaders(block: HttpRequestBuilder.() -> Unit): List<Pair<String, String>> {
-        val sentHeaders = mutableListOf<Pair<String, String>>()
-        val client = HttpClient(MockEngine) {
-            engine {
-                addHandler { request ->
-                    request.forEachHeader { key, value -> sentHeaders += key to value }
-                    respondOk()
-                }
-            }
-        }
-        client.post("http://host/path", block)
-        return sentHeaders
-    }
-
-    private suspend fun renderBody(block: HttpRequestBuilder.() -> Unit): OutgoingContent {
-        lateinit var content: OutgoingContent
-        val client = HttpClient(MockEngine) {
-            engine {
-                addHandler { request ->
-                    content = request.body
-                    respondOk()
-                }
-            }
-        }
-        client.post("http://host/path", block)
-        return content
+        assertTrue(source.closed, "The source should be closed once it is exhausted")
     }
 }
