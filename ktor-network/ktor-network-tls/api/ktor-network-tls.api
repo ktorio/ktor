@@ -270,6 +270,7 @@ public final class io/ktor/network/tls/TLSRecordType : java/lang/Enum {
 
 public final class io/ktor/network/tls/TLSRecordType$Companion {
 	public final fun byCode (I)Lio/ktor/network/tls/TLSRecordType;
+	public final fun byCodeOrNull (I)Lio/ktor/network/tls/TLSRecordType;
 }
 
 public final class io/ktor/network/tls/TLSVersion : java/lang/Enum {
@@ -286,6 +287,7 @@ public final class io/ktor/network/tls/TLSVersion : java/lang/Enum {
 
 public final class io/ktor/network/tls/TLSVersion$Companion {
 	public final fun byCode (I)Lio/ktor/network/tls/TLSVersion;
+	public final fun byCodeOrNull (I)Lio/ktor/network/tls/TLSVersion;
 }
 
 public final class io/ktor/network/tls/extensions/HashAlgorithm : java/lang/Enum {

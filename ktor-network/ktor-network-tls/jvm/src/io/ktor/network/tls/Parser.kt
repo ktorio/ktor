@@ -136,29 +136,23 @@ internal fun Source.readECPoint(fieldSize: Int): ECPoint {
     )
 }
 
-// The record header comes straight off the wire, so an unknown code is malformed peer input rather than
-// a programming error. It is reported as a TlsException (an IOException) so that it doesn't escape the
-// `catch (cause: IOException)` handlers callers use for connection failures.
+// Codes read from a peer are malformed input rather than a programming error, so the `OrNull` lookups
+// are used here and a miss is reported as a TlsException (an IOException). That keeps the failure inside
+// the `catch (cause: IOException)` handlers callers use for connection failures.
 private suspend fun ByteReadChannel.readTLSRecordType(): TLSRecordType {
     val code = readByte().toInt() and 0xff
-    return try {
-        TLSRecordType.byCode(code)
-    } catch (cause: IllegalArgumentException) {
-        throw TlsException("Invalid TLS record type code: $code", cause)
-    }
+    return TLSRecordType.byCodeOrNull(code) ?: throw TlsException("Invalid TLS record type code: $code")
 }
 
 private suspend fun ByteReadChannel.readTLSVersion(): TLSVersion {
     val code = readShortCompatible() and 0xffff
-    return try {
-        TLSVersion.byCode(code)
-    } catch (cause: IllegalArgumentException) {
-        throw TlsException("Invalid TLS version code: $code", cause)
-    }
+    return TLSVersion.byCodeOrNull(code) ?: throw TlsException("Invalid TLS version code: $code")
 }
 
-private fun Source.readTLSVersion() =
-    TLSVersion.byCode(readShort().toInt() and 0xffff)
+private fun Source.readTLSVersion(): TLSVersion {
+    val code = readShort().toInt() and 0xffff
+    return TLSVersion.byCodeOrNull(code) ?: throw TlsException("Invalid TLS version code: $code")
+}
 
 internal fun Source.readTripleByteLength(): Int = (readByte().toInt() and 0xff shl 16) or
     (readShort().toInt() and 0xffff)

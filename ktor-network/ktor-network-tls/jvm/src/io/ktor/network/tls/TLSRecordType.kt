@@ -26,9 +26,20 @@ public enum class TLSRecordType(public val code: Int) {
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.TLSRecordType.Companion.byCode)
          */
-        public fun byCode(code: Int): TLSRecordType = when (code) {
-            in 0..255 -> byCode[code]
-            else -> null
-        } ?: throw IllegalArgumentException("Invalid TLS record type code: $code")
+        public fun byCode(code: Int): TLSRecordType =
+            byCodeOrNull(code) ?: throw IllegalArgumentException("Invalid TLS record type code: $code")
+
+        /**
+         * Find an instance of [TLSRecordType] by its numeric [code], or return `null` if the code is not a
+         * known record type.
+         *
+         * Prefer this over [byCode] when the code is read from a peer, so that malformed input can be
+         * reported as a protocol failure instead of an [IllegalArgumentException].
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.TLSRecordType.Companion.byCodeOrNull)
+         *
+         * @return the matching [TLSRecordType], or `null` if [code] is unknown
+         */
+        public fun byCodeOrNull(code: Int): TLSRecordType? = if (code in 0..255) byCode[code] else null
     }
 }
