@@ -44,8 +44,6 @@ public enum class HashAlgorithm(public val code: Byte, public val openSSLName: S
          * Find hash algorithm instance by its numeric [code], or return `null` if the code is unknown
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.extensions.HashAlgorithm.Companion.byCodeOrNull)
-         *
-         * @return the matching [HashAlgorithm], or `null` if [code] is unknown
          */
         public fun byCodeOrNull(code: Byte): HashAlgorithm? = entries.find { it.code == code }
     }

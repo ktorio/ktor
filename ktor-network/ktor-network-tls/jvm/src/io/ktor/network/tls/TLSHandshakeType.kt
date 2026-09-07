@@ -41,8 +41,6 @@ public enum class TLSHandshakeType(public val code: Int) {
          * Find handshake type instance by its numeric [code], or return `null` if the code is unknown
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.TLSHandshakeType.Companion.byCodeOrNull)
-         *
-         * @return the matching [TLSHandshakeType], or `null` if [code] is unknown
          */
         public fun byCodeOrNull(code: Int): TLSHandshakeType? = if (code in 0..0xff) byCode[code] else null
     }
@@ -77,8 +75,6 @@ public enum class ServerKeyExchangeType(public val code: Int) {
          * is unknown
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.ServerKeyExchangeType.Companion.byCodeOrNull)
-         *
-         * @return the matching [ServerKeyExchangeType], or `null` if [code] is unknown
          */
         public fun byCodeOrNull(code: Int): ServerKeyExchangeType? = if (code in 0..0xff) byCode[code] else null
     }

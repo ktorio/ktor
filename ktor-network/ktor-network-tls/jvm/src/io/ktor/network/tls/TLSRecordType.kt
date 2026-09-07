@@ -34,8 +34,6 @@ public enum class TLSRecordType(public val code: Int) {
          * known record type.
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.TLSRecordType.Companion.byCodeOrNull)
-         *
-         * @return the matching [TLSRecordType], or `null` if [code] is unknown
          */
         public fun byCodeOrNull(code: Int): TLSRecordType? = if (code in 0..255) byCode[code] else null
     }

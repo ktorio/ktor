@@ -35,8 +35,6 @@ public enum class TLSVersion(public val code: Int) {
          * version.
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.TLSVersion.Companion.byCodeOrNull)
-         *
-         * @return the matching [TLSVersion], or `null` if [code] is unknown
          */
         public fun byCodeOrNull(code: Int): TLSVersion? =
             if (code in 0x0300..0x0303) byOrdinal[code - 0x0300] else null
