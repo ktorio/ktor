@@ -34,7 +34,7 @@ import java.util.concurrent.Executor
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration
 
-internal val bufferPool = ByteBufferPool(bufferSize = 8192)
+internal val bufferPool = ByteBufferPool(bufferSize = 32_768)
 internal val emptyBuffer = ByteBuffer.allocate(0)
 
 @InternalAPI
