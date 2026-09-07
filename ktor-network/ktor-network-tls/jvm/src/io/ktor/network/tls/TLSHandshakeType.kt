@@ -34,10 +34,17 @@ public enum class TLSHandshakeType(public val code: Int) {
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.TLSHandshakeType.Companion.byCode)
          */
-        public fun byCode(code: Int): TLSHandshakeType = when (code) {
-            in 0..0xff -> byCode[code]
-            else -> null
-        } ?: throw IllegalArgumentException("Invalid TLS handshake type code: $code")
+        public fun byCode(code: Int): TLSHandshakeType =
+            byCodeOrNull(code) ?: throw IllegalArgumentException("Invalid TLS handshake type code: $code")
+
+        /**
+         * Find handshake type instance by its numeric [code], or return `null` if the code is unknown
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.TLSHandshakeType.Companion.byCodeOrNull)
+         *
+         * @return the matching [TLSHandshakeType], or `null` if [code] is unknown
+         */
+        public fun byCodeOrNull(code: Int): TLSHandshakeType? = if (code in 0..0xff) byCode[code] else null
     }
 }
 
@@ -62,10 +69,18 @@ public enum class ServerKeyExchangeType(public val code: Int) {
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.ServerKeyExchangeType.Companion.byCode)
          */
-        public fun byCode(code: Int): ServerKeyExchangeType {
-            val result = if (code in 0..0xff) byCode[code] else null
-            return result ?: throw IllegalArgumentException("Invalid TLS ServerKeyExchange type code: $code")
-        }
+        public fun byCode(code: Int): ServerKeyExchangeType =
+            byCodeOrNull(code) ?: throw IllegalArgumentException("Invalid TLS ServerKeyExchange type code: $code")
+
+        /**
+         * Find an instance of [ServerKeyExchangeType] by its numeric [code], or return `null` if the code
+         * is unknown
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.ServerKeyExchangeType.Companion.byCodeOrNull)
+         *
+         * @return the matching [ServerKeyExchangeType], or `null` if [code] is unknown
+         */
+        public fun byCodeOrNull(code: Int): ServerKeyExchangeType? = if (code in 0..0xff) byCode[code] else null
     }
 }
 

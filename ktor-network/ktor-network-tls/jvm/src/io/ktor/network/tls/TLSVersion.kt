@@ -34,9 +34,6 @@ public enum class TLSVersion(public val code: Int) {
          * Find version instance by its numeric [code], or return `null` if the code is not a known TLS
          * version.
          *
-         * Prefer this over [byCode] when the code is read from a peer, so that malformed input can be
-         * reported as a protocol failure instead of an [IllegalArgumentException].
-         *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.TLSVersion.Companion.byCodeOrNull)
          *
          * @return the matching [TLSVersion], or `null` if [code] is unknown

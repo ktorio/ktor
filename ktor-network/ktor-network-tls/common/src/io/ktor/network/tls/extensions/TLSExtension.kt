@@ -21,9 +21,15 @@ public enum class TLSExtensionType(public val code: Short) {
 
     public companion object {
         public fun byCode(code: Int): TLSExtensionType =
-            entries.find { it.code == code.toShort() } ?: throw TLSException(
-                "Unknown server hello extension type: $code"
-            )
+            byCodeOrNull(code) ?: throw TLSException("Unknown server hello extension type: $code")
+
+        /**
+         * Find an instance of [TLSExtensionType] by its numeric [code], or return `null` if the code is
+         * not a known extension type.
+         *
+         * @return the matching [TLSExtensionType], or `null` if [code] is unknown
+         */
+        public fun byCodeOrNull(code: Int): TLSExtensionType? = entries.find { it.code == code.toShort() }
     }
 }
 

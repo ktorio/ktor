@@ -28,7 +28,9 @@ internal suspend fun ByteReadChannel.readTLSRecord(): TLSRecord {
 
 internal fun Source.readTLSHandshake(): TLSHandshake = TLSHandshake().apply {
     val typeAndVersion = readInt()
-    type = TLSHandshakeType.byCode(typeAndVersion ushr 24)
+    val typeCode = typeAndVersion ushr 24
+    type = TLSHandshakeType.byCodeOrNull(typeCode)
+        ?: throw TlsException("Invalid TLS handshake type code: $typeCode")
     val length = typeAndVersion and 0xffffff
     packet = buildPacket {
         writeFully(readByteArray(length))
@@ -84,7 +86,10 @@ internal fun Source.readTLSServerHello(): TLSServerHello {
 
 internal fun Source.readCurveParams(): NamedCurve {
     val type = readByte().toInt() and 0xff
-    when (ServerKeyExchangeType.byCode(type)) {
+    val exchangeType = ServerKeyExchangeType.byCodeOrNull(type)
+        ?: throw TlsException("Invalid TLS ServerKeyExchange type code: $type")
+
+    when (exchangeType) {
         ServerKeyExchangeType.NamedCurve -> {
             val curveId = readShort()
 
@@ -136,9 +141,6 @@ internal fun Source.readECPoint(fieldSize: Int): ECPoint {
     )
 }
 
-// Codes read from a peer are malformed input rather than a programming error, so the `OrNull` lookups
-// are used here and a miss is reported as a TlsException (an IOException). That keeps the failure inside
-// the `catch (cause: IOException)` handlers callers use for connection failures.
 private suspend fun ByteReadChannel.readTLSRecordType(): TLSRecordType {
     val code = readByte().toInt() and 0xff
     return TLSRecordType.byCodeOrNull(code) ?: throw TlsException("Invalid TLS record type code: $code")

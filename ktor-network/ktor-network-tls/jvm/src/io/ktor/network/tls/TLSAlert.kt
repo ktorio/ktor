@@ -34,10 +34,17 @@ public enum class TLSAlertLevel(public val code: Int) {
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.TLSAlertLevel.Companion.byCode)
          */
-        public fun byCode(code: Int): TLSAlertLevel = when (code) {
-            in 0..255 -> byCode[code]
-            else -> null
-        } ?: throw IllegalArgumentException("Invalid TLS record type code: $code")
+        public fun byCode(code: Int): TLSAlertLevel =
+            byCodeOrNull(code) ?: throw IllegalArgumentException("Invalid TLS record type code: $code")
+
+        /**
+         * Find alert level by its numeric [code], or return `null` if the code is unknown
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.TLSAlertLevel.Companion.byCodeOrNull)
+         *
+         * @return the matching [TLSAlertLevel], or `null` if [code] is unknown
+         */
+        public fun byCodeOrNull(code: Int): TLSAlertLevel? = if (code in 0..255) byCode[code] else null
     }
 }
 
@@ -85,9 +92,16 @@ public enum class TLSAlertType(public val code: Int) {
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.TLSAlertType.Companion.byCode)
          */
-        public fun byCode(code: Int): TLSAlertType = when (code) {
-            in 0..255 -> byCode[code]
-            else -> null
-        } ?: throw IllegalArgumentException("Invalid TLS record type code: $code")
+        public fun byCode(code: Int): TLSAlertType =
+            byCodeOrNull(code) ?: throw IllegalArgumentException("Invalid TLS record type code: $code")
+
+        /**
+         * Find TLS alert instance by its numeric [code], or return `null` if the code is unknown
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.TLSAlertType.Companion.byCodeOrNull)
+         *
+         * @return the matching [TLSAlertType], or `null` if [code] is unknown
+         */
+        public fun byCodeOrNull(code: Int): TLSAlertType? = if (code in 0..255) byCode[code] else null
     }
 }

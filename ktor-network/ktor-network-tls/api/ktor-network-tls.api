@@ -132,6 +132,7 @@ public final class io/ktor/network/tls/ServerKeyExchangeType : java/lang/Enum {
 
 public final class io/ktor/network/tls/ServerKeyExchangeType$Companion {
 	public final fun byCode (I)Lio/ktor/network/tls/ServerKeyExchangeType;
+	public final fun byCodeOrNull (I)Lio/ktor/network/tls/ServerKeyExchangeType;
 }
 
 public final class io/ktor/network/tls/TLSAlertLevel : java/lang/Enum {
@@ -146,6 +147,7 @@ public final class io/ktor/network/tls/TLSAlertLevel : java/lang/Enum {
 
 public final class io/ktor/network/tls/TLSAlertLevel$Companion {
 	public final fun byCode (I)Lio/ktor/network/tls/TLSAlertLevel;
+	public final fun byCodeOrNull (I)Lio/ktor/network/tls/TLSAlertLevel;
 }
 
 public final class io/ktor/network/tls/TLSAlertType : java/lang/Enum {
@@ -183,6 +185,7 @@ public final class io/ktor/network/tls/TLSAlertType : java/lang/Enum {
 
 public final class io/ktor/network/tls/TLSAlertType$Companion {
 	public final fun byCode (I)Lio/ktor/network/tls/TLSAlertType;
+	public final fun byCodeOrNull (I)Lio/ktor/network/tls/TLSAlertType;
 }
 
 public final class io/ktor/network/tls/TLSCommonKt {
@@ -247,6 +250,7 @@ public final class io/ktor/network/tls/TLSHandshakeType : java/lang/Enum {
 
 public final class io/ktor/network/tls/TLSHandshakeType$Companion {
 	public final fun byCode (I)Lio/ktor/network/tls/TLSHandshakeType;
+	public final fun byCodeOrNull (I)Lio/ktor/network/tls/TLSHandshakeType;
 }
 
 public final class io/ktor/network/tls/TLSKt {
@@ -310,6 +314,7 @@ public final class io/ktor/network/tls/extensions/HashAlgorithm : java/lang/Enum
 
 public final class io/ktor/network/tls/extensions/HashAlgorithm$Companion {
 	public final fun byCode (B)Lio/ktor/network/tls/extensions/HashAlgorithm;
+	public final fun byCodeOrNull (B)Lio/ktor/network/tls/extensions/HashAlgorithm;
 }
 
 public final class io/ktor/network/tls/extensions/HashAndSign {
@@ -431,5 +436,6 @@ public final class io/ktor/network/tls/extensions/TLSExtensionType : java/lang/E
 
 public final class io/ktor/network/tls/extensions/TLSExtensionType$Companion {
 	public final fun byCode (I)Lio/ktor/network/tls/extensions/TLSExtensionType;
+	public final fun byCodeOrNull (I)Lio/ktor/network/tls/extensions/TLSExtensionType;
 }
 
