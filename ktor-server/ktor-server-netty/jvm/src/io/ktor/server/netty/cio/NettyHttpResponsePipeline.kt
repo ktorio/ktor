@@ -44,7 +44,7 @@ private const val UNFLUSHED_LIMIT = 65536
 internal class NettyHttpResponsePipeline(
     private val context: ChannelHandlerContext,
     private val httpHandlerState: NettyHttpHandlerState,
-    override val coroutineContext: CoroutineContext,
+    override var coroutineContext: CoroutineContext,
     private val onFailure: (() -> Unit)? = null
 ) : CoroutineScope {
     /**

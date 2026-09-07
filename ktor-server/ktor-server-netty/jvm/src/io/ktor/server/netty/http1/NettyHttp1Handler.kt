@@ -71,7 +71,9 @@ internal class NettyHttp1Handler(
             return
         }
         activated = true
-        handlerJob = SupervisorJob(applicationProvider().coroutineContext[Job])
+        val application = applicationProvider()
+        handlerJob = SupervisorJob(application.coroutineContext[Job])
+        channelApplication = application
         responseWriter = NettyHttpResponsePipeline(
             context = context,
             httpHandlerState = state,
@@ -221,6 +223,13 @@ internal class NettyHttp1Handler(
     private fun handleRequest(context: ChannelHandlerContext, message: HttpRequest) {
         val callExecutor = resolveCallExecutor(context)
         val application = applicationProvider()
+
+        // check for reload before re-using handlerJob
+        if (application !== channelApplication) {
+            handlerJob = SupervisorJob(application.coroutineContext[Job])
+            responseWriter.coroutineContext = handlerJob
+        }
+
         // Building the coroutine context is quite expensive, so we cache most of the elements.
         val baseContext = when {
             application === channelApplication && channelCoroutineContext !== EmptyCoroutineContext ->
