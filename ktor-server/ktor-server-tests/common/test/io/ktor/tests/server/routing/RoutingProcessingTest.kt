@@ -710,6 +710,12 @@ class RoutingProcessingTest {
         }.let {
             assertEquals("matched", it.bodyAsText())
         }
+
+        client.get("/") {
+            header(HttpHeaders.Accept, "application/soap+xml; action=foo; Q=0.5")
+        }.let {
+            assertEquals("matched", it.bodyAsText())
+        }
     }
 
     @Test
