@@ -14,8 +14,7 @@ import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 
 class AcceptHeaderTest {
-    // Ktor's duplicate check uses ContentType.parse, which retains only the last media range.
-    // The explicit JSON exclusion conflicts with the implicit q=1 added by ContentNegotiation.
+    // An explicit JSON exclusion in a combined Accept header must not be overridden by an implicit q=1.
     @Test
     fun honorCombinedHeaderContent() = runTest {
         val combinedAcceptHeader = "application/json;q=0, text/plain;q=0.5"
@@ -25,6 +24,28 @@ class AcceptHeaderTest {
         }.use { client ->
             client.get("https://example.com") {
                 header(HttpHeaders.Accept, combinedAcceptHeader)
+            }
+        }
+        val receivedAcceptHeader = mockEngine.requestHistory.single().headers.getAll(HttpHeaders.Accept)
+        assertNotNull(receivedAcceptHeader)
+        val jsonQualities = parseHeaderValue(receivedAcceptHeader.joinToString(", "))
+            .filter { it.value == "application/json" }
+            .map { it.quality }
+        assertEquals(listOf(0.0), jsonQualities)
+    }
+
+    // Dropping the parsed profile parameter may add a duplicate JSON entry with implicit q=1 despite the explicit q=0.
+    @Test
+    fun honorHeaderContentWithParameters() = runTest {
+        val acceptHeaderWithParameters = "application/json;profile=\"a,b\";q=0"
+        val mockEngine = MockEngine { respondOk() }
+        HttpClient(mockEngine) {
+            this.install(ContentNegotiation) {
+                json(contentType = ContentType.Application.Json.withParameter("profile", "a,b"))
+            }
+        }.use { client ->
+            client.get("https://example.com") {
+                header(HttpHeaders.Accept, acceptHeaderWithParameters)
             }
         }
         val receivedAcceptHeader = mockEngine.requestHistory.single().headers.getAll(HttpHeaders.Accept)
