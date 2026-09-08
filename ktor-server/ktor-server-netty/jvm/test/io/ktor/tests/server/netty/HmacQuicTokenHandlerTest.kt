@@ -8,6 +8,7 @@ import io.ktor.server.netty.http3.*
 import io.netty.buffer.*
 import java.net.*
 import kotlin.test.*
+import kotlin.time.Duration.Companion.milliseconds
 
 class HmacQuicTokenHandlerTest {
 
@@ -87,7 +88,7 @@ class HmacQuicTokenHandlerTest {
     fun `expired token is rejected`() {
         val shortLivedHandler = HmacQuicTokenHandler(
             keyGen = HmacQuicTokenHandler::generateDefaultKey,
-            tokenLifetimeMillis = 1
+            tokenLifetime = 1.milliseconds
         )
 
         val out = Unpooled.buffer()

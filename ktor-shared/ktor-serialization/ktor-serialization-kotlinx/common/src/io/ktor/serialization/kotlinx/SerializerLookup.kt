@@ -8,8 +8,9 @@ import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.*
-import kotlinx.serialization.modules.*
-import kotlin.reflect.*
+import kotlinx.serialization.modules.SerializersModule
+import kotlin.reflect.KClass
+import kotlin.reflect.KType
 
 /**
  * Attempts to create a serializer for the given [typeInfo]
@@ -20,7 +21,7 @@ import kotlin.reflect.*
 @ExperimentalSerializationApi
 public fun SerializersModule.serializerForTypeInfo(typeInfo: TypeInfo): KSerializer<*> {
     val module = this
-    return typeInfo.kotlinType
+    val serializer = typeInfo.kotlinType
         ?.let { type ->
             if (type.arguments.isEmpty()) {
                 null // fallback to a simple case because of
@@ -29,8 +30,9 @@ public fun SerializersModule.serializerForTypeInfo(typeInfo: TypeInfo): KSeriali
                 module.serializerOrNull(type) ?: checkTypeParameters(type, typeInfo, module)
             }
         }
-        ?: module.getContextual(typeInfo.type)?.maybeNullable(typeInfo)
-        ?: typeInfo.type.serializer().maybeNullable(typeInfo)
+        ?: module.getContextual(typeInfo.type)
+        ?: typeInfo.type.serializer()
+    return serializer.maybeNullable(typeInfo.isNullable)
 }
 
 /**
@@ -71,10 +73,6 @@ private fun checkTypeParameters(type: KType, typeInfo: TypeInfo, module: Seriali
         "Serializer for type argument$s $argNames $be not found for '${typeInfo.type.simpleName}'. " +
             "Ensure that the listed type$s $be marked as '@Serializable'."
     )
-}
-
-private fun <T : Any> KSerializer<T>.maybeNullable(typeInfo: TypeInfo): KSerializer<*> {
-    return if (typeInfo.kotlinType?.isMarkedNullable == true) this.nullable else this
 }
 
 @Suppress("UNCHECKED_CAST")
@@ -118,12 +116,9 @@ private fun Collection<*>.elementSerializer(module: SerializersModule): KSeriali
         return selected
     }
 
-    @Suppress("UNCHECKED_CAST")
-    selected as KSerializer<Any>
-
-    if (any { it == null }) {
-        return selected.nullable
-    }
-
-    return selected
+    return selected.maybeNullable(nullable = any { it == null })
 }
+
+@Suppress("UNCHECKED_CAST")
+private fun KSerializer<*>.maybeNullable(nullable: Boolean): KSerializer<*> =
+    if (nullable) (this as KSerializer<Any>).nullable else this

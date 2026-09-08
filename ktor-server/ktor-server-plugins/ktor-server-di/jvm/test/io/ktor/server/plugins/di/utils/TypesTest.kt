@@ -6,8 +6,12 @@ package io.ktor.server.plugins.di.utils
 
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
+import kotlin.reflect.typeOf
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
+import kotlin.test.assertEquals
+import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 interface Companion
 interface Pet : Companion
@@ -29,6 +33,44 @@ class TypesTest {
             ),
             typeInfo<Cat>().hierarchy(),
         )
+    }
+
+    @Test
+    fun `raw hierarchy preserves nullability`() {
+        val hierarchy = TypeInfo(Cat::class, isNullable = true).hierarchy().toList()
+
+        assertTrue(hierarchy.isNotEmpty())
+        assertTrue(hierarchy.all { it.isNullable })
+    }
+
+    @Test
+    fun `hierarchy preserves nullability independent of kotlin type`() {
+        val typeInfo = TypeInfo(
+            type = Cat::class,
+            isNullable = true,
+            kotlinType = typeOf<Cat>(),
+        )
+
+        assertTrue(typeInfo.hierarchy().all { it.isNullable })
+    }
+
+    @Test
+    fun `raw type converts to nullable`() {
+        assertEquals(
+            TypeInfo(Cat::class, isNullable = true),
+            TypeInfo(Cat::class, isNullable = false).toNullable(),
+        )
+    }
+
+    @Test
+    fun `explicitly nullable type is not converted again`() {
+        val typeInfo = TypeInfo(
+            type = Cat::class,
+            isNullable = true,
+            kotlinType = typeOf<Cat>(),
+        )
+
+        assertNull(typeInfo.toNullable())
     }
 
     @Test

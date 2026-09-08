@@ -100,8 +100,8 @@ internal fun TypeInfo.argumentTypeInfo(): TypeInfo {
     val elementType = kotlinType!!.arguments[0].type!!
     @Suppress("DEPRECATION")
     return TypeInfo(
-        elementType.classifier as KClass<*>,
-        elementType
+        type = elementType.classifier as KClass<*>,
+        kotlinType = elementType,
     )
 }
 

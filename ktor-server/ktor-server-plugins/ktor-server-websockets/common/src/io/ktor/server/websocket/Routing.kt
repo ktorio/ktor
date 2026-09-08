@@ -13,6 +13,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.cio.*
+import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
@@ -218,7 +219,7 @@ private suspend fun DefaultWebSocketSession.handleServerSession(
     handler: suspend DefaultWebSocketServerSession.() -> Unit
 ) {
     try {
-        LOGGER.trace("Starting websocket session for ${call.request.uri}")
+        LOGGER.trace { "Starting websocket session for ${call.request.uri}" }
         val serverSession = toServerSession(call)
         handler(serverSession)
         close()
@@ -247,10 +248,10 @@ private class WebSocketProtocolsSelector(
             return RouteSelectorEvaluation.Constant
         }
 
-        LOGGER.trace(
+        LOGGER.trace {
             "Skipping WebSocket plugin because no Sec-WebSocket-Protocol " +
                 "header $protocols is not matching $requiredProtocol."
-        )
+        }
         return RouteSelectorEvaluation.FailedParameter
     }
 }

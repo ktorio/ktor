@@ -119,18 +119,17 @@ public suspend fun WebSocketSession.receiveDeserializedBase(
         content = frame
     )
 
-    when {
-        typeInfo.type.isInstance(result) -> return result
+    return when {
+        typeInfo.type.isInstance(result) -> result
 
-        result == null -> {
-            if (typeInfo.kotlinType?.isMarkedNullable == true) return null
-            throw WebsocketDeserializeException("Frame has null content", frame = frame)
-        }
+        result == null && typeInfo.isNullable -> null
+
+        result == null -> throw WebsocketDeserializeException("Frame has null content", frame = frame)
+
+        else -> throw WebsocketDeserializeException(
+            "Can't deserialize value: expected value of type ${typeInfo.type.simpleName}," +
+                " got ${result::class.simpleName}",
+            frame = frame,
+        )
     }
-
-    throw WebsocketDeserializeException(
-        "Can't deserialize value: expected value of type ${typeInfo.type.simpleName}," +
-            " got ${result::class.simpleName}",
-        frame = frame
-    )
 }

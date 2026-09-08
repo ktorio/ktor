@@ -115,7 +115,7 @@ public suspend fun List<ContentConverter>.deserialize(
     return when {
         result != null -> result
         !body.isClosedForRead -> body
-        typeInfo.kotlinType?.isMarkedNullable == true -> NullBody
+        typeInfo.isNullable -> NullBody
         else -> throw ContentConvertException("No suitable converter found for $typeInfo")
     }
 }

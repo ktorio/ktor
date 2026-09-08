@@ -170,7 +170,7 @@ public object HttpHeaders {
      */
     public fun checkHeaderName(name: String) {
         name.forEachIndexed { index, ch ->
-            if (ch <= ' ' || isDelimiter(ch)) {
+            if (ch in ILLEGAL_HEADER_NAME_CHARS) {
                 throw IllegalHeaderNameException(name, index)
             }
         }
@@ -577,4 +577,5 @@ public class IllegalHeaderValueException(public val headerValue: String, public 
             " (code ${(headerValue[position].code and 0xff)})"
     )
 
-private fun isDelimiter(ch: Char): Boolean = ch in "\"(),/:;<=>?@[\\]{}"
+// Control characters (0x00..0x20) and RFC 7230 delimiters; characters above 0x7F stay allowed
+private val ILLEGAL_HEADER_NAME_CHARS = AsciiBitSet.of('\u0000'..' ') + AsciiBitSet.of("\"(),/:;<=>?@[\\]{}")

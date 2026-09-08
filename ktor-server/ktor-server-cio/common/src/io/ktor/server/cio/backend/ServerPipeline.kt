@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.cio.backend
@@ -45,28 +45,22 @@ public fun CoroutineScope.startServerConnectionPipeline(
     timeout: Duration,
     handler: HttpRequestHandler
 ): Job = launch(HttpPipelineCoroutine) {
-    val actorChannel = Channel<ByteReadChannel>(capacity = 3)
-
-    launch(
-        context = HttpPipelineWriterCoroutine,
-        start = CoroutineStart.UNDISPATCHED
-    ) {
-        try {
-            pipelineWriterLoop(actorChannel, timeout, connection)
-        } catch (cause: Throwable) {
-            connection.output.close(cause)
-        } finally {
-            connection.output.close()
+    val actorChannel = Channel<ByteReadChannel>(
+        capacity = 3,
+        onUndeliveredElement = { response ->
+            response.cancel(IOException("Response was not delivered"))
         }
-    }
+    )
+    startServerPipelineWriter(actorChannel, timeout, connection)
 
     val requestContext = RequestHandlerCoroutine + Dispatchers.Unconfined
 
     var handlerScope: ServerRequestScope? = null
+    var clientDisconnected = false
     try {
         while (true) { // parse requests loop
             val request = try {
-                parseRequest(connection.input) ?: break
+                parseRequest(connection.input)
             } catch (e: TooLongLineException) {
                 respondBadRequest(actorChannel, e.message)
                 break // end pipeline loop
@@ -79,6 +73,11 @@ public fun CoroutineScope.startServerConnectionPipeline(
                 // try to write 400 Bad Request
                 respondBadRequest(actorChannel, parseFailed.message)
                 break // end pipeline loop
+            }
+
+            if (request == null) {
+                clientDisconnected = true
+                break
             }
 
             val response = ByteChannel()
@@ -97,7 +96,8 @@ public fun CoroutineScope.startServerConnectionPipeline(
                 actorChannel.send(response)
             } catch (cause: Throwable) {
                 request.release()
-                throw cause
+                response.cancel(cause)
+                break // end pipeline loop
             }
 
             try {
@@ -173,6 +173,12 @@ public fun CoroutineScope.startServerConnectionPipeline(
                         connection.input,
                         requestBody
                     )
+                } catch (cause: IOException) {
+                    requestBody.close(ChannelReadException("Failed to read request body", cause))
+                    throw cause
+                } catch (cause: CancellationException) {
+                    requestBody.close(ChannelReadException("Failed to read request body", cause))
+                    throw cause
                 } catch (cause: Throwable) {
                     requestBody.close(ChannelReadException("Failed to read request body", cause))
                     response.writePacket(cause.message.toBadRequestPacket())
@@ -186,12 +192,43 @@ public fun CoroutineScope.startServerConnectionPipeline(
             if (isLastHttpRequest(version, connectionOptions)) break
         }
     } catch (_: IOException) {
-        // Connection error - also triggers onClose below
+        clientDisconnected = true
     } finally {
-        // Invoke onClose to allow HttpRequestLifecycle plugin to cancel
-        // the call coroutine with proper ConnectionClosedException cause.
-        handlerScope?.onClose?.invoke()
+        // `Connection: close` is not a disconnect; the handler must still write the response.
+        if (clientDisconnected) {
+            handlerScope?.onClose?.invoke()
+        }
         actorChannel.close()
+    }
+}
+
+@OptIn(InternalAPI::class)
+internal fun CoroutineScope.startServerPipelineWriter(
+    actorChannel: Channel<ByteReadChannel>,
+    timeout: Duration,
+    connection: ServerIncomingConnection
+): Job = launch(
+    context = HttpPipelineWriterCoroutine,
+    start = CoroutineStart.UNDISPATCHED
+) {
+    var failure: Throwable? = null
+    try {
+        pipelineWriterLoop(actorChannel, timeout, connection)
+    } catch (cause: Throwable) {
+        failure = cause
+    } finally {
+        actorChannel.close(failure)
+        connection.output.close(failure)
+        actorChannel.cancelPendingResponses(failure)
+    }
+}
+
+private fun Channel<ByteReadChannel>.cancelPendingResponses(cause: Throwable?) {
+    var cancellationCause: Throwable? = cause
+    while (true) {
+        val response = tryReceive().getOrNull() ?: break
+        cancellationCause = cancellationCause ?: IOException("Response writer has stopped")
+        response.cancel(cancellationCause)
     }
 }
 

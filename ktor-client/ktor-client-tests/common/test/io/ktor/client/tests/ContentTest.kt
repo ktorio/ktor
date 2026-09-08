@@ -46,7 +46,7 @@ val testArrays = testSize.map {
     makeArray(it)
 }
 
-class ContentTest : ClientLoader() {
+class ContentTest : ClientLoader(timeout = 1.minutes) {
 
     @Test
     fun testGetFormData() = clientTests {

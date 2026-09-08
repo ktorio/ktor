@@ -300,6 +300,11 @@ public class GenericElementString(
 
     override fun isString(): Boolean = true
 
+    override fun equals(other: Any?): Boolean =
+        other is GenericElementString && element == other.element
+
+    override fun hashCode(): Int = element.hashCode()
+
     @OptIn(ExperimentalSerializationApi::class)
     private inner class StringDecoder(
         override val serializersModule: SerializersModule

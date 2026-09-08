@@ -159,6 +159,7 @@ public final class io/ktor/util/CryptoKt {
 	public static final fun hex (Ljava/lang/String;)[B
 	public static final fun hex ([B)Ljava/lang/String;
 	public static final fun sha1 ([B)[B
+	public static final fun sha256 ([B)[B
 }
 
 public final class io/ktor/util/DeflateEncoder : io/ktor/util/ContentEncoder, io/ktor/util/Encoder {
@@ -339,10 +340,14 @@ public final class io/ktor/util/RangesKt {
 }
 
 public final class io/ktor/util/StatelessHmacNonceManager : io/ktor/util/NonceManager {
-	public fun <init> (Ljavax/crypto/spec/SecretKeySpec;Ljava/lang/String;JLkotlin/jvm/functions/Function0;)V
+	public synthetic fun <init> (Ljavax/crypto/spec/SecretKeySpec;Ljava/lang/String;JLkotlin/jvm/functions/Function0;)V
 	public synthetic fun <init> (Ljavax/crypto/spec/SecretKeySpec;Ljava/lang/String;JLkotlin/jvm/functions/Function0;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-	public fun <init> ([BLjava/lang/String;JLkotlin/jvm/functions/Function0;)V
+	public fun <init> (Ljavax/crypto/spec/SecretKeySpec;Ljava/lang/String;JLkotlin/jvm/functions/Function1;)V
+	public synthetic fun <init> (Ljavax/crypto/spec/SecretKeySpec;Ljava/lang/String;JLkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> ([BLjava/lang/String;JLkotlin/jvm/functions/Function0;)V
 	public synthetic fun <init> ([BLjava/lang/String;JLkotlin/jvm/functions/Function0;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> ([BLjava/lang/String;JLkotlin/jvm/functions/Function1;)V
+	public synthetic fun <init> ([BLjava/lang/String;JLkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getAlgorithm ()Ljava/lang/String;
 	public final fun getKeySpec ()Ljavax/crypto/spec/SecretKeySpec;
 	public final fun getNonceGenerator ()Lkotlin/jvm/functions/Function0;
@@ -499,6 +504,9 @@ public final class io/ktor/util/TextKt {
 
 public final class io/ktor/util/ThrowableKt {
 	public static final fun getRootCause (Ljava/lang/Throwable;)Ljava/lang/Throwable;
+}
+
+public abstract interface annotation class io/ktor/util/annotations/InternalKtorSubclassing : java/lang/annotation/Annotation {
 }
 
 public final class io/ktor/util/cio/ByteBufferPoolKt {
@@ -1009,8 +1017,10 @@ public final class io/ktor/util/logging/LoggerJvmKt {
 }
 
 public final class io/ktor/util/logging/LoggerKt {
+	public static final fun debug (Lorg/slf4j/Logger;Ljava/lang/Throwable;Lkotlin/jvm/functions/Function0;)V
 	public static final fun debug (Lorg/slf4j/Logger;Lkotlin/jvm/functions/Function0;)V
 	public static final fun error (Lorg/slf4j/Logger;Ljava/lang/Throwable;)V
+	public static final fun trace (Lorg/slf4j/Logger;Ljava/lang/Throwable;Lkotlin/jvm/functions/Function0;)V
 	public static final fun trace (Lorg/slf4j/Logger;Lkotlin/jvm/functions/Function0;)V
 }
 
@@ -1070,10 +1080,13 @@ public final class io/ktor/util/reflect/TypeInfo {
 	public synthetic fun <init> (Lkotlin/reflect/KClass;Ljava/lang/reflect/Type;Lkotlin/reflect/KType;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun <init> (Lkotlin/reflect/KClass;Lkotlin/reflect/KType;)V
 	public synthetic fun <init> (Lkotlin/reflect/KClass;Lkotlin/reflect/KType;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Lkotlin/reflect/KClass;ZLkotlin/reflect/KType;)V
+	public synthetic fun <init> (Lkotlin/reflect/KClass;ZLkotlin/reflect/KType;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun equals (Ljava/lang/Object;)Z
 	public final fun getKotlinType ()Lkotlin/reflect/KType;
 	public final fun getType ()Lkotlin/reflect/KClass;
 	public fun hashCode ()I
+	public final fun isNullable ()Z
 	public fun toString ()Ljava/lang/String;
 }
 

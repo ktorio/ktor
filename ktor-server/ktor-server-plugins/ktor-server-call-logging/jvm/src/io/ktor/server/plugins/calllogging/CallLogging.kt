@@ -9,6 +9,7 @@ import io.ktor.server.application.hooks.*
 import io.ktor.server.http.content.*
 import io.ktor.util.*
 import io.ktor.util.date.*
+import io.ktor.util.logging.*
 import org.fusesource.jansi.AnsiConsole
 import org.slf4j.event.*
 
@@ -43,19 +44,17 @@ public val CallLogging: ApplicationPlugin<CallLoggingConfig> = createApplication
     val clock = pluginConfig.clock
     val ignoreStaticContent = pluginConfig.ignoreStaticContent
 
-    fun log(message: String) = when (pluginConfig.level) {
-        Level.ERROR -> log.error(message)
-        Level.WARN -> log.warn(message)
-        Level.INFO -> log.info(message)
-        Level.DEBUG -> log.debug(message)
-        Level.TRACE -> log.trace(message)
-    }
-
     fun logSuccess(call: ApplicationCall) {
         if ((ignoreStaticContent && call.isStaticContent()) || (filters.isNotEmpty() && filters.none { it(call) })) {
             return
         }
-        log(formatCall(call))
+        when (pluginConfig.level) {
+            Level.ERROR -> log.error(formatCall(call))
+            Level.WARN -> log.warn(formatCall(call))
+            Level.INFO -> log.info(formatCall(call))
+            Level.DEBUG -> log.debug { formatCall(call) }
+            Level.TRACE -> log.trace { formatCall(call) }
+        }
     }
 
     setupMDCProvider()

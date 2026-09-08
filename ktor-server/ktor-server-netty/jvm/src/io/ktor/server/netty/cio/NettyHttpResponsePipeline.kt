@@ -27,12 +27,26 @@ import kotlin.coroutines.CoroutineContext
 private const val UNFLUSHED_LIMIT = 65536
 
 /**
- * Contains methods for handling http request with Netty
+ * Contains methods for handling HTTP responses with Netty.
+ *
+ * The pipeline serializes response writes in request order, tracks active and streaming responses,
+ * and flushes pending writes when the channel read cycle is complete and no non-streaming responses
+ * are still active.
+ *
+ * @property context Netty channel context used to write, flush, read from, and close the channel.
+ * @property httpHandlerState Shared state used to coordinate request counters, streaming counters,
+ *                            read-completion state, and back-pressure decisions for the handler.
+ * @property coroutineContext Coroutine context used to launch response body writer coroutines.
+ * @property onFailure Optional action invoked after a failed call's counters are decremented. For HTTP/2, this is
+ *                     used to trigger [flushIfNeeded] on the most-recently-created pipeline (which may differ from
+ *                     `this` due to the shared-handler-per-stream design), so that a pending flush blocked by the
+ *                     stale counter is unblocked regardless of thread-scheduling order.
  */
 internal class NettyHttpResponsePipeline(
     private val context: ChannelHandlerContext,
     private val httpHandlerState: NettyHttpHandlerState,
-    override val coroutineContext: CoroutineContext
+    override val coroutineContext: CoroutineContext,
+    private val onFailure: (() -> Unit)? = null
 ) : CoroutineScope {
     /**
      * True if there is unflushed written data in channel
@@ -112,7 +126,13 @@ internal class NettyHttpResponsePipeline(
             else -> actualException
         }
 
+        if (call.isStreamingResponse) {
+            httpHandlerState.streamingResponses.decrementAndGet()
+        }
+        httpHandlerState.activeRequests.decrementAndGet()
+
         flushIfNeeded()
+        onFailure?.invoke()
         call.response.responseChannel.cancel(t)
         call.responseWriteJob.cancel()
         call.response.cancel()
@@ -156,21 +176,15 @@ internal class NettyHttpResponsePipeline(
         httpHandlerState.onLastResponseMessage(context)
         call.finishedEvent.setSuccess()
 
-        lastMessageFuture?.addListener {
-            if (prepareForClose) {
-                close(lastFuture)
-                return@addListener
-            }
-        }
         if (prepareForClose) {
-            close(lastFuture)
+            close(call, lastMessageFuture ?: lastFuture)
             return
         }
         scheduleFlush()
     }
 
-    fun close(lastFuture: ChannelFuture) {
-        context.flush()
+    fun close(call: NettyApplicationCall, lastFuture: ChannelFuture) {
+        call.flushBeforeClose(context, lastFuture)
         isDataNotFlushed.compareAndSet(expect = true, update = false)
         lastFuture.addListener {
             context.close()

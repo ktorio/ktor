@@ -375,7 +375,7 @@ public val HttpRequestRetry: ClientPlugin<HttpRequestRetryConfig> = createClient
             val delayContext =
                 HttpRetryDelayContext(lastRetryData.request, lastRetryData.response, lastRetryData.cause)
             delay(delayMillis(delayContext, retryCount))
-            LOGGER.trace("Retrying request ${request.url} attempt: $retryCount")
+            LOGGER.trace { "Retrying request ${request.url} attempt: $retryCount" }
         }
         call
     }

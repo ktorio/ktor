@@ -42,7 +42,7 @@ internal fun ApacheRequestProducer(
     }
 
     val supportsRequestBody = requestData.method.supportsRequestBody
-    val hasContent = requestData.body !is OutgoingContent.NoContent
+    val hasContent = !requestData.body.isEmpty()
     val contentLength = length?.toLong() ?: -1
     val isChunked = contentLength == -1L && supportsRequestBody && hasContent
 

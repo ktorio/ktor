@@ -175,6 +175,33 @@ class TestApplicationTest {
     }
 
     @Test
+    fun testCanAccessExternalServicesWhileStartingApplication() = testApplication {
+        val startupClient = client
+        var externalValue = ""
+
+        externalServices {
+            hosts("https://test.com") {
+                routing {
+                    get {
+                        call.respond("TEST_VALUE")
+                    }
+                }
+            }
+        }
+        application {
+            externalValue = startupClient.get("https://test.com").bodyAsText()
+        }
+        routing {
+            get {
+                call.respond(externalValue)
+            }
+        }
+
+        val response = client.get("/")
+        assertEquals("TEST_VALUE", response.bodyAsText())
+    }
+
+    @Test
     fun testingSchema() = testApplication {
         routing {
             get("/echo") {

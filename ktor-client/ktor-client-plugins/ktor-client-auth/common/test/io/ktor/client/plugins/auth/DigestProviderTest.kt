@@ -170,6 +170,36 @@ class DigestProviderTest {
         assertEquals("d51dd4b72db592e321b80d006d24c34c", response)
     }
 
+    @Test
+    fun `empty path treated as slash for uri and hash`() = runTest {
+        if (!PlatformUtils.IS_JVM) return@runTest
+
+        val provider = DigestAuthProvider(
+            credentials = { DigestAuthCredentials("username", "pass") },
+            realm = null
+        )
+        val authHeader = parseAuthorizationHeader(authMissingQopAndOpaque)!!
+
+        val expectedResponses = mapOf(
+            "" to "59371c611ceaf1d6d76c6da3136e7f59",
+            "?x=1" to "1313e773fecf0751fc8222d164931909",
+        )
+
+        for (queryParameters in expectedResponses.keys) {
+            val pathRequest = HttpRequestBuilder {
+                takeFrom("https://example.com$queryParameters")
+            }
+
+            assertTrue(provider.isApplicable(authHeader))
+            provider.addRequestHeaders(pathRequest, authHeader)
+
+            val headerValue = checkNotNull(pathRequest.headers[HttpHeaders.Authorization])
+            val resultAuthHeader = parseAuthorizationHeader(headerValue) as HttpAuthHeader.Parameterized
+            assertEquals("/$queryParameters", resultAuthHeader.parameter("uri"))
+            assertEquals(expectedResponses[queryParameters], resultAuthHeader.parameter("response"))
+        }
+    }
+
     private fun runIsApplicable(headerValue: String) =
         digestAuthProvider.isApplicable(parseAuthorizationHeader(headerValue)!!)
 

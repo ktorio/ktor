@@ -119,8 +119,8 @@ configurations.named { it.startsWith("androidDeviceTest") }.configureEach {
     exclude(group = "org.junit.platform")
 }
 
-tasks.withType<KotlinCompilationTask<*>>().configureEach {
-    if (name.contains("Test", ignoreCase = true)) {
+kotlin {
+    sourceSets.matching { it.name.contains("Test", ignoreCase = true) }.configureEach {
         compilerOptions {
             freeCompilerArgs.add("-Xcontext-parameters")
         }

@@ -144,14 +144,6 @@ public class NettyChannelInitializer(
     override fun initChannel(ch: SocketChannel) {
         with(ch.pipeline()) {
             when {
-                enableHttp2 && enableH2c && connector is EngineSSLConnectorConfig -> {
-                    error("Invalid configuration: H2C (HTTP/2 cleartext) cannot be used with SSL")
-                }
-
-                enableHttp2 && enableH2c -> {
-                    configurePipeline(this, Http2CodecUtil.HTTP_UPGRADE_PROTOCOL_NAME.toString())
-                }
-
                 connector is EngineSSLConnectorConfig -> {
                     val sslEngine = sslContext!!.newEngine(ch.alloc()).apply {
                         if (connector.hasTrustStore()) {
@@ -169,6 +161,10 @@ public class NettyChannelInitializer(
                     } else {
                         configurePipeline(this, ApplicationProtocolNames.HTTP_1_1)
                     }
+                }
+
+                enableHttp2 && enableH2c -> {
+                    configurePipeline(this, Http2CodecUtil.HTTP_UPGRADE_PROTOCOL_NAME.toString())
                 }
 
                 else -> {

@@ -81,6 +81,13 @@ private external class SubtleCrypto {
  */
 public actual fun sha1(bytes: ByteArray): ByteArray = Sha1().digest(bytes)
 
+/**
+ * Compute SHA-256 hash for the specified [bytes]
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.sha256)
+ */
+public actual fun sha256(bytes: ByteArray): ByteArray = Sha256().digest(bytes)
+
 internal fun md5(input: ByteArray): ArrayBuffer {
     var a = 0x67452301
     var b = 0xefcdab89.toInt()

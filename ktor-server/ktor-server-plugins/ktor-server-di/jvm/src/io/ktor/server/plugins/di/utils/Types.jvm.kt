@@ -24,29 +24,32 @@ import kotlin.reflect.full.starProjectedType
 @InternalAPI
 public actual fun TypeInfo.hierarchy(): Sequence<TypeInfo> {
     val supertypes = kotlinType?.hierarchy() ?: type.supertypes.asSequence()
-    return supertypes.mapNotNull { it.toTypeInfo() }
+    return supertypes.mapNotNull { it.toTypeInfo(isNullable) }
 }
 
 /**
  * Converts the current [TypeInfo] into a nullable type representation.
- * If the type is already nullable, returns null.
+ * If the type is already nullable, returns `null`.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.utils.toNullable)
  *
- * @return A new [TypeInfo] instance with a nullable type, or null if the type is already nullable.
+ * @return A new [TypeInfo] instance with a nullable type, or `null` if the type is already nullable.
  */
 @InternalAPI
-public actual fun TypeInfo.toNullable(): TypeInfo? =
-    kotlinType?.takeIf { !it.isMarkedNullable }?.let { kType ->
-        TypeInfo(
-            type,
-            type.createType(
-                arguments = kType.arguments,
-                nullable = true,
-                annotations = kType.annotations
-            )
+public actual fun TypeInfo.toNullable(): TypeInfo? {
+    if (isNullable) return null
+
+    val kType = kotlinType ?: return TypeInfo(type = type, isNullable = true)
+    return TypeInfo(
+        type = type,
+        isNullable = true,
+        kotlinType = type.createType(
+            arguments = kType.arguments,
+            nullable = true,
+            annotations = kType.annotations
         )
-    }
+    )
+}
 
 /**
  * Returns a list of the given base implementation for covariant type arguments.
@@ -123,18 +126,21 @@ private fun TypeInfo.parameterizedWith(typeArgReplacements: Map<Int, KType>): Ty
         swappedArguments[paramIndex] = KTypeProjection(KVariance.INVARIANT, paramType)
     }
     return TypeInfo(
-        type,
-        type.createType(
+        type = type,
+        kotlinType = type.createType(
             arguments = swappedArguments,
+            nullable = isNullable,
             annotations = type.annotations
         )
     )
 }
 
-private fun KType.toTypeInfo(): TypeInfo? =
+@OptIn(InternalAPI::class)
+private fun KType.toTypeInfo(isNullable: Boolean): TypeInfo? =
     (classifier as? KClass<*>)?.let {
         TypeInfo(
             type = classifier as KClass<*>,
+            isNullable = isNullable,
             kotlinType = this
         )
     }
@@ -182,7 +188,10 @@ private fun KType.hierarchy(): Sequence<KType> {
 
         // Create a new type with substituted arguments, or fallback to the original
         return supertype.classifier?.let { classifier ->
-            (classifier as? KClass<*>)?.createType(substitutedArguments)
+            (classifier as? KClass<*>)?.createType(
+                arguments = substitutedArguments,
+                nullable = currentType.isMarkedNullable,
+            )
         } ?: supertype
     }
 

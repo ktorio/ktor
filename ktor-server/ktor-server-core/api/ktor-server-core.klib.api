@@ -70,6 +70,7 @@ abstract interface io.ktor.server.application/ApplicationCall : kotlinx.coroutin
 
     abstract suspend fun <#A1: kotlin/Any?> receiveNullable(io.ktor.util.reflect/TypeInfo): #A1? // io.ktor.server.application/ApplicationCall.receiveNullable|receiveNullable(io.ktor.util.reflect.TypeInfo){0§<kotlin.Any?>}[0]
     abstract suspend fun respond(kotlin/Any?, io.ktor.util.reflect/TypeInfo?) // io.ktor.server.application/ApplicationCall.respond|respond(kotlin.Any?;io.ktor.util.reflect.TypeInfo?){}[0]
+    open suspend fun <#A1: kotlin/Any?> receive(io.ktor.util.reflect/TypeInfo): #A1 // io.ktor.server.application/ApplicationCall.receive|receive(io.ktor.util.reflect.TypeInfo){0§<kotlin.Any?>}[0]
 }
 
 abstract interface io.ktor.server.application/ApplicationEnvironment { // io.ktor.server.application/ApplicationEnvironment|null[0]
@@ -306,6 +307,7 @@ abstract class <#A: kotlin/Any> io.ktor.server.application/PluginBuilder { // io
     final fun onCallReceive(kotlin.coroutines/SuspendFunction3<io.ktor.server.application/OnCallReceiveContext<#A>, io.ktor.server.application/PipelineCall, kotlin/Any, kotlin/Unit>) // io.ktor.server.application/PluginBuilder.onCallReceive|onCallReceive(kotlin.coroutines.SuspendFunction3<io.ktor.server.application.OnCallReceiveContext<1:0>,io.ktor.server.application.PipelineCall,kotlin.Any,kotlin.Unit>){}[0]
     final fun onCallRespond(kotlin.coroutines/SuspendFunction2<io.ktor.server.application/OnCallRespondContext<#A>, io.ktor.server.application/PipelineCall, kotlin/Unit>) // io.ktor.server.application/PluginBuilder.onCallRespond|onCallRespond(kotlin.coroutines.SuspendFunction2<io.ktor.server.application.OnCallRespondContext<1:0>,io.ktor.server.application.PipelineCall,kotlin.Unit>){}[0]
     final fun onCallRespond(kotlin.coroutines/SuspendFunction3<io.ktor.server.application/OnCallRespondContext<#A>, io.ktor.server.application/PipelineCall, kotlin/Any, kotlin/Unit>) // io.ktor.server.application/PluginBuilder.onCallRespond|onCallRespond(kotlin.coroutines.SuspendFunction3<io.ktor.server.application.OnCallRespondContext<1:0>,io.ktor.server.application.PipelineCall,kotlin.Any,kotlin.Unit>){}[0]
+    final fun onCallValidators(kotlin.coroutines/SuspendFunction2<io.ktor.server.application/OnCallContext<#A>, io.ktor.server.application/PipelineCall, kotlin/Unit>) // io.ktor.server.application/PluginBuilder.onCallValidators|onCallValidators(kotlin.coroutines.SuspendFunction2<io.ktor.server.application.OnCallContext<1:0>,io.ktor.server.application.PipelineCall,kotlin.Unit>){}[0]
 }
 
 abstract class <#A: kotlin/Any> io.ktor.server.application/RouteScopedPluginBuilder : io.ktor.server.application/PluginBuilder<#A> { // io.ktor.server.application/RouteScopedPluginBuilder|null[0]
@@ -452,6 +454,12 @@ abstract class io.ktor.server.routing/RouteSelector { // io.ktor.server.routing/
     constructor <init>() // io.ktor.server.routing/RouteSelector.<init>|<init>(){}[0]
 
     abstract suspend fun evaluate(io.ktor.server.routing/RoutingResolveContext, kotlin/Int): io.ktor.server.routing/RouteSelectorEvaluation // io.ktor.server.routing/RouteSelector.evaluate|evaluate(io.ktor.server.routing.RoutingResolveContext;kotlin.Int){}[0]
+}
+
+abstract class io.ktor.server.routing/TransparentRouteSelector : io.ktor.server.routing/RouteSelector { // io.ktor.server.routing/TransparentRouteSelector|null[0]
+    constructor <init>() // io.ktor.server.routing/TransparentRouteSelector.<init>|<init>(){}[0]
+
+    open suspend fun evaluate(io.ktor.server.routing/RoutingResolveContext, kotlin/Int): io.ktor.server.routing/RouteSelectorEvaluation // io.ktor.server.routing/TransparentRouteSelector.evaluate|evaluate(io.ktor.server.routing.RoutingResolveContext;kotlin.Int){}[0]
 }
 
 final class <#A: io.ktor.server.engine/ApplicationEngine, #B: io.ktor.server.engine/ApplicationEngine.Configuration> io.ktor.server.engine/EmbeddedServer { // io.ktor.server.engine/EmbeddedServer|null[0]
@@ -1101,6 +1109,7 @@ final class io.ktor.server.routing/RoutingCall : io.ktor.server.application/Appl
     final val route // io.ktor.server.routing/RoutingCall.route|{}route[0]
         final fun <get-route>(): io.ktor.server.routing/RoutingNode // io.ktor.server.routing/RoutingCall.route.<get-route>|<get-route>(){}[0]
 
+    final suspend fun <#A1: kotlin/Any?> receive(io.ktor.util.reflect/TypeInfo): #A1 // io.ktor.server.routing/RoutingCall.receive|receive(io.ktor.util.reflect.TypeInfo){0§<kotlin.Any?>}[0]
     final suspend fun <#A1: kotlin/Any?> receiveNullable(io.ktor.util.reflect/TypeInfo): #A1? // io.ktor.server.routing/RoutingCall.receiveNullable|receiveNullable(io.ktor.util.reflect.TypeInfo){0§<kotlin.Any?>}[0]
     final suspend fun respond(kotlin/Any?, io.ktor.util.reflect/TypeInfo?) // io.ktor.server.routing/RoutingCall.respond|respond(kotlin.Any?;io.ktor.util.reflect.TypeInfo?){}[0]
 }
@@ -1337,6 +1346,8 @@ open class io.ktor.server.application/ApplicationCallPipeline : io.ktor.util.pip
             final fun <get-Plugins>(): io.ktor.util.pipeline/PipelinePhase // io.ktor.server.application/ApplicationCallPipeline.ApplicationPhase.Plugins.<get-Plugins>|<get-Plugins>(){}[0]
         final val Setup // io.ktor.server.application/ApplicationCallPipeline.ApplicationPhase.Setup|{}Setup[0]
             final fun <get-Setup>(): io.ktor.util.pipeline/PipelinePhase // io.ktor.server.application/ApplicationCallPipeline.ApplicationPhase.Setup.<get-Setup>|<get-Setup>(){}[0]
+        final val Validators // io.ktor.server.application/ApplicationCallPipeline.ApplicationPhase.Validators|{}Validators[0]
+            final fun <get-Validators>(): io.ktor.util.pipeline/PipelinePhase // io.ktor.server.application/ApplicationCallPipeline.ApplicationPhase.Validators.<get-Validators>|<get-Validators>(){}[0]
     }
 }
 
@@ -1776,6 +1787,7 @@ final fun (io.ktor.server.application/ApplicationCall).io.ktor.server.request/re
 final fun (io.ktor.server.application/ApplicationCall).io.ktor.server.request/requireHeader(kotlin/String): kotlin/String // io.ktor.server.request/requireHeader|requireHeader@io.ktor.server.application.ApplicationCall(kotlin.String){}[0]
 final fun (io.ktor.server.application/ApplicationCall).io.ktor.server.request/requireQueryParameter(kotlin/String): kotlin/String // io.ktor.server.request/requireQueryParameter|requireQueryParameter@io.ktor.server.application.ApplicationCall(kotlin.String){}[0]
 final fun (io.ktor.server.application/ApplicationCall).io.ktor.server.response/defaultTextContentType(io.ktor.http/ContentType?): io.ktor.http/ContentType // io.ktor.server.response/defaultTextContentType|defaultTextContentType@io.ktor.server.application.ApplicationCall(io.ktor.http.ContentType?){}[0]
+final fun (io.ktor.server.application/ApplicationCall).io.ktor.server.routing/toRoutingContext(): io.ktor.server.routing/RoutingContext // io.ktor.server.routing/toRoutingContext|toRoutingContext@io.ktor.server.application.ApplicationCall(){}[0]
 final fun (io.ktor.server.config/ApplicationConfig).io.ktor.server.config/getAs(io.ktor.util.reflect/TypeInfo): kotlin/Any? // io.ktor.server.config/getAs|getAs@io.ktor.server.config.ApplicationConfig(io.ktor.util.reflect.TypeInfo){}[0]
 final fun (io.ktor.server.config/ApplicationConfig).io.ktor.server.config/mergeWith(io.ktor.server.config/ApplicationConfig): io.ktor.server.config/ApplicationConfig // io.ktor.server.config/mergeWith|mergeWith@io.ktor.server.config.ApplicationConfig(io.ktor.server.config.ApplicationConfig){}[0]
 final fun (io.ktor.server.config/ApplicationConfig).io.ktor.server.config/tryGetString(kotlin/String): kotlin/String? // io.ktor.server.config/tryGetString|tryGetString@io.ktor.server.config.ApplicationConfig(kotlin.String){}[0]
@@ -1950,10 +1962,10 @@ final suspend inline fun (io.ktor.server.application/ApplicationCall).io.ktor.se
 final suspend inline fun (io.ktor.server.application/ApplicationCall).io.ktor.server.request/receiveParameters(): io.ktor.http/Parameters // io.ktor.server.request/receiveParameters|receiveParameters@io.ktor.server.application.ApplicationCall(){}[0]
 final suspend inline fun (io.ktor.server.application/ApplicationCall).io.ktor.server.request/receiveText(): kotlin/String // io.ktor.server.request/receiveText|receiveText@io.ktor.server.application.ApplicationCall(){}[0]
 final suspend inline fun (io.ktor.server.application/ApplicationCall).io.ktor.server.response/respondRedirect(kotlin/Boolean = ..., kotlin/Function1<io.ktor.http/URLBuilder, kotlin/Unit>) // io.ktor.server.response/respondRedirect|respondRedirect@io.ktor.server.application.ApplicationCall(kotlin.Boolean;kotlin.Function1<io.ktor.http.URLBuilder,kotlin.Unit>){}[0]
-final suspend inline fun <#A: reified kotlin/Any> (io.ktor.server.application/ApplicationCall).io.ktor.server.request/receive(): #A // io.ktor.server.request/receive|receive@io.ktor.server.application.ApplicationCall(){0§<kotlin.Any>}[0]
 final suspend inline fun <#A: reified kotlin/Any> (io.ktor.server.application/ApplicationCall).io.ktor.server.request/receiveOrNull(): #A? // io.ktor.server.request/receiveOrNull|receiveOrNull@io.ktor.server.application.ApplicationCall(){0§<kotlin.Any>}[0]
 final suspend inline fun <#A: reified kotlin/Any> (io.ktor.server.application/ApplicationCall).io.ktor.server.response/respond(#A) // io.ktor.server.response/respond|respond@io.ktor.server.application.ApplicationCall(0:0){0§<kotlin.Any>}[0]
 final suspend inline fun <#A: reified kotlin/Any> (io.ktor.server.application/ApplicationCall).io.ktor.server.response/respond(io.ktor.http/HttpStatusCode, #A) // io.ktor.server.response/respond|respond@io.ktor.server.application.ApplicationCall(io.ktor.http.HttpStatusCode;0:0){0§<kotlin.Any>}[0]
+final suspend inline fun <#A: reified kotlin/Any?> (io.ktor.server.application/ApplicationCall).io.ktor.server.request/receive(): #A // io.ktor.server.request/receive|receive@io.ktor.server.application.ApplicationCall(){0§<kotlin.Any?>}[0]
 final suspend inline fun <#A: reified kotlin/Any?> (io.ktor.server.application/ApplicationCall).io.ktor.server.request/receiveNullable(): #A? // io.ktor.server.request/receiveNullable|receiveNullable@io.ktor.server.application.ApplicationCall(){0§<kotlin.Any?>}[0]
 final suspend inline fun <#A: reified kotlin/Any?> (io.ktor.server.application/ApplicationCall).io.ktor.server.response/respondNullable(#A) // io.ktor.server.response/respondNullable|respondNullable@io.ktor.server.application.ApplicationCall(0:0){0§<kotlin.Any?>}[0]
 final suspend inline fun <#A: reified kotlin/Any?> (io.ktor.server.application/ApplicationCall).io.ktor.server.response/respondNullable(io.ktor.http/HttpStatusCode, #A) // io.ktor.server.response/respondNullable|respondNullable@io.ktor.server.application.ApplicationCall(io.ktor.http.HttpStatusCode;0:0){0§<kotlin.Any?>}[0]

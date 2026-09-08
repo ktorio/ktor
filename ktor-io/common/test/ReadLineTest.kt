@@ -6,7 +6,12 @@ import io.ktor.test.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.yield
+import kotlinx.io.Buffer
 import kotlinx.io.EOFException
+import kotlinx.io.IOException
+import kotlinx.io.writeString
 import kotlin.test.*
 
 class ReadLineTest {
@@ -130,6 +135,15 @@ class ReadLineTest {
     }
 
     @Test
+    fun `returns number of UTF-8 bytes at exact limit`() = runTest {
+        val line = "привет"
+        val encodedSize = line.encodeToByteArray().size.toLong()
+
+        ByteReadChannel("$line\n").assertLines(line)
+        ByteReadChannel("$line\n").assertLines(line, limit = encodedSize)
+    }
+
+    @Test
     fun `limit - exact limit with CRLF immediately after`() = runTest {
         val channel = ByteReadChannel("12345\r\n")
         channel.assertLines("12345", limit = 5)
@@ -207,6 +221,7 @@ class ReadLineTest {
         assertFailsWith<TooLongLineException> {
             channel.readLineStrictTo(buffer, limit = 5)
         }
+        assertEquals("12345", buffer.toString())
     }
 
     @Test
@@ -216,6 +231,28 @@ class ReadLineTest {
         assertFailsWith<EOFException> {
             channel.readLineStrictTo(buffer, limit = 5)
         }
+        assertEquals("12345", buffer.toString())
+    }
+
+    @OptIn(InternalAPI::class)
+    @Test
+    fun `appends buffered bytes before propagating channel failure`() = runTest {
+        val channel = object : ByteReadChannel {
+            override val closedCause: Throwable? = null
+            override val isClosedForRead: Boolean = false
+            override val readBuffer = Buffer().apply { writeString("12345") }
+
+            override suspend fun awaitContent(min: Int): Boolean {
+                throw IOException("Test failure")
+            }
+
+            override fun cancel(cause: Throwable?) {}
+        }
+
+        assertFailsWith<IOException> {
+            channel.readLineStrictTo(buffer)
+        }
+        assertEquals("12345", buffer.toString())
     }
 
     @Test
@@ -317,13 +354,95 @@ class ReadLineTest {
     ) {
         for (line in expected) {
             buffer.clear()
+            val expectedByteCount = line.encodeToByteArray().size.toLong()
             assertEquals(
-                line.length.toLong(),
+                expectedByteCount,
                 if (limit == -1L) readLineTo(buffer, lineEnding) else readLineStrictTo(buffer, limit, lineEnding),
                 "Unexpected line length for line \"$line\""
             )
             assertEquals(line, buffer.toString(), "Unexpected line content")
         }
         assertTrue(exhausted(), "Not all lines were read")
+    }
+
+    @Test
+    fun `code point boundary`() = runTest {
+        val channel = ByteChannel()
+        backgroundScope.launch {
+            channel.writeFully(byteArrayOf(0xE3.toByte(), 0x83.toByte()))
+            channel.flush()
+            yield()
+            channel.writeByte(0xB3.toByte())
+            channel.flush()
+            yield()
+            channel.writeByte('\n'.code.toByte())
+
+            channel.close()
+        }
+        assertEquals("ン", channel.readLine())
+    }
+
+    @Test
+    fun `incomplete code point boundary`() = runTest {
+        val channel = ByteChannel()
+        backgroundScope.launch {
+            channel.writeFully(byteArrayOf(0xE3.toByte(), 0x83.toByte()))
+            channel.flush()
+            yield()
+            channel.writeByte('\n'.code.toByte())
+
+            channel.close()
+        }
+        assertEquals("�", channel.readLine())
+    }
+
+    @Test
+    fun `4-byte code point boundary`() = runTest {
+        val channel = ByteChannel()
+        backgroundScope.launch {
+            channel.writeFully(byteArrayOf(0xF0.toByte(), 0x9F.toByte()))
+            channel.flush()
+            yield()
+            channel.writeByte(0x98.toByte())
+            channel.flush()
+            yield()
+            channel.writeFully(byteArrayOf(0x80.toByte(), '\n'.code.toByte()))
+            channel.flush()
+
+            channel.close()
+        }
+        assertEquals("\uD83D\uDE00", channel.readLine())
+    }
+
+    @Test
+    fun `1k chunk before code point boundary`() = runTest {
+        val channel = ByteChannel()
+        backgroundScope.launch {
+            channel.writeFully(ByteArray(1024) { 'a'.code.toByte() })
+            channel.writeFully(byteArrayOf(0xE3.toByte(), 0x83.toByte()))
+            channel.flush()
+            yield()
+            channel.writeFully(byteArrayOf(0xB3.toByte(), '\n'.code.toByte()))
+            channel.flush()
+
+            channel.close()
+        }
+        assertEquals("a".repeat(1024) + "ン", channel.readLine())
+    }
+
+    @Test
+    fun `4k chunk before code point boundary`() = runTest {
+        val channel = ByteChannel()
+        backgroundScope.launch {
+            channel.writeFully(ByteArray(4094) { 'b'.code.toByte() })
+            channel.writeFully(byteArrayOf(0xE3.toByte(), 0x83.toByte()))
+            channel.flush()
+            yield()
+            channel.writeFully(byteArrayOf(0xB3.toByte(), '\n'.code.toByte()))
+            channel.flush()
+
+            channel.close()
+        }
+        assertEquals("b".repeat(4094) + "ン", channel.readLine())
     }
 }

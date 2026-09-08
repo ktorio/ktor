@@ -6,7 +6,7 @@ package io.ktor.client.engine.android
 
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
-import io.ktor.client.io.configurePlatform
+import io.ktor.client.io.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.sse.*
 import io.ktor.client.request.*
@@ -49,6 +49,8 @@ public class AndroidClientEngine(override val config: AndroidEngineConfig) : Htt
             ?: outgoingContent.contentLength
 
         val connection: HttpURLConnection = getProxyAwareConnection(url).apply {
+            disconnectOnCancellation(callContext)
+
             connectTimeout = config.connectTimeout
             readTimeout = config.socketTimeout
 

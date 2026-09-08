@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.plugins.auth
@@ -15,7 +15,7 @@ import io.ktor.http.auth.*
  */
 public interface AuthProvider {
     /**
-     * Waits for [HttpStatusCode.Unauthorized] to send credentials.
+     * Waits for [io.ktor.http.HttpStatusCode.Unauthorized] to send credentials.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.AuthProvider.sendWithoutRequest)
      */
@@ -33,7 +33,7 @@ public interface AuthProvider {
     public fun isApplicable(auth: HttpAuthHeader): Boolean
 
     /**
-     * Adds an authentication method headers and credentials.
+     * Adds authentication method headers and credentials.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.AuthProvider.addRequestHeaders)
      *
@@ -48,7 +48,7 @@ public interface AuthProvider {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.AuthProvider.refreshToken)
      *
-     * @param call - response triggered token refresh.
+     * @param response - response that triggered token refresh.
      * @return if the token was successfully refreshed.
      */
     public suspend fun refreshToken(response: HttpResponse): Boolean = true

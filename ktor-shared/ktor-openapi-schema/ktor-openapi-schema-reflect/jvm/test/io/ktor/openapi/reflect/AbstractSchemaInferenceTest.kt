@@ -70,6 +70,19 @@ abstract class AbstractSchemaInferenceTest(
         assertSchemaMatches<LogicalOperatorsData>()
 
     @Test
+    fun `const inference`() {
+        val schema = inference.jsonSchema<ConstTestData>()
+        assertEquals(
+            "fixed-value",
+            schema.properties?.get("fixedString")?.valueOrNull()?.const?.asA<String>()
+        )
+        assertEquals(
+            42,
+            schema.properties?.get("fixedInt")?.valueOrNull()?.const?.asA<Int>()
+        )
+    }
+
+    @Test
     fun `other validation rules`() {
         assertSchemaMatches<AnnotatedUser>()
         @OptIn(ExperimentalUuidApi::class, ExperimentalTime::class)
@@ -433,3 +446,11 @@ sealed interface KindShape {
     @SerialName("rectangle")
     data class Rectangle(val width: Double, val height: Double) : KindShape
 }
+
+@Serializable
+data class ConstTestData(
+    @Const("\"fixed-value\"")
+    val fixedString: String,
+    @Const("42")
+    val fixedInt: Int
+)

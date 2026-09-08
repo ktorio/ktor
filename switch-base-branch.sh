@@ -24,19 +24,32 @@ log() {
 }
 
 # ============================================================================
+# Constants
+# ============================================================================
+MAIN_BRANCH="main"
+CANONICAL_REPO="ktorio/ktor"
+ORIGIN_REMOTE="origin"
+UPSTREAM_REMOTE="upstream"
+
+# ============================================================================
 # Global Variables
 # ============================================================================
 DRY_RUN=false
-MAIN_BRANCH="main"
 RELEASE_BRANCH=""
 CURRENT_BRANCH=""
-REMOTE=""
-PUSH_REMOTE="origin"
+BASE_REMOTE=""       # Remote pointing to the canonical repository
+PUSH_REMOTE=""       # Remote name or URL the feature branch belongs to
+PUSH_LABEL=""        # Human-readable form of PUSH_REMOTE
+PUSH_ARGS=()         # 'git push' arguments, built once the remote state is known
 CURRENT_BASE=""
 TARGET_BASE=""
 MERGE_BASE=""
 COMMITS_COUNT=0
 BACKUP_BRANCH=""
+GH_AVAILABLE=false
+PR_NUMBER=""
+PR_URL=""
+PR_HEAD_REPO=""
 
 # ============================================================================
 # Functions
@@ -53,13 +66,21 @@ git_exec() {
     log "${GRAY}\$ git ${display_args[*]}"
     if [[ "$DRY_RUN" = true ]]; then
         return 0 # Always succeed in dry-run mode
-    else
-        git "$@"
-        return $? # Return actual exit code
     fi
+    git "$@"
 }
 
-# Prompt for confirmation, auto-accept in dry-run mode
+# Print and execute gh if not in dry-run mode
+# Only for state-changing gh commands
+gh_exec() {
+    log "${GRAY}\$ gh $*"
+    if [[ "$DRY_RUN" = true ]]; then
+        return 0 # Always succeed in dry-run mode
+    fi
+    gh "$@"
+}
+
+# Prompt for confirmation, auto-accepting in dry-run mode
 confirm() {
     local prompt="$1 (y/N):"
     if [[ "$DRY_RUN" = true ]]; then
@@ -70,6 +91,52 @@ confirm() {
     read -p "$prompt " -n 1 -r
     echo
     [[ $REPLY =~ ^[Yy]$ ]]
+}
+
+# Print the URL of a remote name, or the argument itself when it is already a URL
+remote_url() {
+    git remote get-url "$1" 2> /dev/null || echo "$1"
+}
+
+# Print 'owner/repo' for a remote name or URL, nothing if it can't be determined
+repo_slug() {
+    local url="$1"
+    if [[ -z "$url" ]]; then return 0; fi
+
+    url=$(remote_url "$url")
+    url=${url%.git}
+    url=${url#*github.com} # Drop scheme and host
+    url=${url#:}
+    while [[ "$url" == /* ]]; do url=${url#/}; done
+
+    if [[ "$url" =~ ^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$ ]]; then
+        echo "$url" | tr '[:upper:]' '[:lower:]'
+    fi
+}
+
+# Print the name of the remote pointing to 'owner/repo', nothing if there is none
+remote_for_repo() {
+    local target="$1" name
+    if [[ -z "$target" ]]; then return 0; fi
+
+    for name in $(git remote); do
+        if [[ "$(repo_slug "$name")" = "$target" ]]; then
+            echo "$name"
+            return 0
+        fi
+    done
+}
+
+# Build a clone URL for 'owner/repo', matching the protocol used by 'origin'
+clone_url() {
+    local origin_url
+    origin_url=$(git remote get-url "$ORIGIN_REMOTE" 2> /dev/null || true)
+
+    if [[ "$origin_url" = http* ]]; then
+        echo "https://github.com/$1.git"
+    else
+        echo "git@github.com:$1.git"
+    fi
 }
 
 check_preconditions() {
@@ -100,25 +167,101 @@ check_preconditions() {
     fi
 }
 
-# Determine remote name (upstream or origin)
-detect_remotes() {
-    if git remote | grep -q "^upstream$"; then
-        REMOTE="upstream"
+detect_gh() {
+    if command -v gh > /dev/null 2>&1 && gh auth status > /dev/null 2>&1; then
+        GH_AVAILABLE=true
+    fi
+}
+
+# Base branches must always be read from the canonical Ktor repository.
+resolve_base_remote() {
+    BASE_REMOTE=$(remote_for_repo "$CANONICAL_REPO")
+    if [[ -z "$BASE_REMOTE" ]]; then
+        local canonical_url
+        canonical_url=$(clone_url "$CANONICAL_REPO")
+
+        if [[ "$DRY_RUN" = true ]]; then
+            log "${RED}✗ Dry-run requires a remote pointing to '$CANONICAL_REPO'"
+            echo "  Configure it and rerun:"
+            log "    ${YELLOW}git remote add $UPSTREAM_REMOTE $canonical_url"
+            log "    ${YELLOW}$0 --dry-run"
+            exit 1
+        fi
+
+        if ! confirm "Add '$CANONICAL_REPO' as the '$UPSTREAM_REMOTE' remote?"; then
+            log "${RED}✗ A remote for '$CANONICAL_REPO' is required"
+            log "💡 Configure it: ${YELLOW}git remote add $UPSTREAM_REMOTE $canonical_url"
+            exit 1
+        fi
+
+        git_exec remote add "$UPSTREAM_REMOTE" "$canonical_url"
+        BASE_REMOTE="$UPSTREAM_REMOTE"
+    fi
+
+    git fetch "$BASE_REMOTE" --quiet
+}
+
+detect_pull_request() {
+    if [[ "$GH_AVAILABLE" = false ]]; then
+        return 0
+    fi
+
+    local pr
+    if ! pr=$(gh pr list \
+        --repo "$CANONICAL_REPO" \
+        --head "$CURRENT_BRANCH" \
+        --state open \
+        --limit 1 \
+        --json 'number,url,headRepository' \
+        --jq '.[] | [.number, .url, (.headRepository.nameWithOwner // "" | ascii_downcase)] | @tsv' \
+        2> /dev/null)
+    then
+        log "${YELLOW}⚠ Failed to look up the pull request"
+        return 0
+    fi
+
+    if [[ -z "$pr" ]]; then
+        return 0
+    fi
+
+    IFS=$'\t' read -r PR_NUMBER PR_URL PR_HEAD_REPO <<< "$pr"
+}
+
+# PR metadata identifies the repository of a PR branch. Without a PR, use the push
+# remote configured for the branch and keep branches without one local.
+resolve_push_remote() {
+    if [[ -n "$PR_HEAD_REPO" ]]; then
+        PUSH_REMOTE=$(remote_for_repo "$PR_HEAD_REPO")
+        PUSH_REMOTE=${PUSH_REMOTE:-$(clone_url "$PR_HEAD_REPO")}
     else
-        REMOTE="origin"
+        PUSH_REMOTE=$(git for-each-ref \
+            --format='%(push:remotename)' \
+            "refs/heads/$CURRENT_BRANCH")
+    fi
+
+    if [[ -z "$PUSH_REMOTE" ]]; then
+        PUSH_LABEL="none (local branch)"
+        return 0
+    fi
+
+    local push_repo
+    push_repo=$(repo_slug "$PUSH_REMOTE")
+    if git remote get-url "$PUSH_REMOTE" > /dev/null 2>&1; then
+        PUSH_LABEL="$PUSH_REMOTE${push_repo:+ ($push_repo)}"
+    else
+        PUSH_LABEL="${push_repo:-$PUSH_REMOTE}"
     fi
 }
 
 detect_current_and_target_base() {
-    detect_remotes
-    git fetch "$REMOTE" --quiet
-    log "[1/4] ${GREEN}✓${NC} Analyzed branches"
+    local main_ref="$BASE_REMOTE/$MAIN_BRANCH"
+    local release_ref="$BASE_REMOTE/$RELEASE_BRANCH"
 
     # Find merge-base with both main and release
     local main_merge_base
-    main_merge_base=$(git merge-base "$CURRENT_BRANCH" "$REMOTE/$MAIN_BRANCH")
+    main_merge_base=$(git merge-base "$CURRENT_BRANCH" "$main_ref")
     local release_merge_base
-    release_merge_base=$(git merge-base "$CURRENT_BRANCH" "$REMOTE/$RELEASE_BRANCH")
+    release_merge_base=$(git merge-base "$CURRENT_BRANCH" "$release_ref")
 
     # Count commits from each merge-base to current branch
     local main_commits
@@ -141,84 +284,188 @@ detect_current_and_target_base() {
     fi
 }
 
-show_rebase_preview() {
-    echo
-    log "  ${BLUE}📊 Rebase plan:"
-    log "    Branch: ${YELLOW}$CURRENT_BRANCH${NC}"
-    log "    Base: ${YELLOW}$CURRENT_BASE${NC} → ${YELLOW}$TARGET_BASE"
-    echo
-    log "  ${BLUE}📝 $COMMITS_COUNT commit(s) will be moved:"
-    git log "$MERGE_BASE..$CURRENT_BRANCH" --oneline --color | sed 's/^/    • /'
-    echo
+create_backup() {
+    if [[ -n "$BACKUP_BRANCH" ]]; then
+        return 0
+    fi
 
-    if ! confirm "Continue?"; then
-        echo "Cancelled."
+    BACKUP_BRANCH="backup/${CURRENT_BRANCH}"
+    git_exec branch -f "$BACKUP_BRANCH" "$CURRENT_BRANCH"
+}
+
+sync_with_remote_if_required() {
+    if [[ -z "$PUSH_REMOTE" ]]; then
+        PUSH_ARGS=()
+        log "[1/4] ${GREEN}✓${NC} Remote synchronization not required"
+        return 0
+    fi
+
+    local remote_head
+    if ! remote_head=$(git ls-remote "$PUSH_REMOTE" "refs/heads/$CURRENT_BRANCH"); then
+        log "${RED}✗ Failed to read '$CURRENT_BRANCH' from $PUSH_LABEL"
+        exit 1
+    fi
+    remote_head=${remote_head%%$'\t'*}
+
+    PUSH_ARGS=(push "$PUSH_REMOTE" "$CURRENT_BRANCH")
+    if [[ -n "$remote_head" ]]; then
+        PUSH_ARGS+=("--force-with-lease=refs/heads/$CURRENT_BRANCH:$remote_head")
+    fi
+
+    if [[ -z "$remote_head" ]] ||
+        git merge-base --is-ancestor "$remote_head" "$CURRENT_BRANCH" > /dev/null 2>&1
+    then
+        log "[1/4] ${GREEN}✓${NC} Remote synchronization not required"
+        return 0
+    fi
+
+    if ! confirm "Synchronize '$CURRENT_BRANCH' with '$PUSH_LABEL' and analyze the base switch?"; then
         return 1
     fi
     echo
-    return 0
-}
 
-create_backup() {
-    BACKUP_BRANCH="backup/${CURRENT_BRANCH}"
-    git_exec branch -f "$BACKUP_BRANCH" "$CURRENT_BRANCH"
-    log "[2/4] ${GREEN}✓${NC} Created backup: ${YELLOW}$BACKUP_BRANCH"
-}
-
-sync_with_remote() {
-    # Update current branch from remote if it exists
-    if git show-ref --verify --quiet "refs/remotes/$PUSH_REMOTE/$CURRENT_BRANCH"; then
-        if git_exec pull --rebase "$PUSH_REMOTE" "$CURRENT_BRANCH" --quiet; then
-            log "[3/4] ${GREEN}✓${NC} Synced with remote"
-        else
-            echo
-            log "${RED}✗ Failed to sync with remote"
-            echo "  Resolve conflicts and run the script again."
-            log "💡 Restore: ${YELLOW}git reset --hard $BACKUP_BRANCH"
-            exit 1
-        fi
-    else
-        log "[3/4] ${GREEN}✓${NC} Sync skipped (no remote branch)"
-    fi
-}
-
-rebase_to_target() {
-    log "[4/4] ${BLUE}➜${NC} Rebasing onto ${YELLOW}$REMOTE/$TARGET_BASE${NC}..."
-    git_exec rebase --quiet --onto "$REMOTE/$TARGET_BASE" "$MERGE_BASE" "$CURRENT_BRANCH"
-    return $?
-}
-
-wait_for_conflict_resolution() {
-    # Wait for user to resolve conflicts
-    read -p "Press Enter after completing the rebase (or Ctrl+C to exit)..."
-
-    # Check if rebase was successful
-    if git rev-parse --git-dir > /dev/null 2>&1 && ! git rev-parse --verify REBASE_HEAD > /dev/null 2>&1; then
-        echo
-        log "${GREEN}✓ Rebase completed"
-        post_rebase_actions
+    create_backup
+    if git_exec -c rebase.updateRefs=false pull --rebase "$PUSH_REMOTE" "$CURRENT_BRANCH" --quiet; then
+        log "[1/4] ${GREEN}✓${NC} Synced with ${YELLOW}$PUSH_LABEL"
     else
         echo
-        log "${RED}✗ Rebase still in progress or failed"
-        echo "  Complete or abort manually."
+        log "${RED}✗ Failed to sync with $PUSH_LABEL"
+        echo "  Resolve conflicts and run the script again."
+        log "💡 Restore: ${YELLOW}git reset --hard $BACKUP_BRANCH"
         exit 1
     fi
 }
 
+analyze_rebase_plan() {
+    detect_current_and_target_base
+    log "[2/4] ${GREEN}✓${NC} Analyzed rebase plan"
+}
+
+show_rebase_preview() {
+    echo
+    log "  ${BLUE}📊 Rebase plan:"
+    log "    Branch: ${YELLOW}$CURRENT_BRANCH${NC}"
+    log "    Rebase: ${YELLOW}$BASE_REMOTE/$CURRENT_BASE${NC} → ${YELLOW}$BASE_REMOTE/$TARGET_BASE${NC}"
+    log "    Push:   ${YELLOW}$PUSH_LABEL"
+    if [[ -n "$PR_NUMBER" ]]; then
+        log "    PR:     ${YELLOW}#$PR_NUMBER${NC} $PR_URL"
+    fi
+    echo
+    log "  ${BLUE}📝 $COMMITS_COUNT commit(s) will be moved:"
+    git log "$MERGE_BASE..$CURRENT_BRANCH" --oneline --color | sed 's/^/    • /'
+    echo
+}
+
+confirm_rebase_plan() {
+    local prompt="$1"
+
+    show_rebase_preview
+    if ! confirm "$prompt"; then
+        echo "Cancelled."
+        if [[ -n "$BACKUP_BRANCH" ]]; then
+            log "💡 Restore: ${YELLOW}git reset --hard $BACKUP_BRANCH"
+        fi
+        exit 0
+    fi
+    echo
+}
+
+rebase_to_target() {
+    log "[4/4] ${BLUE}➜${NC} Rebasing onto ${YELLOW}$TARGET_BASE${NC} of ${YELLOW}$BASE_REMOTE${NC}..."
+    git_exec -c rebase.updateRefs=false rebase --quiet --onto "$BASE_REMOTE/$TARGET_BASE" "$MERGE_BASE" "$CURRENT_BRANCH"
+}
+
+wait_for_conflict_resolution() {
+    local previous_head="$1" current_head
+    read -p "Press Enter after completing the rebase (or Ctrl+C to exit)..."
+    current_head=$(git rev-parse "$CURRENT_BRANCH")
+
+    if git rev-parse --verify REBASE_HEAD > /dev/null 2>&1 ||
+        [[ "$current_head" = "$previous_head" ]] ||
+        ! git merge-base --is-ancestor "$BASE_REMOTE/$TARGET_BASE" "$CURRENT_BRANCH"
+    then
+        echo
+        log "${RED}✗ Rebase was aborted or is still incomplete"
+        echo "  Complete the rebase and run the script again."
+        exit 1
+    fi
+
+    echo
+    log "${GREEN}✓ Rebase completed"
+}
+
+# Retarget the PR on GitHub, so it doesn't include commits of the previous base
+switch_pr_base() {
+    local pushed="$1"
+
+    if [[ -z "$PR_NUMBER" ]]; then
+        if [[ "$GH_AVAILABLE" = false ]] && [[ -n "$PUSH_REMOTE" ]]; then
+            log "💡 Switch the PR base branch to ${YELLOW}$TARGET_BASE${NC} on GitHub"
+        fi
+        return 0
+    fi
+
+    local gh_arguments=(
+        pr edit "$PR_NUMBER"
+        --repo "$CANONICAL_REPO"
+        --base "$TARGET_BASE"
+    )
+
+    if [[ "$pushed" = false ]] ||
+        ! confirm "Switch base of PR #$PR_NUMBER to '$TARGET_BASE' on GitHub?"
+    then
+        log "💡 Switch PR base manually: ${YELLOW}gh ${gh_arguments[*]}"
+        return 0
+    fi
+
+    if gh_exec "${gh_arguments[@]}"; then
+        log "${GREEN}✓ PR #$PR_NUMBER now targets '$TARGET_BASE'"
+        return 0
+    fi
+
+    log "${RED}✗ Failed to switch the PR base branch"
+    log "💡 Retry: ${YELLOW}gh ${gh_arguments[*]}"
+    return 1
+}
+
 post_rebase_actions() {
+    local pushed=false failed=false
+
     log "${GREEN}✓ Rebased successfully"
     echo
 
-    if confirm "Force-push and delete backup?"; then
-        git_exec push --quiet "$PUSH_REMOTE" "$CURRENT_BRANCH" --force-with-lease
-        git_exec branch --quiet -D "$BACKUP_BRANCH"
-        log "${GREEN}✓ Pushed and cleaned up"
+    if [[ ${#PUSH_ARGS[@]} -eq 0 ]]; then
+        log "Push skipped: no push remote is configured for '$CURRENT_BRANCH'"
+        log "💡 Publish it: ${YELLOW}git push --set-upstream <remote> $CURRENT_BRANCH"
+        log "💡 Restore: ${YELLOW}git reset --hard $BACKUP_BRANCH"
+    elif confirm "Force-push to '$PUSH_LABEL' and delete backup?"; then
+        if git_exec "${PUSH_ARGS[@]}" --quiet; then
+            pushed=true
+            git_exec branch --quiet -D "$BACKUP_BRANCH"
+            log "${GREEN}✓ Pushed and cleaned up"
+        else
+            failed=true
+            echo
+            log "${RED}✗ Failed to push to $PUSH_LABEL"
+            echo "  Pushing to someone else's fork requires 'Allow edits by maintainers' on the PR."
+            log "💡 Retry: ${YELLOW}git ${PUSH_ARGS[*]}"
+            log "💡 Restore: ${YELLOW}git reset --hard $BACKUP_BRANCH"
+        fi
     else
-        log "💡 Push: ${YELLOW}git push $PUSH_REMOTE $CURRENT_BRANCH --force-with-lease"
+        log "💡 Push: ${YELLOW}git ${PUSH_ARGS[*]}"
         log "💡 Restore: ${YELLOW}git reset --hard $BACKUP_BRANCH"
     fi
 
     echo
+    if ! switch_pr_base "$pushed"; then
+        failed=true
+    fi
+
+    echo
+    if [[ "$failed" = true ]]; then
+        log "${RED}✗ Done with errors"
+        return 1
+    fi
     log "${GREEN}✨ Done!"
 }
 
@@ -226,11 +473,18 @@ print_help() {
     echo "Usage: $0 [OPTIONS]"
     echo
     echo "Options:"
-    echo "  --dry-run    Show what would be done without making changes"
+    echo "  --dry-run    Show an up-to-date plan without rewriting or pushing the branch"
     echo "  -h, --help   Show this help message"
     echo
     echo "This script switches your branch base between 'main' and 'release/*'."
     echo "It will automatically detect the current base and offer to switch to the other."
+    echo
+    echo "Base branches are always read from the canonical Ktor repository. If no remote"
+    echo "points to it, the script offers to add it as '$UPSTREAM_REMOTE'."
+    echo "The branch itself is pushed back to the repository configured for it."
+    echo
+    echo "If the GitHub CLI ('gh') is installed and authenticated, the script also resolves"
+    echo "the repository of an open PR branch and offers to switch the PR's base branch."
 }
 
 # ============================================================================
@@ -243,7 +497,6 @@ main() {
         case $arg in
             --dry-run)
                 DRY_RUN=true
-                shift
                 ;;
             -h|--help)
                 print_help
@@ -259,22 +512,32 @@ main() {
 
     log "${BGREEN}🔄 Ktor Branch Base Switcher"
     if [ "$DRY_RUN" = true ]; then
-        log "${GRAY}You're running in dry-run mode, git commands won't be executed."
+        log "${GRAY}You're running in dry-run mode. Base branches will still be fetched."
+        log "${GRAY}Rebase, push, and PR update commands won't be executed."
         log "${GRAY}Commands that would be executed are shown with ${NC}\$${NC} ${GRAY}prefix."
     fi
     echo
 
     check_preconditions
-    detect_current_and_target_base
-    show_rebase_preview || exit 0
-    create_backup
-    sync_with_remote
-
-    if rebase_to_target; then
-        post_rebase_actions
-    else
-        wait_for_conflict_resolution
+    detect_gh
+    resolve_base_remote
+    detect_pull_request
+    resolve_push_remote
+    if ! sync_with_remote_if_required; then
+        echo "Cancelled."
+        exit 0
     fi
+    analyze_rebase_plan
+    confirm_rebase_plan "Continue?"
+    create_backup
+    log "[3/4] ${GREEN}✓${NC} Backup ready: ${YELLOW}$BACKUP_BRANCH"
+
+    local pre_rebase_head
+    pre_rebase_head=$(git rev-parse "$CURRENT_BRANCH")
+    if ! rebase_to_target; then
+        wait_for_conflict_resolution "$pre_rebase_head"
+    fi
+    post_rebase_actions
 }
 
 main "$@"

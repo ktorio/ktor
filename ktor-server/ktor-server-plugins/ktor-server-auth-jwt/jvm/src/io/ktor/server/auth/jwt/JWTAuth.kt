@@ -219,7 +219,7 @@ public class JWTAuthenticationProvider internal constructor(config: Config) : Au
             )
         } catch (cause: Throwable) {
             val message = cause.message ?: cause.javaClass.simpleName
-            JWTLogger.debug("JWT authentication failed: $message", cause)
+            JWTLogger.debug("JWT authentication failed: {}", message, cause)
             context.error(JWTAuthKey, AuthenticationFailedCause.Error(message))
         }
     }

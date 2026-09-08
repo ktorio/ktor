@@ -85,7 +85,10 @@ public open class DependencyReflectionJvm : DependencyReflection {
         }
 
         return DependencyKey(
-            type = TypeInfo(parameter.type.jvmErasure, parameter.type),
+            type = TypeInfo(
+                type = parameter.type.jvmErasure,
+                kotlinType = parameter.type,
+            ),
             name = name ?: property,
             qualifier = PropertyQualifier.takeIf { property != null }
         )

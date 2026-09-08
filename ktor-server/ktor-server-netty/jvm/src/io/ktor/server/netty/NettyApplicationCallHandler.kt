@@ -8,6 +8,7 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.netty.http1.*
 import io.ktor.utils.io.*
+import io.netty.channel.ChannelFutureListener
 import io.netty.channel.ChannelHandlerContext
 import io.netty.handler.codec.http.DefaultFullHttpResponse
 import io.netty.handler.codec.http.HttpResponseStatus
@@ -38,8 +39,7 @@ internal fun ChannelHandlerContext.respond408RequestTimeoutHttp1() {
     val response = DefaultFullHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.REQUEST_TIMEOUT)
     response.headers().add(HttpHeaders.ContentLength, "0")
     response.headers().add(HttpHeaders.Connection, "close")
-    writeAndFlush(response)
-    close()
+    writeAndFlush(response).addListener(ChannelFutureListener.CLOSE)
 }
 
 internal suspend fun NettyHttp1ApplicationCall.respondError400BadRequest() {

@@ -40,6 +40,9 @@ public class SwaggerConfig private constructor(
     /**
      * Specifies a Swagger UI version to use.
      *
+     * Defaults to `5.31.0`. OpenAPI 3.1.x specifications require Swagger UI 5.0.0 or later; versions below 5.x only
+     * support OpenAPI 3.0.x.
+     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.swagger.SwaggerConfig.version)
      */
     public var version: String = "5.31.0"
@@ -70,6 +73,17 @@ public class SwaggerConfig private constructor(
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.swagger.SwaggerConfig.deepLinking)
      */
     public var deepLinking: Boolean = false
+
+    /**
+     * OAuth2 redirect URL passed to Swagger UI as `oauth2RedirectUrl`.
+     *
+     * When `null` (default), Swagger UI uses `window.location.origin + "{swaggerPath}/oauth2-redirect.html"`.
+     *
+     * Set an absolute URL when running behind a reverse proxy or using a custom redirect path.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.swagger.SwaggerConfig.oauth2RedirectUrl)
+     */
+    public var oauth2RedirectUrl: String? = null
 
     /**
      * Swagger favicon location

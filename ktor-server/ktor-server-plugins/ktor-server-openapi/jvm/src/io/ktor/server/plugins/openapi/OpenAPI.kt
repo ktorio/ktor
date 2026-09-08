@@ -9,6 +9,7 @@ import io.ktor.server.http.content.*
 import io.ktor.server.routing.*
 import io.ktor.server.routing.openapi.OpenApiDocSource
 import io.ktor.server.routing.openapi.hide
+import io.ktor.util.logging.Logger
 import io.ktor.utils.io.ExperimentalKtorApi
 import io.swagger.codegen.v3.ClientOpts
 import io.swagger.codegen.v3.generators.html.StaticHtml2Codegen
@@ -23,7 +24,11 @@ import java.io.File
  * The documentation is generated using [StaticHtml2Codegen] by default. It can be customized using config in [block].
  * See [OpenAPIConfig] for more details.
  *
- * If source is supplied inside the config [block], the [swaggerFile] argument will take precedence.
+ * HTML generation uses swagger-codegen, which officially supports OpenAPI 3.0.x. OpenAPI 3.1.x specifications may fail
+ * to generate or produce incomplete documentation; prefer [io.ktor.server.plugins.swagger.swaggerUI] with Swagger UI 5+
+ * for browsing 3.1 specs.
+ *
+ * If a source is supplied inside the config [block], the [swaggerFile] argument will take precedence.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.openapi.openAPI)
  *
@@ -47,6 +52,10 @@ public fun Route.openAPI(
  *
  * The documentation is generated using [StaticHtml2Codegen] by default. It can be customized using config in [block].
  * See [OpenAPIConfig] for more details.
+ *
+ * HTML generation uses swagger-codegen, which officially supports OpenAPI 3.0.x. OpenAPI 3.1.x specifications may fail
+ * to generate or produce incomplete documentation; prefer [io.ktor.server.plugins.swagger.swaggerUI] with Swagger UI 5+
+ * for browsing 3.1 specs.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.openapi.openAPI)
  *
@@ -77,11 +86,11 @@ private fun Application.generateFilesBeforeStartup(config: OpenAPIConfig) {
     monitor.subscribe(ApplicationModulesLoaded) {
         val apiDocument = config.source.read(this, config.buildBaseDoc())
             ?: error("Failed to read OpenAPI document from ${config.source}")
-        config.generateFiles(apiDocument.content)
+        config.generateFiles(logger = log, apiDocument = apiDocument.content)
     }
 }
 
-private fun OpenAPIConfig.generateFiles(apiDocument: String) {
+private fun OpenAPIConfig.generateFiles(logger: Logger, apiDocument: String) {
     val swagger = try {
         parser.readContents(apiDocument, null, options)
     } catch (t: Throwable) {
@@ -93,6 +102,16 @@ private fun OpenAPIConfig.generateFiles(apiDocument: String) {
     }
     val openApi = swagger.openAPI
         ?: throw IllegalStateException("Parsed OpenAPI document is missing `openAPI` (messages=${swagger.messages})")
+
+    // See: https://github.com/swagger-api/swagger-codegen/issues/12210
+    val openApiVersion = openApi.openapi
+    if (openApiVersion != null && openApiVersion.startsWith("3.1")) {
+        logger.warn(
+            "OpenAPI document version is $openApiVersion. HTML generation via swagger-codegen " +
+                "officially supports OpenAPI 3.0.x and may fail or produce incomplete docs for 3.1. " +
+                "Prefer swaggerUI with Swagger UI 5+, or use an OpenAPI 3.0.x specification."
+        )
+    }
 
     opts.apply {
         codegen.outputDir = outDir.absolutePath

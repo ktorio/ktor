@@ -115,20 +115,20 @@ public val HttpPlainText: ClientPlugin<HttpPlainTextConfig> =
             val contentType: ContentType = requestContentType ?: ContentType.Text.Plain
             val charset = requestContentType?.charset() ?: requestCharset
 
-            LOGGER.trace("Sending request body to ${request.url} as text/plain with charset $charset")
+            LOGGER.trace { "Sending request body to ${request.url} as text/plain with charset $charset" }
             return TextContent(content, contentType.withCharset(charset))
         }
 
         fun read(call: HttpClientCall, body: Input): String {
             val actualCharset = call.response.charset() ?: responseCharsetFallback
-            LOGGER.trace("Reading response body for ${call.request.url} as String with charset $actualCharset")
+            LOGGER.trace { "Reading response body for ${call.request.url} as String with charset $actualCharset" }
             return body.readText(charset = actualCharset)
         }
 
         @Suppress("DEPRECATION")
         fun HttpRequestBuilder.addAcceptCharsetHeader(value: String?) {
             if (value == null || headers[HttpHeaders.AcceptCharset] != null) return
-            LOGGER.trace("Adding Accept-Charset=$value to $url")
+            LOGGER.trace { "Adding Accept-Charset=$value to $url" }
             headers[HttpHeaders.AcceptCharset] = value
         }
 

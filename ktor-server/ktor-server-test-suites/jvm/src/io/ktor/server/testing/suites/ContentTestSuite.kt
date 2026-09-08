@@ -16,14 +16,15 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.test.base.*
+import io.ktor.util.logging.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.io.asSource
 import kotlinx.io.buffered
-import java.io.*
-import kotlin.io.use
+import java.io.File
+import java.io.InputStream
 import kotlin.test.*
-import kotlin.text.toByteArray
 
 abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
@@ -138,7 +139,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     @Test
     fun testLocalFileContentRange() = runTest {
         val file = loadTestFile()
-        testLog.trace("test file is $file")
+        testLog.trace { "test file is $file" }
 
         createAndStartServer {
             install(PartialContent)
@@ -259,7 +260,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     fun testRequestContentFormData() = runTest {
         createAndStartServer {
             handle {
-                val parameters = runCatching { call.receiveNullable<Parameters>() }.getOrNull()
+                val parameters = runCatching { call.receive<Parameters?>() }.getOrNull()
                 if (parameters != null) {
                     call.respond(parameters.formUrlEncode())
                 } else {
@@ -512,7 +513,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
 
         val location = file.parentFile!!
 
-        testLog.trace("test file is $file")
+        testLog.trace { "test file is $file" }
 
         createAndStartServer {
             staticFiles("/files", location)

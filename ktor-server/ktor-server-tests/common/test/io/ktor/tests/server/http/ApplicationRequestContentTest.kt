@@ -170,7 +170,7 @@ class ApplicationRequestContentTest {
 
         routing {
             get("/") {
-                val v = runCatching { call.receiveNullable<IntList>() }.getOrNull()
+                val v = runCatching { call.receive<IntList?>() }.getOrNull()
                 call.respondText(v?.values?.joinToString() ?: "(none)")
             }
         }

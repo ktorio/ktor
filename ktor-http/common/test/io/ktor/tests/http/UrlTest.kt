@@ -364,6 +364,13 @@ class UrlTest {
     }
 
     @Test
+    fun testParseUrlWithSpaceInHost() {
+        assertEquals(null, parseUrl("http:// example.com"))
+        assertEquals(null, parseUrl("http://exa mple.com"))
+        assertEquals(null, parseUrl("http://example.com :8080"))
+    }
+
+    @Test
     fun testAboutUrl() {
         val aboutBlankUrl = Url("about:blank")
         assertEquals("about:blank", aboutBlankUrl.toString())

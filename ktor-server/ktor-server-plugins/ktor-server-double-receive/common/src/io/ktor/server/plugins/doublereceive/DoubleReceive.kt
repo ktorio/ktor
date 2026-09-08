@@ -41,15 +41,15 @@ public val DoubleReceive: RouteScopedPlugin<DoubleReceiveConfig> = createRouteSc
         val cache = call.receiveCache
 
         if (cache.containsKey(call.receiveType.type)) {
-            LOGGER.trace("Return cached value for ${call.receiveType.type}")
+            LOGGER.trace { "Return cached value for ${call.receiveType.type}" }
             return@on cache[call.receiveType.type]!!
         }
 
         if (!cacheRawRequest) {
-            LOGGER.trace(
+            LOGGER.trace {
                 "Return origin body because cache is not available for ${call.receiveType.type} and " +
                     "raw caching is disabled"
-            )
+            }
             return@on body
         }
 
@@ -83,7 +83,7 @@ public val DoubleReceive: RouteScopedPlugin<DoubleReceiveConfig> = createRouteSc
 
         val cache = call.receiveCache
         cache[body::class] = body
-        LOGGER.trace("Storing transformed body for type ${body::class} in memory cache")
+        LOGGER.trace { "Storing transformed body for type ${body::class} in memory cache" }
         return@on body
     }
 }
