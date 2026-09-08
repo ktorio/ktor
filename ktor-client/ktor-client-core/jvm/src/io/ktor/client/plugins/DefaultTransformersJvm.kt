@@ -11,27 +11,21 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
-import kotlinx.coroutines.*
-import java.io.*
+import kotlinx.coroutines.job
+import java.io.InputStream
 
+@OptIn(InternalAPI::class)
 internal actual fun HttpClient.platformResponseDefaultTransformers() {
     responsePipeline.intercept(HttpResponsePipeline.Parse) { (info, body) ->
         if (body !is ByteReadChannel) return@intercept
-        when (info.type) {
-            InputStream::class -> {
-                val stream = body.toInputStream(context.coroutineContext[Job])
-                val response = object : InputStream() {
-                    override fun read(): Int = stream.read()
-                    override fun read(b: ByteArray, off: Int, len: Int): Int = stream.read(b, off, len)
-                    override fun available(): Int = stream.available()
 
-                    override fun close() {
-                        super.close()
-                        stream.close()
-                    }
-                }
-                proceedWith(HttpResponseContainer(info, response))
-            }
+        when (info.type) {
+            InputStream::class -> proceedWith(
+                HttpResponseContainer(
+                    expectedType = info,
+                    response = body.asInputStream(context.coroutineContext.job)
+                )
+            )
         }
     }
 }

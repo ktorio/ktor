@@ -4,17 +4,21 @@
 
 package io.ktor.utils.io.jvm.javaio
 
-import io.ktor.test.dispatcher.runTestWithRealTime
 import io.ktor.utils.io.*
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import kotlin.test.assertContentEquals
-import kotlin.test.assertEquals
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+import kotlin.concurrent.thread
+import kotlin.test.*
+import kotlin.time.Duration.Companion.seconds
 
-class ByteByteChannelOutputStreamTest {
+@OptIn(InternalAPI::class)
+class ByteChannelOutputStreamTest {
 
     @Test
     fun `write byte`() = runTest {
@@ -196,20 +200,101 @@ class ByteByteChannelOutputStreamTest {
     }
 
     @Test
-    fun `writes are streamed without explicit flush`() = runTestWithRealTime {
+    fun `writes are streamed without explicit flush`() = runTest {
         val channel = ByteChannel(autoFlush = true)
         val outputStream = ByteChannelOutputStream(channel)
-        val data = ByteArray(2 * 1024 * 1024) { it.toByte() }
+        val data = byteArrayOf(1, 2, 3)
 
-        // Exceeds the internal flush threshold, so it must reach the channel
-        // even though neither flush() nor close() is called
-        launch(Dispatchers.IO) {
-            outputStream.write(data)
-        }
+        outputStream.write(data)
 
+        assertEquals(data.size, channel.availableForRead)
         val result = ByteArray(data.size)
         channel.readFully(result)
         assertContentEquals(data, result)
         outputStream.close()
+    }
+
+    @Test
+    fun `writes are streamed when flush threshold is reached`() = runTest(timeout = 5.seconds) {
+        val channel = ByteChannel(autoFlush = false)
+        val outputStream = ByteChannelOutputStream(channel)
+        val data = ByteArray(2 * CHANNEL_MAX_SIZE) { it.toByte() }
+
+        val writer = launch(Dispatchers.IO) {
+            outputStream.write(data)
+        }
+
+        try {
+            val result = ByteArray(data.size)
+            channel.readFully(result)
+            writer.join()
+
+            assertContentEquals(data, result)
+        } finally {
+            channel.cancel()
+        }
+    }
+
+    @Test
+    fun `write is interrupted when thread is interrupted`() {
+        val channel = ByteChannel()
+        val parent = Job()
+        val outputStream = channel.asOutputStream(parent)
+        val writeStarted = CountDownLatch(1)
+        val result = CompletableFuture<Throwable?>()
+        val writeThread = thread(isDaemon = true) {
+            writeStarted.countDown()
+            result.complete(
+                runCatching { outputStream.write(ByteArray(CHANNEL_MAX_SIZE)) }.exceptionOrNull()
+            )
+        }
+
+        try {
+            assertTrue(writeStarted.await(5, TimeUnit.SECONDS))
+            assertFalse(result.isDone)
+            writeThread.interrupt()
+
+            assertIs<InterruptedException>(result.get(5, TimeUnit.SECONDS))
+            assertTrue(parent.isActive)
+            assertFalse(channel.isClosedForWrite)
+        } finally {
+            channel.cancel()
+            parent.cancel()
+            writeThread.interrupt()
+            writeThread.join(5_000)
+        }
+    }
+
+    @Test
+    fun `close cancels channel when parent is cancelled`() {
+        val channel = ByteChannel()
+        val parent = Job()
+        val outputStream = channel.asOutputStream(parent)
+
+        parent.cancel()
+
+        assertThrows<CancellationException> { outputStream.close() }
+        assertTrue(channel.isClosedForWrite)
+    }
+
+    @Test
+    fun `write is cancelled with parent`() = runTest(timeout = 5.seconds) {
+        val channel = ByteChannel()
+        val parent = Job(coroutineContext.job)
+        val outputStream = channel.asOutputStream(parent)
+        val writeStarted = CompletableDeferred<Unit>()
+        val result = async(Dispatchers.IO) {
+            writeStarted.complete(Unit)
+            runCatching { outputStream.write(ByteArray(CHANNEL_MAX_SIZE)) }.exceptionOrNull()
+        }
+
+        try {
+            writeStarted.await()
+            parent.cancel()
+
+            assertIs<CancellationException>(result.await())
+        } finally {
+            channel.cancel()
+        }
     }
 }

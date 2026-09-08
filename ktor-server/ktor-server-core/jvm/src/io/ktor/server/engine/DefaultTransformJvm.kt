@@ -8,20 +8,17 @@ import io.ktor.server.application.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
-import io.ktor.utils.io.streams.*
-import java.io.*
+import kotlinx.coroutines.job
+import java.io.InputStream
 
+@OptIn(InternalAPI::class)
 internal actual suspend fun PipelineContext<Any, PipelineCall>.defaultPlatformTransformations(
     query: Any
 ): Any? {
     val channel = query as? ByteReadChannel ?: return null
 
     return when (call.receiveType.type) {
-        InputStream::class -> receiveGuardedInputStream(channel)
+        InputStream::class -> channel.asInputStream(call.coroutineContext.job)
         else -> null
     }
-}
-
-private fun receiveGuardedInputStream(channel: ByteReadChannel): InputStream {
-    return channel.toInputStream()
 }
