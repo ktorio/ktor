@@ -9,7 +9,6 @@ import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.application.hooks.*
 import io.ktor.server.http.content.FileSystemPaths.Companion.paths
-import io.ktor.server.request.acceptEncodingItems
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
@@ -378,7 +377,7 @@ public fun Route.staticFiles(
         // if the request gets excluded, it will substantially decrease the number
         // of allocations in the cases where the first respondStaticPath() call
         // does not succeed.
-        val acceptedEncodings = request.acceptEncodingItems().map { AcceptEncoding(it.value, it.quality) }
+        val acceptedEncodings = request.acceptedEncodings(compressedTypes)
 
         respondStaticFile(
             relativePath = relativePath,
@@ -461,7 +460,7 @@ public fun Route.staticResources(
 
         val relativePath = relativePath() ?: return@staticContentRoute
 
-        val acceptedEncodings = request.acceptEncodingItems().map { AcceptEncoding(it.value, it.quality) }
+        val acceptedEncodings = request.acceptedEncodings(compressedTypes)
 
         respondStaticResource(
             relativePath = relativePath,
@@ -698,7 +697,7 @@ public fun Route.staticFileSystem(
 
         val relativePath = relativePath() ?: return@staticContentRoute
 
-        val acceptedEncodings = request.acceptEncodingItems().map { AcceptEncoding(it.value, it.quality) }
+        val acceptedEncodings = request.acceptedEncodings(compressedTypes)
 
         respondStaticPath(
             relativePath = relativePath,
@@ -958,7 +957,7 @@ public fun Route.default(localPath: File) {
     val file = staticRootFolder.combine(localPath)
     val compressedTypes = staticContentEncodedTypes?.toTypedArray() ?: emptyArray()
     get {
-        val acceptedEncodings = call.request.acceptEncodingItems().map { AcceptEncoding(it.value, it.quality) }
+        val acceptedEncodings = call.request.acceptedEncodings(compressedTypes)
 
         call.respondStaticFile(
             requestedFile = file,
@@ -989,7 +988,7 @@ public fun Route.file(remotePath: String, localPath: File) {
     val file = staticRootFolder.combine(localPath)
     val compressedTypes = staticContentEncodedTypes?.toTypedArray() ?: emptyArray()
     get(remotePath) {
-        val acceptedEncodings = call.request.acceptEncodingItems().map { AcceptEncoding(it.value, it.quality) }
+        val acceptedEncodings = call.request.acceptedEncodings(compressedTypes)
 
         call.respondStaticFile(
             requestedFile = file,
@@ -1022,7 +1021,7 @@ public fun Route.files(folder: File) {
         val relativePath = call.parameters.getAll(pathParameterName)?.joinToString(File.separator) ?: return@get
         val file = dir.combineSafe(relativePath)
 
-        val acceptedEncodings = call.request.acceptEncodingItems().map { AcceptEncoding(it.value, it.quality) }
+        val acceptedEncodings = call.request.acceptedEncodings(compressedTypes)
 
         call.respondStaticFile(
             requestedFile = file,
@@ -1070,7 +1069,7 @@ public fun Route.resource(remotePath: String, resource: String = remotePath, res
     val normalizedPath = normalisedPath(packageName, resource)
         ?: error("Resource $resource must not have a trailing slash")
     get(remotePath) {
-        val acceptedEncodings = call.request.acceptEncodingItems().map { AcceptEncoding(it.value, it.quality) }
+        val acceptedEncodings = call.request.acceptedEncodings(compressedTypes)
 
         call.respondStaticResource(
             normalizedResourcePath = normalizedPath,
@@ -1094,7 +1093,7 @@ public fun Route.resources(resourcePackage: String? = null) {
         val relativePath = call.parameters.getAll(pathParameterName)?.joinToString(File.separator) ?: return@get
         val normalizedPath = normalisedPath(packageName, relativePath) ?: return@get
 
-        val acceptedEncodings = call.request.acceptEncodingItems().map { AcceptEncoding(it.value, it.quality) }
+        val acceptedEncodings = call.request.acceptedEncodings(compressedTypes)
 
         call.respondStaticResource(
             normalizedResourcePath = normalizedPath,
@@ -1117,7 +1116,7 @@ public fun Route.defaultResource(resource: String, resourcePackage: String? = nu
     val normalizedPath = normalisedPath(packageName, resource)
         ?: error("Resource $resource must not have a trailing slash")
     get {
-        val acceptedEncodings = call.request.acceptEncodingItems().map { AcceptEncoding(it.value, it.quality) }
+        val acceptedEncodings = call.request.acceptedEncodings(compressedTypes)
         call.respondStaticResource(
             normalizedResourcePath = normalizedPath,
             compressedTypes = compressedTypes,
