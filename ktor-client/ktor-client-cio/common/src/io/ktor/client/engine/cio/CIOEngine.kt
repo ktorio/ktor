@@ -33,6 +33,15 @@ internal class CIOEngine(
         UnixSocketCapability
     )
 
+    // Kept above selectorManager: an exception here must abort construction before
+    // the selector below is opened, or its coroutine/thread would leak with no
+    // engine reference left to close it.
+    private val proxy: ProxyConfig? = when (val type = config.proxy?.type) {
+        null -> null
+        ProxyType.HTTP -> config.proxy
+        else -> throw IllegalStateException("CIO engine does not currently support $type proxies.")
+    }
+
     private val endpoints = ConcurrentMap<String, Endpoint>()
 
     private val selectorManager = SelectorManager(dispatcher)
@@ -46,12 +55,6 @@ internal class CIOEngine(
     private val requestsJob: CoroutineContext
 
     override val coroutineContext: CoroutineContext
-
-    private val proxy: ProxyConfig? = when (val type = config.proxy?.type) {
-        null -> null
-        ProxyType.HTTP -> config.proxy
-        else -> throw IllegalStateException("CIO engine does not currently support $type proxies.")
-    }
 
     init {
         configurePlatform()
