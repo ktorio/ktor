@@ -9,6 +9,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.resources.*
 import io.ktor.resources.serialization.*
+import io.ktor.server.plugins.statuspages.*
 import io.ktor.server.resources.*
 import io.ktor.server.resources.Resources
 import io.ktor.server.resources.patch
@@ -18,6 +19,8 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import kotlinx.serialization.*
+import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.encoding.*
 import kotlin.jvm.*
 import kotlin.test.*
 
@@ -526,4 +529,362 @@ class ResourcesTest {
         assertEquals(client.put("/body") { setBody(body) }.bodyAsText(), body)
         assertEquals(client.patch("/body") { setBody(body) }.bodyAsText(), body)
     }
+
+    class CustomValidationException(message: String) : IllegalArgumentException(message)
+
+    @Resource("/viewport")
+    class Viewport(val west: Double, val east: Double) {
+        init {
+            if (east <= west) {
+                throw CustomValidationException("east ($east) must be greater than west ($west)")
+            }
+        }
+    }
+
+    @Test
+    fun `KTOR-7082 exception thrown from resource init block reaches StatusPages handler for its own type`() =
+        testResourcesApplication {
+            install(StatusPages) {
+                exception<CustomValidationException> { call, cause ->
+                    call.respondText(cause.message ?: "", status = HttpStatusCode.UnprocessableEntity)
+                }
+            }
+            routing {
+                get<Viewport> {
+                    call.respondText("OK ${it.west},${it.east}")
+                }
+            }
+
+            val response = client.get("/viewport?west=9&east=2")
+            assertEquals(HttpStatusCode.UnprocessableEntity, response.status)
+            assertTrue(response.bodyAsText().contains("must be greater than"))
+        }
+
+    @Test
+    fun `KTOR-7082 malformed query parameter still yields generic BadRequestException`() =
+        testResourcesApplication {
+            install(StatusPages) {
+                exception<CustomValidationException> { call, cause ->
+                    call.respondText(cause.message ?: "", status = HttpStatusCode.UnprocessableEntity)
+                }
+            }
+            routing {
+                get<Viewport> {
+                    call.respondText("OK ${it.west},${it.east}")
+                }
+            }
+
+            val response = client.get("/viewport?west=abc&east=2")
+            assertEquals(HttpStatusCode.BadRequest, response.status)
+        }
+
+    @Resource("/callback")
+    class CallbackUrl(val url: Url)
+
+    @Test
+    fun `KTOR-7082 malformed value from a custom property serializer still yields BadRequestException`() =
+        testResourcesApplication {
+            routing {
+                get<CallbackUrl> {
+                    call.respondText("OK ${it.url}")
+                }
+            }
+
+            // Invalid URL: UrlSerializer throws URLParserException, an IllegalStateException.
+            val response = client.get("/callback?url=%3A%3A%3A")
+            assertEquals(HttpStatusCode.BadRequest, response.status)
+        }
+
+    // Mimics validation that throws the same exception type a decoder would.
+    @Resource("/manual-int")
+    class ManualInt(val raw: String) {
+        val value: Int = raw.toInt()
+    }
+
+    @Resource("/manual-index")
+    class ManualIndex(val raw: String) {
+        val parts: List<String> = raw.split(";")
+        val second: String = parts[1]
+    }
+
+    @Test
+    fun `KTOR-7082 NumberFormatException from resource construction is not treated as a decode failure`() =
+        testResourcesApplication {
+            install(StatusPages) {
+                exception<NumberFormatException> { call, cause ->
+                    call.respondText(cause.message ?: "", status = HttpStatusCode.UnprocessableEntity)
+                }
+            }
+            routing {
+                get<ManualInt> {
+                    call.respondText("OK ${it.value}")
+                }
+            }
+
+            val response = client.get("/manual-int?raw=abc")
+            assertEquals(HttpStatusCode.UnprocessableEntity, response.status)
+        }
+
+    @Test
+    fun `KTOR-7082 IndexOutOfBoundsException from resource construction is not treated as a decode failure`() =
+        testResourcesApplication {
+            install(StatusPages) {
+                exception<IndexOutOfBoundsException> { call, cause ->
+                    call.respondText(cause.message ?: "", status = HttpStatusCode.UnprocessableEntity)
+                }
+            }
+            routing {
+                get<ManualIndex> {
+                    call.respondText("OK ${it.second}")
+                }
+            }
+
+            val response = client.get("/manual-index?raw=only")
+            assertEquals(HttpStatusCode.UnprocessableEntity, response.status)
+        }
+
+    class ParentValidationException(message: String) : IllegalArgumentException(message)
+
+    @Resource("/validated-parent/{id}")
+    class ValidatedParent(val id: Int) {
+        init {
+            if (id <= 0) throw ParentValidationException("id ($id) must be positive")
+        }
+
+        @Resource("/child")
+        class Child(val parent: ValidatedParent)
+    }
+
+    @Test
+    fun `KTOR-7082 exception from a nested resource parent's init block is not treated as a decode failure`() =
+        testResourcesApplication {
+            install(StatusPages) {
+                exception<ParentValidationException> { call, cause ->
+                    call.respondText(cause.message ?: "", status = HttpStatusCode.UnprocessableEntity)
+                }
+            }
+            routing {
+                get<ValidatedParent.Child> {
+                    call.respondText("OK ${it.parent.id}")
+                }
+            }
+
+            val response = client.get("/validated-parent/-1/child")
+            assertEquals(HttpStatusCode.UnprocessableEntity, response.status)
+        }
+
+    // Non-resource composite serializer that rejects a field combination, e.g. month=13.
+    class YearMonth(val year: Int, val month: Int)
+
+    object YearMonthSerializer : KSerializer<YearMonth> {
+        override val descriptor = buildClassSerialDescriptor("YearMonth") {
+            element<Int>("year")
+            element<Int>("month")
+        }
+
+        override fun serialize(encoder: Encoder, value: YearMonth) {
+            encoder.encodeStructure(descriptor) {
+                encodeIntElement(descriptor, 0, value.year)
+                encodeIntElement(descriptor, 1, value.month)
+            }
+        }
+
+        override fun deserialize(decoder: Decoder): YearMonth = decoder.decodeStructure(descriptor) {
+            var year = 0
+            var month = 0
+            while (true) {
+                when (val index = decodeElementIndex(descriptor)) {
+                    0 -> year = decodeIntElement(descriptor, 0)
+                    1 -> month = decodeIntElement(descriptor, 1)
+                    CompositeDecoder.DECODE_DONE -> break
+                    else -> error("Unexpected index $index")
+                }
+            }
+            require(month in 1..12) { "month ($month) must be between 1 and 12" }
+            YearMonth(year, month)
+        }
+    }
+
+    @Resource("/date")
+    class DateResource(@Serializable(with = YearMonthSerializer::class) val ym: YearMonth)
+
+    @Test
+    fun `KTOR-7082 non-resource composite serializer rejecting a field combination still yields BadRequestException`() =
+        testResourcesApplication {
+            routing {
+                get<DateResource> {
+                    call.respondText("OK ${it.ym.year}-${it.ym.month}")
+                }
+            }
+
+            val response = client.get("/date?year=2024&month=13")
+            assertEquals(HttpStatusCode.BadRequest, response.status)
+        }
+
+    @Resource("/embedded-serialization")
+    class EmbeddedSerialization(val raw: String) {
+        init {
+            if (raw == "bad") throw SerializationException("embedded content is not valid: '$raw'")
+        }
+    }
+
+    @Test
+    fun `KTOR-7082 SerializationException thrown from resource init block reaches its own StatusPages handler`() =
+        testResourcesApplication {
+            install(StatusPages) {
+                exception<SerializationException> { call, cause ->
+                    call.respondText(cause.message ?: "", status = HttpStatusCode.UnprocessableEntity)
+                }
+            }
+            routing {
+                get<EmbeddedSerialization> {
+                    call.respondText("OK ${it.raw}")
+                }
+            }
+
+            val response = client.get("/embedded-serialization?raw=bad")
+            assertEquals(HttpStatusCode.UnprocessableEntity, response.status)
+        }
+
+    // MissingFieldException is also kotlinx.serialization's own type, thrown by init for unrelated reasons here.
+    @OptIn(ExperimentalSerializationApi::class)
+    @Resource("/embedded-missing-field")
+    class EmbeddedMissingField(val raw: String) {
+        init {
+            if (raw == "bad") throw MissingFieldException("embeddedField", "EmbeddedPayload")
+        }
+    }
+
+    @OptIn(ExperimentalSerializationApi::class)
+    @Test
+    fun `KTOR-7082 MissingFieldException thrown from resource init block reaches its own StatusPages handler`() =
+        testResourcesApplication {
+            install(StatusPages) {
+                exception<MissingFieldException> { call, cause ->
+                    call.respondText(cause.message ?: "", status = HttpStatusCode.UnprocessableEntity)
+                }
+            }
+            routing {
+                get<EmbeddedMissingField> {
+                    call.respondText("OK ${it.raw}")
+                }
+            }
+
+            val response = client.get("/embedded-missing-field?raw=bad")
+            assertEquals(HttpStatusCode.UnprocessableEntity, response.status)
+        }
+
+    @Resource("/missing-required")
+    class MissingRequired(val required: Int)
+
+    @Test
+    fun `KTOR-7082 missing required parameter still yields BadRequestException`() =
+        testResourcesApplication {
+            routing {
+                get<MissingRequired> {
+                    call.respondText("OK ${it.required}")
+                }
+            }
+
+            val response = client.get("/missing-required")
+            assertEquals(HttpStatusCode.BadRequest, response.status)
+        }
+
+    object StrictEvenIntSerializer : KSerializer<Int> {
+        override val descriptor = PrimitiveSerialDescriptor("StrictEvenInt", PrimitiveKind.INT)
+
+        override fun serialize(encoder: Encoder, value: Int) = encoder.encodeInt(value)
+
+        override fun deserialize(decoder: Decoder): Int {
+            val value = decoder.decodeInt()
+            if (value % 2 != 0) throw SerializationException("value ($value) must be even")
+            return value
+        }
+    }
+
+    @Resource("/even")
+    class EvenNumber(@Serializable(with = StrictEvenIntSerializer::class) val value: Int)
+
+    @Test
+    fun `KTOR-7082 property serializer throwing SerializationException still yields BadRequestException`() =
+        testResourcesApplication {
+            install(StatusPages) {
+                exception<SerializationException> { call, cause ->
+                    call.respondText(cause.message ?: "", status = HttpStatusCode.UnprocessableEntity)
+                }
+            }
+            routing {
+                get<EvenNumber> {
+                    call.respondText("OK ${it.value}")
+                }
+            }
+
+            val response = client.get("/even?value=3")
+            assertEquals(HttpStatusCode.BadRequest, response.status)
+        }
+
+    class ThingValidationException(message: String) : IllegalArgumentException(message)
+
+    @Resource("/validating-thing")
+    class ValidatingThing(val a: Int, val b: Int) {
+        init {
+            if (a < 0 || b < 0) throw ThingValidationException("a ($a) and b ($b) must be non-negative")
+        }
+    }
+
+    object ValidatingThingSerializer : KSerializer<ValidatingThing> by ValidatingThing.serializer() {
+        override fun deserialize(decoder: Decoder): ValidatingThing {
+            // decodeSerializableValue, not delegate.deserialize(decoder) directly, preserves ValidatingThing's
+            // own constructor-exception semantics (see isResourceClass in Decoders.kt).
+            val thing = decoder.decodeSerializableValue(ValidatingThing.serializer())
+            if (thing.a + thing.b > 100) {
+                throw SerializationException("a+b (${thing.a + thing.b}) must not exceed 100")
+            }
+            return thing
+        }
+    }
+
+    @Test
+    fun `KTOR-7082 custom serializer's own validation for a resource type yields BadRequestException`() =
+        testResourcesApplication {
+            install(StatusPages) {
+                exception<SerializationException> { call, cause ->
+                    call.respondText(cause.message ?: "", status = HttpStatusCode.UnprocessableEntity)
+                }
+            }
+            routing {
+                resource(ValidatingThingSerializer) {
+                    method(HttpMethod.Get) {
+                        handle(ValidatingThingSerializer) { thing ->
+                            call.respondText("OK ${thing.a}+${thing.b}")
+                        }
+                    }
+                }
+            }
+
+            val response = client.get("/validating-thing?a=60&b=60")
+            assertEquals(HttpStatusCode.BadRequest, response.status)
+        }
+
+    @Test
+    fun `KTOR-7082 delegate resource's own init validation still reaches its own StatusPages handler`() =
+        testResourcesApplication {
+            install(StatusPages) {
+                exception<ThingValidationException> { call, cause ->
+                    call.respondText(cause.message ?: "", status = HttpStatusCode.UnprocessableEntity)
+                }
+            }
+            routing {
+                resource(ValidatingThingSerializer) {
+                    method(HttpMethod.Get) {
+                        handle(ValidatingThingSerializer) { thing ->
+                            call.respondText("OK ${thing.a}+${thing.b}")
+                        }
+                    }
+                }
+            }
+
+            val response = client.get("/validating-thing?a=-1&b=1")
+            assertEquals(HttpStatusCode.UnprocessableEntity, response.status)
+        }
 }
