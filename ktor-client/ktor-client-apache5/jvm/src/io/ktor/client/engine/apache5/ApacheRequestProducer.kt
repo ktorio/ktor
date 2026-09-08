@@ -73,6 +73,7 @@ private fun setupRequest(requestData: HttpRequestData, config: Apache5EngineConf
             .setRedirectsEnabled(followRedirects)
             .setConnectionRequestTimeout(connectionRequestTimeout, TimeUnit.MILLISECONDS)
             .customRequest()
+            .setContentCompressionEnabled(false)
             .build()
     }
 
