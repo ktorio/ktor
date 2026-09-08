@@ -62,7 +62,6 @@ pebble = "4.1.2"
 velocity = "2.4.1"
 velocity-tools = "3.1"
 webjars-locator = "0.59"
-webjars-jquery = "3.7.1"
 thymeleaf = "3.1.5.RELEASE"
 jte = "3.2.4"
 
@@ -231,7 +230,6 @@ pebble = { module = "io.pebbletemplates:pebble", version.ref = "pebble" }
 velocity = { module = "org.apache.velocity:velocity-engine-core", version.ref = "velocity" }
 velocity-tools = { module = "org.apache.velocity.tools:velocity-tools-generic", version.ref = "velocity-tools" }
 webjars-locator = { module = "org.webjars:webjars-locator-core", version.ref = "webjars-locator" }
-webjars-jquery = { module = "org.webjars:jquery", version.ref = "webjars-jquery" }
 thymeleaf = { module = "org.thymeleaf:thymeleaf", version.ref = "thymeleaf" }
 jte = { module = "gg.jte:jte", version.ref = "jte" }
 jte-kotlin = { module = "gg.jte:jte-kotlin", version.ref = "jte" }
