@@ -203,7 +203,7 @@ internal suspend fun checkResponse(response: HttpResponse) {
             message = "Expected status code ${HttpStatusCode.OK.value} but was ${status.value}"
         )
     }
-    if (contentType?.withoutParameters() != ContentType.Text.EventStream) {
+    if (contentType != null && contentType.withoutParameters() != ContentType.Text.EventStream) {
         throw SSEClientException(
             response.saved(),
             message = "Expected Content-Type ${ContentType.Text.EventStream} but was $contentType"
