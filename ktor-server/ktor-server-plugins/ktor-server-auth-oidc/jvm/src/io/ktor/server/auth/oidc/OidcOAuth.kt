@@ -8,6 +8,7 @@ import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.utils.io.InternalAPI
 
 internal fun Application.configureOAuthRoute(provider: OidcProvider) {
     val config = provider.oauthConfig
@@ -79,17 +80,26 @@ internal fun Application.configureOAuthRoute(provider: OidcProvider) {
     }
 }
 
+@OptIn(InternalAPI::class)
 context(context: RoutingContext)
 internal suspend fun OidcProvider.handleOAuthCallbackSuccess(
     response: OAuthAccessTokenResponse.OAuth2,
-): OidcToken.Id = withCapturedState {
+    onOAuthFailure: UnauthorizedHandler
+): OidcToken.Id? = withCapturedState {
     val call = context.call
-    call.validateAuthorizationResponseIssuer()
-    val oauthState = response.state ?: call.request.queryParameters["state"]
-    val authorizationTransaction = oauthState?.let { state ->
-        call.consumeAuthorizationTransaction(stateCookieName, stateCodec, state)
+    try {
+        // The authorization response issuer is validated in verifyState, before the token exchange.
+        val oauthState = response.state ?: call.request.queryParameters["state"]
+        val authorizationTransaction = oauthState?.let { state ->
+            call.consumeAuthorizationTransaction(stateCookieName, stateCodec, state)
+        }
+        val expectedNonce = authorizationTransaction?.nonce
+        return buildOAuthToken(response, expectedNonce)
+    } catch (cause: OidcTokenRejectedException) {
+        val failure = AuthenticationFailedCause.Error(cause.message)
+        call.authentication.processFailure(failure, onOAuthFailure)
+        null
     }
-    return buildOAuthToken(response, expectedNonce = authorizationTransaction?.nonce)
 }
 
 context(state: OidcProvider.State)

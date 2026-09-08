@@ -87,6 +87,11 @@ private suspend fun OidcProvider.refreshSession(
 ): OidcToken.Id? {
     val newToken = try {
         refresh()
+    } catch (cause: OidcTokenRejectedException) {
+        // The provider answered, but with a token that cannot be trusted.
+        logger.debug("OpenID Connect session refresh returned an invalid token: {}", cause.message)
+        clearOidcSession()
+        return null
     } catch (cause: Exception) {
         clearSessionIfExpired(token, now)
         throw cause

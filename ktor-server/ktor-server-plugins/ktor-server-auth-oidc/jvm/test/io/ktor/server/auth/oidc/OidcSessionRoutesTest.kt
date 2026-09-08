@@ -265,6 +265,43 @@ class OidcSessionRoutesTest {
     }
 
     @Test
+    fun `auto refresh clears session when refreshed id token fails verification`() = testApplication {
+        val keys = testRsaKeys
+        val idTokensByState = ConcurrentHashMap<String, String>()
+
+        openIdRefreshProvider(idTokensByState) {
+            // Correctly signed, but issued for the wrong audience, so verification rejects it the way a real
+            // provider misconfiguration would.
+            call.respondText(
+                openIdTestJson.encodeToString(
+                    TokenRefreshResponse(
+                        accessToken = "access-token-2",
+                        tokenType = "Bearer",
+                        refreshToken = "refresh-token-2",
+                        idToken = keys.idToken(subject = "session-user") { audience = "wrong-audience" },
+                    )
+                ),
+                ContentType.Application.Json,
+            )
+        }
+        installSessionTestApp(keys) {
+            tokenRefreshStrategy = OidcTokenRefreshStrategy.Auto(beforeExpiry = 30.seconds)
+        }
+
+        val browser = noRedirectsClient()
+        val cookie = browser.signInWithIdToken(idTokensByState, keys, expiresIn = 10.seconds)
+
+        // A rejected refresh must fail authentication, not the request itself.
+        val response = browser.get("/me") { header(HttpHeaders.Cookie, cookie) }
+        assertEquals(HttpStatusCode.Unauthorized, response.status)
+
+        // The session can never recover, so it is dropped rather than left to fail on every later request.
+        val setCookie = assertNotNull(response.headers[HttpHeaders.SetCookie])
+        assertContains(setCookie, "$OIDC_TEST_SESSION_NAME=;")
+        browser.assertMe(cookie, HttpStatusCode.Unauthorized)
+    }
+
+    @Test
     fun `custom refresh can keep or refresh session`() = testApplication {
         val keys = testRsaKeys
         val idTokensByState = ConcurrentHashMap<String, String>()

@@ -80,25 +80,26 @@ internal fun OidcProvider.createIntrospectionBearerScheme(
     )
 }
 
-internal val OidcProvider.oauthFailureHandler: UnauthorizedHandler
-    get() = UnauthorizedHandler { cause ->
-        val message = (cause as? AuthenticationFailedCause.Error)?.message ?: cause.toString()
-        logger.debug("OAuth authentication failed for: {}", message)
-        with(oauthConfig.onAuthenticationFailed) { onUnauthorized(cause) }
-    }
+internal fun OidcProvider.createOAuthFailureHandler() = UnauthorizedHandler { cause ->
+    val message = (cause as? AuthenticationFailedCause.Error)?.message ?: cause.toString()
+    logger.debug("OAuth authentication failed for: {}", message)
+    with(oauthConfig.onAuthenticationFailed) { onUnauthorized(cause) }
+}
 
-internal fun OidcProvider.createOauthFlow(): OAuth2Flow {
+internal fun OidcProvider.createOAuthFlow(): OAuth2Flow {
     val loginPath = oidcRoutePath(oauthConfig.loginUri)
     val redirectPath = oidcRoutePath(oauthConfig.redirectUri)
+    val onOAuthFailure = createOAuthFailureHandler()
 
     return oauth2(name) {
-        client = this@createOauthFlow.client
+        client = this@createOAuthFlow.client
         providerLookup = { withCapturedState { oauthServerSettings() } }
-        onUnauthorized = oauthFailureHandler
+        onUnauthorized = onOAuthFailure
         this.loginPath = loginPath
 
         callback(redirectPath) callback@{ response ->
-            val token = handleOAuthCallbackSuccess(response)
+            val token = handleOAuthCallbackSuccess(response, onOAuthFailure)
+                ?: return@callback
             oauthConfig.onAuthenticated(this, token)
         }
     }
@@ -111,6 +112,7 @@ internal fun OidcProvider.createOAuthSession(
     val sessionConfig = sessionConfig
     val loginPath = oidcRoutePath(config.loginUri)
     val redirectPath = oidcRoutePath(config.redirectUri)
+    val onOAuthFailure = createOAuthFailureHandler()
 
     val sessionFormat = Json { ignoreUnknownKeys = true }
     val sessionSerializer = KotlinxSessionSerializer(OidcToken.Id.serializer(), sessionFormat)
@@ -118,12 +120,11 @@ internal fun OidcProvider.createOAuthSession(
     val sessionFlowConfig = OAuthSessionFlowConfig<OidcToken.Id, OidcToken.Id>().apply {
         client = this@createOAuthSession.client
         providerLookup = { withCapturedState { oauthServerSettings() } }
-        onUnauthorized = oauthFailureHandler
+        onUnauthorized = onOAuthFailure
         this.loginPath = loginPath
 
         callback(
             path = redirectPath,
-            onFailure = config.onAuthenticationFailed,
             onSuccess = { config.onAuthenticated(this, call.session) },
         )
 
@@ -138,7 +139,7 @@ internal fun OidcProvider.createOAuthSession(
                 sessionConfig.cookieConfigure?.invoke(this)
             }
 
-            sessionCreator = { response -> handleOAuthCallbackSuccess(response) }
+            sessionCreator = { response -> handleOAuthCallbackSuccess(response, onOAuthFailure) }
 
             transformSession { refreshSessionIfNeeded(token = it) }
 

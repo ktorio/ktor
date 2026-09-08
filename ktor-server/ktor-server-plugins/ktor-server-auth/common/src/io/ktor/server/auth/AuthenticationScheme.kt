@@ -237,10 +237,8 @@ internal fun <P : Any, R : Any, C> AuthenticationScheme<P, C>.mapPrincipal(
             principalResolver.resolveFrom(ctx)?.let { source ->
                 val mapped = transform(ctx.call.toRoutingContext(), source)
                 if (mapped == null) {
-                    ctx.challenge(
-                        MapPrincipalFailureKey,
-                        AuthenticationFailedCause.InvalidCredentials
-                    ) { challenge, _ ->
+                    val cause = AuthenticationFailedCause.InvalidCredentials
+                    ctx.challenge(MapPrincipalFailureKey, cause) { challenge, _ ->
                         challenge.complete()
                     }
                 }

@@ -196,7 +196,7 @@ public class OidcProvider internal constructor(
     @Volatile
     private var state: State? = null
 
-    internal val oauthFlow by lazy { createOauthFlow() }
+    internal val oauthFlow by lazy { createOAuthFlow() }
     internal val oauthSessionFlow by lazy { createOAuthSession(secureCookie = !developmentMode) }
 
     internal val stateCodec: OidcStateCodec by lazy { createStateCodec() }
