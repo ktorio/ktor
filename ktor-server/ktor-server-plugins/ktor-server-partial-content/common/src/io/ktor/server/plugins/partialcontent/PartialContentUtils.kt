@@ -13,7 +13,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.util.date.*
 import io.ktor.util.logging.*
-import kotlin.coroutines.*
+import kotlinx.coroutines.currentCoroutineContext
 import kotlin.random.*
 
 // RFC7233 sec 3.2
