@@ -31,33 +31,8 @@ public class KtorServletContainerInitializer : ServletContainerInitializer {
     override fun onStartup(classes: MutableSet<Class<*>>?, ctx: ServletContext) {
         // Embedded engine mode owns the lifecycle; do not register the listener.
         if (ctx.getAttribute(ApplicationAttributeKey) != null) return
-        ctx.addListener(KtorServletContextListener::class.java)
-    }
-}
-
-/**
- * Starts and stops a servlet-hosted Ktor application together with the web application context,
- * independently of when (or whether) the [ServletApplicationEngine] servlet is initialized.
- *
- * In a WAR deployment without `load-on-startup` the servlet container initializes the servlet lazily on
- * the first request. Binding the application lifecycle to `contextInitialized` / `contextDestroyed`
- * makes `ApplicationStarted` fire at deployment time instead of only after the first request, and
- * guarantees `ApplicationStopped` fires on undeploy even when no request was ever served (otherwise
- * resources released by `ApplicationStopped` handlers would leak).
- *
- * Registered automatically by [KtorServletContainerInitializer]; it can also be added as a `<listener>`
- * in `web.xml`.
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.servlet.jakarta.KtorServletContextListener)
- */
-public class KtorServletContextListener : ServletContextListener {
-    override fun contextInitialized(sce: ServletContextEvent) {
-        val ctx = sce.servletContext
-        // Embedded engine mode owns the lifecycle.
-        if (ctx.getAttribute(ApplicationAttributeKey) != null) return
-        // Defensive: never start the application twice.
-        if (ctx.managedEmbeddedServer() != null) return
-
+        
+        // Required for lifecycle events in Tomcat
         val registrations = ctx.servletRegistrations?.values?.filter { registration ->
             val className = registration.className ?: return@filter false
             val servletClass = runCatching { ctx.classLoader.loadClass(className) }.getOrNull()
@@ -84,6 +59,30 @@ public class KtorServletContextListener : ServletContextListener {
 
         ctx.setAttribute(ManagedServerKey, bootstrap.server)
         ctx.setAttribute(ApplicationEnginePipelineAttributeKey, bootstrap.enginePipeline)
+
+        ctx.addListener(KtorServletContextListener::class.java)
+    }
+}
+
+/**
+ * Starts and stops a servlet-hosted Ktor application together with the web application context,
+ * independently of when (or whether) the [ServletApplicationEngine] servlet is initialized.
+ *
+ * In a WAR deployment without `load-on-startup` the servlet container initializes the servlet lazily on
+ * the first request. Binding the application lifecycle to `contextInitialized` / `contextDestroyed`
+ * makes `ApplicationStarted` fire at deployment time instead of only after the first request, and
+ * guarantees `ApplicationStopped` fires on undeploy even when no request was ever served (otherwise
+ * resources released by `ApplicationStopped` handlers would leak).
+ *
+ * Registered automatically by [KtorServletContainerInitializer]; it can also be added as a `<listener>`
+ * in `web.xml`.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.servlet.jakarta.KtorServletContextListener)
+ */
+public class KtorServletContextListener : ServletContextListener {
+    override fun contextInitialized(sce: ServletContextEvent) {
+        // The application is already started by KtorServletContainerInitializer.onStartup() at
+        // deployment time; this listener only exists to hook contextDestroyed().
     }
 
     override fun contextDestroyed(sce: ServletContextEvent) {
