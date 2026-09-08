@@ -6,6 +6,8 @@ package io.ktor.util.collections
 
 import io.ktor.utils.io.*
 import kotlinx.atomicfu.*
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
+import kotlin.concurrent.atomics.atomicArrayOfNulls
 
 private typealias Core<E> = LockFreeMPSCQueueCore<E>
 
@@ -68,6 +70,7 @@ public class LockFreeMPSCQueue<E : Any> {
  *
  * @see LockFreeMPSCQueue
  */
+@OptIn(ExperimentalAtomicApi::class)
 private class LockFreeMPSCQueueCore<E : Any>(private val capacity: Int) {
     private val mask = capacity - 1
     private val nextRef = atomic<Core<E>?>(null)
@@ -75,7 +78,7 @@ private class LockFreeMPSCQueueCore<E : Any>(private val capacity: Int) {
     private val array = atomicArrayOfNulls<Any?>(capacity)
 
     private fun setArrayValueHelper(index: Int, value: Any?) {
-        array[index].value = value
+        array.storeAt(index, value)
     }
 
     init {
@@ -106,7 +109,7 @@ private class LockFreeMPSCQueueCore<E : Any>(private val capacity: Int) {
                 val newTail = (tail + 1) and MAX_CAPACITY_MASK
                 if (stateRef.compareAndSet(state, state.updateTail(newTail))) {
                     // successfully added
-                    array[tail and mask].value = element
+                    array.storeAt(tail and mask, element)
                     // could have been frozen & copied before this item was set -- correct it by filling placeholder
                     var cur = this
                     while (true) {
@@ -120,7 +123,7 @@ private class LockFreeMPSCQueueCore<E : Any>(private val capacity: Int) {
     }
 
     private fun fillPlaceholder(index: Int, element: E): Core<E>? {
-        val old = array[index and mask].value
+        val old = array.loadAt(index and mask)
         /*
          * addLast actions:
          * 1) Commit tail slot
@@ -132,7 +135,7 @@ private class LockFreeMPSCQueueCore<E : Any>(private val capacity: Int) {
          * perform *unique* check that current placeholder is our to avoid overwriting another producer placeholder
          */
         if (old is Placeholder && old.index == index) {
-            array[index and mask].value = element
+            array.storeAt(index and mask, element)
             // we've corrected missing element, should check if that propagated to further copies, just in case
             return this
         }
@@ -148,12 +151,12 @@ private class LockFreeMPSCQueueCore<E : Any>(private val capacity: Int) {
             state.withState { head, tail ->
                 if ((tail and mask) == (head and mask)) return null // empty
                 // because queue is Single Consumer, then element == null|Placeholder can only be when add has not finished yet
-                val element = array[head and mask].value ?: return null
+                val element = array.loadAt(head and mask) ?: return null
                 if (element is Placeholder) return null // same story -- consider it not added yet
                 // we cannot put null into array here, because copying thread could replace it with Placeholder and that is a disaster
                 val newHead = (head + 1) and MAX_CAPACITY_MASK
                 if (stateRef.compareAndSet(state, state.updateHead(newHead))) {
-                    array[head and mask].value = null // now can safely put null (state was updated)
+                    array.storeAt(head and mask, null) // now can safely put null (state was updated)
                     return element // successfully removed in fast-path
                 }
                 // Slow-path for remove in case of interference
@@ -175,7 +178,7 @@ private class LockFreeMPSCQueueCore<E : Any>(private val capacity: Int) {
                     return next() // continue to correct head in next
                 }
                 if (stateRef.compareAndSet(state, state.updateHead(newHead))) {
-                    array[head and mask].value = null // now can safely put null (state was updated)
+                    array.storeAt(head and mask, null) // now can safely put null (state was updated)
                     return null
                 }
             }
@@ -203,7 +206,7 @@ private class LockFreeMPSCQueueCore<E : Any>(private val capacity: Int) {
             var index = head
             while (index and mask != tail and mask) {
                 // replace nulls with placeholders on copy
-                val value = array[index and mask].value
+                val value = array.loadAt(index and mask)
                 next.setArrayValueHelper(index and next.mask, value ?: Placeholder(index))
                 index++
             }
