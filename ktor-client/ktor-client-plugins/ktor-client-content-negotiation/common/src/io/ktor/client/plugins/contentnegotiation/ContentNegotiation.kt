@@ -74,14 +74,16 @@ public fun interface ContentTypeMergeStrategy {
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.contentnegotiation.ContentTypeMergeStrategy.Default)
          */
         public val Default: ContentTypeMergeStrategy = ContentTypeMergeStrategy { registered, headers ->
-            registered.asSequence().filter { contentType ->
-                headers.none { h ->
-                    try {
-                        ContentType.parse(h).match(contentType)
-                    } catch (e: BadContentTypeFormatException) {
-                        false
-                    }
+            val acceptedTypes = headers.flatMap { parseHeaderValue(it) }.mapNotNull { header ->
+                try {
+                    val contentType = ContentType.parse(header.value)
+                    ContentType(contentType.contentType, contentType.contentSubtype, header.params)
+                } catch (_: BadContentTypeFormatException) {
+                    null
                 }
+            }
+            registered.asSequence().filter { contentType ->
+                acceptedTypes.none { it.match(contentType) }
             }
         }
 
