@@ -110,7 +110,7 @@ class ClientPluginsTest {
             }
             transformResponseBody { _, content, requestedType ->
                 assertEquals(String::class, requestedType.type)
-                content.readRemaining().readText() + "!"
+                content.readBuffer().readText() + "!"
             }
         }
 

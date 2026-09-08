@@ -41,6 +41,7 @@ class RouteTest {
     }
 
     @Test
+    @Suppress("DEPRECATION")
     fun testCanIntercept() = testApplication {
         routing {
             route("a") {
@@ -63,6 +64,7 @@ class RouteTest {
     }
 
     @Test
+    @Suppress("DEPRECATION")
     fun testCanInterceptBeforeAndAfterPhase() = testApplication {
         routing {
             route("a") {

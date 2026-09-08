@@ -189,7 +189,7 @@ public class DoubleReceiveException(call: HttpClientCall) : IllegalStateExceptio
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.call.ReceivePipelineException)
  */
-@Suppress("KDocMissingDocumentation", "unused")
+@Suppress("KDocMissingDocumentation")
 public class ReceivePipelineException(
     public val request: HttpClientCall,
     public val info: TypeInfo,

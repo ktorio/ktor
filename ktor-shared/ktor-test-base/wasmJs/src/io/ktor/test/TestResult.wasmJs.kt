@@ -12,6 +12,7 @@ internal actual val DummyTestResult: TestResult = Promise.resolve(Unit.asJsAny()
 actual inline fun TestResult.andThen(crossinline block: () -> Any): TestResult =
     asPromise().then { block().asJsAny() }.asTestResult()
 
+@PublishedApi
 internal actual inline fun TestResult.catch(crossinline action: (Throwable) -> Any): TestResult =
     asPromise().catch { action(it.toThrowableOrNull()!!).asJsAny() }.asTestResult()
 

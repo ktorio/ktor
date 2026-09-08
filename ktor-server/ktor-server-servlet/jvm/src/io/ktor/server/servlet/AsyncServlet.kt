@@ -115,6 +115,7 @@ public open class AsyncServletApplicationResponse(
     override fun createResponseJob(): ReaderJob =
         servletWriter(servletResponse.outputStream, idleTimeout)
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     public final override suspend fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
         try {
             servletResponse.flushBuffer()

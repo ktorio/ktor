@@ -115,7 +115,7 @@ class ApplicationRequestContentTest {
                 if (call.receiveType != typeInfo<IntList>()) return@intercept
                 val message = body as? ByteReadChannel ?: return@intercept
 
-                val string = message.readRemaining().readText()
+                val string = message.readBuffer().readText()
                 val transformed = IntList.parse(string)
                 proceedWith(transformed)
             }
@@ -219,10 +219,10 @@ class ApplicationRequestContentTest {
 
         application {
             intercept(ApplicationCallPipeline.Call) {
-                call.receiveChannel().readRemaining().use { packet ->
+                call.receiveChannel().readBuffer().use { packet ->
                     assertEquals(11, packet.remaining)
                 }
-                call.receiveChannel().readRemaining().use { packet ->
+                call.receiveChannel().readBuffer().use { packet ->
                     assertEquals(11, packet.remaining)
                 }
             }

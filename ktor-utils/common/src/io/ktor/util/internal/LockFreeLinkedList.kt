@@ -478,7 +478,7 @@ public open class LockFreeLinkedListNode {
 
         override fun retry(affected: Node, next: Any): Boolean = next !== queue
 
-        protected override fun onPrepare(affected: Node, next: Node): Any? {
+        override fun onPrepare(affected: Node, next: Node): Any? {
             // Note: onPrepare must use CAS to make sure the stale invocation is not
             // going to overwrite the previous decision on successful preparation.
             // Result of CAS is irrelevant, but we must ensure that it is set when invoker completes
@@ -514,7 +514,7 @@ public open class LockFreeLinkedListNode {
         final override val originalNext: Node? get() = _originalNext.value
 
         // check node predicates here, must signal failure if affect is not of type T
-        protected override fun failure(affected: Node, next: Any): Any? =
+        override fun failure(affected: Node, next: Any): Any? =
             if (affected === queue) LIST_EMPTY else null
 
         // validate the resulting node (return false if it should be deleted)

@@ -112,7 +112,6 @@ internal class BoundedChannel<T>(
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.from)
  */
-@OptIn(DelicateCoroutinesApi::class)
 @InternalAPI
 public fun <T> Channel.Factory.from(config: ChannelConfig): Channel<T> = with(config) {
     when {

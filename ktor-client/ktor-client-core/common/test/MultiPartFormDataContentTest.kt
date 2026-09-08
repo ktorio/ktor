@@ -30,7 +30,7 @@ class MultiPartFormDataContentTest {
         formData.writeTo(channel)
         channel.close()
 
-        val actual = channel.readRemaining().readByteArray()
+        val actual = channel.readBuffer().readByteArray()
 
         assertNotEquals('\r'.code.toByte(), actual[0])
         assertNotEquals('\n'.code.toByte(), actual[1])
@@ -321,7 +321,7 @@ class MultiPartFormDataContentTest {
             channel.close()
         }
 
-        val result = channel.readRemaining().readByteArray()
+        val result = channel.readBuffer().readByteArray()
         writeJob.join()
 
         result

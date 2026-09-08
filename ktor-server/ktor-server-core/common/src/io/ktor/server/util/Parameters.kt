@@ -60,6 +60,7 @@ public inline fun <reified R> Parameters.getOrFail(name: String): R =
 @Suppress("UNCHECKED_CAST")
 internal fun <R> Parameters.getOrFailImpl(name: String, typeInfo: TypeInfo): R {
     return if (typeInfo.isNullable && get(name) == null) {
+        @Suppress("UNCHECKED_CAST")
         null as R
     } else {
         val values = getAll(name) ?: throw MissingRequestParameterException(name)

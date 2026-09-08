@@ -47,7 +47,7 @@ internal fun logResponseHeader(
 }
 
 internal suspend inline fun ByteReadChannel.tryReadText(charset: Charset): String? = try {
-    readRemaining().readText(charset = charset)
+    readBuffer().readText(charset = charset)
 } catch (cause: Throwable) {
     null
 }

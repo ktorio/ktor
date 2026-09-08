@@ -45,12 +45,12 @@ private suspend fun getBodyBytes(content: OutgoingContent, callContext: Coroutin
     return when (content) {
         is OutgoingContent.ByteArrayContent -> content.bytes()
 
-        is OutgoingContent.ReadChannelContent -> content.readFrom().readRemaining().readByteArray()
+        is OutgoingContent.ReadChannelContent -> content.readFrom().readBuffer().readByteArray()
 
         is OutgoingContent.WriteChannelContent -> {
             GlobalScope.writer(callContext) {
                 content.writeTo(channel)
-            }.channel.readRemaining().readByteArray()
+            }.channel.readBuffer().readByteArray()
         }
 
         is OutgoingContent.ContentWrapper -> getBodyBytes(content.delegate(), callContext)

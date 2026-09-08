@@ -6,6 +6,7 @@ package io.ktor.util
 
 import kotlin.test.*
 
+@Suppress("DEPRECATION")
 class Base64Test {
 
     @Test

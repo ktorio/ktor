@@ -212,12 +212,12 @@ private fun parseHeaderValueParameterValueQuoted(value: String, start: Int): Pai
     loop@ while (position <= value.lastIndex) {
         val currentChar = value[position]
 
-        when {
-            currentChar == '"' && value.nextIsDelimiterOrEnd(position) -> {
+        when (currentChar) {
+            '"' if value.nextIsDelimiterOrEnd(position) -> {
                 return position + 1 to builder.toString()
             }
 
-            currentChar == '\\' && position < value.lastIndex - 2 -> {
+            '\\' if position < value.lastIndex - 2 -> {
                 builder.append(value[position + 1])
                 position += 2
                 continue@loop

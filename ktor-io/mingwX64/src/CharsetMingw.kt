@@ -74,6 +74,7 @@ internal actual fun CharsetEncoder.encodeImpl(input: CharSequence, fromIndex: In
 
                 while (inbytesleft.value.toLong() > 0) {
                     UnsafeBufferOperations.writeToTail(dst.buffer, 1) { to, toStart, toEnd ->
+                        @Suppress("REDUNDANT_CALL_OF_CONVERSION_METHOD")
                         to.usePinned {
                             outbuf.value = it.addressOf(toStart).reinterpret()
                             outbytesleft.value = (toEnd - toStart).toULong()
@@ -132,6 +133,7 @@ public actual fun CharsetDecoder.decode(input: Source, dst: Appendable, max: Int
                             outbytesleft.value = (chars.size * 2).toULong()
 
                             val result = iconv(cd, inbuf.ptr, inbytesleft.ptr, outbuf.ptr, outbytesleft.ptr)
+                            @Suppress("REDUNDANT_CALL_OF_CONVERSION_METHOD")
                             if (result == MAX_SIZE.toULong()) {
                                 checkIconvResult(posix_errno())
                             }

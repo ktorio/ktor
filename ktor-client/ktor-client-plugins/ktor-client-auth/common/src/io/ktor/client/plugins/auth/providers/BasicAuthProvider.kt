@@ -14,6 +14,7 @@ import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
+import kotlin.io.encoding.Base64
 
 /**
  * Installs the client's [BasicAuthProvider].
@@ -209,7 +210,7 @@ public class BasicAuthProvider(
 
 internal fun constructBasicAuthValue(credentials: BasicAuthCredentials): String {
     val authString = "${credentials.username}:${credentials.password}"
-    val authBuf = authString.toByteArray(Charsets.UTF_8).encodeBase64()
+    val authBuf = Base64.encode(authString.toByteArray(Charsets.UTF_8))
 
     return "Basic $authBuf"
 }

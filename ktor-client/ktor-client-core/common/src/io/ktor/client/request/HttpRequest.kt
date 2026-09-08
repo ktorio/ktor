@@ -12,7 +12,6 @@ import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
-import io.ktor.util.collections.*
 import io.ktor.util.date.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
@@ -431,6 +430,7 @@ public class SSEClientResponseAdapter : ResponseAdapter {
                 )
         ) {
             outgoingContent as SSEClientContent
+            @Suppress("DEPRECATION")
             DefaultClientSSESession(outgoingContent, responseBody)
         } else {
             null

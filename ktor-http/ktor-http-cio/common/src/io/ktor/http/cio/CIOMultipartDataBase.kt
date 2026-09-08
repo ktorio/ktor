@@ -83,12 +83,14 @@ public class CIOMultipartDataBase(
 
         val body = part.body
         if (filename == null) {
-            val packet = body.readRemaining()
+            val packet = body.readBuffer()
             packet.use {
+                @Suppress("DEPRECATION")
                 return PartData.FormItem(it.readText(), part::release, partHeaders, part::releaseSuspend)
             }
         }
 
+        @Suppress("DEPRECATION")
         return PartData.FileItem(
             { part.body },
             part::release,

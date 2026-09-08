@@ -207,7 +207,7 @@ class CIOEngineTest : ClientEngineTest<CIOEngineConfig>(CIO) {
         assertEquals("5\u0000", response.headers[HttpHeaders.ContentLength])
         val body = response.body
         assertIs<ByteReadChannel>(body)
-        assertEquals("hello", body.readRemaining().readText())
+        assertEquals("hello", body.readBuffer().readText())
     }
 
     @Test
@@ -218,7 +218,7 @@ class CIOEngineTest : ClientEngineTest<CIOEngineConfig>(CIO) {
         val body = response.body
         assertIs<ByteReadChannel>(body)
         assertFailsWith<ClosedByteChannelException> {
-            body.readRemaining()
+            body.readBuffer()
         }.apply {
             assertTrue { message!!.contains("request body length should be specified") }
         }

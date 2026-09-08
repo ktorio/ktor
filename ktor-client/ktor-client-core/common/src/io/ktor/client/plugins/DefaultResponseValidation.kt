@@ -11,7 +11,6 @@ import io.ktor.util.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.charsets.*
 import kotlin.jvm.*
-import kotlin.native.concurrent.*
 
 private val ValidateMark = AttributeKey<Unit>("ValidateMark")
 private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.DefaultResponseValidation")

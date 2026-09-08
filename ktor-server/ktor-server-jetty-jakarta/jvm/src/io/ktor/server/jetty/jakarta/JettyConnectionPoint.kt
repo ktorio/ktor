@@ -5,7 +5,6 @@
 package io.ktor.server.jetty.jakarta
 
 import io.ktor.http.*
-import io.ktor.utils.io.*
 import org.eclipse.jetty.server.Request
 
 internal class JettyConnectionPoint(

@@ -120,7 +120,6 @@ public suspend fun ByteReadChannel.readBuffer(): Buffer {
  * @return A [Buffer] containing the data read from the channel.
  */
 @Deprecated("Use Long parameter", ReplaceWith("readBuffer(max.toLong())"), DeprecationLevel.WARNING)
-@OptIn(InternalAPI::class)
 public suspend fun ByteReadChannel.readBuffer(max: Int): Buffer =
     readBuffer(max.toLong())
 
@@ -251,12 +250,10 @@ public suspend fun ByteReadChannel.readByteArray(count: Int): ByteArray = buildP
 }.readByteArray()
 
 @Deprecated("Use readBuffer()", ReplaceWith("readBuffer()"), DeprecationLevel.WARNING)
-@OptIn(InternalAPI::class, InternalIoApi::class)
 public suspend fun ByteReadChannel.readRemaining(): Source =
     readBuffer()
 
 @Deprecated("Use readBuffer(Long)", ReplaceWith("readBuffer(max)"), DeprecationLevel.WARNING)
-@OptIn(InternalAPI::class, InternalIoApi::class)
 public suspend fun ByteReadChannel.readRemaining(max: Long): Source =
     readBuffer(max)
 
@@ -562,7 +559,6 @@ public suspend fun ByteReadChannel.readUTF8LineTo(out: Appendable, max: Int = In
 @Suppress("DEPRECATION")
 @Deprecated("Use readLineStrictTo instead.")
 @InternalAPI
-@OptIn(InternalIoApi::class)
 public suspend fun ByteReadChannel.readUTF8LineTo(
     out: Appendable,
     max: Int = Int.MAX_VALUE,
@@ -615,7 +611,6 @@ public suspend fun ByteReadChannel.readLine(
  * @return the number of bytes read for the line content, or `-1` if the channel is exhausted before a line can
  * be read
  */
-@OptIn(InternalAPI::class)
 public suspend fun ByteReadChannel.readLineTo(
     out: Appendable,
     lineEnding: LineEnding = LineEnding.Default
@@ -679,7 +674,6 @@ public suspend fun ByteReadChannel.readLineStrict(
  * @throws TooLongLineException if the line exceeds [limit]
  * @throws EOFException if the channel is exhausted after reading line content but before a line delimiter is found
  */
-@OptIn(InternalAPI::class, InternalIoApi::class)
 public suspend fun ByteReadChannel.readLineStrictTo(
     out: Appendable,
     limit: Long = Long.MAX_VALUE,
@@ -925,7 +919,6 @@ public fun ByteChannel.rethrowCloseCauseIfNeeded() {
  * @return The number of bytes read, not including the search string.
  * @throws IOException If the limit is exceeded or the byteString is not found and ignoreMissing is false.
  */
-@OptIn(InternalAPI::class)
 public suspend fun ByteReadChannel.readUntil(
     matchString: ByteString,
     writeChannel: ByteWriteChannel,

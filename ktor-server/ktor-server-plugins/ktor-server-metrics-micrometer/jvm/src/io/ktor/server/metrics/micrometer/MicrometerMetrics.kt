@@ -255,14 +255,14 @@ public val MicrometerMetrics: ApplicationPlugin<MicrometerMetricsConfig> =
         @OptIn(InternalAPI::class)
         on(Metrics) { call ->
             if (call.request.httpMethod in DefaultMethods && (filters.isEmpty() || filters.any { it(call) })) {
-                active?.incrementAndGet()
+                active.incrementAndGet()
                 call.attributes.put(measureKey, CallMeasure(Timer.start(registry)))
             }
         }
 
         on(ResponseSent) { call ->
             call.attributes.getOrNull(measureKey)?.let { measure ->
-                active?.decrementAndGet()
+                active.decrementAndGet()
                 measure.timer.stop(
                     Timer.builder(metricName)
                         .addDefaultTags(call, measure.throwable)

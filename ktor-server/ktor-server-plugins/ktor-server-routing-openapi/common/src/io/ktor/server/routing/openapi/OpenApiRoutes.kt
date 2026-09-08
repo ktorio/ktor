@@ -361,6 +361,7 @@ private operator fun Response.plus(other: Response): Response =
         extensions = mergeNullable(extensions, other.extensions) { a, b -> a + b }
     )
 
+@Suppress("DEPRECATION")
 private operator fun Parameter.plus(other: Parameter): Parameter =
     Parameter(
         name = name,

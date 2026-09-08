@@ -513,7 +513,6 @@ internal constructor(
         _sessionIdProvider = { f() }
     }
 
-    @Suppress("UNUSED_PARAMETER")
     @Deprecated("Use identity function that accepts ApplicationCall parameter", level = DeprecationLevel.WARNING)
     public fun identity(f: () -> String, @Suppress("UNUSED_PARAMETER") dummy: Unit = Unit) {
         _sessionIdProvider = { f() }

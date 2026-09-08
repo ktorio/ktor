@@ -89,7 +89,7 @@ public sealed interface ReferenceOr<out A> {
         internal class Serializer<T>(
             private val dataSerializer: KSerializer<T>
         ) : KSerializer<ReferenceOr<T>> {
-            @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
+            @OptIn(InternalSerializationApi::class)
             override val descriptor: SerialDescriptor =
                 buildSerialDescriptor("io.ktor.openapi.ReferenceOr", SerialKind.CONTEXTUAL)
             private val refDescriptor = buildClassSerialDescriptor("io.ktor.openapi.ReferenceOr.ref") {

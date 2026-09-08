@@ -20,7 +20,7 @@ class ReadingTest {
     fun readsFromByteChannel() = runTest {
         val expected = "This is a test string"
         val channel = Channels.newChannel(ByteArrayInputStream(expected.encodeToByteArray()))
-        val actual = channel.toByteReadChannel().readRemaining().readText()
+        val actual = channel.toByteReadChannel().readBuffer().readText()
         assertEquals(expected, actual)
     }
 
@@ -30,7 +30,7 @@ class ReadingTest {
         val temp = Files.createTempFile("file", "txt")
         temp.writeText(expected)
         val channel = Files.newByteChannel(temp)
-        val actual = channel.toByteReadChannel().readRemaining().readText()
+        val actual = channel.toByteReadChannel().readBuffer().readText()
         assertEquals(expected, actual)
         assertFalse(channel.isOpen)
     }

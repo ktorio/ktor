@@ -6,7 +6,6 @@ package io.ktor.server.plugins.di
 
 import io.ktor.server.plugins.di.DependencyConflictResult.*
 import io.ktor.util.logging.*
-import kotlinx.coroutines.coroutineScope
 import kotlin.coroutines.CoroutineContext
 
 /**

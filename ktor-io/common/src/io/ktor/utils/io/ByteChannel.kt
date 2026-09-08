@@ -88,7 +88,6 @@ public class ByteChannel(public override val autoFlush: Boolean = false) : ByteR
     override val isClosedForRead: Boolean
         get() = (closedCause != null) || (isClosedForWrite && flushBufferSize == 0 && _readBuffer.exhausted())
 
-    @OptIn(InternalAPI::class)
     override suspend fun awaitContent(min: Int): Boolean {
         rethrowCloseCauseIfNeeded()
         if (_readBuffer.size >= min) return true

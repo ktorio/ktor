@@ -5,7 +5,6 @@
 package io.ktor.client.tests.utils
 
 import io.ktor.client.plugins.logging.*
-import kotlin.test.*
 
 /**
  * Test logger that provides ability to verify it's content after test.

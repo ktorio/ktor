@@ -972,7 +972,6 @@ public fun Route.default(localPath: File) {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.file)
  */
-
 @Deprecated("Please use `staticFiles` instead")
 @Suppress("DEPRECATION")
 public fun Route.file(remotePath: String, localPath: String = remotePath): Unit =
@@ -1004,7 +1003,6 @@ public fun Route.file(remotePath: String, localPath: File) {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.files)
  */
-
 @Deprecated("Please use `staticFiles` instead")
 @Suppress("DEPRECATION")
 public fun Route.files(folder: String): Unit = files(File(folder))
@@ -1040,7 +1038,6 @@ private val staticBasePackageName = AttributeKey<String>("BasePackage")
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.staticBasePackage)
  */
-
 @Deprecated("Please use `staticResources` instead")
 @Suppress("DEPRECATION")
 public var Route.staticBasePackage: String?
@@ -1064,7 +1061,6 @@ private fun String?.combinePackage(resourcePackage: String?) = when {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.resource)
  */
-
 @Deprecated("Please use `staticResources` instead")
 @Suppress("DEPRECATION")
 public fun Route.resource(remotePath: String, resource: String = remotePath, resourcePackage: String? = null) {
@@ -1088,7 +1084,6 @@ public fun Route.resource(remotePath: String, resource: String = remotePath, res
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.resources)
  */
-
 @Deprecated("Please use `staticResources` instead")
 @Suppress("DEPRECATION")
 public fun Route.resources(resourcePackage: String? = null) {
@@ -1113,7 +1108,6 @@ public fun Route.resources(resourcePackage: String? = null) {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.defaultResource)
  */
-
 @Deprecated("Please use `staticResources` instead")
 @Suppress("DEPRECATION")
 public fun Route.defaultResource(resource: String, resourcePackage: String? = null) {

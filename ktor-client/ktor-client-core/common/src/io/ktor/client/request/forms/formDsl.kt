@@ -11,7 +11,6 @@ import io.ktor.utils.io.core.*
 import kotlinx.io.Buffer
 import kotlinx.io.Sink
 import kotlinx.io.Source
-import kotlin.contracts.ExperimentalContracts
 
 /**
  * A multipart form item. Use it to build a form in client.
@@ -230,7 +229,6 @@ public class FormBuilder @PublishedApi internal constructor() {
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.forms.append)
  */
 
-@OptIn(ExperimentalContracts::class)
 public inline fun FormBuilder.append(
     key: String,
     headers: Headers = Headers.Empty,
@@ -271,7 +269,6 @@ public class ChannelProvider(public val size: Long? = null, public val block: ()
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.forms.append)
  */
 
-@OptIn(ExperimentalContracts::class)
 public fun FormBuilder.append(
     key: String,
     filename: String,
