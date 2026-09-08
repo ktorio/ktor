@@ -27,6 +27,15 @@ class CommonHeadersTest {
     }
 
     @Test
+    fun parseQualityParameterCaseInsensitive() {
+        val items = parseAndSortContentTypeHeader("audio/*; Q=0.2, audio/basic")
+        assertEquals(2, items.count())
+        assertEquals("audio/basic", items[0].value)
+        assertEquals("audio/*", items[1].value)
+        assertEquals(0.2, items[1].quality)
+    }
+
+    @Test
     fun parseAcceptHeaderWithPreference() {
         val items = parseAndSortContentTypeHeader("text/plain; q=0.5, text/html,text/x-dvi; q=0.8, text/x-c")
         assertEquals(4, items.count())
