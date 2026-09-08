@@ -14,7 +14,6 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import jakarta.servlet.ServletContext
-import jakarta.servlet.ServletContextEvent
 import jakarta.servlet.ServletRegistration
 import kotlin.test.Test
 
@@ -23,8 +22,13 @@ class KtorServletContainerInitializerTest {
 
     @Test
     fun registersLifecycleListenerWhenNotEmbedded() {
+        val registration = mockk<ServletRegistration>(relaxed = true) {
+            every { className } returns ServletApplicationEngine::class.java.name
+        }
         val ctx = mockk<ServletContext>(relaxed = true) {
             every { getAttribute(ApplicationAttributeKey) } returns null
+            every { classLoader } returns this@KtorServletContainerInitializerTest::class.java.classLoader
+            every { servletRegistrations } returns mapOf("ktor-servlet" to registration)
         }
 
         KtorServletContainerInitializer().onStartup(null, ctx)
@@ -54,12 +58,12 @@ class KtorServletContainerInitializerTest {
             every { classLoader } returns this@KtorServletContainerInitializerTest::class.java.classLoader
             every { servletRegistrations } returns mapOf("first" to registration, "second" to registration)
         }
-        val event = mockk<ServletContextEvent> { every { servletContext } returns ctx }
 
-        KtorServletContextListener().contextInitialized(event)
+        KtorServletContainerInitializer().onStartup(null, ctx)
 
         // Falls back to per-servlet self-bootstrap: warns and does not take over the lifecycle.
         verify { ctx.log(any()) }
         verify(exactly = 0) { ctx.setAttribute(ManagedServerKey, any()) }
+        verify(exactly = 0) { ctx.addListener(KtorServletContextListener::class.java) }
     }
 }
