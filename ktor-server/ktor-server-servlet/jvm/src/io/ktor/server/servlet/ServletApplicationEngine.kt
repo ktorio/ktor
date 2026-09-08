@@ -201,7 +201,8 @@ internal class ServletApplicationBootstrap(
  */
 internal fun bootstrapServletApplication(
     servletContext: ServletContext,
-    initParameters: List<Pair<String, String>>
+    initParameters: List<Pair<String, String>>,
+    classLoader: ClassLoader = servletContext.classLoader
 ): ServletApplicationBootstrap {
     val parameters = initParameters
         .filter { (name, _) -> name.startsWith("io.ktor.") }
@@ -216,7 +217,7 @@ internal fun bootstrapServletApplication(
     val environment = applicationEnvironment {
         config = combinedConfig
         log = LoggerFactory.getLogger(applicationId)
-        classLoader = servletContext.classLoader
+        this.classLoader = classLoader
     }
     val applicationProperties = serverConfig(environment) {
         rootPath = servletContext.contextPath ?: "/"

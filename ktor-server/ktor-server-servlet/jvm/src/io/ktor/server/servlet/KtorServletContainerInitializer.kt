@@ -54,11 +54,8 @@ public class KtorServletContainerInitializer : ServletContainerInitializer {
 
         val initParameters = registration.initParameters.toList() + ctx.contextInitParameters()
 
-        val bootstrap = bootstrapServletApplication(ctx, initParameters)
-        bootstrap.server.start()
-
-        ctx.setAttribute(ManagedServerKey, bootstrap.server)
-        ctx.setAttribute(ApplicationEnginePipelineAttributeKey, bootstrap.enginePipeline)
+        // Deferred to KtorServletContextListener.contextInitialized()
+        ctx.setAttribute(ResolvedConfigKey, ResolvedServletConfig(ctx.classLoader, initParameters))
 
         ctx.addListener(KtorServletContextListener::class.java)
     }
@@ -81,8 +78,15 @@ public class KtorServletContainerInitializer : ServletContainerInitializer {
  */
 public class KtorServletContextListener : ServletContextListener {
     override fun contextInitialized(sce: ServletContextEvent) {
-        // The application is already started by KtorServletContainerInitializer.onStartup() at
-        // deployment time; this listener only exists to hook contextDestroyed().
+        val ctx = sce.servletContext
+        val resolvedConfig = ctx.getAttribute(ResolvedConfigKey) as? ResolvedServletConfig ?: return
+        ctx.removeAttribute(ResolvedConfigKey)
+
+        val bootstrap = bootstrapServletApplication(ctx, resolvedConfig.initParameters, resolvedConfig.classLoader)
+        bootstrap.server.start()
+
+        ctx.setAttribute(ManagedServerKey, bootstrap.server)
+        ctx.setAttribute(ApplicationEnginePipelineAttributeKey, bootstrap.enginePipeline)
     }
 
     override fun contextDestroyed(sce: ServletContextEvent) {
@@ -95,6 +99,13 @@ public class KtorServletContextListener : ServletContextListener {
         ctx.removeAttribute(ApplicationEnginePipelineAttributeKey)
     }
 }
+
+internal const val ResolvedConfigKey: String = "_ktor_resolved_servlet_config"
+
+internal class ResolvedServletConfig(
+    val classLoader: ClassLoader,
+    val initParameters: List<Pair<String, String>>
+)
 
 private fun ServletContext.contextInitParameters(): List<Pair<String, String>> =
     initParameterNames?.toList().orEmpty().mapNotNull { name ->
