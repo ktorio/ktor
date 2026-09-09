@@ -58,6 +58,16 @@ class DataConversionTest {
         assertEquals(listOf("B"), toValues)
     }
 
+    @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
+    @Test
+    fun testDefaultConversionByte() {
+        val converted = DefaultConversionService.fromValues(listOf("1"), typeInfo<java.lang.Byte>())
+        assertEquals(1.toByte(), converted)
+
+        val toValues = DefaultConversionService.toValues(converted)
+        assertEquals(listOf("1"), toValues)
+    }
+
     @Test
     fun testDefaultConversionUUID() {
         val id = UUID.randomUUID()

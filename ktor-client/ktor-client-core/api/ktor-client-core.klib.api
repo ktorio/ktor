@@ -65,6 +65,7 @@ abstract interface io.ktor.client.plugins.cache.storage/CacheStorage { // io.kto
     abstract suspend fun remove(io.ktor.http/Url, kotlin.collections/Map<kotlin/String, kotlin/String>) // io.ktor.client.plugins.cache.storage/CacheStorage.remove|remove(io.ktor.http.Url;kotlin.collections.Map<kotlin.String,kotlin.String>){}[0]
     abstract suspend fun removeAll(io.ktor.http/Url) // io.ktor.client.plugins.cache.storage/CacheStorage.removeAll|removeAll(io.ktor.http.Url){}[0]
     abstract suspend fun store(io.ktor.http/Url, io.ktor.client.plugins.cache.storage/CachedResponseData) // io.ktor.client.plugins.cache.storage/CacheStorage.store|store(io.ktor.http.Url;io.ktor.client.plugins.cache.storage.CachedResponseData){}[0]
+    open suspend fun clear() // io.ktor.client.plugins.cache.storage/CacheStorage.clear|clear(){}[0]
 
     final object Companion { // io.ktor.client.plugins.cache.storage/CacheStorage.Companion|null[0]
         final val Disabled // io.ktor.client.plugins.cache.storage/CacheStorage.Companion.Disabled|{}Disabled[0]
@@ -117,6 +118,13 @@ abstract interface io.ktor.client.request/HttpRequest : io.ktor.http/HttpMessage
         abstract fun <get-url>(): io.ktor.http/Url // io.ktor.client.request/HttpRequest.url.<get-url>|<get-url>(){}[0]
     open val coroutineContext // io.ktor.client.request/HttpRequest.coroutineContext|{}coroutineContext[0]
         open fun <get-coroutineContext>(): kotlin.coroutines/CoroutineContext // io.ktor.client.request/HttpRequest.coroutineContext.<get-coroutineContext>|<get-coroutineContext>(){}[0]
+}
+
+abstract interface io.ktor.client/HttpClientEngineContainer { // io.ktor.client/HttpClientEngineContainer|null[0]
+    abstract val factory // io.ktor.client/HttpClientEngineContainer.factory|{}factory[0]
+        abstract fun <get-factory>(): io.ktor.client.engine/HttpClientEngineFactory<*> // io.ktor.client/HttpClientEngineContainer.factory.<get-factory>|<get-factory>(){}[0]
+    open val priority // io.ktor.client/HttpClientEngineContainer.priority|{}priority[0]
+        open fun <get-priority>(): kotlin/Double // io.ktor.client/HttpClientEngineContainer.priority.<get-priority>|<get-priority>(){}[0]
 }
 
 sealed interface io.ktor.client.plugins.sse/SSEBufferPolicy { // io.ktor.client.plugins.sse/SSEBufferPolicy|null[0]
@@ -348,19 +356,23 @@ final class io.ktor.client.engine/ClientEngineClosedException : kotlin/IllegalSt
         final fun <get-cause>(): kotlin/Throwable? // io.ktor.client.engine/ClientEngineClosedException.cause.<get-cause>|<get-cause>(){}[0]
 }
 
+final class io.ktor.client.engine/EngineEntry : io.ktor.client/HttpClientEngineContainer { // io.ktor.client.engine/EngineEntry|null[0]
+    constructor <init>(io.ktor.client.engine/HttpClientEngineFactory<io.ktor.client.engine/HttpClientEngineConfig>, kotlin/Double = ...) // io.ktor.client.engine/EngineEntry.<init>|<init>(io.ktor.client.engine.HttpClientEngineFactory<io.ktor.client.engine.HttpClientEngineConfig>;kotlin.Double){}[0]
+
+    final val factory // io.ktor.client.engine/EngineEntry.factory|{}factory[0]
+        final fun <get-factory>(): io.ktor.client.engine/HttpClientEngineFactory<io.ktor.client.engine/HttpClientEngineConfig> // io.ktor.client.engine/EngineEntry.factory.<get-factory>|<get-factory>(){}[0]
+    final val priority // io.ktor.client.engine/EngineEntry.priority|{}priority[0]
+        final fun <get-priority>(): kotlin/Double // io.ktor.client.engine/EngineEntry.priority.<get-priority>|<get-priority>(){}[0]
+}
+
 final class io.ktor.client.engine/ProxyConfig { // io.ktor.client.engine/ProxyConfig|null[0]
-    // Targets: [native]
+    constructor <init>() // io.ktor.client.engine/ProxyConfig.<init>|<init>(){}[0]
     constructor <init>(io.ktor.http/Url) // io.ktor.client.engine/ProxyConfig.<init>|<init>(io.ktor.http.Url){}[0]
 
-    // Targets: [native]
     final val url // io.ktor.client.engine/ProxyConfig.url|{}url[0]
         final fun <get-url>(): io.ktor.http/Url // io.ktor.client.engine/ProxyConfig.url.<get-url>|<get-url>(){}[0]
 
-    // Targets: [native]
     final fun toString(): kotlin/String // io.ktor.client.engine/ProxyConfig.toString|toString(){}[0]
-
-    // Targets: [js, wasmJs]
-    constructor <init>() // io.ktor.client.engine/ProxyConfig.<init>|<init>(){}[0]
 }
 
 final class io.ktor.client.network.sockets/ConnectTimeoutException : kotlinx.io/IOException { // io.ktor.client.network.sockets/ConnectTimeoutException|null[0]
@@ -409,6 +421,8 @@ final class io.ktor.client.plugins.cache.storage/CachedResponseData { // io.ktor
 }
 
 final class io.ktor.client.plugins.cache/HttpCache { // io.ktor.client.plugins.cache/HttpCache|null[0]
+    final suspend fun clearAllCaches() // io.ktor.client.plugins.cache/HttpCache.clearAllCaches|clearAllCaches(){}[0]
+
     final class Config { // io.ktor.client.plugins.cache/HttpCache.Config|null[0]
         constructor <init>() // io.ktor.client.plugins.cache/HttpCache.Config.<init>|<init>(){}[0]
 
@@ -1303,6 +1317,8 @@ final object io.ktor.client.engine/ProxyBuilder { // io.ktor.client.engine/Proxy
 
 final object io.ktor.client.engine/engines : kotlin.collections/Iterable<io.ktor.client.engine/HttpClientEngineFactory<io.ktor.client.engine/HttpClientEngineConfig>> { // io.ktor.client.engine/engines|null[0]
     final fun append(io.ktor.client.engine/HttpClientEngineFactory<io.ktor.client.engine/HttpClientEngineConfig>) // io.ktor.client.engine/engines.append|append(io.ktor.client.engine.HttpClientEngineFactory<io.ktor.client.engine.HttpClientEngineConfig>){}[0]
+    final fun append(io.ktor.client.engine/HttpClientEngineFactory<io.ktor.client.engine/HttpClientEngineConfig>, kotlin/Double) // io.ktor.client.engine/engines.append|append(io.ktor.client.engine.HttpClientEngineFactory<io.ktor.client.engine.HttpClientEngineConfig>;kotlin.Double){}[0]
+    final fun entries(): kotlin.collections/List<io.ktor.client.engine/EngineEntry> // io.ktor.client.engine/engines.entries|entries(){}[0]
     final fun iterator(): kotlin.collections/Iterator<io.ktor.client.engine/HttpClientEngineFactory<io.ktor.client.engine/HttpClientEngineConfig>> // io.ktor.client.engine/engines.iterator|iterator(){}[0]
 }
 
@@ -1497,6 +1513,7 @@ final fun (io.ktor.client.request/HttpRequestBuilder).io.ktor.client.request/par
 final fun (io.ktor.client.request/HttpRequestBuilder).io.ktor.client.request/setBody(kotlin/Any?, io.ktor.util.reflect/TypeInfo) // io.ktor.client.request/setBody|setBody@io.ktor.client.request.HttpRequestBuilder(kotlin.Any?;io.ktor.util.reflect.TypeInfo){}[0]
 final fun (io.ktor.client.request/HttpRequestBuilder).io.ktor.client.request/takeFrom(io.ktor.client.request/HttpRequest): io.ktor.client.request/HttpRequestBuilder // io.ktor.client.request/takeFrom|takeFrom@io.ktor.client.request.HttpRequestBuilder(io.ktor.client.request.HttpRequest){}[0]
 final fun (io.ktor.client.request/HttpRequestBuilder).io.ktor.client.request/takeFrom(io.ktor.client.request/HttpRequestData): io.ktor.client.request/HttpRequestBuilder // io.ktor.client.request/takeFrom|takeFrom@io.ktor.client.request.HttpRequestBuilder(io.ktor.client.request.HttpRequestData){}[0]
+final fun (io.ktor.client.request/HttpRequestBuilder).io.ktor.client.request/unixSocket(kotlin/String) // io.ktor.client.request/unixSocket|unixSocket@io.ktor.client.request.HttpRequestBuilder(kotlin.String){}[0]
 final fun (io.ktor.client.request/HttpRequestBuilder).io.ktor.client.request/url(io.ktor.http/Url) // io.ktor.client.request/url|url@io.ktor.client.request.HttpRequestBuilder(io.ktor.http.Url){}[0]
 final fun (io.ktor.client.request/HttpRequestBuilder).io.ktor.client.request/url(kotlin/Function1<io.ktor.http/URLBuilder, kotlin/Unit>) // io.ktor.client.request/url|url@io.ktor.client.request.HttpRequestBuilder(kotlin.Function1<io.ktor.http.URLBuilder,kotlin.Unit>){}[0]
 final fun (io.ktor.client.request/HttpRequestBuilder).io.ktor.client.request/url(kotlin/String) // io.ktor.client.request/url|url@io.ktor.client.request.HttpRequestBuilder(kotlin.String){}[0]
@@ -1695,7 +1712,7 @@ final suspend inline fun <#A: reified kotlin/Any?> (io.ktor.client.plugins.webso
 final suspend inline fun <#A: reified kotlin/Any?> (io.ktor.client.statement/HttpResponse).io.ktor.client.call/body(): #A // io.ktor.client.call/body|body@io.ktor.client.statement.HttpResponse(){0§<kotlin.Any?>}[0]
 
 // Targets: [native]
-final fun (io.ktor.client.request/HttpRequestBuilder).io.ktor.client.request/unixSocket(kotlin/String) // io.ktor.client.request/unixSocket|unixSocket@io.ktor.client.request.HttpRequestBuilder(kotlin.String){}[0]
+final fun io.ktor.client.plugins.cache.storage/FileStorage(kotlinx.io.files/Path, kotlinx.io.files/FileSystem = ..., kotlinx.coroutines/CoroutineDispatcher = ...): io.ktor.client.plugins.cache.storage/CacheStorage // io.ktor.client.plugins.cache.storage/FileStorage|FileStorage(kotlinx.io.files.Path;kotlinx.io.files.FileSystem;kotlinx.coroutines.CoroutineDispatcher){}[0]
 
 // Targets: [js, wasmJs]
 abstract interface io.ktor.client.fetch/AbortSignal : io.ktor.client.fetch/EventTarget { // io.ktor.client.fetch/AbortSignal|null[0]
@@ -1948,6 +1965,9 @@ final class io.ktor.client.engine.js/JsError : kotlin/Throwable { // io.ktor.cli
 open class io.ktor.client.engine.js/JsClientEngineConfig : io.ktor.client.engine/HttpClientEngineConfig { // io.ktor.client.engine.js/JsClientEngineConfig|null[0]
     constructor <init>() // io.ktor.client.engine.js/JsClientEngineConfig.<init>|<init>(){}[0]
 
+    final var fetch // io.ktor.client.engine.js/JsClientEngineConfig.fetch|{}fetch[0]
+        final fun <get-fetch>(): kotlin/Function2<kotlin/String, io.ktor.client.fetch/RequestInit?, kotlin.js/Promise<org.w3c.fetch/Response>> // io.ktor.client.engine.js/JsClientEngineConfig.fetch.<get-fetch>|<get-fetch>(){}[0]
+        final fun <set-fetch>(kotlin/Function2<kotlin/String, io.ktor.client.fetch/RequestInit?, kotlin.js/Promise<org.w3c.fetch/Response>>) // io.ktor.client.engine.js/JsClientEngineConfig.fetch.<set-fetch>|<set-fetch>(kotlin.Function2<kotlin.String,io.ktor.client.fetch.RequestInit?,kotlin.js.Promise<org.w3c.fetch.Response>>){}[0]
     final var nodeOptions // io.ktor.client.engine.js/JsClientEngineConfig.nodeOptions|{}nodeOptions[0]
         // Targets: [js]
         final fun <get-nodeOptions>(): dynamic // io.ktor.client.engine.js/JsClientEngineConfig.nodeOptions.<get-nodeOptions>|<get-nodeOptions>(){}[0]

@@ -127,7 +127,6 @@ internal class CharArrayBuilder(
         return builder
     }
 
-    @Suppress("ConvertTwoComparisonsToRangeCheck")
     private inner class SubSequenceImpl(val start: Int, val end: Int) : CharSequence {
         private var stringified: String? = null
 

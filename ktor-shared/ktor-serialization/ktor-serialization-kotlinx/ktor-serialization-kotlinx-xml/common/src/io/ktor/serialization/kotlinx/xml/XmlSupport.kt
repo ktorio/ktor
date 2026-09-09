@@ -7,7 +7,6 @@ package io.ktor.serialization.kotlinx.xml
 import io.ktor.http.*
 import io.ktor.serialization.*
 import io.ktor.serialization.kotlinx.*
-import kotlinx.serialization.*
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.serialization.*
 

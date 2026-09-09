@@ -18,13 +18,13 @@ import io.ktor.server.routing.*
 import io.ktor.server.test.base.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.io.asSource
 import kotlinx.io.buffered
-import java.io.*
-import kotlin.io.use
+import java.io.File
+import java.io.InputStream
 import kotlin.test.*
-import kotlin.text.toByteArray
 
 abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
@@ -260,7 +260,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     fun testRequestContentFormData() = runTest {
         createAndStartServer {
             handle {
-                val parameters = runCatching { call.receiveNullable<Parameters>() }.getOrNull()
+                val parameters = runCatching { call.receive<Parameters?>() }.getOrNull()
                 if (parameters != null) {
                     call.respond(parameters.formUrlEncode())
                 } else {
@@ -631,7 +631,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
                         is PartData.FileItem ->
                             response.append(
                                 "file:${part.name},${part.originalFileName},${
-                                    part.provider().readRemaining().readText()
+                                    part.provider().readBuffer().readText()
                                 }\n"
                             )
 
@@ -700,7 +700,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
 
                         is PartData.FileItem -> {
                             val lineSequence = part.provider()
-                                .readRemaining()
+                                .readBuffer()
                                 .readText()
                                 .lines()
 
@@ -713,7 +713,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
                         is PartData.BinaryChannelItem -> {}
                     }
 
-                    part.dispose()
+                    part.release()
                 }
                 call.respondText(response.toString())
             }

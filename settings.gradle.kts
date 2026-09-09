@@ -63,6 +63,7 @@ projects {
             +"ktor-server-auth-api-key"
             +"ktor-server-auth-jwt"
             +"ktor-server-auth-ldap"
+            +"ktor-server-auth-oidc"
             +"ktor-server-auto-head-response"
             +"ktor-server-body-limit"
             +"ktor-server-caching-headers"
@@ -126,6 +127,7 @@ projects {
         +"ktor-client-js"
         +"ktor-client-mock"
         +"ktor-client-okhttp"
+        +"ktor-client-engine-defaults"
 
         +"ktor-client-test-base"
         +"ktor-client-tests"

@@ -4,7 +4,7 @@
 # Enforce linux/amd64 platform because of two reasons:
 # 1. Chrome doesn't provide arm64 binaries for Linux (https://issues.chromium.org/issues/374811603)
 # 2. Kotlin/Native doesn't support linux/arm64 as a host platform (KT-36871)
-FROM --platform=linux/amd64 eclipse-temurin:21.0.11_10-jdk-noble AS dev
+FROM --platform=linux/amd64 eclipse-temurin:21.0.12_8-jdk-noble AS dev
 
 ARG USERNAME=developer
 ARG USER_UID=1001
@@ -26,7 +26,7 @@ RUN <<EOT
 
   apt-get update
   apt-get install --yes --no-install-recommends \
-    git util-linux openssh-server \
+    git util-linux openssh-server pulseaudio \
     ca-certificates curl fonts-liberation \
     $(grep --invert-match '^#' /tmp/chrome-dependencies.txt | tr '\n' ' ') \
     temurin-8-jdk temurin-11-jdk temurin-17-jdk \

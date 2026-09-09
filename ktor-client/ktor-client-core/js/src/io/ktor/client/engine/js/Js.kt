@@ -5,7 +5,9 @@
 package io.ktor.client.engine.js
 
 import io.ktor.client.engine.*
+import io.ktor.client.fetch.fetch
 import io.ktor.utils.io.*
+import kotlin.js.Promise
 
 /**
  * A JavaScript client engine that uses the fetch API to execute requests.
@@ -35,6 +37,13 @@ public actual data object Js : HttpClientEngineFactory<JsClientEngineConfig> {
  */
 public actual open class JsClientEngineConfig : HttpClientEngineConfig() {
     internal var requestInit: io.ktor.client.fetch.RequestInit.() -> Unit = {}
+
+    /**
+     * Allows overriding which function is used to execute requests.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.js.JsClientEngineConfig.fetch)
+     */
+    public var fetch: (String, io.ktor.client.fetch.RequestInit?) -> Promise<org.w3c.fetch.Response> = ::fetch
 
     /**
      * Provides access to the underlying fetch options of the engine.

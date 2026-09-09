@@ -19,10 +19,10 @@ kotlin {
         }
         commonTest.dependencies {
             implementation(projects.ktorClientTests)
+            implementation(projects.ktorServerCio)
         }
         jvmTest.dependencies {
             implementation(projects.ktorNetworkTlsCertificates)
-            implementation(projects.ktorTestBase)
             implementation(libs.mockk)
         }
     }

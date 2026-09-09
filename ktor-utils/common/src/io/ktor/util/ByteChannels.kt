@@ -61,7 +61,7 @@ public fun ByteReadChannel.copyToBoth(first: ByteWriteChannel, second: ByteWrite
     GlobalScope.launch(Dispatchers.Default) {
         try {
             while (!isClosedForRead && (!first.isClosedForWrite || !second.isClosedForWrite)) {
-                readRemaining(CHUNK_BUFFER_SIZE).use {
+                readBuffer(CHUNK_BUFFER_SIZE).use {
                     try {
                         first.writePacket(it.peek())
                         second.writePacket(it.peek())

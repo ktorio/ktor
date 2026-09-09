@@ -4,8 +4,6 @@
 
 package io.ktor.server.engine
 
-import io.ktor.events.*
-import kotlin.concurrent.*
 import kotlin.js.*
 
 internal actual val SHUTDOWN_HOOK_ENABLED = true

@@ -4,7 +4,7 @@
 
 package io.ktor.network.sockets
 
-internal actual fun isUnixSocketSupported(): Boolean = false
+internal actual fun isUnixSocketSupported(): Boolean = true
 
 internal actual fun InetSocketAddress.platformResolveAddress(): ByteArray? {
     return null

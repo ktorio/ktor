@@ -68,7 +68,6 @@ public class CORSConfig {
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.cors.CORSConfig.Companion.CorsSimpleContentTypes)
          */
-        @Suppress("unused")
         public val CorsSimpleContentTypes: Set<ContentType> =
             setOf(
                 ContentType.Application.FormUrlEncoded,
@@ -251,7 +250,6 @@ public class CORSConfig {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.cors.CORSConfig.allowXHttpMethodOverride)
      */
-    @Suppress("unused")
     public fun allowXHttpMethodOverride() {
         allowHeader(HttpHeaders.XHttpMethodOverride)
     }

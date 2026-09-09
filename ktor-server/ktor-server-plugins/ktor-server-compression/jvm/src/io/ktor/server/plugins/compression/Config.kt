@@ -170,7 +170,6 @@ public interface ConditionsHolderBuilder {
  *
  * @property encoder instance
  */
-@Suppress("MemberVisibilityCanBePrivate")
 public class CompressionEncoderBuilder @InternalAPI constructor(
     public val encoder: ContentEncoder
 ) : ConditionsHolderBuilder {

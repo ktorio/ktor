@@ -66,7 +66,7 @@ public abstract class AbstractServerSerializationTest {
                 call.respond(entity)
             }
             post("/null") {
-                val result = call.receiveNullable<NullValues?>() ?: "OK"
+                val result = call.receive<NullValues?>() ?: "OK"
                 call.respondText(result.toString())
             }
         }

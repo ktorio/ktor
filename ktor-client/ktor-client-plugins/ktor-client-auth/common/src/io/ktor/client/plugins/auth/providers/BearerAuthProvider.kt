@@ -52,6 +52,9 @@ public class RefreshTokensParams(
     /**
      * Marks that this request is for refreshing auth tokens, resulting in a special handling of it.
      *
+     * When a request is marked, no additional Authorization headers are included, and any custom
+     * Authorization headers are kept.
+     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.providers.RefreshTokensParams.markAsRefreshTokenRequest)
      */
     public fun HttpRequestBuilder.markAsRefreshTokenRequest() {
@@ -228,16 +231,12 @@ public class BearerAuthProvider(
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.providers.BearerAuthProvider.addRequestHeaders)
      */
     override suspend fun addRequestHeaders(request: HttpRequestBuilder, authHeader: HttpAuthHeader?) {
+        if (request.attributes.contains(AuthCircuitBreaker)) return
         val token = tokensHolder.loadToken() ?: return
 
         request.headers {
             val tokenValue = "Bearer ${token.accessToken}"
-            if (contains(HttpHeaders.Authorization)) {
-                remove(HttpHeaders.Authorization)
-            }
-            if (request.attributes.contains(AuthCircuitBreaker).not()) {
-                append(HttpHeaders.Authorization, tokenValue)
-            }
+            this[HttpHeaders.Authorization] = tokenValue
         }
     }
 

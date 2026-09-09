@@ -7,13 +7,20 @@ package io.ktor.client.engine.okhttp
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.test.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import okhttp3.*
+import okhttp3.ResponseBody.Companion.asResponseBody
 import okio.Buffer
 import okio.BufferedSource
-import java.util.concurrent.*
+import okio.Pipe
+import okio.buffer
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 import kotlin.test.*
+import kotlin.time.Duration.Companion.seconds
 
 class OkHttpEngineTests {
     @Test
@@ -46,18 +53,51 @@ class OkHttpEngineTests {
     @Test
     fun testPreconfigured() = runBlocking {
         var preconfiguredClientCalled = false
-        val okHttpClient = OkHttpClient().newBuilder().addInterceptor(
-            Interceptor { chain ->
+        val okHttpClient = OkHttpClient.Builder()
+            .addInterceptor { chain ->
                 preconfiguredClientCalled = true
                 chain.proceed(chain.request())
             }
-        ).connectTimeout(1, TimeUnit.MILLISECONDS).build()
+            .connectTimeout(1, TimeUnit.MILLISECONDS)
+            .build()
 
         HttpClient(OkHttp) {
             engine { preconfigured = okHttpClient }
         }.use { client ->
             runCatching { client.get("http://localhost:1234").body<String>() }
             assertTrue(preconfiguredClientCalled)
+        }
+    }
+
+    @Test
+    fun testResponseBodyIsStreamedBeforeEof() = runTest(timeout = 5.seconds) {
+        val pipe = Pipe(1024)
+        val sink = pipe.sink.buffer()
+        val source = pipe.source.buffer()
+
+        val client = HttpClient(OkHttp) {
+            engine {
+                preconfigured = OkHttpClient.Builder()
+                    .addResponseInterceptor(source.asResponseBody())
+                    .build()
+            }
+        }
+
+        client.use { client ->
+            sink.use { sink ->
+                client.prepareGet("http://localhost/").execute { response ->
+                    sink.writeByte(42)
+                    sink.flush()
+
+                    val channel = response.bodyAsChannel()
+                    assertEquals(42, channel.readByte().toInt())
+                    assertFalse(channel.isClosedForRead)
+
+                    sink.close()
+                    assertFalse(channel.awaitContent())
+                    assertFalse(source.isOpen)
+                }
+            }
         }
     }
 
@@ -86,21 +126,11 @@ class OkHttpEngineTests {
                 }
             }
 
-            val okHttpClient = OkHttpClient.Builder()
-                .addInterceptor { chain ->
-                    Response.Builder()
-                        .request(chain.request())
-                        .protocol(Protocol.HTTP_1_1)
-                        .code(200)
-                        .message("OK")
-                        .body(responseBody)
-                        .build()
-                }
-                .build()
-
             val client = HttpClient(OkHttp) {
                 engine {
-                    preconfigured = okHttpClient
+                    preconfigured = OkHttpClient.Builder()
+                        .addResponseInterceptor(responseBody)
+                        .build()
                     dispatcher = engineDispatcher
                 }
             }
@@ -139,3 +169,14 @@ class OkHttpEngineTests {
         }
     }
 }
+
+private fun OkHttpClient.Builder.addResponseInterceptor(responseBody: ResponseBody): OkHttpClient.Builder =
+    addInterceptor { chain ->
+        Response.Builder()
+            .request(chain.request())
+            .protocol(Protocol.HTTP_1_1)
+            .code(200)
+            .message("OK")
+            .body(responseBody)
+            .build()
+    }

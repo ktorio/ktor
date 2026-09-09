@@ -261,8 +261,7 @@ public sealed class HttpAuthHeader(public val authScheme: String) {
         override fun render(encoding: HeaderValueEncoding): String = render()
 
         override fun equals(other: Any?): Boolean {
-            if (other !is Single) return false
-            return other.authScheme.equals(authScheme, ignoreCase = true) &&
+            return other is Single && other.authScheme.equals(authScheme, ignoreCase = true) &&
                 other.blob.equals(blob, ignoreCase = true)
         }
 
@@ -357,8 +356,7 @@ public sealed class HttpAuthHeader(public val authScheme: String) {
         override fun render(): String = render(encoding)
 
         override fun equals(other: Any?): Boolean {
-            if (other !is Parameterized) return false
-            return other.authScheme.equals(authScheme, ignoreCase = true) &&
+            return other is Parameterized && other.authScheme.equals(authScheme, ignoreCase = true) &&
                 other.parameters == parameters
         }
 
@@ -480,7 +478,7 @@ public sealed class HttpAuthHeader(public val authScheme: String) {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.auth.HttpAuthHeader.Parameters)
      */
-    @Suppress("KDocMissingDocumentation", "PublicApiImplicitType")
+    @Suppress("KDocMissingDocumentation", "ConstPropertyName")
     public object Parameters {
         public const val Realm: String = "realm"
         public const val Charset: String = "charset"

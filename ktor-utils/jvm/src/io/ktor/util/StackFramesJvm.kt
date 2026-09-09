@@ -12,7 +12,6 @@ internal actual typealias CoroutineStackFrame = kotlin.coroutines.jvm.internal.C
 @Suppress("ACTUAL_WITHOUT_EXPECT")
 internal actual typealias StackTraceElement = java.lang.StackTraceElement
 
-@Suppress("FunctionName")
 internal actual fun createStackTraceElement(
     kClass: KClass<*>,
     methodName: String,

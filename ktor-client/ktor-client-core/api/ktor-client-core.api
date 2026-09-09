@@ -39,6 +39,11 @@ public final class io/ktor/client/HttpClientConfig {
 
 public abstract interface class io/ktor/client/HttpClientEngineContainer {
 	public abstract fun getFactory ()Lio/ktor/client/engine/HttpClientEngineFactory;
+	public fun getPriority ()D
+}
+
+public final class io/ktor/client/HttpClientEngineContainer$DefaultImpls {
+	public static fun getPriority (Lio/ktor/client/HttpClientEngineContainer;)D
 }
 
 public final class io/ktor/client/HttpClientJvmKt {
@@ -635,6 +640,7 @@ public final class io/ktor/client/plugins/api/TransformResponseBodyContext {
 public final class io/ktor/client/plugins/cache/HttpCache {
 	public static final field Companion Lio/ktor/client/plugins/cache/HttpCache$Companion;
 	public synthetic fun <init> (Lio/ktor/client/plugins/cache/storage/HttpCacheStorage;Lio/ktor/client/plugins/cache/storage/HttpCacheStorage;Lio/ktor/client/plugins/cache/storage/CacheStorage;Lio/ktor/client/plugins/cache/storage/CacheStorage;ZZLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun clearAllCaches (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/client/plugins/cache/HttpCache$Companion : io/ktor/client/plugins/HttpClientPlugin {
@@ -673,6 +679,7 @@ public final class io/ktor/client/plugins/cache/InvalidCacheStateException : jav
 
 public abstract interface class io/ktor/client/plugins/cache/storage/CacheStorage {
 	public static final field Companion Lio/ktor/client/plugins/cache/storage/CacheStorage$Companion;
+	public fun clear (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun find (Lio/ktor/http/Url;Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun findAll (Lio/ktor/http/Url;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun remove (Lio/ktor/http/Url;Ljava/util/Map;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -683,6 +690,10 @@ public abstract interface class io/ktor/client/plugins/cache/storage/CacheStorag
 public final class io/ktor/client/plugins/cache/storage/CacheStorage$Companion {
 	public final fun getDisabled ()Lio/ktor/client/plugins/cache/storage/CacheStorage;
 	public final fun getUnlimited ()Lkotlin/jvm/functions/Function0;
+}
+
+public final class io/ktor/client/plugins/cache/storage/CacheStorage$DefaultImpls {
+	public static fun clear (Lio/ktor/client/plugins/cache/storage/CacheStorage;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/client/plugins/cache/storage/CachedResponseData {
@@ -703,6 +714,11 @@ public final class io/ktor/client/plugins/cache/storage/CachedResponseData {
 public final class io/ktor/client/plugins/cache/storage/FileCacheStorageKt {
 	public static final fun FileStorage (Ljava/io/File;Lkotlinx/coroutines/CoroutineDispatcher;)Lio/ktor/client/plugins/cache/storage/CacheStorage;
 	public static synthetic fun FileStorage$default (Ljava/io/File;Lkotlinx/coroutines/CoroutineDispatcher;ILjava/lang/Object;)Lio/ktor/client/plugins/cache/storage/CacheStorage;
+}
+
+public final class io/ktor/client/plugins/cache/storage/FileStorageKt {
+	public static final fun FileStorage (Lkotlinx/io/files/Path;Lkotlinx/io/files/FileSystem;Lkotlinx/coroutines/CoroutineDispatcher;)Lio/ktor/client/plugins/cache/storage/CacheStorage;
+	public static synthetic fun FileStorage$default (Lkotlinx/io/files/Path;Lkotlinx/io/files/FileSystem;Lkotlinx/coroutines/CoroutineDispatcher;ILjava/lang/Object;)Lio/ktor/client/plugins/cache/storage/CacheStorage;
 }
 
 public abstract class io/ktor/client/plugins/cache/storage/HttpCacheStorage {
@@ -1420,8 +1436,12 @@ public final class io/ktor/client/request/UnixSocketSettings {
 	public final fun getPath ()Ljava/lang/String;
 }
 
-public final class io/ktor/client/request/UnixSockets_jvmAndPosixKt {
+public final class io/ktor/client/request/UnixSocketsKt {
 	public static final fun unixSocket (Lio/ktor/client/request/HttpRequestBuilder;Ljava/lang/String;)V
+}
+
+public final class io/ktor/client/request/UnixSockets_jvmAndPosixKt {
+	public static final synthetic fun unixSocket (Lio/ktor/client/request/HttpRequestBuilder;Ljava/lang/String;)V
 }
 
 public final class io/ktor/client/request/UtilsKt {

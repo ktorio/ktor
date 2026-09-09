@@ -11,3 +11,19 @@ public class UnixSocketSettings(public val path: String)
 
 @OptIn(InternalAPI::class)
 public data object UnixSocketCapability : HttpClientEngineCapability<UnixSocketSettings>
+
+/**
+ * Sets the path to the Unix domain socket file.
+ *
+ * ```kotlin
+ * val client = client.get("http://localhost/api") {
+ *    unixSocket("/var/run/docker.sock")
+ * }
+ * ```
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.unixSocket)
+ */
+@OptIn(InternalAPI::class)
+public fun HttpRequestBuilder.unixSocket(path: String) {
+    setCapability(UnixSocketCapability, UnixSocketSettings(path))
+}

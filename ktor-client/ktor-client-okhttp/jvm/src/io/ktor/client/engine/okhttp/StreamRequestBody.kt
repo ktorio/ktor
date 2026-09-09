@@ -5,13 +5,15 @@
 package io.ktor.client.engine.okhttp
 
 import io.ktor.utils.io.*
-import io.ktor.utils.io.jvm.javaio.toInputStream
-import io.ktor.utils.io.streams.asByteWriteChannel
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import okhttp3.*
-import okio.*
+import io.ktor.utils.io.CancellationException
+import io.ktor.utils.io.jvm.javaio.*
+import io.ktor.utils.io.streams.*
+import kotlinx.coroutines.*
+import okhttp3.MediaType
+import okhttp3.RequestBody
+import okio.BufferedSink
+import okio.IOException
+import okio.use
 import kotlin.coroutines.CoroutineContext
 
 internal class StreamAdapterIOException(cause: Throwable) : IOException(cause)
@@ -30,7 +32,17 @@ internal class StreamRequestBody(
             CoroutineScope(callContext).launch(Dispatchers.IO) {
                 try {
                     val channel = block()
-                    channel.copyTo(sink.outputStream().asByteWriteChannel())
+                    sink.use {
+                        try {
+                            channel.copyTo(it.outputStream().asByteWriteChannel())
+                        } catch (cause: CancellationException) {
+                            // A failing flush() completes the request body, while close() alone would
+                            // throw ProtocolException for a partially written fixed-length body
+                            // without releasing the connection.
+                            runCatching { it.flush() }
+                            throw cause
+                        }
+                    }
                 } catch (cause: IOException) {
                     throw cause
                 } catch (cause: Throwable) {
@@ -39,8 +51,14 @@ internal class StreamRequestBody(
             }
         } else {
             try {
-                block().toInputStream().source().use {
-                    sink.writeAll(it)
+                val channel = block()
+                try {
+                    runBlocking(callContext.job) {
+                        channel.copyTo(sink.outputStream())
+                    }
+                } catch (cause: Throwable) {
+                    channel.cancel(cause)
+                    throw cause
                 }
             } catch (cause: IOException) {
                 throw cause

@@ -14,7 +14,6 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.coroutineContext
 
 internal val CALL_COROUTINE = CoroutineName("call-context")
 internal val CLIENT_CONFIG = AttributeKey<HttpClientConfig<*>>("client-config")

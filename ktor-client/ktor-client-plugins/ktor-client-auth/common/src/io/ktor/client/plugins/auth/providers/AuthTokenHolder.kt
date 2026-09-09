@@ -46,7 +46,7 @@ internal class AuthTokenHolder<T>(
         if (value != null) return value // Hot path
         val prevValue = value
 
-        return if (coroutineContext[SetTokenContext] != null) { // Already locked by setToken
+        return if (currentCoroutineContext()[SetTokenContext] != null) { // Already locked by setToken
             value = loadTokens()
             value
         } else {
@@ -88,9 +88,9 @@ internal class AuthTokenHolder<T>(
         val lockedByLoad = isLoadRequest
 
         val context = if (nonCancellable) {
-            coroutineContext + NonCancellable + setTokenMarker
+            currentCoroutineContext() + NonCancellable + setTokenMarker
         } else {
-            coroutineContext + setTokenMarker
+            currentCoroutineContext() + setTokenMarker
         }
         return withContext(context) {
             mutex.withLock {

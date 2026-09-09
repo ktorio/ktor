@@ -6,6 +6,7 @@ package io.ktor.util.converters
 
 import io.ktor.util.reflect.*
 import kotlin.test.*
+import kotlin.uuid.*
 
 class DataConversionTest {
 
@@ -25,6 +26,62 @@ class DataConversionTest {
 
         val converted = DefaultConversionService.toValues(1)
         assertEquals(listOf("1"), converted)
+    }
+
+    @Test
+    fun testDefaultConversionByte() {
+        val id = DefaultConversionService.fromValues(listOf("1"), typeInfo<Byte>())
+        assertEquals(1.toByte(), id)
+
+        val converted = DefaultConversionService.toValues(1.toByte())
+        assertEquals(listOf("1"), converted)
+    }
+
+    @Test
+    fun testDefaultConversionUByte() {
+        val id = DefaultConversionService.fromValues(listOf("1"), typeInfo<UByte>())
+        assertEquals(1.toUByte(), id)
+
+        val converted = DefaultConversionService.toValues(1.toUByte())
+        assertEquals(listOf("1"), converted)
+    }
+
+    @Test
+    fun testDefaultConversionUShort() {
+        val id = DefaultConversionService.fromValues(listOf("1"), typeInfo<UShort>())
+        assertEquals(1.toUShort(), id)
+
+        val converted = DefaultConversionService.toValues(1.toUShort())
+        assertEquals(listOf("1"), converted)
+    }
+
+    @Test
+    fun testDefaultConversionUInt() {
+        val id = DefaultConversionService.fromValues(listOf("1"), typeInfo<UInt>())
+        assertEquals(1.toUInt(), id)
+
+        val converted = DefaultConversionService.toValues(1.toUInt())
+        assertEquals(listOf("1"), converted)
+    }
+
+    @Test
+    fun testDefaultConversionULong() {
+        val id = DefaultConversionService.fromValues(listOf("1"), typeInfo<ULong>())
+        assertEquals(1.toULong(), id)
+
+        val converted = DefaultConversionService.toValues(1.toULong())
+        assertEquals(listOf("1"), converted)
+    }
+
+    @OptIn(ExperimentalUuidApi::class)
+    @Test
+    fun testDefaultConversionUuid() {
+        val id = Uuid.parse("a1b2c3d4-e5f6-7890-abcd-ef1234567890")
+        val converted = DefaultConversionService.fromValues(listOf(id.toString()), typeInfo<Uuid>())
+        assertEquals(id, converted)
+
+        val toValues = DefaultConversionService.toValues(converted)
+        assertEquals(listOf(id.toString()), toValues)
     }
 
     @Test

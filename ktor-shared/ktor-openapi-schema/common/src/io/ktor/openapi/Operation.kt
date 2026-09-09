@@ -275,7 +275,7 @@ public data class Operation(
 
         internal fun build(): Operation {
             return Operation(
-                tags = if (_tags.isEmpty()) null else _tags,
+                tags = _tags.distinct().ifEmpty { null },
                 summary = summary,
                 description = description,
                 externalDocs = externalDocs,

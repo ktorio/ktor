@@ -14,6 +14,9 @@ final object io.ktor.client.plugins.resources/Resources : io.ktor.client.plugins
     final fun prepare(kotlin/Function1<io.ktor.resources/Resources.Configuration, kotlin/Unit>): io.ktor.resources/Resources // io.ktor.client.plugins.resources/Resources.prepare|prepare(kotlin.Function1<io.ktor.resources.Resources.Configuration,kotlin.Unit>){}[0]
 }
 
+final val io.ktor.client.plugins.resources/RESOURCE // io.ktor.client.plugins.resources/RESOURCE|{}RESOURCE[0]
+    final fun <get-RESOURCE>(): io.ktor.util/AttributeKey<kotlin/Any> // io.ktor.client.plugins.resources/RESOURCE.<get-RESOURCE>|<get-RESOURCE>(){}[0]
+
 final fun (io.ktor.client/HttpClient).io.ktor.client.plugins.resources/resources(): io.ktor.resources/Resources // io.ktor.client.plugins.resources/resources|resources@io.ktor.client.HttpClient(){}[0]
 final inline fun <#A: reified kotlin/Any> (io.ktor.client/HttpClient).io.ktor.client.plugins.resources/href(#A): kotlin/String // io.ktor.client.plugins.resources/href|href@io.ktor.client.HttpClient(0:0){0§<kotlin.Any>}[0]
 final inline fun <#A: reified kotlin/Any> (io.ktor.client/HttpClient).io.ktor.client.plugins.resources/href(#A, io.ktor.http/URLBuilder) // io.ktor.client.plugins.resources/href|href@io.ktor.client.HttpClient(0:0;io.ktor.http.URLBuilder){0§<kotlin.Any>}[0]

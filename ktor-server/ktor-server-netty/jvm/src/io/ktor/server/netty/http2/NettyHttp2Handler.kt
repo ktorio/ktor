@@ -20,7 +20,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter
 import io.netty.handler.codec.http2.*
 import io.netty.util.AttributeKey
 import io.netty.util.ReferenceCountUtil
-import io.netty.util.concurrent.EventExecutorGroup
+import io.netty.util.concurrent.EventExecutor
 import kotlinx.coroutines.*
 import java.lang.reflect.Field
 import java.nio.channels.ClosedChannelException
@@ -30,7 +30,7 @@ import kotlin.coroutines.CoroutineContext
 internal class NettyHttp2Handler(
     private val enginePipeline: EnginePipeline,
     private val application: Application,
-    private val callEventGroup: EventExecutorGroup,
+    private val resolveCallExecutor: (ChannelHandlerContext) -> EventExecutor,
     private val userCoroutineContext: CoroutineContext,
     runningLimit: Int
 ) : ChannelInboundHandlerAdapter() {
@@ -55,6 +55,12 @@ internal class NettyHttp2Handler(
                 state.isChannelReadCompleted.compareAndSet(expect = true, update = false)
                 state.activeRequests.incrementAndGet()
                 startHttp2(context, message.headers())
+                if (message.isEndStream) {
+                    context.applicationCall?.request?.apply {
+                        contentActor.close()
+                        state.isCurrentRequestFullyRead.compareAndSet(expect = false, update = true)
+                    }
+                }
             }
 
             is Http2DataFrame -> {
@@ -125,8 +131,8 @@ internal class NettyHttp2Handler(
     }
 
     private fun startHttp2(context: ChannelHandlerContext, headers: Http2Headers) {
-        val callJob = Job(parent = parentJob)
-        val callExecutor = pinnedCallExecutor(context, callEventGroup)
+        val callJob = Job(parent = handlerJob)
+        val callExecutor = resolveCallExecutor(context)
         // Combine the cached static context with the per-stream dispatcher and per-call [Job] only.
         val callContext = staticCallContext +
             NettyDispatcher.CurrentContext(context, callExecutor) +
@@ -150,8 +156,10 @@ internal class NettyHttp2Handler(
         // Defer coroutine start to the next event loop tick so that channelRead returns and Netty can
         // deliver subsequent Http2DataFrame messages. Without this, the coroutine runs on the event loop,
         // blocking data frame delivery and causing EOFException.
-        // Dispatching to the call event group also ensures user handler code does not run on the I/O worker
-        // event loop.
+        // Dispatching to the call executor also ensures user handler code does not run on the I/O worker
+        // event loop. When resolveCallExecutor is pinned directly to context.executor() (shareWorkGroup),
+        // calls that never suspend skip that hop entirely and run on the I/O thread instead; calls that do
+        // suspend still resume on that same thread via NettyDispatcher.
         callExecutor.execute {
             val callScope = CoroutineScope(context = callContext)
             callScope.launch(start = CoroutineStart.UNDISPATCHED) {
@@ -274,8 +282,8 @@ internal class NettyHttp2Handler(
         }
     }
 
-    internal fun cancel() {
-        handlerJob.cancel()
+    internal fun onConnectionClose() {
+        handlerJob.complete()
     }
 
     companion object {

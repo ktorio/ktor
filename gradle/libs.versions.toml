@@ -1,51 +1,52 @@
 [versions]
 
 kotlin = "2.3.21"
-android-gradlePlugin = "9.3.0"
+android-gradlePlugin = "9.4.0"
 androidx-test = "1.7.0"
 kotlinx-html = "0.12.0"
-kotlinx-datetime = "0.6.2"
+kotlinx-datetime = "0.8.0-0.6.x-compat"
 kotlinx-io = "0.9.1"
 coroutines = "1.11.0"
-atomicfu = "0.32.1"
+atomicfu = "0.33.0"
 serialization = "1.11.0"
 dokka = "2.2.0"
 kover = "0.9.9"
-kotlinter = "5.6.0"
+kotlinter = "5.7.0"
 kotlinx-browser = "0.5.0"
 
-netty = "4.2.16.Final"
-netty-tcnative = "2.0.81.Final"
+netty = "4.2.17.Final"
+netty-tcnative = "2.0.83.Final"
 
 jetty = "9.4.58.v20250814"
-jetty-jakarta = "12.0.35"
+jetty-jakarta = "12.1.13"
 jetty-alpn-api = "1.1.3.v20160715"
 jetty-alpn-openjdk8 = "9.4.58.v20250814"
 
-tomcat = "9.0.120"
-tomcat-jakarta = "10.1.57"
+tomcat = "9.0.121"
+tomcat-jakarta = "10.1.59"
 
+webrtc-java = "0.16.0"
 stream-webrtc-android = "1.3.10"
 
 apache = "4.1.5"
-apache5 = "5.5.1"
+apache5 = "5.6.4"
 apacheds = "2.0.0.AM27"
-okhttp = "5.3.2"
-okio = "3.17.0"
+okhttp = "5.5.0"
+okio = "3.18.2"
 
 json-simple = "1.1.1"
 gson = "2.14.0"
 
-jackson = "2.22.1"
-jackson3 = "3.1.3"
+jackson = "2.22.2"
+jackson3 = "3.2.2"
 jackson-annotations = "2.22"
 
 junit = "5.14.4"
-slf4j = "2.0.18"
-logback = "1.5.38"
+slf4j = "2.0.19"
+logback = "1.6.3"
 
-dropwizard = "4.2.39"
-micrometer = "1.17.0"
+dropwizard = "4.2.40"
+micrometer = "1.17.1"
 
 jansi = "2.4.3"
 typesafe = "1.4.9"
@@ -56,12 +57,11 @@ java-jwt = "4.6.0"
 
 jwks-rsa = "0.24.1"
 mustache = "0.9.14"
-freemarker = "2.3.34"
+freemarker = "2.3.35"
 pebble = "4.1.2"
 velocity = "2.4.1"
 velocity-tools = "3.1"
 webjars-locator = "0.59"
-webjars-jquery = "3.7.1"
 thymeleaf = "3.1.5.RELEASE"
 jte = "3.2.4"
 
@@ -72,18 +72,18 @@ xmlutil = "0.91.3"
 yamlkt = "0.13.0"
 kaml = "0.79.0"
 
-swagger-codegen = "3.0.81"
+swagger-codegen = "3.0.82"
 swagger-codegen-generators = "1.0.62"
-swagger-parser = "2.1.45"
+swagger-parser = "2.1.48"
 
 tomlj = "1.1.1"
 
-zstd-jni = "1.5.7-11"
+zstd-jni = "1.5.7-16"
 
 # Keep it in sync with build-settings-logic/settings.gradle.kts
 # TODO: Remove module 'develocity-patched' after updating Develocity plugin to 4.4+
 develocity = "4.3.2" # Should be compatible with our server: ge.jetbrains.com
-develocity-commonCustomUserData = "2.7.0"
+develocity-commonCustomUserData = "2.8.0"
 gradleDoctor = "0.12.1"
 mavenPublishing = "0.37.0"
 
@@ -147,11 +147,13 @@ dokka-plugin-versioning = { module = "org.jetbrains.dokka:versioning-plugin", ve
 netty-handler = { module = "io.netty:netty-handler", version.ref = "netty" }
 netty-codec = { module = "io.netty:netty-codec", version.ref = "netty" }
 netty-codec-http2 = { module = "io.netty:netty-codec-http2", version.ref = "netty" }
+netty-codec-http3 = { module = "io.netty:netty-codec-http3", version.ref = "netty" }
 netty-transport-native-kqueue = { module = "io.netty:netty-transport-native-kqueue", version.ref = "netty" }
 netty-transport-native-epoll = { module = "io.netty:netty-transport-native-epoll", version.ref = "netty" }
 netty-tcnative = { module = "io.netty:netty-tcnative", version.ref = "netty-tcnative" }
 netty-tcnative-boringssl-static = { module = "io.netty:netty-tcnative-boringssl-static", version.ref = "netty-tcnative" }
 
+webrtc-java = { module = "dev.onvoid.webrtc:webrtc-java", version.ref = "webrtc-java" }
 stream-webrtc-android = { module = "io.getstream:stream-webrtc-android", version.ref = "stream-webrtc-android" }
 tomcat-catalina = { module = "org.apache.tomcat:tomcat-catalina", version.ref = "tomcat" }
 tomcat-embed-core = { module = "org.apache.tomcat.embed:tomcat-embed-core", version.ref = "tomcat" }
@@ -228,7 +230,6 @@ pebble = { module = "io.pebbletemplates:pebble", version.ref = "pebble" }
 velocity = { module = "org.apache.velocity:velocity-engine-core", version.ref = "velocity" }
 velocity-tools = { module = "org.apache.velocity.tools:velocity-tools-generic", version.ref = "velocity-tools" }
 webjars-locator = { module = "org.webjars:webjars-locator-core", version.ref = "webjars-locator" }
-webjars-jquery = { module = "org.webjars:jquery", version.ref = "webjars-jquery" }
 thymeleaf = { module = "org.thymeleaf:thymeleaf", version.ref = "thymeleaf" }
 jte = { module = "gg.jte:jte", version.ref = "jte" }
 jte-kotlin = { module = "gg.jte:jte-kotlin", version.ref = "jte" }

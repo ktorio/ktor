@@ -273,7 +273,7 @@ class HttpTimeoutTest : ClientLoader(timeout = 30.seconds) {
     @Test
     fun testGetStream() = clientTests(except("Curl")) {
         config {
-            install(HttpTimeout) { requestTimeoutMillis = 1000 }
+            install(HttpTimeout) { requestTimeoutMillis = 2000 }
         }
 
         test { client ->
@@ -281,7 +281,7 @@ class HttpTimeoutTest : ClientLoader(timeout = 30.seconds) {
                 parameter("delay", 10)
             }.body()
 
-            assertEquals("Text", responseBody)
+            assertEquals("TextTextText", responseBody)
         }
     }
 

@@ -1,0 +1,113 @@
+/*
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
+package io.ktor.tests.http
+
+import io.ktor.http.*
+import kotlin.test.*
+
+internal class URLParserTest {
+    @Test
+    fun `encode unicode characters in absolute path`() {
+        val url = Url("https://assets.example.org/library/annual–review/cover-image.webp")
+
+        assertEquals("/library/annual%E2%80%93review/cover-image.webp", url.encodedPath)
+        assertEquals(listOf("", "library", "annual–review", "cover-image.webp"), url.rawSegments)
+        assertEquals(
+            "https://assets.example.org/library/annual%E2%80%93review/cover-image.webp",
+            url.toString()
+        )
+    }
+
+    @Test
+    fun `preserve percent-encoded characters in path`() {
+        val url = Url("https://assets.example.org/library/annual%E2%80%93review/cover-image.webp")
+
+        assertEquals("/library/annual%E2%80%93review/cover-image.webp", url.encodedPath)
+        assertEquals(
+            "https://assets.example.org/library/annual%E2%80%93review/cover-image.webp",
+            url.toString()
+        )
+    }
+
+    @Test
+    fun `encode unicode characters in relative path`() {
+        val url = URLBuilder("library/annual–review/cover-image.webp")
+
+        assertEquals("library/annual%E2%80%93review/cover-image.webp", url.encodedPath)
+    }
+
+    @Test
+    fun `encode only path when URL contains query and fragment`() {
+        val url = Url(
+            "https://assets.example.org/library/annual–review/cover-image.webp?size=large&download=#preview"
+        )
+
+        assertEquals("/library/annual%E2%80%93review/cover-image.webp", url.encodedPath)
+        assertEquals("size=large&download=", url.encodedQuery)
+        assertEquals("preview", url.encodedFragment)
+        assertEquals(
+            "https://assets.example.org/library/annual%E2%80%93review/cover-image.webp" +
+                "?size=large&download=#preview",
+            url.toString()
+        )
+    }
+
+    @Test
+    fun `normalize query-only URL without base path to root`() {
+        val url = URLBuilder("http://localhost").takeFrom("?key1=value1&key2=value2")
+
+        assertEquals("/", url.encodedPath)
+        assertEquals("value1", url.parameters["key1"])
+        assertEquals("value2", url.parameters["key2"])
+        assertEquals("http://localhost/?key1=value1&key2=value2", url.toString())
+    }
+
+    @Test
+    fun `preserve empty encoded path for root-relative query`() {
+        val url = URLBuilder("http://localhost/root").takeFrom("/?key=value")
+
+        assertEquals("", url.encodedPath)
+        assertEquals("value", url.parameters["key"])
+        assertEquals("http://localhost?key=value", url.toString())
+    }
+
+    @Test
+    fun `parse fragment when relative URL has no path`() {
+        val url = URLBuilder("https://example.com/root").takeFrom("#preview")
+
+        assertEquals("/root", url.encodedPath)
+        assertEquals("preview", url.encodedFragment)
+    }
+
+    @Test
+    fun `encode unicode characters in file path`() {
+        val urls = listOf(
+            "file:/var/reports/annual–review.pdf" to "file:///var/reports/annual%E2%80%93review.pdf",
+            "file://localhost/var/reports/annual–review.pdf" to
+                "file://localhost/var/reports/annual%E2%80%93review.pdf",
+            "file:///var/reports/annual–review.pdf" to "file:///var/reports/annual%E2%80%93review.pdf"
+        )
+
+        for ((source, expected) in urls) {
+            val url = Url(source)
+            assertEquals("/var/reports/annual%E2%80%93review.pdf", url.encodedPath)
+            assertEquals(expected, url.toString())
+        }
+    }
+
+    @Test
+    fun `encode only path when file URL contains query and fragment`() {
+        val url = Url("file:///var/reports/annual\u2013review.pdf?download=true#preview")
+
+        assertEquals("/var/reports/annual%E2%80%93review.pdf", url.encodedPath)
+        assertEquals("download=true", url.encodedQuery)
+        assertEquals("true", url.parameters["download"])
+        assertEquals("preview", url.encodedFragment)
+        assertEquals(
+            "file:///var/reports/annual%E2%80%93review.pdf?download=true#preview",
+            url.toString()
+        )
+    }
+}

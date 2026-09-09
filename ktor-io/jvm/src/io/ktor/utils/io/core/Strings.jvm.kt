@@ -16,5 +16,16 @@ import kotlinx.io.readString
 public actual fun Source.readText(charset: Charset, max: Int): String =
     when (max) {
         Int.MAX_VALUE -> readString(charset)
-        else -> readString(minOf(buffer.size, max.toLong()), charset)
+
+        else -> {
+            // ensure buffer is filled
+            request(max.toLong())
+            readString(minOf(buffer.size, max.toLong()), charset)
+        }
     }
+
+internal actual fun Charset.supportsReadTextExactCharacters(): Boolean {
+    val encoder = newEncoder()
+    val decoder = newDecoder()
+    return encoder.maxBytesPerChar() == 1f && decoder.maxCharsPerByte() == 1f
+}

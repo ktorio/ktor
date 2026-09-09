@@ -6,7 +6,6 @@ package io.ktor.server.netty
 
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
-import io.ktor.util.*
 import io.netty.buffer.*
 import io.netty.channel.*
 import io.netty.util.*
@@ -46,6 +45,8 @@ public abstract class NettyApplicationCall(
     public lateinit var responseWriteJob: Job
         private set
 
+    private lateinit var completableResponseWriteJob: CompletableJob
+
     /**
      * Initializes [responseWriteJob] as a child of the call's coroutine [Job]. Called synchronously
      * on the Netty I/O thread right after the call is constructed and before the user handler
@@ -56,13 +57,22 @@ public abstract class NettyApplicationCall(
         val callJob = coroutineContext[Job]
         val job = Job(parent = callJob)
         job.invokeOnCompletion { onResponseWriteCompleted() }
+        completableResponseWriteJob = job
         responseWriteJob = job
+    }
+
+    /**
+     * Marks [responseWriteJob] as successfully completed. Used on the normal (non-error) path once the
+     * response write has been dispatched, so completion goes through [CompletableJob.complete]'s fast
+     * path instead of the cancellation machinery that [Job.cancel] always incurs.
+     */
+    internal fun completeResponseWriteJob() {
+        completableResponseWriteJob.complete()
     }
 
     private val messageReleased = atomic(false)
 
     internal var isByteBufferContent = false
-    internal var isStreamingResponse = false
 
     /**
      * Returns http content object with [buf] content if [isByteBufferContent] is false,
@@ -89,6 +99,19 @@ public abstract class NettyApplicationCall(
     }
 
     internal abstract fun isContextCloseRequired(): Boolean
+
+    /**
+     * Flushes written response data right before the channel is closed by the response pipeline.
+     * Protocol-specific implementations may piggyback their end-of-stream signal on this flush.
+     *
+     * [lastFuture] is the future of the last response write. It may still be pending (for example,
+     * queued behind flow control) when this is called, so implementations that send an explicit
+     * end-of-stream signal on the underlying channel (rather than through this context) must wait
+     * for it to complete first, or risk racing ahead of not-yet-transmitted data.
+     */
+    internal open fun flushBeforeClose(context: ChannelHandlerContext, lastFuture: ChannelFuture) {
+        context.flush()
+    }
 
     /**
      * Marks the call as ready to finish, without suspending the calling coroutine.

@@ -205,10 +205,10 @@ internal class SessionSerializerReflection<T : Any>(
         when {
             value == null -> null
 
-            isListType(type) -> when {
-                value !is List<*> && value is Iterable<*> -> coerceType(type, value.toList())
+            isListType(type) -> when (value) {
+                !is List<*> if value is Iterable<*> -> coerceType(type, value.toList())
 
-                value !is List<*> -> throw IllegalArgumentException(
+                !is List<*> -> throw IllegalArgumentException(
                     "Couldn't coerce type ${value::class.java} to $type"
                 )
 
@@ -228,10 +228,10 @@ internal class SessionSerializerReflection<T : Any>(
                 }
             }
 
-            isSetType(type) -> when {
-                value !is Set<*> && value is Iterable<*> -> coerceType(type, value.toSet())
+            isSetType(type) -> when (value) {
+                !is Set<*> if value is Iterable<*> -> coerceType(type, value.toSet())
 
-                value !is Set<*> -> throw IllegalArgumentException("Couldn't coerce type ${value::class.java} to $type")
+                !is Set<*> -> throw IllegalArgumentException("Couldn't coerce type ${value::class.java} to $type")
 
                 else -> {
                     val contentType = type.arguments.single().type
@@ -487,22 +487,22 @@ internal class SessionSerializerReflection<T : Any>(
         .joinToString("&")
         .encodeURLQueryComponent()
 
-    @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
+    @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN", "RemoveRedundantQualifierName")
     private fun isListType(type: KType): Boolean {
         return getRawType(type)?.let { java.util.List::class.java.isAssignableFrom(it) } ?: false
     }
 
-    @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
+    @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN", "RemoveRedundantQualifierName")
     private fun isSetType(type: KType): Boolean {
         return getRawType(type)?.let { java.util.Set::class.java.isAssignableFrom(it) } ?: false
     }
 
-    @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
+    @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN", "RemoveRedundantQualifierName")
     private fun isEnumType(type: KType): Boolean {
         return getRawType(type)?.let { java.lang.Enum::class.java.isAssignableFrom(it) } ?: false
     }
 
-    @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
+    @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN", "RemoveRedundantQualifierName")
     private fun isMapType(type: KType): Boolean {
         return getRawType(type)?.let { java.util.Map::class.java.isAssignableFrom(it) } ?: false
     }

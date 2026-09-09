@@ -2,6 +2,8 @@
  * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+@file:Suppress("FunctionName")
+
 // ABOUTME: JVM implementation of GMTDate factory functions.
 // ABOUTME: Uses zero-allocation timestamp-to-date computation for the common case.
 
@@ -26,7 +28,6 @@ private val DAYS_BEFORE_MONTH_LEAP = intArrayOf(0, 31, 60, 91, 121, 152, 182, 21
  *
  * @param timestamp is a number of epoch milliseconds (it is `now` by default).
  */
-@Suppress("FunctionName")
 public actual fun GMTDate(timestamp: Long?): GMTDate {
     val ts = timestamp ?: System.currentTimeMillis()
     return timestampToGMTDate(ts)
@@ -100,7 +101,6 @@ private fun isLeapYear(year: Int): Boolean =
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.date.GMTDate)
  */
-@Suppress("FunctionName")
 public actual fun GMTDate(
     seconds: Int,
     minutes: Int,

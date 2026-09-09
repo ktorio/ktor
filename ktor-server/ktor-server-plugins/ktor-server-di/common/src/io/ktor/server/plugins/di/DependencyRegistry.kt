@@ -5,6 +5,7 @@
 package io.ktor.server.plugins.di
 
 import io.ktor.server.application.*
+import io.ktor.server.routing.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.Deferred
 import kotlin.properties.ReadOnlyProperty
@@ -187,6 +188,9 @@ public var Application.dependencies: DependencyRegistry
     set(value) {
         attributes.put(DependencyRegistryKey, value)
     }
+
+public val Route.dependencies: DependencyRegistry
+    get() = application.attributes[DependencyRegistryKey]
 
 /**
  * Used for tracing references to dependency keys in the application.

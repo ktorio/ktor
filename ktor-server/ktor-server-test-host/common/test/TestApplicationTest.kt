@@ -175,6 +175,33 @@ class TestApplicationTest {
     }
 
     @Test
+    fun testCanAccessExternalServicesWhileStartingApplication() = testApplication {
+        val startupClient = client
+        var externalValue = ""
+
+        externalServices {
+            hosts("https://test.com") {
+                routing {
+                    get {
+                        call.respond("TEST_VALUE")
+                    }
+                }
+            }
+        }
+        application {
+            externalValue = startupClient.get("https://test.com").bodyAsText()
+        }
+        routing {
+            get {
+                call.respond(externalValue)
+            }
+        }
+
+        val response = client.get("/")
+        assertEquals("TEST_VALUE", response.bodyAsText())
+    }
+
+    @Test
     fun testingSchema() = testApplication {
         routing {
             get("/echo") {
@@ -430,13 +457,13 @@ class TestApplicationTest {
 
     @Test
     fun testCanPassCoroutineContextFromOutside() = testApplication(MyElement("test")) {
-        assertEquals("test", coroutineContext[MyElement]!!.data)
+        assertEquals("test", currentCoroutineContext()[MyElement]!!.data)
         withContext(Dispatchers.Unconfined) {
             assertEquals("test", coroutineContext[MyElement]!!.data)
         }
         routing {
             get {
-                call.respond(coroutineContext[MyElement]!!.data)
+                call.respond(currentCoroutineContext()[MyElement]!!.data)
             }
         }
         assertEquals("test", client.get("/").bodyAsText())

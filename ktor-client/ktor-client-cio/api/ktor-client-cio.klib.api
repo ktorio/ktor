@@ -14,6 +14,9 @@ final class io.ktor.client.engine.cio/CIOEngineConfig : io.ktor.client.engine/Ht
     final val https // io.ktor.client.engine.cio/CIOEngineConfig.https|{}https[0]
         final fun <get-https>(): io.ktor.network.tls/TLSConfigBuilder // io.ktor.client.engine.cio/CIOEngineConfig.https.<get-https>|<get-https>(){}[0]
 
+    final var dnsResolver // io.ktor.client.engine.cio/CIOEngineConfig.dnsResolver|{}dnsResolver[0]
+        final fun <get-dnsResolver>(): kotlin.coroutines/SuspendFunction1<kotlin/String, kotlin.collections/List<kotlin/String>>? // io.ktor.client.engine.cio/CIOEngineConfig.dnsResolver.<get-dnsResolver>|<get-dnsResolver>(){}[0]
+        final fun <set-dnsResolver>(kotlin.coroutines/SuspendFunction1<kotlin/String, kotlin.collections/List<kotlin/String>>?) // io.ktor.client.engine.cio/CIOEngineConfig.dnsResolver.<set-dnsResolver>|<set-dnsResolver>(kotlin.coroutines.SuspendFunction1<kotlin.String,kotlin.collections.List<kotlin.String>>?){}[0]
     final var maxConnectionsCount // io.ktor.client.engine.cio/CIOEngineConfig.maxConnectionsCount|{}maxConnectionsCount[0]
         final fun <get-maxConnectionsCount>(): kotlin/Int // io.ktor.client.engine.cio/CIOEngineConfig.maxConnectionsCount.<get-maxConnectionsCount>|<get-maxConnectionsCount>(){}[0]
         final fun <set-maxConnectionsCount>(kotlin/Int) // io.ktor.client.engine.cio/CIOEngineConfig.maxConnectionsCount.<set-maxConnectionsCount>|<set-maxConnectionsCount>(kotlin.Int){}[0]
@@ -62,6 +65,7 @@ final object io.ktor.client.engine.cio/CIO : io.ktor.client.engine/HttpClientEng
 }
 
 final fun (io.ktor.client.engine.cio/CIOEngineConfig).io.ktor.client.engine.cio/endpoint(kotlin/Function1<io.ktor.client.engine.cio/EndpointConfig, kotlin/Unit>): io.ktor.client.engine.cio/EndpointConfig // io.ktor.client.engine.cio/endpoint|endpoint@io.ktor.client.engine.cio.CIOEngineConfig(kotlin.Function1<io.ktor.client.engine.cio.EndpointConfig,kotlin.Unit>){}[0]
+final fun io.ktor.client.engine.cio/CioDnsResolver(kotlin/String, kotlin/Int = ..., kotlin.time/Duration = ...): kotlin.coroutines/SuspendFunction1<kotlin/String, kotlin.collections/List<kotlin/String>> // io.ktor.client.engine.cio/CioDnsResolver|CioDnsResolver(kotlin.String;kotlin.Int;kotlin.time.Duration){}[0]
 
 // Targets: [js]
 final val io.ktor.client.engine.cio/initHook // io.ktor.client.engine.cio/initHook|{}initHook[0]

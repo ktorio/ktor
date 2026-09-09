@@ -1,0 +1,172 @@
+/*
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
+package io.ktor.server.netty.http3
+
+import io.ktor.util.cio.*
+import io.ktor.utils.io.pool.*
+import io.netty.buffer.ByteBuf
+import io.netty.handler.codec.quic.Quic
+import io.netty.handler.codec.quic.QuicTokenHandler
+import java.net.InetSocketAddress
+import java.nio.ByteBuffer
+import java.security.MessageDigest
+import java.security.SecureRandom
+import javax.crypto.KeyGenerator
+import javax.crypto.Mac
+import javax.crypto.SecretKey
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
+
+/**
+ * Maximum age of a valid token in milliseconds (default: 60 seconds).
+ */
+private const val TOKEN_LIFETIME_MS = 60_000L
+
+/**
+ * Length of the HMAC-SHA256 output in bytes.
+ */
+private const val HMAC_LENGTH = 32
+
+/**
+ * Length of the timestamp in bytes (Long = 8 bytes).
+ */
+private const val TIMESTAMP_LENGTH = 8
+
+/**
+ * A secure [QuicTokenHandler] that generates and validates QUIC retry tokens
+ * using HMAC-SHA256. Tokens bind the client's address and port to a timestamp
+ * and are cryptographically signed to prevent forgery. Expired tokens are
+ * rejected to mitigate replay attacks.
+ *
+ * Assign an instance to [NettyHttp3Configuration.quicTokenHandler] to enable
+ * QUIC address validation via stateless Retry. Note that this adds one round trip
+ * to every connection handshake; see [NettyHttp3Configuration.quicTokenHandler]
+ * for the trade-offs.
+ *
+ * Token format:
+ * ```
+ * [timestamp (8 bytes)] [HMAC-SHA256 (32 bytes)] [dcid (variable)]
+ * ```
+ *
+ * The HMAC is computed over:
+ * ```
+ * [timestamp (8 bytes)] [address bytes] [port (4 bytes)] [dcid bytes]
+ * ```
+ *
+ * The destination connection id is appended after the HMAC so that the QUIC
+ * implementation can extract it at the offset returned by [validateToken].
+ *
+ * @param keyGen a function for providing the secret key used in HMAC signing and validation.
+ *   If not provided, a random 256-bit key is generated. Provide a shared key when tokens
+ *   must validate across multiple server instances.
+ * @param tokenLifetime maximum age of a valid token.
+ */
+public class HmacQuicTokenHandler(
+    keyGen: () -> SecretKey = ::generateDefaultKey,
+    private val tokenLifetime: Duration = TOKEN_LIFETIME_MS.milliseconds,
+) : QuicTokenHandler {
+
+    init {
+        require(tokenLifetime.isPositive()) {
+            "tokenLifetimeMillis must be strictly positive, but was $tokenLifetime"
+        }
+    }
+
+    private val secretKey: SecretKey by lazy(keyGen)
+
+    // Mac instances are not thread-safe and are relatively expensive to instantiate and key,
+    // so keep one initialized instance per thread. doFinal() resets the Mac for reuse.
+    private val macs: ThreadLocal<Mac> = ThreadLocal.withInitial {
+        Mac.getInstance("HmacSHA256").apply { init(secretKey) }
+    }
+
+    override fun writeToken(out: ByteBuf, dcid: ByteBuf, address: InetSocketAddress): Boolean {
+        val timestamp = System.currentTimeMillis()
+
+        KtorDefaultPool.useInstance { dcidBuffer ->
+            dcidBuffer.clear()
+            dcidBuffer.limit(dcid.readableBytes())
+            dcid.getBytes(dcid.readerIndex(), dcidBuffer.array(), 0, dcid.readableBytes())
+
+            val mac = computeHmac(timestamp, address, dcidBuffer)
+
+            out.writeLong(timestamp)
+            out.writeBytes(mac)
+            out.writeBytes(dcid, dcid.readerIndex(), dcid.readableBytes())
+        }
+
+        return true
+    }
+
+    override fun validateToken(token: ByteBuf, address: InetSocketAddress): Int {
+        val readable = token.readableBytes()
+        val headerLength = TIMESTAMP_LENGTH + HMAC_LENGTH
+        if (readable < headerLength) return -1
+
+        val timestamp = token.getLong(token.readerIndex())
+
+        val now = System.currentTimeMillis()
+        if (now - timestamp > tokenLifetime.inWholeMilliseconds || timestamp > now) return -1
+
+        val receivedMac = ByteArray(HMAC_LENGTH)
+        token.getBytes(token.readerIndex() + TIMESTAMP_LENGTH, receivedMac)
+
+        val dcidLength = readable - headerLength
+        if (dcidLength !in 0..Quic.MAX_CONN_ID_LEN) return -1
+
+        val expectedMac = KtorDefaultPool.useInstance { dcidBuffer ->
+            dcidBuffer.clear()
+            dcidBuffer.limit(dcidLength)
+            token.getBytes(token.readerIndex() + headerLength, dcidBuffer.array(), 0, dcidLength)
+            computeHmac(timestamp, address, dcidBuffer)
+        }
+
+        if (!MessageDigest.isEqual(receivedMac, expectedMac)) return -1
+
+        return headerLength
+    }
+
+    override fun maxTokenLength(): Int = TIMESTAMP_LENGTH + HMAC_LENGTH + Quic.MAX_CONN_ID_LEN
+
+    private fun computeHmac(timestamp: Long, address: InetSocketAddress, dcidBytes: ByteBuffer): ByteArray {
+        val mac = macs.get()
+
+        KtorDefaultPool.useInstance { timestampBuffer ->
+            timestampBuffer.limit(TIMESTAMP_LENGTH)
+            timestampBuffer.putLong(0, timestamp)
+            timestampBuffer.position(0)
+            timestampBuffer.limit(TIMESTAMP_LENGTH)
+
+            mac.update(timestampBuffer)
+
+            KtorDefaultPool.useInstance { portBuffer ->
+                portBuffer.clear()
+                portBuffer.limit(4)
+
+                val port = address.port
+                portBuffer.put(0, (port shr 24 and 0xFF).toByte())
+                portBuffer.put(1, (port shr 16 and 0xFF).toByte())
+                portBuffer.put(2, (port shr 8 and 0xFF).toByte())
+                portBuffer.put(3, (port and 0xFF).toByte())
+                portBuffer.position(0)
+                portBuffer.limit(4)
+
+                mac.update(address.address.address)
+                mac.update(portBuffer)
+                mac.update(dcidBytes)
+
+                return mac.doFinal()
+            }
+        }
+    }
+
+    internal companion object {
+        internal fun generateDefaultKey(): SecretKey {
+            val keyGen = KeyGenerator.getInstance("HmacSHA256")
+            keyGen.init(256, SecureRandom())
+            return keyGen.generateKey()
+        }
+    }
+}

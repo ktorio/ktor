@@ -10,7 +10,10 @@ import kotlinx.cinterop.StableRef
 import kotlinx.cinterop.asStableRef
 
 @OptIn(ExperimentalForeignApi::class)
-internal inline fun <T : Any> T.asStablePointer(): COpaquePointer = StableRef.create(this).asCPointer()
+internal inline fun <T : Any> T.toStableRef(): StableRef<T> = StableRef.create(this)
+
+@OptIn(ExperimentalForeignApi::class)
+internal inline fun <T : Any> T.asStablePointer(): COpaquePointer = toStableRef().asCPointer()
 
 @OptIn(ExperimentalForeignApi::class)
 internal inline fun <reified T : Any> COpaquePointer.fromCPointer(): T = asStableRef<T>().get()

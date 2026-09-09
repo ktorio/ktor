@@ -11,25 +11,26 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.milliseconds
 
 internal fun Application.timeoutTest() {
     routing {
         route("/timeout") {
             head("/with-delay") {
                 val delay = call.parameters["delay"]!!.toLong()
-                delay(delay)
+                delay(delay.milliseconds)
                 call.respond(HttpStatusCode.OK)
             }
 
             get("/with-delay") {
                 val delay = call.parameters["delay"]!!.toLong()
-                delay(delay)
+                delay(delay.milliseconds)
                 call.respondText { "Text" }
             }
 
             get("/with-stream") {
                 val delay = call.parameters["delay"]!!.toLong()
-                val response = "Text".toByteArray()
+                val response = "TextTextText".toByteArray()
                 call.respond(
                     object : OutgoingContent.WriteChannelContent() {
                         override val contentType = ContentType.Application.OctetStream
@@ -37,7 +38,7 @@ internal fun Application.timeoutTest() {
                             for (offset in response.indices) {
                                 channel.writeFully(response, offset, offset + 1)
                                 channel.flush()
-                                delay(delay)
+                                delay(delay.milliseconds)
                             }
                         }
                     }
@@ -49,7 +50,7 @@ internal fun Application.timeoutTest() {
                 val count = call.parameters["count"]!!.toInt()
                 val url = if (count == 0) "/timeout/with-delay?delay=$delay"
                 else "/timeout/with-redirect?delay=$delay&count=${count - 1}"
-                delay(delay)
+                delay(delay.milliseconds)
                 call.respondRedirect(url)
             }
 
@@ -63,7 +64,7 @@ internal fun Application.timeoutTest() {
                     count += read
                     if (count >= 1024 * 1024) {
                         count = 0
-                        delay(2000)
+                        delay(2000.milliseconds)
                     }
                 }
 

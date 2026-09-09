@@ -208,7 +208,7 @@ class PartialContentTest {
             assertEquals(HttpStatusCode.OK, result.status)
             assertNotNull(result.headers[HttpHeaders.LastModified])
             assertEquals(RangeUnits.Bytes.unitToken, result.headers[HttpHeaders.AcceptRanges])
-            assertTrue { result.bodyAsChannel().readRemaining().readByteArray().isEmpty() }
+            assertTrue { result.bodyAsChannel().readBuffer().readByteArray().isEmpty() }
         }
     }
 
@@ -336,7 +336,7 @@ class PartialContentTest {
         response: HttpResponse,
         expected: ByteArray
     ) {
-        val bytes = response.bodyAsChannel().readRemaining().readByteArray()
+        val bytes = response.bodyAsChannel().readBuffer().readByteArray()
         assertContentEquals(expected, bytes)
         assertEquals(expected.size, response.headers[HttpHeaders.ContentLength]!!.toInt())
     }

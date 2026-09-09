@@ -45,15 +45,17 @@ internal class DelegatingTestClientEngine(
 
     @InternalAPI
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
+        val authority = data.url.protocolWithAuthority
+        val externalApplication = config.testApplicationProvder().externalApplications[authority]
+        if (externalApplication != null) {
+            externalApplication.start()
+            return externalEngines[authority]!!.execute(data)
+        }
+
         config.testApplicationProvder().start()
         val mainEngineHostWithPorts = mainEngineHostWithPortsDeferred.await()
-        val authority = data.url.protocolWithAuthority
         val hostWithPort = data.url.hostWithPort
         return when {
-            externalEngines.containsKey(authority) -> {
-                externalEngines[authority]!!.execute(data)
-            }
-
             hostWithPort in mainEngineHostWithPorts -> {
                 mainEngine.execute(data)
             }

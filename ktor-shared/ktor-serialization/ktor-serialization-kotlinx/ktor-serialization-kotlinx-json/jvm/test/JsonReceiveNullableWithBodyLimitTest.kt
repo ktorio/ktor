@@ -34,7 +34,7 @@ class JsonReceiveNullableWithBodyLimitTest {
         var receivedWasNull = false
         routing {
             post("/") {
-                val received: Payload? = call.receiveNullable()
+                val received: Payload? = call.receive()
                 receivedWasNull = received == null
                 call.respond(HttpStatusCode.OK, "ok")
             }
@@ -45,7 +45,7 @@ class JsonReceiveNullableWithBodyLimitTest {
         }
         assertEquals(HttpStatusCode.OK, response.status)
         assertEquals("ok", response.bodyAsText())
-        assertTrue(receivedWasNull, "receiveNullable<Payload?>() should return null for an empty body")
+        assertTrue(receivedWasNull, "receive<Payload?>() should return null for an empty body")
     }
 
     @Test
@@ -60,7 +60,7 @@ class JsonReceiveNullableWithBodyLimitTest {
         var receivedWasNull: Boolean
         routing {
             post("/") {
-                val received: Payload? = call.receiveNullable()
+                val received: Payload? = call.receive()
                 receivedWasNull = received == null
                 call.respond(HttpStatusCode.OK, "ok")
             }
@@ -75,7 +75,7 @@ class JsonReceiveNullableWithBodyLimitTest {
             }
             assertEquals(HttpStatusCode.OK, response.status, "iteration #$it returned ${response.status}")
             assertEquals("ok", response.bodyAsText(), "iteration #$it body mismatch")
-            assertTrue(receivedWasNull, "iteration #$it: receiveNullable<Payload?>() should return null")
+            assertTrue(receivedWasNull, "iteration #$it: receive<Payload?>() should return null")
         }
     }
 }

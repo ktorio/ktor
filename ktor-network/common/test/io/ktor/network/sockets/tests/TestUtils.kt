@@ -37,3 +37,5 @@ internal fun removeFile(path: String) {
 }
 
 internal expect fun initSocketsIfNeeded()
+
+internal expect fun isJvmWindows(): Boolean

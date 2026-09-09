@@ -17,7 +17,7 @@ import java.net.ServerSocket
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
 
-@Suppress("BlockingMethodInNonBlockingContext", "ControlFlowWithEmptyBody")
+@Suppress("ControlFlowWithEmptyBody")
 class ExceptionsJvmTest {
 
     @Test

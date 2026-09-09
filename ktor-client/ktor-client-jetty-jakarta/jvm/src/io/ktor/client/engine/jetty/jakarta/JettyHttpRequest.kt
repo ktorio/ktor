@@ -81,7 +81,7 @@ internal suspend fun HTTP2Client.connect(
         InetSocketAddress(url.host, url.port),
         NoopListener,
         promise,
-        mutableMapOf<String, Object>() as Map<String, Object>
+        mutableMapOf()
     )
 }
 

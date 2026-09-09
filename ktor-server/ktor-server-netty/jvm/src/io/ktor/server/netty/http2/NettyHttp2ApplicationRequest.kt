@@ -45,7 +45,7 @@ internal class NettyHttp2ApplicationRequest(
     }
 
     @OptIn(ObsoleteCoroutinesApi::class)
-    val contentActor = actor<Http2DataFrame>(
+    val contentActor = actor(
         Dispatchers.Unconfined,
         kotlinx.coroutines.channels.Channel.UNLIMITED
     ) {

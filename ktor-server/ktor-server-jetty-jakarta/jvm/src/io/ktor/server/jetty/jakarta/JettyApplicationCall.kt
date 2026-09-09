@@ -22,9 +22,7 @@ import io.ktor.server.response.ResponseHeaders
 import io.ktor.util.cio.ChannelWriteException
 import io.ktor.utils.io.*
 import io.ktor.utils.io.pool.ByteBufferPool
-import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.io.InternalIoApi
 import org.eclipse.jetty.io.Content
 import org.eclipse.jetty.io.EndPoint
 import org.eclipse.jetty.server.Request
@@ -34,7 +32,7 @@ import java.util.concurrent.Executor
 import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration
 
-internal val bufferPool = ByteBufferPool(bufferSize = 8192)
+internal val bufferPool = ByteBufferPool(bufferSize = 32_768)
 internal val emptyBuffer = ByteBuffer.allocate(0)
 
 @InternalAPI
@@ -128,7 +126,6 @@ public class JettyApplicationCall(
             }
         }
 
-        @OptIn(InternalCoroutinesApi::class, InternalIoApi::class)
         private val responseBodyJob: Lazy<ReaderJob> = lazy {
             call.bodyWriter(response)
         }

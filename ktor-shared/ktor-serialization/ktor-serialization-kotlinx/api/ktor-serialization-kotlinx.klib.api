@@ -16,9 +16,10 @@ abstract interface io.ktor.serialization.kotlinx/KotlinxSerializationExtensionPr
     abstract fun extension(kotlinx.serialization/SerialFormat): io.ktor.serialization.kotlinx/KotlinxSerializationExtension? // io.ktor.serialization.kotlinx/KotlinxSerializationExtensionProvider.extension|extension(kotlinx.serialization.SerialFormat){}[0]
 }
 
-final class io.ktor.serialization.kotlinx/KotlinxSerializationConverter : io.ktor.serialization/ContentConverter { // io.ktor.serialization.kotlinx/KotlinxSerializationConverter|null[0]
+final class io.ktor.serialization.kotlinx/KotlinxSerializationConverter : io.ktor.openapi/JsonSchemaInference, io.ktor.serialization/ContentConverter { // io.ktor.serialization.kotlinx/KotlinxSerializationConverter|null[0]
     constructor <init>(kotlinx.serialization/SerialFormat) // io.ktor.serialization.kotlinx/KotlinxSerializationConverter.<init>|<init>(kotlinx.serialization.SerialFormat){}[0]
 
+    final fun buildSchema(kotlin.reflect/KType): io.ktor.openapi/JsonSchema // io.ktor.serialization.kotlinx/KotlinxSerializationConverter.buildSchema|buildSchema(kotlin.reflect.KType){}[0]
     final suspend fun deserialize(io.ktor.utils.io.charsets/Charset, io.ktor.util.reflect/TypeInfo, io.ktor.utils.io/ByteReadChannel): kotlin/Any? // io.ktor.serialization.kotlinx/KotlinxSerializationConverter.deserialize|deserialize(io.ktor.utils.io.charsets.Charset;io.ktor.util.reflect.TypeInfo;io.ktor.utils.io.ByteReadChannel){}[0]
     final suspend fun serialize(io.ktor.http/ContentType, io.ktor.utils.io.charsets/Charset, io.ktor.util.reflect/TypeInfo, kotlin/Any?): io.ktor.http.content/OutgoingContent // io.ktor.serialization.kotlinx/KotlinxSerializationConverter.serialize|serialize(io.ktor.http.ContentType;io.ktor.utils.io.charsets.Charset;io.ktor.util.reflect.TypeInfo;kotlin.Any?){}[0]
 }

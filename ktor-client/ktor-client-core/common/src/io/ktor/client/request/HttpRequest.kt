@@ -12,7 +12,6 @@ import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
-import io.ktor.util.collections.*
 import io.ktor.util.date.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
@@ -423,14 +422,17 @@ public class SSEClientResponseAdapter : ResponseAdapter {
         callContext: CoroutineContext
     ): Any? {
         val contentType = headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) }
+        val isContentTypeAccepted = contentType == null ||
+            contentType.withoutParameters() == ContentType.Text.EventStream
         return if (data.isSseRequest() &&
             !data.isSseReconnectionRequest() &&
             (
-                (status == HttpStatusCode.OK && contentType?.withoutParameters() == ContentType.Text.EventStream) ||
+                (status == HttpStatusCode.OK && isContentTypeAccepted) ||
                     status == HttpStatusCode.NoContent
                 )
         ) {
             outgoingContent as SSEClientContent
+            @Suppress("DEPRECATION")
             DefaultClientSSESession(outgoingContent, responseBody)
         } else {
             null

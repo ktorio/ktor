@@ -24,7 +24,6 @@ internal object AuthenticationHook : Hook<suspend (ApplicationCall) -> Unit> {
         pipeline: ApplicationCallPipeline,
         handler: suspend (ApplicationCall) -> Unit
     ) {
-        @Suppress("INVISIBLE_REFERENCE")
         pipeline.intercept(ApplicationCallPipeline.Validators) { handler(call) }
     }
 }
@@ -73,29 +72,7 @@ public val AuthenticationInterceptors: RouteScopedPlugin<RouteAuthenticationConf
         requiredProviders - firstSuccessfulProviders
 
     // To cache the request body which can be consumed by the OAuth2 callback handler
-    on(ReceiveBytes) { call, body ->
-        var newBody: Any = body
-
-        if (call.attributes.contains(cacheOAuthFormReceiveKey) && call.receiveType == typeInfo<Parameters>()) {
-            if (body is ByteReadChannel) {
-                try {
-                    val array = body.readBuffer.readByteArray()
-                    call.attributes.put(formCacheKey, array)
-                    newBody = ByteReadChannel(array)
-                } finally {
-                    call.attributes.remove(cacheOAuthFormReceiveKey)
-                }
-            }
-        } else {
-            val cache = call.attributes.getOrNull(formCacheKey)
-
-            if (cache != null) {
-                newBody = ByteReadChannel(cache)
-            }
-        }
-
-        newBody
-    }
+    installOAuthBodyCache()
 
     on(AuthenticationHook) { call ->
         if (call.isHandled) return@on
@@ -158,9 +135,9 @@ public val AuthenticationInterceptors: RouteScopedPlugin<RouteAuthenticationConf
 
 internal val cacheOAuthFormReceiveKey = AttributeKey<Unit>("OauthFormReceiveKey")
 
-private val formCacheKey = AttributeKey<ByteArray>("AuthFormCacheKey")
+internal val formCacheKey = AttributeKey<ByteArray>("AuthFormCacheKey")
 
-private object ReceiveBytes : Hook<suspend (ApplicationCall, Any) -> Any> {
+internal object ReceiveBytes : Hook<suspend (ApplicationCall, Any) -> Any> {
     override fun install(
         pipeline: ApplicationCallPipeline,
         handler: suspend (ApplicationCall, Any) -> Any
@@ -172,7 +149,45 @@ private object ReceiveBytes : Hook<suspend (ApplicationCall, Any) -> Any> {
     }
 }
 
-private suspend fun AuthenticationContext.executeChallenges(call: ApplicationCall) {
+/**
+ * Installs the OAuth body cache hook.
+ *
+ * OAuth providers may consume the request body during authentication.
+ * This hook caches form bodies so they can be read again by the route handler.
+ */
+internal fun RouteScopedPluginBuilder<*>.installOAuthBodyCache() {
+    on(ReceiveBytes) { call, body ->
+        var newBody: Any = body
+
+        if (call.attributes.contains(cacheOAuthFormReceiveKey) && call.receiveType == typeInfo<Parameters>()) {
+            if (body is ByteReadChannel) {
+                try {
+                    val array = body.readBuffer().readByteArray()
+                    call.attributes.put(formCacheKey, array)
+                    newBody = ByteReadChannel(array)
+                } finally {
+                    call.attributes.remove(cacheOAuthFormReceiveKey)
+                }
+            }
+        } else {
+            val cache = call.attributes.getOrNull(formCacheKey)
+            if (cache != null) {
+                newBody = ByteReadChannel(cache)
+            }
+        }
+
+        newBody
+    }
+}
+
+/**
+ * Creates a standalone route-scoped plugin that installs the OAuth body cache.
+ */
+internal fun createOAuthBodyCachePlugin() = createRouteScopedPlugin("OAuthBodyCache") {
+    installOAuthBodyCache()
+}
+
+internal suspend fun AuthenticationContext.executeChallenges(call: ApplicationCall) {
     val challenges = challenge.challenges
 
     if (this.executeChallenges(challenges, call)) return
@@ -191,7 +206,7 @@ private suspend fun AuthenticationContext.executeChallenges(call: ApplicationCal
     }
 }
 
-private suspend fun AuthenticationContext.executeChallenges(
+internal suspend fun AuthenticationContext.executeChallenges(
     challenges: List<ChallengeFunction>,
     call: ApplicationCall
 ): Boolean {
@@ -208,7 +223,6 @@ private suspend fun AuthenticationContext.executeChallenges(
     return false
 }
 
-@OptIn(InternalAPI::class)
 public fun AuthenticationConfig.allProviders(): Map<String?, AuthenticationProvider> {
     return providers
 }
@@ -343,10 +357,8 @@ public class RouteAuthenticationConfig {
  *
  * @param names of authentication providers to be applied to this route.
  */
-public class AuthenticationRouteSelector(public val names: List<String?>) : RouteSelector() {
-    override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
-        return RouteSelectorEvaluation.Transparent
-    }
+@OptIn(InternalAPI::class)
+public class AuthenticationRouteSelector(public val names: List<String?>) : TransparentRouteSelector() {
 
     override fun toString(): String = "(authenticate ${names.joinToString { it ?: "\"$DEFAULT_NAME\"" }})"
 

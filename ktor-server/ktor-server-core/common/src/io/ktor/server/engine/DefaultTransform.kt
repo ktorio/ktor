@@ -5,6 +5,8 @@
 package io.ktor.server.engine
 
 import io.ktor.http.*
+import io.ktor.http.cio.*
+import io.ktor.http.cio.internals.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.http.content.*
@@ -16,6 +18,7 @@ import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
+import kotlinx.coroutines.*
 import kotlinx.io.*
 
 internal val LOGGER = KtorSimpleLogger("io.ktor.server.engine.DefaultTransform")
@@ -45,6 +48,8 @@ public fun ApplicationReceivePipeline.installDefaultTransformations() {
             ByteReadChannel::class -> null
 
             ByteArray::class -> channel.toByteArray()
+
+            MultiPartData::class -> multiPartData(channel)
 
             Parameters::class -> {
                 val contentType = withContentType(call) { call.request.contentType() }
@@ -99,7 +104,25 @@ internal expect suspend fun PipelineContext<Any, PipelineCall>.defaultPlatformTr
     query: Any
 ): Any?
 
-internal expect fun PipelineContext<*, PipelineCall>.multiPartData(rc: ByteReadChannel): MultiPartData
+@OptIn(InternalAPI::class)
+internal fun PipelineContext<*, PipelineCall>.multiPartData(rc: ByteReadChannel): MultiPartData {
+    val contentType = call.request.header(HttpHeaders.ContentType)
+        ?: throw UnsupportedMediaTypeException(null)
+
+    val contentLength = call.request.header(HttpHeaders.ContentLength)?.toLong()
+
+    try {
+        return CIOMultipartDataBase(
+            coroutineContext + Dispatchers.Unconfined,
+            rc,
+            contentType,
+            contentLength,
+            formFieldLimit = call.formFieldLimit
+        )
+    } catch (_: UnsupportedMediaTypeExceptionCIO) {
+        throw UnsupportedMediaTypeException(ContentType.parse(contentType))
+    }
+}
 
 internal inline fun <R> withContentType(call: PipelineCall, block: () -> R): R = try {
     block()

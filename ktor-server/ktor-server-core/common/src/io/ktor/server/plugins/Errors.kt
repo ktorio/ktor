@@ -5,11 +5,12 @@
 package io.ktor.server.plugins
 
 import io.ktor.http.*
-import io.ktor.server.application.internal.*
 import io.ktor.util.internal.*
-import kotlinx.coroutines.*
-import kotlinx.io.*
-import kotlin.reflect.*
+import io.ktor.util.reflect.*
+import kotlinx.coroutines.CopyableThrowable
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.io.IOException
+import kotlin.reflect.KType
 
 /**
  * Base exception to indicate that the request is not correct due to
@@ -86,13 +87,21 @@ public class ParameterConversionException(
 public abstract class ContentTransformationException(message: String) : IOException(message)
 
 @OptIn(ExperimentalCoroutinesApi::class)
-public class CannotTransformContentToTypeException(
-    private val type: KType
-) : ContentTransformationException("Cannot transform this request's content to $type"),
+public class CannotTransformContentToTypeException private constructor(
+    private val typeDescription: String
+) : ContentTransformationException("Cannot transform this request's content to $typeDescription"),
     CopyableThrowable<CannotTransformContentToTypeException> {
 
+    public constructor(type: KType) : this(type.toString())
+
+    internal constructor(typeInfo: TypeInfo) : this(
+        typeInfo.kotlinType?.toString()
+            ?: typeInfo.type.simpleName
+            ?: typeInfo.type.toString()
+    )
+
     override fun createCopy(): CannotTransformContentToTypeException =
-        CannotTransformContentToTypeException(type).also {
+        CannotTransformContentToTypeException(typeDescription).also {
             it.initCauseBridge(this)
         }
 }

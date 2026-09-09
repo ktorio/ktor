@@ -14,6 +14,7 @@ import io.netty.channel.ChannelPromise
 import io.netty.handler.codec.http.FullHttpResponse
 import io.netty.handler.codec.http.HttpResponse
 import io.netty.handler.codec.http2.Http2HeadersFrame
+import io.netty.handler.codec.http3.Http3HeadersFrame
 import kotlinx.atomicfu.AtomicBoolean
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CoroutineScope
@@ -28,23 +29,22 @@ private const val UNFLUSHED_LIMIT = 65536
 /**
  * Contains methods for handling HTTP responses with Netty.
  *
- * The pipeline serializes response writes in request order, tracks active and streaming responses,
- * and flushes pending writes when the channel read cycle is complete and no non-streaming responses
- * are still active.
+ * The pipeline serializes response writes in request order and flushes pending writes once the
+ * channel read cycle is complete.
  *
  * @property context Netty channel context used to write, flush, read from, and close the channel.
- * @property httpHandlerState Shared state used to coordinate request counters, streaming counters,
- *                            read-completion state, and back-pressure decisions for the handler.
+ * @property httpHandlerState Shared state used to coordinate request counters, read-completion state,
+ *                            and back-pressure decisions for the handler.
  * @property coroutineContext Coroutine context used to launch response body writer coroutines.
  * @property onFailure Optional action invoked after a failed call's counters are decremented. For HTTP/2, this is
  *                     used to trigger [flushIfNeeded] on the most-recently-created pipeline (which may differ from
- *                     `this` due to the shared-handler-per-stream design), so that a pending flush blocked by the
- *                     stale counter is unblocked regardless of thread-scheduling order.
+ *                     `this` due to the shared-handler-per-stream design), so that any of its pending writes are
+ *                     flushed regardless of thread-scheduling order.
  */
 internal class NettyHttpResponsePipeline(
     private val context: ChannelHandlerContext,
     private val httpHandlerState: NettyHttpHandlerState,
-    override val coroutineContext: CoroutineContext,
+    override var coroutineContext: CoroutineContext,
     private val onFailure: (() -> Unit)? = null
 ) : CoroutineScope {
     /**
@@ -64,14 +64,13 @@ internal class NettyHttpResponsePipeline(
     /** Flush if all is true:
      * - there is some unflushed data
      * - nothing to read from the channel
-     * - there are no active non-streaming requests
+     *
+     * Flushing never reorders already-written data (Netty's outbound buffer is FIFO), so it is always safe
+     * to flush as soon as the current read cycle is done, regardless of how many other requests on this
+     * connection are still being computed or written.
      */
     internal fun flushIfNeeded() {
-        if (
-            isDataNotFlushed.value &&
-            httpHandlerState.isChannelReadCompleted.value &&
-            httpHandlerState.activeRequests.value == httpHandlerState.streamingResponses.value
-        ) {
+        if (isDataNotFlushed.value && httpHandlerState.isChannelReadCompleted.value) {
             context.flush()
             isDataNotFlushed.compareAndSet(expect = true, update = false)
         }
@@ -93,7 +92,11 @@ internal class NettyHttpResponsePipeline(
         } catch (actualException: Throwable) {
             respondWithFailure(call, actualException)
         } finally {
-            call.responseWriteJob.cancel()
+            // On the failure path above, responseWriteJob is already cancelled by respondWithFailure;
+            // completing it here again is then a no-op. On the (overwhelmingly common) success path,
+            // this is the actual completion signal, so it goes through complete()'s fast path rather
+            // than cancel()'s always-slow-path Finishing/exception-aggregation machinery.
+            call.completeResponseWriteJob()
         }
     }
 
@@ -125,9 +128,6 @@ internal class NettyHttpResponsePipeline(
             else -> actualException
         }
 
-        if (call.isStreamingResponse) {
-            httpHandlerState.streamingResponses.decrementAndGet()
-        }
         httpHandlerState.activeRequests.decrementAndGet()
 
         flushIfNeeded()
@@ -169,27 +169,18 @@ internal class NettyHttpResponsePipeline(
             null
         }
 
-        if (call.isStreamingResponse) {
-            httpHandlerState.streamingResponses.decrementAndGet()
-        }
         httpHandlerState.onLastResponseMessage(context)
         call.finishedEvent.setSuccess()
 
-        lastMessageFuture?.addListener {
-            if (prepareForClose) {
-                close(lastFuture)
-                return@addListener
-            }
-        }
         if (prepareForClose) {
-            close(lastFuture)
+            close(call, lastMessageFuture ?: lastFuture)
             return
         }
         scheduleFlush()
     }
 
-    fun close(lastFuture: ChannelFuture) {
-        context.flush()
+    fun close(call: NettyApplicationCall, lastFuture: ChannelFuture) {
+        call.flushBeforeClose(context, lastFuture)
         isDataNotFlushed.compareAndSet(expect = true, update = false)
         lastFuture.addListener {
             context.close()
@@ -226,11 +217,9 @@ internal class NettyHttpResponsePipeline(
             responseChannel === ByteReadChannel.Empty -> 0
             responseMessage is HttpResponse -> responseMessage.headers().getInt("Content-Length", -1)
             responseMessage is Http2HeadersFrame -> responseMessage.headers().getInt("content-length", -1)
+            responseMessage is Http3HeadersFrame -> responseMessage.headers().getInt("content-length", -1)
             else -> -1
         }
-
-        call.isStreamingResponse = true
-        httpHandlerState.streamingResponses.incrementAndGet()
 
         launch(context.executor().asCoroutineDispatcher(), start = CoroutineStart.UNDISPATCHED) {
             respondWithBodyAndTrailerMessage(

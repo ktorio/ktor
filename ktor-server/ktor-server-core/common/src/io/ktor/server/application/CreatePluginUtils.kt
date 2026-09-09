@@ -7,7 +7,6 @@ package io.ktor.server.application
 import io.ktor.server.config.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
-import io.ktor.util.pipeline.*
 
 /**
  * Creates an [ApplicationPlugin] that can be installed into an [Application].

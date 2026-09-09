@@ -5,3 +5,7 @@
 package io.ktor.network.sockets.tests
 
 actual fun initSocketsIfNeeded() = io.ktor.network.util.initSocketsIfNeeded()
+
+actual fun isJvmWindows(): Boolean {
+    return false
+}

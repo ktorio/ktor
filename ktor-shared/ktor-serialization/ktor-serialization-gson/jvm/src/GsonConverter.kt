@@ -8,11 +8,10 @@ import com.google.gson.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.serialization.*
-import io.ktor.util.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
-import io.ktor.utils.io.jvm.javaio.*
+import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import java.io.*
@@ -54,10 +53,8 @@ public class GsonConverter(private val gson: Gson = Gson()) : ContentConverter {
         }
 
         try {
-            return withContext(Dispatchers.IO) {
-                val reader = content.toInputStream().reader(charset)
-                gson.fromJson(reader, typeInfo.reifiedType)
-            }
+            val text = content.readBuffer().readText(charset)
+            return gson.fromJson(text, typeInfo.reifiedType)
         } catch (cause: JsonSyntaxException) {
             throw JsonConvertException("Illegal json parameter found: ${cause.message}", cause)
         }

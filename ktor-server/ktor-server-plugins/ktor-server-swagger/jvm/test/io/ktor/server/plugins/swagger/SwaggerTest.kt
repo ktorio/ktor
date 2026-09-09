@@ -317,12 +317,9 @@ class SwaggerTest {
             val responseText = response.bodyAsText()
             assertContains(responseText, "Books API from routes")
             assertContains(
-                responseText,
-                """
-              required:
-              - author
-              - title
-                """.trimIndent().prependIndent("      ")
+                responseText.requiredFieldBlocks(),
+                setOf("author", "title"),
+                message = "Response should declare 'author' and 'title' as required fields, in any order"
             )
             for (description in descriptions) {
                 assertContains(responseText, description, message = "Response should contain '$description'")
@@ -459,6 +456,18 @@ private inline fun captureTestLogMessages(block: () -> Unit): List<String> {
         logger.level = previousLevel
     }
     return listAppender.list.map { it.message }
+}
+private fun String.requiredFieldBlocks(): List<Set<String>> {
+    val lines = lines()
+    return lines.indices
+        .filter { lines[it].trim() == "required:" }
+        .map { start ->
+            lines.asSequence()
+                .drop(start + 1)
+                .takeWhile { it.trim().startsWith("- ") }
+                .map { it.trim().removePrefix("- ") }
+                .toSet()
+        }
 }
 
 @Serializable

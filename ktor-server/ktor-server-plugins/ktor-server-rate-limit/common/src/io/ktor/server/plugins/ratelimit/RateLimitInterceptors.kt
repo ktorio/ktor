@@ -16,7 +16,6 @@ import kotlin.time.Duration.Companion.milliseconds
 
 private object ValidatorsPhase : Hook<suspend (ApplicationCall) -> Unit> {
     override fun install(pipeline: ApplicationCallPipeline, handler: suspend (ApplicationCall) -> Unit) {
-        @Suppress("INVISIBLE_REFERENCE")
         pipeline.intercept(ApplicationCallPipeline.Validators) { handler(call) }
     }
 }

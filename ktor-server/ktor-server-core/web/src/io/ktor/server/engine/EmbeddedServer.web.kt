@@ -46,7 +46,6 @@ actual constructor(
     private val modules = rootConfig.modules
     private val serverScope = CoroutineScope(rootConfig.parentCoroutineContext + Dispatchers.Default)
 
-    @OptIn(DelicateCoroutinesApi::class)
     private suspend fun prepareToStart() {
         safeRaiseEvent(ApplicationStarting, application)
         try {
@@ -63,10 +62,9 @@ actual constructor(
 
         CoroutineScope(application.coroutineContext).launch {
             engine.resolvedConnectors().forEach {
-                val host = escapeHostname(it.host)
-                environment.log.info(
-                    "Responding at ${it.type.name.lowercase()}://$host:${it.port}"
-                )
+                val address = it.addressDescription
+                    ?: "${it.type.name.lowercase()}://${escapeHostname(it.host)}:${it.port}"
+                environment.log.info("Responding at $address")
             }
         }
     }
@@ -80,7 +78,6 @@ actual constructor(
         error("Blocking start() is not available on this platform; use startSuspend() instead")
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     public actual suspend fun startSuspend(wait: Boolean): EmbeddedServer<TEngine, TConfiguration> {
         addShutdownHook { serverScope.launch { stopSuspend() } }
         prepareToStart()
@@ -88,7 +85,6 @@ actual constructor(
         return this
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     public actual fun stop(gracePeriodMillis: Long, timeoutMillis: Long) {
         engine.stop(gracePeriodMillis, timeoutMillis)
         serverScope.launch { destroy(application) }

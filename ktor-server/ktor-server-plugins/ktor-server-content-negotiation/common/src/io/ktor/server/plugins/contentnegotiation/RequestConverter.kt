@@ -64,7 +64,7 @@ private suspend fun convertBody(
     }
 
     val isEmpty = body.isClosedForRead || !body.awaitContent()
-    val isNullable = receiveType.kotlinType?.isMarkedNullable == true
+    val isNullable = receiveType.isNullable
     if (isEmpty && isNullable) {
         return NullBody
     }

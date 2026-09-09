@@ -314,7 +314,7 @@ class TestApplicationTestJvm {
     private fun testSocketTimeoutWrite(timeout: Long, expectException: Boolean) = testApplication {
         routing {
             post {
-                call.respond(HttpStatusCode.OK, call.request.receiveChannel().readRemaining().toString())
+                call.respond(HttpStatusCode.OK, call.request.receiveChannel().readBuffer().toString())
             }
         }
 

@@ -15,6 +15,7 @@ public final class io/ktor/server/netty/EventLoopGroupProxy : io/netty/channel/E
 	public fun <init> (Lkotlin/reflect/KClass;Lio/netty/channel/EventLoopGroup;)V
 	public fun awaitTermination (JLjava/util/concurrent/TimeUnit;)Z
 	public fun execute (Ljava/lang/Runnable;)V
+	public fun forEach (Ljava/util/function/Consumer;)V
 	public final fun getChannel ()Lkotlin/reflect/KClass;
 	public fun invokeAll (Ljava/util/Collection;)Ljava/util/List;
 	public fun invokeAll (Ljava/util/Collection;JLjava/util/concurrent/TimeUnit;)Ljava/util/List;
@@ -41,6 +42,7 @@ public final class io/ktor/server/netty/EventLoopGroupProxy : io/netty/channel/E
 	public fun shutdownGracefully ()Lio/netty/util/concurrent/Future;
 	public fun shutdownGracefully (JJLjava/util/concurrent/TimeUnit;)Lio/netty/util/concurrent/Future;
 	public fun shutdownNow ()Ljava/util/List;
+	public fun spliterator ()Ljava/util/Spliterator;
 	public fun submit (Ljava/lang/Runnable;)Lio/netty/util/concurrent/Future;
 	public synthetic fun submit (Ljava/lang/Runnable;)Ljava/util/concurrent/Future;
 	public fun submit (Ljava/lang/Runnable;Ljava/lang/Object;)Lio/netty/util/concurrent/Future;
@@ -48,6 +50,7 @@ public final class io/ktor/server/netty/EventLoopGroupProxy : io/netty/channel/E
 	public fun submit (Ljava/util/concurrent/Callable;)Lio/netty/util/concurrent/Future;
 	public synthetic fun submit (Ljava/util/concurrent/Callable;)Ljava/util/concurrent/Future;
 	public fun terminationFuture ()Lio/netty/util/concurrent/Future;
+	public fun ticker ()Lio/netty/util/concurrent/Ticker;
 }
 
 public final class io/ktor/server/netty/EventLoopGroupProxy$Companion {
@@ -81,8 +84,11 @@ public final class io/ktor/server/netty/NettyApplicationEngine : io/ktor/server/
 
 public final class io/ktor/server/netty/NettyApplicationEngine$Configuration : io/ktor/server/engine/BaseApplicationEngine$Configuration {
 	public fun <init> ()V
+	public final fun enableHttp3 (Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun enableHttp3$default (Lio/ktor/server/netty/NettyApplicationEngine$Configuration;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 	public final fun getChannelPipelineConfig ()Lkotlin/jvm/functions/Function1;
 	public final fun getConfigureBootstrap ()Lkotlin/jvm/functions/Function1;
+	public final fun getEnableFlushConsolidation ()Z
 	public final fun getEnableH2c ()Z
 	public final fun getEnableHttp2 ()Z
 	public final fun getHttpServerCodec ()Lkotlin/jvm/functions/Function0;
@@ -96,6 +102,7 @@ public final class io/ktor/server/netty/NettyApplicationEngine$Configuration : i
 	public final fun getTcpKeepAlive ()Z
 	public final fun setChannelPipelineConfig (Lkotlin/jvm/functions/Function1;)V
 	public final fun setConfigureBootstrap (Lkotlin/jvm/functions/Function1;)V
+	public final fun setEnableFlushConsolidation (Z)V
 	public final fun setEnableH2c (Z)V
 	public final fun setEnableHttp2 (Z)V
 	public final fun setHttpServerCodec (Lkotlin/jvm/functions/Function0;)V
@@ -162,6 +169,7 @@ public final class io/ktor/server/netty/NettyChannelInitializer : io/netty/chann
 	public static final field Companion Lio/ktor/server/netty/NettyChannelInitializer$Companion;
 	public fun <init> (Lkotlin/jvm/functions/Function0;Lio/ktor/server/engine/EnginePipeline;Lio/ktor/server/application/ApplicationEnvironment;Lio/netty/util/concurrent/EventExecutorGroup;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lio/ktor/server/engine/EngineConnectorConfig;IIILkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;Z)V
 	public fun <init> (Lkotlin/jvm/functions/Function0;Lio/ktor/server/engine/EnginePipeline;Lio/ktor/server/application/ApplicationEnvironment;Lio/netty/util/concurrent/EventExecutorGroup;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lio/ktor/server/engine/EngineConnectorConfig;IIILkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;ZZ)V
+	public fun <init> (Lkotlin/jvm/functions/Function0;Lio/ktor/server/engine/EnginePipeline;Lio/ktor/server/application/ApplicationEnvironment;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lio/ktor/server/engine/EngineConnectorConfig;IIILkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;ZZZ)V
 	public synthetic fun initChannel (Lio/netty/channel/Channel;)V
 }
 
@@ -170,5 +178,37 @@ public final class io/ktor/server/netty/NettyChannelInitializer$Companion {
 
 public final class io/ktor/server/netty/cio/NettyResponsePipelineException : java/lang/Exception {
 	public fun <init> (Ljava/lang/String;)V
+}
+
+public final class io/ktor/server/netty/http3/HmacQuicTokenHandler : io/netty/handler/codec/quic/QuicTokenHandler {
+	public synthetic fun <init> (Lkotlin/jvm/functions/Function0;JILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Lkotlin/jvm/functions/Function0;JLkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun maxTokenLength ()I
+	public fun validateToken (Lio/netty/buffer/ByteBuf;Ljava/net/InetSocketAddress;)I
+	public fun writeToken (Lio/netty/buffer/ByteBuf;Lio/netty/buffer/ByteBuf;Ljava/net/InetSocketAddress;)Z
+}
+
+public final class io/ktor/server/netty/http3/NettyHttp3Configuration {
+	public fun <init> ()V
+	public final fun getConfigureQuicServerCodec ()Lkotlin/jvm/functions/Function1;
+	public final fun getQuicInitialMaxData ()J
+	public final fun getQuicInitialMaxStreamDataBidirectionalLocal ()J
+	public final fun getQuicInitialMaxStreamDataBidirectionalRemote ()J
+	public final fun getQuicInitialMaxStreamsBidirectional ()J
+	public final fun getQuicMaxIdleTimeout-UwyO8pc ()J
+	public final fun getQuicTokenHandler ()Lio/netty/handler/codec/quic/QuicTokenHandler;
+	public final fun getUdpReceiveBufferSize ()I
+	public final fun getUdpSendBufferSize ()I
+	public final fun getUdpSocketCount ()Ljava/lang/Integer;
+	public final fun setConfigureQuicServerCodec (Lkotlin/jvm/functions/Function1;)V
+	public final fun setQuicInitialMaxData (J)V
+	public final fun setQuicInitialMaxStreamDataBidirectionalLocal (J)V
+	public final fun setQuicInitialMaxStreamDataBidirectionalRemote (J)V
+	public final fun setQuicInitialMaxStreamsBidirectional (J)V
+	public final fun setQuicMaxIdleTimeout-LRDsOJo (J)V
+	public final fun setQuicTokenHandler (Lio/netty/handler/codec/quic/QuicTokenHandler;)V
+	public final fun setUdpReceiveBufferSize (I)V
+	public final fun setUdpSendBufferSize (I)V
+	public final fun setUdpSocketCount (Ljava/lang/Integer;)V
 }
 

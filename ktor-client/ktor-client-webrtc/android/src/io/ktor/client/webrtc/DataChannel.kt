@@ -63,13 +63,17 @@ public class AndroidWebRtcDataChannel(
     override suspend fun send(text: String) {
         assertOpen()
         val buffer = DataChannel.Buffer(Charsets.UTF_8.encode(text), false)
-        nativeChannel.send(buffer)
+        if (!nativeChannel.send(buffer)) {
+            throw WebRtc.IOException("Failed to send text message over data channel '$label'.")
+        }
     }
 
     override suspend fun send(bytes: ByteArray) {
         assertOpen()
         val buffer = DataChannel.Buffer(ByteBuffer.wrap(bytes), true)
-        nativeChannel.send(buffer)
+        if (!nativeChannel.send(buffer)) {
+            throw WebRtc.IOException("Failed to send binary message over data channel '$label'.")
+        }
     }
 
     override fun setBufferedAmountLowThreshold(threshold: Long) {

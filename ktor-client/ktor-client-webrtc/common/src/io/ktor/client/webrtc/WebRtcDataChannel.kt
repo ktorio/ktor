@@ -205,7 +205,24 @@ public abstract class WebRtcDataChannel private constructor(
         receiveChannel = Channel(options = receiveOptions)
     )
 
-    override suspend fun receive(): WebRtc.DataChannel.Message = receiveChannel.receive()
+    /**
+     * Returns an iterator over received messages.
+     *
+     * If the data channel is closed, the iterator keeps returning messages already stored in the buffer
+     * and completes when no buffered messages remain.
+     */
+    public operator fun iterator(): ChannelIterator<WebRtc.DataChannel.Message> {
+        return receiveChannel.iterator()
+    }
+
+    override suspend fun receive(): WebRtc.DataChannel.Message {
+        val result = receiveChannel.receiveCatching()
+        if (result.isSuccess) {
+            return result.getOrThrow()
+        }
+        val message = "Data channel '$label' is closed and no more messages will be received."
+        throw WebRtc.DataChannelClosedException(message, result.exceptionOrNull())
+    }
 
     override suspend fun receiveBinary(): ByteArray = receive().binaryOrThrow()
 
@@ -223,5 +240,18 @@ public abstract class WebRtcDataChannel private constructor(
 
     protected fun stopReceivingMessages() {
         receiveChannel.close()
+    }
+}
+
+@InternalAPI
+public suspend inline fun <R> withIOException(crossinline block: suspend () -> R): R {
+    return try {
+        block()
+    } catch (cause: kotlinx.coroutines.CancellationException) {
+        throw cause
+    } catch (cause: WebRtc.IOException) {
+        throw cause
+    } catch (cause: Exception) {
+        throw WebRtc.IOException("Error in WebRtcDataChannel operation", cause)
     }
 }

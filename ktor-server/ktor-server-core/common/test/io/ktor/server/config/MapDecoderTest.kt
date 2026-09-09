@@ -7,7 +7,6 @@ package io.ktor.server.config
 import kotlinx.serialization.*
 import kotlin.test.*
 
-@OptIn(ExperimentalSerializationApi::class)
 class MapDecoderTest {
     @Serializable
     data class SimpleConfig(

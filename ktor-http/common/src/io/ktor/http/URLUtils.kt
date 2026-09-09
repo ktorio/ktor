@@ -2,6 +2,8 @@
 * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
 */
 
+@file:Suppress("FunctionName")
+
 package io.ktor.http
 
 import io.ktor.util.*
@@ -11,7 +13,6 @@ import io.ktor.util.*
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.Url)
  */
-@Suppress("FunctionName")
 public fun Url(urlString: String): Url = URLBuilder(urlString).build()
 
 /**
@@ -19,7 +20,6 @@ public fun Url(urlString: String): Url = URLBuilder(urlString).build()
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.Url)
  */
-@Suppress("FunctionName")
 public fun Url(builder: URLBuilder): Url = URLBuilder().takeFrom(builder).build()
 
 /**
@@ -51,7 +51,6 @@ public fun parseUrl(urlString: String): Url? {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.URLBuilder)
  */
-@Suppress("FunctionName")
 public fun URLBuilder(urlString: String): URLBuilder = URLBuilder().takeFrom(urlString)
 
 /**
@@ -59,7 +58,6 @@ public fun URLBuilder(urlString: String): URLBuilder = URLBuilder().takeFrom(url
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.URLBuilder)
  */
-@Suppress("FunctionName")
 public fun URLBuilder(url: Url): URLBuilder = URLBuilder().takeFrom(url)
 
 /**
@@ -67,7 +65,6 @@ public fun URLBuilder(url: Url): URLBuilder = URLBuilder().takeFrom(url)
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.URLBuilder)
  */
-@Suppress("FunctionName")
 public fun URLBuilder(builder: URLBuilder): URLBuilder = URLBuilder().takeFrom(builder)
 
 /**

@@ -6,6 +6,8 @@ package io.ktor.util.converters
 
 import io.ktor.util.reflect.*
 import kotlin.reflect.*
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 /**
  * Data conversion service that does serialization and deserialization to/from list of strings
@@ -34,6 +36,7 @@ public interface ConversionService {
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.converters.DefaultConversionService)
  */
 public object DefaultConversionService : ConversionService {
+    @OptIn(ExperimentalUuidApi::class)
     override fun toValues(value: Any?): List<String> {
         if (value == null) {
             return emptyList()
@@ -52,8 +55,14 @@ public object DefaultConversionService : ConversionService {
                     Double::class,
                     Long::class,
                     Short::class,
+                    Byte::class,
                     Char::class,
                     Boolean::class,
+                    Uuid::class,
+                    UShort::class,
+                    UInt::class,
+                    ULong::class,
+                    UByte::class,
                     String::class -> listOf(value.toString())
 
                     else -> throw DataConversionException(
@@ -101,14 +110,21 @@ public object DefaultConversionService : ConversionService {
         throwConversionException(klass.toString())
     }
 
+    @OptIn(ExperimentalUuidApi::class)
     private fun convertPrimitives(klass: KClass<*>, value: String) = when (klass) {
         Int::class -> value.toInt()
         Float::class -> value.toFloat()
         Double::class -> value.toDouble()
         Long::class -> value.toLong()
         Short::class -> value.toShort()
+        Byte::class -> value.toByte()
+        UShort::class -> value.toUShort()
+        UInt::class -> value.toUInt()
+        ULong::class -> value.toULong()
+        UByte::class -> value.toUByte()
         Char::class -> value.single()
         Boolean::class -> value.toBoolean()
+        Uuid::class -> Uuid.parse(value)
         String::class -> value
         else -> null
     }

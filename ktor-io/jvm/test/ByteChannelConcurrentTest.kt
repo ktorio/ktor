@@ -45,7 +45,7 @@ class ByteChannelConcurrentTest {
             while (!contentReady) {
                 delay(100)
             }
-            channel.readBuffer(CHANNEL_MAX_SIZE * 2)
+            channel.readBuffer(CHANNEL_MAX_SIZE * 2L)
             channel.close()
         }
 

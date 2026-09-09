@@ -10,11 +10,19 @@ plugins {
 }
 
 kotlin {
+    compilerOptions {
+        // -Xcontext-parameters requires Kotlin 2.2.0 or newer
+        freeCompilerArgs.add("-Xcontext-parameters")
+    }
     sourceSets {
         commonMain.dependencies {
             api(projects.ktorClientCore)
+            api(projects.ktorServerCsrf)
             api(projects.ktorServerSessions)
             api(libs.kotlinx.serialization.json)
+        }
+        commonTest.dependencies {
+            implementation(projects.ktorServerTestHost)
         }
         jvmTest.dependencies {
             implementation(projects.ktorServerContentNegotiation)

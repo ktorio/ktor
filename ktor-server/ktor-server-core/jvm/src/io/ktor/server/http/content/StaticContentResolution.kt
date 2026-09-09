@@ -31,11 +31,7 @@ public fun ApplicationCall.resolveResource(
     classLoader: ClassLoader = application.environment.classLoader,
     mimeResolve: (String) -> ContentType = { ContentType.defaultForFileExtension(it) }
 ): OutgoingContent.ReadChannelContent? {
-    if (path.endsWith("/") || path.endsWith("\\")) {
-        return null
-    }
-
-    val normalizedPath = normalisedPath(resourcePackage, path)
+    val normalizedPath = normalisedPath(resourcePackage, path) ?: return null
 
     for (url in classLoader.getResources(normalizedPath).asSequence()) {
         resourceClasspathResource(url, normalizedPath) { mimeResolve(it.path.extension()) }?.let { content ->
@@ -48,24 +44,40 @@ public fun ApplicationCall.resolveResource(
 
 private val resourceCache by lazy { ConcurrentHashMap<String, URL>() }
 
+/**
+ * Resolves a resource URL from a normalized path. Make sure to normalize
+ * the path with [normalisedPath] and ensure the path does not end with a
+ * forwards/backwards slash.
+ */
+internal fun Application.resolveResourceURL(
+    path: String,
+    classLoader: ClassLoader = environment.classLoader
+): URL? {
+    val cacheKey = "${classLoader.hashCode()}/$path"
+    return resourceCache[cacheKey]
+        ?: classLoader.getResources(path).asSequence()
+            .firstOrNull()?.also { url ->
+                resourceCache[cacheKey] = url
+            }
+}
+
+/**
+ * Resolves a resource from a normalized path. Make sure to normalize
+ * the path with [normalisedPath] and ensure the path does not end with a
+ * forwards/backwards slash.
+ */
 @OptIn(InternalAPI::class)
 internal fun Application.resolveResource(
     path: String,
-    resourcePackage: String? = null,
     classLoader: ClassLoader = environment.classLoader,
     mimeResolve: (URL) -> ContentType
 ): Pair<URL, OutgoingContent.ReadChannelContent>? {
-    if (path.endsWith("/") || path.endsWith("\\")) {
-        return null
-    }
-
-    val normalizedPath = normalisedPath(resourcePackage, path)
-    val cacheKey = "${classLoader.hashCode()}/$normalizedPath"
+    val cacheKey = "${classLoader.hashCode()}/$path"
     val resolveContent: (URL) -> Pair<URL, OutgoingContent.ReadChannelContent>? = { url ->
-        resourceClasspathResource(url, normalizedPath, mimeResolve)?.let { url to it }
+        resourceClasspathResource(url, path, mimeResolve)?.let { url to it }
     }
     return resourceCache[cacheKey]?.let(resolveContent)
-        ?: classLoader.getResources(normalizedPath).asSequence()
+        ?: classLoader.getResources(path).asSequence()
             .firstNotNullOfOrNull(resolveContent)?.also { (url) ->
                 resourceCache[cacheKey] = url
             }
@@ -93,10 +105,7 @@ public fun resourceClasspathResource(
             if (path.endsWith("/")) {
                 null
             } else {
-                val zipFile = findContainingJarFile(url.toString())
-                if (zipFile == null) {
-                    return URIFileContent(url, mimeResolve(url))
-                }
+                val zipFile = findContainingJarFile(url.toString()) ?: return URIFileContent(url, mimeResolve(url))
                 JarFileContent(zipFile, path, mimeResolve(url)).takeIf { it.isFile }
             }
         }
@@ -119,7 +128,7 @@ public fun resourceClasspathResource(
  * Examples:
  * - `jar:file:/dist/app.jar!/static/index.html`              → returns `/dist/app.jar`
  * - `jar:file:/dist/app.jar!`                                → returns `/dist/app.jar`
- * - `jar:file:/outer.jar!/lib/dep.jar!/x.css`                → throws IllegalArgumentException (nested)
+ * - `jar:file:/outer.jar!/lib/dep.jar!/x.css`                → returns `null` (nested local container)
  * - `jar:nested:/path/to/app.jar/!BOOT-INF/classes/!/static` → returns `null` (non-local container)
  */
 internal fun findContainingJarFile(url: String): File? {
@@ -131,8 +140,9 @@ internal fun findContainingJarFile(url: String): File? {
     }
     val nextJarSeparator = url.indexOf("!", startIndex = jarPathSeparator + 1)
     if (nextJarSeparator != -1) {
-        // KTOR-8883 Support nested jars in static resources
-        throw IllegalArgumentException("Only local jars are supported (jar:file:)")
+        // java.util.jar.JarFile only supports single-level archives, so let the caller
+        // fall back to URIFileContent (relies on a registered URL handler, e.g. Spring Boot 2.x).
+        return null
     }
 
     return File(url.substring(JAR_PREFIX.length, jarPathSeparator).decodeURLPart())
@@ -144,7 +154,14 @@ internal fun String.extension(): String {
     return if (indexOfDot >= 0) substring(indexOfDot) else ""
 }
 
-private fun normalisedPath(resourcePackage: String?, path: String): String {
+/**
+ * returns `null` if `path` has a trailing slash.
+ */
+internal fun normalisedPath(resourcePackage: String?, path: String): String? {
+    if (path.endsWith("/") || path.endsWith("\\")) {
+        return null
+    }
+
     // note: we don't need to check for ".." in the normalizedPath because all ".." get replaced with //
     val pathComponents = path.split('/', '\\')
     if (pathComponents.contains("..")) {

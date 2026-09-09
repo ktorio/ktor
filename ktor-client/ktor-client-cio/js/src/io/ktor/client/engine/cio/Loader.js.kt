@@ -14,5 +14,5 @@ import io.ktor.utils.io.*
 @JsExport
 @EagerInitialization
 public val initHook: dynamic = run {
-    if (PlatformUtils.IS_NODE) engines.append(CIO)
+    if (PlatformUtils.IS_NODE) engines.append(CIO, 0.0)
 }

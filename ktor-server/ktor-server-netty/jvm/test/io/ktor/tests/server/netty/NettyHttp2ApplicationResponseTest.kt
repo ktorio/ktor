@@ -1,11 +1,11 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.server.netty
 
 import io.ktor.http.*
-import io.ktor.server.netty.http2.*
+import io.ktor.server.netty.http.*
 import io.netty.handler.codec.http2.*
 import kotlin.test.*
 
@@ -14,7 +14,7 @@ class NettyHttp2ApplicationResponseTest {
     @Test
     fun testAllHeadersSkipPseudoHeaders() {
         val nettyHeaders = DefaultHttp2Headers()
-        val headers = NettyHttp2ApplicationResponse.Http2ResponseHeaders(nettyHeaders)
+        val headers = HttpMultiplexedResponseHeaders(nettyHeaders)
         nettyHeaders.status("200")
         headers.append(HttpHeaders.ContentType, "text/plain")
         assertEquals(headersOf(HttpHeaders.ContentType.lowercase(), "text/plain"), headers.allValues())
@@ -23,7 +23,7 @@ class NettyHttp2ApplicationResponseTest {
     @Test
     fun testGetHeaderSkipPseudoHeaders() {
         val nettyHeaders = DefaultHttp2Headers()
-        val headers = NettyHttp2ApplicationResponse.Http2ResponseHeaders(nettyHeaders)
+        val headers = HttpMultiplexedResponseHeaders(nettyHeaders)
         nettyHeaders.status("200")
         headers.append(HttpHeaders.ContentType, "text/plain")
         assertEquals("text/plain", headers[HttpHeaders.ContentType.lowercase()])
@@ -33,7 +33,7 @@ class NettyHttp2ApplicationResponseTest {
     @Test
     fun testGetHeaderValuesSkipPseudoHeaders() {
         val nettyHeaders = DefaultHttp2Headers()
-        val headers = NettyHttp2ApplicationResponse.Http2ResponseHeaders(nettyHeaders)
+        val headers = HttpMultiplexedResponseHeaders(nettyHeaders)
         nettyHeaders.status("200")
         headers.append(HttpHeaders.ContentType, "text/plain")
         assertEquals(listOf("text/plain"), headers.values(HttpHeaders.ContentType.lowercase()))
@@ -43,7 +43,7 @@ class NettyHttp2ApplicationResponseTest {
     @Test
     fun testAppendThrowsOnPseudoHeaders() {
         val nettyHeaders = DefaultHttp2Headers()
-        val headers = NettyHttp2ApplicationResponse.Http2ResponseHeaders(nettyHeaders)
+        val headers = HttpMultiplexedResponseHeaders(nettyHeaders)
         headers.append(HttpHeaders.ContentType, "text/plain")
         assertFailsWith<IllegalHeaderNameException> { headers.append(":status", "200") }
     }

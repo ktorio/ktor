@@ -16,7 +16,6 @@ public fun InputStream.asInput(): Input = asSource().buffered()
 
 public fun Source.inputStream(): InputStream = asInputStream()
 
-@OptIn(InternalIoApi::class)
 public fun OutputStream.writePacket(packet: Source) {
     packet.transferTo(this.asSink())
 }

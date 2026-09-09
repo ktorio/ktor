@@ -4,6 +4,7 @@
 
 plugins {
     id("ktorbuild.project.server-plugin")
+    id("kotlinx-serialization")
 }
 
 kotlin {
@@ -23,6 +24,7 @@ kotlin {
         }
         jvmTest.dependencies {
             implementation(projects.ktorServerContentNegotiation)
+            implementation(projects.ktorClientContentNegotiation)
             implementation(projects.ktorSerializationKotlinxJson)
             implementation(projects.ktorOpenapiSchemaReflect)
         }

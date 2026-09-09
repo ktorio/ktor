@@ -1,5 +1,5 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+* Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
 */
 
 package io.ktor.server.netty.http2
@@ -7,8 +7,8 @@ package io.ktor.server.netty.http2
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.netty.*
+import io.ktor.server.netty.http.*
 import io.ktor.server.response.*
-import io.ktor.util.*
 import io.netty.channel.*
 import io.netty.handler.codec.http2.*
 import kotlin.coroutines.*
@@ -64,28 +64,14 @@ internal class NettyHttp2ApplicationResponse(
         throw UnsupportedOperationException("HTTP/2 doesn't support upgrade")
     }
 
-    override val headers: ResponseHeaders = Http2ResponseHeaders(responseHeaders)
+    override val headers: ResponseHeaders = HttpMultiplexedResponseHeaders(responseHeaders)
 
-    private val trailers: ResponseHeaders = Http2ResponseHeaders(responseTrailers)
+    private val trailers: ResponseHeaders = HttpMultiplexedResponseHeaders(responseTrailers)
 
     @UseHttp2Push
     override fun push(builder: ResponsePushBuilder) {
         context.executor().execute {
             handler.startHttp2PushPromise(this@NettyHttp2ApplicationResponse.context, builder)
         }
-    }
-
-    internal class Http2ResponseHeaders(private val underlying: DefaultHttp2Headers) : ResponseHeaders() {
-        override fun engineAppendHeader(name: String, value: String) {
-            underlying.add(name.toLowerCasePreservingASCIIRules(), value)
-        }
-
-        override fun get(name: String): String? = if (name.startsWith(':')) null else underlying[name]?.toString()
-
-        override fun getEngineHeaderNames(): List<String> = underlying.names()
-            .filter { !it.startsWith(':') }.map { it.toString() }
-
-        override fun getEngineHeaderValues(name: String): List<String> =
-            if (name.startsWith(':')) emptyList() else underlying.getAll(name).map { it.toString() }
     }
 }

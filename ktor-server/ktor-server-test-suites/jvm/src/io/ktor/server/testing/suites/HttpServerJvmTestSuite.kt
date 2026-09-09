@@ -64,12 +64,19 @@ abstract class HttpServerJvmTestSuite<TEngine : ApplicationEngine, TConfiguratio
                 flush()
             }
 
+            // Pipelined responses may arrive as several separate TCP segments rather than a single one,
+            // so read until all expected bytes have been received instead of relying on one socket read.
             val bb = ByteBuffer.allocate(1911)
-            s.getInputStream().readPacketAtLeast(1).readFully(bb)
+            val input = s.getInputStream()
+            while (bb.hasRemaining()) {
+                val read = input.read(bb.array(), bb.position(), bb.remaining())
+                if (read == -1) break
+                bb.position(bb.position() + read)
+            }
             val bytes = bb.array()
             assertEquals(
                 pipelinedResponses,
-                clearSocketResponses(bytes.decodeToString(0, 0 + bytes.size).lineSequence())
+                clearSocketResponses(bytes.decodeToString(0, bb.position()).lineSequence())
             )
         }
     }
@@ -88,7 +95,7 @@ abstract class HttpServerJvmTestSuite<TEngine : ApplicationEngine, TConfiguratio
                     if (id < 16 && processedRequests.incrementAndGet() == 15L) {
                         lastHandler.complete(Unit)
                     }
-                    byteStream.writePacket(call.receiveChannel().readRemaining())
+                    byteStream.writePacket(call.receiveChannel().readBuffer())
                     byteStream.writeStringUtf8("\n")
                     byteStream.close(null)
                 }
@@ -344,7 +351,7 @@ abstract class HttpServerJvmTestSuite<TEngine : ApplicationEngine, TConfiguratio
                                     bb.flip()
                                     output.writeFully(bb)
                                     output.flushAndClose()
-                                    input.readRemaining().use {
+                                    input.readBuffer().use {
                                         assertEquals(0, it.remaining)
                                     }
                                     completed.complete(Unit)

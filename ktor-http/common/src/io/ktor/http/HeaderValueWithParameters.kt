@@ -8,8 +8,7 @@ import io.ktor.util.*
 import io.ktor.utils.io.*
 
 /** Separator symbols listed in RFC https://tools.ietf.org/html/rfc2616#section-2.2 */
-private val HeaderFieldValueSeparators =
-    setOf('(', ')', '<', '>', '@', ',', ';', ':', '\\', '\"', '/', '[', ']', '?', '=', '{', '}', ' ', '\t', '\n', '\r')
+private val HeaderFieldValueSeparators = AsciiBitSet.of("()<>@,;:\\\"/[]?={} \t\n\r")
 
 /**
  * Represents a header value that consist of [content] followed by [parameters].
@@ -108,7 +107,7 @@ private fun String.needQuotes(): Boolean {
     if (isQuoted()) return false
 
     for (element in this) {
-        if (HeaderFieldValueSeparators.contains(element)) return true
+        if (element in HeaderFieldValueSeparators) return true
     }
 
     return false

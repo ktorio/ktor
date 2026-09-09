@@ -79,7 +79,6 @@ internal fun PluginBuilder<CORSConfig>.buildPlugin() {
      * A plugin's [call] interceptor that does all the job. Usually there is no need to install it as it is done during
      * a plugin installation.
      */
-    @Suppress("INVISIBLE_REFERENCE")
     onCallValidators { call ->
         if (call.response.isCommitted) {
             return@onCallValidators

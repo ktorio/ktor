@@ -33,6 +33,8 @@ public class UnixSocketConnectorBuilder : EngineConnectorBuilder(ConnectorType.U
      */
     override var socketPath: String = "/tmp/ktor.sock"
 
+    override val addressDescription: String get() = "unix://$socketPath"
+
     override fun toString(): String = "${type.name} $socketPath"
 }
 

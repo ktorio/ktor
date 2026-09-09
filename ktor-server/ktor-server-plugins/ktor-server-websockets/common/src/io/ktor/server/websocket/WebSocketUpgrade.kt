@@ -56,7 +56,6 @@ public class WebSocketUpgrade(
      * @param protocol web socket negotiated protocol name (optional)
      * @param handle function that is started once HTTP upgrade complete and the session will end once this function exit
      */
-    @Suppress("unused")
     public constructor(
         call: ApplicationCall,
         protocol: String? = null,

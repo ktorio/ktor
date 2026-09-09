@@ -8,7 +8,7 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
-import io.ktor.utils.io.InternalAPI
+import io.ktor.utils.io.*
 
 /**
  * A form-based authentication provider.
@@ -33,7 +33,7 @@ public class FormAuthenticationProvider internal constructor(config: Config) : A
     @OptIn(InternalAPI::class)
     override suspend fun onAuthenticate(context: AuthenticationContext) {
         val call = context.call
-        val postParameters = runCatching { call.receiveNullable<Parameters>() }.getOrNull()
+        val postParameters = runCatching { call.receive<Parameters?>() }.getOrNull()
         val username = postParameters?.get(userParamName)
         val password = postParameters?.get(passwordParamName)
 

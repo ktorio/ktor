@@ -113,6 +113,13 @@ public interface CacheStorage {
      */
     public suspend fun removeAll(url: Url)
 
+    /**
+     * Removes all entries from this cache storage.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.cache.storage.CacheStorage.clear)
+     */
+    public suspend fun clear() {}
+
     public companion object {
         /**
          * Default unlimited cache storage.
@@ -156,7 +163,7 @@ public suspend fun CacheStorage.store(
     isShared: Boolean = false
 ): CachedResponseData {
     val url = response.call.request.url
-    val body = response.rawContent.readRemaining().readBytes()
+    val body = response.rawContent.readBuffer().readBytes()
     val data = CachedResponseData(
         url = response.call.request.url,
         statusCode = response.status,

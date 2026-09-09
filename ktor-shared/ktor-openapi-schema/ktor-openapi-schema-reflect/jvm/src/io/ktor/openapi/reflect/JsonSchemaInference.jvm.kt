@@ -94,6 +94,23 @@ public interface SchemaReflectionAdapter {
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.reflect.SchemaReflectionAdapter.getDiscriminatorProperty)
      */
     public fun getDiscriminatorProperty(kClass: KClass<*>): String = "type"
+
+    /**
+     * Returns the discriminator value for the given [subclass] of [kClass].
+     * By default, delegates to [getDiscriminatorValue] with a single parameter, which returns `null`.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.reflect.SchemaReflectionAdapter.getDiscriminatorValue)
+     */
+    public fun getDiscriminatorValue(kClass: KClass<*>, subclass: KClass<*>): String? =
+        getDiscriminatorValue(subclass)
+
+    /**
+     * Returns the discriminator value for the given [subclass].
+     * By default, returns `null`.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.reflect.SchemaReflectionAdapter.getDiscriminatorValue)
+     */
+    public fun getDiscriminatorValue(subclass: KClass<*>): String? = null
 }
 
 /**
@@ -224,10 +241,15 @@ public class ReflectionJsonSchemaInference(
         try {
             if (kClass.isSealed) {
                 val sealedSubclasses = kClass.sealedSubclasses
+                val discriminatorValues = sealedSubclasses.associateWith { subclass ->
+                    val fqName = subclass.qualifiedName
+                    adapter.getDiscriminatorValue(kClass, subclass) ?: fqName ?: subclass.simpleName.orEmpty()
+                }
                 val discriminatorMapping = sealedSubclasses
                     .filter { it.qualifiedName != null }
                     .associate { subclass ->
-                        subclass.qualifiedName!! to "#/components/schemas/${subclass.qualifiedName}"
+                        val subclassSchemaName = adapter.getName(subclass.starProjectedType) ?: subclass.qualifiedName!!
+                        discriminatorValues.getValue(subclass) to "#/components/schemas/$subclassSchemaName"
                     }
 
                 val discriminatorProperty = adapter.getDiscriminatorProperty(kClass)
@@ -236,7 +258,7 @@ public class ReflectionJsonSchemaInference(
                         type = it.starProjectedType,
                         visiting = visiting,
                         discriminatorProperty = discriminatorProperty,
-                        discriminatorValue = it.qualifiedName ?: it.simpleName.orEmpty(),
+                        discriminatorValue = discriminatorValues.getValue(it),
                     )
                 }
                 return jsonSchemaFromAnnotations(

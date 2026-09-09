@@ -8,7 +8,6 @@
 package io.ktor.client.request.forms
 
 import io.ktor.http.*
-import io.ktor.utils.io.*
 import org.w3c.files.Blob
 
 /**

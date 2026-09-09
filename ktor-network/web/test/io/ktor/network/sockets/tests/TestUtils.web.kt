@@ -7,3 +7,7 @@ package io.ktor.network.sockets.tests
 internal actual fun Throwable.isPosixException(): Boolean = false
 
 actual fun initSocketsIfNeeded() {}
+
+actual fun isJvmWindows(): Boolean {
+    return false
+}

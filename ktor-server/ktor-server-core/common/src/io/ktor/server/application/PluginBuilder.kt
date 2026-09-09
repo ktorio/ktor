@@ -20,7 +20,7 @@ import kotlin.random.*
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.PluginBuilder)
  **/
 @KtorDsl
-@Suppress("UNUSED_PARAMETER", "DEPRECATION")
+@Suppress("UNUSED_PARAMETER")
 public abstract class PluginBuilder<PluginConfig : Any> internal constructor(
     internal val key: AttributeKey<PluginInstance>
 ) {
@@ -117,7 +117,7 @@ public abstract class PluginBuilder<PluginConfig : Any> internal constructor(
      *
      * @param block An action that needs to be executed when your application receives an HTTP call.
      */
-    internal fun onCallValidators(block: suspend OnCallContext<PluginConfig>.(call: PipelineCall) -> Unit) {
+    public fun onCallValidators(block: suspend OnCallContext<PluginConfig>.(call: PipelineCall) -> Unit) {
         onDefaultPhase(
             callInterceptions,
             phase = ApplicationCallPipeline.Validators,

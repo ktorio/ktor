@@ -5,69 +5,158 @@
 package io.ktor.utils.io.jvm.javaio
 
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
-import java.io.*
-import kotlin.math.*
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.runBlocking
+import kotlinx.io.InternalIoApi
+import java.io.InputStream
+import java.io.OutputStream
+import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.math.min
 
 /**
- * Create blocking [java.io.InputStream] for this channel that does block every time the channel suspends at read
- * Similar to do reading in [runBlocking] however you can pass it to regular blocking API
+ * Create blocking [java.io.InputStream] for this channel that does block every time the channel suspends at read.
+ * Similar to do reading in [runBlocking] however you can pass it to regular blocking API.
+ *
+ * - Canceling the [parent] job interrupts blocking reads but leaves [this] channel open.
+ * - Closing the stream closes [this] channel but does not cancel the [parent] job.
+ *
+ * The caller is responsible for closing the stream.
+ *
+ * @param parent a parent job for blocking reads.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.jvm.javaio.toInputStream)
  */
-@Suppress("UNUSED_PARAMETER")
+public fun ByteReadChannel.toInputStream(parent: Job? = null): InputStream =
+    ByteChannelInputStream(channel = this, parent = parent)
+
+/**
+ * Creates a blocking [InputStream] parented by the [parent] job.
+ *
+ * - Canceling the [parent] job interrupts blocking reads but leaves [this] channel open.
+ * - Closing the stream closes [this] channel but does not cancel the [parent] job.
+ *
+ * The caller is responsible for closing the stream.
+ *
+ * @param parent a parent job for blocking reads.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.jvm.javaio.asInputStream)
+ */
+@InternalAPI
+public fun ByteReadChannel.asInputStream(parent: Job): InputStream =
+    ByteChannelInputStream(channel = this, parent = parent)
+
 @OptIn(InternalAPI::class)
-public fun ByteReadChannel.toInputStream(parent: Job? = null): InputStream = object : InputStream() {
+private class ByteChannelInputStream(
+    private val channel: ByteReadChannel,
+    parent: Job?,
+) : InputStream() {
+
+    private val coroutineContext = parent ?: EmptyCoroutineContext
 
     override fun read(): Int {
-        if (isClosedForRead) return -1
-        if (readBuffer.exhausted()) blockingWait()
+        if (channel.isClosedForRead) return -1
+        if (channel.readBuffer.exhausted()) blockingWait()
 
-        if (isClosedForRead) return -1
-        return readBuffer.readByte().toInt() and 0xff
+        if (channel.isClosedForRead) return -1
+        return channel.readBuffer.readByte().toInt() and 0xff
     }
 
     override fun read(b: ByteArray, off: Int, len: Int): Int {
-        if (isClosedForRead) return -1
-        if (readBuffer.exhausted()) blockingWait()
+        if (channel.isClosedForRead) return -1
+        if (channel.readBuffer.exhausted()) blockingWait()
 
-        val count = min(availableForRead, len)
-        val result = readBuffer.readAtMostTo(b, off, off + count)
+        val count = min(channel.availableForRead, len)
+        val result = channel.readBuffer.readAtMostTo(b, off, off + count)
         if (result >= 0) return result
-        return if (isClosedForRead) -1 else 0
+        return if (channel.isClosedForRead) -1 else 0
     }
 
     private fun blockingWait() {
-        runBlocking {
-            awaitContent()
+        runBlocking(coroutineContext) {
+            channel.awaitContent()
         }
     }
 
     override fun close() {
-        cancel()
+        channel.cancel()
     }
 }
 
 /**
- * Create blocking [java.io.OutputStream] for this channel that does block every time the channel suspends at write
- * Similar to do reading in [runBlocking] however you can pass it to regular blocking API
+ * Create blocking [java.io.OutputStream] for this channel that does block every time the channel suspends at write.
+ * Similar to do reading in [runBlocking] however you can pass it to regular blocking API.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.jvm.javaio.toOutputStream)
  */
-public fun ByteWriteChannel.toOutputStream(): OutputStream = object : OutputStream() {
+public fun ByteWriteChannel.toOutputStream(): OutputStream = ByteChannelOutputStream(channel = this, parent = null)
+
+/**
+ * Creates a blocking [OutputStream] parented by the [parent] job.
+ *
+ * Cancellation propagation:
+ * - Canceling the [parent] job interrupts blocking writes but leaves [this] channel open.
+ * - Closing the stream closes [this] channel but does not cancel the [parent] job.
+ *
+ * The caller is responsible for closing the stream.
+ *
+ * @param parent a parent job for blocking writes.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.jvm.javaio.asOutputStream)
+ */
+@InternalAPI
+public fun ByteWriteChannel.asOutputStream(parent: Job): OutputStream =
+    ByteChannelOutputStream(channel = this, parent = parent)
+
+private const val FLUSH_THRESHOLD: Long = CHANNEL_MAX_SIZE.toLong()
+
+internal class ByteChannelOutputStream(
+    private val channel: ByteWriteChannel,
+    parent: Job? = null,
+) : OutputStream() {
+
+    private val coroutineContext = parent ?: EmptyCoroutineContext
+
+    @OptIn(InternalAPI::class)
+    private val channelWriteBuffer = channel.writeBuffer
+
     override fun write(b: Int) {
-        runBlocking { this@toOutputStream.writeByte(b.toByte()) }
+        throwIfClosed()
+        channelWriteBuffer.writeByte(b.toByte())
+        flushIfNeeded()
     }
 
     override fun write(b: ByteArray, off: Int, len: Int) {
-        runBlocking { this@toOutputStream.writeFully(b, off, off + len) }
+        throwIfClosed()
+        channelWriteBuffer.write(b, off, off + len)
+        flushIfNeeded()
+    }
+
+    @OptIn(InternalIoApi::class)
+    private fun flushIfNeeded() {
+        if (channel.autoFlush || channelWriteBuffer.buffer.size >= FLUSH_THRESHOLD) {
+            flush()
+        }
     }
 
     override fun flush() {
-        runBlocking { this@toOutputStream.flush() }
+        throwIfClosed()
+        runBlocking(coroutineContext) {
+            channel.flush()
+        }
+    }
+
+    private fun throwIfClosed() {
+        if (channel.isClosedForWrite) throw channel.closedCause ?: ClosedWriteChannelException()
     }
 
     override fun close() {
-        runBlocking { flushAndClose() }
+        try {
+            runBlocking(coroutineContext) {
+                channel.flushAndClose()
+            }
+        } catch (cause: Throwable) {
+            channel.cancel(cause)
+            throw cause
+        }
     }
 }

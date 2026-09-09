@@ -65,8 +65,7 @@ public actual class ConcurrentMap<Key, Value> public actual constructor(initialC
     override fun hashCode(): Int = delegate.hashCode()
 
     override fun equals(other: Any?): Boolean {
-        if (other !is Map<*, *>) return false
-        return other == delegate
+        return other is Map<*, *> && other == delegate
     }
 
     override fun toString(): String = "ConcurrentMapJs by $delegate"

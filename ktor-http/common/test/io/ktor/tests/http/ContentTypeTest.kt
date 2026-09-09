@@ -19,6 +19,14 @@ class ContentTypeTest {
     }
 
     @Test
+    fun contentTypeTextMarkdown() {
+        val ct = ContentType.Text.Markdown
+        assertEquals("text", ct.contentType)
+        assertEquals("markdown", ct.contentSubtype)
+        assertEquals(0, ct.parameters.size)
+    }
+
+    @Test
     fun textPlain() {
         val ct = ContentType.parse("text/plain")
         assertEquals("text", ct.contentType)

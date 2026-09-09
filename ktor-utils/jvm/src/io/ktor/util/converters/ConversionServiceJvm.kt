@@ -29,6 +29,7 @@ private fun convertSimpleTypes(value: String, klass: KClass<*>): Any? = when (kl
     java.lang.Double::class -> value.toDouble()
     java.lang.Long::class -> value.toLong()
     java.lang.Short::class -> value.toShort()
+    java.lang.Byte::class -> value.toByte()
     java.lang.Boolean::class -> value.toBoolean()
     java.lang.String::class -> value
     Character::class -> value[0]
@@ -49,6 +50,7 @@ internal actual fun platformDefaultToValues(value: Any): List<String>? {
         is java.lang.Double -> listOf(value.toString())
         is java.lang.Long -> listOf(value.toString())
         is java.lang.Boolean -> listOf(value.toString())
+        is java.lang.Byte -> listOf(value.toString())
         is java.lang.Short -> listOf(value.toString())
         is java.lang.String -> listOf(value.toString())
         is Character -> listOf(value.toString())

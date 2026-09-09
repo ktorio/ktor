@@ -43,7 +43,6 @@ public val RequestBodyLimit: RouteScopedPlugin<RequestBodyLimitConfig> = createR
 
     val bodyLimit = pluginConfig.bodyLimit
 
-    @Suppress("INVISIBLE_REFERENCE")
     onCallValidators { call ->
         val limit = bodyLimit(call)
         val contentLength = call.request.contentLength()

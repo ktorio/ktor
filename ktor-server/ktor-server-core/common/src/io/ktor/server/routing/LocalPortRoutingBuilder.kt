@@ -42,6 +42,9 @@ public fun Route.localPort(port: Int, build: Route.() -> Unit): Route {
 public data class LocalPortRouteSelector(val port: Int) : RouteSelector() {
 
     override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation =
+        tryEvaluate(context, segmentIndex)
+
+    override fun tryEvaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation =
         if (context.call.request.local.localPort == port) {
             val parameters = parametersOf(LocalPortParameter, port.toString())
             RouteSelectorEvaluation.Success(RouteSelectorEvaluation.qualityConstant, parameters)

@@ -2,6 +2,7 @@
  * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+import org.gradle.work.DisableCachingByDefault
 import java.net.URI
 
 // Copied from the Kotlin project
@@ -83,6 +84,7 @@ fun Project.overrideNativeCompilerDownloadUrl() {
 }
 
 // Check repositories are overridden section
+@DisableCachingByDefault(because = "Only reports repository configuration without producing outputs")
 abstract class CheckRepositoriesTask : DefaultTask() {
     @get:Input
     val teamcityBuild = project.providers.isCIRun

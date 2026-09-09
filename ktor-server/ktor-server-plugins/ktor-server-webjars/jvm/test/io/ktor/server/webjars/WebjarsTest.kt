@@ -34,11 +34,11 @@ class WebjarsTest {
     fun pathLike() = testApplication {
         install(Webjars)
         routing {
-            get("/webjars-something/jquery") {
+            get("/webjars-something/test-library") {
                 call.respondText { "Something Else" }
             }
         }
-        client.get("/webjars-something/jquery").let { response ->
+        client.get("/webjars-something/test-library").let { response ->
             assertEquals(HttpStatusCode.OK, response.status)
             assertEquals("Something Else", response.bodyAsText())
         }
@@ -49,7 +49,7 @@ class WebjarsTest {
         install(Webjars) {
             path = "/assets/webjars"
         }
-        client.get("/assets/webjars/jquery/jquery.js").let { response ->
+        client.get("/assets/webjars/test-library/sample.js").let { response ->
             assertEquals(HttpStatusCode.OK, response.status)
             assertEquals(ContentType.Text.JavaScript, response.contentType()?.withoutParameters())
         }
@@ -60,7 +60,7 @@ class WebjarsTest {
         install(Webjars) {
             path = "/"
         }
-        client.get("/jquery/jquery.js").let { response ->
+        client.get("/test-library/sample.js").let { response ->
             assertEquals(HttpStatusCode.OK, response.status)
             assertEquals(ContentType.Text.JavaScript, response.contentType()?.withoutParameters())
         }
@@ -78,7 +78,7 @@ class WebjarsTest {
             assertEquals(HttpStatusCode.OK, response.status)
             assertEquals("Hello, World", response.bodyAsText())
         }
-        client.get("/jquery/jquery.js").let { response ->
+        client.get("/test-library/sample.js").let { response ->
             assertEquals(HttpStatusCode.OK, response.status)
             assertEquals(ContentType.Text.JavaScript, response.contentType()?.withoutParameters())
         }
@@ -88,7 +88,7 @@ class WebjarsTest {
     fun versionAgnostic() = testApplication {
         install(Webjars)
 
-        client.get("/webjars/jquery/jquery.js").let { response ->
+        client.get("/webjars/test-library/sample.js").let { response ->
             assertEquals(HttpStatusCode.OK, response.status)
             assertEquals(ContentType.Text.JavaScript, response.contentType()?.withoutParameters())
         }
@@ -98,7 +98,7 @@ class WebjarsTest {
     fun withGetParameters() = testApplication {
         install(Webjars)
 
-        client.get("/webjars/jquery/jquery.js?param1=value1").let { response ->
+        client.get("/webjars/test-library/sample.js?param1=value1").let { response ->
             assertEquals(HttpStatusCode.OK, response.status)
             assertEquals(ContentType.Text.JavaScript, response.contentType()?.withoutParameters())
         }
@@ -106,11 +106,16 @@ class WebjarsTest {
 
     @Test
     fun withSpecificVersion() = testApplication {
+        val resource = assertNotNull(
+            WebjarsTest::class.java.getResource("/META-INF/resources/webjars/test-library/1.0.0/sample.js")
+        )
+        assertEquals("jar", resource.protocol)
         install(Webjars)
 
-        client.get("/webjars/jquery/3.7.1/jquery.js").let { response ->
+        client.get("/webjars/test-library/1.0.0/sample.js").let { response ->
             assertEquals(HttpStatusCode.OK, response.status)
             assertEquals(ContentType.Text.JavaScript, response.contentType()?.withoutParameters())
+            assertEquals("console.log('test fixture');", response.bodyAsText())
         }
     }
 
@@ -128,10 +133,10 @@ class WebjarsTest {
             }
         )
 
-        client.get("/webjars/jquery/jquery.js")
+        client.get("/webjars/test-library/sample.js")
 
         assertTrue(isStatic, "Should be static file")
-        assertEquals(location, "jquery/jquery.js")
+        assertEquals(location, "test-library/sample.js")
     }
 
     @Test
@@ -139,11 +144,11 @@ class WebjarsTest {
         install(Webjars)
         install(ConditionalHeaders)
         install(CachingHeaders)
-        client.get("/webjars/jquery/3.7.1/jquery.js").let { response ->
+        client.get("/webjars/test-library/1.0.0/sample.js").let { response ->
             assertEquals(HttpStatusCode.OK, response.status)
             assertEquals(ContentType.Text.JavaScript, response.contentType()?.withoutParameters())
             assertNotNull(response.headers["Last-Modified"])
-            assertEquals("\"3.7.1\"", response.headers["Etag"])
+            assertEquals("\"1.0.0\"", response.headers["Etag"])
             assertEquals("max-age=${90.days.inWholeSeconds}", response.headers["Cache-Control"])
         }
     }
@@ -158,7 +163,7 @@ class WebjarsTest {
         }
         install(ConditionalHeaders)
         install(CachingHeaders)
-        client.get("/webjars/jquery/3.7.1/jquery.js").let { response ->
+        client.get("/webjars/test-library/1.0.0/sample.js").let { response ->
             assertEquals(HttpStatusCode.OK, response.status)
             assertEquals(ContentType.Text.JavaScript, response.contentType()?.withoutParameters())
             assertEquals(date.toHttpDate(), response.headers["Last-Modified"])
@@ -183,7 +188,7 @@ class WebjarsTest {
         install(pluginBeforeWebjars)
         install(Webjars)
 
-        val response = client.get("/webjars/jquery/3.7.1/jquery.js")
+        val response = client.get("/webjars/test-library/1.0.0/sample.js")
         assertEquals(HttpStatusCode.OK, response.status)
         assertEquals("Hello", response.bodyAsText())
         assertNotEquals(ContentType.Text.JavaScript, response.contentType()?.withoutParameters())

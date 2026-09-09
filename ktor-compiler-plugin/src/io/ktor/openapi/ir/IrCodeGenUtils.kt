@@ -13,8 +13,6 @@ import org.jetbrains.kotlin.ir.expressions.impl.IrFunctionExpressionImpl
 import org.jetbrains.kotlin.ir.expressions.impl.fromSymbolOwner
 import org.jetbrains.kotlin.ir.interpreter.IrInterpreter
 import org.jetbrains.kotlin.ir.interpreter.IrInterpreterEnvironment
-import org.jetbrains.kotlin.ir.interpreter.checker.EvaluationMode
-import org.jetbrains.kotlin.ir.interpreter.transformer.transformConst
 import org.jetbrains.kotlin.ir.symbols.IrValueSymbol
 import org.jetbrains.kotlin.ir.types.IrSimpleType
 import org.jetbrains.kotlin.ir.types.IrType
@@ -236,10 +234,9 @@ fun IrExpression.inlineVariables(lookup: (IrValueSymbol) -> IrExpression?): IrEx
     try {
         transform(object : IrElementTransformerVoid() {
             override fun visitGetValue(expression: IrGetValue): IrExpression {
-                return when (val argumentValue = lookup(expression.symbol)?.deepCopyWithSymbols()) {
-                    null -> throw MissingVariableException(expression.symbol)
-                    else -> argumentValue
-                }
+                val argumentValue = lookup(expression.symbol) ?: throw MissingVariableException(expression.symbol)
+                // The substituted expression may itself reference values (i.e., receiver)
+                return argumentValue.deepCopyWithSymbols().transform(this, null)
             }
         }, null)
     } catch (e: MissingVariableException) {

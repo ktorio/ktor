@@ -5,7 +5,6 @@
 package io.ktor.htmx.html
 
 import io.ktor.htmx.*
-import io.ktor.utils.io.*
 import kotlinx.html.body
 import kotlinx.html.button
 import kotlinx.html.html
@@ -15,7 +14,6 @@ import kotlin.test.assertEquals
 
 class HxAttributesTest {
 
-    @OptIn(ExperimentalKtorApi::class)
     @Test
     fun htmxAttributes() {
         val actual = buildString {

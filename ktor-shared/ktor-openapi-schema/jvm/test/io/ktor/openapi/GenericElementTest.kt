@@ -4,17 +4,14 @@
 
 package io.ktor.openapi
 
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
-import org.junit.jupiter.api.assertNotNull
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class GenericElementTest {
 
-    @OptIn(ExperimentalSerializationApi::class)
     private val jsonFormat = Json {
         encodeDefaults = false
         prettyPrint = true

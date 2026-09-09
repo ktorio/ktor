@@ -36,6 +36,7 @@ class ConfigTest {
             every { contextPath } returns "/"
             every { getAttribute(ApplicationAttributeKey) } returns null
             every { getAttribute(EnvironmentAttributeKey) } returns null
+            every { getAttribute(ManagedServerKey) } returns null
             every { serverInfo } returns ""
         }
 
@@ -72,6 +73,7 @@ class ConfigTest {
             every { contextPath } returns "/"
             every { getAttribute(ApplicationAttributeKey) } returns null
             every { getAttribute(EnvironmentAttributeKey) } returns null
+            every { getAttribute(ManagedServerKey) } returns null
             every { serverInfo } returns ""
         }
 

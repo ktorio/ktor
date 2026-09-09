@@ -14,8 +14,6 @@ import io.ktor.serialization.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
-import io.ktor.utils.io.jvm.javaio.*
-import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
 import java.io.*
 import kotlin.text.*
@@ -90,18 +88,17 @@ public class JacksonConverter(
 
     override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? {
         try {
-            return withContext(Dispatchers.IO) {
-                val type = objectMapper.constructType(typeInfo.reifiedType)
-                val objectReader = objectMapper.readerFor(type)
+            val type = objectMapper.constructType(typeInfo.reifiedType)
+            val objectReader = objectMapper.readerFor(type)
 
-                // Jackson handles decoding of Unicode charsets automatically, no need to create a reader.
-                // Additionally, a byte-based source is required for binary format (Smile).
-                if (isUnicode(charset)) {
-                    objectReader.readValue(content.toInputStream())
-                } else {
-                    val reader = content.toInputStream().reader(charset)
-                    objectReader.readValue(reader)
-                }
+            val bytes = content.toByteArray()
+
+            // Jackson decodes Unicode charsets from bytes automatically, and a byte-based
+            // source is required for binary formats (Smile).
+            return if (isUnicode(charset)) {
+                objectReader.readValue(bytes)
+            } else {
+                objectReader.readValue(String(bytes, charset))
             }
         } catch (cause: Exception) {
             val convertException = JsonConvertException("Illegal json parameter found: ${cause.message}", cause)

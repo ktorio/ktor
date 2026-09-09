@@ -149,7 +149,6 @@ internal class HoconListDecoder(
     }
 }
 
-@OptIn(ExperimentalSerializationApi::class)
 internal class HoconMapDecoder(
     private val config: Config,
     override val serializersModule: SerializersModule = EmptySerializersModule()

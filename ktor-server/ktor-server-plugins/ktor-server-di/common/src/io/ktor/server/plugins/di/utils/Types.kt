@@ -52,8 +52,11 @@ public expect fun TypeInfo.typeParametersHierarchy(): Sequence<TypeInfo>
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.utils.toRawType)
  *
- * @return A new [TypeInfo] with [kotlinType] set to null.
+ * @return A new [TypeInfo] with [kotlinType] set to `null` and the original nullability preserved.
  */
 @InternalAPI
-public fun TypeInfo.toRawType(): TypeInfo =
-    TypeInfo(type, kotlinType = null)
+public fun TypeInfo.toRawType(): TypeInfo = TypeInfo(
+    type = type,
+    isNullable = isNullable,
+    kotlinType = null,
+)
