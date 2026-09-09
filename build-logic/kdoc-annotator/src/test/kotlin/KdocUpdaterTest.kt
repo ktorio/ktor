@@ -2,49 +2,40 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 
 class KdocUpdaterTest {
-
     @Test
     fun `update single line KDoc`() {
-
-        val kdoc = """/** Hello world */ """
-        val result = updateKDocWithLink(kdoc, "https://example.com", "a.b.c")
-
-        assertEquals("""
+        "/** Hello world */" shouldBeUpdatedTo """
             /**
              * Hello world
              *
              * [Report a problem](https://example.com?fqname=a.b.c)
              */
-        """.trimIndent(), result)
+        """
     }
 
     @Test
     fun `update multi line KDoc`() {
-        val kdoc = """
+        """
             /**
              * Hello world
              */
-        """.trimIndent()
-        val result = updateKDocWithLink(kdoc, "https://example.com", "a.b.c")
-        assertEquals("""
+        """ shouldBeUpdatedTo """
             /**
              * Hello world
              *
              * [Report a problem](https://example.com?fqname=a.b.c)
              */
-        """.trimIndent(), result)
+        """
     }
 
     @Test
     fun `update KDoc with param section`() {
-        val kdoc = """
+        """
             /**
              * Hello world
              * @param a The first param
              */
-        """.trimIndent()
-        val result = updateKDocWithLink(kdoc, "https://example.com", "a.b.c")
-        assertEquals("""
+        """ shouldBeUpdatedTo """
             /**
              * Hello world
              *
@@ -52,20 +43,18 @@ class KdocUpdaterTest {
              *
              * @param a The first param
              */
-        """.trimIndent(), result)
+        """
     }
 
     @Test
     fun `update KDoc with param section separated with a blank line`() {
-        val kdoc = """
+        """
             /**
              * Hello world
              *
              * @param a The first param
              */
-        """.trimIndent()
-        val result = updateKDocWithLink(kdoc, "https://example.com", "a.b.c")
-        assertEquals("""
+        """ shouldBeUpdatedTo """
             /**
              * Hello world
              *
@@ -73,50 +62,42 @@ class KdocUpdaterTest {
              *
              * @param a The first param
              */
-        """.trimIndent(), result)
+        """
     }
 
     @Test
     fun `remove feedback link from suppressed KDoc`() {
-        val kdoc = """
+        """
             /**
              * @suppress **This is unstable API and it is subject to change.**
              *
              * [Report a problem](https://example.com?fqname=a.b.c)
              */
-        """.trimIndent()
-
-        val result = updateKDocWithLink(kdoc, "https://example.com", "a.b.c")
-
-        assertEquals("""
+        """ shouldBeUpdatedTo """
             /**
              * @suppress **This is unstable API and it is subject to change.**
              */
-        """.trimIndent(), result)
+        """
     }
 
     @Test
     fun `do not add leading blank line when KDoc starts with tag`() {
-        val kdoc = """
+        """
             /**
              * @param value parameter description.
              */
-        """.trimIndent()
-
-        val result = updateKDocWithLink(kdoc, "https://example.com", "a.b.c")
-
-        assertEquals("""
+        """ shouldBeUpdatedTo """
             /**
              * [Report a problem](https://example.com?fqname=a.b.c)
              *
              * @param value parameter description.
              */
-        """.trimIndent(), result)
+        """
     }
 
     @Test
     fun `move existing feedback link before KDoc tags without trailing blank line`() {
-        val kdoc = """
+        """
             /**
              * Generates an EC key pair for OIDC tests.
              *
@@ -125,11 +106,7 @@ class KdocUpdaterTest {
              *
              * [Report a problem](https://example.com?fqname=a.b.c)
              */
-        """.trimIndent()
-
-        val result = updateKDocWithLink(kdoc, "https://example.com", "a.b.c")
-
-        assertEquals("""
+        """ shouldBeUpdatedTo """
             /**
              * Generates an EC key pair for OIDC tests.
              *
@@ -138,135 +115,29 @@ class KdocUpdaterTest {
              * @param keyId key ID written to token headers.
              * @return generated test keys.
              */
-        """.trimIndent(), result)
+        """
     }
 
     @Test
     fun `do not treat inline annotation as KDoc tag`() {
-        val kdoc = """
+        """
             /**
              * Apple's delegate is
              * declared `@property(nonatomic, weak)`.
              */
-        """.trimIndent()
-
-        val result = updateKDocWithLink(kdoc, "https://example.com", "a.b.c")
-
-        assertEquals("""
+        """ shouldBeUpdatedTo """
             /**
              * Apple's delegate is
              * declared `@property(nonatomic, weak)`.
              *
              * [Report a problem](https://example.com?fqname=a.b.c)
              */
-        """.trimIndent(), result)
-    }
-
-    @Test
-    fun `remove feedback link inserted before inline annotation`() {
-        val kdoc = """
-            /**
-             * Apple's delegate is
-             *
-             * [Report a problem](https://example.com?fqname=a.b.c)
-             *
-             * declared `@property(nonatomic, weak)`.
-             */
-        """.trimIndent()
-
-        val result = removeFeedbackLinksFromKDoc(kdoc)
-
-        assertEquals("""
-            /**
-             * Apple's delegate is
-             * declared `@property(nonatomic, weak)`.
-             */
-        """.trimIndent(), result)
-    }
-
-    @Test
-    fun `remove feedback link from KDoc`() {
-        val kdoc = """
-            /**
-             * Hello world
-             *
-             * [Report a problem](https://example.com?fqname=a.b.c)
-             *
-             * @param a The first param
-             */
-        """.trimIndent()
-
-        val result = removeFeedbackLinksFromKDoc(kdoc)
-
-        assertEquals("""
-            /**
-             * Hello world
-             *
-             * @param a The first param
-             */
-        """.trimIndent(), result)
-    }
-
-    @Test
-    fun `remove leading blank lines without feedback link`() {
-        val kdoc = """
-            /**
-             *
-             *
-             * Hello world
-             */
-        """.trimIndent()
-
-        val result = removeFeedbackLinksFromKDoc(kdoc)
-
-        assertEquals("""
-            /**
-             * Hello world
-             */
-        """.trimIndent(), result)
-    }
-
-    @Test
-    fun `remove trailing blank lines without feedback link`() {
-        val kdoc = """
-            /**
-             * Hello world
-             *
-             *
-             */
-        """.trimIndent()
-
-        val result = removeFeedbackLinksFromKDoc(kdoc)
-
-        assertEquals("""
-            /**
-             * Hello world
-             */
-        """.trimIndent(), result)
-    }
-
-    @Test
-    fun `remove trailing feedback link from KDoc`() {
-        val kdoc = """
-            /**
-             * Hello world
-             *
-             * [Report a problem](https://example.com?fqname=a.b.c)
-             */
-        """.trimIndent()
-
-        val result = removeFeedbackLinksFromKDoc(kdoc)
-
-        assertEquals("""
-            /**
-             * Hello world
-             */
-        """.trimIndent(), result)
+        """
     }
 
     @Test
     fun `update KDoc existing link`() {
-        val kdoc = """
+        """
             /**
              * Hello world
              *
@@ -274,17 +145,91 @@ class KdocUpdaterTest {
              *
              * @param a The first param
              */
-        """.trimIndent()
-        val result = updateKDocWithLink(kdoc, "https://example.com", "a.b.bar")
-        assertEquals("""
+        """ shouldBeUpdatedTo """
             /**
              * Hello world
              *
-             * [Report a problem](https://example.com?fqname=a.b.bar)
+             * [Report a problem](https://example.com?fqname=a.b.c)
              *
              * @param a The first param
              */
-        """.trimIndent(), result)
+        """
+    }
+
+    @Test
+    fun `remove feedback link from KDoc`() {
+        """
+            /**
+             * Hello world
+             *
+             * [Report a problem](https://example.com?fqname=a.b.c)
+             *
+             * @param a The first param
+             */
+        """ shouldBeSanitizedTo """
+            /**
+             * Hello world
+             *
+             * @param a The first param
+             */
+        """
+    }
+
+    @Test
+    fun `remove leading blank lines without feedback link`() {
+        """
+            /**
+             *
+             *
+             * Hello world
+             */
+        """ shouldBeSanitizedTo """
+            /**
+             * Hello world
+             */
+        """
+    }
+
+    @Test
+    fun `remove trailing blank lines without feedback link`() {
+        """
+            /**
+             * Hello world
+             *
+             *
+             */
+        """ shouldBeSanitizedTo """
+            /**
+             * Hello world
+             */
+        """
+    }
+
+    @Test
+    fun `remove trailing feedback link from KDoc`() {
+        """
+            /**
+             * Hello world
+             *
+             * [Report a problem](https://example.com?fqname=a.b.c)
+             */
+        """ shouldBeSanitizedTo """
+            /**
+             * Hello world
+             */
+        """
+    }
+
+    private infix fun String.shouldBeUpdatedTo(expected: String) {
+        val result = updateKDocWithLink(trimIndent(), TEST_FEEDBACK_LINK, TEST_FULLY_QUALIFIED_NAME)
+        assertEquals(expected.trimIndent(), result)
+    }
+
+    private infix fun String.shouldBeSanitizedTo(expected: String) {
+        val result = removeFeedbackLinksFromKDoc(trimIndent())
+        assertEquals(expected.trimIndent(), result)
     }
 }
 
+private const val TEST_FEEDBACK_LINK = "https://example.com"
+private const val TEST_FULLY_QUALIFIED_NAME = "a.b.c"
