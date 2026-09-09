@@ -18,6 +18,8 @@ import kotlin.time.Duration.Companion.seconds
  *
  * An instance of this class is provided to the lambda passed to
  * [io.ktor.server.netty.NettyApplicationEngine.Configuration.enableHttp3].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.http3.NettyHttp3Configuration)
  */
 @KtorDsl
 public class NettyHttp3Configuration {
@@ -35,6 +37,8 @@ public class NettyHttp3Configuration {
      * [HmacQuicTokenHandler] is provided as a secure implementation that signs tokens
      * with HMAC-SHA256 and rejects forged or expired tokens. Callers may also supply a custom
      * [QuicTokenHandler] to use a different signing strategy or integrate with external token services.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.http3.NettyHttp3Configuration.quicTokenHandler)
      */
     public var quicTokenHandler: QuicTokenHandler? = null
 
@@ -43,6 +47,8 @@ public class NettyHttp3Configuration {
      * If no data is exchanged within this period, the connection is closed.
      *
      * Must be strictly positive.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.http3.NettyHttp3Configuration.quicMaxIdleTimeout)
      */
     public var quicMaxIdleTimeout: Duration = 30.seconds
         set(value) {
@@ -57,6 +63,8 @@ public class NettyHttp3Configuration {
      * on the entire QUIC connection, in bytes.
      *
      * Must be strictly positive.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.http3.NettyHttp3Configuration.quicInitialMaxData)
      */
     public var quicInitialMaxData: Long = 10_000_000
         set(value) {
@@ -71,6 +79,8 @@ public class NettyHttp3Configuration {
      * QUIC streams, in bytes.
      *
      * Must be strictly positive.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.http3.NettyHttp3Configuration.quicInitialMaxStreamDataBidirectionalLocal)
      */
     public var quicInitialMaxStreamDataBidirectionalLocal: Long = 1_000_000
         set(value) {
@@ -85,6 +95,8 @@ public class NettyHttp3Configuration {
      * QUIC streams, in bytes.
      *
      * Must be strictly positive.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.http3.NettyHttp3Configuration.quicInitialMaxStreamDataBidirectionalRemote)
      */
     public var quicInitialMaxStreamDataBidirectionalRemote: Long = 1_000_000
         set(value) {
@@ -99,6 +111,8 @@ public class NettyHttp3Configuration {
      * peer is allowed to open.
      *
      * Must be strictly positive.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.http3.NettyHttp3Configuration.quicInitialMaxStreamsBidirectional)
      */
     public var quicInitialMaxStreamsBidirectional: Long = 100
         set(value) {
@@ -127,6 +141,8 @@ public class NettyHttp3Configuration {
      * kernel's address hash delivers to the wrong socket (for example, after connection migration
      * or NAT rebinding) are re-dispatched to the owning socket. Connection-id generation is managed
      * by the engine in this mode and must not be overridden via [configureQuicServerCodec].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.http3.NettyHttp3Configuration.udpSocketCount)
      */
     public var udpSocketCount: Int? = null
         set(value) {
@@ -143,6 +159,8 @@ public class NettyHttp3Configuration {
      * loss and recovers from at a significant throughput cost. Consider raising this (for example,
      * to a few megabytes) for high-throughput deployments; the effective value may be capped by the
      * operating system.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.http3.NettyHttp3Configuration.udpReceiveBufferSize)
      */
     public var udpReceiveBufferSize: Int = 0
         set(value) {
@@ -154,6 +172,8 @@ public class NettyHttp3Configuration {
 
     /**
      * The `SO_SNDBUF` size in bytes for the HTTP/3 UDP sockets, or `0` to use the system default.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.http3.NettyHttp3Configuration.udpSendBufferSize)
      */
     public var udpSendBufferSize: Int = 0
         set(value) {
@@ -168,6 +188,8 @@ public class NettyHttp3Configuration {
      * This lambda is invoked on the [QuicServerCodecBuilder] after all default
      * settings have been applied, allowing callers to override or add any
      * QUIC transport parameters.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.http3.NettyHttp3Configuration.configureQuicServerCodec)
      */
     public var configureQuicServerCodec: QuicServerCodecBuilder.() -> Unit = {}
 }

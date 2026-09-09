@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.plugins.calllogging
@@ -9,9 +9,10 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
-import org.fusesource.jansi.*
-import org.slf4j.*
-import org.slf4j.event.*
+import org.fusesource.jansi.Ansi
+import org.slf4j.Logger
+import org.slf4j.MDC
+import org.slf4j.event.Level
 
 /**
  * A configuration for the [CallLogging] plugin.
@@ -52,7 +53,6 @@ public class CallLoggingConfig {
      * }
      * ```
      *
-     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.calllogging.CallLoggingConfig.filter)
      *
      * @see [CallLogging]
@@ -65,7 +65,6 @@ public class CallLoggingConfig {
      * Puts a diagnostic context value to [MDC] with the specified [name] and computed using the [provider] function.
      * A value is available in MDC only during [ApplicationCall] lifetime and is removed after a call processing.
      *
-     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.calllogging.CallLoggingConfig.mdc)
      *
      * @see [CallLogging]
@@ -77,7 +76,6 @@ public class CallLoggingConfig {
     /**
      * Allows you to configure a call log message.
      *
-     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.calllogging.CallLoggingConfig.format)
      *
      * @see [CallLogging]
@@ -88,7 +86,6 @@ public class CallLoggingConfig {
 
     /**
      * Allows you to configure a clock that will be used to measure call processing time.
-     *
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.calllogging.CallLoggingConfig.clock)
      *

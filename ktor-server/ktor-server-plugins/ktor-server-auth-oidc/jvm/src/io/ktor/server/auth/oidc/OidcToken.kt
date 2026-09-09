@@ -5,7 +5,7 @@
 package io.ktor.server.auth.oidc
 
 import com.auth0.jwt.JWT
-import io.ktor.util.annotations.InternalKtorSubclassing
+import io.ktor.util.annotations.*
 import io.ktor.utils.io.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -35,13 +35,13 @@ public interface OidcToken {
      * access token from the token endpoint; it is not verified as a resource-server Bearer principal and is never
      * exposed as [Access]. Use [jwtBearer][OidcProvider.jwtBearer] to obtain an [Access] principal.
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcToken.Id)
+     *
      * @property value verified ID token value.
      * @property accessToken the accompanying access token returned with the ID token. May be JWT or opaque; it is not
      * validated against Bearer resource audiences.
      * @property refreshToken refresh token returned by the token endpoint, or `null` when unavailable.
      * @property userInfo normalized user claims extracted from the ID token or UserInfo endpoint.
-     *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcToken.Id)
      */
     @Serializable
     @SerialName("id_token")
@@ -53,6 +53,8 @@ public interface OidcToken {
     ) : OidcToken {
         /**
          * Decoded claims from [value]. Accessing these values does not perform verification by itself.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcToken.Id.claims)
          */
         public val claims: TokenClaims by lazy { TokenClaims(JWT.decode(value)) }
     }
@@ -63,10 +65,10 @@ public interface OidcToken {
      * This type is produced only by [OidcProvider.jwtBearer]. OAuth login does not create [Access] principals;
      * OAuth-issued access-token material remains on [Id.accessToken].
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcToken.Access)
+     *
      * @property value verified JWT access token value.
      * @property userInfo normalized user claims extracted from the token, or `null` when unavailable.
-     *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcToken.Access)
      */
     @Serializable
     @SerialName("access_token")
@@ -76,6 +78,8 @@ public interface OidcToken {
     ) : OidcToken {
         /**
          * Decoded claims from [value]. Accessing these values does not perform verification by itself.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcToken.Access.claims)
          */
         public val claims: TokenClaims by lazy { TokenClaims(JWT.decode(value)) }
 
@@ -84,6 +88,8 @@ public interface OidcToken {
          *
          * The plugin checks the standard OpenID Connect `azp` claim first, then falls back to the OAuth `client_id`
          * claim used by some providers. Returns `null` when neither claim is present.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcToken.Access.clientId)
          */
         public val clientId: String? get() = claims.claimString("azp") ?: claims.claimString("client_id")
     }
@@ -94,10 +100,10 @@ public interface OidcToken {
      * Introspection accepts both opaque tokens and JWT-formatted access tokens. Configure
      * `bearer { introspection { } }` to enable the introspection Bearer scheme.
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcToken.Introspected)
+     *
      * @property value access token value presented to the resource server.
      * @property introspection normalized introspection response returned by the authorization server.
-     *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcToken.Introspected)
      */
     @Serializable
     @SerialName("introspected_token")
@@ -109,6 +115,8 @@ public interface OidcToken {
     /**
      * Standard user claims extracted from an ID token payload, JWT access token payload, or UserInfo response.
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcToken.UserInfo)
+     *
      * @property subject subject identifier. Must not be blank.
      * @property name display name.
      * @property email email address.
@@ -117,8 +125,6 @@ public interface OidcToken {
      * @property givenName given name.
      * @property familyName family name.
      * @property preferredUsername preferred username.
-     *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcToken.UserInfo)
      */
     @Serializable
     public class UserInfo(

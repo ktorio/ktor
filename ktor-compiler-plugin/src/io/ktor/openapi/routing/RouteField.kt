@@ -1,11 +1,11 @@
 package io.ktor.openapi.routing
 
-import io.ktor.openapi.model.ExtensionAttribute
-import io.ktor.openapi.model.ModelAttribute
-import io.ktor.openapi.model.SchemaAttribute
+import io.ktor.openapi.model.*
 
 /**
  * Sealed class representing different KDoc parameters for OpenAPI documentation.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.routing.RouteField)
  */
 sealed interface RouteField {
 
@@ -37,6 +37,8 @@ sealed interface RouteField {
 
     /**
      * Query parameter, path variable, header, or cookie.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.routing.RouteField.Parameter)
      */
     data class Parameter(
         val `in`: ParamIn? = null,
@@ -65,6 +67,8 @@ sealed interface RouteField {
      * Associates the endpoint with a tag for grouping.
      *
      * Format: `@tag TagName`
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.routing.RouteField.Tag)
      */
     data class Tag(val name: String) : RouteField {
         override fun merge(other: RouteField): RouteField? =
@@ -75,6 +79,8 @@ sealed interface RouteField {
      * Documents the request body type.
      *
      * Format: `@body [Type] description`
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.routing.RouteField.Body)
      */
     data class Body(
         override val contentType: LocalReference? = null,
@@ -102,6 +108,8 @@ sealed interface RouteField {
      * Documents a response code with optional type and description.
      *
      * Format: `@response code [Type] description`
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.routing.RouteField.Response)
      */
     data class Response(
         val code: LocalReference? = null,
@@ -125,6 +133,8 @@ sealed interface RouteField {
      * Marks an endpoint as deprecated.
      *
      * Format: `@deprecated reason`
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.routing.RouteField.Deprecated)
      */
     data class Deprecated(val reason: String) : RouteField
 
@@ -132,6 +142,8 @@ sealed interface RouteField {
      * Provides a detailed endpoint description.
      *
      * Format: `@description text`
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.routing.RouteField.Description)
      */
     data class Description(val text: String) : RouteField
 
@@ -139,12 +151,16 @@ sealed interface RouteField {
      * Provides a link to external documentation.
      *
      * Format: `@externalDocs url description`
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.routing.RouteField.ExternalDocs)
      */
     data class ExternalDocs(val url: String, val description: String?): RouteField
 
     /**
      * Provides a summary of the endpoint.
      * Format: `@summary text`
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.routing.RouteField.Summary)
      */
     data class Summary(val text: String) : RouteField
 
@@ -154,6 +170,8 @@ sealed interface RouteField {
      * Special cases include "*" when any scheme can be used, or null when security is optional.
      *
      * Format: `@security scheme`
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.routing.RouteField.Security)
      */
     data class Security(
         val scheme: String?,
@@ -173,6 +191,8 @@ typealias RouteFieldList = List<RouteField>
 
 /**
  * Merges two lists of route fields into a new list.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.routing.merge)
  */
 fun RouteFieldList.merge(other: RouteFieldList) = buildList {
     val otherMutable = other.toMutableList()

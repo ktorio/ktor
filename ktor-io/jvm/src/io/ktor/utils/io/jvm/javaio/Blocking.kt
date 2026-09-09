@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.utils.io.jvm.javaio
@@ -22,9 +22,9 @@ import kotlin.math.min
  *
  * The caller is responsible for closing the stream.
  *
- * @param parent a parent job for blocking reads.
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.jvm.javaio.toInputStream)
+ *
+ * @param parent a parent job for blocking reads.
  */
 public fun ByteReadChannel.toInputStream(parent: Job? = null): InputStream =
     ByteChannelInputStream(channel = this, parent = parent)
@@ -37,9 +37,9 @@ public fun ByteReadChannel.toInputStream(parent: Job? = null): InputStream =
  *
  * The caller is responsible for closing the stream.
  *
- * @param parent a parent job for blocking reads.
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.jvm.javaio.asInputStream)
+ *
+ * @param parent a parent job for blocking reads.
  */
 @InternalAPI
 public fun ByteReadChannel.asInputStream(parent: Job): InputStream =
@@ -99,9 +99,9 @@ public fun ByteWriteChannel.toOutputStream(): OutputStream = ByteChannelOutputSt
  *
  * The caller is responsible for closing the stream.
  *
- * @param parent a parent job for blocking writes.
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.jvm.javaio.asOutputStream)
+ *
+ * @param parent a parent job for blocking writes.
  */
 @InternalAPI
 public fun ByteWriteChannel.asOutputStream(parent: Job): OutputStream =

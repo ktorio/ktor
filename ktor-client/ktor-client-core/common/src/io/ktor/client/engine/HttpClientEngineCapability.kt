@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.client.engine
 
@@ -31,7 +31,6 @@ public val DEFAULT_CAPABILITIES: Set<HttpClientEngineCapability<*>> = setOf(Http
  *
  * Capabilities can be set on a per-request basis using the `HttpRequestBuilder.setCapability` method,
  * allowing users to configure engine-specific behavior for individual requests.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.HttpClientEngineCapability)
  *

@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.server.sessions
 
@@ -10,7 +10,6 @@ import io.ktor.util.collections.*
  * A storage that keeps session data in memory.
  *
  * Note that [SessionStorageMemory] is intended for development only.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.SessionStorageMemory)
  *

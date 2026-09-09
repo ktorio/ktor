@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.plugins.callid
@@ -15,8 +15,9 @@ import io.ktor.util.internal.*
 import io.ktor.util.logging.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
-import kotlin.random.*
+import kotlinx.coroutines.CopyableThrowable
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlin.random.Random
 
 internal val LOGGER = KtorSimpleLogger("io.ktor.server.plugins.callid.CallId")
 
@@ -73,7 +74,6 @@ public class CallIdConfig {
      * Allows you to retrieve a call ID from [ApplicationCall].
      * Returns `null` if no call ID is found in a request.
      *
-     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.callid.CallIdConfig.retrieve)
      *
      * @see verify
@@ -85,7 +85,6 @@ public class CallIdConfig {
     /**
      * Allows you to generate a call ID if an incoming request doesn't include it.
      * Generates `null` if it is impossible to generate a call ID for some reason.
-     *
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.callid.CallIdConfig.generate)
      *
@@ -109,7 +108,6 @@ public class CallIdConfig {
      * ```kotlin
      * CALL_ID_DEFAULT_DICTIONARY: String = "abcdefghijklmnopqrstuvwxyz0123456789+/=-"
      * ```
-     *
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.callid.CallIdConfig.verify)
      *
@@ -146,7 +144,6 @@ public class CallIdConfig {
     /**
      * Allows you to reply with a retrieved or generated call ID by modifying an [ApplicationCall].
      *
-     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.callid.CallIdConfig.reply)
      *
      * @see [replyToHeader]
@@ -157,7 +154,6 @@ public class CallIdConfig {
 
     /**
      * Allows you to retrieve a call ID and send it in the same header.
-     *
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.callid.CallIdConfig.header)
      *
@@ -172,7 +168,6 @@ public class CallIdConfig {
     /**
      * Retrieves a call ID from a specified request header named [headerName].
      *
-     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.callid.CallIdConfig.retrieveFromHeader)
      *
      * @see [replyToHeader]
@@ -183,7 +178,6 @@ public class CallIdConfig {
 
     /**
      * Replies with a call ID using a specified header named [headerName].
-     *
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.callid.CallIdConfig.replyToHeader)
      *
@@ -287,7 +281,6 @@ private fun verifyCallIdAgainstDictionary(callId: String, dictionarySet: Set<Cha
  * and should not be considered as cryptographically secure.
  * Also note that you need to use the same dictionary for [CallIdVerifier], otherwise a generated call ID could be
  * discarded or may lead to complete call rejection.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.callid.generate)
  *

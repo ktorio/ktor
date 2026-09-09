@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.http.content
@@ -15,7 +15,6 @@ import java.net.URL
 import java.util.concurrent.ConcurrentHashMap
 
 /**
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.resolveResource)
  *
  * @param path is a relative path to the resource

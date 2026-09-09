@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.util
 
@@ -14,8 +14,7 @@ public actual suspend fun generateNonceSuspend(length: Int): String = generateNo
 /**
  * Generates a nonce string [length] characters long. Could block if the system's entropy source is empty.
  *
- * [Report a
- * problem](https://ktor.io/feedback/?fqname=io.ktor.util.generateNonceBlocking)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.generateNonceBlocking)
  */
 public actual fun generateNonceBlocking(length: Int): String {
     val bytes = ByteArray(length / 2 + 1)

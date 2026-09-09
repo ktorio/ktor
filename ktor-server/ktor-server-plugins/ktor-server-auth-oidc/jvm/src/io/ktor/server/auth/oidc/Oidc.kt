@@ -221,6 +221,8 @@ public class Oidc internal constructor(
      * val googleScheme = google.jwtBearer.mapPrincipal { token -> findUser(token.claims.subject) }
      * ```
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.Oidc.identityProvider)
+     *
      * @param name provider name used in generated routes and authentication scheme names. Must contain lowercase
      * letters, digits, and hyphen-separated segments only.
      * @param configure configures discovery, token validation, Bearer authentication, and OAuth flow.
@@ -414,9 +416,9 @@ public class Oidc internal constructor(
      * val apiUser = google.jwtBearer.mapPrincipal { token -> findUser(token.claims.subject) }
      * ```
      *
-     * @return Installed OpenID Connect identity-provider registry.
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.Oidc.Companion)
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.Oidc)
+     * @return Installed OpenID Connect identity-provider registry.
      */
     public companion object : BaseApplicationPlugin<Application, OidcPluginConfig, Oidc> {
         override val key: AttributeKey<Oidc> = AttributeKey("Oidc")
@@ -498,6 +500,8 @@ public data class OidcEnvConfig(
  * Details of a failed periodic OpenID Connect discovery metadata refresh.
  * Routes and token validation continue with the last successful discovery document.
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcMetadataRefreshFailure)
+ *
  * @property provider OpenID Connect provider instance.
  * @property consecutiveFailures number of consecutive periodic refresh failures, reset after a successful refresh.
  * @property cause failure raised while fetching or validating discovery metadata.
@@ -514,6 +518,8 @@ public class OidcMetadataRefreshFailure(
  *
  * Subscribe to this event with [Application.monitor]. Initial discovery failures are reported through provider
  * registration exceptions and do not raise this event.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcMetadataRefreshFailed)
  */
 @ExperimentalKtorApi
 public val OidcMetadataRefreshFailed: EventDefinition<OidcMetadataRefreshFailure> = EventDefinition()

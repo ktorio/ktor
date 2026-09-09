@@ -41,7 +41,6 @@ public data object WebSocketExtensionsCapability : HttpClientEngineCapability<Un
 /**
  * Client WebSocket plugin.
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.WebSockets)
  *
  * @property pingIntervalMillis - interval between [FrameType.PING] messages
@@ -59,7 +58,6 @@ public class WebSockets internal constructor(
 ) {
     /**
      * Client WebSocket plugin.
-     *
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.WebSockets.WebSockets)
      *
@@ -163,6 +161,7 @@ public class WebSockets internal constructor(
          *     outgoing = bounded(capacity = 512, onOverflow = ChannelOverflow.SUSPEND)
          * }
          * ```
+         *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.WebSockets.Config.channels)
          */
         public fun channels(block: WebSocketChannelsConfig.() -> Unit) {

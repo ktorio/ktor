@@ -14,6 +14,8 @@ import kotlinx.serialization.Serializable
  * Served at the `/.well-known/oauth-protected-resource` endpoint when
  * [OidcPluginConfig.protectedResource] is configured.
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.ProtectedResourceMetadata)
+ *
  * @property resource The protected resource's identifier URL.
  * @property authorizationServers OAuth authorization server issuer identifiers trusted by this resource.
  * @property jwksUri URL of the resource server's JWK Set document containing its public keys.
@@ -29,8 +31,6 @@ import kotlinx.serialization.Serializable
  * @property authorizationDetailsTypesSupported Authorization details types supported per RFC 9396.
  * @property dpopSigningAlgValuesSupported JWS algorithms supported for DPoP proof validation.
  * @property dpopBoundAccessTokensRequired Whether DPoP-bound access tokens are required.
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.ProtectedResourceMetadata)
  */
 @ExperimentalKtorApi
 @Serializable

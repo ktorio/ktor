@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.plugins.api
@@ -40,7 +40,6 @@ public class ClientPluginBuilder<PluginConfig : Any> internal constructor(
      * This block is invoked for every [HttpClient.request] call.
      * There you can modify the request in a way you want: add headers, configure logging, etc.
      *
-     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.api.ClientPluginBuilder.onRequest)
      *
      * @see [createClientPlugin]
@@ -59,7 +58,6 @@ public class ClientPluginBuilder<PluginConfig : Any> internal constructor(
      * This block is invoked for every incoming response.
      * There you can inspect the response in a way you want: save cookies, add logging, etc.
      *
-     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.api.ClientPluginBuilder.onResponse)
      *
      * @see [createClientPlugin]
@@ -77,7 +75,6 @@ public class ClientPluginBuilder<PluginConfig : Any> internal constructor(
      *
      * This block is invoked for every [HttpClient.request] call.
      * Here you should serialize body into [OutgoingContent] or return `null` if your transformation is not applicable.
-     *
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.api.ClientPluginBuilder.transformRequestBody)
      *
@@ -101,7 +98,6 @@ public class ClientPluginBuilder<PluginConfig : Any> internal constructor(
      * This block is invoked for every [HttpResponse.body] call.
      * Here you should deserialize body into an instance of [requestedType]
      * or return `null` if your transformation is not applicable.
-     *
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.api.ClientPluginBuilder.transformResponseBody)
      *
@@ -132,7 +128,6 @@ public class ClientPluginBuilder<PluginConfig : Any> internal constructor(
      * Specifies a [handler] for a specific [hook].
      * A [hook] can be a specific place in time or event during the request
      * processing like receiving a response, an exception during call processing, etc.
-     *
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.api.ClientPluginBuilder.on)
      *

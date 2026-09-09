@@ -8,13 +8,16 @@ import io.ktor.util.cio.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
-import kotlinx.atomicfu.*
+import kotlinx.atomicfu.AtomicBoolean
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*
-import kotlinx.io.*
-import kotlin.coroutines.*
-import kotlin.time.*
+import kotlinx.io.IOException
+import kotlinx.io.Sink
+import kotlinx.io.readByteArray
+import kotlin.coroutines.CoroutineContext
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
 internal val LOGGER = KtorSimpleLogger("io.ktor.websocket.WebSocket")
@@ -62,7 +65,6 @@ public interface DefaultWebSocketSession : WebSocketSession {
     /**
      * Starts a WebSocket conversation.
      *
-     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.DefaultWebSocketSession.start)
      *
      * @param negotiatedExtensions specify negotiated extensions list to use in current session.
@@ -74,11 +76,11 @@ public interface DefaultWebSocketSession : WebSocketSession {
 /**
  * Creates [DefaultWebSocketSession] from a session.
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.DefaultWebSocketSession)
+ *
  * @param session raw [WebSocketSession] to wrap.
  * @param pingIntervalMillis interval between pings or [PINGER_DISABLED] to disable.
  * @param timeoutMillis timeout for pings.
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.DefaultWebSocketSession)
  */
 public fun DefaultWebSocketSession(
     session: WebSocketSession,
@@ -98,12 +100,12 @@ public fun DefaultWebSocketSession(
 /**
  * Creates [DefaultWebSocketSession] from a session.
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.DefaultWebSocketSession)
+ *
  * @param session raw [WebSocketSession] to wrap.
  * @param pingIntervalMillis interval between pings or [PINGER_DISABLED] to disable.
  * @param timeoutMillis timeout for pings.
  * @param channelsConfig configuration for the I/O frame channels.
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.DefaultWebSocketSession)
  */
 public fun DefaultWebSocketSession(
     session: WebSocketSession,

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.openapi
@@ -8,13 +8,16 @@ import io.ktor.openapi.AdditionalProperties.*
 import io.ktor.openapi.JsonSchema.*
 import io.ktor.openapi.ReferenceOr.*
 import io.ktor.utils.io.*
-import kotlinx.serialization.*
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonClassDiscriminator
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.modules.EmptySerializersModule
 import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.serializer
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
 import kotlin.reflect.typeOf
@@ -67,9 +70,9 @@ public val KotlinxSerializerDefaultFormats: (SerialDescriptor) -> String? = { ty
 /**
  * Infers JSON schema from kotlinx-serialization descriptors using the supplied module.
  *
- * @property module a [SerializersModule] to use for serialization.
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.KotlinxSerializerJsonSchemaInference)
+ *
+ * @property module a [SerializersModule] to use for serialization.
  */
 public class KotlinxSerializerJsonSchemaInference(
     private val module: SerializersModule,

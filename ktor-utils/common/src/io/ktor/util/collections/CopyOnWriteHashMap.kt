@@ -1,11 +1,11 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.util.collections
 
 import io.ktor.utils.io.*
-import kotlinx.atomicfu.*
+import kotlinx.atomicfu.atomic
 
 /**
  * This is an internal implementation for copy-on-write concurrent map.
@@ -18,7 +18,6 @@ public class CopyOnWriteHashMap<K : Any, V : Any> {
     private val current = atomic(emptyMap<K, V>())
 
     /**
-     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.collections.CopyOnWriteHashMap.put)
      *
      * @see MutableMap.put
@@ -35,7 +34,6 @@ public class CopyOnWriteHashMap<K : Any, V : Any> {
     }
 
     /**
-     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.collections.CopyOnWriteHashMap.get)
      *
      * @see Map.get
@@ -52,7 +50,6 @@ public class CopyOnWriteHashMap<K : Any, V : Any> {
     }
 
     /**
-     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.collections.CopyOnWriteHashMap.remove)
      *
      * @see MutableMap.remove
@@ -69,7 +66,6 @@ public class CopyOnWriteHashMap<K : Any, V : Any> {
     }
 
     /**
-     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.collections.CopyOnWriteHashMap.computeIfAbsent)
      *
      * @see MutableMap.computeIfAbsent

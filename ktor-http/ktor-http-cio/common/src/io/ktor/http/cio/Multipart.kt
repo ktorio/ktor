@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http.cio
@@ -65,7 +65,6 @@ public sealed class MultipartEvent {
      * Represents a multipart part. There could be any number of parts in a multipart stream. Please note that
      * it is important to consume [body] otherwise multipart parser could get stuck (suspend)
      * so you will not receive more events.
-     *
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.MultipartEvent.MultipartPart)
      *

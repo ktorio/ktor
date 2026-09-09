@@ -1,10 +1,12 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.serialization.gson
 
-import com.google.gson.*
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
+import com.google.gson.JsonSyntaxException
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.serialization.*
@@ -12,14 +14,16 @@ import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
-import java.io.*
-import kotlin.reflect.*
+import kotlinx.coroutines.CopyableThrowable
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collectIndexed
+import java.io.Writer
+import kotlin.reflect.KClass
 
 /**
  * A content converter that uses [Gson]
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.serialization.gson.GsonConverter)
  *

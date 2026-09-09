@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 @file:Suppress("DEPRECATION_ERROR")
@@ -30,7 +30,6 @@ public class XForwardedHeadersConfig {
     /**
      * Gets headers used to identify the protocol (HTTP or HTTPS) that a client used
      * to connect to a proxy or load balancer. Default are `X-Forwarded-Proto` and `X-Forwarded-Protocol`.
-     *
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.forwardedheaders.XForwardedHeadersConfig.protoHeaders)
      */

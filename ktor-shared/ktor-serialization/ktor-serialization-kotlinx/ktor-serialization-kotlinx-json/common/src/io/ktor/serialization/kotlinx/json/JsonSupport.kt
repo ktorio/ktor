@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.serialization.kotlinx.json
@@ -48,7 +48,6 @@ public val DefaultJson: Json =
  * ```
  * You can learn more from the corresponding [client](https://ktor.io/docs/client-serialization.html#-3bcvpz_156) and [server](https://ktor.io/docs/server-serialization.html#-230zkf_173) documentation.
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.serialization.kotlinx.json.json)
  *
  * @param json a format instance (optional)
@@ -66,7 +65,6 @@ public fun Configuration.json(
  * to the [ContentNegotiation] plugin using kotlinx.serialization.
  *
  * This uses the experimental JSON support for kotlinx-io to stream content more efficiently.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.serialization.kotlinx.json.jsonIo)
  *

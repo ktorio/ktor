@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.websocket
@@ -11,8 +11,11 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.utils.io.*
 import io.ktor.websocket.*
-import kotlinx.coroutines.*
-import kotlin.coroutines.*
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import kotlin.coroutines.CoroutineContext
 
 /**
  * An [OutgoingContent] response object that could be used to `respond()`: it will cause application engine to
@@ -23,7 +26,6 @@ import kotlin.coroutines.*
  *
  * [handle] function is applied to a session and as far as it is a RAW session, you should handle all low-level
  * frames yourself and deal with ping/pongs, timeouts, close frames, frame fragmentation and so on.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.websocket.WebSocketUpgrade)
  *
@@ -48,7 +50,6 @@ public class WebSocketUpgrade(
      *
      * [handle] function is applied to a session and as far as it is a RAW session, you should handle all low-level
      * frames yourself and deal with ping/pongs, timeouts, close frames, frame fragmentation and so on.
-     *
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.websocket.WebSocketUpgrade.WebSocketUpgrade)
      *

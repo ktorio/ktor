@@ -6,8 +6,8 @@
 
 package io.ktor.server.auth.oidc
 
-import io.ktor.server.routing.RoutingContext
-import io.ktor.util.annotations.InternalKtorSubclassing
+import io.ktor.server.routing.*
+import io.ktor.util.annotations.*
 import io.ktor.utils.io.*
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -28,6 +28,8 @@ public interface OidcTokenRefreshStrategy {
      * Refresh timing uses [OidcToken.Id.claims] [io.ktor.server.auth.oidc.TokenClaims.expiresAt].
      * When the ID token has no `exp` claim, auto-refresh never triggers.
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcTokenRefreshStrategy.Auto)
+     *
      * @property beforeExpiry how long before ID-token expiration the plugin should refresh the session.
      */
     public class Auto(
@@ -46,6 +48,8 @@ public interface OidcTokenRefreshStrategy {
      * Expired ID-token sessions are still rejected on user routes. Expiry uses
      * [OidcToken.Id.claims] [io.ktor.server.auth.oidc.TokenClaims.expiresAt]; when the ID token has no
      * `exp` claim, the session is never treated as expired.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcTokenRefreshStrategy.Disabled)
      */
     public object Disabled : OidcTokenRefreshStrategy
 
@@ -53,6 +57,8 @@ public interface OidcTokenRefreshStrategy {
      * Custom session refresh policy.
      *
      * The callback is invoked for every session-authenticated user request.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcTokenRefreshStrategy.Custom)
      */
     public fun interface Custom : OidcTokenRefreshStrategy {
         /**
@@ -62,6 +68,8 @@ public interface OidcTokenRefreshStrategy {
          * session material, or `null` when no refreshed token is available. On `null` (or a thrown exception),
          * the session is kept while the current token is still valid and cleared once it has expired. To end
          * a session immediately, clear it with the `Sessions` plugin instead.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcTokenRefreshStrategy.Custom.refresh)
          *
          * @param token current ID-token session.
          * @param now request time captured before the strategy runs; use this instead of reading the clock again.

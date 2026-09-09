@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 package io.ktor.server.response
 
@@ -186,7 +186,6 @@ public suspend fun ApplicationCall.respondBytes(
 
 /**
  * Responds to an [ApplicationCall] with the content from the provided kotlinx-io [Source].
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.response.respondSource)
  *

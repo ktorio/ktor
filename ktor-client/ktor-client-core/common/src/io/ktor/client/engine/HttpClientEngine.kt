@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine
@@ -112,7 +112,6 @@ public interface HttpClientEngine : CoroutineScope, Closeable {
      * This function takes [HttpRequestData], which contains all details of the HTTP request,
      * and returns [HttpResponseData] with the server's response, including headers, status code, and body.
      *
-     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.HttpClientEngine.execute)
      *
      * @param data The [HttpRequestData] representing the request to be executed.
@@ -127,7 +126,6 @@ public interface HttpClientEngine : CoroutineScope, Closeable {
      * This method is called when the engine is being set up within an `HttpClient`.
      * Use it to register interceptors, validate configuration, or prepare the engine
      * for use with the client.
-     *
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.HttpClientEngine.install)
      *

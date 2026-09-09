@@ -24,11 +24,11 @@ import org.w3c.files.Blob
  * })
  * ```
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.forms.appendBlob)
+ *
  * @param key multipart field name
  * @param blob browser [Blob] or [File][org.w3c.files.File] payload to send
  * @param headers additional part headers; defaults to empty
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.forms.appendBlob)
  */
 public fun FormBuilder.appendBlob(key: String, blob: Blob, headers: Headers = Headers.Empty) {
     append(key, blobChannelProvider(blob), headers)
@@ -48,12 +48,12 @@ public fun FormBuilder.appendBlob(key: String, blob: Blob, headers: Headers = He
  * })
  * ```
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.forms.appendBlob)
+ *
  * @param key multipart field name
  * @param blob browser [Blob] or [File][org.w3c.files.File] payload to send
  * @param filename name to set in the Content-Disposition header
  * @param contentType optional content type for the part
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.forms.appendBlob)
  */
 public fun FormBuilder.appendBlob(
     key: String,

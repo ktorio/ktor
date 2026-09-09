@@ -9,7 +9,7 @@ import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.resources.*
-import io.ktor.util.AttributeKey
+import io.ktor.util.*
 import io.ktor.client.request.delete as deleteBuilder
 import io.ktor.client.request.get as getBuilder
 import io.ktor.client.request.head as headBuilder
@@ -302,6 +302,8 @@ public suspend inline fun <reified T : Any> HttpClient.prepareRequest(
 /**
  * The instance of the [Resource] annotated class used to for a request.
  * Plugins may want to utilize this for monitoring.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.resources.RESOURCE)
  */
 public val RESOURCE: AttributeKey<Any> = AttributeKey<Any>("Resource")
 

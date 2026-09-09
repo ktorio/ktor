@@ -9,21 +9,39 @@ import kotlin.jvm.JvmInline
 /**
  * Represents a cryptographic key algorithm family.
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.auth.KeyAlgorithm)
+ *
  * @property name The common name of the key algorithm family.
  */
 @JvmInline
 public value class KeyAlgorithm(public val name: String) {
     public companion object {
-        /** RSA key algorithm family. */
+        /**
+         * RSA key algorithm family.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.auth.KeyAlgorithm.Companion.RSA)
+         */
         public val RSA: KeyAlgorithm = KeyAlgorithm("RSA")
 
-        /** Elliptic Curve key algorithm family. */
+        /**
+         * Elliptic Curve key algorithm family.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.auth.KeyAlgorithm.Companion.EC)
+         */
         public val EC: KeyAlgorithm = KeyAlgorithm("EC")
 
-        /** HMAC symmetric key algorithm family. */
+        /**
+         * HMAC symmetric key algorithm family.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.auth.KeyAlgorithm.Companion.HMAC)
+         */
         public val HMAC: KeyAlgorithm = KeyAlgorithm("HMAC")
 
-        /** Octet Key Pair key algorithm family. */
+        /**
+         * Octet Key Pair key algorithm family.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.auth.KeyAlgorithm.Companion.OKP)
+         */
         public val OKP: KeyAlgorithm = KeyAlgorithm("OKP")
     }
 }

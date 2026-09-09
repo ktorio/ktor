@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.plugins.doublereceive
@@ -24,7 +24,6 @@ public class DoubleReceiveConfig {
      *
      * This is useful, for example, when you want to receive a request body twice with different types or receive data
      * as a stream multiple times.
-     *
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.doublereceive.DoubleReceiveConfig.cacheRawRequest)
      *

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.utils.io.locks
@@ -114,7 +114,6 @@ public actual open class SynchronizedObject {
      * Attempts to acquire the lock. If the lock is available, it will be acquired, and this
      * function will return true. If the lock is already held by another thread, this function
      * will return false immediately without blocking.
-     *
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.locks.SynchronizedObject.tryLock)
      *

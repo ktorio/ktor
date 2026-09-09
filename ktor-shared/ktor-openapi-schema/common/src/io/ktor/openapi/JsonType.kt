@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.openapi
@@ -12,10 +12,9 @@ import kotlinx.serialization.Serializable
  * Represents the base data types defined in the JSON Schema specification.
  *
  * These types are used to constrain the values of properties within a [JsonSchema].
+ * See [JSON data types](https://json-schema.org/understanding-json-schema/reference/type.html)
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.JsonType)
- *
- * @link https://json-schema.org/understanding-json-schema/reference/type.html
  */
 @Serializable(JsonTypeSerializer::class)
 public enum class JsonType : SchemaType {

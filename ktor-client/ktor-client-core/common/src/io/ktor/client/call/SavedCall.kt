@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.client.call
 
@@ -25,7 +25,6 @@ import kotlin.coroutines.CoroutineContext
  *
  * This behavior is automatically applied to non-streaming [HttpResponse] instances.
  * For streaming responses, this function allows you to convert them into a memory-based representation.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.call.save)
  *

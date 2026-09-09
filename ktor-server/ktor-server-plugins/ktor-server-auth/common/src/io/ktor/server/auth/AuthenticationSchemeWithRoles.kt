@@ -5,7 +5,7 @@
 package io.ktor.server.auth
 
 import io.ktor.http.*
-import io.ktor.server.application.isHandled
+import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
@@ -47,6 +47,8 @@ public fun interface ForbiddenHandler<P : Any, C, R : AuthenticationRole> {
      * Invoked when authentication succeeds, but the principal lacks any roles required by the route.
      *
      * The default handler responds with [HttpStatusCode.Forbidden].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.ForbiddenHandler.onForbidden)
      */
     context(principalContext: PrincipalContext<P>, authenticatedContext: C, rolesContext: RolesContext<P, R>)
     public suspend fun RoutingContext.onForbidden()

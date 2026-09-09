@@ -1,22 +1,22 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.utils.io.jvm.nio
 
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
-import kotlinx.coroutines.*
-import kotlinx.io.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.io.Buffer
-import kotlinx.io.unsafe.*
-import java.nio.*
-import java.nio.channels.*
-import kotlin.coroutines.*
+import kotlinx.io.RawSource
+import kotlinx.io.UnsafeIoApi
+import kotlinx.io.unsafe.UnsafeBufferOperations
+import java.nio.ByteBuffer
+import java.nio.channels.ReadableByteChannel
+import kotlin.coroutines.CoroutineContext
 
 /**
  * Converts a [ReadableByteChannel] to a [ByteReadChannel], enabling asynchronous reading of bytes.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.jvm.nio.toByteReadChannel)
  *
@@ -32,7 +32,6 @@ public fun ReadableByteChannel.toByteReadChannel(
  *
  * This extension function wraps the given [ReadableByteChannel] into a [RawSource],
  * enabling efficient reading of bytes from the channel as a source of data.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.jvm.nio.asSource)
  *

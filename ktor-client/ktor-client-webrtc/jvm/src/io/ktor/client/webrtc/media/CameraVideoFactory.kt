@@ -7,7 +7,7 @@ package io.ktor.client.webrtc.media
 import dev.onvoid.webrtc.media.MediaDevices
 import dev.onvoid.webrtc.media.video.VideoCaptureCapability
 import dev.onvoid.webrtc.media.video.VideoDeviceSource
-import io.ktor.client.webrtc.WebRtcMedia
+import io.ktor.client.webrtc.*
 import kotlin.math.abs
 
 internal class VideoTrackCapturer : VideoCapturer {
@@ -24,6 +24,8 @@ internal class VideoTrackCapturer : VideoCapturer {
  * This factory automatically selects the best available camera device and capability
  * based on the provided constraints. It uses a fitness algorithm to find the closest
  * match for the requested video dimensions and frame rate.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.media.CameraVideoFactory)
  */
 public class CameraVideoFactory : VideoFactory {
 
@@ -32,6 +34,8 @@ public class CameraVideoFactory : VideoFactory {
      *
      * Selects the camera and video capability with dimensions closest to the target
      * resolution and frame rate equal to or higher than requested.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.media.CameraVideoFactory.createVideoCapturer)
      *
      * @throws WebRtcMedia.DeviceException if no suitable video device is found
      */

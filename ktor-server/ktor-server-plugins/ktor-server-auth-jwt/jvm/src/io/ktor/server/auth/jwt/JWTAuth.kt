@@ -1,22 +1,25 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.auth.jwt
 
-import com.auth0.jwk.*
-import com.auth0.jwt.*
-import com.auth0.jwt.algorithms.*
-import com.auth0.jwt.exceptions.*
-import com.auth0.jwt.interfaces.*
+import com.auth0.jwk.JwkProvider
+import com.auth0.jwk.JwkProviderBuilder
+import com.auth0.jwt.JWT
+import com.auth0.jwt.algorithms.Algorithm
+import com.auth0.jwt.exceptions.JWTDecodeException
 import com.auth0.jwt.interfaces.JWTVerifier
+import com.auth0.jwt.interfaces.Payload
+import com.auth0.jwt.interfaces.Verification
 import io.ktor.http.auth.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.response.*
-import org.slf4j.*
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.util.*
-import kotlin.reflect.*
+import kotlin.reflect.KClass
 
 internal val JWTAuthKey: Any = "JWTAuth"
 
@@ -95,7 +98,6 @@ public abstract class JWTPayloadHolder(
     /**
      * Gets a non-RFC JWT claim by its name.
      *
-     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.jwt.JWTPayloadHolder.get)
      *
      * @param name a claim's key as it appears in the JSON object
@@ -107,7 +109,6 @@ public abstract class JWTPayloadHolder(
 
     /**
      * Gets a non-RFC JWT claim by its name and attempts to decode it as the specified type.
-     *
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.jwt.JWTPayloadHolder.getClaim)
      *
@@ -124,7 +125,6 @@ public abstract class JWTPayloadHolder(
 
     /**
      * Retrieves a non-RFC JWT claim by its name and attempts to decode it as a list of the specified type.
-     *
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.jwt.JWTPayloadHolder.getListClaim)
      *
@@ -169,7 +169,6 @@ public typealias JWTConfigureFunction = Verification.() -> Unit
 
 /**
  * A JWT [Authentication] provider.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.jwt.JWTAuthenticationProvider)
  *
@@ -271,7 +270,6 @@ public class JWTAuthenticationProvider internal constructor(config: Config) : Au
         }
 
         /**
-         *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.jwt.JWTAuthenticationProvider.Config.authSchemes)
          *
          * @param [defaultScheme] default scheme used to challenge the client when no valid authentication is provided
@@ -339,7 +337,6 @@ public class JWTAuthenticationProvider internal constructor(config: Config) : Au
         /**
          * Provides a [JWTVerifier] used to verify a token format and signature.
          *
-         *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.jwt.JWTAuthenticationProvider.Config.verifier)
          *
          * @param [issuer] of the JSON Web Token
@@ -363,7 +360,6 @@ public class JWTAuthenticationProvider internal constructor(config: Config) : Au
 
         /**
          * Provides a [JWTVerifier] used to verify a token format and signature.
-         *
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.jwt.JWTAuthenticationProvider.Config.verifier)
          *

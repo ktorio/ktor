@@ -276,6 +276,8 @@ public class RoutingContext(
  *
  * This function is intended for use by Ktor internal code only.
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.toRoutingContext)
+ *
  * @throws IllegalStateException if this call is neither a [RoutingCall] nor a [RoutingPipelineCall].
  */
 @InternalAPI

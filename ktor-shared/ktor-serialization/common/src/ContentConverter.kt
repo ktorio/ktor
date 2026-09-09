@@ -31,7 +31,6 @@ public interface ContentConverter {
      * other registered converters could be tried or this function could be invoked with other content types
      * it the converted has been registered multiple times with different content types.
      *
-     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.serialization.ContentConverter.serialize)
      *
      * @param charset response charset
@@ -50,7 +49,6 @@ public interface ContentConverter {
 
     /**
      * Deserializes [content] to the value of type [typeInfo]
-     *
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.serialization.ContentConverter.deserialize)
      *

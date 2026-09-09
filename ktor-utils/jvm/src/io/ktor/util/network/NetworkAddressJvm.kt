@@ -1,16 +1,16 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.util.network
 
-import java.net.*
+import java.net.InetSocketAddress
+import java.net.SocketAddress
 
 /**
  * Represents remote endpoint with [hostname] and [port].
  *
  * The address will be resolved after construction.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.network.NetworkAddress)
  *

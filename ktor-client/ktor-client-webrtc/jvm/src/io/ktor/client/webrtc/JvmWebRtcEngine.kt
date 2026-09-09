@@ -6,10 +6,12 @@ package io.ktor.client.webrtc
 
 import dev.onvoid.webrtc.PeerConnectionFactory
 import dev.onvoid.webrtc.RTCConfiguration
-import io.ktor.client.webrtc.media.JvmMediaDevices
+import io.ktor.client.webrtc.media.*
 
 /**
  * Configuration for the JVM WebRTC engine that extends the base WebRTC configuration.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.JvmWebRtcEngineConfig)
  *
  * @property rtcFactory Optional custom [PeerConnectionFactory] for creating peer connections.
  * If not provided, the factory from the [MediaTrackFactory] will be used.
@@ -21,6 +23,8 @@ public class JvmWebRtcEngineConfig : WebRtcConfig() {
 /**
  * JVM WebRTC engine implementation that handles peer connection creation and management using
  * dev.onvoid.webrtc bindings.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.JvmWebRtcEngine)
  *
  * @param config The JVM-specific WebRTC engine configuration
  * @param mediaTrackFactory Factory for creating media tracks, defaults to JvmMediaDevices if not specified in config
@@ -55,6 +59,8 @@ public class JvmWebRtcEngine(
 
 /**
  * Factory object for creating JVM WebRTC engine instances.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.JvmWebRtc)
  */
 public object JvmWebRtc : WebRtcClientEngineFactory<JvmWebRtcEngineConfig> {
     override fun create(block: JvmWebRtcEngineConfig.() -> Unit): WebRtcEngine =

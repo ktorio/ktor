@@ -4,13 +4,13 @@
 
 package io.ktor.test.junit
 
-import java.io.*
-import kotlin.test.*
+import java.io.ByteArrayOutputStream
+import java.io.ObjectInputStream
+import java.io.ObjectOutputStream
+import kotlin.test.assertEquals
 
 /**
  * Convenience function for asserting on all elements of a collection.
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.test.junit.assertAll)
  */
 fun <T> assertAll(collection: Iterable<T>, message: String? = null, predicate: (T) -> Boolean) {
     org.junit.jupiter.api.assertAll(
@@ -24,8 +24,6 @@ fun <T> assertAll(collection: Iterable<T>, message: String? = null, predicate: (
 
 /**
  * Convenience function for asserting on all elements of a collection.
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.test.junit.assertAll)
  */
 fun <T> assertAll(collection: Iterable<T>, assertion: (T) -> Unit) {
     org.junit.jupiter.api.assertAll(

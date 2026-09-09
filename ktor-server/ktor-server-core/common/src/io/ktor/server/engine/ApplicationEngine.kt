@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.engine
@@ -109,7 +109,6 @@ public interface ApplicationEngine {
     /**
      * Starts this [ApplicationEngine].
      *
-     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.ApplicationEngine.start)
      *
      * @param wait if true, then the `start` call blocks a current thread until it finishes its execution.
@@ -121,7 +120,6 @@ public interface ApplicationEngine {
 
     /**
      * Starts this [ApplicationEngine].
-     *
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.ApplicationEngine.startSuspend)
      *
@@ -137,7 +135,6 @@ public interface ApplicationEngine {
     /**
      * Stops this [ApplicationEngine].
      *
-     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.ApplicationEngine.stop)
      *
      * @param gracePeriodMillis the maximum amount of time for activity to cool down
@@ -147,7 +144,6 @@ public interface ApplicationEngine {
 
     /**
      * Stops this [ApplicationEngine].
-     *
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.ApplicationEngine.stopSuspend)
      *

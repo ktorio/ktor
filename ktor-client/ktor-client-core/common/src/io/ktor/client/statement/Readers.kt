@@ -1,11 +1,11 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.client.statement
 
 import io.ktor.utils.io.*
-import kotlinx.io.*
+import kotlinx.io.readByteArray
 
 /**
  * Reads exactly [count] bytes of the [HttpResponse.rawContent].
@@ -26,7 +26,6 @@ public suspend fun HttpResponse.readBytes(count: Int): ByteArray = ByteArray(cou
  * The content will retain its original
  * compression or encoding as received from the server.
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.statement.readRawBytes)
  *
  * @return the raw payload of the HTTP response as a byte array
@@ -42,7 +41,6 @@ public suspend fun HttpResponse.readRawBytes(): ByteArray = rawContent.readBuffe
  * The content will retain its original compression or encoding as received from the server.
  *
  * If you need to read the content as decoded bytes, use the [bodyAsBytes()] method instead.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.statement.readBytes)
  *

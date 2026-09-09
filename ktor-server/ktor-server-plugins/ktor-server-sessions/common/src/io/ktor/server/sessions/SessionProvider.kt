@@ -4,11 +4,10 @@
 
 package io.ktor.server.sessions
 
-import kotlin.reflect.*
+import kotlin.reflect.KClass
 
 /**
  * Specifies a provider for a session with the specific [name] and [type].
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.SessionProvider)
  *

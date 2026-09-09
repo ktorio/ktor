@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.util.internal
@@ -36,22 +36,16 @@ private val REMOVE_PREPARED: Any = Symbol("REMOVE_PREPARED")
 
 /**
  * @suppress **This is unstable API and it is subject to change.**
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.internal.RemoveFirstDesc)
  */
 public typealias RemoveFirstDesc<T> = LockFreeLinkedListNode.RemoveFirstDesc<T>
 
 /**
  * @suppress **This is unstable API and it is subject to change.**
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.internal.AddLastDesc)
  */
 public typealias AddLastDesc<T> = LockFreeLinkedListNode.AddLastDesc<T>
 
 /**
  * @suppress **This is unstable API and it is subject to change.**
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.internal.AbstractAtomicDesc)
  */
 public typealias AbstractAtomicDesc = LockFreeLinkedListNode.AbstractAtomicDesc
 
@@ -62,9 +56,6 @@ private class Symbol(val symbol: String) {
 /**
  * The most abstract operation that can be in process. Other threads observing an instance of this
  * class in the fields of their object shall invoke [perform] to help.
- *
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.internal.OpDescriptor)
  *
  * @suppress **This is unstable API and it is subject to change.**
  */
@@ -88,9 +79,6 @@ private val NO_DECISION: Any = Symbol("NO_DECISION")
  *
  * Note: parts of atomic operation must be globally ordered. Otherwise, this implementation will produce
  * `StackOverflowError`.
- *
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.internal.AtomicOp)
  *
  * @suppress **This is unstable API and it is subject to change.**
  */
@@ -127,9 +115,6 @@ public abstract class AtomicOp<in T> : OpDescriptor() {
 /**
  * A part of multi-step atomic operation [AtomicOp].
  *
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.internal.AtomicDesc)
- *
  * @suppress **This is unstable API and it is subject to change.**
  */
 public abstract class AtomicDesc {
@@ -153,9 +138,6 @@ public abstract class AtomicDesc {
  * * There are no operations to add items to left side of the list, only to the end (right side), because we cannot
  *   efficiently linearize them with atomic multi-step head-removal operations. In short,
  *   support for [describeRemoveFirst] operation precludes ability to add items at the beginning.
- *
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.internal.LockFreeLinkedListNode)
  *
  * @suppress **This is unstable API and it is subject to change.**
  */
@@ -283,7 +265,6 @@ public open class LockFreeLinkedListNode {
 
     /**
      * Adds the specified [node] at the end of the list atomically if the previous node matches the given [predicate].
-     *
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.internal.LockFreeLinkedListNode.addLastIfPrevAndIf)
      *
@@ -814,9 +795,6 @@ internal fun Any.unwrap(): Node = (this as? Removed)?.ref ?: this as Node
 
 /**
  * Head (sentinel) item of the linked list that is never removed.
- *
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.internal.LockFreeLinkedListHead)
  *
  * @suppress **This is unstable API and it is subject to change.**
  */
