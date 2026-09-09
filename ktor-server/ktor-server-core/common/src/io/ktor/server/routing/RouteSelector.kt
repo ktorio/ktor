@@ -953,7 +953,7 @@ private fun HeaderValue.toContentType(): ContentType {
         ContentType(
             contentType.contentType,
             contentType.contentSubtype,
-            params.filter { it.name != "q" }
+            params.filter { !it.name.equals("q", ignoreCase = true) }
         )
     }
 }

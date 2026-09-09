@@ -544,6 +544,12 @@ class RoutingProcessingTest {
         }
 
         client.get("/") {
+            header(HttpHeaders.Accept, "text/plain; Q=0.1, application/json; q=0.9")
+        }.let {
+            assertEquals("{\"status\": \"OK\"}", it.bodyAsText())
+        }
+
+        client.get("/") {
             header(HttpHeaders.Accept, "text/html")
         }.let {
             assertEquals(HttpStatusCode.NotAcceptable, it.status)
@@ -707,6 +713,12 @@ class RoutingProcessingTest {
 
         client.get("/") {
             header(HttpHeaders.Accept, "application/soap+xml; action=foo; q=0.5")
+        }.let {
+            assertEquals("matched", it.bodyAsText())
+        }
+
+        client.get("/") {
+            header(HttpHeaders.Accept, "application/soap+xml; action=foo; Q=0.5")
         }.let {
             assertEquals("matched", it.bodyAsText())
         }
