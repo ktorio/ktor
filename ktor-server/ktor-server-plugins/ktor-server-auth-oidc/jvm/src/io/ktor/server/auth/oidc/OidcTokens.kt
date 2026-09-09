@@ -4,6 +4,7 @@
 
 package io.ktor.server.auth.oidc
 
+import com.auth0.jwk.InvalidPublicKeyException
 import com.auth0.jwk.Jwk
 import com.auth0.jwk.JwkException
 import com.auth0.jwt.JWT
@@ -38,9 +39,9 @@ import kotlin.time.Instant
  * @param message describes why the token was rejected.
  */
 @ExperimentalKtorApi
-public class OidcTokenRejectedException(message: String?) : RuntimeException(message)
+public class OidcTokenRejectedException(override val message: String) : RuntimeException(message)
 
-private fun rejectToken(message: String?): Nothing =
+private fun rejectToken(message: String): Nothing =
     throw OidcTokenRejectedException(message)
 
 internal inline fun requireToken(condition: Boolean, lazyMessage: () -> String) {
@@ -145,7 +146,7 @@ internal suspend fun OidcProvider.verifyJwtAccessToken(token: String): OidcToken
     val jwt = try {
         JWT.decode(token)
     } catch (cause: JWTDecodeException) {
-        rejectToken(cause.message)
+        rejectToken(cause.message ?: "Failed to decode access token")
     }
     val verifiedJwt = verifyJwtToken(token, jwt, bearerConfig.audience, tokenType = JwtTokenType.AccessToken)
     verifiedJwt.requireAccessTokenPurpose()
@@ -221,7 +222,7 @@ internal suspend fun OidcProvider.buildIdToken(
     val decoded = try {
         JWT.decode(idToken)
     } catch (cause: JWTDecodeException) {
-        rejectToken(cause.message)
+        rejectToken(cause.message ?: "Failed to decode ID token")
     }
     val verifiedJwt = verifyJwtToken(
         token = idToken,
@@ -291,14 +292,15 @@ private suspend fun OidcProvider.fetchUserInfo(
         val decoded = try {
             JWT.decode(token)
         } catch (cause: JWTDecodeException) {
-            rejectToken(cause.message)
+            rejectToken(cause.message ?: "Failed to decode UserInfo JWT")
         }
-        verifyJwtToken(
+        val decodedToken = verifyJwtToken(
             token = token,
             jwt = decoded,
             audience = setOf(oauthConfig.clientId),
             tokenType = JwtTokenType.UserInfo,
-        ).extractUserInfo()
+        )
+        decodedToken.extractUserInfo()
     } else {
         response.body<OidcToken.UserInfo>()
     }
@@ -340,7 +342,9 @@ private suspend fun OidcProvider.verifyJwtToken(
             .build()
             .verify(token)
     } catch (cause: JWTVerificationException) {
-        rejectToken(cause.message)
+        rejectToken(cause.message ?: "Failed to verify JWT")
+    } catch (cause: InvalidPublicKeyException) {
+        rejectToken(cause.message ?: "Invalid public key")
     }
 }
 

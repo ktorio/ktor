@@ -225,7 +225,7 @@ class OAuthFlowTest {
                     client = c
                     providerLookup = { null }
                     loginPath = "/login"
-                    callback("/callback", onFailure = {}) { call.respondText("done") }
+                    callback("/callback") { call.respondText("done") }
                     sessions { }
                 }
             }
@@ -244,7 +244,7 @@ class OAuthFlowTest {
                     client = c
                     loginPath = "/login"
                     providerLookup = { null }
-                    callback("/callback", onFailure = {}) { call.respondText("done") }
+                    callback("/callback") { call.respondText("done") }
                     sessions {
                         sessionCreator = { OAuthSession("token") }
                     }
@@ -438,12 +438,15 @@ class OAuthFlowTest {
                 requestMethod = HttpMethod.Post,
             )
             loginPath = "/login"
-            callback("/callback", onFailure = { call.respondText("failed") }) {
+            callback("/callback") {
                 call.respondText("success")
             }
             sessions {
                 sessionCreator = { OAuthSession(it.accessToken) }
                 validate { null }
+            }
+            onUnauthorized = {
+                call.respondText("failed")
             }
         }
         mockOAuthServices()
@@ -460,5 +463,90 @@ class OAuthFlowTest {
         assertEquals("failed", authResponse.bodyAsText())
 
         assertEquals(HttpStatusCode.Unauthorized, testClient.get("/protected").status)
+    }
+
+    @OptIn(InternalAPI::class)
+    @Test
+    fun `nested failure handling invokes the handler once`() = testApplication {
+        val testClient = createClient { install(HttpCookies) }
+        val causes = mutableListOf<String>()
+        // A logging-only handler: it records the cause but never responds, so the call stays unhandled
+        // until processFailure falls through to its own response.
+        val failureHandler = UnauthorizedHandler { cause ->
+            causes += (cause as? AuthenticationFailedCause.Error)?.message ?: cause.toString()
+        }
+
+        val scheme = oauth2Session<OAuthPrincipal, OAuthSession>("test-oauth") {
+            client = testClient
+            settings = OAuthServerSettings.OAuth2ServerSettings(
+                name = "test-provider",
+                authorizeUrl = "http://oauth.test/authorize",
+                accessTokenUrl = "http://oauth.test/token",
+                clientId = "test-client-id",
+                clientSecret = "test-client-secret",
+                requestMethod = HttpMethod.Post,
+            )
+            loginPath = "/login"
+            callback("/callback") { call.respondText("success") }
+            sessions {
+                // Mirrors a session creator that reports a specific cause before giving up,
+                // leaving the generic "failed to create session" path to the flow itself.
+                sessionCreator = {
+                    call.authentication.processFailure(
+                        AuthenticationFailedCause.Error("token rejected"),
+                        failureHandler
+                    )
+                    null
+                }
+                validate { OAuthPrincipal(it.accessToken, "test") }
+            }
+            onUnauthorized = failureHandler
+        }
+        mockOAuthServices()
+
+        routing { install(scheme) }
+
+        val response = performOAuthFlow(testClient)
+
+        assertEquals(HttpStatusCode.Unauthorized, response.status)
+        // The nested processFailure completes the call, so the flow's own failure path must not run again.
+        assertEquals(listOf("token rejected"), causes)
+    }
+
+    @Test
+    fun `oauth callback propagates session creator exceptions instead of failing authentication`() = testApplication {
+        val testClient = createClient { install(HttpCookies) }
+        var unauthorizedCalls = 0
+
+        val scheme = oauth2Session<OAuthPrincipal, OAuthSession>("test-oauth") {
+            client = testClient
+            settings = OAuthServerSettings.OAuth2ServerSettings(
+                name = "test-provider",
+                authorizeUrl = "http://oauth.test/authorize",
+                accessTokenUrl = "http://oauth.test/token",
+                clientId = "test-client-id",
+                clientSecret = "test-client-secret",
+                requestMethod = HttpMethod.Post,
+            )
+            loginPath = "/login"
+            callback("/callback") { call.respondText("success") }
+            sessions {
+                sessionCreator = { error("session creator failed") }
+                validate { OAuthPrincipal(it.accessToken, "test") }
+            }
+            onUnauthorized = {
+                unauthorizedCalls++
+                call.respondText("failed")
+            }
+        }
+        mockOAuthServices()
+
+        routing { install(scheme) }
+
+        // Throwing is not a way to reject a callback: the exception reaches the routing pipeline, so applications
+        // that want a different response handle it in the creator or with StatusPages.
+        val response = performOAuthFlow(testClient)
+        assertEquals(HttpStatusCode.InternalServerError, response.status)
+        assertEquals(0, unauthorizedCalls)
     }
 }

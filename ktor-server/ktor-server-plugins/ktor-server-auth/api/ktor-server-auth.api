@@ -667,8 +667,7 @@ public final class io/ktor/server/auth/OAuthServerSettings$OAuth2ServerSettings 
 
 public final class io/ktor/server/auth/OAuthSessionFlowConfig : io/ktor/server/auth/OAuthFlowConfigBase {
 	public fun <init> ()V
-	public final fun callback (Ljava/lang/String;Lio/ktor/server/auth/UnauthorizedHandler;Lkotlin/jvm/functions/Function4;)V
-	public static synthetic fun callback$default (Lio/ktor/server/auth/OAuthSessionFlowConfig;Ljava/lang/String;Lio/ktor/server/auth/UnauthorizedHandler;Lkotlin/jvm/functions/Function4;ILjava/lang/Object;)V
+	public final fun callback (Ljava/lang/String;Lkotlin/jvm/functions/Function4;)V
 	public final fun getSessionsConfig ()Lio/ktor/server/auth/OAuth2SessionsConfig;
 	public final fun sessions (Lkotlin/jvm/functions/Function1;)V
 	public final fun setSessionsConfig (Lio/ktor/server/auth/OAuth2SessionsConfig;)V
@@ -811,6 +810,10 @@ public final class io/ktor/server/auth/SessionTransportType$HeaderId : io/ktor/s
 	public synthetic fun <init> (Lio/ktor/server/sessions/SessionStorage;Lkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public final fun getBlock ()Lkotlin/jvm/functions/Function1;
 	public final fun getStorage ()Lio/ktor/server/sessions/SessionStorage;
+}
+
+public final class io/ktor/server/auth/TypedAuthenticationPluginsKt {
+	public static final fun processFailure (Lio/ktor/server/auth/AuthenticationContext;Lio/ktor/server/auth/AuthenticationFailedCause;Lio/ktor/server/auth/UnauthorizedHandler;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/server/auth/TypedBasicAuthConfig {

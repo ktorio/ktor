@@ -22,13 +22,12 @@ internal sealed class OAuth2FlowCallback {
 
     class Basic(
         override val path: String,
-        val successHandler: CallbackSuccessHandler
+        val successHandler: CallbackSuccessHandler,
     ) : OAuth2FlowCallback()
 
     class Session<S : Any, P : Any>(
         override val path: String,
         val successHandler: SessionCallbackSuccessHandler<S, P>,
-        val failureHandler: UnauthorizedHandler,
     ) : OAuth2FlowCallback()
 }
 
@@ -88,9 +87,12 @@ public abstract class OAuthFlowConfigBase internal constructor() {
      *
      * If the handler does not complete the call, authentication continues through the default challenge handling.
      *
+     * In a session flow it also covers [OAuth2SessionsConfig.sessionCreator] or [TypedSessionAuthConfig.validate]
+     * returning `null`, but not exceptions they throw: those propagate to the routing pipeline.
+     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuthFlowConfigBase.onUnauthorized)
      */
-    public var onUnauthorized: UnauthorizedHandler = {}
+    public var onUnauthorized: UnauthorizedHandler? = null
 
     internal open fun validate(flowName: String) {
         requireNotNull(loginPath) {
@@ -105,7 +107,7 @@ public abstract class OAuthFlowConfigBase internal constructor() {
     }
 
     internal fun buildProvider(name: String, callbackPath: String): OAuthAuthenticationProvider {
-        val oauthClient = requireNotNull(this@OAuthFlowConfigBase.client)
+        val oauthClient = checkNotNull(this@OAuthFlowConfigBase.client)
         return OAuthAuthenticationProvider.Config(name, description).also { config ->
             config.client = oauthClient
             config.settings = settings
@@ -117,9 +119,11 @@ public abstract class OAuthFlowConfigBase internal constructor() {
                     fragment = ""
                 }
             }
-            config.fallback = { cause ->
-                with(onUnauthorized) {
-                    toRoutingContext().onUnauthorized(cause)
+            onUnauthorized?.let { fallback ->
+                config.fallback = { cause ->
+                    with(fallback) {
+                        toRoutingContext().onUnauthorized(cause)
+                    }
                 }
             }
         }.build()
@@ -200,16 +204,11 @@ public class OAuthSessionFlowConfig<S : Any, P : Any> @InternalAPI constructor()
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuthSessionFlowConfig.callback)
      *
      * @param path route path that receives the provider callback with authorization code and state.
-     * @param onFailure handler invoked when session creation or principal resolution fails.
      * @param onSuccess handler invoked after the session and principal are stored. Runs in [SessionContext] with
      * `principal` and `session` available.
      */
-    public fun callback(
-        path: String,
-        onFailure: UnauthorizedHandler = { _ -> call.respond(HttpStatusCode.Unauthorized) },
-        onSuccess: SessionCallbackSuccessHandler<S, P>,
-    ) {
-        callback = OAuth2FlowCallback.Session(path, onSuccess, onFailure)
+    public fun callback(path: String, onSuccess: SessionCallbackSuccessHandler<S, P>) {
+        callback = OAuth2FlowCallback.Session(path, onSuccess)
     }
 
     /**
@@ -261,6 +260,9 @@ public open class OAuth2SessionsConfig<S : Any, P : Any> internal constructor() 
      * Maps a successful OAuth response to the session value stored by the [Sessions] plugin.
      *
      * Required when configuring [OAuthSessionFlowConfig.sessions].
+     *
+     * Return `null` to reject the callback, which runs [OAuthFlowConfigBase.onUnauthorized]. Exceptions are not
+     * rejections: they propagate to the routing pipeline, so catch them here or use `StatusPages`.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuth2SessionsConfig.sessionCreator)
      */
@@ -334,7 +336,10 @@ private fun createOauthScheme(name: String, config: OAuthFlowConfigBase): OAuth2
         "OAuth flow '$name' requires a callback route. Set callback(\"/callback\") { ... }."
     }
     val provider = config.buildProvider(providerName, callback.path)
-    return AuthenticationScheme.from(provider, onUnauthorized = null)
+    return AuthenticationScheme.from(
+        provider = provider,
+        onUnauthorized = null // keep default OAuth redirect
+    )
 }
 
 /**
@@ -367,6 +372,8 @@ public class OAuth2SessionFlow<S : Any, P : Any> internal constructor(
     internal val principalResolver = checkNotNull(config.sessionsConfig?.principalResolver)
 
     internal val loginPath = config.loginPath
+
+    internal val onFlowFailed: UnauthorizedHandler? = config.onUnauthorized
 
     public companion object {
         /**
@@ -525,7 +532,10 @@ public inline fun <reified P : Any, reified S : Any> oauth2Session(
 public fun Route.install(flow: OAuth2Flow) {
     val scheme = flow.oauthScheme
     val route = installOAuthRoute(scheme)
-    val plugin = scheme.createPlugin(isOptional = false, onUnauthorized = null)
+    val plugin = scheme.createPlugin(
+        isOptional = false,
+        onUnauthorized = null // keep default OAuth redirect
+    )
     route.install(plugin)
 
     scheme.provideContext {
@@ -559,45 +569,40 @@ public fun Route.install(flow: OAuth2Flow) {
  */
 @ExperimentalKtorApi
 public fun <S : Any, P : Any> Route.install(oauth: OAuth2SessionFlow<S, P>) {
-    val route = installOAuthRoute(oauth.oauthScheme)
+    val oauthScheme = oauth.oauthScheme
+    val route = installOAuthRoute(oauthScheme)
     install(session = oauth.session)
-    val plugin = oauth.oauthScheme.createPlugin(
+    val plugin = oauthScheme.createPlugin(
         isOptional = false,
         onUnauthorized = null // keep default OAuth redirect
     )
     route.install(plugin)
 
     val callback = oauth.callback
+    val oauthFailureHandler = oauth.onFlowFailed
+
     val callbackHandler: RoutingHandler = callback@{
-        try {
-            val token = call.attributes[oauth.oauthScheme.principalKey]
-            val session = oauth.sessionCreator(this, token) ?: run {
-                val error = AuthenticationFailedCause.Error("Failed to create OAuth session")
-                with(callback.failureHandler) { onUnauthorized(error) }
-                return@callback
-            }
+        val token = call.attributes[oauthScheme.principalKey]
+        val session = oauth.sessionCreator(this, token)
+        if (session == null) {
+            val failure = AuthenticationFailedCause.Error("Failed to create OAuth session")
+            call.authentication.processFailure(failure, oauthFailureHandler)
+            return@callback
+        }
 
-            val principal = with(oauth.principalResolver) { resolvePrincipal(session) }
-            if (principal == null) {
-                val cause = AuthenticationFailedCause.Error("Failed to create OAuth principal")
-                with(callback.failureHandler) { onUnauthorized(cause) }
-                return@callback
-            }
+        val principal = with(oauth.principalResolver) { resolvePrincipal(session) }
+        if (principal == null) {
+            val failure = AuthenticationFailedCause.Error("Failed to create OAuth principal")
+            call.authentication.processFailure(failure, oauthFailureHandler)
+            return@callback
+        }
 
-            val sessionsScheme = oauth.session
-            call.attributes.put(sessionsScheme.principalKey, principal)
-            call.discardPreAuthenticationSession(sessionsScheme.name)
-            sessionsScheme.provideContext {
-                call.session = session
-                callback.successHandler(this@callback)
-            }
-        } catch (e: CancellationException) {
-            throw e
-        } catch (e: Exception) {
-            with(callback.failureHandler) {
-                val cause = AuthenticationFailedCause.Error(e.message ?: "Failed to create OAuth principal")
-                onUnauthorized(cause)
-            }
+        val sessionsScheme = oauth.session
+        call.attributes.put(sessionsScheme.principalKey, principal)
+        call.discardPreAuthenticationSession(sessionsScheme.name)
+        sessionsScheme.provideContext {
+            call.session = session
+            callback.successHandler(this@callback)
         }
     }
     route.get(callback.path, callbackHandler)

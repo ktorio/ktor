@@ -11,6 +11,7 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
+import io.ktor.util.logging.trace
 import io.ktor.utils.io.ExperimentalKtorApi
 import io.ktor.utils.io.InternalAPI
 import kotlin.collections.set
@@ -73,27 +74,64 @@ internal fun <P : Any> AuthenticationScheme<P, *>.createPlugin(
         }
 
         if (isOptional && authContext.failedWithNoCredentials()) {
-            LOGGER.trace("Authentication is optional and no credentials were provided for ${call.request.uri}")
+            LOGGER.trace { "Authentication is optional and no credentials were provided for ${call.request.uri}" }
             return@on
         }
 
         provider.logAuthenticationFailed(call)
-        val unauthorizedHandler = onUnauthorized ?: this@createPlugin.onUnauthorized
-        if (unauthorizedHandler != null) {
-            with(unauthorizedHandler) {
-                call.toRoutingContext().onUnauthorized(cause = authContext.lastFailureOrNoCredentials())
-            }
-            if (call.isHandled) return@on
-        }
-        authContext.rejectUnhandledCall(call)
+        authContext.processFailure(
+            failure = authContext.lastFailureOrNoCredentials(),
+            handler = onUnauthorized ?: this@createPlugin.onUnauthorized
+        )
     }
 }
 
 /**
- * Runs provider challenges and guarantees a response: an unhandled call would otherwise proceed to the route
- * handler without a principal.
+ * Responds to an authentication [failure]: [handler] first, then provider challenges, then `401 Unauthorized`.
  */
-private suspend fun AuthenticationContext.rejectUnhandledCall(call: ApplicationCall) {
+@InternalAPI
+public suspend fun AuthenticationContext.processFailure(
+    failure: AuthenticationFailedCause,
+    handler: UnauthorizedHandler?
+) {
+    if (call.isHandled) {
+        return
+    }
+    if (handler != null) {
+        with(handler) {
+            call.toRoutingContext().onUnauthorized(cause = failure)
+        }
+        if (call.isHandled) return
+    }
+    rejectUnhandledCall()
+}
+
+private suspend fun AuthenticationContext.processFailures(
+    failures: Map<String, AuthenticationFailedCause>,
+    handler: MultiUnauthorizedHandler?,
+    schemeWithHandler: AuthenticationScheme<*, *>?,
+) {
+    when {
+        handler != null -> {
+            with(handler) {
+                call.toRoutingContext().onUnauthorized(failures)
+            }
+            if (call.isHandled) return
+        }
+
+        schemeWithHandler != null -> {
+            with(checkNotNull(schemeWithHandler.onUnauthorized)) {
+                val cause = failures.getValue(schemeWithHandler.name)
+                call.toRoutingContext().onUnauthorized(cause)
+            }
+            if (call.isHandled) return
+        }
+    }
+
+    rejectUnhandledCall()
+}
+
+private suspend fun AuthenticationContext.rejectUnhandledCall() {
     executeChallenges(call)
     if (!call.isHandled) {
         call.respond(UnauthorizedResponse())
@@ -146,32 +184,19 @@ internal fun <P : Any> createMultiPlugin(
                 failures[scheme.name] = authContext.lastFailureOrNoCredentials()
             }
 
-            if (onUnauthorized != null) {
-                with(onUnauthorized) {
-                    call.toRoutingContext().onUnauthorized(failures)
-                }
-                if (call.isHandled) return@on
-            } else if (schemeWithHandler != null) {
-                with(checkNotNull(schemeWithHandler.onUnauthorized)) {
-                    val cause = failures.getValue(schemeWithHandler.name)
-                    call.toRoutingContext().onUnauthorized(cause)
-                }
-                if (call.isHandled) return@on
-            }
-
-            authContext.rejectUnhandledCall(call)
+            authContext.processFailures(failures, onUnauthorized, schemeWithHandler)
         }
     }
 }
 
 private fun AuthenticationProvider.logAuthenticationAttempt(call: ApplicationCall) {
-    LOGGER.trace("Trying to authenticate ${call.request.uri} with $name")
+    LOGGER.trace { "Trying to authenticate ${call.request.uri} with $name" }
 }
 
 private fun AuthenticationProvider.logAuthenticationSucceeded(call: ApplicationCall) {
-    LOGGER.trace("Authentication succeeded for ${call.request.uri} with provider $name")
+    LOGGER.trace { "Authentication succeeded for ${call.request.uri} with provider $name" }
 }
 
 private fun AuthenticationProvider.logAuthenticationFailed(call: ApplicationCall) {
-    LOGGER.trace("Authentication failed for ${call.request.uri} with provider $name")
+    LOGGER.trace { "Authentication failed for ${call.request.uri} with provider $name" }
 }
