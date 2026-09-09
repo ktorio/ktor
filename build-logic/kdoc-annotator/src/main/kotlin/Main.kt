@@ -7,20 +7,28 @@ package ktorbuild.kdoc
 import java.nio.file.Path
 import kotlin.io.path.Path as createPath
 
+private const val EXCLUDE_ARGUMENT_PREFIX = "--exclude="
+
 fun main(args: Array<String>) {
-    if (args.size != 2) {
+    val excludeArguments = args.drop(2)
+    if (args.size < 2 || excludeArguments.any { !it.startsWith(EXCLUDE_ARGUMENT_PREFIX) }) {
         printHelp()
         return
     }
 
     val projectSources = args[0]
     val link = args[1]
+    val excludedPathPatterns = excludeArguments.map { it.removePrefix(EXCLUDE_ARGUMENT_PREFIX) }
 
-    updateKDocsInDirectory(createPath(projectSources), link)
+    updateKDocsInDirectory(createPath(projectSources), link, excludedPathPatterns)
 }
 
-private fun updateKDocsInDirectory(directory: Path, link: String) {
-    forEachKtFileInDirectory(directory) { ktFile, path ->
+private fun updateKDocsInDirectory(directory: Path, link: String, excludedPathPatterns: List<String>) {
+    val pathExclusions = PathExclusions(excludedPathPatterns)
+    forEachKtFileInDirectory(
+        directory,
+        shouldVisit = { it !in pathExclusions },
+    ) { ktFile, path ->
         if (path.isInTestSourceSet()) {
             removeFeedbackLinksFromKDocs(ktFile, path)
         } else {
@@ -43,5 +51,5 @@ internal fun Path.isInTestSourceSet(): Boolean {
 private fun printHelp() {
     println("KDoc annotator is a tool to add a feedback link for the KDoc documentation if this link is not present yet.")
     println("Usage:")
-    println("kdoc-annotator <path-to-project sources> <link>")
+    println("kdoc-annotator <path-to-project sources> <link> [${EXCLUDE_ARGUMENT_PREFIX}<path-pattern>]...")
 }

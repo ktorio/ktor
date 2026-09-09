@@ -9,7 +9,9 @@ import org.junit.jupiter.api.io.TempDir
 import java.nio.file.Path
 import kotlin.io.path.Path
 import kotlin.io.path.copyTo
+import kotlin.io.path.createDirectories
 import kotlin.io.path.readText
+import kotlin.io.path.writeText
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -26,6 +28,50 @@ class IntegrationTest {
         }
 
         assertEquals(expected, source.readText())
+    }
+
+    @Test
+    fun `exclude configured paths from scan`(@TempDir temporaryDirectory: Path) {
+        val excludedPathPatterns = listOf(
+            "**/.gradle/**",
+            "**/build/**",
+            "build-logic/**",
+            "build-settings-logic/**",
+        )
+        val includedSource = Path("ktor-client/ktor-client-core/common/src/Client.kt")
+        val excludedSources = listOf(
+            Path(".gradle/caches/Generated.kt"),
+            Path("ktor-client/.gradle/caches/Generated.kt"),
+            Path("build/generated/Generated.kt"),
+            Path("ktor-client/build/generated/Generated.kt"),
+            Path("build-logic/src/main/kotlin/KtorBuild.kt"),
+            Path("build-settings-logic/src/main/kotlin/KtorSettings.kt"),
+        )
+
+        for (source in excludedSources + listOf(includedSource)) {
+            temporaryDirectory.resolve(source).apply {
+                parent.createDirectories()
+                writeText("package example")
+            }
+        }
+
+        val scannedSources = mutableSetOf<Path>()
+        val pathExclusions = PathExclusions(excludedPathPatterns)
+        forEachKtFileInDirectory(
+            temporaryDirectory,
+            shouldVisit = { it !in pathExclusions },
+        ) { _, path ->
+            scannedSources.add(temporaryDirectory.relativize(path))
+        }
+
+        assertEquals(setOf(includedSource), scannedSources)
+    }
+
+    @Test
+    fun `continue searching after partial path pattern match`() {
+        val pathExclusions = PathExclusions(listOf("**/generated/src/**"))
+
+        assertTrue(Path("generated/cache/generated/src/Generated.kt") in pathExclusions)
     }
 
     @Test

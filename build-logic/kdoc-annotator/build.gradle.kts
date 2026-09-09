@@ -20,8 +20,17 @@ tasks.test {
     useJUnitPlatform()
 }
 
+val excludedPathPatterns = listOf(
+    ".gradle/**",
+    "build-logic/**",
+    "build-settings-logic/**",
+    "ktor-test-server/**",
+    "**/build/**",
+)
+
 tasks.run.configure {
     args(rootProject.projectDir.parentFile, "https://ktor.io/feedback/")
+    args(excludedPathPatterns.map { "--exclude=$it" })
 }
 
 kotlin {
