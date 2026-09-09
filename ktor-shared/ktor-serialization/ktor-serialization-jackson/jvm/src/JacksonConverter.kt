@@ -1,26 +1,31 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.serialization.jackson
 
-import com.fasterxml.jackson.core.*
-import com.fasterxml.jackson.core.util.*
-import com.fasterxml.jackson.databind.*
-import com.fasterxml.jackson.module.kotlin.*
+import com.fasterxml.jackson.core.JsonEncoding
+import com.fasterxml.jackson.core.JsonGenerator
+import com.fasterxml.jackson.core.JsonParseException
+import com.fasterxml.jackson.core.util.DefaultIndenter
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter
+import com.fasterxml.jackson.core.util.MinimalPrettyPrinter
+import com.fasterxml.jackson.databind.JsonMappingException
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.registerKotlinModule
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.serialization.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
-import kotlinx.coroutines.flow.*
-import java.io.*
+import kotlinx.coroutines.flow.Flow
+import java.io.Flushable
 import kotlin.text.*
 
 /**
  * A content converter that uses [Jackson]
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.serialization.jackson.JacksonConverter)
  *
@@ -158,7 +163,6 @@ public class JacksonConverter(
  *
  * You can learn more from the corresponding [client](https://ktor.io/docs/client-serialization.html#-3bcvpz_158) and [server](https://ktor.io/docs/server-serialization.html#-230zkf_175) documentation.
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.serialization.jackson.jackson)
  *
  * @param contentType the content type to send with a request
@@ -190,7 +194,6 @@ public fun Configuration.jackson(
  * Registers the `application/json` content type to the [ContentNegotiation] plugin using Jackson.
  *
  * You can learn more from the corresponding [client](https://ktor.io/docs/client-serialization.html#-3bcvpz_158) and [server](https://ktor.io/docs/server-serialization.html#-230zkf_175) documentation.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.serialization.jackson.jackson)
  *

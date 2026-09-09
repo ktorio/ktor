@@ -1,13 +1,15 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.utils.io
 
 import io.ktor.utils.io.core.*
-import kotlinx.io.*
-import kotlinx.io.unsafe.*
-import java.nio.*
+import kotlinx.io.InternalIoApi
+import kotlinx.io.UnsafeIoApi
+import kotlinx.io.unsafe.UnsafeBufferOperations
+import kotlinx.io.write
+import java.nio.ByteBuffer
 
 @OptIn(InternalAPI::class)
 public suspend fun ByteWriteChannel.writeByteBuffer(value: ByteBuffer) {
@@ -39,7 +41,6 @@ public suspend fun ByteWriteChannel.write(min: Int = 1, block: (buffer: ByteBuff
  * Warning: it is not guaranteed that all of remaining bytes will be represented as a single byte buffer
  * eg: it could be 4 bytes available for write but the provided byte buffer could have only 2 remaining bytes:
  * in this case you have to invoke write again (with decreased [min] accordingly).
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.writeAvailable)
  *

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.config
@@ -26,7 +26,6 @@ public fun List<ApplicationConfig>.merge(): ApplicationConfig {
  * Merge configuration combining all their keys.
  * If the key exists in this and [other] config, the value from the [other] config will be used.
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.config.mergeWith)
  *
  * @see [withFallback]
@@ -41,7 +40,6 @@ public fun ApplicationConfig.mergeWith(other: ApplicationConfig): ApplicationCon
 /**
  * Merge configuration combining all their keys.
  * If the key exists in this and [other] config, the value from this config will be used.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.config.withFallback)
  *

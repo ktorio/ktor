@@ -36,12 +36,16 @@ public class OidcPluginConfig {
     /**
      * Optional HTTP client used for discovery and userinfo requests.
      * If not configured, the plugin installs an internal client.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcPluginConfig.httpClient)
      */
     public var httpClient: HttpClient? = null
 
     /**
      * Discovery refresh interval after a successful application startup.
      * Set to `Duration.ZERO` to disable periodic refresh.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcPluginConfig.discoveryRefreshInterval)
      */
     public var discoveryRefreshInterval: Duration = 15.minutes
 
@@ -50,6 +54,8 @@ public class OidcPluginConfig {
      *
      * Successful refreshes use [discoveryRefreshInterval]. After a failed refresh, the next attempt uses this delay;
      * a later successful refresh resets the schedule back to [discoveryRefreshInterval].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcPluginConfig.discoveryRefreshFailureDelay)
      */
     public var discoveryRefreshFailureDelay: Duration = 1.minutes
 
@@ -59,6 +65,8 @@ public class OidcPluginConfig {
      * Initial discovery blocks the suspend provider registration call until the provider has loaded metadata, or
      * until this number of attempts is exhausted. If discovery still fails after the final attempt, registration
      * fails with [OidcDiscoveryException].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcPluginConfig.initialDiscoveryAttempts)
      */
     public var initialDiscoveryAttempts: Int = 1
 
@@ -66,6 +74,8 @@ public class OidcPluginConfig {
      * Delay between failed initial discovery attempts during provider registration.
      *
      * The delay is applied only between attempts. It is not used after the final failed attempt.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcPluginConfig.initialDiscoveryRetryDelay)
      */
     public var initialDiscoveryRetryDelay: Duration = 5.seconds
 
@@ -75,6 +85,8 @@ public class OidcPluginConfig {
      * When configured, the plugin serves a `/.well-known/oauth-protected-resource` endpoint with
      * metadata for this resource and includes a `resource_metadata` parameter in `WWW-Authenticate`
      * headers on Bearer authentication failures.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcPluginConfig.protectedResource)
      */
     public fun protectedResource(resource: String, configure: ProtectedResourceMetadataConfig.() -> Unit = {}) {
         protectedResourceConfig = ProtectedResourceMetadataConfig(resource).apply(configure)
@@ -103,9 +115,9 @@ public class OidcPluginConfig {
  * [OidcToken] subtypes on [OidcProvider]. Map those schemes to application principals with
  * [io.ktor.server.auth.mapPrincipal].
  *
- * @property name provider name used for generated routes and authentication scheme names.
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcProviderConfig)
+ *
+ * @property name provider name used for generated routes and authentication scheme names.
  */
 @ExperimentalKtorApi
 @KtorDsl
@@ -115,6 +127,8 @@ public class OidcProviderConfig internal constructor(
     /**
      * Issuer URL. Used for OpenID Connect discovery (`<issuer>/.well-known/openid-configuration`) unless
      * [metadata] is configured.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcProviderConfig.issuer)
      */
     public lateinit var issuer: String
 
@@ -123,11 +137,15 @@ public class OidcProviderConfig internal constructor(
      *
      * When configured, the provider skips initial discovery and disables periodic metadata refresh for this
      * provider.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcProviderConfig.metadata)
      */
     public var metadata: OpenIdProviderMetadata? = null
 
     /**
      * Configures JWT verification shared by ID-token and JWT access-token validation.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcProviderConfig.jwt)
      *
      * @param configure JWT verification configuration.
      */
@@ -142,9 +160,9 @@ public class OidcProviderConfig internal constructor(
      * [OidcJwtConfig.allowedAlgorithms] to the key algorithm. Use this with static [metadata] to avoid discovery and
      * JWKS HTTP calls while keeping normal JWT validation enabled.
      *
-     * @param keys local test keys used to verify JWT signatures.
-     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcProviderConfig.jwt)
+     *
+     * @param keys local test keys used to verify JWT signatures.
      */
     public fun jwt(keys: OpenIdTestKeys) {
         jwtConfig.jwkProviderFactory = { keys.jwkProvider }
@@ -157,6 +175,8 @@ public class OidcProviderConfig internal constructor(
      * Configuring [bearer] enables JWT Bearer ([OidcProvider.jwtBearer]) and requires non-empty
      * [OidcBearerConfig.audience]. Nested [OidcBearerConfig.introspection] additionally enables
      * introspection Bearer.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcProviderConfig.bearer)
      */
     public fun bearer(configure: OidcBearerConfig.() -> Unit = {}) {
         bearerConfig = OidcBearerConfig().apply(configure)
@@ -168,6 +188,8 @@ public class OidcProviderConfig internal constructor(
      * This installs provider-specific login and callback routes. The callback requires an ID token and the `openid`
      * scope. Browser sessions are enabled by default; customize them with [OidcOAuthConfig.sessions] or opt out with
      * [OidcOAuthConfig.disableSessions].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcProviderConfig.oauth)
      */
     public fun oauth(configure: OidcOAuthConfig.() -> Unit) {
         val config = OidcOAuthConfig(name).apply(configure)
@@ -183,6 +205,8 @@ public class OidcProviderConfig internal constructor(
      *
      * This is a single-flight share window, not session storage. The default is one second.
      * [Duration.ZERO] coalesces in-flight refreshes only and removes the completed entry immediately.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcProviderConfig.tokenRefreshCacheTtl)
      */
     public var tokenRefreshCacheTtl: Duration = 1.seconds
 
@@ -191,6 +215,8 @@ public class OidcProviderConfig internal constructor(
      * provider.
      *
      * When the map exceeds this size, completed entries are pruned. The default is 1024.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcProviderConfig.tokenRefreshCacheMaxSize)
      */
     public var tokenRefreshCacheMaxSize: Int = 1024
 
@@ -219,18 +245,20 @@ public class OidcProviderConfig internal constructor(
  * Extracts a Bearer token candidate from an application call.
  *
  * Return `null` when this source does not contain a token.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcTokenExtractor)
  */
 public typealias OidcTokenExtractor = RoutingContext.() -> String?
 
 /**
  * JWT verification configuration shared by ID tokens and JWT access tokens.
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcJwtConfig)
+ *
  * @property clockSkew accepted JWT clock skew.
  * @property allowedAlgorithms accepted JWT signing algorithms, or `null` to use provider defaults.
  * @property jwkProviderFactory custom JWK provider factory for JWT signature verification.
  * @property jwkBuilder additional customization for the default JWK provider builder.
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcJwtConfig)
  */
 @ExperimentalKtorApi
 @KtorDsl
@@ -257,6 +285,8 @@ public class OidcJwtConfig internal constructor() {
 
     /**
      * Accepted JWT clock skew in seconds.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcJwtConfig.clockSkew)
      */
     public var clockSkew: Duration = 60.seconds
 
@@ -267,6 +297,8 @@ public class OidcJwtConfig internal constructor() {
      * JWT access tokens keep the default RSA/EC verification behavior unless this set is configured explicitly.
      *
      * `none` and HMAC algorithms are never accepted.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcJwtConfig.allowedAlgorithms)
      */
     public var allowedAlgorithms: Set<SignatureAlgorithm>? = null
 
@@ -275,6 +307,8 @@ public class OidcJwtConfig internal constructor() {
      *
      * A custom provider factory owns JWK fetching, caching, and rate limiting. It cannot be combined with
      * [jwkCache], [disableJwkCache], [jwkRateLimit], or [disableJwkRateLimit].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcJwtConfig.jwkProviderFactory)
      */
     public var jwkProviderFactory: ((String) -> JwkProvider)? = null
 
@@ -283,11 +317,15 @@ public class OidcJwtConfig internal constructor() {
      *
      * This low-level hook is applied after [jwkCache], [disableJwkCache], [jwkRateLimit], and [disableJwkRateLimit],
      * so it can still override the final [JwkProviderBuilder] behavior.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcJwtConfig.jwkBuilder)
      */
     public var jwkBuilder: JwkProviderBuilder.() -> Unit = {}
 
     /**
      * Configures caching for fetched JSON Web Keys.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcJwtConfig.jwkCache)
      *
      * @param maxEntries maximum number of keys to cache, defaults to 5.
      * @param duration how long cached keys remain valid before being refreshed, defaults to 10 hours.
@@ -300,6 +338,8 @@ public class OidcJwtConfig internal constructor() {
 
     /**
      * Disables caching of JSON Web Keys.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcJwtConfig.disableJwkCache)
      */
     public fun disableJwkCache() {
         jwkCacheEnabled = false
@@ -308,6 +348,8 @@ public class OidcJwtConfig internal constructor() {
 
     /**
      * Configures rate limiting for JWKS endpoint requests.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcJwtConfig.jwkRateLimit)
      *
      * @param bucketSize the maximum number of requests allowed in the time window, defaults to 10.
      * @param refillDuration time window for the rate limit bucket, defaults to 1 minute.
@@ -320,6 +362,8 @@ public class OidcJwtConfig internal constructor() {
 
     /**
      * Disables rate limiting for JWKS endpoint requests.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcJwtConfig.disableJwkRateLimit)
      */
     public fun disableJwkRateLimit() {
         jwkRateLimitEnabled = false
@@ -360,16 +404,18 @@ public class OidcJwtConfig internal constructor() {
  * plugin logs a warning: a valid ID token can satisfy signature, issuer, and audience checks. JWT Bearer still rejects
  * tokens whose `token_use` or `typ` identifies an ID token.
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcBearerConfig)
+ *
  * @property audience accepted resource identifiers. Access tokens must include at least one value from this set.
  * @property tokenExtractor custom token extractor shared by JWT and introspection Bearer schemes.
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcBearerConfig)
  */
 @ExperimentalKtorApi
 @KtorDsl
 public class OidcBearerConfig internal constructor() {
     /**
      * Expected resource identifiers. Access tokens must include at least one of these audiences.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcBearerConfig.audience)
      */
     public var audience: Set<String> = emptySet()
 
@@ -378,6 +424,8 @@ public class OidcBearerConfig internal constructor() {
      *
      * When `null`, the provider reads the standard `Authorization: Bearer <token>` header.
      * Shared by JWT Bearer and introspection Bearer schemes.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcBearerConfig.tokenExtractor)
      */
     public var tokenExtractor: OidcTokenExtractor? = null
 
@@ -385,6 +433,8 @@ public class OidcBearerConfig internal constructor() {
      * Optional RFC 7662 token introspection configuration.
      *
      * When configured, enables introspection Bearer authentication in addition to JWT Bearer.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcBearerConfig.introspection)
      */
     public fun introspection(configure: OidcTokenIntrospectionConfig.() -> Unit) {
         introspectionConfig = OidcTokenIntrospectionConfig().apply(configure)
@@ -410,21 +460,29 @@ public class OidcBearerConfig internal constructor() {
 public class OidcTokenIntrospectionConfig internal constructor() {
     /**
      * Token introspection endpoint URL.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcTokenIntrospectionConfig.endpoint)
      */
     public lateinit var endpoint: String
 
     /**
      * Client ID used to authenticate the resource server to the introspection endpoint.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcTokenIntrospectionConfig.clientId)
      */
     public lateinit var clientId: String
 
     /**
      * Client secret used to authenticate the resource server to the introspection endpoint.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcTokenIntrospectionConfig.clientSecret)
      */
     public lateinit var clientSecret: String
 
     /**
      * Client authentication method used for introspection requests.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcTokenIntrospectionConfig.authMethod)
      */
     public var authMethod: ClientAuthenticationMethod = ClientAuthenticationMethod.ClientSecretBasic
 
@@ -455,11 +513,15 @@ public class OidcTokenIntrospectionConfig internal constructor() {
 public interface ClientAuthenticationMethod {
     /**
      * Authenticate with HTTP Basic using the client ID and client secret.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.ClientAuthenticationMethod.ClientSecretBasic)
      */
     public object ClientSecretBasic : ClientAuthenticationMethod
 
     /**
      * Authenticate by sending `client_id` and `client_secret` in the form body.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.ClientAuthenticationMethod.ClientSecretPost)
      */
     public object ClientSecretPost : ClientAuthenticationMethod
 }
@@ -499,11 +561,15 @@ public class OidcOAuthConfig internal constructor(
      * OAuth client ID. Required when OAuth is configured.
      *
      * Also used as the expected ID-token audience for callback and refresh validation.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcOAuthConfig.clientId)
      */
     public lateinit var clientId: String
 
     /**
      * OAuth client secret. Required when OAuth is configured.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcOAuthConfig.clientSecret)
      */
     public lateinit var clientSecret: String
 
@@ -512,11 +578,15 @@ public class OidcOAuthConfig internal constructor(
      *
      * The `openid` scope is always required.
      * OAuth callbacks without an ID token are not supported; use Ktor's generic OAuth support for access-token-only login.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcOAuthConfig.scopes)
      */
     public var scopes: List<String> = listOf("openid", "profile", "email")
 
     /**
      * Optional resource indicators added to authorization, token, and refresh requests.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcOAuthConfig.resourceIndicators)
      */
     public var resourceIndicators: List<String> = emptyList()
 
@@ -586,6 +656,8 @@ public class OidcOAuthConfig internal constructor(
      * Configures the OAuth callback route URI.
      *
      * Defaults to `/oidc/{providerName}/callback`. Query parameters are not supported.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcOAuthConfig.redirectUri)
      */
     public var redirectUri: URLBuilder.() -> Unit = { path("oidc", providerName, "callback") }
 
@@ -593,6 +665,8 @@ public class OidcOAuthConfig internal constructor(
      * Configures the OAuth login route URI.
      *
      * Defaults to `/oidc/{providerName}/login`. Query parameters are not supported.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcOAuthConfig.loginUri)
      */
     public var loginUri: URLBuilder.() -> Unit = { path("oidc", providerName, "login") }
 
@@ -619,6 +693,8 @@ public class OidcOAuthConfig internal constructor(
      *
      * Selects callback-only handling without storing an [OidcToken.Id] session. Plugin-managed [refresh] and
      * [logout] routes require sessions and cannot be used after calling this method.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcOAuthConfig.disableSessions)
      */
     public fun disableSessions() {
         sessionsDisabled = true
@@ -699,6 +775,8 @@ public class OidcOAuthConfig internal constructor(
      * The callback receives the verified [OidcToken.Id]. With sessions enabled, it runs after the session is stored.
      * Without sessions, it runs after verification and is required, so token material is not discarded.
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcOAuthConfig.onAuthenticated)
+     *
      * @param block handler invoked with the verified ID-token bundle.
      */
     public fun onAuthenticated(block: OidcOAuthAuthenticatedHandler) {
@@ -707,6 +785,8 @@ public class OidcOAuthConfig internal constructor(
 
     /**
      * Sets the handler called when OIDC verification fails after token exchange.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcOAuthConfig.onAuthenticationFailed)
      *
      * @param block failure handler.
      */
@@ -778,6 +858,8 @@ public class OidcSessionsConfig internal constructor() {
      * Cookie / session name.
      *
      * When `null`, defaults to the provider name in uppercase followed by `_SESSION`.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcSessionsConfig.name)
      */
     public var name: String? = null
 
@@ -786,6 +868,8 @@ public class OidcSessionsConfig internal constructor() {
      *
      * In-memory storage is intended for local development and single-instance deployments. Use shared storage for
      * clustered production deployments.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcSessionsConfig.storage)
      */
     public var storage: SessionStorage = SessionStorageMemory()
 
@@ -795,6 +879,8 @@ public class OidcSessionsConfig internal constructor() {
      * Disabled by default; expired ID-token sessions are rejected on user routes.
      * Expiry and refresh timing use [OidcToken.Id.claims] [io.ktor.server.auth.oidc.TokenClaims.expiresAt];
      * when the ID token has no `exp` claim, sessions are never treated as expired and auto-refresh never triggers.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcSessionsConfig.tokenRefreshStrategy)
      */
     public var tokenRefreshStrategy: OidcTokenRefreshStrategy = OidcTokenRefreshStrategy.Disabled
 
@@ -803,6 +889,8 @@ public class OidcSessionsConfig internal constructor() {
      *
      * The plugin applies secure defaults before this block runs: `httpOnly = true`, `secure = true` (in production),
      * `SameSite = lax`. Values set in this block override those defaults.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcSessionsConfig.cookie)
      */
     public fun cookie(configure: CookieIdSessionBuilder<OidcToken.Id>.() -> Unit) {
         cookieConfigure = configure
@@ -814,6 +902,8 @@ public class OidcSessionsConfig internal constructor() {
      * By default, CSRF protection is enabled with [CSRFConfig.originMatchesHost].
      * CSRF checks are applied to plugin-managed POST routes (refresh, logout) and user-defined non-safe HTTP methods
      * under `authenticateWith` for this provider's [OidcProvider.session] scheme.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcSessionsConfig.csrfProtection)
      */
     public fun csrfProtection(configure: CSRFConfig.() -> Unit) {
         csrfConfigurer = configure
@@ -821,6 +911,8 @@ public class OidcSessionsConfig internal constructor() {
 
     /**
      * Disables CSRF protection for this provider's routes.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcSessionsConfig.disableCsrfProtection)
      */
     public fun disableCsrfProtection() {
         csrfConfigurer = null

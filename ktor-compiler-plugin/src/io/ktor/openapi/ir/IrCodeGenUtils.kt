@@ -63,6 +63,8 @@ fun IrExpression.chainBuilder(
  *
  * This assumes that:
  * - The lambda return type is Unit
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.ir.builderLambda)
  */
 context(pluginContext: CodeGenContext)
 fun builderLambda(

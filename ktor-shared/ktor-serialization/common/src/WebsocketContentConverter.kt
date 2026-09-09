@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.serialization
@@ -22,7 +22,6 @@ public interface WebsocketContentConverter {
      * Serializes a [value] to a WebSocket [Frame].
      * This function could throw `WebsocketConverterNotFoundException` if the value is not suitable for conversion
      *
-     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.serialization.WebsocketContentConverter.serialize)
      *
      * @param charset response charset
@@ -40,7 +39,6 @@ public interface WebsocketContentConverter {
     /**
      * Deserializes [content] to the value of type [typeInfo]
      *
-     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.serialization.WebsocketContentConverter.deserialize)
      *
      * @return a converted value (deserialized) or throws `WebsocketConverterNotFoundException` if the context's
@@ -50,7 +48,6 @@ public interface WebsocketContentConverter {
 
     /**
      * Checks if the content converter can deserialize a [frame]
-     *
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.serialization.WebsocketContentConverter.isApplicable)
      *
@@ -66,7 +63,6 @@ public interface WebsocketContentConverter {
  * Serializes a [value] to a WebSocket [Frame].
  * This function could throw `WebsocketConverterNotFoundException` if the value is not suitable for conversion
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.serialization.serialize)
  *
  * @param charset response charset
@@ -81,7 +77,6 @@ public suspend inline fun <reified T> WebsocketContentConverter.serialize(
 
 /**
  * Deserializes [content] to the value of type [T]
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.serialization.deserialize)
  *

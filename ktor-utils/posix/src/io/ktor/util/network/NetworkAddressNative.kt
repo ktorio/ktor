@@ -1,18 +1,17 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.util.network
 
-import io.ktor.util.*
 import io.ktor.utils.io.*
-import kotlinx.atomicfu.*
+import kotlinx.atomicfu.AtomicRef
+import kotlinx.atomicfu.atomic
 
 /**
  * Represents remote endpoint with [hostname] and [port].
  *
  * The address will be resolved after construction.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.network.NetworkAddress)
  *

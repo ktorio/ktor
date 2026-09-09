@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.plugins.doublereceive
@@ -11,8 +11,7 @@ import io.ktor.util.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.currentCoroutineContext
-import kotlin.coroutines.*
-import kotlin.reflect.*
+import kotlin.reflect.KClass
 
 internal val LOGGER = KtorSimpleLogger("io.ktor.server.plugins.doublereceive.DoubleReceive")
 
@@ -24,7 +23,6 @@ internal val LOGGER = KtorSimpleLogger("io.ktor.server.plugins.doublereceive.Dou
  * then receive a body one more time inside the `post` route handler.
  *
  * You can learn more from [DoubleReceive](https://ktor.io/docs/double-receive.html).
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.doublereceive.DoubleReceive)
  */

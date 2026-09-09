@@ -4,20 +4,9 @@
 
 package io.ktor.client.webrtc
 
-import dev.onvoid.webrtc.PeerConnectionObserver
-import dev.onvoid.webrtc.RTCAnswerOptions
-import dev.onvoid.webrtc.RTCDataChannel
-import dev.onvoid.webrtc.RTCDataChannelInit
-import dev.onvoid.webrtc.RTCIceCandidate
-import dev.onvoid.webrtc.RTCIceConnectionState
-import dev.onvoid.webrtc.RTCIceGatheringState
-import dev.onvoid.webrtc.RTCOfferOptions
-import dev.onvoid.webrtc.RTCPeerConnection
-import dev.onvoid.webrtc.RTCPeerConnectionState
-import dev.onvoid.webrtc.RTCRtpReceiver
-import dev.onvoid.webrtc.RTCSignalingState
+import dev.onvoid.webrtc.*
 import dev.onvoid.webrtc.media.MediaStream
-import io.ktor.client.webrtc.media.JvmMediaTrack
+import io.ktor.client.webrtc.media.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.CoroutineContext
@@ -25,6 +14,8 @@ import kotlin.coroutines.resume
 
 /**
  * JVM-specific implementation of a WebRTC peer connection based on `dev.onvoid.webrtc`.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.JvmWebRtcConnection)
  */
 public class JvmWebRtcConnection(
     coroutineContext: CoroutineContext,
@@ -203,6 +194,8 @@ public class JvmWebRtcConnection(
 
 /**
  * Returns implementation of the rtc peer connection that is used under the hood. Use it with caution.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.getNative)
  */
 public fun WebRtcPeerConnection.getNative(): RTCPeerConnection {
     return (this as JvmWebRtcConnection).inner

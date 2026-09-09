@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.sse
@@ -31,7 +31,6 @@ import kotlin.time.Duration.Companion.seconds
  * To learn more, see [the SSE](https://en.wikipedia.org/wiki/Server-sent_events)
  * and [the SSE specification](https://html.spec.whatwg.org/multipage/server-sent-events.html).
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sse.ServerSSESession)
  *
  * @see SSE
@@ -53,7 +52,6 @@ public interface ServerSSESession : CoroutineScope {
 
     /**
      * Creates and sends a [ServerSentEvent] to the client.
-     *
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sse.ServerSSESession.send)
      *
@@ -108,7 +106,6 @@ public interface ServerSSESession : CoroutineScope {
  * To learn more, see [the SSE](https://en.wikipedia.org/wiki/Server-sent_events)
  * and [the SSE specification](https://html.spec.whatwg.org/multipage/server-sent-events.html).
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sse.ServerSSESessionWithSerialization)
  *
  * @see SSE
@@ -156,7 +153,6 @@ public suspend inline fun <reified T : Any> ServerSSESessionWithSerialization.se
  * The heartbeat will send the specified [Heartbeat.event] at the specified [Heartbeat.period] interval
  * as long as the session is active, or invoke [Heartbeat.eventProvider] on each tick when set.
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sse.heartbeat)
  *
  * @param heartbeatConfig a lambda that configures the [Heartbeat] object used for the heartbeat.
@@ -178,7 +174,6 @@ internal val heartbeatJobKey = AttributeKey<Job>("HeartbeatJobAttributeKey")
 
 /**
  * Represents a heartbeat configuration for a [ServerSSESession].
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sse.Heartbeat)
  *

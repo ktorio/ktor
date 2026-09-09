@@ -58,6 +58,8 @@ private const val TIMESTAMP_LENGTH = 8
  * The destination connection id is appended after the HMAC so that the QUIC
  * implementation can extract it at the offset returned by [validateToken].
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.http3.HmacQuicTokenHandler)
+ *
  * @param keyGen a function for providing the secret key used in HMAC signing and validation.
  *   If not provided, a random 256-bit key is generated. Provide a shared key when tokens
  *   must validate across multiple server instances.

@@ -311,11 +311,11 @@ internal fun DigestCredential.verifyWithHA1(
  * - Session algorithm support (where HA1 includes nonce and cnonce)
  * - auth-int support (where HA2 includes the entity body hash)
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.expectedDigest)
+ *
  * @param method The HTTP method of the request
  * @param userNameRealmPasswordDigest The H(username:realm:password) value
  * @param entityBodyHash The hash of the request entity body (for qop=auth-int)
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.expectedDigest)
  */
 public fun DigestCredential.expectedDigest(
     method: HttpMethod,

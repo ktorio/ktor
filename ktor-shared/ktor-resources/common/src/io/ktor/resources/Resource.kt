@@ -1,10 +1,13 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.resources
 
-import kotlinx.serialization.*
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.MetaSerializable
+import kotlinx.serialization.SerialInfo
+import kotlinx.serialization.Serializable
 
 /**
  * An annotation for classes that act as [typed routes](https://ktor.io/docs/type-safe-routing.html).
@@ -37,7 +40,6 @@ import kotlinx.serialization.*
  * val userById = Users.ById(123)
  * val addUser = Users.add("new_name")
  * ```
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.resources.Resource)
  *

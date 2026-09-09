@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.http.content
@@ -20,8 +20,6 @@ import java.nio.file.*
 import java.util.*
 import java.util.concurrent.TimeUnit
 import kotlin.io.path.*
-import kotlin.io.path.exists
-import kotlin.io.path.readBytes
 import kotlin.math.max
 
 /**
@@ -153,9 +151,10 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
      * This differs from the existing `default(path: String?)`:
      * - `default(...)` serves a fixed, path‑agnostic fallback resource.
      * - `fallback { requestedPath, call -> ... }` gives full control and context for conditional behavior.
-     * @see default
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.StaticContentConfig.fallback)
+     *
+     * @see default
      */
     public fun fallback(fallback: suspend (String, ApplicationCall) -> Unit) {
         this.fallback = fallback
@@ -247,7 +246,7 @@ public class StaticContentConfig<Resource : Any> internal constructor() {
      * domain, but don't want to serve static content for any requests to the
      * `/api` route.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.StaticContentConfig.exclude)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.StaticContentConfig.filter)
      */
     public fun filter(block: (call: ApplicationCall) -> Boolean) {
         filter.add(block)
@@ -572,7 +571,7 @@ private class ReloadingZipFileSystem(
  *
  * You can use [block] for additional set up.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.staticFileSystem)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.staticPaths)
  */
 public fun Route.staticPaths(
     remotePath: String,

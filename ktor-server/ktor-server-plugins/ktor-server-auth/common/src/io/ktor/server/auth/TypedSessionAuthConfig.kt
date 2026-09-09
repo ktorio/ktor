@@ -100,10 +100,10 @@ public open class TypedSessionAuthConfig<S : Any, P : Any> @PublishedApi interna
      * The stored session is rewritten only when the returned value is not equal to the incoming session (`!=`).
      * Returning an equal value skips [CurrentSession.set].
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.TypedSessionAuthConfig.transformSession)
+     *
      * @param block transformation function called with the session value read by the
      * [Sessions] plugin.
-     *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.TypedSessionAuthConfig.transformSession)
      */
     public fun transformSession(block: SessionTransformer<S>) {
         sessionTransformer = block

@@ -30,6 +30,8 @@ internal data class TokenRefreshResponse(
  * Contains raw token response fields, so applications that manage their own tokens can decide how to
  * persist, rotate, or expose token material.
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcTokenRefreshResult)
+ *
  * @property accessToken Access token returned by the token endpoint.
  * @property refreshToken Raw refresh token returned by the token endpoint, or `null` when the provider
  *   did not rotate or return one. Persist [refreshToken] when it is present; otherwise keep the refresh token
@@ -38,8 +40,6 @@ internal data class TokenRefreshResponse(
  * @property tokenType Token type returned by the token endpoint.
  * @property scope Scope string returned by the token endpoint, or `null` when unavailable.
  * @property idToken Verified ID-token when [idToken] is present, otherwise `null`.
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcTokenRefreshResult)
  */
 @ExperimentalKtorApi
 public class OidcTokenRefreshResult(

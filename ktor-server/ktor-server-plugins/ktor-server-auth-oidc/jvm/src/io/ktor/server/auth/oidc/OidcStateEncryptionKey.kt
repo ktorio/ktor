@@ -27,11 +27,15 @@ public value class OidcStateEncryptionKey private constructor(internal val keys:
     public companion object {
         /**
          * Required key size, in bytes, for AES-256-GCM.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcStateEncryptionKey.Companion.KEY_SIZE)
          */
         public const val KEY_SIZE: Int = 32
 
         /**
          * Creates an encryption key from the supplied 32-byte value.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcStateEncryptionKey.Companion.of)
          *
          * @param key current AES-256-GCM key. The array is copied before storage.
          * @return encryption key configuration.
@@ -40,6 +44,8 @@ public value class OidcStateEncryptionKey private constructor(internal val keys:
 
         /**
          * Generates a new random 32-byte AES-256-GCM key.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcStateEncryptionKey.Companion.random)
          *
          * @return encryption key configuration.
          */
@@ -50,6 +56,8 @@ public value class OidcStateEncryptionKey private constructor(internal val keys:
          *
          * New cookies are encrypted with [current]. Existing cookies encrypted with [previous] are still accepted.
          * Remove [previous] after all issued OAuth state cookies have expired.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcStateEncryptionKey.Companion.rotating)
          *
          * @param current key used for new cookies. The array is copied before storage.
          * @param previous key accepted for cookies issued before rotation. The array is copied before storage.

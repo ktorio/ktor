@@ -29,66 +29,92 @@ import kotlin.time.toKotlinInstant
 public class TokenClaims internal constructor(private val jwt: DecodedJWT) {
     /**
      * Decoded JWT header as JSON.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.TokenClaims.header)
      */
     public val header: JsonObject by lazy { parseJsonObject(jwt.header) }
 
     /**
      * Decoded JWT payload claims as JSON.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.TokenClaims.payload)
      */
     public val payload: JsonObject by lazy { parseJsonObject(jwt.payload) }
 
     /**
      * Key identifier from the JWT header.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.TokenClaims.keyId)
      */
     public val keyId: String? get() = jwt.keyId
 
     /**
      * Type from the JWT header.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.TokenClaims.type)
      */
     public val type: String? get() = jwt.type
 
     /**
      * Signing algorithm from the JWT header.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.TokenClaims.algorithm)
      */
     public val algorithm: String? get() = jwt.algorithm
 
     /**
      * Issuer claim.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.TokenClaims.issuer)
      */
     public val issuer: String? get() = jwt.issuer
 
     /**
      * Subject claim.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.TokenClaims.subject)
      */
     public val subject: String? get() = jwt.subject
 
     /**
      * Audience claim values.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.TokenClaims.audience)
      */
     public val audience: List<String> get() = jwt.audience ?: emptyList()
 
     /**
      * Expiration time.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.TokenClaims.expiresAt)
      */
     public val expiresAt: Instant? get() = jwt.expiresAtAsInstant?.toKotlinInstant()
 
     /**
      * Not-before time.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.TokenClaims.notBefore)
      */
     public val notBefore: Instant? get() = jwt.notBeforeAsInstant?.toKotlinInstant()
 
     /**
      * Issuance time.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.TokenClaims.issuedAt)
      */
     public val issuedAt: Instant? get() = jwt.issuedAtAsInstant?.toKotlinInstant()
 
     /**
      * JWT ID claim.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.TokenClaims.jwtId)
      */
     public val jwtId: String? get() = jwt.id
 
     /**
      * Returns a decoded JWT payload claim by name.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.TokenClaims.claim)
      *
      * @param name claim name.
      * @return JSON claim value, or `null` when absent.
@@ -98,6 +124,8 @@ public class TokenClaims internal constructor(private val jwt: DecodedJWT) {
     /**
      * Returns a decoded JWT payload claim as a string.
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.TokenClaims.claimString)
+     *
      * @param name claim name.
      * @return claim string value, or `null` when the claim is absent.
      * @throws IllegalArgumentException when the claim is present but not a JSON string.
@@ -106,6 +134,8 @@ public class TokenClaims internal constructor(private val jwt: DecodedJWT) {
 
     /**
      * Returns a JWT header value as a string.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.TokenClaims.headerString)
      *
      * @param name header name.
      * @return header string value, or `null` when the header is absent.
@@ -133,6 +163,8 @@ public class TokenClaims internal constructor(private val jwt: DecodedJWT) {
 /**
  * Normalized RFC 7662 token introspection response.
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.TokenIntrospection)
+ *
  * @property active whether the token is currently active.
  * @property scope OAuth scope string returned by the introspection endpoint.
  * @property clientId client identifier associated with the token.
@@ -146,8 +178,6 @@ public class TokenClaims internal constructor(private val jwt: DecodedJWT) {
  * @property issuer token issuer.
  * @property jwtId token identifier.
  * @property claims raw JSON claims returned by the introspection endpoint.
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.TokenIntrospection)
  */
 @ExperimentalKtorApi
 @Serializable

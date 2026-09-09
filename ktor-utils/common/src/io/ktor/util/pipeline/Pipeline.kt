@@ -1,14 +1,15 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.util.pipeline
 
 import io.ktor.util.*
 import io.ktor.util.debug.*
-import kotlinx.atomicfu.*
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.currentCoroutineContext
-import kotlin.coroutines.*
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.CoroutineContext
 
 // helper interface for `startInterceptorCoroutineUninterceptedOrReturn`
 internal typealias PipelineInterceptorCoroutine<TSubject, TContext> =
@@ -63,7 +64,6 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
         }
 
     /**
-     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.pipeline.Pipeline.isEmpty)
      *
      * @return `true` if there are no interceptors installed regardless number of phases

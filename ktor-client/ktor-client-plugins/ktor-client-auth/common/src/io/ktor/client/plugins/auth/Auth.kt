@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.plugins.auth
@@ -15,7 +15,7 @@ import io.ktor.util.*
 import io.ktor.util.collections.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.*
-import kotlinx.atomicfu.*
+import kotlinx.atomicfu.atomic
 
 internal val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.auth.Auth")
 
@@ -75,7 +75,6 @@ public val AuthCircuitBreaker: AttributeKey<Unit> = AttributeKey("auth-request")
  * Typical usage scenarios include logging in users and gaining access to specific resources.
  *
  * You can learn more from [Authentication and authorization](https://ktor.io/docs/auth.html).
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.Auth)
  *

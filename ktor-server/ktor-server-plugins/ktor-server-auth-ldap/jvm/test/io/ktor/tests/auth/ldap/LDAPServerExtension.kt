@@ -4,14 +4,15 @@
 
 package io.ktor.tests.auth.ldap
 
-import org.apache.directory.api.ldap.codec.api.*
-import org.apache.directory.api.util.*
-import org.apache.directory.server.annotations.*
-import org.apache.directory.server.core.api.*
-import org.apache.directory.server.core.factory.*
-import org.apache.directory.server.core.integ.*
-import org.apache.directory.server.factory.*
-import org.apache.directory.server.ldap.*
+import org.apache.directory.api.ldap.codec.api.LdapApiService
+import org.apache.directory.api.util.FileUtils
+import org.apache.directory.server.annotations.CreateLdapServer
+import org.apache.directory.server.annotations.CreateTransport
+import org.apache.directory.server.core.api.DirectoryService
+import org.apache.directory.server.core.factory.DefaultDirectoryServiceFactory
+import org.apache.directory.server.core.integ.IntegrationUtils
+import org.apache.directory.server.factory.ServerAnnotationProcessor
+import org.apache.directory.server.ldap.LdapServer
 import org.junit.jupiter.api.extension.*
 
 @Target(AnnotationTarget.CLASS)
@@ -23,8 +24,6 @@ annotation class LDAPServerExtensionTest
  *
  * This is an adaption of the LDAP functionality found in
  * `org.apache.directory.server.core.integ.FrameworkRunner` for JUnit5.
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.tests.auth.ldap.LDAPServerExtension)
  */
 @CreateLdapServer(transports = [CreateTransport(protocol = "LDAP")])
 class LDAPServerExtension : BeforeAllCallback, AfterAllCallback, ParameterResolver {

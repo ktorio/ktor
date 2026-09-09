@@ -168,8 +168,6 @@ class TomcatSustainabilityTestSuite :
 
     /**
      * Tomcat trim `vspace` symbol and drop content-length. The request is treated as chunked.
-     *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.tests.server.tomcat.jakarta.TomcatSustainabilityTestSuite.testChunkedWithVSpace)
      */
     @Ignore
     @Test

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.plugins.di
@@ -17,6 +17,8 @@ import io.ktor.server.application.*
  * The file should contain the full name of the implementing class.
  *
  * The implementing class must have a public constructor with no arguments.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyMapExtension)
  */
 public interface DependencyMapExtension {
     /**

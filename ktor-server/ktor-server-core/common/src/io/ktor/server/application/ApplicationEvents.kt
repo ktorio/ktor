@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.server.application
 
@@ -33,7 +33,6 @@ public typealias EventHandler<T> = io.ktor.events.EventHandler<T>
  * Event is used as a key so both [hashCode] and [equals] need to be implemented properly.
  * Inheriting of this class is an experimental plugin.
  * Instantiate directly if inheritance not necessary.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.EventDefinition)
  *

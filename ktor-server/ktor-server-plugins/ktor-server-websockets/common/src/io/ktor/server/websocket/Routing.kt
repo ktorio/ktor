@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 @file:kotlin.jvm.JvmMultifileClass
@@ -16,8 +16,9 @@ import io.ktor.util.cio.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import io.ktor.websocket.*
-import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 
 /**
  * Binds RAW WebSocket at the current route + [path] optionally checking the for WebSocket [protocol] (ignored if `null`)
@@ -52,7 +53,6 @@ public fun Route.webSocketRaw(
  * When a WebSocket session is created, a [handler] lambda will be called with WebSocket session instance on receiver.
  * Once [handler] function returns, the WebSocket connection will be terminated immediately. For RAW WebSockets
  * it is important to perform close sequence properly.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.websocket.webSocketRaw)
  *
@@ -100,7 +100,6 @@ public fun Route.webSocketRaw(protocol: String? = null, handler: suspend WebSock
  * When a WebSocket session is created, a [handler] lambda will be called with WebSocket session instance on receiver.
  * Once [handler] function returns, the WebSocket connection will be terminated immediately. For RAW WebSocket
  * it is important to perform close sequence properly.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.websocket.webSocketRaw)
  *

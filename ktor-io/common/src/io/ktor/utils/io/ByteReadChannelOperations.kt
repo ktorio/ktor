@@ -24,7 +24,6 @@ public val ByteWriteChannel.availableForWrite: Int
  * If the read buffer is empty, it suspends until there are bytes available in the channel.
  * Once the channel is exhausted or closed, this function returns.
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.exhausted)
  *
  * @return `true` if the channel is exhausted, `false` if EOF is reached or an error occurred.
@@ -98,6 +97,8 @@ private suspend fun ByteReadChannel.awaitUntilReadable(numberOfBytes: Int) {
  * Reads the entire channel to an in-memory [Buffer].
  * This function suspends until data becomes available or the channel is closed.
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readBuffer)
+ *
  * @return the entire contents of the [ByteReadChannel]
  */
 @OptIn(InternalAPI::class)
@@ -116,6 +117,8 @@ public suspend fun ByteReadChannel.readBuffer(): Buffer {
  * Reads data from the current [ByteReadChannel] into a new [Buffer] up to the specified maximum number of bytes.
  * This function suspends until data becomes available or the channel is closed.
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readBuffer)
+ *
  * @param max The maximum number of bytes to read from the channel.
  * @return A [Buffer] containing the data read from the channel.
  */
@@ -126,6 +129,8 @@ public suspend fun ByteReadChannel.readBuffer(max: Int): Buffer =
 /**
  * Reads data from the current [ByteReadChannel] into a new [Buffer] up to the specified maximum number of bytes.
  * This function suspends until data becomes available or the channel is closed.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readBuffer)
  *
  * @param max The maximum number of bytes to read from the channel.
  * @return A [Buffer] containing the data read from the channel.
@@ -286,7 +291,6 @@ public suspend fun ByteReadChannel.readAvailable(
  * eg: it could be 4 bytes available for read but the provided byte buffer could have only 2 available bytes:
  * in this case you have to invoke read again (with decreased [min] accordingly).
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readAvailable)
  *
  * @param min amount of bytes available for read, should be positive
@@ -370,7 +374,6 @@ public fun CoroutineScope.reader(
 
 /**
  * Reads a packet of [packet] bytes from the channel.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readPacket)
  *
@@ -867,7 +870,6 @@ public val ByteReadChannel.availableForRead: Int
  *
  * Suspension occurs when there are not enough bytes available in the channel.
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readFully)
  *
  * @param out the buffer to write to
@@ -908,7 +910,6 @@ public fun ByteChannel.rethrowCloseCauseIfNeeded() {
  *
  * This uses the KMP algorithm for finding the string match using a partial match table.
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readUntil)
  *
  * @see [Knuth–Morris–Pratt algorithm](https://en.wikipedia.org/wiki/Knuth%E2%80%93Morris%E2%80%93Pratt_algorithm)
@@ -936,7 +937,6 @@ public suspend fun ByteReadChannel.readUntil(
 /**
  * Skips the specified [byteString] in the ByteReadChannel if it is found at the current position.
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.skipIfFound)
  *
  * @param byteString The ByteString to look for and skip if found.
@@ -953,7 +953,6 @@ public suspend fun ByteReadChannel.skipIfFound(byteString: ByteString): Boolean 
 /**
  * Retrieves, but does not consume, up to the specified number of bytes from the current position in this
  * [ByteReadChannel].
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.peek)
  *

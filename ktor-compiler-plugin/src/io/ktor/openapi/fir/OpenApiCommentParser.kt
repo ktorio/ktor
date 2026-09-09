@@ -1,9 +1,7 @@
 package io.ktor.openapi.fir
 
-import io.ktor.openapi.Logger
-import io.ktor.openapi.findJsonPrimitiveType
-import io.ktor.openapi.routing.RouteFieldList
-import io.ktor.openapi.routing.TypeReference
+import io.ktor.openapi.*
+import io.ktor.openapi.routing.*
 import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.utils.addToStdlib.indexOfOrNull
 
@@ -16,6 +14,8 @@ internal val schemaArgRegex = Regex("^(:?)\\[(.*)]([?+]?)$")
 /**
  * Parses the comment that precedes a given offset in the source text.
  * Handles both single-line (//) and block (/* */) comments.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.fir.parsePrecedingComment)
  *
  * @param logger For logging errors
  * @param packageName The current package (for resolving type references)

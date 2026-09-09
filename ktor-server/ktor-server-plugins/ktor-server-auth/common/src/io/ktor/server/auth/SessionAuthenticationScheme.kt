@@ -10,7 +10,6 @@ import io.ktor.server.application.*
 import io.ktor.server.plugins.csrf.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.*
-import io.ktor.server.sessions.header
 import io.ktor.util.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
@@ -105,7 +104,7 @@ internal fun <S : Any, P : Any> createSessionAuthenticationScheme(
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.applyTransport)
  *
- * @this typed session authentication scheme whose transport configuration is applied.
+ * @receiver typed session authentication scheme whose transport configuration is applied.
  */
 @ExperimentalKtorApi
 context(pluginConfig: SessionsConfig)
@@ -148,9 +147,10 @@ public fun <S : Any> Application.install(sessions: SessionAuthenticationScheme<S
  *
  * To clear a session from a non-authenticated route, use `call.sessions.clear(name)` on the [Sessions] plugin.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.SessionAuthenticationScheme.setSession)
- *
  * @this typed Session authentication scheme.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.setSession)
+ *
  * @param value session value to set.
  * @throws IllegalStateException if no session provider is registered for this scheme.
  */
@@ -162,9 +162,9 @@ public fun <S : Any, P : Any> SessionAuthenticationScheme<S, P>.setSession(value
 /**
  * Clears a session for this scheme.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.SessionAuthenticationScheme.clearSession)
- *
  * @this typed Session authentication scheme.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.clearSession)
  */
 @ExperimentalKtorApi
 context(context: RoutingContext)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 @file:OptIn(InternalAPI::class)
@@ -9,14 +9,13 @@ package io.ktor.http
 import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
-import kotlinx.serialization.*
+import kotlinx.serialization.Serializable
 import kotlin.io.encoding.Base64
-import kotlin.jvm.*
+import kotlin.jvm.JvmName
 
 /**
  * Represents a cookie with name, content and a set of settings such as expiration, visibility and security.
  * A cookie with neither [expires] nor [maxAge] is a session cookie.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.Cookie)
  *

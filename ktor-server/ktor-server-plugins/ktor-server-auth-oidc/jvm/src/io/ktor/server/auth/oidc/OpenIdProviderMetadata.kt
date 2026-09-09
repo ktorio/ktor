@@ -220,7 +220,6 @@ internal fun OpenIdProviderMetadata.validate(expectedIssuer: String) {
  * @return The OpenID Connect configuration containing endpoints and metadata
  * @throws OidcDiscoveryException if the request fails or the response is invalid
  * @throws IllegalArgumentException if the decoded metadata fails issuer or required endpoint validation
- *
  */
 @ExperimentalKtorApi
 public suspend fun HttpClient.fetchOpenIdMetadata(issuer: String): OpenIdProviderMetadata {
@@ -242,8 +241,7 @@ public suspend fun HttpClient.fetchOpenIdMetadata(issuer: String): OpenIdProvide
 /**
  * Base exception for OpenID Connect discovery failures.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.DiscoveryException)
- *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcDiscoveryException)
  */
 @ExperimentalKtorApi
 public class OidcDiscoveryException(message: String, cause: Throwable? = null) : RuntimeException(message, cause)

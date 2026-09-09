@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 // For ABI compatibility
@@ -86,9 +86,9 @@ public fun Source.readTextExact(charset: Charset = Charsets.UTF_8, n: Int): Stri
 /**
  * Read exactly [charactersCount] characters interpreting bytes in the specified [charset].
  *
- * @throws IllegalArgumentException if [charset] is not UTF_8 and is not a supported single-byte charset
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.core.readTextExactCharacters)
+ *
+ * @throws IllegalArgumentException if [charset] is not UTF_8 and is not a supported single-byte charset
  */
 public fun Source.readTextExactCharacters(charactersCount: Int, charset: Charset = Charsets.UTF_8): String {
     require(charactersCount >= 0) { "charactersCount shouldn't be negative: $charactersCount" }

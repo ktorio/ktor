@@ -11,10 +11,8 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
-import io.ktor.util.logging.trace
-import io.ktor.utils.io.ExperimentalKtorApi
-import io.ktor.utils.io.InternalAPI
-import kotlin.collections.set
+import io.ktor.util.logging.*
+import io.ktor.utils.io.*
 
 private class TypedAuthPluginNameGenerator {
     private var nextId: Int = 0
@@ -88,6 +86,8 @@ internal fun <P : Any> AuthenticationScheme<P, *>.createPlugin(
 
 /**
  * Responds to an authentication [failure]: [handler] first, then provider challenges, then `401 Unauthorized`.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.processFailure)
  */
 @InternalAPI
 public suspend fun AuthenticationContext.processFailure(

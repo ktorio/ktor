@@ -15,8 +15,6 @@ abstract class ClientEngineTest<T : HttpClientEngineConfig>(
 
     /**
      * Perform test against the client specified in the test constructor.
-     *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.test.base.ClientEngineTest.testClient)
      */
     fun testClient(
         timeout: Duration = this.timeout,

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine
@@ -13,7 +13,6 @@ package io.ktor.client.engine
  * Factories implementing this interface are commonly passed to the [io.ktor.client.HttpClient] constructor to specify the
  * underlying engine that will handle HTTP requests. This allows users to seamlessly plug in different
  * engines based on their requirements, such as for performance, platform compatibility, or protocol support.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.HttpClientEngineFactory)
  *
@@ -48,7 +47,6 @@ public interface HttpClientEngineFactory<out T : HttpClientEngineConfig> {
      *
      * Typically, this method is invoked internally by the [io.ktor.client.HttpClient] constructor when the factory
      * is passed to it. Users can, however, call it directly to explicitly control engine instantiation.
-     *
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.HttpClientEngineFactory.create)
      *

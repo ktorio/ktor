@@ -1,13 +1,12 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.jte
 
-import gg.jte.*
-import gg.jte.output.*
+import gg.jte.TemplateEngine
+import gg.jte.output.StringOutput
 import io.ktor.http.*
-import io.ktor.http.ContentType
 import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.application.hooks.*
@@ -15,7 +14,6 @@ import io.ktor.utils.io.*
 
 /**
  * A response content handled by the [Jte] plugin.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.jte.JteContent)
  *

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.webrtc
@@ -500,9 +500,9 @@ public object WebRtc {
          * This method will suspend the current coroutine until a message is received.
          * The message can be either text or binary data.
          *
-         * @throws DataChannelClosedException if the channel is closed by this or remote peer.
-         *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtc.DataChannel.receive)
+         *
+         * @throws DataChannelClosedException if the channel is closed by this or remote peer.
          */
         public suspend fun receive(): Message
 

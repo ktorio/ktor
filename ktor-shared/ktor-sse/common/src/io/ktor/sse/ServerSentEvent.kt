@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.sse
@@ -8,7 +8,6 @@ import io.ktor.utils.io.*
 
 /**
  *  Server-sent event interface.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.sse.ServerSentEventMetadata)
  *
@@ -32,7 +31,6 @@ public sealed interface ServerSentEventMetadata<T> {
 /**
  *  Server-sent event.
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.sse.ServerSentEvent)
  *
  *  @property data data field of the event.
@@ -55,7 +53,6 @@ public data class ServerSentEvent(
 
 /**
  *  Server-sent event with generic parameter [data].
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.sse.TypedServerSentEvent)
  *

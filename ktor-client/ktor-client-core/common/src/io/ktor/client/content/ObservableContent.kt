@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.content
@@ -26,7 +26,6 @@ import kotlin.coroutines.CoroutineContext
 public fun interface ProgressListener {
     /**
      * Invokes every time some data is flushed through the [ByteReadChannel].
-     *
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.content.ProgressListener.onProgress)
      *

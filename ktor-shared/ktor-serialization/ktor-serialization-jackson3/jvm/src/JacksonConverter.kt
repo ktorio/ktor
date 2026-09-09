@@ -27,7 +27,6 @@ import kotlin.text.*
 /**
  * A content converter that uses Jackson
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.serialization.jackson3.JacksonConverter)
  *
  * @param objectMapper a configured instance of [ObjectMapper]
@@ -157,7 +156,6 @@ public class JacksonConverter(
  *
  * You can learn more from the corresponding [client](https://ktor.io/docs/client-serialization.html#-3bcvpz_158) and [server](https://ktor.io/docs/server-serialization.html#-230zkf_175) documentation.
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.serialization.jackson3.jackson)
  *
  * @param contentType the content type to send with a request
@@ -190,7 +188,6 @@ public fun Configuration.jackson(
  * Registers the `application/json` content type to the [ContentNegotiation] plugin using Jackson.
  *
  * You can learn more from the corresponding [client](https://ktor.io/docs/client-serialization.html#-3bcvpz_158) and [server](https://ktor.io/docs/server-serialization.html#-230zkf_175) documentation.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.serialization.jackson3.jackson)
  *

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.resources
@@ -10,7 +10,8 @@ import io.ktor.server.plugins.*
 import io.ktor.server.request.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
-import kotlinx.serialization.*
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.serializer
 
 /**
  * Registers a route [body] for a resource defined by the [T] class.
@@ -28,7 +29,6 @@ public inline fun <reified T : Any> Route.resource(noinline body: Route.() -> Un
  * Registers a typed handler [body] for a `GET` resource defined by the [T] class.
  *
  * A class [T] **must** be annotated with [io.ktor.resources.Resource].
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.resources.get)
  *
@@ -51,7 +51,6 @@ public inline fun <reified T : Any> Route.get(
  *
  * A class [T] **must** be annotated with [io.ktor.resources.Resource].
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.resources.options)
  *
  * @param body receives an instance of the typed resource [T] as the first parameter.
@@ -72,7 +71,6 @@ public inline fun <reified T : Any> Route.options(
  * Registers a typed handler [body] for a `HEAD` resource defined by the [T] class.
  *
  * A class [T] **must** be annotated with [io.ktor.resources.Resource].
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.resources.head)
  *
@@ -95,7 +93,6 @@ public inline fun <reified T : Any> Route.head(
  *
  * A class [T] **must** be annotated with [io.ktor.resources.Resource].
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.resources.post)
  *
  * @param body receives an instance of the typed resource [T] as the first parameter.
@@ -117,7 +114,6 @@ public inline fun <reified T : Any> Route.post(
  *
  * A class [T] **must** be annotated with [io.ktor.resources.Resource].
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.resources.post)
  *
  * @param body receives an instance of the typed resource [T] as the first parameter
@@ -133,7 +129,6 @@ public inline fun <reified T : Any, reified R : Any> Route.post(
  * Registers a typed handler [body] for a `PUT` resource defined by the [T] class.
  *
  * A class [T] **must** be annotated with [io.ktor.resources.Resource].
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.resources.put)
  *
@@ -156,7 +151,6 @@ public inline fun <reified T : Any> Route.put(
  *
  * A class [T] **must** be annotated with [io.ktor.resources.Resource].
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.resources.put)
  *
  * @param body receives an instance of the typed resource [T] as the first parameter
@@ -172,7 +166,6 @@ public inline fun <reified T : Any, reified R : Any> Route.put(
  * Registers a typed handler [body] for a `DELETE` resource defined by the [T] class.
  *
  * A class [T] **must** be annotated with [io.ktor.resources.Resource].
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.resources.delete)
  *
@@ -195,7 +188,6 @@ public inline fun <reified T : Any> Route.delete(
  *
  * A class [T] **must** be annotated with [io.ktor.resources.Resource].
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.resources.patch)
  *
  * @param body receives an instance of the typed resource [T] as the first parameter.
@@ -217,7 +209,6 @@ public inline fun <reified T : Any> Route.patch(
  *
  * A class [T] **must** be annotated with [io.ktor.resources.Resource].
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.resources.patch)
  *
  * @param body receives an instance of the typed resource [T] as the first parameter
@@ -231,7 +222,6 @@ public inline fun <reified T : Any, reified R : Any> Route.patch(
 
 /**
  * Registers a handler [body] for a resource defined by the [T] class.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.resources.handle)
  *
@@ -249,7 +239,6 @@ internal val ResourceInstanceKey: AttributeKey<Any> = AttributeKey("ResourceInst
 
 /**
  * Registers a route [body] for a resource defined by the [T] class.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.resources.resource)
  *
@@ -278,7 +267,6 @@ public fun <T : Any> Route.resource(
 
 /**
  * Registers a handler [body] for a resource defined by the [T] class.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.resources.handle)
  *

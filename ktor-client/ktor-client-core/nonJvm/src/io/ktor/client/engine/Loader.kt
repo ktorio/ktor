@@ -1,17 +1,19 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine
 
 import io.ktor.client.*
 import io.ktor.utils.io.*
-import kotlinx.atomicfu.*
+import kotlinx.atomicfu.atomic
 
 private typealias EngineFactory = HttpClientEngineFactory<HttpClientEngineConfig>
 
 /**
  * An entry in the [engines] registry that pairs an engine [factory] with its [priority].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.EngineEntry)
  *
  * @property factory the engine factory
  * @property priority determines selection order when [io.ktor.client.HttpClient] is called with no explicit engine.
@@ -65,6 +67,8 @@ public object engines : Iterable<EngineFactory> {
 
     /**
      * Returns all registered entries (factory + priority pairs).
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.engines.entries)
      */
     public fun entries(): List<EngineEntry> {
         val result = mutableListOf<EngineEntry>()
@@ -77,7 +81,6 @@ public object engines : Iterable<EngineFactory> {
     }
 
     /**
-     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.engines.iterator)
      *
      * @return unfrozen collection iterator.

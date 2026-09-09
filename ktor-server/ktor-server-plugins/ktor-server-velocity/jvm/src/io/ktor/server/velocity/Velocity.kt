@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.velocity
@@ -9,14 +9,14 @@ import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.application.hooks.*
 import io.ktor.utils.io.*
-import org.apache.velocity.*
-import org.apache.velocity.app.*
-import org.apache.velocity.context.*
-import java.io.*
+import org.apache.velocity.Template
+import org.apache.velocity.VelocityContext
+import org.apache.velocity.app.VelocityEngine
+import org.apache.velocity.context.Context
+import java.io.StringWriter
 
 /**
  * A response content handled by the [io.ktor.server.velocity.Velocity] plugin.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.velocity.VelocityContent)
  *

@@ -1,14 +1,20 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.client.engine.darwin.certificates
 
 import io.ktor.client.engine.darwin.*
 import io.ktor.client.engine.darwin.internal.legacy.*
 import kotlinx.cinterop.*
-import platform.CoreCrypto.*
-import platform.CoreFoundation.*
+import platform.CoreCrypto.CC_SHA1
+import platform.CoreCrypto.CC_SHA1_DIGEST_LENGTH
+import platform.CoreCrypto.CC_SHA256
+import platform.CoreCrypto.CC_SHA256_DIGEST_LENGTH
+import platform.CoreFoundation.CFDictionaryGetValue
+import platform.CoreFoundation.CFRetain
+import platform.CoreFoundation.CFStringCreateWithCString
+import platform.CoreFoundation.kCFStringEncodingUTF8
 import platform.Foundation.*
 import platform.Security.*
 
@@ -406,7 +412,6 @@ public data class LegacyCertificatePinner(
     ) {
         /**
          * Pins certificates for `pattern`.
-         *
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.darwin.certificates.LegacyCertificatePinner.Builder.add)
          *

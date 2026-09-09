@@ -1,18 +1,19 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.websocket
 
-import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.channels.SendChannel
 
 /**
  * A WebSocket session between two peers.
  *
  * - [Server WebSockets](https://ktor.io/docs/websocket.html)
  * - [Client WebSockets](https://ktor.io/docs/websocket-client.html)
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.WebSocketSession)
  */
@@ -97,7 +98,6 @@ public interface WebSocketSession : CoroutineScope {
 /**
  * Finds the extensions using [WebSocketExtensionFactory].
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.extension)
  *
  * @return extension instance.
@@ -108,7 +108,6 @@ public fun <T : WebSocketExtension<*>> WebSocketSession.extension(extension: Web
 
 /**
  * Searches the extensions using [WebSocketExtensionFactory].
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.extensionOrNull)
  *

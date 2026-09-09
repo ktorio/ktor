@@ -12,8 +12,6 @@ internal expect val DummyTestResult: TestResult
  * Executes the provided [block] after the test.
  * It is the only way to execute something **after** test on JS/WasmJS targets.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.test.andThen)
- *
  * @see TestResult
  */
 expect inline fun TestResult.andThen(crossinline block: () -> Any): TestResult
@@ -33,9 +31,6 @@ internal expect inline fun <T> runTestForEach(items: Iterable<T>, crossinline te
  *     }
  * }
  * ```
- *
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.test.retryTest)
  *
  * @param retries The number of retries to attempt after an initial failure. Must be a non-negative integer.
  * @param test A test to execute, which accepts the current retry attempt (starting at 0) as an argument.

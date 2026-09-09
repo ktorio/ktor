@@ -12,12 +12,12 @@ import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.serialization.*
-import io.ktor.util.AttributeKey
+import io.ktor.util.*
 import io.ktor.util.logging.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
-import kotlin.reflect.*
+import kotlin.reflect.KClass
 
 // Media types of the underlying representations mapped to the structured syntax suffixes
 // registered in RFC 6839. The `+ber` and `+der` suffixes are omitted as the RFC defines
@@ -58,6 +58,8 @@ public fun interface ContentTypeMergeStrategy {
     /**
      * Returns the content types that should be appended to the Accept header.
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.contentnegotiation.ContentTypeMergeStrategy.mergeContentTypes)
+     *
      * @param registeredContentTypes the content types from all active converter registrations
      * @param acceptHeaders the Accept header values already present on the request
      */
@@ -71,7 +73,7 @@ public fun interface ContentTypeMergeStrategy {
          * Default behavior: appends each registered content type that is not already
          * represented in the existing Accept headers. Preserves backward compatibility.
          *
-         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.contentnegotiation.ContentTypeMergeStrategy.Default)
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.contentnegotiation.ContentTypeMergeStrategy.Companion.Default)
          */
         public val Default: ContentTypeMergeStrategy = ContentTypeMergeStrategy { registered, headers ->
             registered.asSequence().filter { contentType ->
@@ -90,7 +92,7 @@ public fun interface ContentTypeMergeStrategy {
          * present on the request. Falls back to [Default] behavior when none are present.
          * Useful when working with APIs that are strict about which Accept values they accept.
          *
-         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.contentnegotiation.ContentTypeMergeStrategy.SkipIfPresent)
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.contentnegotiation.ContentTypeMergeStrategy.Companion.SkipIfPresent)
          */
         public val SkipIfPresent: ContentTypeMergeStrategy = ContentTypeMergeStrategy { registered, headers ->
             if (headers.isNotEmpty()) {

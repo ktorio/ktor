@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 @file:Suppress("FunctionName")
 
@@ -31,7 +31,6 @@ public fun buildUrl(block: URLBuilder.() -> Unit): Url = URLBuilder().apply(bloc
 
 /**
  * Parses the given URL string and returns a [Url] object if valid, otherwise, it returns `null`.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.parseUrl)
  *

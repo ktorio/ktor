@@ -1,17 +1,16 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.server.routing
 
 import io.ktor.http.*
 import io.ktor.server.plugins.*
 import io.ktor.server.request.*
-import io.ktor.utils.io.InternalAPI
+import io.ktor.utils.io.*
 
 /**
  * A result of a route evaluation against a call.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.RouteSelectorEvaluation)
  *
@@ -23,7 +22,6 @@ public sealed class RouteSelectorEvaluation(
 ) {
     /**
      * A success result of a route evaluation against a call.
-     *
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.RouteSelectorEvaluation.Success)
      *
@@ -39,7 +37,6 @@ public sealed class RouteSelectorEvaluation(
 
     /**
      * A failed result of a route evaluation against a call.
-     *
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.RouteSelectorEvaluation.Failure)
      *
@@ -238,10 +235,7 @@ public sealed class RouteSelectorEvaluation(
 /**
  * Serves as the base type for routing selectors.
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.RouteSelector)
- *
- * @param quality indicates how good this selector is compared to siblings
  */
 public abstract class RouteSelector {
 
@@ -674,6 +668,8 @@ public data class OrRouteSelector(
     /**
      * Synchronous evaluation. Returns `null` if either sub-selector itself doesn't expose a
      * synchronous form, in which case the resolver falls back to the `suspend` [evaluate].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.OrRouteSelector.tryEvaluate)
      */
     override fun tryEvaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation? {
         val result = first.tryEvaluate(context, segmentIndex) ?: return null
@@ -719,6 +715,8 @@ public data class AndRouteSelector(
     /**
      * Synchronous evaluation. Returns `null` if either sub-selector itself doesn't expose a
      * synchronous form, in which case the resolver falls back to the `suspend` [evaluate].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.AndRouteSelector.tryEvaluate)
      */
     override fun tryEvaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation? {
         val result1 = first.tryEvaluate(context, segmentIndex) ?: return null

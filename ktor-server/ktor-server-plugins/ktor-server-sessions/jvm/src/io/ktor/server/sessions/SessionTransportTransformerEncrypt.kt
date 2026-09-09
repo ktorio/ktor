@@ -1,13 +1,16 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.sessions
 
-import org.slf4j.*
-import java.security.*
-import javax.crypto.*
-import javax.crypto.spec.*
+import org.slf4j.LoggerFactory
+import java.security.MessageDigest
+import java.security.SecureRandom
+import javax.crypto.Cipher
+import javax.crypto.Mac
+import javax.crypto.spec.IvParameterSpec
+import javax.crypto.spec.SecretKeySpec
 
 /**
  * A transformer used to sign and encrypt/decrypt session data.
@@ -20,7 +23,6 @@ import javax.crypto.spec.*
  *
  * You have to provide keys of compatible sizes: 16, 24 and 32 for AES encryption.
  * For HmacSHA256 it is recommended a key of 32 bytes.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.SessionTransportTransformerEncrypt)
  *

@@ -1,12 +1,12 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http
 
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
-import kotlinx.io.*
+import kotlinx.io.Source
 
 private val URL_ALPHABET = AsciiBitSet.of(('a'..'z') + ('A'..'Z') + ('0'..'9'))
 private val HEX_ALPHABET = AsciiBitSet.of(('a'..'f') + ('A'..'F') + ('0'..'9'))
@@ -69,7 +69,6 @@ public fun String.encodeURLPathPart(): String = encodeURLPath(encodeSlash = true
 /**
  * Get the URL-encoding of this string, with options to skip / characters or to prevent
  * encoding already-encoded characters (%hh items).
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.encodeURLPath)
  *

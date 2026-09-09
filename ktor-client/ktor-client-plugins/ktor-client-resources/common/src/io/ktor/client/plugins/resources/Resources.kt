@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.plugins.resources
@@ -29,7 +29,6 @@ import io.ktor.resources.Resources as ResourcesCore
  * val newUserId = client.post(Users.Add("new_user")) // "/users?name=new_user"
  * val addedUser = client.get(Users.ById(newUserId)) // "/user/123"
  * ```
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.resources.Resources)
  *

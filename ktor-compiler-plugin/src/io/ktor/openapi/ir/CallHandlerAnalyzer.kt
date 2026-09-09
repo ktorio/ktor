@@ -20,6 +20,8 @@ import org.jetbrains.kotlin.ir.visitors.IrVisitor
 /**
  * Searches through route lambda bodies for common Ktor call references, so that we may infer some annotations
  * from the code.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.ir.CallHandlerAnalyzer)
  */
 class CallHandlerAnalyzer(
     val callInference: IrCallHandlerInference,
@@ -114,6 +116,8 @@ class CallHandlerAnalyzer(
 
     /**
      * We need to substitute parameters for functions.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.ir.CallHandlerAnalyzer.copyAndResolve)
      */
     override fun copyAndResolve(expression: IrExpression): IrExpression? {
         val copied = expression.deepCopyWithSymbols()

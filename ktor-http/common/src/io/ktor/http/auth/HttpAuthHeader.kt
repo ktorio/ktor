@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http.auth
@@ -230,7 +230,6 @@ private fun matchToken68(headerValue: String, startIndex: Int): Int {
  * Describes an authentication header with a mandatory [authScheme] that usually is a standard [AuthScheme].
  *
  * This can be of type [HttpAuthHeader.Single] or [HttpAuthHeader.Parameterized].
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.auth.HttpAuthHeader)
  *

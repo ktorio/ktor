@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.http
 
@@ -13,7 +13,6 @@ private val HeaderFieldValueSeparators = AsciiBitSet.of("()<>@,;:\\\"/[]?={} \t\
 /**
  * Represents a header value that consist of [content] followed by [parameters].
  * Useful for headers such as `Content-Type`, `Content-Disposition` and so on.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.HeaderValueWithParameters)
  *

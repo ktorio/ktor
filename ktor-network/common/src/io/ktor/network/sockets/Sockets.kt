@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.network.sockets
@@ -89,7 +89,6 @@ public interface Acceptable<out S : ASocket> : ASocket {
     /**
      * Suspends until a connection is available and returns it or throws if something
      * goes wrong.
-     *
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.Acceptable.accept)
      *

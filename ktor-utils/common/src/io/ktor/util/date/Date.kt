@@ -1,11 +1,11 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.util.date
 
-import kotlinx.serialization.*
-import kotlin.time.*
+import kotlinx.serialization.Serializable
+import kotlin.time.Duration
 
 // According to: http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/time.h.html
 
@@ -82,7 +82,6 @@ public enum class Month(public val value: String) {
 
 /**
  * Date in GMT timezone
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.date.GMTDate)
  *

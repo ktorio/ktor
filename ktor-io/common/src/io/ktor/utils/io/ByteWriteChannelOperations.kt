@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.utils.io
@@ -45,7 +45,6 @@ public suspend fun ByteWriteChannel.writeFloat(value: Float) {
 
 /**
  * Writes a 64-bit floating-point value to the current [ByteWriteChannel].
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.writeDouble)
  *

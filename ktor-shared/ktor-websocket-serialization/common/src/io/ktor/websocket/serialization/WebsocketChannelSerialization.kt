@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.websocket.serialization
@@ -16,7 +16,6 @@ import io.ktor.websocket.*
  * If the [outgoing] channel is already closed, throws an exception, so it is impossible to transfer any message.
  * Frames sent after a Close frame are silently ignored.
  * Note that a Close frame could be sent automatically in reply to a peer's Close frame unless it is a raw WebSocket session.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.serialization.sendSerializedBase)
  *
@@ -37,7 +36,6 @@ public suspend inline fun <reified T> WebSocketSession.sendSerializedBase(
  * If the [outgoing] channel is already closed, throws an exception, so it is impossible to transfer any message.
  * Frames sent after a Close frame are silently ignored.
  * Note that a Close frame could be sent automatically in reply to a peer's Close frame unless it is a raw WebSocket session.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.serialization.sendSerializedBase)
  *
@@ -67,7 +65,6 @@ public suspend fun WebSocketSession.sendSerializedBase(
  * In this case, [WebsocketDeserializeException.frame] contains the received frame.
  * May throw [ClosedReceiveChannelException] if a channel was closed
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.serialization.receiveDeserializedBase)
  *
  * @param converter The WebSocket converter
@@ -87,7 +84,6 @@ public suspend inline fun <reified T> WebSocketSession.receiveDeserializedBase(
  * May throw [WebsocketDeserializeException] if the received frame type is not [Frame.Text] or [Frame.Binary].
  * In this case, [WebsocketDeserializeException.frame] contains the received frame.
  * May throw [ClosedReceiveChannelException] if a channel was closed
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.serialization.receiveDeserializedBase)
  *

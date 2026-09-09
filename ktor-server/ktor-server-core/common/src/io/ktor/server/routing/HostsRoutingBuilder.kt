@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.server.routing
 
@@ -14,7 +14,6 @@ import io.ktor.server.plugins.*
  *
  * When passes, it puts a request host and port into
  * call parameters by the [HostRouteSelector.HostNameParameter] and [HostRouteSelector.PortParameter] keys.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.host)
  *
@@ -32,7 +31,6 @@ public fun Route.host(host: String, port: Int = 0, build: Route.() -> Unit): Rou
  * When passes, it puts a request host and port into
  * call parameters by the [HostRouteSelector.HostNameParameter] and [HostRouteSelector.PortParameter] keys.
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.host)
  *
  * @param hostPattern is a  regular expression to match request host
@@ -48,7 +46,6 @@ public fun Route.host(hostPattern: Regex, port: Int = 0, build: Route.() -> Unit
  *
  * When passes, it puts request host and port into
  * call parameters by the [HostRouteSelector.HostNameParameter] and [HostRouteSelector.PortParameter] keys.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.host)
  *
@@ -71,7 +68,6 @@ public fun Route.host(
  *
  * When passes, it puts request host and port into
  * call parameters by the [HostRouteSelector.HostNameParameter] and [HostRouteSelector.PortParameter] keys.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.host)
  *
@@ -96,7 +92,6 @@ public fun Route.host(
  *
  * When passes, it puts a request host and port into
  * call parameters by the [HostRouteSelector.HostNameParameter] and [HostRouteSelector.PortParameter] keys.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.port)
  *

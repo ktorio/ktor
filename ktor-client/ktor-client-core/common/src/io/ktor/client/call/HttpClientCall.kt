@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.client.call
 
@@ -13,14 +13,15 @@ import io.ktor.http.content.*
 import io.ktor.util.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
-import kotlinx.atomicfu.*
-import kotlinx.coroutines.*
-import kotlin.coroutines.*
-import kotlin.reflect.*
+import kotlinx.atomicfu.AtomicBoolean
+import kotlinx.atomicfu.atomic
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancel
+import kotlin.coroutines.CoroutineContext
+import kotlin.reflect.KClass
 
 /**
  * A pair of a [request] and [response] for a specific [HttpClient].
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.call.HttpClientCall)
  *
@@ -80,7 +81,6 @@ public open class HttpClientCall(
      * Tries to receive the payload of the [response] as a specific expected type provided in [info].
      * Returns [response] if [info] corresponds to [HttpResponse].
      *
-     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.call.HttpClientCall.bodyNullable)
      *
      * @throws NoTransformationFoundException If no transformation is found for the type [info].
@@ -115,7 +115,6 @@ public open class HttpClientCall(
      * Tries to receive the payload of the [response] as a specific expected type provided in [info].
      * Returns [response] if [info] corresponds to [HttpResponse].
      *
-     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.call.HttpClientCall.body)
      *
      * @throws NoTransformationFoundException If no transformation is found for the type [info].
@@ -142,7 +141,6 @@ public open class HttpClientCall(
 /**
  * Tries to receive the payload of the [response] as a specific type [T].
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.call.body)
  *
  * @throws NoTransformationFoundException If no transformation is found for the type [T].
@@ -153,7 +151,6 @@ public suspend inline fun <reified T> HttpClientCall.body(): T = bodyNullable(ty
 /**
  * Tries to receive the payload of the [response] as a specific type [T].
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.call.body)
  *
  * @throws NoTransformationFoundException If no transformation is found for the type [T].
@@ -163,7 +160,6 @@ public suspend inline fun <reified T> HttpResponse.body(): T = call.bodyNullable
 
 /**
  * Tries to receive the payload of the [response] as a specific type [T] described in [typeInfo].
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.call.body)
  *

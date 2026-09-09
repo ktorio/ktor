@@ -10,7 +10,7 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.http3.*
 import io.ktor.util.network.*
 import io.ktor.util.pipeline.*
-import io.ktor.utils.io.ExperimentalKtorApi
+import io.ktor.utils.io.*
 import io.netty.bootstrap.Bootstrap
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.Channel
@@ -35,13 +35,11 @@ import io.netty.handler.codec.quic.QuicSslContext
 import io.netty.handler.codec.quic.QuicSslContextBuilder
 import kotlinx.coroutines.CompletableJob
 import kotlinx.coroutines.asCoroutineDispatcher
-import java.net.BindException
 import java.net.SocketOption
 import java.net.StandardSocketOptions
 import java.security.PrivateKey
 import java.security.cert.X509Certificate
 import java.util.concurrent.TimeUnit
-import kotlin.getValue
 import kotlin.reflect.KClass
 import kotlin.system.measureTimeMillis
 
@@ -195,6 +193,8 @@ public class NettyApplicationEngine(
          * to the HTTP/3 transport and have no effect on HTTP/1.1 or HTTP/2.
          *
          * Calling this function multiple times replaces the previous configuration.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.NettyApplicationEngine.Configuration.enableHttp3)
          */
         @ExperimentalKtorApi
         public fun enableHttp3(configure: NettyHttp3Configuration.() -> Unit = {}) {

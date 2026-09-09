@@ -117,6 +117,8 @@ public class AuthenticationScheme<P, C> @PublishedApi internal constructor(
         /**
          * Creates a [AuthenticationScheme] with principal type [P] and no additional context.
          *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.AuthenticationScheme.Companion.from)
+         *
          * @param provider named authentication provider used by the scheme.
          * @param onUnauthorized default failure handler, or `null` to use the provider challenge.
          * @return a simple typed authentication scheme with principal type [P].

@@ -15,28 +15,38 @@ import java.util.*
 /**
  * Represents a video capture device that can start and stop video recording.
  * Implementations should properly handle resource cleanup.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.media.VideoCapturer)
  */
 public interface VideoCapturer : AutoCloseable {
     /**
      * The underlying video track source that provides video frames.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.media.VideoCapturer.source)
      */
     public val source: VideoTrackSource
 
     /**
      * Starts video capture from this device.
      * This method should be called before the video source can produce frames.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.media.VideoCapturer.start)
      */
     public fun start()
 
     /**
      * Stops video capture from this device.
      * After calling this method, the video source will no longer produce frames.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.media.VideoCapturer.stop)
      */
     public fun stop()
 }
 
 /**
  * Factory for creating video capture devices based on the provided video track constraints.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.media.VideoFactory)
  */
 public interface VideoFactory {
     public fun createVideoCapturer(
@@ -49,15 +59,21 @@ public interface VideoFactory {
  *
  * This interface provides access to the audio device module and peer connection factory
  * (which are tightly bound in the `dev.onvoid.webrtc` library`).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.media.AudioFactory)
  */
 public interface AudioFactory : AutoCloseable {
     /**
      * The audio device module responsible for audio input/output operations.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.media.AudioFactory.audioModule)
      */
     public val audioModule: AudioDeviceModuleBase
 
     /**
      * The peer connection factory used for creating WebRTC peer connections and tracks.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.media.AudioFactory.peerConnectionFactory)
      */
     public val peerConnectionFactory: PeerConnectionFactory
 
@@ -68,6 +84,8 @@ public interface AudioFactory : AutoCloseable {
 
 /**
  * JVM implementation of MediaTrackFactory based `dev.onvoid.webrtc.media`.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.media.JvmMediaDevices)
  *
  * @param audioFactory The factory for creating audio-related components. Defaults to [DefaultAudioFactory].
  * @param videoFactory The factory for creating video capture devices. Defaults to [CameraVideoFactory].
@@ -81,6 +99,8 @@ public class JvmMediaDevices(
     /**
      * The peer connection factory used for creating WebRTC components.
      * This is provided by the configured [audioFactory].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.media.JvmMediaDevices.peerConnectionFactory)
      */
     public val peerConnectionFactory: PeerConnectionFactory
         get() = audioFactory.peerConnectionFactory
@@ -88,6 +108,8 @@ public class JvmMediaDevices(
     /**
      * The audio device module responsible for audio input/output operations.
      * This is provided by the configured [audioFactory].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.media.JvmMediaDevices.audioModule)
      */
     public val audioModule: AudioDeviceModuleBase
         get() = audioFactory.audioModule
@@ -104,6 +126,8 @@ public class JvmMediaDevices(
      * Ensures the audio recording device is started when the first audio track is created and stopped
      * when the `close()` method is called, though you can stop it manually by calling `audioModule.stopRecording()`.
      * Audio playout initialization should be done separately.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.media.JvmMediaDevices.createAudioTrack)
      */
     override suspend fun createAudioTrack(constraints: WebRtcMedia.AudioTrackConstraints): WebRtcMedia.AudioTrack {
         ensureRecordingAudio()
@@ -122,6 +146,8 @@ public class JvmMediaDevices(
      * - `facingMode` is not supported
      * - `aspectRatio` is not supported
      * - `resizeMode` is not supported
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.media.JvmMediaDevices.createVideoTrack)
      */
     override suspend fun createVideoTrack(constraints: WebRtcMedia.VideoTrackConstraints): WebRtcMedia.VideoTrack {
         require(constraints.facingMode == null) {

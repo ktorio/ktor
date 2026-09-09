@@ -39,11 +39,11 @@ private val TokenRefreshCacheEvictor = Executors.newSingleThreadScheduledExecuto
  * [introspectionBearer] is available when nested `bearer { introspection { } }` is configured.
  * [session] is available when the provider was configured with `oauth { }` and sessions were not disabled.
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcProvider)
+ *
  * @property name provider name. It is also used to derive default routes (`/oidc/{name}/...`), the OAuth scheme
  * name (`{name}-oauth`), Bearer scheme names (`{name}-jwt-bearer`, `{name}-introspection-bearer`), and the default
  * session cookie root (`{NAME}_SESSION`).
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcProvider)
  */
 @ExperimentalKtorApi
 public class OidcProvider internal constructor(
@@ -57,12 +57,16 @@ public class OidcProvider internal constructor(
      *
      * Used for OpenID Connect discovery (`<issuer>/.well-known/openid-configuration`) unless static
      * [OidcProviderConfig.metadata] was supplied, and as the expected `iss` claim when verifying tokens.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcProvider.issuer)
      */
     public val issuer: String = config.issuer
 
     /**
      * Returns the currently active OpenID Connect discovery metadata for this provider.
      * The returned value can change after a successful periodic discovery refresh.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcProvider.currentMetadata)
      *
      * @throws IllegalStateException when metadata has not been initialized yet.
      */
@@ -75,6 +79,8 @@ public class OidcProvider internal constructor(
      * Returns the currently active JWK provider for this provider.
      * The returned value can change after a successful periodic discovery refresh when the discovery document points
      * to a different JWKS URI.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcProvider.currentJwkProvider)
      *
      * @throws IllegalStateException when metadata has not been initialized yet.
      */
@@ -96,6 +102,8 @@ public class OidcProvider internal constructor(
      * Concurrent callers with the same refresh token share one token-endpoint request. After success, the result
      * remains available for [OidcProviderConfig.tokenRefreshCacheTtl] so stragglers reuse it.
      * [Duration.ZERO] coalesces in-flight work only.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcProvider.refreshToken)
      *
      * @param refreshToken Refresh token to send to the provider token endpoint.
      * @return Raw token response fields and an optional verified ID-token principal.
@@ -135,6 +143,8 @@ public class OidcProvider internal constructor(
      * Accepts only locally verified JWT access tokens.
      * Use with `authenticateWith(auth0.jwtBearer)` after [Oidc.identityProvider].
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcProvider.jwtBearer)
+     *
      * @throws IllegalStateException when the provider was not configured with `bearer { }`.
      */
     public val jwtBearer: SimpleAuthenticationScheme<OidcToken.Access> by lazy {
@@ -146,6 +156,8 @@ public class OidcProvider internal constructor(
      *
      * Sends any presented access token to RFC 7662 introspection, whether JWT-formatted or opaque.
      * Use with `authenticateWith(auth0.introspectionBearer)` after [Oidc.identityProvider].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcProvider.introspectionBearer)
      *
      * @throws IllegalStateException when the provider was not configured with `bearer { introspection { } }`.
      */
@@ -161,6 +173,8 @@ public class OidcProvider internal constructor(
      *
      * OpenID Connect stores the raw [OidcToken.Id] in a provider-specific session. Map it to an application
      * principal with [io.ktor.server.auth.mapPrincipal] when protecting routes.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcProvider.session)
      *
      * @throws IllegalStateException when OAuth sessions are not enabled (`oauth { }` was omitted or
      * [OidcOAuthConfig.disableSessions] was called).

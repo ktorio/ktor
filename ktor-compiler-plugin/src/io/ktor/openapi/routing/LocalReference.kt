@@ -1,8 +1,6 @@
 package io.ktor.openapi.routing
 
-import io.ktor.openapi.ir.CodeGenContext
-import io.ktor.openapi.ir.LambdaBuilderContext
-import io.ktor.openapi.ir.toConst
+import io.ktor.openapi.ir.*
 import org.jetbrains.kotlin.ir.declarations.IrDeclarationParent
 import org.jetbrains.kotlin.ir.expressions.IrConst
 import org.jetbrains.kotlin.ir.expressions.IrExpression
@@ -27,6 +25,8 @@ sealed interface LocalReference {
 
     /**
      * A string representation for matching against literal values found in the KDoc.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.routing.LocalReference.key)
      */
     val key: String?
 

@@ -45,7 +45,6 @@ public interface AuthProvider {
     /**
      * Refreshes a token if required.
      *
-     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.AuthProvider.refreshToken)
      *
      * @param response - response that triggered token refresh.

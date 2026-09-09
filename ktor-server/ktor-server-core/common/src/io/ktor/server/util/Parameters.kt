@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.util
@@ -25,10 +25,10 @@ import kotlin.reflect.KProperty
  * }
  * ```
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.util.getValue)
+ *
  * @throws MissingRequestParameterException if no values associated with name and [R] is not nullable
  * @throws ParameterConversionException when conversion from String to [R] fails
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.util.getValue)
  */
 public inline operator fun <reified R> Parameters.getValue(thisRef: Any?, property: KProperty<*>): R =
     getOrFail<R>(property.name)

@@ -1,14 +1,14 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.http.content
 
 import io.ktor.http.*
-import io.ktor.http.content.PartData.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 
 /**
  * Represents a multipart/form-data entry. Could be a [FormItem] or [FileItem].
@@ -166,7 +166,6 @@ public interface MultiPartData {
 
 /**
  * Transforms the multipart data stream into a [Flow] of [PartData].
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.content.asFlow)
  *

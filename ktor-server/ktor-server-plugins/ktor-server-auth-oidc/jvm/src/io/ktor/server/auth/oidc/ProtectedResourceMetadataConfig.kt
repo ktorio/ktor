@@ -12,10 +12,10 @@ import io.ktor.utils.io.*
  * Fields that can be auto-derived from provider configuration, such as [authorizationServers],
  * [scopesSupported], and [bearerMethodsSupported], are populated automatically unless explicitly overridden.
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.ProtectedResourceMetadataConfig)
+ *
  * @param resource The protected resource's identifier URL. It must be an HTTPS URL with a host,
  * no userinfo, no query, and no fragment.
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.ProtectedResourceMetadataConfig)
  */
 @ExperimentalKtorApi
 @KtorDsl
@@ -26,6 +26,8 @@ public class ProtectedResourceMetadataConfig internal constructor(
      * OAuth authorization server issuer identifiers trusted by this resource.
      *
      * When `null`, auto-derived from issuers of providers configured with `bearer { }`.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.ProtectedResourceMetadataConfig.authorizationServers)
      */
     public var authorizationServers: List<String>? = null
 
@@ -33,6 +35,8 @@ public class ProtectedResourceMetadataConfig internal constructor(
      * URL of the resource server's JWK Set document.
      *
      * When `null`, omitted from the metadata response.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.ProtectedResourceMetadataConfig.jwksUri)
      */
     public var jwksUri: String? = null
 
@@ -40,6 +44,8 @@ public class ProtectedResourceMetadataConfig internal constructor(
      * OAuth 2.0 scope values that this resource server understands.
      *
      * When `null`, auto-derived from the union of OAuth scopes on providers configured with `bearer { }`.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.ProtectedResourceMetadataConfig.scopesSupported)
      */
     public var scopesSupported: List<String>? = null
 
@@ -49,6 +55,8 @@ public class ProtectedResourceMetadataConfig internal constructor(
      * When `null`, auto-derived as `header` when at least one provider with `bearer { }` uses the default
      * `Authorization: Bearer` header extractor. Custom token extractors cannot be inferred; set this value
      * explicitly when a custom extractor reads tokens from another RFC 6750 location.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.ProtectedResourceMetadataConfig.bearerMethodsSupported)
      */
     public var bearerMethodsSupported: List<String>? = null
 
@@ -56,46 +64,64 @@ public class ProtectedResourceMetadataConfig internal constructor(
      * JWS algorithms supported by this resource server, excluding `none`.
      *
      * When `null`, omitted from the metadata response.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.ProtectedResourceMetadataConfig.resourceSigningAlgValuesSupported)
      */
     public var resourceSigningAlgValuesSupported: List<String>? = null
 
     /**
      * Human-readable name of the protected resource.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.ProtectedResourceMetadataConfig.resourceName)
      */
     public var resourceName: String? = null
 
     /**
      * URL of developer documentation for this resource.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.ProtectedResourceMetadataConfig.resourceDocumentation)
      */
     public var resourceDocumentation: String? = null
 
     /**
      * URL describing the resource's data usage requirements.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.ProtectedResourceMetadataConfig.resourcePolicyUri)
      */
     public var resourcePolicyUri: String? = null
 
     /**
      * URL of the resource's terms of service.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.ProtectedResourceMetadataConfig.resourceTosUri)
      */
     public var resourceTosUri: String? = null
 
     /**
      * Whether this resource requires TLS client certificate-bound access tokens.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.ProtectedResourceMetadataConfig.tlsClientCertificateBoundAccessTokens)
      */
     public var tlsClientCertificateBoundAccessTokens: Boolean? = null
 
     /**
      * Authorization details types supported per RFC 9396.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.ProtectedResourceMetadataConfig.authorizationDetailsTypesSupported)
      */
     public var authorizationDetailsTypesSupported: List<String>? = null
 
     /**
      * JWS algorithms supported for DPoP proof validation.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.ProtectedResourceMetadataConfig.dpopSigningAlgValuesSupported)
      */
     public var dpopSigningAlgValuesSupported: List<String>? = null
 
     /**
      * Whether this resource requires DPoP-bound access tokens.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.ProtectedResourceMetadataConfig.dpopBoundAccessTokensRequired)
      */
     public var dpopBoundAccessTokensRequired: Boolean? = null
 }

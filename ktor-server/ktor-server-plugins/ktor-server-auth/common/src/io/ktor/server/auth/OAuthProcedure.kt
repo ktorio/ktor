@@ -8,7 +8,7 @@ import io.ktor.client.*
 import io.ktor.server.application.*
 import io.ktor.util.*
 import io.ktor.util.logging.*
-import io.ktor.utils.io.InternalAPI
+import io.ktor.utils.io.*
 import kotlinx.coroutines.CancellationException
 
 private val Logger: Logger = KtorSimpleLogger("io.ktor.auth.oauth")
@@ -22,7 +22,6 @@ public val OAuthKey: Any = "OAuth"
 
 /**
  * An `OAuth` [Authentication] provider.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuthAuthenticationProvider)
  *

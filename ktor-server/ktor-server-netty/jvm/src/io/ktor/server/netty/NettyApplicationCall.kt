@@ -6,11 +6,14 @@ package io.ktor.server.netty
 
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
-import io.netty.buffer.*
-import io.netty.channel.*
-import io.netty.util.*
-import kotlinx.atomicfu.*
-import kotlinx.coroutines.*
+import io.netty.buffer.ByteBuf
+import io.netty.channel.ChannelFuture
+import io.netty.channel.ChannelHandlerContext
+import io.netty.channel.ChannelPromise
+import io.netty.util.ReferenceCountUtil
+import kotlinx.atomicfu.atomic
+import kotlinx.coroutines.CompletableJob
+import kotlinx.coroutines.Job
 
 public abstract class NettyApplicationCall(
     application: Application,
@@ -41,6 +44,8 @@ public abstract class NettyApplicationCall(
      * construction (from `processResponse`) and before the user handler coroutine is launched.
      * The deferred initialization is required because subclasses bind [coroutineContext] in their
      * own primary constructor, after the base class constructor has finished.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.NettyApplicationCall.responseWriteJob)
      */
     public lateinit var responseWriteJob: Job
         private set

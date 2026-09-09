@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.testing
@@ -8,11 +8,10 @@ import io.ktor.http.*
 import io.ktor.server.engine.*
 import io.ktor.server.request.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
 
 /**
  * A test application request
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplicationRequest)
  *

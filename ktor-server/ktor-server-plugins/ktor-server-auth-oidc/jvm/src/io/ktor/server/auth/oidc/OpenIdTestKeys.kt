@@ -62,10 +62,10 @@ import java.time.Instant as JavaInstant
  *
  * HMAC algorithms are intentionally unsupported.
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OpenIdTestKeys)
+ *
  * @property keyId key ID written to token headers and exposed by the generated JWK.
  * @property algorithm signing algorithm used by the public token helpers.
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OpenIdTestKeys)
  */
 @ExperimentalKtorApi
 public class OpenIdTestKeys internal constructor(
@@ -106,6 +106,8 @@ public class OpenIdTestKeys internal constructor(
      *
      * Use [OidcProviderConfig.jwt] with this [OpenIdTestKeys] instance for the common test setup. Access this provider
      * directly only for tests that need custom JWK provider behavior.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OpenIdTestKeys.jwkProvider)
      */
     public val jwkProvider: JwkProvider = JwkProvider { requestedKeyId ->
         require(requestedKeyId == null || requestedKeyId == keyId) {
@@ -119,12 +121,12 @@ public class OpenIdTestKeys internal constructor(
      *
      * Uses [defaultIssuer] and [defaultAudience] when set at key creation. Override per token in [configure].
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OpenIdTestKeys.accessToken)
+     *
      * @param configure additional token claims to be included.
      * @return signed access token.
      * @throws IllegalArgumentException when issuer or audience is missing, or when a custom claim value cannot be
      * represented as a JSON claim.
-     *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OpenIdTestKeys.accessToken)
      */
     public fun accessToken(configure: OpenIdTestAccessTokenBuilder.() -> Unit = {}): String {
         val builder = OpenIdTestAccessTokenBuilder(defaultIssuer, defaultAudience, keyId).apply(configure)
@@ -136,13 +138,13 @@ public class OpenIdTestKeys internal constructor(
      *
      * Uses [defaultIssuer] and [defaultAudience] when set at key creation. Override per token in [configure].
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OpenIdTestKeys.idToken)
+     *
      * @param subject token subject.
      * @param configure additional token claims to be included.
      * @return signed ID token.
      * @throws IllegalArgumentException when issuer or audience is missing, or when a custom claim value cannot be
      * represented as a JSON claim.
-     *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OpenIdTestKeys.idToken)
      */
     public fun idToken(subject: String, configure: OpenIdTestIdTokenBuilder.() -> Unit = {}): String {
         val builder = OpenIdTestIdTokenBuilder(defaultIssuer, defaultAudience, subject, keyId).apply(configure)
@@ -158,14 +160,14 @@ public class OpenIdTestKeys internal constructor(
         /**
          * Generates an RSA key pair for OIDC tests.
          *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OpenIdTestKeys.Companion.rsa)
+         *
          * @param keyId key ID written to token headers and exposed by the generated JWK.
          * @param algorithm RSA signature algorithm used by [OpenIdTestKeys.accessToken] and [OpenIdTestKeys.idToken].
          * @param issuer default token issuer for [OpenIdTestKeys.accessToken] and [OpenIdTestKeys.idToken].
          * @param audience default token audience for [OpenIdTestKeys.accessToken] and [OpenIdTestKeys.idToken].
          * @return generated test keys.
          * @throws IllegalArgumentException if [algorithm] is not an RSA signature algorithm.
-         *
-         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OpenIdTestKeys.rsa)
          */
         public fun rsa(
             keyId: String = "kid-1",
@@ -183,14 +185,14 @@ public class OpenIdTestKeys internal constructor(
         /**
          * Generates an EC key pair for OIDC tests.
          *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OpenIdTestKeys.Companion.ec)
+         *
          * @param keyId key ID written to token headers and exposed by the generated JWK.
          * @param algorithm ECDSA signature algorithm used by [OpenIdTestKeys.accessToken] and [OpenIdTestKeys.idToken].
          * @param issuer default token issuer for [OpenIdTestKeys.accessToken] and [OpenIdTestKeys.idToken].
          * @param audience default token audience for [OpenIdTestKeys.accessToken] and [OpenIdTestKeys.idToken].
          * @return generated test keys.
          * @throws IllegalArgumentException if [algorithm] is not an EC signature algorithm.
-         *
-         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OpenIdTestKeys.ec)
          */
         public fun ec(
             keyId: String = "kid-1",
@@ -228,26 +230,36 @@ public abstract class OpenIdTestTokenBuilder internal constructor(
 
     /**
      * Issued-at timestamp. Defaults to builder creation time.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OpenIdTestTokenBuilder.issuedAt)
      */
     public var issuedAt: Instant? = Clock.System.now()
 
     /**
      * Expiration timestamp. Defaults to one hour after builder creation time.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OpenIdTestTokenBuilder.expiresAt)
      */
     public var expiresAt: Instant? = issuedAt?.plus(1.hours)
 
     /**
      * Not-before timestamp.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OpenIdTestTokenBuilder.notBefore)
      */
     public var notBefore: Instant? = null
 
     /**
      * JWT ID.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OpenIdTestTokenBuilder.jwtId)
      */
     public var jwtId: String? = null
 
     /**
      * Email claim.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OpenIdTestTokenBuilder.email)
      */
     public var email: String?
         get() = claims["email"] as? String
@@ -257,6 +269,8 @@ public abstract class OpenIdTestTokenBuilder internal constructor(
 
     /**
      * Display name claim.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OpenIdTestTokenBuilder.name)
      */
     public var name: String?
         get() = claims["name"] as? String
@@ -271,6 +285,8 @@ public abstract class OpenIdTestTokenBuilder internal constructor(
      *
      * Supported values are `null`, strings, booleans, numbers, [Instant], [Date], maps with string keys, arrays,
      * and iterables containing supported values.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OpenIdTestTokenBuilder.claim)
      *
      * @param name claim name.
      * @param value claim value.
@@ -319,6 +335,8 @@ public class OpenIdTestAccessTokenBuilder internal constructor(
 ) : OpenIdTestTokenBuilder(issuer, audience, subject = null, keyId = keyId) {
     /**
      * OAuth client ID claim.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OpenIdTestAccessTokenBuilder.clientId)
      */
     public var clientId: String?
         get() = claims["client_id"] as? String
@@ -342,6 +360,8 @@ public class OpenIdTestIdTokenBuilder internal constructor(
 ) : OpenIdTestTokenBuilder(issuer, audience, subject, keyId) {
     /**
      * Nonce claim used by OIDC authorization-code replay protection.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OpenIdTestIdTokenBuilder.nonce)
      */
     public var nonce: String?
         get() = claims["nonce"] as? String
@@ -349,6 +369,8 @@ public class OpenIdTestIdTokenBuilder internal constructor(
 
     /**
      * `at_hash` claim.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OpenIdTestIdTokenBuilder.atHash)
      */
     public var atHash: String?
         get() = claims["at_hash"] as? String

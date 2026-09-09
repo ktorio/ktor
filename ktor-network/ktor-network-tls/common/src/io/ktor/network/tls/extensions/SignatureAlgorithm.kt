@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.network.tls.extensions
@@ -72,7 +72,6 @@ public enum class SignatureAlgorithm(public val code: Byte) {
 
 /**
  * Hash and signature algorithm pair
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.extensions.HashAndSign)
  *

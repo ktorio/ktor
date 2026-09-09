@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.plugins.cachingheaders
@@ -26,7 +26,6 @@ public class CachingHeadersConfig {
 
     /**
      * Provides caching options for a given [ApplicationCall] and [OutgoingContent].
-     *
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.cachingheaders.CachingHeadersConfig.options)
      *

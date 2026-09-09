@@ -141,7 +141,7 @@ internal typealias SessionCallbackSuccessHandler<S, P> =
  *
  * Used by [oauth2] to configure the OAuth provider, callback route, and login route.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuthFlowConfig)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuth2FlowConfig)
  */
 @KtorDsl
 @ExperimentalKtorApi
@@ -154,7 +154,7 @@ public class OAuth2FlowConfig internal constructor() : OAuthFlowConfigBase() {
      * The redirect URI sent to the OAuth provider is derived automatically from [path].
      * The initial OAuth redirect is triggered by visiting [loginPath], not this route.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuthFlowConfig.callback)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuth2FlowConfig.callback)
      *
      * @param path route path that receives the provider callback with authorization code and state.
      * @param onSuccess handler invoked after OAuth token exchange succeeds. Receives the token response as its
@@ -300,7 +300,7 @@ public typealias OAuth2Scheme = SimpleAuthenticationScheme<OAuthAccessTokenRespo
  * [oauth2] handles login entirely in the callback handler, while [oauth2Session] exposes [OAuth2SessionFlow.session]
  * for use with [authenticateWith].
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuthFlow)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuth2Flow)
  */
 @ExperimentalKtorApi
 public open class OAuth2Flow internal constructor(
@@ -313,6 +313,8 @@ public open class OAuth2Flow internal constructor(
 
         /**
          * Creates an OAuth 2.0 flow from a configured Ktor OAuth provider.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuth2Flow.Companion.from)
          */
         @InternalAPI
         public fun from(name: String, config: OAuth2FlowConfig): OAuth2Flow {
@@ -353,11 +355,11 @@ private fun createOauthScheme(name: String, config: OAuthFlowConfigBase): OAuth2
  * Unauthenticated requests to the callback path or [OAuthFlowConfigBase.loginPath] redirect to the OAuth provider.
  * Routes protected with [session] require an existing session and respond with `401 Unauthorized` when it is missing.
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuth2SessionFlow)
+ *
  * @param S the session type stored by the [Sessions] plugin.
  * @param P the principal type available in protected route handlers.
  * @property session typed session authentication scheme used with [authenticateWith].
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuth2SessionFlow)
  */
 @ExperimentalKtorApi
 public class OAuth2SessionFlow<S : Any, P : Any> internal constructor(
@@ -380,6 +382,8 @@ public class OAuth2SessionFlow<S : Any, P : Any> internal constructor(
          * Creates a session-backed OAuth 2.0 flow from [OAuthSessionFlowConfig].
          *
          * This API is intended for integrations that need explicit session and principal type information.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.OAuth2SessionFlow.Companion.from)
          *
          * @param name flow name used to derive authentication provider names.
          * @param config OAuth session flow configuration.

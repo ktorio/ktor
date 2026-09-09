@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.config.yaml
@@ -19,7 +19,6 @@ internal const val DEFAULT_YAML_FILENAME = "application.yaml"
 public class YamlConfigLoader : ConfigLoader {
     /**
      * Tries loading an application configuration from the specified [path].
-     *
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.config.yaml.YamlConfigLoader.load)
      *

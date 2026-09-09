@@ -14,6 +14,8 @@ public class CIOEngineContainer : HttpClientEngineContainer {
 
     /**
      * CIO engine is often used in common sources, so it has a lower priority than stronger, platform-specific engines.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.cio.CIOEngineContainer.priority)
      */
     override val priority: Double get() = 0.0
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.application
@@ -29,7 +29,6 @@ public open class CallContext<PluginConfig : Any> internal constructor(
  * A context associated with the call handling by your application. [OnCallContext] is a receiver for [PluginBuilder.onCall] handler
  * of your [PluginBuilder].
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.OnCallContext)
  *
  * @see CallContext
@@ -51,7 +50,6 @@ public class TransformBodyContext(public val requestedType: TypeInfo?)
 /**
  * A context associated with the call.receive() action. Allows you to transform the received body.
  * [OnCallReceiveContext] is a receiver for [PluginBuilder.onCallReceive] handler of your [PluginBuilder].
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.OnCallReceiveContext)
  *
@@ -80,7 +78,6 @@ public class OnCallReceiveContext<PluginConfig : Any> internal constructor(
 /**
  *  A context associated with the call.respond() action. Allows you to transform the response body.
  *  [OnCallRespondContext] is a receiver for [PluginBuilder.onCallRespond] handler of your [PluginBuilder].
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.OnCallRespondContext)
  *
