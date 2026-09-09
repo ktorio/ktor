@@ -1,22 +1,25 @@
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
+import java.nio.file.Path
 import kotlin.io.path.Path
+import kotlin.io.path.copyTo
+import kotlin.io.path.readText
+import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class IntegrationTest {
     @Test
-    fun testLockFreeLinkedList() {
+    fun `annotate KDocs in LockFreeLinkedList`(@TempDir temporaryDirectory: Path) {
+        val raw = Path("./src/test/test-data/LockFreeLinkedList.raw.kt")
+        val expected = Path("./src/test/test-data/LockFreeLinkedList.expected.txt").readText()
+        val source = raw.copyTo(temporaryDirectory.resolve(raw.fileName))
 
-        val projectSources = "./src/test/test-data"
-        val link = "https://ktor.io/feedback"
-
-
-        val path = Path("../")
-
-        forEachKtFileInDirectory(Path(projectSources)) { ktFile, path ->
-            annotatePublicApiKDocs(ktFile, path, link)
+        forEachKtFileInDirectory(temporaryDirectory) { ktFile, path ->
+            annotatePublicApiKDocs(ktFile, path, "https://ktor.io/feedback/")
         }
-        
+
+        assertEquals(expected, source.readText())
     }
 
     @Test

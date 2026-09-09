@@ -40,11 +40,15 @@ public typealias RemoveFirstDesc<T> = LockFreeLinkedListNode.RemoveFirstDesc<T>
 
 /**
  * @suppress **This is unstable API and it is subject to change.**
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.internal.AddLastDesc)
  */
 public typealias AddLastDesc<T> = LockFreeLinkedListNode.AddLastDesc<T>
 
 /**
  * @suppress **This is unstable API and it is subject to change.**
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.internal.AbstractAtomicDesc)
  */
 public typealias AbstractAtomicDesc = LockFreeLinkedListNode.AbstractAtomicDesc
 
@@ -63,7 +67,7 @@ public abstract class OpDescriptor {
      * Returns `null` is operation was performed successfully or some other
      * object that indicates the failure reason.
      *
-     * [Report a problem](https://ktor.io/feedback?fqname=io.ktor.util.internal.OpDescriptor.perform)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.internal.OpDescriptor.perform)
      */
     public abstract fun perform(affected: Any?): Any?
 }
@@ -227,7 +231,7 @@ public open class LockFreeLinkedListNode {
     /**
      * Adds last item to this list.
      *
-     * [Report a problem](https://ktor.io/feedback?fqname=io.ktor.util.internal.LockFreeLinkedListNode.addLast)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.internal.LockFreeLinkedListNode.addLast)
      */
     public fun addLast(node: Node) {
         while (true) { // lock-free loop on prev.next
@@ -241,7 +245,7 @@ public open class LockFreeLinkedListNode {
     /**
      * Adds last item to this list atomically if the [condition] is true.
      *
-     * [Report a problem](https://ktor.io/feedback?fqname=io.ktor.util.internal.LockFreeLinkedListNode.addLastIf)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.internal.LockFreeLinkedListNode.addLastIf)
      */
     public inline fun addLastIf(node: Node, crossinline condition: () -> Boolean): Boolean {
         val condAdd = makeCondAddOp(node, condition)
@@ -334,7 +338,7 @@ public open class LockFreeLinkedListNode {
      * In particular, invoking [nextNode].[prevNode] might still return this node even though it is "already removed".
      * Invoke [helpRemove] to make sure that remove was completed.
      *
-     * [Report a problem](https://ktor.io/feedback?fqname=io.ktor.util.internal.LockFreeLinkedListNode.remove)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.internal.LockFreeLinkedListNode.remove)
      */
     public open fun remove(): Boolean {
         while (true) { // lock-free loop on next
@@ -792,7 +796,7 @@ public open class LockFreeLinkedListHead : LockFreeLinkedListNode() {
     /**
      * Iterates over all elements in this list of a specified type.
      *
-     * [Report a problem](https://ktor.io/feedback?fqname=io.ktor.util.internal.LockFreeLinkedListHead.forEach)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.internal.LockFreeLinkedListHead.forEach)
      */
     public inline fun <reified T : Node> forEach(block: (T) -> Unit) {
         var cur: Node = next as Node
