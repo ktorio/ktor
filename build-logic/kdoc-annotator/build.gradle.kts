@@ -16,6 +16,10 @@ tasks.test {
     useJUnitPlatform()
 }
 
+tasks.run.configure {
+    args(rootProject.projectDir.parentFile, "https://ktor.io/feedback/")
+}
+
 kotlin {
     jvmToolchain(21)
 }

@@ -15,5 +15,11 @@ printSyncModeNotice()
 
 wirePackageJsonAggregationTasks()
 
+tasks.register("annotateKDocs") {
+    group = "documentation"
+    description = "Adds feedback links to public API KDocs."
+    dependsOn(gradle.includedBuild("build-logic").task(":kdoc-annotator:run"))
+}
+
 configureYarn()
 configureNodeJs()

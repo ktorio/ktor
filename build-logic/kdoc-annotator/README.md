@@ -8,6 +8,8 @@ This tool was originally developed in [e5l/kdoc-annotator](https://github.com/e5
 
 ## Usage
 
+Run from the Ktor repository root:
+
 ```shell
-./gradlew run --args="path/to/project link"
+./gradlew annotateKDocs
 ```
