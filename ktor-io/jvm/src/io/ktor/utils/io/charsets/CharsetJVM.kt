@@ -6,7 +6,6 @@ package io.ktor.utils.io.charsets
 
 import io.ktor.utils.io.core.*
 import kotlinx.io.*
-import kotlinx.io.bytestring.*
 import java.nio.*
 
 @Suppress("ACTUAL_CLASSIFIER_MUST_HAVE_THE_SAME_MEMBERS_AS_NON_FINAL_EXPECT_CLASSIFIER_WARNING")
@@ -79,15 +78,16 @@ public actual typealias CharsetDecoder = java.nio.charset.CharsetDecoder
 public actual val CharsetDecoder.charset: Charset get() = charset()!!
 
 public actual fun CharsetDecoder.decode(input: Source, dst: Appendable, max: Int): Int {
-    if (charset == Charsets.UTF_8) {
-        return input.readString().also { dst.append(it) }.length
-    }
-    // ensure buffer is filled
     val maxBytes = max.toLong()
+    // ensure buffer is filled
     input.request(maxBytes)
-    val count = minOf(input.remaining, maxBytes)
-    dst.append(input.readString(count, charset))
-    return count.toInt()
+    val byteCount = minOf(input.remaining, maxBytes)
+    val csq = when (charset) {
+        Charsets.UTF_8 -> input.readString(byteCount)
+        else -> input.readString(byteCount, charset)
+    }
+    dst.append(csq)
+    return csq.length
 }
 
 // ----------------------------------

@@ -77,6 +77,14 @@ public fun CharsetDecoder.decode(input: Source, max: Int = Int.MAX_VALUE): Strin
     decode(input, this, max)
 }
 
+/**
+ * Decodes the data from the given source and appends the result to the specified destination.
+ *
+ * @param input The source from which the data is read.
+ * @param dst The Appendable instance where the decoded data is appended.
+ * @param max The maximum number of bytes to decode.
+ * @return The number of characters consumed from the source.
+ */
 public expect fun CharsetDecoder.decode(input: Source, dst: Appendable, max: Int): Int
 
 // ----------------------------- REGISTRY ------------------------------------------------------------------------------
