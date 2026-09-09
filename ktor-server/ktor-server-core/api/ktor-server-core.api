@@ -527,6 +527,7 @@ public abstract class io/ktor/server/engine/BaseApplicationResponse : io/ktor/se
 	protected abstract fun respondUpgrade (Lio/ktor/http/content/OutgoingContent$ProtocolUpgrade;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	protected fun respondWriteChannelContent (Lio/ktor/http/content/OutgoingContent$WriteChannelContent;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	protected abstract fun responseChannel (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	protected final fun setSent (Z)V
 	protected abstract fun setStatus (Lio/ktor/http/HttpStatusCode;)V
 	public fun status ()Lio/ktor/http/HttpStatusCode;
 	public fun status (Lio/ktor/http/HttpStatusCode;)V
