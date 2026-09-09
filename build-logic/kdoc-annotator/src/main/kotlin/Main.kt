@@ -1,3 +1,9 @@
+/*
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
+package ktorbuild.kdoc
+
 import java.nio.file.Path
 import kotlin.io.path.Path as createPath
 
@@ -13,7 +19,7 @@ fun main(args: Array<String>) {
     updateKDocsInDirectory(createPath(projectSources), link)
 }
 
-fun updateKDocsInDirectory(directory: Path, link: String) {
+private fun updateKDocsInDirectory(directory: Path, link: String) {
     forEachKtFileInDirectory(directory) { ktFile, path ->
         if (path.isInTestSourceSet()) {
             removeFeedbackLinksFromKDocs(ktFile, path)
@@ -34,7 +40,7 @@ internal fun Path.isInTestSourceSet(): Boolean {
         }
 }
 
-fun printHelp() {
+private fun printHelp() {
     println("KDoc annotator is a tool to add a feedback link for the KDoc documentation if this link is not present yet.")
     println("Usage:")
     println("kdoc-annotator <path-to-project sources> <link>")
