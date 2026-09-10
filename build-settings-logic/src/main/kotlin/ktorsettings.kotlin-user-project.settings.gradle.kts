@@ -21,7 +21,7 @@ import org.jetbrains.kotlin.gradle.dsl.*
  * Ktor Train:
  *   All the above properties are applied, and:
  *   - `build_snapshot_train` is set to true
- *   - `atomicfu_version`, `coroutines_version` and `serialization_version` are defined in TeamCity environment
+ *   - `coroutines_version` and `serialization_version` are defined in TeamCity environment
  *   - Additionally, some tests are disabled.
  *
  * DO NOT change the names of these properties without adapting kotlinx.train build chain.
@@ -136,7 +136,6 @@ private fun VersionCatalogBuilder.overrideKotlinxVersions() {
         version(name, version)
     }
 
-    overrideVersion("atomicfu")
     overrideVersion("coroutines")
     overrideVersion("serialization")
 }
