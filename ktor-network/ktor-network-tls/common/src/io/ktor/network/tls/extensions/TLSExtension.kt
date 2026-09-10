@@ -27,7 +27,8 @@ public enum class TLSExtensionType(public val code: Short) {
          * Find an instance of [TLSExtensionType] by its numeric [code], or return `null` if the code is
          * not a known extension type.
          */
-        public fun byCodeOrNull(code: Int): TLSExtensionType? = entries.find { it.code == code.toShort() }
+        public fun byCodeOrNull(code: Int): TLSExtensionType? =
+            if (code in 0..0xffff) entries.find { it.code == code.toShort() } else null
     }
 }
 
