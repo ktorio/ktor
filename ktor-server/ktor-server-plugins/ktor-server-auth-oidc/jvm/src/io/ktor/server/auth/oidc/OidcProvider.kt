@@ -109,6 +109,8 @@ public class OidcProvider internal constructor(
      * @return Raw token response fields and an optional verified ID-token principal.
      * @throws IllegalStateException when OAuth is not enabled.
      * @throws OidcTokenRejectedException when tokens in the refresh response fail validation.
+     * @throws OidcSigningKeyUnavailableException when the ID token in the refresh response cannot be verified
+     * because the JWKS is unavailable.
      * @throws io.ktor.client.plugins.ResponseException when the provider rejects the request, for example,
      * with an `invalid_grant` error response.
      */
