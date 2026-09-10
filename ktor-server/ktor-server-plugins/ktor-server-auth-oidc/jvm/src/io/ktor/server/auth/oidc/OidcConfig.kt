@@ -349,6 +349,9 @@ public class OidcJwtConfig internal constructor() {
     /**
      * Configures rate limiting for JWKS endpoint requests.
      *
+     * Exhausting the bucket fails the request with [OidcSigningKeyUnavailableException] rather than rejecting the
+     * token, so size it for peak cache-miss traffic.
+     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcJwtConfig.jwkRateLimit)
      *
      * @param bucketSize the maximum number of requests allowed in the time window, defaults to 10.

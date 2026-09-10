@@ -196,6 +196,11 @@ public final class io/ktor/server/auth/oidc/OidcSessionsConfig {
 	public final fun setTokenRefreshStrategy (Lio/ktor/server/auth/oidc/OidcTokenRefreshStrategy;)V
 }
 
+public final class io/ktor/server/auth/oidc/OidcSigningKeyUnavailableException : java/lang/RuntimeException {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+}
+
 public final class io/ktor/server/auth/oidc/OidcStateEncryptionKey {
 	public static final field Companion Lio/ktor/server/auth/oidc/OidcStateEncryptionKey$Companion;
 	public static final field KEY_SIZE I
@@ -359,7 +364,8 @@ public final class io/ktor/server/auth/oidc/OidcTokenRefreshStrategy$Disabled : 
 }
 
 public final class io/ktor/server/auth/oidc/OidcTokenRejectedException : java/lang/RuntimeException {
-	public fun <init> (Ljava/lang/String;)V
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
+	public fun getCause ()Ljava/lang/Throwable;
 	public fun getMessage ()Ljava/lang/String;
 }
 
