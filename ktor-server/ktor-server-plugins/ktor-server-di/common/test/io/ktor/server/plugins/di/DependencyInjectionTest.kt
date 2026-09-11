@@ -234,6 +234,39 @@ class DependencyInjectionTest {
     }
 
     @Test
+    fun `KTOR-9889 covariant key's Missing placeholder starts the providing initializer`() = runTest {
+        val map: DependencyInitializerMap = mutableMapOf()
+        val provider = MapDependencyProvider(
+            map = map,
+            keyMapping = DefaultKeyCovariance,
+            conflictPolicy = DefaultConflictPolicy,
+            onConflict = { throw DuplicateDependencyException(it) },
+        )
+        val resolver = MapDependencyResolver(
+            map = map,
+            extension = DependencyMap.EMPTY,
+            reflection = NoReflection,
+            waitForValues = true,
+            coroutineScope = CoroutineScope(Dispatchers.Unconfined),
+        )
+
+        // Resolving the supertype key before anything provides it creates a Missing placeholder.
+        resolver.getDeferred<GreetingService>(DependencyKey<GreetingService>())
+
+        // Providing a concrete impl under its OWN key - the ordinary provide<Impl> pattern - means
+        // the Missing placeholder lives on the covariant key that insertCovariantKeys populates,
+        // not the concrete key trySet handles directly. That covariant Missing's provide() must
+        // still result in the initializer actually starting, not just being wired for completion.
+        var started = false
+        provider.set(DependencyKey<BankGreetingService>()) {
+            started = true
+            BankGreetingService()
+        }
+
+        assertTrue(started, "expected the covariant-Missing initializer to have been started")
+    }
+
+    @Test
     fun basic() = runTestDI {
         dependencies {
             provide<GreetingService> { GreetingServiceImpl() }
