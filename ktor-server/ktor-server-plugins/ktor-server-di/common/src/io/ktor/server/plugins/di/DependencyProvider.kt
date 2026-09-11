@@ -6,6 +6,7 @@ package io.ktor.server.plugins.di
 
 import io.ktor.server.plugins.di.DependencyConflictResult.*
 import io.ktor.util.logging.*
+import kotlinx.coroutines.Deferred
 import kotlin.coroutines.CoroutineContext
 
 /**
@@ -82,24 +83,23 @@ internal class MapDependencyProvider(
     override fun <T> set(key: DependencyKey, value: suspend DependencyResolver.() -> T) {
         val create = DependencyInitializer.Explicit(key, value)
         log.debug { "Provided $key ${DependencyReference().externalTraceLine()}" }
-        trySet(key, create)
-        insertCovariantKeys(create, key)
+        listOfNotNull(
+            trySet(key, create),
+            *insertCovariantKeys(create, key).toTypedArray()
+        ).forEach {
+            it.start()
+        }
     }
 
-    private fun trySet(key: DependencyKey, newFunction: DependencyInitializer) {
-        val previous = map[key]
-        if (previous is DependencyInitializer.Missing) {
-            // The map must see newFunction before previous.provide() can start resolving it -
-            // provide() may synchronously trigger dispatch of newFunction's initializer, and that
-            // initializer resolving this same key must observe the replacement, not the stale
-            // Missing placeholder it would otherwise await forever.
-            map[key] = newFunction
-            previous.provide(newFunction)
-            return
-        }
-
-        map[key] = when (previous) {
+    private fun trySet(key: DependencyKey, newFunction: DependencyInitializer): Deferred<Any?>? {
+        var deferred: Deferred<Any?>? = null
+        map[key] = when (val previous = map[key]) {
             null -> newFunction
+
+            is DependencyInitializer.Missing -> {
+                deferred = previous.provide(newFunction)
+                newFunction
+            }
 
             else -> when (val result = resolveConflict(previous, newFunction)) {
                 Ambiguous ->
@@ -114,6 +114,7 @@ internal class MapDependencyProvider(
                 is Replace -> result.function
             }
         }
+        return deferred
     }
 
     private fun resolveConflict(
@@ -128,10 +129,10 @@ internal class MapDependencyProvider(
     private fun insertCovariantKeys(
         createFunction: DependencyInitializer.Explicit,
         key: DependencyKey
-    ) {
+    ): List<Deferred<Any?>> {
         val covariantKeys = keyMapping.map(key, 0).toList()
         log.trace { "Covariant keys: ${formatKeys(covariantKeys)}" }
-        for ((key, distance) in covariantKeys) {
+        return covariantKeys.mapNotNull { (key, distance) ->
             trySet(key, createFunction.derived(distance))
         }
     }
