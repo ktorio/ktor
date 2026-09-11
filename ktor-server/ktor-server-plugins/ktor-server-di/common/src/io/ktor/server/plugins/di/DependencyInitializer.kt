@@ -194,7 +194,10 @@ public sealed interface DependencyInitializer {
          */
         public fun provide(other: DependencyInitializer) {
             if (delegate.compareAndSet(null, other)) {
-                deferred.completeWith(other.resolve(resolver))
+                val otherDeferred = other.resolve(resolver)
+                // Start the provided Explicit to avoid a potential deadlock (KTOR-9889)
+                otherDeferred.start()
+                deferred.completeWith(otherDeferred)
             }
         }
 
