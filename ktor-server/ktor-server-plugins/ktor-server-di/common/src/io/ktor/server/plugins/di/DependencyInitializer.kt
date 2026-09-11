@@ -185,14 +185,11 @@ public sealed interface DependencyInitializer {
 
         override fun resolve(resolver: DependencyResolver): Deferred<Any?> = deferred
 
-        /**
-         * We pipe the result of the provided function into the current function.
-         *
-         * This allows for suspending consumers to wait for a provider to supply a true function.
-         *
-         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyInitializer.Missing.provide)
-         */
-        public fun provide(other: DependencyInitializer): Deferred<Any?> {
+        public fun provide(other: DependencyInitializer) {
+            provideReturning(other).start()
+        }
+
+        internal fun provideReturning(other: DependencyInitializer): Deferred<Any?> {
             if (delegate.compareAndSet(null, other.resolve(resolver))) {
                 deferred.completeWith(delegate.value!!)
             }

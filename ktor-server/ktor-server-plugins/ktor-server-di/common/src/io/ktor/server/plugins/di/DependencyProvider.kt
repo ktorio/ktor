@@ -97,7 +97,7 @@ internal class MapDependencyProvider(
             null -> newFunction
 
             is DependencyInitializer.Missing -> {
-                deferred = previous.provide(newFunction)
+                deferred = previous.provideReturning(newFunction)
                 newFunction
             }
 
