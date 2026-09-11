@@ -37,8 +37,15 @@ public enum class HashAlgorithm(public val code: Byte, public val openSSLName: S
          *
          * @throws TLSException if no hash algorithm found by code
          */
-        public fun byCode(code: Byte): HashAlgorithm = entries.find { it.code == code }
-            ?: throw TLSException("Unknown hash algorithm: $code")
+        public fun byCode(code: Byte): HashAlgorithm =
+            byCodeOrNull(code) ?: throw TLSException("Unknown hash algorithm: $code")
+
+        /**
+         * Find hash algorithm instance by its numeric [code], or return `null` if the code is unknown
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.extensions.HashAlgorithm.Companion.byCodeOrNull)
+         */
+        public fun byCodeOrNull(code: Byte): HashAlgorithm? = entries.find { it.code == code }
     }
 }
 

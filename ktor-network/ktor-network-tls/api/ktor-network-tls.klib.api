@@ -30,6 +30,7 @@ final enum class io.ktor.network.tls.extensions/HashAlgorithm : kotlin/Enum<io.k
 
     final object Companion { // io.ktor.network.tls.extensions/HashAlgorithm.Companion|null[0]
         final fun byCode(kotlin/Byte): io.ktor.network.tls.extensions/HashAlgorithm // io.ktor.network.tls.extensions/HashAlgorithm.Companion.byCode|byCode(kotlin.Byte){}[0]
+        final fun byCodeOrNull(kotlin/Byte): io.ktor.network.tls.extensions/HashAlgorithm? // io.ktor.network.tls.extensions/HashAlgorithm.Companion.byCodeOrNull|byCodeOrNull(kotlin.Byte){}[0]
     }
 }
 
@@ -131,6 +132,7 @@ final enum class io.ktor.network.tls.extensions/TLSExtensionType : kotlin/Enum<i
 
     final object Companion { // io.ktor.network.tls.extensions/TLSExtensionType.Companion|null[0]
         final fun byCode(kotlin/Int): io.ktor.network.tls.extensions/TLSExtensionType // io.ktor.network.tls.extensions/TLSExtensionType.Companion.byCode|byCode(kotlin.Int){}[0]
+        final fun byCodeOrNull(kotlin/Int): io.ktor.network.tls.extensions/TLSExtensionType? // io.ktor.network.tls.extensions/TLSExtensionType.Companion.byCodeOrNull|byCodeOrNull(kotlin.Int){}[0]
     }
 }
 
