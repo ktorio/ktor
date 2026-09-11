@@ -16,6 +16,7 @@ import io.ktor.utils.io.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.*
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * A test call response received from a server.
@@ -113,7 +114,7 @@ public class TestApplicationResponse(
     }
 
     override suspend fun respondWriteChannelContent(content: OutgoingContent.WriteChannelContent) {
-        val writerJob = scope.writer {
+        val writerJob = scope.writer(currentCoroutineContext()) {
             val counted = channel.counted()
             val job = coroutineContext.job
 
@@ -123,7 +124,7 @@ public class TestApplicationResponse(
                     try {
                         var cur = counted.totalBytesWritten
                         while (job.isActive) {
-                            delay(socketTimeoutMillis)
+                            delay(socketTimeoutMillis.milliseconds)
                             val next = counted.totalBytesWritten
                             if (cur == next) {
                                 counted.cancel(SocketTimeoutException("Socket timeout elapsed"))
