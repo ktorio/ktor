@@ -41,6 +41,26 @@ data class FullUser(override val id: Long, override val name: String, val email:
 class DependencyInjectionJvmTest {
 
     @Test
+    fun `KTOR-9889 concurrent startup resolves a dependency declared by a later-loaded module`() = runTestWithRealTime {
+        lateinit var resolvedBankService: BankService
+        testApplication {
+            environment {
+                config = MapApplicationConfig().apply {
+                    put("ktor.application.startup", "concurrent")
+                }
+            }
+            application {
+                resolvedBankService = dependencies.resolve()
+            }
+            application {
+                dependencies { provide<BankService> { BankServiceImpl() } }
+            }
+        }
+        resolvedBankService.deposit(10)
+        assertEquals(10, resolvedBankService.balance())
+    }
+
+    @Test
     fun `provide class reference`() = runTestDI {
         dependencies {
             provide(GreetingServiceImpl::class)
