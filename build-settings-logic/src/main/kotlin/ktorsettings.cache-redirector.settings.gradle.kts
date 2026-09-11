@@ -69,7 +69,7 @@ fun RepositoryHandler.redirect() = configureEach {
 
 fun Project.overrideGradleDistributionUrl() {
     gradle.taskGraph.whenReady {
-        tasks.named<Wrapper>("wrapper") {
+        tasks.withType<Wrapper>().configureEach {
             distributionUrl = distributionUrl.maybeRedirect()
         }
     }

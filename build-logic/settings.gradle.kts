@@ -28,3 +28,5 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "build-logic"
+
+include("kdoc-annotator")
