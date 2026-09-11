@@ -22,6 +22,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.TestResult
+import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.Serializable
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
@@ -41,6 +42,10 @@ internal class GreetingServiceImpl : GreetingService {
 
 internal class BankGreetingService : GreetingService {
     override fun hello() = HELLO_CUSTOMER
+}
+
+internal class SelfResolvingGreetingService(private val delegate: GreetingService) : GreetingService {
+    override fun hello() = delegate.hello()
 }
 
 internal interface BankService {
@@ -194,6 +199,37 @@ class DependencyInjectionTest {
                 val eligibleJobs: List<PaidWork> = dependencies.resolve()
                 fail("This should fail but returned $eligibleJobs")
             }
+        }
+    }
+
+    @Test
+    fun `KTOR-9889 covariant key sees stale Missing placeholder before map replacement is visible`() = runTest {
+        val map: DependencyInitializerMap = mutableMapOf()
+        val provider = MapDependencyProvider(
+            map = map,
+            keyMapping = DefaultKeyCovariance,
+            conflictPolicy = DefaultConflictPolicy,
+            onConflict = { throw DuplicateDependencyException(it) },
+        )
+        val resolver = MapDependencyResolver(
+            map = map,
+            extension = DependencyMap.EMPTY,
+            reflection = NoReflection,
+            waitForValues = true,
+            coroutineScope = CoroutineScope(Dispatchers.Unconfined),
+        )
+
+        // Resolving the supertype key before anything provides it creates a Missing placeholder.
+        val greetingDeferred = resolver.getDeferred<GreetingService>(DependencyKey<GreetingService>())
+
+        // A concrete provider whose own initializer resolves that same supertype key (a legitimate
+        // decorator pattern). With Dispatchers.Unconfined, provide()'s start() call runs the
+        // initializer synchronously, deterministically exercising the map-write-visibility race:
+        // the initializer must see itself in the map, not the stale Missing it would await forever.
+        provider.set(DependencyKey<SelfResolvingGreetingService>()) { SelfResolvingGreetingService(resolve()) }
+
+        assertFailsWith<CircularDependencyException> {
+            greetingDeferred.await()
         }
     }
 

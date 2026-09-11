@@ -87,10 +87,19 @@ internal class MapDependencyProvider(
     }
 
     private fun trySet(key: DependencyKey, newFunction: DependencyInitializer) {
-        map[key] = when (val previous = map[key]) {
-            null -> newFunction
+        val previous = map[key]
+        if (previous is DependencyInitializer.Missing) {
+            // The map must see newFunction before previous.provide() can start resolving it -
+            // provide() may synchronously trigger dispatch of newFunction's initializer, and that
+            // initializer resolving this same key must observe the replacement, not the stale
+            // Missing placeholder it would otherwise await forever.
+            map[key] = newFunction
+            previous.provide(newFunction)
+            return
+        }
 
-            is DependencyInitializer.Missing -> newFunction.also(previous::provide)
+        map[key] = when (previous) {
+            null -> newFunction
 
             else -> when (val result = resolveConflict(previous, newFunction)) {
                 Ambiguous ->
