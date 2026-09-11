@@ -579,6 +579,26 @@ class WebSocketTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
     }
 
     @Test
+    fun testFailedHandshakeExposesResponse() = clientTests(only("CIO", "OkHttp", "Java")) {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            val exception = assertFailsWith<WebSocketException> {
+                client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/handshake-403") {
+                    fail("Unreachable")
+                }
+            }
+
+            val response = assertNotNull(exception.response)
+            assertEquals(HttpStatusCode.Forbidden, response.status)
+            assertEquals("forbidden", response.headers["X-Handshake-Reason"])
+            assertEquals("handshake forbidden", response.bodyAsText())
+        }
+    }
+
+    @Test
     fun testWebSocketHeaders() = clientTests {
         config {
             install(WebSockets)

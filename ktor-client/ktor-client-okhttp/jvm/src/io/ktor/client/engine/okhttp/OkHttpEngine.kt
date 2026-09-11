@@ -94,7 +94,12 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
         ).apply { start() }
 
         val originResponse = session.originResponse.await()
-        return buildResponseData(originResponse, requestTime, session, callContext, requestData)
+
+        // On a failed handshake, expose the materialized response body. Otherwise the
+        // response body is the session itself.
+        val responseBody: Any = session.failedHandshakeBody?.let { ByteReadChannel(it) } ?: session
+
+        return buildResponseData(originResponse, requestTime, responseBody, callContext, requestData)
     }
 
     private suspend fun executeHttpRequest(
