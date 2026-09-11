@@ -20,7 +20,7 @@ internal class NettyHttpHandlerState(
     internal fun onLastResponseMessage(context: ChannelHandlerContext) {
         activeRequests.decrementAndGet()
 
-        if (skippedRead.compareAndSet(expect = false, update = true) && activeRequests.value < runningLimit) {
+        if (activeRequests.value < runningLimit && skippedRead.compareAndSet(expect = true, update = false)) {
             context.read()
         }
         onCapacityAvailable(context)
