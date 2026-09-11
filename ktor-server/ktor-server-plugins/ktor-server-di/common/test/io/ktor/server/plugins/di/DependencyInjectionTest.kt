@@ -7,6 +7,7 @@ package io.ktor.server.plugins.di
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.server.application.*
+import io.ktor.server.config.MapApplicationConfig
 import io.ktor.server.plugins.di.utils.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -195,6 +196,26 @@ class DependencyInjectionTest {
                 fail("This should fail but returned $eligibleJobs")
             }
         }
+    }
+
+    @Test
+    fun `KTOR-9889 concurrent startup resolves a dependency declared by a later-loaded module`() = runTestWithRealTime {
+        lateinit var resolvedBankService: BankService
+        testApplication {
+            environment {
+                config = MapApplicationConfig().apply {
+                    put("ktor.application.startup", "concurrent")
+                }
+            }
+            application {
+                resolvedBankService = dependencies.resolve()
+            }
+            application {
+                dependencies { provide<BankService> { BankServiceImpl() } }
+            }
+        }
+        resolvedBankService.deposit(10)
+        assertEquals(10, resolvedBankService.balance())
     }
 
     @Test
