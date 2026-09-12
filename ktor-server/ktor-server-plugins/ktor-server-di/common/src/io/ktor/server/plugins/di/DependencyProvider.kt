@@ -6,7 +6,6 @@ package io.ktor.server.plugins.di
 
 import io.ktor.server.plugins.di.DependencyConflictResult.*
 import io.ktor.util.logging.*
-import kotlinx.coroutines.Deferred
 import kotlin.coroutines.CoroutineContext
 
 /**
@@ -83,13 +82,21 @@ internal class MapDependencyProvider(
     override fun <T> set(key: DependencyKey, value: suspend DependencyResolver.() -> T) {
         val create = DependencyInitializer.Explicit(key, value)
         log.debug { "Provided $key ${DependencyReference().externalTraceLine()}" }
-        trySet(key, create)
-        insertCovariantKeys(create, key)
+        listOfNotNull(
+            trySet(key, create)?.let { it to create },
+            *insertCovariantKeys(create, key).toTypedArray()
+        ).forEach { (missing, newFunction) -> missing.provide(newFunction) }
     }
 
-    private fun trySet(key: DependencyKey, newFunction: DependencyInitializer) {
+    private fun trySet(key: DependencyKey, newFunction: DependencyInitializer): DependencyInitializer.Missing? {
+        var missing: DependencyInitializer.Missing? = null
         map[key] = when (val previous = map[key]) {
             null -> newFunction
+
+            is DependencyInitializer.Missing -> {
+                missing = previous
+                newFunction
+            }
 
             else -> when (val result = resolveConflict(previous, newFunction)) {
                 Ambiguous ->
@@ -97,17 +104,14 @@ internal class MapDependencyProvider(
 
                 Conflict -> onConflict(key)
 
-                KeepNew -> {
-                   if (previous is DependencyInitializer.Missing)
-                       previous.provide(newFunction)
-                    newFunction
-                }
+                KeepNew -> newFunction
 
                 KeepPrevious -> previous
 
                 is Replace -> result.function
             }
         }
+        return missing
     }
 
     private fun resolveConflict(
@@ -122,11 +126,12 @@ internal class MapDependencyProvider(
     private fun insertCovariantKeys(
         createFunction: DependencyInitializer.Explicit,
         key: DependencyKey
-    ) {
+    ): List<Pair<DependencyInitializer.Missing, DependencyInitializer.Implicit>> {
         val covariantKeys = keyMapping.map(key, 0).toList()
         log.trace { "Covariant keys: ${formatKeys(covariantKeys)}" }
-        for ((key, distance) in covariantKeys) {
-            trySet(key, createFunction.derived(distance))
+        return covariantKeys.mapNotNull { (key, distance) ->
+            val implicit = createFunction.derived(distance)
+            trySet(key, implicit)?.let { it to implicit }
         }
     }
 
