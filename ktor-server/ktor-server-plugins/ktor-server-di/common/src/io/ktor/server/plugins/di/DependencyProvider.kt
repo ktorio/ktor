@@ -83,23 +83,13 @@ internal class MapDependencyProvider(
     override fun <T> set(key: DependencyKey, value: suspend DependencyResolver.() -> T) {
         val create = DependencyInitializer.Explicit(key, value)
         log.debug { "Provided $key ${DependencyReference().externalTraceLine()}" }
-        listOfNotNull(
-            trySet(key, create),
-            *insertCovariantKeys(create, key).toTypedArray()
-        ).forEach {
-            it.start()
-        }
+        trySet(key, create)
+        insertCovariantKeys(create, key)
     }
 
-    private fun trySet(key: DependencyKey, newFunction: DependencyInitializer): Deferred<Any?>? {
-        var deferred: Deferred<Any?>? = null
+    private fun trySet(key: DependencyKey, newFunction: DependencyInitializer) {
         map[key] = when (val previous = map[key]) {
             null -> newFunction
-
-            is DependencyInitializer.Missing -> {
-                deferred = previous.provideReturning(newFunction)
-                newFunction
-            }
 
             else -> when (val result = resolveConflict(previous, newFunction)) {
                 Ambiguous ->
@@ -107,14 +97,17 @@ internal class MapDependencyProvider(
 
                 Conflict -> onConflict(key)
 
-                KeepNew -> newFunction
+                KeepNew -> {
+                   if (previous is DependencyInitializer.Missing)
+                       previous.provide(newFunction)
+                    newFunction
+                }
 
                 KeepPrevious -> previous
 
                 is Replace -> result.function
             }
         }
-        return deferred
     }
 
     private fun resolveConflict(
@@ -129,10 +122,10 @@ internal class MapDependencyProvider(
     private fun insertCovariantKeys(
         createFunction: DependencyInitializer.Explicit,
         key: DependencyKey
-    ): List<Deferred<Any?>> {
+    ) {
         val covariantKeys = keyMapping.map(key, 0).toList()
         log.trace { "Covariant keys: ${formatKeys(covariantKeys)}" }
-        return covariantKeys.mapNotNull { (key, distance) ->
+        for ((key, distance) in covariantKeys) {
             trySet(key, createFunction.derived(distance))
         }
     }

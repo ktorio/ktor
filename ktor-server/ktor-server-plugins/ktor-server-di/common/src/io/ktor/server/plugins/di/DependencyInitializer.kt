@@ -45,7 +45,7 @@ public sealed interface DependencyInitializer {
                 if (deferred.compareAndSet(null, newValue)) {
                     newValue
                 } else {
-                    deferred.value!!
+                    deferred.value ?: newValue
                 }
             }
         }
@@ -193,14 +193,10 @@ public sealed interface DependencyInitializer {
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyInitializer.Missing.provide)
          */
         public fun provide(other: DependencyInitializer) {
-            provideReturning(other).start()
-        }
-
-        internal fun provideReturning(other: DependencyInitializer): Deferred<Any?> {
-            if (delegate.compareAndSet(null, other.resolve(resolver))) {
-                deferred.completeWith(delegate.value!!)
+            val otherDeferred = other.resolve(resolver)
+            if (delegate.compareAndSet(null, otherDeferred)) {
+                deferred.completeWith(otherDeferred)
             }
-            return delegate.value!!
         }
 
         public fun throwMissing() {

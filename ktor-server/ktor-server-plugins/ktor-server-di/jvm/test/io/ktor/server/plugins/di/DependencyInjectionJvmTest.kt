@@ -13,6 +13,7 @@ import io.ktor.server.config.*
 import io.ktor.server.testing.*
 import io.ktor.test.dispatcher.*
 import io.ktor.util.reflect.TypeInfo
+import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.test.TestResult
@@ -39,26 +40,6 @@ interface User : Identifiable<Long> {
 data class FullUser(override val id: Long, override val name: String, val email: String) : User
 
 class DependencyInjectionJvmTest {
-
-    @Test
-    fun `KTOR-9889 concurrent startup resolves a dependency declared by a later-loaded module`() = runTestWithRealTime {
-        lateinit var resolvedBankService: BankService
-        testApplication {
-            environment {
-                config = MapApplicationConfig().apply {
-                    put("ktor.application.startup", "concurrent")
-                }
-            }
-            application {
-                resolvedBankService = dependencies.resolve()
-            }
-            application {
-                dependencies { provide<BankService> { BankServiceImpl() } }
-            }
-        }
-        resolvedBankService.deposit(10)
-        assertEquals(10, resolvedBankService.balance())
-    }
 
     @Test
     fun `provide class reference`() = runTestDI {
@@ -585,6 +566,125 @@ class DependencyInjectionJvmTest {
                 fail("Should fail but found $service")
             }
         }
+    }
+
+    @Test
+    fun `concurrent startup resolves a dependency declared by a later-loaded module`() = runTestWithRealTime {
+        lateinit var resolvedBankService: BankService
+        testApplication {
+            environment {
+                config = MapApplicationConfig().apply {
+                    put("ktor.application.startup", "concurrent")
+                }
+            }
+            application {
+                resolvedBankService = dependencies.resolve()
+            }
+            application {
+                dependencies { provide<BankService> { BankServiceImpl() } }
+            }
+        }
+        resolvedBankService.deposit(10)
+        assertEquals(10, resolvedBankService.balance())
+    }
+
+    @Test
+    fun `concurrent startup defers unrequested dependency initialization`() = runTestWithRealTime {
+        var initialized = false
+        testApplication {
+            environment {
+                config = MapApplicationConfig().apply {
+                    put("ktor.application.startup", "concurrent")
+                }
+            }
+            application {
+                // does not resolve BankService
+            }
+            application {
+                dependencies {
+                    provide<BankService> {
+                        initialized = true
+                        BankServiceImpl()
+                    }
+                }
+            }
+        }
+        assertFalse(initialized, "Unrequested dependency should not be initialized during concurrent startup")
+    }
+
+    @Test
+    fun `concurrent startup fails when missing dependency is not declared`() = runTestWithRealTime {
+        assertFailsWith<MissingDependencyException> {
+            testApplication {
+                environment {
+                    config = MapApplicationConfig().apply {
+                        put("ktor.application.startup", "concurrent")
+                    }
+                }
+                application {
+                    dependencies.resolve<BankService>()
+                }
+                application {
+                    // does not provide BankService
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `covariant key sees stale Missing placeholder before map replacement is visible`() = runTestWithRealTime {
+        val map: DependencyInitializerMap = mutableMapOf()
+        val provider = MapDependencyProvider(
+            map = map,
+            keyMapping = DefaultKeyCovariance,
+            conflictPolicy = DefaultConflictPolicy,
+            onConflict = { throw DuplicateDependencyException(it) },
+        )
+        val resolver = MapDependencyResolver(
+            map = map,
+            extension = DependencyMap.EMPTY,
+            reflection = NoReflection,
+            waitForValues = true,
+            coroutineScope = CoroutineScope(Dispatchers.Unconfined),
+        )
+
+        // Resolving the supertype key before anything provides it creates a Missing placeholder.
+        val greetingDeferred = resolver.getDeferred<GreetingService>(DependencyKey<GreetingService>())
+
+        provider.set(DependencyKey<SelfResolvingGreetingService>()) { SelfResolvingGreetingService(resolve()) }
+
+        assertFailsWith<CircularDependencyException> {
+            greetingDeferred.await()
+        }
+    }
+
+    @Test
+    fun `covariant key's Missing placeholder starts the providing initializer`() = runTestWithRealTime {
+        val map: DependencyInitializerMap = mutableMapOf()
+        val provider = MapDependencyProvider(
+            map = map,
+            keyMapping = DefaultKeyCovariance,
+            conflictPolicy = DefaultConflictPolicy,
+            onConflict = { throw DuplicateDependencyException(it) },
+        )
+        val resolver = MapDependencyResolver(
+            map = map,
+            extension = DependencyMap.EMPTY,
+            reflection = NoReflection,
+            waitForValues = true,
+            coroutineScope = CoroutineScope(Dispatchers.Unconfined),
+        )
+
+        // Resolving the supertype key before anything provides it creates a Missing placeholder.
+        resolver.getDeferred<GreetingService>(DependencyKey<GreetingService>())
+
+        var started = false
+        provider.set(DependencyKey<BankGreetingService>()) {
+            started = true
+            BankGreetingService()
+        }
+
+        assertTrue(started, "expected the covariant-Missing initializer to have been started")
     }
 
     private fun runTestDI(
