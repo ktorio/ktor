@@ -45,7 +45,7 @@ public sealed interface DependencyInitializer {
                 if (deferred.compareAndSet(null, newValue)) {
                     newValue
                 } else {
-                    deferred.value!!
+                    deferred.value ?: newValue
                 }
             }
         }
@@ -181,7 +181,7 @@ public sealed interface DependencyInitializer {
         private val resolver: DependencyResolver,
     ) : DependencyInitializer {
         private val deferred: CompletableDeferred<Any?> = CompletableDeferred()
-        private val delegate: AtomicRef<DependencyInitializer?> = atomic(null)
+        private val delegate: AtomicRef<Deferred<Any?>?> = atomic(null)
 
         override fun resolve(resolver: DependencyResolver): Deferred<Any?> = deferred
 
@@ -193,8 +193,9 @@ public sealed interface DependencyInitializer {
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DependencyInitializer.Missing.provide)
          */
         public fun provide(other: DependencyInitializer) {
-            if (delegate.compareAndSet(null, other)) {
-                deferred.completeWith(other.resolve(resolver))
+            val otherDeferred = other.resolve(resolver)
+            if (delegate.compareAndSet(null, otherDeferred)) {
+                deferred.completeWith(otherDeferred)
             }
         }
 

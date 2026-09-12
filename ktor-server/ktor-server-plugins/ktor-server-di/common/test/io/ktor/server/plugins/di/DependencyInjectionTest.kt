@@ -22,6 +22,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.test.TestResult
+import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.Serializable
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
@@ -41,6 +42,10 @@ internal class GreetingServiceImpl : GreetingService {
 
 internal class BankGreetingService : GreetingService {
     override fun hello() = HELLO_CUSTOMER
+}
+
+internal class SelfResolvingGreetingService(private val delegate: GreetingService) : GreetingService {
+    override fun hello() = delegate.hello()
 }
 
 internal interface BankService {
