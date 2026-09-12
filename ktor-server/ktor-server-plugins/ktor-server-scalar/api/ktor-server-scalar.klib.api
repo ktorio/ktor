@@ -1,0 +1,55 @@
+// Klib ABI Dump
+// Targets: [androidNativeArm32, androidNativeArm64, androidNativeX64, androidNativeX86, iosArm64, iosSimulatorArm64, iosX64, js, linuxArm64, linuxX64, macosArm64, macosX64, mingwX64, tvosArm64, tvosSimulatorArm64, tvosX64, wasmJs, watchosArm32, watchosArm64, watchosDeviceArm64, watchosSimulatorArm64, watchosX64]
+// Rendering settings:
+// - Signature version: 2
+// - Show manifest properties: true
+// - Show declarations: true
+
+// Library unique name: <io.ktor:ktor-server-scalar>
+final class io.ktor.server.plugins.scalar/ScalarConfig : io.ktor.openapi/OpenApiDocDsl { // io.ktor.server.plugins.scalar/ScalarConfig|null[0]
+    constructor <init>() // io.ktor.server.plugins.scalar/ScalarConfig.<init>|<init>(){}[0]
+
+    final val extensions // io.ktor.server.plugins.scalar/ScalarConfig.extensions|{}extensions[0]
+        final fun <get-extensions>(): kotlin.collections/MutableMap<kotlin/String, io.ktor.openapi/GenericElement> // io.ktor.server.plugins.scalar/ScalarConfig.extensions.<get-extensions>|<get-extensions>(){}[0]
+
+    final var cdnUrl // io.ktor.server.plugins.scalar/ScalarConfig.cdnUrl|{}cdnUrl[0]
+        final fun <get-cdnUrl>(): kotlin/String // io.ktor.server.plugins.scalar/ScalarConfig.cdnUrl.<get-cdnUrl>|<get-cdnUrl>(){}[0]
+        final fun <set-cdnUrl>(kotlin/String) // io.ktor.server.plugins.scalar/ScalarConfig.cdnUrl.<set-cdnUrl>|<set-cdnUrl>(kotlin.String){}[0]
+    final var components // io.ktor.server.plugins.scalar/ScalarConfig.components|{}components[0]
+        final fun <get-components>(): io.ktor.openapi/Components? // io.ktor.server.plugins.scalar/ScalarConfig.components.<get-components>|<get-components>(){}[0]
+        final fun <set-components>(io.ktor.openapi/Components?) // io.ktor.server.plugins.scalar/ScalarConfig.components.<set-components>|<set-components>(io.ktor.openapi.Components?){}[0]
+    final var externalDocs // io.ktor.server.plugins.scalar/ScalarConfig.externalDocs|{}externalDocs[0]
+        final fun <get-externalDocs>(): io.ktor.openapi/ExternalDocs? // io.ktor.server.plugins.scalar/ScalarConfig.externalDocs.<get-externalDocs>|<get-externalDocs>(){}[0]
+        final fun <set-externalDocs>(io.ktor.openapi/ExternalDocs?) // io.ktor.server.plugins.scalar/ScalarConfig.externalDocs.<set-externalDocs>|<set-externalDocs>(io.ktor.openapi.ExternalDocs?){}[0]
+    final var faviconLocation // io.ktor.server.plugins.scalar/ScalarConfig.faviconLocation|{}faviconLocation[0]
+        final fun <get-faviconLocation>(): kotlin/String? // io.ktor.server.plugins.scalar/ScalarConfig.faviconLocation.<get-faviconLocation>|<get-faviconLocation>(){}[0]
+        final fun <set-faviconLocation>(kotlin/String?) // io.ktor.server.plugins.scalar/ScalarConfig.faviconLocation.<set-faviconLocation>|<set-faviconLocation>(kotlin.String?){}[0]
+    final var info // io.ktor.server.plugins.scalar/ScalarConfig.info|{}info[0]
+        final fun <get-info>(): io.ktor.openapi/OpenApiInfo // io.ktor.server.plugins.scalar/ScalarConfig.info.<get-info>|<get-info>(){}[0]
+        final fun <set-info>(io.ktor.openapi/OpenApiInfo) // io.ktor.server.plugins.scalar/ScalarConfig.info.<set-info>|<set-info>(io.ktor.openapi.OpenApiInfo){}[0]
+    final var layout // io.ktor.server.plugins.scalar/ScalarConfig.layout|{}layout[0]
+        final fun <get-layout>(): kotlin/String // io.ktor.server.plugins.scalar/ScalarConfig.layout.<get-layout>|<get-layout>(){}[0]
+        final fun <set-layout>(kotlin/String) // io.ktor.server.plugins.scalar/ScalarConfig.layout.<set-layout>|<set-layout>(kotlin.String){}[0]
+    final var openapiVersion // io.ktor.server.plugins.scalar/ScalarConfig.openapiVersion|{}openapiVersion[0]
+        final fun <get-openapiVersion>(): kotlin/String // io.ktor.server.plugins.scalar/ScalarConfig.openapiVersion.<get-openapiVersion>|<get-openapiVersion>(){}[0]
+        final fun <set-openapiVersion>(kotlin/String) // io.ktor.server.plugins.scalar/ScalarConfig.openapiVersion.<set-openapiVersion>|<set-openapiVersion>(kotlin.String){}[0]
+    final var remotePath // io.ktor.server.plugins.scalar/ScalarConfig.remotePath|{}remotePath[0]
+        final fun <get-remotePath>(): kotlin/String // io.ktor.server.plugins.scalar/ScalarConfig.remotePath.<get-remotePath>|<get-remotePath>(){}[0]
+        final fun <set-remotePath>(kotlin/String) // io.ktor.server.plugins.scalar/ScalarConfig.remotePath.<set-remotePath>|<set-remotePath>(kotlin.String){}[0]
+    final var showSidebar // io.ktor.server.plugins.scalar/ScalarConfig.showSidebar|{}showSidebar[0]
+        final fun <get-showSidebar>(): kotlin/Boolean // io.ktor.server.plugins.scalar/ScalarConfig.showSidebar.<get-showSidebar>|<get-showSidebar>(){}[0]
+        final fun <set-showSidebar>(kotlin/Boolean) // io.ktor.server.plugins.scalar/ScalarConfig.showSidebar.<set-showSidebar>|<set-showSidebar>(kotlin.Boolean){}[0]
+    final var source // io.ktor.server.plugins.scalar/ScalarConfig.source|{}source[0]
+        final fun <get-source>(): io.ktor.server.routing.openapi/OpenApiDocSource // io.ktor.server.plugins.scalar/ScalarConfig.source.<get-source>|<get-source>(){}[0]
+        final fun <set-source>(io.ktor.server.routing.openapi/OpenApiDocSource) // io.ktor.server.plugins.scalar/ScalarConfig.source.<set-source>|<set-source>(io.ktor.server.routing.openapi.OpenApiDocSource){}[0]
+    final var theme // io.ktor.server.plugins.scalar/ScalarConfig.theme|{}theme[0]
+        final fun <get-theme>(): kotlin/String // io.ktor.server.plugins.scalar/ScalarConfig.theme.<get-theme>|<get-theme>(){}[0]
+        final fun <set-theme>(kotlin/String) // io.ktor.server.plugins.scalar/ScalarConfig.theme.<set-theme>|<set-theme>(kotlin.String){}[0]
+
+    final fun customStyle(kotlin/String?) // io.ktor.server.plugins.scalar/ScalarConfig.customStyle|customStyle(kotlin.String?){}[0]
+    final fun security(kotlin/Function1<io.ktor.openapi/Security.Builder, kotlin/Unit>) // io.ktor.server.plugins.scalar/ScalarConfig.security|security(kotlin.Function1<io.ktor.openapi.Security.Builder,kotlin.Unit>){}[0]
+    final fun servers(kotlin/Function1<io.ktor.openapi/Servers.Builder, kotlin/Unit>) // io.ktor.server.plugins.scalar/ScalarConfig.servers|servers(kotlin.Function1<io.ktor.openapi.Servers.Builder,kotlin.Unit>){}[0]
+    final fun tag(kotlin/String, kotlin/String?, io.ktor.openapi/ExternalDocs?) // io.ktor.server.plugins.scalar/ScalarConfig.tag|tag(kotlin.String;kotlin.String?;io.ktor.openapi.ExternalDocs?){}[0]
+}
+
+final fun (io.ktor.server.routing/Route).io.ktor.server.plugins.scalar/scalarUI(kotlin/String, kotlin/Function1<io.ktor.server.plugins.scalar/ScalarConfig, kotlin/Unit> = ...): io.ktor.server.routing/Route // io.ktor.server.plugins.scalar/scalarUI|scalarUI@io.ktor.server.routing.Route(kotlin.String;kotlin.Function1<io.ktor.server.plugins.scalar.ScalarConfig,kotlin.Unit>){}[0]
