@@ -88,7 +88,9 @@ internal class MapDependencyProvider(
     }
 
     private fun trySet(key: DependencyKey, newFunction: DependencyInitializer) {
-        map[key] = when (val previous = map[key]) {
+        val previous = map[key]
+
+        map[key] = when(previous) {
             null -> newFunction
 
             else -> when (val result = resolveConflict(previous, newFunction)) {
@@ -97,17 +99,17 @@ internal class MapDependencyProvider(
 
                 Conflict -> onConflict(key)
 
-                KeepNew -> {
-                   if (previous is DependencyInitializer.Missing)
-                       previous.provide(newFunction)
-                    newFunction
-                }
+                KeepNew -> newFunction
 
                 KeepPrevious -> previous
 
                 is Replace -> result.function
             }
         }
+
+        // ensure missing entries are always linked with implementations
+        if (previous is  DependencyInitializer.Missing)
+            previous.provide(newFunction)
     }
 
     private fun resolveConflict(
