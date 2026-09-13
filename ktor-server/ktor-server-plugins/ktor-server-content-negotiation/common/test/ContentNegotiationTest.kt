@@ -768,6 +768,53 @@ class ContentNegotiationTest {
     }
 
     @Test
+    fun `zero quality Accept entry is rejected with 406 when compliance is checked`() = testApplication {
+        install(ContentNegotiation) {
+            checkAcceptHeaderCompliance = true
+            register(customContentType, customContentConverter)
+        }
+
+        routing {
+            get("/") {
+                call.respond(Wrapper("OK"))
+            }
+        }
+
+        client.get("/") {
+            header(HttpHeaders.Accept, "$customContentType;q=0")
+        }.let { response ->
+            assertEquals(HttpStatusCode.NotAcceptable, response.status)
+        }
+
+        client.get("/") {
+            header(HttpHeaders.Accept, "$customContentType;q=0, */*;q=0")
+        }.let { response ->
+            assertEquals(HttpStatusCode.NotAcceptable, response.status)
+        }
+    }
+
+    @Test
+    fun `positive quality Accept entry is still served when compliance is checked`() = testApplication {
+        install(ContentNegotiation) {
+            checkAcceptHeaderCompliance = true
+            register(customContentType, customContentConverter)
+        }
+
+        routing {
+            get("/") {
+                call.respond(Wrapper("OK"))
+            }
+        }
+
+        client.get("/") {
+            header(HttpHeaders.Accept, "$customContentType;q=0.1")
+        }.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("[OK]", response.bodyAsText())
+        }
+    }
+
+    @Test
     fun testWithCharset() = testApplication {
         install(ContentNegotiation) {
             clearIgnoredTypes()

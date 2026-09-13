@@ -31,5 +31,9 @@ internal fun checkAcceptHeader(
     acceptItems: List<ContentTypeWithQuality>,
     contentType: ContentType?
 ): Boolean {
-    return acceptItems.isEmpty() || contentType == null || acceptItems.any { contentType.match(it.contentType) }
+    if (acceptItems.isEmpty() || contentType == null) return true
+
+    // A media range with a qvalue of 0 means "not acceptable" (RFC 9110, 12.5.1),
+    // so it must not make the content type acceptable.
+    return acceptItems.any { it.quality > 0.0 && contentType.match(it.contentType) }
 }
