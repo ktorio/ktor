@@ -212,6 +212,36 @@ class AuthTest : ClientLoader() {
     }
 
     @Test
+    fun `digest provider does not fail when server sends non-digest challenge`() = testWithEngine(MockEngine) {
+        val authorizationHeaders = mutableListOf<String?>()
+        config {
+            install(Auth) {
+                digest {
+                    credentials { DigestAuthCredentials(username = "any", password = "any") }
+                }
+            }
+            engine {
+                addHandler { request ->
+                    authorizationHeaders += request.headers[HttpHeaders.Authorization]
+                    respond(
+                        "ERROR",
+                        HttpStatusCode.Unauthorized,
+                        headersOf(HttpHeaders.WWWAuthenticate, "Basic realm=\"Ktor Server\", charset=UTF-8")
+                    )
+                }
+            }
+        }
+
+        test { client ->
+            authorizationHeaders.clear()
+            val response = client.get("/")
+            assertEquals(HttpStatusCode.Unauthorized, response.status)
+            // The retry is sent without credentials because there is no Digest challenge to answer
+            assertEquals(listOf<String?>(null, null), authorizationHeaders)
+        }
+    }
+
+    @Test
     fun testBasicAuthWithoutNegotiationLegacy() = clientTests {
         config {
             install(Auth) {
