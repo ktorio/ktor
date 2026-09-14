@@ -4,6 +4,7 @@
 
 package io.ktor.server.auth.jwt
 
+import com.auth0.jwk.JwkException
 import com.auth0.jwk.JwkProvider
 import com.auth0.jwk.JwkProviderBuilder
 import com.auth0.jwt.JWT
@@ -217,6 +218,9 @@ public class JWTAuthenticationProvider internal constructor(config: Config) : Au
                 challengeFunction
             )
         } catch (cause: Throwable) {
+            if (cause is JwkException && cause.isJwkProviderFailure()) {
+                throw cause
+            }
             val message = cause.message ?: cause.javaClass.simpleName
             JWTLogger.debug("JWT authentication failed: {}", message, cause)
             context.error(JWTAuthKey, AuthenticationFailedCause.Error(message))

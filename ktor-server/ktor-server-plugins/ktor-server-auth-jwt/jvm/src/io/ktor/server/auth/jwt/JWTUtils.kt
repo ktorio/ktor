@@ -15,6 +15,7 @@ import io.ktor.http.auth.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import java.security.interfaces.*
 import java.util.*
@@ -63,6 +64,18 @@ internal fun AuthenticationContext.bearerChallenge(
     }
 }
 
+/**
+ * Checks whether the signing key lookup failed because the provider returned unusable JWK data.
+ */
+@InternalAPI
+public fun SigningKeyNotFoundException.causedByProviderSentInvalidJwk(): Boolean =
+    this is NetworkException || message?.contains("Failed to parse") == true
+
+@OptIn(InternalAPI::class)
+internal fun JwkException.isJwkProviderFailure(): Boolean =
+    this is RateLimitReachedException ||
+        (this is SigningKeyNotFoundException && causedByProviderSentInvalidJwk())
+
 internal suspend fun getVerifier(
     jwkProvider: JwkProvider,
     issuer: String?,
@@ -76,6 +89,7 @@ internal suspend fun getVerifier(
                 jwkProvider.get(JWT.decode(blob).keyId)
             }
         } catch (cause: JwkException) {
+            if (cause.isJwkProviderFailure()) throw cause
             JWTLogger.trace("Failed to get JWK", cause)
             null
         } catch (cause: JWTDecodeException) {
