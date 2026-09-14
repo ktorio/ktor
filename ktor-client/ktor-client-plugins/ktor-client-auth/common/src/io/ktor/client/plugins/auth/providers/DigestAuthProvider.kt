@@ -120,10 +120,11 @@ public class DigestAuthProvider(
     private val clientNonce = atomic<String?>(null)
 
     // RFC 7616 §3.4: "nc" counts the requests sent with a particular server nonce.
-    // Only recently used nonces are tracked, as servers commonly issue a fresh nonce with every challenge.
+    // Counters are scoped by protection space, so a server issuing a fresh nonce with every challenge
+    // can't evict the counters of other servers or realms.
     @OptIn(InternalAPI::class)
     private val nonceCountsLock = SynchronizedObject()
-    private val nonceCounts = LinkedHashMap<String, Int>()
+    private val nonceCounts = LinkedHashMap<ProtectionSpace, LinkedHashMap<String, Int>>()
 
     private val tokenHolder = AuthTokenHolder(credentials)
 
@@ -185,15 +186,14 @@ public class DigestAuthProvider(
     }
 
     @OptIn(InternalAPI::class)
-    private fun nextNonceCount(nonce: String): Int = synchronized(nonceCountsLock) {
-        // Re-inserting the nonce keeps the least recently used one first in line for eviction
-        val count = (nonceCounts.remove(nonce) ?: 0) + 1
-        if (nonceCounts.size >= MAX_TRACKED_NONCES) {
-            val oldestKey = nonceCounts.keys.first()
-            nonceCounts.remove(oldestKey)
-        }
-        nonceCounts[nonce] = count
-        count
+    private fun nextNonceCount(space: ProtectionSpace, nonce: String): Int = synchronized(nonceCountsLock) {
+        // Re-inserting keys keeps the least recently used ones first in line for eviction
+        val spaceCounts = nonceCounts.remove(space) ?: LinkedHashMap()
+        nonceCounts.putMostRecent(key = space, value = spaceCounts, maxCapacity = MAX_TRACKED_PROTECTION_SPACES)
+
+        val nextCount = (spaceCounts.remove(nonce) ?: 0) + 1
+        spaceCounts.putMostRecent(key = nonce, value = nextCount, maxCapacity = MAX_NONCES_PER_PROTECTION_SPACE)
+        nextCount
     }
 
     override suspend fun addRequestHeaders(request: HttpRequestBuilder, authHeader: HttpAuthHeader?) {
@@ -214,7 +214,8 @@ public class DigestAuthProvider(
         // RFC 2617 §3.2.2: nc and cnonce are sent only with qop.
         // Though RFC 7616 requires qop, we support older servers.
         val nonceCount = actualQop?.let {
-            nextNonceCount(nonce).toString(radix = 16).padStart(length = 8, padChar = '0')
+            val protectionSpace = ProtectionSpace(url.protocol, url.host, url.port, realm)
+            nextNonceCount(protectionSpace, nonce).toString(radix = 16).padStart(length = 8, padChar = '0')
         }
         val cnonce = actualQop?.let { getNonce() }
         val credential = makeDigest("${credentials.username}:$realm:${credentials.password}")
@@ -291,6 +292,30 @@ private class DigestChallenge(
     val opaque: String?,
 )
 
-private const val MAX_TRACKED_NONCES = 16
+/**
+ * RFC 7235 §2.2 protection space: the canonical root URI of the server combined with the realm.
+ */
+private data class ProtectionSpace(
+    val protocol: URLProtocol,
+    val host: String,
+    val port: Int,
+    val realm: String,
+)
+
+/**
+ * Inserts [key], which must not be present, as the most recently used entry.
+ * Evicts the least recently used entry when the map already holds [maxCapacity] entries.
+ */
+private fun <K, V> LinkedHashMap<K, V>.putMostRecent(key: K, value: V, maxCapacity: Int) {
+    if (size >= maxCapacity) remove(keys.first())
+    put(key, value)
+}
+
+// Bounds memory for clients talking to many servers; only the least recently used server loses its counters
+private const val MAX_TRACKED_PROTECTION_SPACES = 64
+
+// A server can have several nonces in use at once: previous nonces while switching to a new one,
+// or several long-lived ones, e.g. from load-balanced backends
+private const val MAX_NONCES_PER_PROTECTION_SPACE = 16
 
 private const val QOP_AUTH = "auth"

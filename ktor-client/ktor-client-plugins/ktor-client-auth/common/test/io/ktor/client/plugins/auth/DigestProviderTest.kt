@@ -149,16 +149,44 @@ class DigestProviderTest {
     }
 
     @Test
-    fun `nonce count starts at one for each nonce and increments for a reused nonce`() = runTest {
+    fun `nonce counts are not evicted by fresh nonces of other protection spaces`() = runTest {
+        if (!PlatformUtils.IS_JVM) return@runTest
+
+        val provider = DigestAuthProvider({ DigestAuthCredentials("username", "password") })
+        val server = "https://first.example/"
+        val longLived =
+            assertNotNull(parseAuthorizationHeader("""Digest realm="realm", nonce="long-lived", qop=auth"""))
+        assertEquals("00000001", provider.nonceCountFor(longLived, url = server))
+
+        // Another server and another realm of the same server issue a fresh nonce with every challenge
+        repeat(100) { index ->
+            val otherServer = parseAuthorizationHeader("""Digest realm="realm", nonce="server-$index", qop=auth""")
+            assertEquals(
+                "00000001",
+                provider.nonceCountFor(assertNotNull(otherServer), url = "https://second.example/")
+            )
+
+            val otherRealm = parseAuthorizationHeader("""Digest realm="other-realm", nonce="realm-$index", qop=auth""")
+            assertEquals("00000001", provider.nonceCountFor(assertNotNull(otherRealm), url = server))
+        }
+
+        assertEquals("00000002", provider.nonceCountFor(longLived, url = server))
+    }
+
+    @Test
+    fun `nonce counts are kept for several nonces used at once in one protection space`() = runTest {
         if (!PlatformUtils.IS_JVM) return@runTest
 
         val provider = DigestAuthProvider({ DigestAuthCredentials("username", "password") }, "realm")
-        val first = assertNotNull(parseAuthorizationHeader("""Digest realm="realm", nonce="first-nonce", qop=auth"""))
-        val second = assertNotNull(parseAuthorizationHeader("""Digest realm="realm", nonce="second-nonce", qop=auth"""))
+        // For example, load-balanced backends that each issue their own long-lived nonce
+        val challenges = (1..8).map { index ->
+            assertNotNull(parseAuthorizationHeader("""Digest realm="realm", nonce="backend-$index", qop=auth"""))
+        }
 
-        val nonceCounts = listOf(first, first, second, first, second).map { provider.nonceCountFor(it) }
-
-        assertEquals(listOf("00000001", "00000002", "00000001", "00000003", "00000002"), nonceCounts)
+        repeat(3) { round ->
+            val expected = (round + 1).toString(radix = 16).padStart(length = 8, padChar = '0')
+            challenges.forEach { assertEquals(expected, provider.nonceCountFor(it)) }
+        }
     }
 
     @Test
@@ -303,8 +331,11 @@ class DigestProviderTest {
         }
     }
 
-    private suspend fun DigestAuthProvider.nonceCountFor(challenge: HttpAuthHeader): String? {
-        val request = HttpRequestBuilder()
+    private suspend fun DigestAuthProvider.nonceCountFor(
+        challenge: HttpAuthHeader,
+        url: String = "http://localhost/",
+    ): String? {
+        val request = HttpRequestBuilder { takeFrom(url) }
         addRequestHeaders(request, challenge)
         val rawHeader = assertNotNull(request.headers[HttpHeaders.Authorization])
         val header = parseAuthorizationHeader(rawHeader) as HttpAuthHeader.Parameterized
