@@ -116,10 +116,6 @@ public class DigestAuthProvider(
     override val sendWithoutRequest: Boolean
         get() = error("Deprecated")
 
-    private val serverNonce = atomic<String?>(null)
-
-    private val qop = atomic<String?>(null)
-    private val opaque = atomic<String?>(null)
     private val clientNonce = atomic<String?>(null)
 
     private val requestCounter = atomic(0)
@@ -128,27 +124,29 @@ public class DigestAuthProvider(
 
     override fun sendWithoutRequest(request: HttpRequestBuilder): Boolean = false
 
-    override fun isApplicable(auth: HttpAuthHeader): Boolean {
+    override fun isApplicable(auth: HttpAuthHeader): Boolean = parseChallenge(auth) != null
+
+    // The provider is shared between concurrent requests, so the challenge is never stored:
+    // each request is signed with the challenge from its own 401 response.
+    private fun parseChallenge(auth: HttpAuthHeader): DigestChallenge? {
         if (auth !is HttpAuthHeader.Parameterized || auth.authScheme != AuthScheme.Digest) {
             LOGGER.trace { "Digest Auth Provider is not applicable for $auth" }
-            return false
+            return null
         }
 
-        val newNonce = auth.parameter("nonce") ?: run {
+        val nonce = auth.parameter("nonce") ?: run {
             LOGGER.trace { "Digest Auth Provider can not handle response without nonce parameter" }
-            return false
+            return null
         }
-        val newQop = auth.parameter("qop")
-        val newOpaque = auth.parameter("opaque")
 
-        val newRealm = auth.parameter("realm") ?: run {
+        val challengeRealm = auth.parameter("realm") ?: run {
             LOGGER.trace { "Digest Auth Provider can not handle response without realm parameter" }
-            return false
+            return null
         }
         @Suppress("DEPRECATION_ERROR")
-        if (newRealm != realm && realm != null) {
+        if (challengeRealm != realm && realm != null) {
             LOGGER.trace { "Digest Auth Provider is not applicable for this realm" }
-            return false
+            return null
         }
 
         // Per RFC 7616 §3.3: a missing algorithm parameter defaults to MD5.
@@ -156,14 +154,15 @@ public class DigestAuthProvider(
         @Suppress("DEPRECATION_ERROR")
         if (!challengeAlgorithm.equals(algorithmName, ignoreCase = true)) {
             LOGGER.trace { "Digest Auth Provider is not applicable for algorithm $challengeAlgorithm" }
-            return false
+            return null
         }
 
-        serverNonce.value = newNonce
-        qop.value = newQop
-        opaque.value = newOpaque
-
-        return true
+        return DigestChallenge(
+            nonce = nonce,
+            realm = challengeRealm,
+            qop = auth.parameter("qop"),
+            opaque = auth.parameter("opaque"),
+        )
     }
 
     private suspend inline fun getNonce(): String {
@@ -174,18 +173,19 @@ public class DigestAuthProvider(
     }
 
     override suspend fun addRequestHeaders(request: HttpRequestBuilder, authHeader: HttpAuthHeader?) {
+        val challenge = authHeader?.let(::parseChallenge) ?: run {
+            LOGGER.trace { "Digest Auth Provider can not add header: no Digest challenge was received" }
+            return
+        }
+
         val nonceCount = requestCounter.incrementAndGet().toString(radix = 16).padStart(length = 8, padChar = '0')
         val methodName = request.method.value.uppercase()
         val url = URLBuilder().takeFrom(request.url).build()
 
-        val nonce = serverNonce.value!!
-        val serverOpaque = opaque.value
-        val actualQop = qop.value
-
-        @Suppress("DEPRECATION_ERROR")
-        val realm = realm ?: authHeader?.let { auth ->
-            (auth as? HttpAuthHeader.Parameterized)?.parameter("realm")
-        }
+        val nonce = challenge.nonce
+        val serverOpaque = challenge.opaque
+        val actualQop = challenge.qop
+        val realm = challenge.realm
 
         val credentials = tokenHolder.loadToken() ?: return
         val cnonce = getNonce()
@@ -207,7 +207,7 @@ public class DigestAuthProvider(
         val auth = HttpAuthHeader.Parameterized(
             authScheme = AuthScheme.Digest,
             parameters = linkedMapOf<String, String>().apply {
-                realm?.let { this["realm"] = it.quote() }
+                this["realm"] = realm.quote()
                 serverOpaque?.let { this["opaque"] = it.quote() }
                 this["username"] = credentials.username.quote()
                 this["nonce"] = nonce.quote()
@@ -255,3 +255,13 @@ public class DigestAuthProvider(
         tokenHolder.clearToken()
     }
 }
+
+/**
+ * Parameters of a Digest `WWW-Authenticate` challenge accepted by [DigestAuthProvider].
+ */
+private class DigestChallenge(
+    val nonce: String,
+    val realm: String,
+    val qop: String?,
+    val opaque: String?,
+)
