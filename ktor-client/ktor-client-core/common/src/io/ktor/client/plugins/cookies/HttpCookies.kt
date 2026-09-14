@@ -10,6 +10,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.util.*
+import io.ktor.util.date.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
@@ -27,7 +28,8 @@ private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.HttpCookies")
  */
 public class HttpCookies internal constructor(
     private val storage: CookiesStorage,
-    private val defaults: List<suspend CookiesStorage.() -> Unit>
+    private val defaults: List<suspend CookiesStorage.() -> Unit>,
+    private val expiresParser: (String) -> GMTDate? = String::fromCookieToGmtDate
 ) : Closeable {
     @OptIn(DelicateCoroutinesApi::class)
     private val initializer: Job = GlobalScope.launch(Dispatchers.Unconfined) {
@@ -80,7 +82,7 @@ public class HttpCookies internal constructor(
         response.headers.getAll(HttpHeaders.SetCookie)?.forEach {
             LOGGER.trace { "Received cookie $it in response for ${response.call.request.url}" }
         }
-        response.setCookie().forEach {
+        response.setCookie(expiresParser).forEach {
             storage.addCookie(url, it)
         }
     }
@@ -97,6 +99,7 @@ public class HttpCookies internal constructor(
     @KtorDsl
     public class Config {
         private val defaults = mutableListOf<suspend CookiesStorage.() -> Unit>()
+        private var expiresParser: (String) -> GMTDate? = String::fromCookieToGmtDate
 
         /**
          * Specifies a storage used to keep cookies between calls.
@@ -116,7 +119,28 @@ public class HttpCookies internal constructor(
             defaults.add(block)
         }
 
-        internal fun build(): HttpCookies = HttpCookies(storage, defaults)
+        /**
+         * Replaces the built-in `Expires` date parser with [parser] for every response handled by this plugin.
+         * The last registration wins, and [parser] is captured when the plugin is built.
+         *
+         * [parser] is called only when `Expires` is present, with the value unquoted and trimmed. Returning
+         * `null` or throwing leaves [Cookie.expires] unset and keeps the cookie; the built-in parser is not
+         * retried, and `Max-Age` still takes precedence. It runs synchronously and may be called concurrently.
+         *
+         * For a server that uses `Expires=0` to delete a cookie:
+         * ```kotlin
+         * expiresParser { value -> if (value == "0") GMTDate(0L) else null }
+         * ```
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.cookies.HttpCookies.Config.expiresParser)
+         *
+         * @param parser the replacement date parser, returning a date or `null` for unknown expiration.
+         */
+        public fun expiresParser(parser: (String) -> GMTDate?) {
+            expiresParser = parser
+        }
+
+        internal fun build(): HttpCookies = HttpCookies(storage, defaults, expiresParser)
     }
 
     public companion object : HttpClientPlugin<Config, HttpCookies> {

@@ -497,6 +497,7 @@ final class io.ktor.client.plugins.cookies/HttpCookies : io.ktor.utils.io.core/C
             final fun <set-storage>(io.ktor.client.plugins.cookies/CookiesStorage) // io.ktor.client.plugins.cookies/HttpCookies.Config.storage.<set-storage>|<set-storage>(io.ktor.client.plugins.cookies.CookiesStorage){}[0]
 
         final fun default(kotlin.coroutines/SuspendFunction1<io.ktor.client.plugins.cookies/CookiesStorage, kotlin/Unit>) // io.ktor.client.plugins.cookies/HttpCookies.Config.default|default(kotlin.coroutines.SuspendFunction1<io.ktor.client.plugins.cookies.CookiesStorage,kotlin.Unit>){}[0]
+        final fun expiresParser(kotlin/Function1<kotlin/String, io.ktor.util.date/GMTDate?>) // io.ktor.client.plugins.cookies/HttpCookies.Config.expiresParser|expiresParser(kotlin.Function1<kotlin.String,io.ktor.util.date.GMTDate?>){}[0]
     }
 
     final object Companion : io.ktor.client.plugins/HttpClientPlugin<io.ktor.client.plugins.cookies/HttpCookies.Config, io.ktor.client.plugins.cookies/HttpCookies> { // io.ktor.client.plugins.cookies/HttpCookies.Companion|null[0]

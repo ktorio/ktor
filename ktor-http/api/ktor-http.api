@@ -361,6 +361,7 @@ public final class io/ktor/http/CookieKt {
 	public static final fun parseClientCookiesHeader (Ljava/lang/String;Z)Ljava/util/Map;
 	public static synthetic fun parseClientCookiesHeader$default (Ljava/lang/String;ZILjava/lang/Object;)Ljava/util/Map;
 	public static final fun parseServerSetCookieHeader (Ljava/lang/String;)Lio/ktor/http/Cookie;
+	public static final fun parseServerSetCookieHeader (Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lio/ktor/http/Cookie;
 	public static final fun renderCookieHeader (Lio/ktor/http/Cookie;)Ljava/lang/String;
 	public static final fun renderSetCookieHeader (Lio/ktor/http/Cookie;)Ljava/lang/String;
 	public static final fun renderSetCookieHeader (Ljava/lang/String;Ljava/lang/String;Lio/ktor/http/CookieEncoding;Ljava/lang/Integer;Lio/ktor/util/date/GMTDate;Ljava/lang/String;Ljava/lang/String;ZZLjava/util/Map;Z)Ljava/lang/String;
@@ -733,6 +734,7 @@ public final class io/ktor/http/HttpMessagePropertiesKt {
 	public static final fun ifNoneMatch (Lio/ktor/http/HttpMessageBuilder;Ljava/lang/String;)V
 	public static final fun maxAge (Lio/ktor/http/HttpMessageBuilder;I)V
 	public static final fun setCookie (Lio/ktor/http/HttpMessage;)Ljava/util/List;
+	public static final fun setCookie (Lio/ktor/http/HttpMessage;Lkotlin/jvm/functions/Function1;)Ljava/util/List;
 	public static final fun userAgent (Lio/ktor/http/HttpMessageBuilder;Ljava/lang/String;)V
 	public static final fun vary (Lio/ktor/http/HttpMessage;)Ljava/util/List;
 	public static final fun vary (Lio/ktor/http/HttpMessageBuilder;)Ljava/util/List;
