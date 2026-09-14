@@ -104,6 +104,49 @@ class DigestProviderTest {
     }
 
     @Test
+    fun `addRequestHeaders signs with the passed challenge and keeps no challenge state`() = runTest {
+        if (!PlatformUtils.IS_JVM) return@runTest
+
+        val provider = DigestAuthProvider({ DigestAuthCredentials("username", "password") }, "realm")
+        val first = parseAuthorizationHeader(
+            """Digest realm="realm", nonce="first-nonce", opaque="first-opaque", qop=auth"""
+        )
+        val second = parseAuthorizationHeader("""Digest realm="realm", nonce="second-nonce", opaque="second-opaque"""")
+        assertNotNull(first)
+        assertNotNull(second)
+
+        // Two concurrent requests received their 401 responses before either of them retried
+        assertTrue(provider.isApplicable(first))
+        assertTrue(provider.isApplicable(second))
+
+        provider.addRequestHeaders(requestBuilder, first)
+
+        val header = assertNotNull(requestBuilder.headers[HttpHeaders.Authorization])
+        assertContains(header, """nonce="first-nonce"""")
+        assertContains(header, """opaque="first-opaque"""")
+        assertContains(header, "qop=auth")
+
+        // Accepted challenges are not stored, so there is nothing to sign without a challenge
+        val retry = HttpRequestBuilder()
+        provider.addRequestHeaders(retry, null)
+        assertNull(retry.headers[HttpHeaders.Authorization])
+    }
+
+    @Test
+    fun `addRequestHeaders does not add header when no digest challenge was received`() = runTest {
+        val provider = DigestAuthProvider({ DigestAuthCredentials("username", "password") })
+        val request = HttpRequestBuilder()
+        val basicChallenge = parseAuthorizationHeader("""Basic realm="realm"""")
+        assertNotNull(basicChallenge)
+
+        assertFalse(provider.isApplicable(basicChallenge))
+        provider.addRequestHeaders(request, basicChallenge)
+        provider.addRequestHeaders(request, null)
+
+        assertNull(request.headers[HttpHeaders.Authorization])
+    }
+
+    @Test
     fun addRequestHeadersSetsExpectedAuthHeaderFields() = runTest {
         if (!PlatformUtils.IS_JVM) return@runTest
 
