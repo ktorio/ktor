@@ -33,7 +33,21 @@ internal fun checkAcceptHeader(
 ): Boolean {
     if (acceptItems.isEmpty() || contentType == null) return true
 
-    // A media range with a qvalue of 0 means "not acceptable" (RFC 9110, 12.5.1),
-    // so it must not make the content type acceptable.
-    return acceptItems.any { it.quality > 0.0 && contentType.match(it.contentType) }
+    // The most specific media range that matches decides, and a qvalue of 0 there
+    // means "not acceptable", so it must not make the content type acceptable
+    // (RFC 9110, 12.5.1).
+    val matching = acceptItems.filter { contentType.match(it.contentType) }
+    if (matching.isEmpty()) return false
+
+    val specificity = matching.maxOf { it.specificity }
+    return matching.any { it.specificity == specificity && it.quality > 0.0 }
 }
+
+// How specific the media range is: a wildcard type is the least specific one,
+// then a wildcard subtype, then a fully specified type/subtype.
+private val ContentTypeWithQuality.specificity: Int
+    get() = when {
+        contentType.contentType == "*" -> 0
+        contentType.contentSubtype == "*" -> 1
+        else -> 2
+    }

@@ -794,6 +794,39 @@ class ContentNegotiationTest {
     }
 
     @Test
+    fun `most specific Accept entry decides over a wildcard when compliance is checked`() = testApplication {
+        install(ContentNegotiation) {
+            checkAcceptHeaderCompliance = true
+            register(customContentType, customContentConverter)
+        }
+
+        routing {
+            get("/") {
+                call.respond(Wrapper("OK"))
+            }
+        }
+
+        client.get("/") {
+            header(HttpHeaders.Accept, "$customContentType;q=0, */*")
+        }.let { response ->
+            assertEquals(HttpStatusCode.NotAcceptable, response.status)
+        }
+
+        client.get("/") {
+            header(HttpHeaders.Accept, "application/*;q=0, */*")
+        }.let { response ->
+            assertEquals(HttpStatusCode.NotAcceptable, response.status)
+        }
+
+        client.get("/") {
+            header(HttpHeaders.Accept, "*/*;q=0, $customContentType")
+        }.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("[OK]", response.bodyAsText())
+        }
+    }
+
+    @Test
     fun `positive quality Accept entry is still served when compliance is checked`() = testApplication {
         install(ContentNegotiation) {
             checkAcceptHeaderCompliance = true
