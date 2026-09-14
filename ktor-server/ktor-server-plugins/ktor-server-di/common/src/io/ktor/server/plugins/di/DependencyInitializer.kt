@@ -45,7 +45,7 @@ public sealed interface DependencyInitializer {
                 if (deferred.compareAndSet(null, newValue)) {
                     newValue
                 } else {
-                    deferred.value!!
+                    deferred.value ?: newValue
                 }
             }
         }
