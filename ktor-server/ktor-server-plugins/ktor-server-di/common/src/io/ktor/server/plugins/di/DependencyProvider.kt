@@ -82,24 +82,26 @@ internal class MapDependencyProvider(
     override fun <T> set(key: DependencyKey, value: suspend DependencyResolver.() -> T) {
         val create = DependencyInitializer.Explicit(key, value)
         log.debug { "Provided $key ${DependencyReference().externalTraceLine()}" }
-        val fulfilled = mutableListOf<Pair<DependencyInitializer.Missing, DependencyInitializer>>()
+        val replaced = mutableListOf<DependencyInitializer>()
         try {
-            trySet(key, create, fulfilled)
-            insertCovariantKeys(create, key, fulfilled)
+            trySet(key, create)?.let(replaced::add)
+            insertCovariantKeys(create, key, replaced)
         } finally {
-            fulfilled.forEach { (missing, newFunction) -> missing.provide(newFunction) }
+            for (waiting in replaced.filterIsInstance<DependencyInitializer.Missing>()) {
+                waiting.provide(create)
+            }
         }
     }
 
     private fun trySet(
         key: DependencyKey,
-        newFunction: DependencyInitializer,
-        fulfilled: MutableList<Pair<DependencyInitializer.Missing, DependencyInitializer>>
-    ) {
-        map[key] = when (val previous = map[key]) {
+        newFunction: DependencyInitializer
+    ): DependencyInitializer? {
+        val previous = map[key]
+        map[key] = when (previous) {
             null -> newFunction
 
-            is DependencyInitializer.Missing -> newFunction.also { fulfilled.add(previous to it) }
+            is DependencyInitializer.Missing -> newFunction
 
             else -> when (val result = resolveConflict(previous, newFunction)) {
                 Ambiguous ->
@@ -114,6 +116,7 @@ internal class MapDependencyProvider(
                 is Replace -> result.function
             }
         }
+        return previous
     }
 
     private fun resolveConflict(
@@ -128,12 +131,12 @@ internal class MapDependencyProvider(
     private fun insertCovariantKeys(
         createFunction: DependencyInitializer.Explicit,
         key: DependencyKey,
-        fulfilled: MutableList<Pair<DependencyInitializer.Missing, DependencyInitializer>>
+        replaced: MutableList<DependencyInitializer>
     ) {
         val covariantKeys = keyMapping.map(key, 0).toList()
         log.trace { "Covariant keys: ${formatKeys(covariantKeys)}" }
         for ((key, distance) in covariantKeys) {
-            trySet(key, createFunction.derived(distance), fulfilled)
+            trySet(key, createFunction.derived(distance))?.let(replaced::add)
         }
     }
 
