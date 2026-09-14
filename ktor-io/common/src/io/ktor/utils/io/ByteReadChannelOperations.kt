@@ -333,12 +333,11 @@ public class ReaderJob internal constructor(
     }
 }
 
-@Suppress("UNUSED_PARAMETER")
 public fun CoroutineScope.reader(
     coroutineContext: CoroutineContext = EmptyCoroutineContext,
     autoFlush: Boolean = false,
     block: suspend ReaderScope.() -> Unit
-): ReaderJob = reader(coroutineContext, ByteChannel(), block)
+): ReaderJob = reader(coroutineContext, ByteChannel(autoFlush), block)
 
 @OptIn(InternalCoroutinesApi::class)
 public fun CoroutineScope.reader(
