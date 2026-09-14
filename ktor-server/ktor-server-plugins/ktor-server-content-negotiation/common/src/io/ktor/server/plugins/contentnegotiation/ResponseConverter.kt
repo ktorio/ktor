@@ -59,6 +59,7 @@ internal fun PluginBuilder<ContentNegotiationConfig>.convertResponseBody() = onC
         val acceptCharset = call.request.headers.suitableCharsetOrNull()
 
         // Pick the first one that can convert the subject successfully
+        var rejectedByAcceptHeader = false
         for (registration in suitableConverters) {
             val contentType = acceptCharset?.let { charset ->
                 registration.contentType.withCharset(charset)
@@ -86,10 +87,17 @@ internal fun PluginBuilder<ContentNegotiationConfig>.convertResponseBody() = onC
                 LOGGER.trace {
                     "Can't send content with ${transformedContent.contentType} to client because it is not acceptable"
                 }
-                return@transformBody NOT_ACCEPTABLE
+                // Another registration may still produce a representation the client accepts,
+                // so only report 406 once every suitable converter has been rejected.
+                rejectedByAcceptHeader = true
+                continue
             }
 
             return@transformBody transformedContent
+        }
+
+        if (rejectedByAcceptHeader) {
+            return@transformBody NOT_ACCEPTABLE
         }
 
         LOGGER.trace {

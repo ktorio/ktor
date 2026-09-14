@@ -848,6 +848,29 @@ class ContentNegotiationTest {
     }
 
     @Test
+    fun `a representation rejected with zero quality is skipped for the next acceptable one`() = testApplication {
+        install(ContentNegotiation) {
+            checkAcceptHeaderCompliance = true
+            register(customContentType, customContentConverter)
+            register(ContentType.Text.Plain, textContentConverter)
+        }
+
+        routing {
+            get("/") {
+                call.respond(Wrapper("OK"))
+            }
+        }
+
+        client.get("/") {
+            header(HttpHeaders.Accept, "$customContentType;q=0, */*")
+        }.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals(ContentType.Text.Plain, response.contentType()?.withoutParameters())
+            assertEquals("OK", response.bodyAsText())
+        }
+    }
+
+    @Test
     fun testWithCharset() = testApplication {
         install(ContentNegotiation) {
             clearIgnoredTypes()
