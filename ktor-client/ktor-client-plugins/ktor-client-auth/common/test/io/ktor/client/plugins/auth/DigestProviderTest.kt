@@ -9,6 +9,8 @@ import io.ktor.http.*
 import io.ktor.http.auth.*
 import io.ktor.test.*
 import io.ktor.util.*
+import io.ktor.utils.io.*
+import kotlinx.coroutines.*
 import kotlin.test.*
 
 class DigestProviderTest {
@@ -24,7 +26,7 @@ class DigestProviderTest {
         username="username",
         realm="realm",
         nonce="nonce",
-        qop=qop,
+        qop="auth,auth-int",
         cnonce="client-nonce",
         uri="requested-uri",
         request="client-digest",
@@ -147,15 +149,71 @@ class DigestProviderTest {
     }
 
     @Test
+    fun `nonce count starts at one for each nonce and increments for a reused nonce`() = runTest {
+        if (!PlatformUtils.IS_JVM) return@runTest
+
+        val provider = DigestAuthProvider({ DigestAuthCredentials("username", "password") }, "realm")
+        val first = assertNotNull(parseAuthorizationHeader("""Digest realm="realm", nonce="first-nonce", qop=auth"""))
+        val second = assertNotNull(parseAuthorizationHeader("""Digest realm="realm", nonce="second-nonce", qop=auth"""))
+
+        val nonceCounts = listOf(first, first, second, first, second).map { provider.nonceCountFor(it) }
+
+        assertEquals(listOf("00000001", "00000002", "00000001", "00000003", "00000002"), nonceCounts)
+    }
+
+    @Test
+    fun `concurrent requests with the same nonce get distinct nonce counts`() = runTest {
+        if (!PlatformUtils.IS_JVM) return@runTest
+
+        val provider = DigestAuthProvider({ DigestAuthCredentials("username", "password") }, "realm")
+        val challenge = assertNotNull(parseAuthorizationHeader("""Digest realm="realm", nonce="nonce", qop=auth"""))
+        val requests = 100
+
+        val nonceCounts = withContext(Dispatchers.Default) {
+            List(requests) { async { provider.nonceCountFor(challenge) } }.awaitAll()
+        }
+
+        val expected = (1..requests).map { it.toString(radix = 16).padStart(length = 8, padChar = '0') }
+        assertEquals(expected.toSet(), nonceCounts.toSet())
+    }
+
+    @Test
     fun addRequestHeadersSetsExpectedAuthHeaderFields() = runTest {
         if (!PlatformUtils.IS_JVM) return@runTest
 
         runIsApplicable(authAllFields)
         val authHeader = addRequestHeaders(authAllFields)
 
-        authHeader.assertParameter("qop", expectedValue = "qop")
+        authHeader.assertParameter("qop", expectedValue = "auth")
+        authHeader.assertParameter("nc", expectedValue = "00000001")
         authHeader.assertParameter("opaque", expectedValue = "opaque".quote())
         authHeader.checkStandardParameters()
+    }
+
+    @Test
+    fun `client chooses auth from the offered qop values`() = runTest {
+        if (!PlatformUtils.IS_JVM) return@runTest
+
+        val provider = DigestAuthProvider({ DigestAuthCredentials("username", "password") }, "realm")
+        val challenge = parseAuthorizationHeader("""Digest realm="realm", nonce="nonce", qop="auth-int, auth"""")
+        assertNotNull(challenge)
+        assertTrue(provider.isApplicable(challenge))
+
+        provider.addRequestHeaders(requestBuilder, challenge)
+
+        val header = assertNotNull(requestBuilder.headers[HttpHeaders.Authorization])
+        val parameters = parseAuthorizationHeader(header) as HttpAuthHeader.Parameterized
+        assertEquals("auth", parameters.parameter("qop"))
+        assertEquals(expectedResponse(parameters, password = "password"), parameters.parameter("response"))
+    }
+
+    @Test
+    fun `isApplicable rejects challenge offering only unsupported qop values`() {
+        val provider = DigestAuthProvider({ DigestAuthCredentials("username", "password") })
+        val challenge = parseAuthorizationHeader("""Digest realm="realm", nonce="nonce", qop="auth-int"""")
+        assertNotNull(challenge)
+
+        assertFalse(provider.isApplicable(challenge))
     }
 
     @Test
@@ -193,6 +251,8 @@ class DigestProviderTest {
 
         authHeader.assertParameterNotSet("opaque")
         authHeader.assertParameterNotSet("qop")
+        authHeader.assertParameterNotSet("nc")
+        authHeader.assertParameterNotSet("cnonce")
         authHeader.checkStandardParameters()
     }
 
@@ -243,6 +303,14 @@ class DigestProviderTest {
         }
     }
 
+    private suspend fun DigestAuthProvider.nonceCountFor(challenge: HttpAuthHeader): String? {
+        val request = HttpRequestBuilder()
+        addRequestHeaders(request, challenge)
+        val rawHeader = assertNotNull(request.headers[HttpHeaders.Authorization])
+        val header = parseAuthorizationHeader(rawHeader) as HttpAuthHeader.Parameterized
+        return header.parameter("nc")
+    }
+
     private fun runIsApplicable(headerValue: String) =
         digestAuthProvider.isApplicable(parseAuthorizationHeader(headerValue)!!)
 
@@ -255,9 +323,20 @@ class DigestProviderTest {
         assertParameter("realm", expectedValue = "realm".quote())
         assertParameter("username", expectedValue = "username".quote())
         assertParameter("nonce", expectedValue = "nonce".quote())
-        assertParameter("nc", expectedValue = "00000001")
         assertParameter("uri", expectedValue = "/$path?$paramName=$paramValue".quote())
     }
+
+    private suspend fun expectedResponse(parameters: HttpAuthHeader.Parameterized, password: String): String {
+        fun parameter(name: String) = assertNotNull(parameters.parameter(name))
+
+        val ha1 = md5Hex("${parameter("username")}:${parameter("realm")}:$password")
+        val ha2 = md5Hex("GET:${parameter("uri")}")
+        val tokens = listOf(ha1, parameter("nonce"), parameter("nc"), parameter("cnonce"), parameter("qop"), ha2)
+        return md5Hex(tokens.joinToString(":"))
+    }
+
+    @OptIn(InternalAPI::class)
+    private suspend fun md5Hex(data: String): String = Digest("MD5").build(data.encodeToByteArray()).toHexString()
 
     private fun String.assertParameter(name: String, expectedValue: String?) {
         assertContains(this, "$name=$expectedValue")

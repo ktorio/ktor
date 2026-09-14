@@ -14,6 +14,7 @@ import io.ktor.util.logging.trace
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
+import io.ktor.utils.io.locks.*
 import kotlinx.atomicfu.atomic
 
 /**
@@ -118,7 +119,11 @@ public class DigestAuthProvider(
 
     private val clientNonce = atomic<String?>(null)
 
-    private val requestCounter = atomic(0)
+    // RFC 7616 §3.4: "nc" counts the requests sent with a particular server nonce.
+    // Only recently used nonces are tracked, as servers commonly issue a fresh nonce with every challenge.
+    @OptIn(InternalAPI::class)
+    private val nonceCountsLock = SynchronizedObject()
+    private val nonceCounts = LinkedHashMap<String, Int>()
 
     private val tokenHolder = AuthTokenHolder(credentials)
 
@@ -157,10 +162,17 @@ public class DigestAuthProvider(
             return null
         }
 
+        // RFC 7616 §3.4: the client must choose one of the offered qop values; only "auth" is supported.
+        val offeredQop = auth.parameter("qop")
+        if (offeredQop != null && offeredQop.split(',').none { it.trim().equals(QOP_AUTH, ignoreCase = true) }) {
+            LOGGER.trace { "Digest Auth Provider does not support any of the offered qop values: $offeredQop" }
+            return null
+        }
+
         return DigestChallenge(
             nonce = nonce,
             realm = challengeRealm,
-            qop = auth.parameter("qop"),
+            qop = offeredQop?.let { QOP_AUTH },
             opaque = auth.parameter("opaque"),
         )
     }
@@ -172,13 +184,24 @@ public class DigestAuthProvider(
         return prevNonce ?: newNonce
     }
 
+    @OptIn(InternalAPI::class)
+    private fun nextNonceCount(nonce: String): Int = synchronized(nonceCountsLock) {
+        // Re-inserting the nonce keeps the least recently used one first in line for eviction
+        val count = (nonceCounts.remove(nonce) ?: 0) + 1
+        if (nonceCounts.size >= MAX_TRACKED_NONCES) {
+            val oldestKey = nonceCounts.keys.first()
+            nonceCounts.remove(oldestKey)
+        }
+        nonceCounts[nonce] = count
+        count
+    }
+
     override suspend fun addRequestHeaders(request: HttpRequestBuilder, authHeader: HttpAuthHeader?) {
         val challenge = authHeader?.let(::parseChallenge) ?: run {
             LOGGER.trace { "Digest Auth Provider can not add header: no Digest challenge was received" }
             return
         }
 
-        val nonceCount = requestCounter.incrementAndGet().toString(radix = 16).padStart(length = 8, padChar = '0')
         val methodName = request.method.value.uppercase()
         val url = URLBuilder().takeFrom(request.url).build()
 
@@ -188,7 +211,12 @@ public class DigestAuthProvider(
         val realm = challenge.realm
 
         val credentials = tokenHolder.loadToken() ?: return
-        val cnonce = getNonce()
+        // RFC 2617 §3.2.2: nc and cnonce are sent only with qop.
+        // Though RFC 7616 requires qop, we support older servers.
+        val nonceCount = actualQop?.let {
+            nextNonceCount(nonce).toString(radix = 16).padStart(length = 8, padChar = '0')
+        }
+        val cnonce = actualQop?.let { getNonce() }
         val credential = makeDigest("${credentials.username}:$realm:${credentials.password}")
 
         // Clients send "/" when the URL path is empty (RFC 9112); digest uri/HA2 must match that target.
@@ -196,11 +224,8 @@ public class DigestAuthProvider(
 
         val start = credential.toHexString()
         val end = makeDigest("$methodName:$requestTarget").toHexString()
-        val tokenSequence = if (actualQop == null) {
-            listOf(start, nonce, end)
-        } else {
-            listOf(start, nonce, nonceCount, cnonce, actualQop, end)
-        }
+        // nonceCount, cnonce and actualQop are either all set or all null
+        val tokenSequence = listOfNotNull(start, nonce, nonceCount, cnonce, actualQop, end)
 
         val token = makeDigest(tokenSequence.joinToString(":"))
 
@@ -211,11 +236,11 @@ public class DigestAuthProvider(
                 serverOpaque?.let { this["opaque"] = it.quote() }
                 this["username"] = credentials.username.quote()
                 this["nonce"] = nonce.quote()
-                this["cnonce"] = cnonce.quote()
+                cnonce?.let { this["cnonce"] = it.quote() }
                 this["response"] = token.toHexString().quote()
                 this["uri"] = requestTarget.quote()
                 actualQop?.let { this["qop"] = it }
-                this["nc"] = nonceCount
+                nonceCount?.let { this["nc"] = it }
                 @Suppress("DEPRECATION_ERROR")
                 this["algorithm"] = algorithmName
             },
@@ -265,3 +290,7 @@ private class DigestChallenge(
     val qop: String?,
     val opaque: String?,
 )
+
+private const val MAX_TRACKED_NONCES = 16
+
+private const val QOP_AUTH = "auth"
