@@ -11,10 +11,13 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.testing.*
 import io.ktor.sse.*
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectIndexed
 import kotlinx.coroutines.flow.single
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.Serializable
@@ -23,7 +26,10 @@ import kotlinx.serialization.serializer
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 class ServerSentEventsTest {
 
@@ -320,7 +326,7 @@ class ServerSentEventsTest {
 
         var hellos = 0
         var heartbeats = 0
-        withTimeout(5_000) {
+        withTimeout(5.seconds) {
             client.sse {
                 incoming.collect { event ->
                     when (event.data) {
@@ -333,6 +339,58 @@ class ServerSentEventsTest {
                 }
             }
         }
+    }
+
+    @Test
+    fun `heartbeat follows the SSE session lifecycle`() = testApplication {
+        install(SSE)
+        val heartbeatStopped = CompletableDeferred<Unit>()
+        val stopSession = CompletableDeferred<Unit>()
+
+        routing {
+            sse("/stream") {
+                heartbeat {
+                    period = 10.milliseconds
+                }
+
+                val heartbeatJob = checkNotNull(call.attributes[heartbeatStateKey].job)
+                assertTrue(currentCoroutineContext().job.children.any { it === heartbeatJob })
+                heartbeatJob.invokeOnCompletion { heartbeatStopped.complete(Unit) }
+
+                send(ServerSentEvent(comments = "ready"))
+                stopSession.await()
+            }
+        }
+
+        val client = createSseClient()
+        val session = withTimeout(5.seconds) {
+            client.sseSession("/stream")
+        }
+        stopSession.complete(Unit)
+
+        withTimeout(5.seconds) {
+            heartbeatStopped.await()
+        }
+        session.cancel()
+    }
+
+    @Test
+    fun `only one heartbeat can be started per session`() = testApplication {
+        install(SSE)
+        routing {
+            sse {
+                heartbeat()
+
+                val exception = assertFailsWith<IllegalStateException> {
+                    heartbeat()
+                }
+                assertEquals("Only one heartbeat can be started per SSE session.", exception.message)
+
+                send("ready")
+            }
+        }
+
+        assertContains(client.get("/").bodyAsText(), "data: ready")
     }
 
     @Test
@@ -359,7 +417,7 @@ class ServerSentEventsTest {
 
         val beats = mutableListOf<String>()
         var hellos = 0
-        withTimeout(5_000) {
+        withTimeout(5.seconds) {
             client.sse {
                 incoming.collect { event ->
                     val data = event.data ?: return@collect
@@ -402,7 +460,7 @@ class ServerSentEventsTest {
 
         var dynamic = 0
         var hellos = 0
-        withTimeout(5_000) {
+        withTimeout(5.seconds) {
             client.sse {
                 incoming.collect { event ->
                     when (event.data) {

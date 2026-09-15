@@ -11,7 +11,9 @@ import io.ktor.server.request.*
 import io.ktor.util.logging.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.withContext
 
 /**
  * An [OutgoingContent] response object that could be used to `respond()`.
@@ -45,18 +47,25 @@ public class SSEServerContent(
         var session: ServerSSESession? = null
         try {
             coroutineScope {
-                session = DefaultServerSSESession(channel, call, coroutineContext)
-                if (serialize != null) {
-                    session = object : ServerSSESessionWithSerialization, ServerSSESession by session {
+                val defaultSession = DefaultServerSSESession(channel, call, coroutineContext)
+                session = when (serialize) {
+                    null -> defaultSession
+
+                    else -> object : ServerSSESessionWithSerialization, ServerSSESession by defaultSession {
                         override val serializer: (TypeInfo, Any) -> String = serialize
                     }
                 }
-                session.handle()
+                try {
+                    session.handle()
+                } finally {
+                    val heartbeat = call.attributes.getOrNull(heartbeatStateKey)
+                    heartbeat?.job?.cancel()
+                }
             }
         } finally {
-            val heartbeatJob = call.attributes.getOrNull(heartbeatJobKey)
-            heartbeatJob?.cancel()
-            session?.close()
+            withContext(NonCancellable) {
+                session?.close()
+            }
         }
     }
 
