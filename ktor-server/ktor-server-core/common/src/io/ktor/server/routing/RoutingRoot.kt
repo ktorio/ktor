@@ -201,7 +201,7 @@ public val Route.application: Application
     }
 
 /**
- * Installs a [RoutingRoot] plugin for the this [Application] and runs a [configuration] script on it.
+ * Installs a [RoutingRoot] plugin for this [Application] and runs a [configuration] script on it.
  * You can learn more about routing in Ktor from [Routing](https://ktor.io/docs/routing-in-ktor.html).
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.routing)
