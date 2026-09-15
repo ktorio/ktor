@@ -114,7 +114,7 @@ public class TestApplicationResponse(
     }
 
     override suspend fun respondWriteChannelContent(content: OutgoingContent.WriteChannelContent) {
-        val writerJob = scope.writer(currentCoroutineContext()) {
+        val writerJob = scope.writer(currentCoroutineContext().minusKey(Job)) {
             val counted = channel.counted()
             val job = coroutineContext.job
 
