@@ -554,40 +554,23 @@ class TestApplicationTest {
 
     @Test
     fun testValidHandlerContextWhenStreaming() = testApplication {
-        val scope = CoroutineScope(Dispatchers.Default)
-
         routing {
-            get {
-                val context = currentCoroutineContext()
-                scope.launch {
-                    assertEquals("request", context[CoroutineName]?.name)
-                }
-                call.respondText { "OK" }
-            }
-
             get("/stream") {
-                call.respondBytesWriter {
-                    val context = currentCoroutineContext()
-                    scope.launch {
-                        assertEquals("request", context[CoroutineName]?.name)
-                    }
-
-                    repeat(3) {
-                        val msg = "Test $it"
-                        writeStringUtf8(msg + "\n")
+                withContext(MyElement("stream")) {
+                    call.respondBytesWriter {
+                        assertEquals("request", currentCoroutineContext()[CoroutineName]?.name)
+                        assertEquals("stream", currentCoroutineContext()[MyElement]?.data)
+                        writeStringUtf8("ready\n")
                         flush()
+                        awaitCancellation()
                     }
                 }
             }
         }
 
-        client.get("/")
-
-        client.prepareGet("/stream").execute { response ->
-            val channel = response.bodyAsChannel()
-
-            while (!channel.isClosedForRead) {
-                channel.readLine() ?: break
+        withTimeout(5.seconds) {
+            client.prepareGet("/stream").execute { response ->
+                assertEquals("ready", response.bodyAsChannel().readLineStrict())
             }
         }
     }
