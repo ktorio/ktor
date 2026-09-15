@@ -784,6 +784,7 @@ public final class io/ktor/client/plugins/cookies/HttpCookies$Companion : io/kto
 public final class io/ktor/client/plugins/cookies/HttpCookies$Config {
 	public fun <init> ()V
 	public final fun default (Lkotlin/jvm/functions/Function2;)V
+	public final fun expiresParser (Lkotlin/jvm/functions/Function1;)V
 	public final fun getStorage ()Lio/ktor/client/plugins/cookies/CookiesStorage;
 	public final fun setStorage (Lio/ktor/client/plugins/cookies/CookiesStorage;)V
 }
