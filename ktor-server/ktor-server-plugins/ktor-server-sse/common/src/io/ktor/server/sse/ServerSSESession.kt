@@ -179,7 +179,7 @@ public fun ServerSSESession.heartbeat(heartbeatConfig: Heartbeat.() -> Unit = {}
 }
 
 internal class HeartbeatState {
-    lateinit var job: Job
+    var job: Job? = null
 }
 
 internal val heartbeatStateKey = AttributeKey<HeartbeatState>("HeartbeatStateAttributeKey")
