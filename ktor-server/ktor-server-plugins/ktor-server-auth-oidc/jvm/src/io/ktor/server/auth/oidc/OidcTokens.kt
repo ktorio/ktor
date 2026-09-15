@@ -7,7 +7,6 @@ package io.ktor.server.auth.oidc
 import com.auth0.jwk.InvalidPublicKeyException
 import com.auth0.jwk.Jwk
 import com.auth0.jwk.JwkException
-import com.auth0.jwk.NetworkException
 import com.auth0.jwk.RateLimitReachedException
 import com.auth0.jwk.SigningKeyNotFoundException
 import com.auth0.jwt.JWT
@@ -23,6 +22,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
 import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -332,6 +332,7 @@ private fun ContentType?.isJwt(): Boolean =
     this?.withoutParameters()?.match(ContentType("application", "jwt")) == true
 
 // throws only OidcTokenRejectedException, or OidcSigningKeyUnavailableException when the JWK cannot be resolved
+@OptIn(InternalAPI::class)
 context(state: OidcProvider.State)
 private suspend fun OidcProvider.verifyJwtToken(
     token: String,
@@ -387,9 +388,6 @@ private fun DecodedJWT.requireAccessTokenPurpose() {
         "JWT 'typ' $type is not an access token"
     }
 }
-
-private fun SigningKeyNotFoundException.causedByProviderSentInvalidJwk() =
-    this is NetworkException || message?.contains("Failed to parse") == true
 
 // throws only OidcTokenRejectedException
 context(state: OidcProvider.State)

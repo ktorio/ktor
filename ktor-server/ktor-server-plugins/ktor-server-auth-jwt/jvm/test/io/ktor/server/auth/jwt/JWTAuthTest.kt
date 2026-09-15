@@ -16,6 +16,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.mockk.*
+import java.io.*
 import java.security.*
 import java.security.interfaces.*
 import java.util.concurrent.*
@@ -222,6 +223,41 @@ class JWTAuthTest {
 
         assertEquals(HttpStatusCode.OK, response.status)
         assertTrue(response.bodyAsText().isNotEmpty())
+    }
+
+    @Test
+    fun `jwk network failure produces a server error`() = testApplication {
+        configureServerJwk(
+            jwkProvider = JwkProvider { throw NetworkException("boom", IOException("refused")) }
+        )
+
+        val response = handleRequestWithToken(getJwkToken())
+
+        assertEquals(HttpStatusCode.InternalServerError, response.status)
+    }
+
+    @Test
+    fun `jwk rate limit failure produces a server error`() = testApplication {
+        configureServerJwk(
+            jwkProvider = JwkProvider { throw RateLimitReachedException(1) }
+        )
+
+        val response = handleRequestWithToken(getJwkToken())
+
+        assertEquals(HttpStatusCode.InternalServerError, response.status)
+    }
+
+    @Test
+    fun `malformed jwk response produces a server error`() = testApplication {
+        configureServerJwk(
+            jwkProvider = JwkProvider {
+                throw SigningKeyNotFoundException("Failed to parse jwk from json", IllegalArgumentException())
+            }
+        )
+
+        val response = handleRequestWithToken(getJwkToken())
+
+        assertEquals(HttpStatusCode.InternalServerError, response.status)
     }
 
     @Test
@@ -507,14 +543,15 @@ class JWTAuthTest {
 
     private fun ApplicationTestBuilder.configureServerJwk(
         mock: Boolean = false,
-        challenge: Boolean = false
+        challenge: Boolean = false,
+        jwkProvider: JwkProvider? = null,
     ) = configureServer {
         jwt {
             this@jwt.realm = this@JWTAuthTest.realm
-            if (mock) {
-                verifier(getJwkProviderMock())
-            } else {
-                verifier(issuer)
+            when {
+                jwkProvider != null -> verifier(jwkProvider)
+                mock -> verifier(getJwkProviderMock())
+                else -> verifier(issuer)
             }
             validate { credential ->
                 when {
