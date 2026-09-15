@@ -50,6 +50,7 @@ public class SSEServerContent(
                 val defaultSession = DefaultServerSSESession(channel, call, coroutineContext)
                 session = when (serialize) {
                     null -> defaultSession
+
                     else -> object : ServerSSESessionWithSerialization, ServerSSESession by defaultSession {
                         override val serializer: (TypeInfo, Any) -> String = serialize
                     }
