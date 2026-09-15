@@ -17,6 +17,7 @@ import io.ktor.server.auth.*
 import io.ktor.server.request.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
+import java.io.IOException
 import java.security.interfaces.*
 import java.util.*
 
@@ -85,11 +86,12 @@ internal suspend fun getVerifier(
 ): JWTVerifier? {
     val jwk = token.getBlob(schemes)?.let { blob ->
         try {
-            withContext(Dispatchers.IO) {
-                jwkProvider.get(JWT.decode(blob).keyId)
-            }
+            val keyId = JWT.decode(blob).keyId
+            withContext(Dispatchers.IO) { jwkProvider.get(keyId) }
         } catch (cause: JwkException) {
-            if (cause.isJwkProviderFailure()) throw cause
+            if (cause.isJwkProviderFailure()) {
+                throw cause
+            }
             JWTLogger.trace("Failed to get JWK", cause)
             null
         } catch (cause: JWTDecodeException) {

@@ -19,7 +19,9 @@ import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.io.IOException
 import java.util.*
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.reflect.KClass
 
 internal val JWTAuthKey: Any = "JWTAuth"
@@ -217,9 +219,11 @@ public class JWTAuthenticationProvider internal constructor(config: Config) : Au
                 schemes,
                 challengeFunction
             )
+        } catch (cause: CancellationException) {
+            throw cause
         } catch (cause: Throwable) {
             if (cause is JwkException && cause.isJwkProviderFailure()) {
-                throw cause
+                throw IOException("Failed to resolve a JWT signing key from the JWK provider", cause)
             }
             val message = cause.message ?: cause.javaClass.simpleName
             JWTLogger.debug("JWT authentication failed: {}", message, cause)
