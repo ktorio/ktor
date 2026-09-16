@@ -41,13 +41,23 @@ jobs:
         run: |
           set -euo pipefail
 
+          # Secrets are not available to pull_request runs from forks, so YOUTRACK_TOKEN is empty there.
+          # The KTOR project is public, so fall back to an anonymous request instead of sending an
+          # empty bearer token (which YouTrack rejects with 401 and would make the check a no-op).
+          AUTH_ARGS=()
+          if [ -n "$YOUTRACK_TOKEN" ]; then
+            AUTH_ARGS=(-H "Authorization: Bearer $YOUTRACK_TOKEN")
+          else
+            echo "YOUTRACK_TOKEN is not available (fork PR?), querying YouTrack anonymously"
+          fi
+
           # Transport failures (DNS, TLS, connection) make curl exit non-zero without an HTTP code.
           # Capture the exit code instead of letting `set -e` abort, so an outage skips the check
           # with a warning rather than blocking the PR.
           CURL_EXIT=0
           RESPONSE=$(curl -s -w "\n%{http_code}" \
             -H "Accept: application/json" \
-            -H "Authorization: Bearer $YOUTRACK_TOKEN" \
+            "${AUTH_ARGS[@]}" \
             "$YOUTRACK_URL/api/issues/$ISSUE_ID?fields=idReadable,summary,resolved") || CURL_EXIT=$?
 
           if [ "$CURL_EXIT" -ne 0 ]; then
