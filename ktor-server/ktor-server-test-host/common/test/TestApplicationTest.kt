@@ -19,14 +19,13 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.server.testing.client.*
-import io.ktor.test.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.test.runTest
 import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.coroutineContext
 import kotlin.test.*
 import kotlin.time.Duration.Companion.seconds
 
@@ -551,6 +550,46 @@ class TestApplicationTest {
         val clientMessages = collected.filter { it.startsWith("[Client]") }.toSet()
         assertEquals(setOf("Test 0", "Test 1", "Test 2"), serverMessages)
         assertEquals(setOf("[Client] Test 0", "[Client] Test 1", "[Client] Test 2"), clientMessages)
+    }
+
+    @Test
+    fun testValidHandlerContextWhenStreaming() = testApplication {
+        val scope = CoroutineScope(Dispatchers.Default)
+
+        routing {
+            get {
+                val context = currentCoroutineContext()
+                scope.launch {
+                    assertEquals("request", context[CoroutineName]?.name)
+                }
+                call.respondText { "OK" }
+            }
+
+            get("/stream") {
+                call.respondBytesWriter {
+                    val context = currentCoroutineContext()
+                    scope.launch {
+                        assertEquals("request", context[CoroutineName]?.name)
+                    }
+
+                    repeat(3) {
+                        val msg = "Test $it"
+                        writeStringUtf8(msg + "\n")
+                        flush()
+                    }
+                }
+            }
+        }
+
+        client.get("/")
+
+        client.prepareGet("/stream").execute { response ->
+            val channel = response.bodyAsChannel()
+
+            while (!channel.isClosedForRead) {
+                channel.readLine() ?: break
+            }
+        }
     }
 
     class MyElement(val data: String) : CoroutineContext.Element {
