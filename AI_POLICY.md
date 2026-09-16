@@ -23,21 +23,9 @@ This policy includes, but is not limited to, the following kinds of contribution
 - KLIPs or design proposals
 - Issues or security vulnerabilities
 
-## Written Communication Exception
-
-Exception to the permitted use of AI-generated content is written direct communication,
-such as comments and feedback on pull requests, issues, KLIPs, and any other places of direct communication.
-It is forbidden to use these tools to talk to humans. Using AI for translation and copy-editing work is ok,
-but the text must be human produced in the first place.
-
-Issues, pull requests, and KLIPs are not considered direct communication and may have descriptions
-produced by AI tools. However, it is strongly recommended that contributors write these descriptions themselves.
-The description should explain the motivation, implementation approach, expected impact, and any open questions or
-uncertainties to the same extent as a contribution made without tool assistance.
-
 ## Direct Communication
 
-The one exception to the policy above is direct communication with other people:comments and reviews on pull requests,
+The one exception to the policy above is direct communication with other people: comments and reviews on pull requests,
 issues (GitHub and YouTrack), KLIPs, Slack, and similar channels. Do not use AI tools to write these. Discussions exist
 so that people can understand each other's reasoning, and generated replies defeat that purpose.
 
