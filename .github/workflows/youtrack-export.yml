@@ -1,0 +1,141 @@
+name: Export Issue to YouTrack
+
+on:
+  issues:
+    types: [ opened ]
+
+jobs:
+  export-to-youtrack:
+    name: Export to YouTrack
+    runs-on: ubuntu-latest
+    env:
+      YOUTRACK_URL: https://youtrack.jetbrains.com
+      YOUTRACK_TOKEN: ${{ secrets.YOUTRACK_TOKEN }}
+    steps:
+      - name: Map issue type
+        id: map-type
+        env:
+          LABELS: ${{ toJson(github.event.issue.labels.*.name) }}
+        run: |
+          set -euo pipefail
+          echo "GitHub labels: $LABELS"
+
+          if echo "$LABELS" | jq -e 'index("bug")' > /dev/null 2>&1; then
+            echo "yt_type=Bug" >> "$GITHUB_OUTPUT"
+            echo "Mapped to YouTrack type: Bug"
+          elif echo "$LABELS" | jq -e 'index("feature") or index("enhancement")' > /dev/null 2>&1; then
+            echo "yt_type=Feature" >> "$GITHUB_OUTPUT"
+            echo "Mapped to YouTrack type: Feature"
+          else
+            echo "yt_type=Task" >> "$GITHUB_OUTPUT"
+            echo "Mapped to YouTrack type: Task (default)"
+          fi
+
+      - name: Resolve github-issue tag ID
+        id: resolve-tag
+        run: |
+          set -euo pipefail
+          TAG_ID=$(curl -sf \
+            -H "Authorization: Bearer $YOUTRACK_TOKEN" \
+            "$YOUTRACK_URL/api/tags?fields=id,name&query=github-issue" \
+            | jq -r '.[] | select(.name == "github-issue") | .id' | head -1)
+
+          if [ -z "$TAG_ID" ] || [ "$TAG_ID" = "null" ]; then
+            echo "Tag not found, creating..."
+            TAG_ID=$(curl -sf \
+              -X POST \
+              -H "Authorization: Bearer $YOUTRACK_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d '{"name": "github-issue"}' \
+              "$YOUTRACK_URL/api/tags?fields=id" \
+              | jq -r '.id')
+          fi
+
+          echo "tag_id=$TAG_ID" >> "$GITHUB_OUTPUT"
+          echo "Resolved tag ID: $TAG_ID"
+
+      - name: Create YouTrack issue
+        id: create-issue
+        env:
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_URL: ${{ github.event.issue.html_url }}
+          YT_TYPE: ${{ steps.map-type.outputs.yt_type }}
+        run: |
+          set -euo pipefail
+          echo "Creating YouTrack issue for: $ISSUE_TITLE"
+          echo "  Type: $YT_TYPE"
+          echo "  Source: $ISSUE_URL"
+
+          DESCRIPTION="$(printf 'Original GitHub issue: %s\n\n---\n\n%s' "$ISSUE_URL" "$ISSUE_BODY")"
+
+          PAYLOAD=$(jq -n \
+            --arg summary "$ISSUE_TITLE" \
+            --arg description "$DESCRIPTION" \
+            --arg type "$YT_TYPE" \
+            '{
+              project: { shortName: "KTOR" },
+              summary: $summary,
+              description: $description,
+              customFields: [
+                {
+                  name: "Type",
+                  "$type": "SingleEnumIssueCustomField",
+                  value: { name: $type }
+                },
+                {
+                  name: "Topic",
+                  "$type": "SingleEnumIssueCustomField",
+                  value: { name: "Web Feedback. GitHub" }
+                }
+              ]
+            }')
+
+          echo "Request payload:"
+          echo "$PAYLOAD" | jq .
+
+          RESPONSE=$(curl -s -w "\n%{http_code}" \
+            -X POST \
+            -H "Authorization: Bearer $YOUTRACK_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "$PAYLOAD" \
+            "$YOUTRACK_URL/api/issues?fields=idReadable")
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+
+          echo "YouTrack API response (HTTP $HTTP_CODE): $BODY"
+
+          if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
+            echo "::error::Failed to create YouTrack issue (HTTP $HTTP_CODE): $BODY"
+            exit 1
+          fi
+
+          ISSUE_ID=$(echo "$BODY" | jq -r '.idReadable')
+          echo "issue_id=$ISSUE_ID" >> "$GITHUB_OUTPUT"
+          echo "Created YouTrack issue: $ISSUE_ID"
+
+      - name: Tag issue with github-issue
+        env:
+          ISSUE_ID: ${{ steps.create-issue.outputs.issue_id }}
+          TAG_ID: ${{ steps.resolve-tag.outputs.tag_id }}
+        run: |
+          set -euo pipefail
+          echo "Tagging $ISSUE_ID with 'github-issue' (tag ID: $TAG_ID)..."
+
+          RESPONSE=$(curl -s -w "\n%{http_code}" \
+            -X POST \
+            -H "Authorization: Bearer $YOUTRACK_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "{\"id\": \"$TAG_ID\"}" \
+            "$YOUTRACK_URL/api/issues/$ISSUE_ID/tags")
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+
+          if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
+            echo "::error::Failed to tag issue $ISSUE_ID (HTTP $HTTP_CODE): $BODY"
+            exit 1
+          fi
+
+          echo "Tagged $ISSUE_ID with 'github-issue'"

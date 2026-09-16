@@ -1,0 +1,64 @@
+name: Validate PR Title
+
+on:
+  pull_request:
+    types: [ opened, edited, reopened, synchronize ]
+
+permissions: {}
+
+jobs:
+  validate-title:
+    name: Check YouTrack issue ID
+    runs-on: ubuntu-latest
+
+    # Dependency updates and other bot PRs don't reference YouTrack issues
+    if: github.event.pull_request.user.type != 'Bot'
+
+    env:
+      PR_TITLE: ${{ github.event.pull_request.title }}
+      YOUTRACK_URL: https://youtrack.jetbrains.com
+      YOUTRACK_TOKEN: ${{ secrets.YOUTRACK_TOKEN }}
+
+    steps:
+      - name: Check title format
+        id: format
+        run: |
+          set -euo pipefail
+          echo "PR title: $PR_TITLE"
+
+          if [[ ! "$PR_TITLE" =~ ^(KTOR-[0-9]+):?[[:space:]]+[^[:space:]] ]]; then
+            echo "::error title=Invalid PR title::PR title must start with a YouTrack issue ID, e.g. \"KTOR-1234: Fix something\" or \"KTOR-1234 Fix something\". Got: \"$PR_TITLE\""
+            exit 1
+          fi
+
+          ISSUE_ID="${BASH_REMATCH[1]}"
+          echo "issue_id=$ISSUE_ID" >> "$GITHUB_OUTPUT"
+          echo "Found issue ID: $ISSUE_ID"
+
+      - name: Check issue exists in YouTrack
+        env:
+          ISSUE_ID: ${{ steps.format.outputs.issue_id }}
+        run: |
+          set -euo pipefail
+
+          RESPONSE=$(curl -s -w "\n%{http_code}" \
+            -H "Accept: application/json" \
+            -H "Authorization: Bearer $YOUTRACK_TOKEN" \
+            "$YOUTRACK_URL/api/issues/$ISSUE_ID?fields=idReadable,summary,resolved")
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+
+          if [ "$HTTP_CODE" = "404" ]; then
+            echo "::error title=Unknown YouTrack issue::Issue $ISSUE_ID does not exist in YouTrack ($YOUTRACK_URL/issue/$ISSUE_ID)"
+            exit 1
+          fi
+
+          if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
+            echo "::warning title=YouTrack check skipped::Could not verify issue $ISSUE_ID (HTTP $HTTP_CODE): $BODY"
+            exit 0
+          fi
+
+          SUMMARY=$(echo "$BODY" | jq -r '.summary')
+          echo "Issue $ISSUE_ID exists: $SUMMARY"
+          echo "$YOUTRACK_URL/issue/$ISSUE_ID"
