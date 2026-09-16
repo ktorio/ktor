@@ -54,8 +54,46 @@ jobs:
           echo "tag_id=$TAG_ID" >> "$GITHUB_OUTPUT"
           echo "Resolved tag ID: $TAG_ID"
 
+      # The description of every exported issue starts with "Original GitHub issue: <url>".
+      # Search for that exact line first so re-running the job (e.g. after the tagging step
+      # failed) reuses the existing YouTrack issue instead of creating a duplicate.
+      - name: Find existing YouTrack issue
+        id: find-existing
+        env:
+          ISSUE_URL: ${{ github.event.issue.html_url }}
+        run: |
+          set -euo pipefail
+          QUERY="project: KTOR description: \"Original GitHub issue: $ISSUE_URL\""
+          echo "Searching YouTrack: $QUERY"
+
+          RESPONSE=$(curl -s -w "\n%{http_code}" --get \
+            -H "Accept: application/json" \
+            -H "Authorization: Bearer $YOUTRACK_TOKEN" \
+            --data-urlencode "query=$QUERY" \
+            --data-urlencode "fields=idReadable" \
+            --data-urlencode "\$top=1" \
+            "$YOUTRACK_URL/api/issues")
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+
+          if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
+            # Fail rather than create a potential duplicate when we cannot check.
+            echo "::error::Failed to search YouTrack for an existing issue (HTTP $HTTP_CODE): $BODY"
+            exit 1
+          fi
+
+          ISSUE_ID=$(echo "$BODY" | jq -r '.[0].idReadable // empty')
+          if [ -n "$ISSUE_ID" ]; then
+            echo "Found existing YouTrack issue: $ISSUE_ID"
+          else
+            echo "No existing YouTrack issue found"
+          fi
+          echo "issue_id=$ISSUE_ID" >> "$GITHUB_OUTPUT"
+
       - name: Create YouTrack issue
         id: create-issue
+        if: steps.find-existing.outputs.issue_id == ''
         env:
           ISSUE_TITLE: ${{ github.event.issue.title }}
           ISSUE_BODY: ${{ github.event.issue.body }}
@@ -67,6 +105,7 @@ jobs:
           echo "  Type: $YT_TYPE"
           echo "  Source: $ISSUE_URL"
 
+          # Keep the first line in sync with the search query in the "Find existing YouTrack issue" step.
           DESCRIPTION="$(printf 'Original GitHub issue: %s\n\n---\n\n%s' "$ISSUE_URL" "$ISSUE_BODY")"
 
           PAYLOAD=$(jq -n \
@@ -117,7 +156,7 @@ jobs:
 
       - name: Tag issue with github-issue
         env:
-          ISSUE_ID: ${{ steps.create-issue.outputs.issue_id }}
+          ISSUE_ID: ${{ steps.find-existing.outputs.issue_id || steps.create-issue.outputs.issue_id }}
           TAG_ID: ${{ steps.resolve-tag.outputs.tag_id }}
         run: |
           set -euo pipefail

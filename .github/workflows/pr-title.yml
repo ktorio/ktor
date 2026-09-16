@@ -41,10 +41,19 @@ jobs:
         run: |
           set -euo pipefail
 
+          # Transport failures (DNS, TLS, connection) make curl exit non-zero without an HTTP code.
+          # Capture the exit code instead of letting `set -e` abort, so an outage skips the check
+          # with a warning rather than blocking the PR.
+          CURL_EXIT=0
           RESPONSE=$(curl -s -w "\n%{http_code}" \
             -H "Accept: application/json" \
             -H "Authorization: Bearer $YOUTRACK_TOKEN" \
-            "$YOUTRACK_URL/api/issues/$ISSUE_ID?fields=idReadable,summary,resolved")
+            "$YOUTRACK_URL/api/issues/$ISSUE_ID?fields=idReadable,summary,resolved") || CURL_EXIT=$?
+
+          if [ "$CURL_EXIT" -ne 0 ]; then
+            echo "::warning title=YouTrack check skipped::Could not reach YouTrack to verify issue $ISSUE_ID (curl exit code $CURL_EXIT)"
+            exit 0
+          fi
 
           HTTP_CODE=$(echo "$RESPONSE" | tail -1)
           BODY=$(echo "$RESPONSE" | sed '$d')
