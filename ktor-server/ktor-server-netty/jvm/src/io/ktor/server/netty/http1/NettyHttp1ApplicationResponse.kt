@@ -80,22 +80,33 @@ internal class NettyHttp1ApplicationResponse(
         val nettyContext = context
         val nettyChannel = nettyContext.channel()
 
-        val bodyHandler = nettyContext.pipeline().get(RequestBodyHandler::class.java)
+        val bodyHandler = nettyContext.pipeline().get(RequestBodyHandler::class.java) ?: run {
+            cancel()
+            throw CancellationException("HTTP upgrade has been cancelled")
+        }
         val upgradedReadChannel = bodyHandler.upgrade()
 
         val upgradedWriteChannel = ByteChannel()
 
-        sendResponse(chunked = false, content = upgradedWriteChannel)
+        fun cancelUpgrade(): Nothing {
+            cancel()
+            val cause = CancellationException("HTTP upgrade has been cancelled")
+            upgradedWriteChannel.cancel(cause)
+            upgradedReadChannel.cancel(cause)
+            bodyHandler.close()
+            throw cause
+        }
+
+        if (!sendResponse(chunked = false, content = upgradedWriteChannel)) {
+            cancelUpgrade()
+        }
 
         with(nettyChannel.pipeline()) {
             if (get(NettyHttp1Handler::class.java) != null) {
                 remove(NettyHttp1Handler::class.java)
                 addFirst(NettyDirectDecoder())
             } else {
-                cancel()
-                val cause = java.util.concurrent.CancellationException("HTTP upgrade has been cancelled")
-                upgradedWriteChannel.cancel(cause)
-                throw cause
+                cancelUpgrade()
             }
         }
 
