@@ -26,8 +26,15 @@ jobs:
           set -euo pipefail
           echo "PR title: $PR_TITLE"
 
+          # Maintenance changes without a YouTrack issue (version bumps, CI tweaks, etc.)
+          if [[ "$PR_TITLE" =~ ^chore:[[:space:]]+[^[:space:]] ]]; then
+            echo "issue_id=" >> "$GITHUB_OUTPUT"
+            echo "Title uses the 'chore:' prefix, skipping YouTrack issue check"
+            exit 0
+          fi
+
           if [[ ! "$PR_TITLE" =~ ^(KTOR-[0-9]+):?[[:space:]]+[^[:space:]] ]]; then
-            echo "::error title=Invalid PR title::PR title must start with a YouTrack issue ID, e.g. \"KTOR-1234: Fix something\" or \"KTOR-1234 Fix something\". Got: \"$PR_TITLE\""
+            echo "::error title=Invalid PR title::PR title must start with a YouTrack issue ID, e.g. \"KTOR-1234: Fix something\" or \"KTOR-1234 Fix something\", or with the \"chore:\" prefix for changes without an issue. Got: \"$PR_TITLE\""
             exit 1
           fi
 
@@ -36,6 +43,7 @@ jobs:
           echo "Found issue ID: $ISSUE_ID"
 
       - name: Check issue exists in YouTrack
+        if: steps.format.outputs.issue_id != ''
         env:
           ISSUE_ID: ${{ steps.format.outputs.issue_id }}
         run: |
