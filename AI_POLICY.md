@@ -50,6 +50,8 @@ contributors write these descriptions themselves. The description should explain
 approach, expected impact, and any open questions or uncertainties to the same extent as a contribution made without
 tool assistance.
 
+AI tools that can do automated commenting, like Codex, added by the maintainers are exempt from this rule.  
+
 ## Handling Violations
 
 If a maintainer judges that a contribution doesn’t comply with this policy, they should paste the following response to
