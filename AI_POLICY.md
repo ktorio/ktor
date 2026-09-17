@@ -14,8 +14,7 @@ content**. Our policy on labelling is intended to facilitate reviews, and not to
 generated.
 Contributors should note tool usage in their pull request description, commit message, or wherever authorship is
 normally indicated for the work. For instance, use a commit message trailer like `Assisted-by: <tool-name>`. This
-transparency helps
-the community develop best practices and understand the role of these new tools.
+transparency helps the community develop best practices and understand the role of these new tools.
 
 This policy includes, but is not limited to, the following kinds of contributions:
 
