@@ -25,15 +25,15 @@
 
 ### Improvements
 * [KTOR-9876](https://youtrack.jetbrains.com/issue/KTOR-9876) Typo in KDoc for routing function: "for the this Application".
-* [KTOR-9881](https://youtrack.jetbrains.com/issue/KTOR-9881) Documentation for OpenID Connect (OAuth2) auto-discover & configuration
-* [KTOR-9755](https://youtrack.jetbrains.com/issue/KTOR-9755) Documentation for Support at least zstd and deflate formats of precompressed files
-* [KTOR-9840](https://youtrack.jetbrains.com/issue/KTOR-9840) Documentation for Support nullable types in ApplicationCall.receive
-* [KTOR-9839](https://youtrack.jetbrains.com/issue/KTOR-9839) Documentation for Support HTTP/3 for Netty
 * [KTOR-9778](https://youtrack.jetbrains.com/issue/KTOR-9778) Character classification in ktor-http hot paths uses boxed Set<Char> lookups and per-symbol encoder allocations
 * [KTOR-9702](https://youtrack.jetbrains.com/issue/KTOR-9702) Duplicate code in ByteReadChannel
 * [KTOR-9716](https://youtrack.jetbrains.com/issue/KTOR-9716) Make ApplicationCallPipeline.ApplicationPhase.Validators public in 3.6.0
 * [KTOR-9734](https://youtrack.jetbrains.com/issue/KTOR-9734) Use TagConsumer in respondHtmlFragment lambda receiver
 * [KTOR-5577](https://youtrack.jetbrains.com/issue/KTOR-5577) Support nullable types in ApplicationCall.receive
+* [KTOR-2367](https://youtrack.jetbrains.com/issue/KTOR-2367) OAuth: clients expect to get authenticated once per "session" for all protected routes
+* [KTOR-8594](https://youtrack.jetbrains.com/issue/KTOR-8594) Auth: Non-optional principal is of nullable type
+* [KTOR-9816](https://youtrack.jetbrains.com/issue/KTOR-9816) Escape `$` in application.yaml file
+* [KTOR-8193](https://youtrack.jetbrains.com/issue/KTOR-8193) Unnecessary blocking in OutputStream wrapper
 
 ### Bugfixes
 * [KTOR-8705](https://youtrack.jetbrains.com/issue/KTOR-8705) testApplication: call coroutine context isn't preserved when responding with ChannelWriterContent
@@ -47,10 +47,8 @@
 * [KTOR-9832](https://youtrack.jetbrains.com/issue/KTOR-9832) Apache5: Upgrading Apache HttpClient5 to version 5.6 breaks the Ktor client with `Content-Length mismatch` error for any gzipped content
 * [KTOR-9870](https://youtrack.jetbrains.com/issue/KTOR-9870) OkHttp: Reduce coroutine dispatching and allocations while reading response bodies
 * [KTOR-9627](https://youtrack.jetbrains.com/issue/KTOR-9627) Cancel blocking bridges when coroutine is cancelled
-* [KTOR-2367](https://youtrack.jetbrains.com/issue/KTOR-2367) OAuth: clients expect to get authenticated once per "session" for all protected routes
 * [KTOR-7067](https://youtrack.jetbrains.com/issue/KTOR-7067) Ktor Cookie.parseClientCookiesHeader returns Map, which breaks Cookie header contract
 * [KTOR-9643](https://youtrack.jetbrains.com/issue/KTOR-9643) Allow H2C and HTTP/2 on same server
-* [KTOR-8594](https://youtrack.jetbrains.com/issue/KTOR-8594) Auth: Non-optional principal is of nullable type
 * [KTOR-9302](https://youtrack.jetbrains.com/issue/KTOR-9302) OpenAPI: No way to set tag description
 * [KTOR-9827](https://youtrack.jetbrains.com/issue/KTOR-9827) Authorization header removed from refresh token request
 * [KTOR-8355](https://youtrack.jetbrains.com/issue/KTOR-8355) Bad percentage encoding in URL query causes uncaught exception and 500 status
@@ -65,7 +63,6 @@
 * [KTOR-9386](https://youtrack.jetbrains.com/issue/KTOR-9386) Misleading log output for Unix Domain Socket servers: "Responding at unix://0.0.0.0:80"
 * [KTOR-8755](https://youtrack.jetbrains.com/issue/KTOR-8755) CIO: The engine doesn't encode Unicode symbols like '–' (U+2013) in request URL
 * [KTOR-9513](https://youtrack.jetbrains.com/issue/KTOR-9513) CharsetDecoder.decode() ignores the max argument on JVM
-* [KTOR-9816](https://youtrack.jetbrains.com/issue/KTOR-9816) Escape `$` in application.yaml file
 * [KTOR-9825](https://youtrack.jetbrains.com/issue/KTOR-9825) Unescape quoted-pair at the end of a header parameter value
 * [KTOR-9731](https://youtrack.jetbrains.com/issue/KTOR-9731) CIO: HttpRequestLifecycle cancels `Connection: close` call too soon, sending an incomplete response
 * [KTOR-9770](https://youtrack.jetbrains.com/issue/KTOR-9770) CIO: mapToKtor unwraps non-timeout exceptions to their cause
@@ -82,7 +79,6 @@
 * [KTOR-9739](https://youtrack.jetbrains.com/issue/KTOR-9739) Outdated KDoc for AuthProvider.refreshToken method
 * [KTOR-9792](https://youtrack.jetbrains.com/issue/KTOR-9792) Application lifecycle events affect other reload generations
 * [KTOR-9793](https://youtrack.jetbrains.com/issue/KTOR-9793) The new DI scope is cancelled during hot reload
-* [KTOR-8193](https://youtrack.jetbrains.com/issue/KTOR-8193) Unnecessary blocking in OutputStream wrapper
 * [KTOR-9648](https://youtrack.jetbrains.com/issue/KTOR-9648) OpenAPI: reflection schema inference produces incorrect discriminator mapping for Jackson-annotated and nested sealed hierarchies
 * [KTOR-9760](https://youtrack.jetbrains.com/issue/KTOR-9760) Digest Auth: URI and HA2 are empty for a URL without a path
 * [KTOR-9705](https://youtrack.jetbrains.com/issue/KTOR-9705) OpenAPI UI (ktor-server-openapi) does not support OpenAPI spec 3.1.*
