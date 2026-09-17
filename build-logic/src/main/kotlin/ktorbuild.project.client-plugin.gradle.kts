@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 import ktorbuild.internal.ktorBuild
@@ -23,7 +23,12 @@ kotlin {
                 runtimeOnly(project(":ktor-client-apache"))
                 runtimeOnly(project(":ktor-client-cio"))
                 runtimeOnly(project(":ktor-client-android"))
-                runtimeOnly(project(":ktor-client-java"))
+
+                val jvmToolchain = ktorBuild.jvmTestToolchain.get()
+                val java11 = JavaLanguageVersion.of(11)
+                if (jvmToolchain.canCompileOrRun(java11)) {
+                    runtimeOnly(project(":ktor-client-java"))
+                }
             }
         }
 
