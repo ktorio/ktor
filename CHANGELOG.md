@@ -1,3 +1,102 @@
+# 3.6.0
+> Published 16 September 2026
+
+### Features
+* [KTOR-8596](https://youtrack.jetbrains.com/issue/KTOR-8596) OpenID Connect (OAuth2) auto-discover & configuration
+* [KTOR-9645](https://youtrack.jetbrains.com/issue/KTOR-9645) Client curated multi-platform facade module
+* [KTOR-8883](https://youtrack.jetbrains.com/issue/KTOR-8883) Support nested jars in static resources
+* [KTOR-8672](https://youtrack.jetbrains.com/issue/KTOR-8672) Support at least zstd and deflate formats of precompressed files
+* [KTOR-8595](https://youtrack.jetbrains.com/issue/KTOR-8595) Auth JWK Support (auto-discover)
+* [KTOR-9841](https://youtrack.jetbrains.com/issue/KTOR-9841) OIDC Server Plugin
+* [KTOR-9654](https://youtrack.jetbrains.com/issue/KTOR-9654) Override fetch in JS engine
+* [KTOR-9785](https://youtrack.jetbrains.com/issue/KTOR-9785) Typesafe Authentication DSL
+* [KTOR-462](https://youtrack.jetbrains.com/issue/KTOR-462) Async CIO DNS resolver with timeout
+* [KTOR-9709](https://youtrack.jetbrains.com/issue/KTOR-9709) Add resource attribute for client resources plugin
+* [KTOR-5009](https://youtrack.jetbrains.com/issue/KTOR-5009) ContentNegotiation: Add a way to prevent changing Accept and Content-Type headers
+* [KTOR-9776](https://youtrack.jetbrains.com/issue/KTOR-9776) OpenAPI: Support the "const" validation keyword
+* [KTOR-7468](https://youtrack.jetbrains.com/issue/KTOR-7468) DefaultConversionService: Support Uuid type introduced in Kotlin 2.0
+* [KTOR-9578](https://youtrack.jetbrains.com/issue/KTOR-9578) HttpCache add method for clearing
+* [KTOR-9590](https://youtrack.jetbrains.com/issue/KTOR-9590) OpenAPI Contextual JSON schema inference support
+* [KTOR-6610](https://youtrack.jetbrains.com/issue/KTOR-6610) Log which ConfigLoader has been used for loading the server configuration
+* [KTOR-9735](https://youtrack.jetbrains.com/issue/KTOR-9735) Commonize HttpCache FileCacheStorage
+* [KTOR-8953](https://youtrack.jetbrains.com/issue/KTOR-8953) WebRTC client on JVM
+* [KTOR-9674](https://youtrack.jetbrains.com/issue/KTOR-9674) UDP support for Node.js targets
+* [KTOR-9612](https://youtrack.jetbrains.com/issue/KTOR-9612) Add `text/markdown` to the ContentType constants
+
+### Improvements
+* [KTOR-9876](https://youtrack.jetbrains.com/issue/KTOR-9876) Typo in KDoc for routing function: "for the this Application".
+* [KTOR-9881](https://youtrack.jetbrains.com/issue/KTOR-9881) Documentation for OpenID Connect (OAuth2) auto-discover & configuration
+* [KTOR-9755](https://youtrack.jetbrains.com/issue/KTOR-9755) Documentation for Support at least zstd and deflate formats of precompressed files
+* [KTOR-9840](https://youtrack.jetbrains.com/issue/KTOR-9840) Documentation for Support nullable types in ApplicationCall.receive
+* [KTOR-9839](https://youtrack.jetbrains.com/issue/KTOR-9839) Documentation for Support HTTP/3 for Netty
+* [KTOR-9778](https://youtrack.jetbrains.com/issue/KTOR-9778) Character classification in ktor-http hot paths uses boxed Set<Char> lookups and per-symbol encoder allocations
+* [KTOR-9702](https://youtrack.jetbrains.com/issue/KTOR-9702) Duplicate code in ByteReadChannel
+* [KTOR-9716](https://youtrack.jetbrains.com/issue/KTOR-9716) Make ApplicationCallPipeline.ApplicationPhase.Validators public in 3.6.0
+* [KTOR-9734](https://youtrack.jetbrains.com/issue/KTOR-9734) Use TagConsumer in respondHtmlFragment lambda receiver
+* [KTOR-5577](https://youtrack.jetbrains.com/issue/KTOR-5577) Support nullable types in ApplicationCall.receive
+
+### Bugfixes
+* [KTOR-8705](https://youtrack.jetbrains.com/issue/KTOR-8705) testApplication: call coroutine context isn't preserved when responding with ChannelWriterContent
+* [KTOR-9248](https://youtrack.jetbrains.com/issue/KTOR-9248) JWTAuthenticationProvider silently swallows exceptions
+* [KTOR-9892](https://youtrack.jetbrains.com/issue/KTOR-9892) Digest Auth client: `nc` and `qop` are not handled according to RFC 7616
+* [KTOR-9891](https://youtrack.jetbrains.com/issue/KTOR-9891) CIO on Kotlin/Native collapses above ~50 connections: HttpHeadersMap pools contend on an allocating SynchronizedObject
+* [KTOR-9794](https://youtrack.jetbrains.com/issue/KTOR-9794) Digest Auth: NullPointerException when the server does not expect Digest auth
+* [KTOR-9788](https://youtrack.jetbrains.com/issue/KTOR-9788) Netty: engine double-responds after its built-in 400, crashing the call-handler coroutine with "Headers can no longer be set because response was already completed"
+* [KTOR-9051](https://youtrack.jetbrains.com/issue/KTOR-9051) Slow initialization of HttpClient on Android
+* [KTOR-9701](https://youtrack.jetbrains.com/issue/KTOR-9701) Jackson/Gson converters waste time on unnecessary Dispatchers.IO dispatch
+* [KTOR-9832](https://youtrack.jetbrains.com/issue/KTOR-9832) Apache5: Upgrading Apache HttpClient5 to version 5.6 breaks the Ktor client with `Content-Length mismatch` error for any gzipped content
+* [KTOR-9870](https://youtrack.jetbrains.com/issue/KTOR-9870) OkHttp: Reduce coroutine dispatching and allocations while reading response bodies
+* [KTOR-9627](https://youtrack.jetbrains.com/issue/KTOR-9627) Cancel blocking bridges when coroutine is cancelled
+* [KTOR-2367](https://youtrack.jetbrains.com/issue/KTOR-2367) OAuth: clients expect to get authenticated once per "session" for all protected routes
+* [KTOR-7067](https://youtrack.jetbrains.com/issue/KTOR-7067) Ktor Cookie.parseClientCookiesHeader returns Map, which breaks Cookie header contract
+* [KTOR-9643](https://youtrack.jetbrains.com/issue/KTOR-9643) Allow H2C and HTTP/2 on same server
+* [KTOR-8594](https://youtrack.jetbrains.com/issue/KTOR-8594) Auth: Non-optional principal is of nullable type
+* [KTOR-9302](https://youtrack.jetbrains.com/issue/KTOR-9302) OpenAPI: No way to set tag description
+* [KTOR-9827](https://youtrack.jetbrains.com/issue/KTOR-9827) Authorization header removed from refresh token request
+* [KTOR-8355](https://youtrack.jetbrains.com/issue/KTOR-8355) Bad percentage encoding in URL query causes uncaught exception and 500 status
+* [KTOR-9762](https://youtrack.jetbrains.com/issue/KTOR-9762) Android: can hang when cancelling a streaming response during a blocking read
+* [KTOR-9443](https://youtrack.jetbrains.com/issue/KTOR-9443) OpenAPI: "No mapping for symbol: VALUE_PARAMETER" exception when respondText receives a conditional ContentType within ApplicationCall extension function
+* [KTOR-9392](https://youtrack.jetbrains.com/issue/KTOR-9392) OpenAPI: "No mapping for symbol: VAR name" exception when code inference is on
+* [KTOR-9389](https://youtrack.jetbrains.com/issue/KTOR-9389) OpenAPI: "IllegalStateException: No mapping for symbol" when code inference and passing received body to HttpStatusCode()
+* [KTOR-9784](https://youtrack.jetbrains.com/issue/KTOR-9784) Multipart is not supported on non-JVM server targets
+* [KTOR-9657](https://youtrack.jetbrains.com/issue/KTOR-9657) OpenAPI: generated schema for recursive types uses invalid schemaRef with ReflectionJsonSchemaInference
+* [KTOR-9676](https://youtrack.jetbrains.com/issue/KTOR-9676) Incorrect warning about streaming compression buffering
+* [KTOR-9712](https://youtrack.jetbrains.com/issue/KTOR-9712) Netty HTTP/3: the listener can only ever serve ONE QUIC connection — every subsequent handshake times out
+* [KTOR-9386](https://youtrack.jetbrains.com/issue/KTOR-9386) Misleading log output for Unix Domain Socket servers: "Responding at unix://0.0.0.0:80"
+* [KTOR-8755](https://youtrack.jetbrains.com/issue/KTOR-8755) CIO: The engine doesn't encode Unicode symbols like '–' (U+2013) in request URL
+* [KTOR-9513](https://youtrack.jetbrains.com/issue/KTOR-9513) CharsetDecoder.decode() ignores the max argument on JVM
+* [KTOR-9816](https://youtrack.jetbrains.com/issue/KTOR-9816) Escape `$` in application.yaml file
+* [KTOR-9825](https://youtrack.jetbrains.com/issue/KTOR-9825) Unescape quoted-pair at the end of a header parameter value
+* [KTOR-9731](https://youtrack.jetbrains.com/issue/KTOR-9731) CIO: HttpRequestLifecycle cancels `Connection: close` call too soon, sending an incomplete response
+* [KTOR-9770](https://youtrack.jetbrains.com/issue/KTOR-9770) CIO: mapToKtor unwraps non-timeout exceptions to their cause
+* [KTOR-9772](https://youtrack.jetbrains.com/issue/KTOR-9772) Make quality parameter case-insensitive
+* [KTOR-9773](https://youtrack.jetbrains.com/issue/KTOR-9773) OkHttp: Cancelling a request can close the response body on the Android main thread
+* [KTOR-7009](https://youtrack.jetbrains.com/issue/KTOR-7009) CIO: "Failed to parse HTTP response: unexpected EOF" when pipelining is on
+* [KTOR-9819](https://youtrack.jetbrains.com/issue/KTOR-9819) Curl: Requests leak curl_slist and response StableRef
+* [KTOR-9761](https://youtrack.jetbrains.com/issue/KTOR-9761) CIO server: request handler can leak when idle timeout cancels a claimed response
+* [KTOR-9817](https://youtrack.jetbrains.com/issue/KTOR-9817) Darwin CertificatePinner over-releases borrowed Core Foundation references
+* [KTOR-9774](https://youtrack.jetbrains.com/issue/KTOR-9774) CIO: pipelining corrupts requests with non-empty bodies
+* [KTOR-9766](https://youtrack.jetbrains.com/issue/KTOR-9766) OpenAPI: "has no continuation" AssertionError when a suspend call inside a sealed-type branch reads the smart-cast value
+* [KTOR-9775](https://youtrack.jetbrains.com/issue/KTOR-9775) OkHttp: duplex streaming does not release the connection after the request completes
+* [KTOR-9722](https://youtrack.jetbrains.com/issue/KTOR-9722) `DigestAuthProvider` cannot be initialized with a congested `Dispatchers.Default` pool
+* [KTOR-9739](https://youtrack.jetbrains.com/issue/KTOR-9739) Outdated KDoc for AuthProvider.refreshToken method
+* [KTOR-9792](https://youtrack.jetbrains.com/issue/KTOR-9792) Application lifecycle events affect other reload generations
+* [KTOR-9793](https://youtrack.jetbrains.com/issue/KTOR-9793) The new DI scope is cancelled during hot reload
+* [KTOR-8193](https://youtrack.jetbrains.com/issue/KTOR-8193) Unnecessary blocking in OutputStream wrapper
+* [KTOR-9648](https://youtrack.jetbrains.com/issue/KTOR-9648) OpenAPI: reflection schema inference produces incorrect discriminator mapping for Jackson-annotated and nested sealed hierarchies
+* [KTOR-9760](https://youtrack.jetbrains.com/issue/KTOR-9760) Digest Auth: URI and HA2 are empty for a URL without a path
+* [KTOR-9705](https://youtrack.jetbrains.com/issue/KTOR-9705) OpenAPI UI (ktor-server-openapi) does not support OpenAPI spec 3.1.*
+* [KTOR-9715](https://youtrack.jetbrains.com/issue/KTOR-9715) Netty HTTP/3: user handler code is dispatched on the QUIC event loop — one blocking handler freezes the entire HTTP/3 listener (callEventGroup / pinnedCallExecutor not used)
+* [KTOR-2912](https://youtrack.jetbrains.com/issue/KTOR-2912) CORS Plugin: Access-Control-Allow-Methods header does not include default methods (GET, POST, HEAD)
+* [KTOR-9526](https://youtrack.jetbrains.com/issue/KTOR-9526) Static Content: excluded extension prevents fallback, and index file bypasses exclusion rules
+* [KTOR-9523](https://youtrack.jetbrains.com/issue/KTOR-9523) OAuth2: fallback handler not invoked when token endpoint returns invalid_grant
+* [KTOR-9501](https://youtrack.jetbrains.com/issue/KTOR-9501) Websockets: Closing WebSocketSession with a long message leads to ProtocolViolationException
+* [KTOR-9561](https://youtrack.jetbrains.com/issue/KTOR-9561) ByteReadChannel.copyTo does not propagate source closedCause on normal exit
+* [KTOR-9640](https://youtrack.jetbrains.com/issue/KTOR-9640) ktor-io reader/writer ignores autoFlush
+* [KTOR-9889](https://youtrack.jetbrains.com/issue/KTOR-9889) DI: Concurrent module loading can cause a deadlock
+* [KTOR-9886](https://youtrack.jetbrains.com/issue/KTOR-9886) Netty: inverted skippedRead CAS leaves runningLimit read-resumption broken; runningLimit = 1 deadlocks keep-alive connections
+
+
 # 3.5.2
 > Published 31 July 2026
 
