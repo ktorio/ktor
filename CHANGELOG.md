@@ -42,7 +42,7 @@
 * [KTOR-9891](https://youtrack.jetbrains.com/issue/KTOR-9891) CIO on Kotlin/Native collapses above ~50 connections: HttpHeadersMap pools contend on an allocating SynchronizedObject
 * [KTOR-9794](https://youtrack.jetbrains.com/issue/KTOR-9794) Digest Auth: NullPointerException when the server does not expect Digest auth
 * [KTOR-9788](https://youtrack.jetbrains.com/issue/KTOR-9788) Netty: engine double-responds after its built-in 400, crashing the call-handler coroutine with "Headers can no longer be set because response was already completed"
-* [KTOR-9051](https://youtrack.jetbrains.com/issue/KTOR-9051) Slow initialization of HttpClient on Android
+* [KTOR-9834](https://youtrack.jetbrains.com/issue/KTOR-9834) HttpClient eagerly initializes SLF4J during Android startup
 * [KTOR-9701](https://youtrack.jetbrains.com/issue/KTOR-9701) Jackson/Gson converters waste time on unnecessary Dispatchers.IO dispatch
 * [KTOR-9832](https://youtrack.jetbrains.com/issue/KTOR-9832) Apache5: Upgrading Apache HttpClient5 to version 5.6 breaks the Ktor client with `Content-Length mismatch` error for any gzipped content
 * [KTOR-9870](https://youtrack.jetbrains.com/issue/KTOR-9870) OkHttp: Reduce coroutine dispatching and allocations while reading response bodies
