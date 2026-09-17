@@ -1,0 +1,91 @@
+name: Validate PR Title
+
+on:
+  pull_request:
+    types: [ opened, edited, reopened, synchronize ]
+
+permissions: {}
+
+jobs:
+  validate-title:
+    name: Check YouTrack issue ID
+    runs-on: ubuntu-latest
+
+    # Dependency updates and other bot PRs don't reference YouTrack issues
+    if: github.event.pull_request.user.type != 'Bot'
+
+    env:
+      PR_TITLE: ${{ github.event.pull_request.title }}
+      YOUTRACK_URL: https://youtrack.jetbrains.com
+      YOUTRACK_TOKEN: ${{ secrets.YOUTRACK_TOKEN }}
+
+    steps:
+      - name: Check title format
+        id: format
+        run: |
+          set -euo pipefail
+          echo "PR title: $PR_TITLE"
+
+          # Maintenance changes without a YouTrack issue (version bumps, CI tweaks, etc.)
+          if [[ "$PR_TITLE" =~ ^chore:[[:space:]]+[^[:space:]] ]]; then
+            echo "issue_id=" >> "$GITHUB_OUTPUT"
+            echo "Title uses the 'chore:' prefix, skipping YouTrack issue check"
+            exit 0
+          fi
+
+          if [[ ! "$PR_TITLE" =~ ^(KTOR-[0-9]+):?[[:space:]]+[^[:space:]] ]]; then
+            echo "::error title=Invalid PR title::PR title must start with a YouTrack issue ID, e.g. \"KTOR-1234: Fix something\" or \"KTOR-1234 Fix something\", or with the \"chore:\" prefix for changes without an issue. Got: \"$PR_TITLE\""
+            exit 1
+          fi
+
+          ISSUE_ID="${BASH_REMATCH[1]}"
+          echo "issue_id=$ISSUE_ID" >> "$GITHUB_OUTPUT"
+          echo "Found issue ID: $ISSUE_ID"
+
+      - name: Check issue exists in YouTrack
+        if: steps.format.outputs.issue_id != ''
+        env:
+          ISSUE_ID: ${{ steps.format.outputs.issue_id }}
+        run: |
+          set -euo pipefail
+
+          # Secrets are not available to pull_request runs from forks, so YOUTRACK_TOKEN is empty there.
+          # The KTOR project is public, so fall back to an anonymous request instead of sending an
+          # empty bearer token (which YouTrack rejects with 401 and would make the check a no-op).
+          AUTH_ARGS=()
+          if [ -n "$YOUTRACK_TOKEN" ]; then
+            AUTH_ARGS=(-H "Authorization: Bearer $YOUTRACK_TOKEN")
+          else
+            echo "YOUTRACK_TOKEN is not available (fork PR?), querying YouTrack anonymously"
+          fi
+
+          # Transport failures (DNS, TLS, connection) make curl exit non-zero without an HTTP code.
+          # Capture the exit code instead of letting `set -e` abort, so an outage skips the check
+          # with a warning rather than blocking the PR.
+          CURL_EXIT=0
+          RESPONSE=$(curl -s -w "\n%{http_code}" \
+            -H "Accept: application/json" \
+            "${AUTH_ARGS[@]}" \
+            "$YOUTRACK_URL/api/issues/$ISSUE_ID?fields=idReadable,summary,resolved") || CURL_EXIT=$?
+
+          if [ "$CURL_EXIT" -ne 0 ]; then
+            echo "::warning title=YouTrack check skipped::Could not reach YouTrack to verify issue $ISSUE_ID (curl exit code $CURL_EXIT)"
+            exit 0
+          fi
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+
+          if [ "$HTTP_CODE" = "404" ]; then
+            echo "::error title=Unknown YouTrack issue::Issue $ISSUE_ID does not exist in YouTrack ($YOUTRACK_URL/issue/$ISSUE_ID)"
+            exit 1
+          fi
+
+          if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
+            echo "::warning title=YouTrack check skipped::Could not verify issue $ISSUE_ID (HTTP $HTTP_CODE): $BODY"
+            exit 0
+          fi
+
+          SUMMARY=$(echo "$BODY" | jq -r '.summary')
+          echo "Issue $ISSUE_ID exists: $SUMMARY"
+          echo "$YOUTRACK_URL/issue/$ISSUE_ID"
