@@ -39,6 +39,7 @@ class LDAPServerExtension : BeforeAllCallback, AfterAllCallback, ParameterResolv
 
         directoryService = dsServiceFactory.directoryService
         ldapServer = ServerAnnotationProcessor.instantiateLdapServer(createServer, directoryService)
+        checkNotNull(ldapServer).start()
 
         // notice: it is just a test: never keep user password but message digest or hash with salt
         IntegrationUtils.apply(
