@@ -1,17 +1,17 @@
 /*
- * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 import io.ktor.client.plugins.cookies.*
 import io.ktor.http.*
-import io.ktor.test.dispatcher.*
 import io.ktor.util.date.*
+import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 
 class AcceptAllCookiesStorageTest {
 
     @Test
-    fun testStorageUsesMaxAge() = testSuspend {
+    fun testStorageUsesMaxAge() = runTest {
         var time = 1L
         val storage = AcceptAllCookiesStorage { time }
         val cookie = Cookie("name", "value", maxAge = 1)
@@ -23,7 +23,7 @@ class AcceptAllCookiesStorageTest {
     }
 
     @Test
-    fun testStorageUsesExpires() = testSuspend {
+    fun testStorageUsesExpires() = runTest {
         var time = 1L
         val storage = AcceptAllCookiesStorage { time }
         val cookie = Cookie("name", "value", expires = GMTDate(1001))
@@ -35,7 +35,7 @@ class AcceptAllCookiesStorageTest {
     }
 
     @Test
-    fun testStoragePrefersMaxAgeOverExpires() = testSuspend {
+    fun testStoragePrefersMaxAgeOverExpires() = runTest {
         var time = 1L
         val storage = AcceptAllCookiesStorage { time }
         val cookie = Cookie("name", "value", expires = GMTDate(1001), maxAge = 2)
@@ -49,7 +49,7 @@ class AcceptAllCookiesStorageTest {
     }
 
     @Test
-    fun testLongMaxAge() = testSuspend {
+    fun testLongMaxAge() = runTest {
         val storage = AcceptAllCookiesStorage()
         val twoYears = 2 * 365 * 24 * 3600
         val cookie = Cookie("name", "value", maxAge = twoYears)
@@ -59,7 +59,7 @@ class AcceptAllCookiesStorageTest {
     }
 
     @Test
-    fun testAcceptsMatchingCookieDomains() = testSuspend {
+    fun testAcceptsMatchingCookieDomains() = runTest {
         val cases = listOf(
             "https://example.com/" to "example.com",
             "https://www.example.com/" to "example.com",
@@ -69,41 +69,48 @@ class AcceptAllCookiesStorageTest {
             "https://127.0.0.1/" to "127.0.0.1"
         )
 
-        cases.forEach { (url, domain) ->
+        for ((url, domain) in cases) {
             val storage = AcceptAllCookiesStorage()
-            storage.addCookie(Url(url), Cookie("name", "value", domain = domain, path = "/"))
+            val requestUrl = Url(url)
+            val cookie = Cookie(name = "name", value = "value", domain = domain, path = "/")
+            storage.addCookie(requestUrl, cookie)
 
-            assertEquals("value", storage.get(Url(url)).single().value)
+            val storedCookie = storage.get(requestUrl).single()
+            assertEquals("value", storedCookie.value)
         }
     }
 
     @Test
-    fun testRejectsCookiesForNonMatchingDomains() = testSuspend {
+    fun testRejectsCookiesForNonMatchingDomains() = runTest {
         val cases = listOf(
             Triple("https://evil.com/", "victim.com", "https://victim.com/"),
             Triple("https://notexample.com/", "example.com", "https://example.com/"),
             Triple("https://127.0.0.1/", "0.0.1", "https://0.0.1/")
         )
 
-        cases.forEach { (requestUrl, domain, cookieUrl) ->
+        for ((url, domain, cookieUrl) in cases) {
             val storage = AcceptAllCookiesStorage()
-            storage.addCookie(Url(requestUrl), Cookie("name", "value", domain = domain, path = "/"))
+            val requestUrl = Url(url)
+            val cookie = Cookie(name = "name", value = "value", domain = domain, path = "/")
+            storage.addCookie(requestUrl, cookie)
 
-            assertTrue(storage.get(Url(cookieUrl)).isEmpty())
+            val storedCookies = storage.get(Url(cookieUrl))
+            assertTrue(storedCookies.isEmpty())
         }
     }
 
     @Test
-    fun testRejectedCookieDoesNotReplaceExistingCookie() = testSuspend {
+    fun testRejectedCookieDoesNotReplaceExistingCookie() = runTest {
         val storage = AcceptAllCookiesStorage()
         val victimUrl = Url("https://victim.com/")
-        storage.addCookie(victimUrl, Cookie("session", "LEGITIMATE", domain = "victim.com", path = "/"))
+        val cookie = Cookie(name = "session", value = "LEGITIMATE", domain = "victim.com", path = "/")
+        storage.addCookie(victimUrl, cookie)
 
-        storage.addCookie(
-            Url("https://evil.com/"),
-            Cookie("session", "ATTACKER", domain = "victim.com", path = "/")
-        )
+        val evilUrl = Url("https://evil.com/")
+        val evilCookie = Cookie(name = "session", value = "ATTACKER", domain = "victim.com", path = "/")
+        storage.addCookie(evilUrl, evilCookie)
 
-        assertEquals(listOf("LEGITIMATE"), storage.get(victimUrl).map { it.value })
+        val storedValues = storage.get(victimUrl).map { it.value }
+        assertEquals(listOf("LEGITIMATE"), storedValues)
     }
 }
