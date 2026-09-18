@@ -4,6 +4,7 @@
 
 package io.ktor.http.cio
 
+import io.ktor.http.*
 import io.ktor.http.cio.internals.*
 import io.ktor.utils.io.pool.*
 import kotlin.math.absoluteValue
@@ -229,6 +230,12 @@ internal fun HttpHeadersMap.dumpTo(indent: String, out: Appendable) {
         out.append(" => ")
         out.append(valueAtOffset(offset))
         out.append("\n")
+    }
+}
+
+internal fun HttpHeadersMap.snapshot(): Headers = Headers.build {
+    for (offset in offsets()) {
+        append(nameAtOffset(offset).toString(), valueAtOffset(offset).toString())
     }
 }
 
