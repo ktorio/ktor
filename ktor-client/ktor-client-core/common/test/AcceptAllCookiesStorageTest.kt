@@ -57,4 +57,53 @@ class AcceptAllCookiesStorageTest {
 
         assertEquals(cookie.value, storage.get(Url("/")).single().value)
     }
+
+    @Test
+    fun testAcceptsMatchingCookieDomains() = testSuspend {
+        val cases = listOf(
+            "https://example.com/" to "example.com",
+            "https://www.example.com/" to "example.com",
+            "https://www.example.com/" to ".example.com",
+            "https://www.example.com/" to "EXAMPLE.COM",
+            "https://example.com/" to "",
+            "https://127.0.0.1/" to "127.0.0.1"
+        )
+
+        cases.forEach { (url, domain) ->
+            val storage = AcceptAllCookiesStorage()
+            storage.addCookie(Url(url), Cookie("name", "value", domain = domain, path = "/"))
+
+            assertEquals("value", storage.get(Url(url)).single().value)
+        }
+    }
+
+    @Test
+    fun testRejectsCookiesForNonMatchingDomains() = testSuspend {
+        val cases = listOf(
+            Triple("https://evil.com/", "victim.com", "https://victim.com/"),
+            Triple("https://notexample.com/", "example.com", "https://example.com/"),
+            Triple("https://127.0.0.1/", "0.0.1", "https://0.0.1/")
+        )
+
+        cases.forEach { (requestUrl, domain, cookieUrl) ->
+            val storage = AcceptAllCookiesStorage()
+            storage.addCookie(Url(requestUrl), Cookie("name", "value", domain = domain, path = "/"))
+
+            assertTrue(storage.get(Url(cookieUrl)).isEmpty())
+        }
+    }
+
+    @Test
+    fun testRejectedCookieDoesNotReplaceExistingCookie() = testSuspend {
+        val storage = AcceptAllCookiesStorage()
+        val victimUrl = Url("https://victim.com/")
+        storage.addCookie(victimUrl, Cookie("session", "LEGITIMATE", domain = "victim.com", path = "/"))
+
+        storage.addCookie(
+            Url("https://evil.com/"),
+            Cookie("session", "ATTACKER", domain = "victim.com", path = "/")
+        )
+
+        assertEquals(listOf("LEGITIMATE"), storage.get(victimUrl).map { it.value })
+    }
 }

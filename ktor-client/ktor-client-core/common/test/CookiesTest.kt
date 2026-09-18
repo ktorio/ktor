@@ -2,6 +2,8 @@
  * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+import io.ktor.client.*
+import io.ktor.client.engine.mock.*
 import io.ktor.client.plugins.cookies.*
 import io.ktor.client.request.*
 import io.ktor.http.*
@@ -113,5 +115,43 @@ class CookiesTest {
         feature.sendCookiesWith(builder)
 
         assertEquals(cookies, builder.headers[HttpHeaders.Cookie])
+    }
+
+    @Test
+    fun testDoesNotAcceptCookieForUnrelatedDomain() = testSuspend {
+        var victimCookie: String? = null
+        val client = HttpClient(MockEngine) {
+            install(HttpCookies)
+            engine {
+                addHandler { request ->
+                    when (request.url.host) {
+                        "evil.com" -> respond(
+                            "set",
+                            HttpStatusCode.OK,
+                            headersOf(
+                                HttpHeaders.SetCookie,
+                                "injected=ATTACKER_VALUE; Domain=victim.com; Path=/"
+                            )
+                        )
+
+                        "victim.com" -> {
+                            victimCookie = request.headers[HttpHeaders.Cookie]
+                            respondOk()
+                        }
+
+                        else -> respondError(HttpStatusCode.NotFound)
+                    }
+                }
+            }
+        }
+
+        try {
+            client.get("http://evil.com/")
+            client.get("http://victim.com/app")
+
+            assertNull(victimCookie)
+        } finally {
+            client.close()
+        }
     }
 }
