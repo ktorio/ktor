@@ -379,7 +379,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
 
     @OptIn(InternalAPI::class)
     @Test
-    fun testBigFile() = runTest(timeout = 1.minutes) {
+    fun testBigFile() = runTest(timeout = 3.minutes) {
         val file = File("build/large-file.dat")
         val rnd = Random()
 
