@@ -73,8 +73,9 @@ public fun Cookie.matches(requestUrl: Url): Boolean {
 internal fun String.matchesDomain(domain: String): Boolean {
     val host = toLowerCasePreservingASCIIRules()
     val normalizedDomain = domain.toLowerCasePreservingASCIIRules().trimStart('.')
-
-    return host == normalizedDomain || (!hostIsIp(host) && host.endsWith(".$normalizedDomain"))
+    if (normalizedDomain.isEmpty()) return false
+    if (host == normalizedDomain) return true
+    return !hostIsIp(host) && host.endsWith(".$normalizedDomain")
 }
 
 /**

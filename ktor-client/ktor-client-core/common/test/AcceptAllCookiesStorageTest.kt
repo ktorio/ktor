@@ -85,7 +85,8 @@ class AcceptAllCookiesStorageTest {
         val cases = listOf(
             Triple("https://evil.com/", "victim.com", "https://victim.com/"),
             Triple("https://notexample.com/", "example.com", "https://example.com/"),
-            Triple("https://127.0.0.1/", "0.0.1", "https://0.0.1/")
+            Triple("https://127.0.0.1/", "0.0.1", "https://0.0.1/"),
+            Triple("https://evil.com./", ".", "https://victim.com./")
         )
 
         for ((url, domain, cookieUrl) in cases) {
