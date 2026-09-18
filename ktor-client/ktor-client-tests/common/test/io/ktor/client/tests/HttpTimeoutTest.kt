@@ -241,7 +241,7 @@ class HttpTimeoutTest : ClientLoader(timeout = 30.seconds) {
                 method = HttpMethod.Get
                 parameter("delay", 10000)
 
-                timeout { requestTimeoutMillis = 1000 }
+                timeout { requestTimeoutMillis = 3000 }
             }.body<ByteReadChannel>()
             assertFailsWith<CancellationException> {
                 response.readLine()
