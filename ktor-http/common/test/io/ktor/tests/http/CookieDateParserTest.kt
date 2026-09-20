@@ -111,4 +111,18 @@ class CookieDateParserTest {
             assertEquals(expected, parser.parse(date))
         }
     }
+
+    @Test
+    fun testZeroIsReadAsEpoch() {
+        for (value in listOf("0", " 0 ")) {
+            assertEquals(GMTDate.START, value.fromCookieToGmtDate())
+        }
+    }
+
+    @Test
+    fun testOtherNumbersAreNotDates() {
+        for (value in listOf("00", "-1", "1")) {
+            assertFailsWith<IllegalStateException> { value.fromCookieToGmtDate() }
+        }
+    }
 }

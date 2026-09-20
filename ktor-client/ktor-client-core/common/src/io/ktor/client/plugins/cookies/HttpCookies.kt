@@ -127,9 +127,9 @@ public class HttpCookies internal constructor(
          * `null` or throwing leaves [Cookie.expires] unset and keeps the cookie; the built-in parser is not
          * retried, and `Max-Age` still takes precedence. It runs synchronously and may be called concurrently.
          *
-         * For a server that uses `Expires=0` to delete a cookie:
+         * For a server that sends `Expires` as a Unix timestamp:
          * ```kotlin
-         * expiresParser { value -> if (value == "0") GMTDate(0L) else null }
+         * expiresParser { value -> value.toLongOrNull()?.let { GMTDate(it * 1000) } }
          * ```
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.cookies.HttpCookies.Config.expiresParser)

@@ -18,7 +18,8 @@ class ParseServerSetCookieHeaderTest {
         for (date in listOf(standardDate, "Wednesday, 21-Oct-2015 07:28:00 GMT")) {
             assertEquals(standardDate.fromCookieToGmtDate(), parse("name=value; Expires=$date").expires)
         }
-        for (date in listOf("0", "not-a-date", "")) {
+        assertEquals(GMTDate.START, parse("name=value; Expires=0").expires)
+        for (date in listOf("not-a-date", "")) {
             assertNull(parse("name=value; Expires=$date").expires)
         }
     }
