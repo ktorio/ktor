@@ -28,7 +28,7 @@ The one exception to the policy above is direct communication with other people:
 issues (GitHub and YouTrack), KLIPs, Slack, and similar channels. Do not use AI tools to write these. Discussions exist
 so that people can understand each other's reasoning, and generated replies defeat that purpose.
 
-You may use tools to translate or to correct grammar and wording, provided the substance, claims, and reasoning must be
+You may use tools to translate or to correct grammar and wording, provided the substance, claims, and reasoning are
 your own.
 
 Descriptions of pull requests, issues, and KLIPs document the change rather than a
