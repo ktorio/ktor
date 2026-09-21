@@ -56,6 +56,25 @@ class PublicSuffixCookiePolicyTest {
     }
 
     @Test
+    fun testNormalizesUnicodeRulesAndCookieDomains() = runTest {
+        val composedDomain = "\u00e5lesund.no"
+        val decomposedDomain = "a\u030alesund.no"
+        val policyWithComposedRule = loadPolicy("no\n$composedDomain\n")
+        val policyWithDecomposedRule = loadPolicy("no\n$decomposedDomain\n")
+
+        assertRejected(policyWithComposedRule, requestUrl(decomposedDomain), decomposedDomain)
+        assertRejected(policyWithDecomposedRule, requestUrl(composedDomain), composedDomain)
+    }
+
+    @Test
+    fun testNormalizesPunycodeBeforeMatchingRules() = runTest {
+        val policy = loadPolicy("no\n\u00e5lesund.no\n")
+
+        assertRejected(policy, requestUrl("xn--lesund-hua.no"), "xn--lesund-hua.no")
+        assertRejected(policy, requestUrl("xn--alesund-vie.no"), "xn--alesund-vie.no")
+    }
+
+    @Test
     fun testRejectsPublicSuffixEqualToResponseHost() = runTest {
         val policy = loadPolicy(TEST_LIST)
 
@@ -84,13 +103,11 @@ class PublicSuffixCookiePolicyTest {
             }
         }
 
-        try {
+        client.use { client ->
             val policy = client.loadPublicSuffixCookiePolicy("https://example.test/list.dat")
             assertRejected(policy, "https://example.com/", "com")
             assertRejected(policy, "https://another.com/", "com")
             assertEquals(1, requests)
-        } finally {
-            client.close()
         }
     }
 
@@ -100,13 +117,11 @@ class PublicSuffixCookiePolicyTest {
             engine { addHandler { respondError(HttpStatusCode.NotFound) } }
         }
 
-        try {
+        client.use { client ->
             val cause = assertFailsWith<IllegalStateException> {
                 client.loadPublicSuffixCookiePolicy("https://example.test/list.dat")
             }
             assertContains(cause.message.orEmpty(), "404")
-        } finally {
-            client.close()
         }
     }
 
@@ -125,27 +140,36 @@ class PublicSuffixCookiePolicyTest {
     }
 
     private suspend fun assertAccepted(policy: CookieAcceptancePolicy, url: String, domain: String?) {
-        val requestUrl = Url(url)
+        assertAccepted(policy, Url(url), domain)
+    }
+
+    private suspend fun assertAccepted(policy: CookieAcceptancePolicy, url: Url, domain: String?) {
         val storage = FilteredCookiesStorage(policy)
-        storage.addCookie(requestUrl, Cookie("name", "value", domain = domain, path = "/"))
-        assertEquals("value", storage.get(requestUrl).single().value)
+        storage.addCookie(url, Cookie("name", "value", domain = domain, path = "/"))
+        assertEquals("value", storage.get(url).single().value)
     }
 
     private suspend fun assertRejected(policy: CookieAcceptancePolicy, url: String, domain: String) {
-        val requestUrl = Url(url)
-        val storage = FilteredCookiesStorage(policy)
-        storage.addCookie(requestUrl, Cookie("name", "value", domain = domain, path = "/"))
-        assertTrue(storage.get(requestUrl).isEmpty())
+        assertRejected(policy, Url(url), domain)
     }
+
+    private suspend fun assertRejected(policy: CookieAcceptancePolicy, url: Url, domain: String) {
+        val storage = FilteredCookiesStorage(policy)
+        storage.addCookie(url, Cookie("name", "value", domain = domain, path = "/"))
+        assertTrue(storage.get(url).isEmpty())
+    }
+
+    private fun requestUrl(domain: String): Url = URLBuilder(
+        protocol = URLProtocol.HTTPS,
+        host = "sub.$domain"
+    ).build()
 
     private suspend fun loadPolicy(content: String): CookieAcceptancePolicy {
         val client = HttpClient(MockEngine) {
             engine { addHandler { respondOk(content) } }
         }
-        return try {
+        return client.use { client ->
             client.loadPublicSuffixCookiePolicy("https://example.test/list.dat")
-        } finally {
-            client.close()
         }
     }
 
@@ -153,12 +177,10 @@ class PublicSuffixCookiePolicyTest {
         val client = HttpClient(MockEngine) {
             engine { addHandler { respondOk(content) } }
         }
-        try {
+        client.use { client ->
             assertFailsWith<IllegalArgumentException> {
                 client.loadPublicSuffixCookiePolicy("https://example.test/list.dat")
             }
-        } finally {
-            client.close()
         }
     }
 
