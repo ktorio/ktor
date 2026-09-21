@@ -9,7 +9,8 @@ There are multiple ways you can contribute:
 3. [Community Support](#community-support)
 4. [Reporting Issues](#reporting-issues)
 
-Independently of how you'd like to contribute, please make sure you read and comply with the [Code of Conduct](CODE_OF_CONDUCT.md).
+Independently of how you'd like to contribute, please make sure you read and comply with the [Code of Conduct](CODE_OF_CONDUCT.md) and 
+[AI Policy](AI_POLICY.md).
 
 ## Code contributions
 [code-contributions]: #code-contributions

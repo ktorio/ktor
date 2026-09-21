@@ -2,6 +2,8 @@
 
 This file is the primary playbook for agentic coding tools working in this repository.
 
+You must follow the [AI Policy](AI_POLICY.md).
+
 ## Critical Workflow Rule
 
 **NEVER return control to the user without ensuring:**
