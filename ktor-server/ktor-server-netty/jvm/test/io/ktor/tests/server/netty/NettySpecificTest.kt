@@ -32,8 +32,9 @@ import io.netty.channel.Channel
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelInboundHandlerAdapter
 import io.netty.channel.EventLoopGroup
+import io.netty.channel.MultiThreadIoEventLoopGroup
 import io.netty.channel.embedded.EmbeddedChannel
-import io.netty.channel.nio.NioEventLoopGroup
+import io.netty.channel.nio.NioIoHandler
 import kotlinx.coroutines.*
 import org.junit.jupiter.api.Test
 import org.slf4j.LoggerFactory
@@ -42,6 +43,7 @@ import java.net.BindException
 import java.net.ServerSocket
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.atomic.AtomicReference
+import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.test.*
 import kotlin.time.Duration.Companion.milliseconds
@@ -206,10 +208,76 @@ class NettySpecificTest {
     }
 
     @Test
-    fun `call finishes when channel becomes inactive before response is sent`() = runTestWithRealTime {
+    fun `call and producer finish when channel becomes inactive before response`() = runTestWithRealTime {
+        val producerJob = CompletableDeferred<Job>()
+        val content = ByteArray(4 * 1024 * 1024) { it.toByte() }
+
+        assertResponseFinishesWhenChannelInactive(
+            respond = { call ->
+                call.respond(
+                    object : OutgoingContent.ReadChannelContent() {
+                        override fun readFrom(): ByteReadChannel {
+                            val producer = CoroutineScope(Dispatchers.Unconfined).writer {
+                                this.channel.writeFully(content)
+                            }
+                            producerJob.complete(producer.job)
+                            return producer.channel
+                        }
+                    }
+                )
+            },
+            awaitResponseCoroutines = {
+                producerJob.await().join()
+            }
+        )
+    }
+
+    @Test
+    fun `upgrade is cancelled when channel becomes inactive before response`() = runTestWithRealTime {
+        val upgradeStarted = CompletableDeferred<Unit>()
+        val responseFailure = CompletableDeferred<Throwable>()
+        val content = ByteArray(4 * 1024 * 1024) { it.toByte() }
+
+        assertResponseFinishesWhenChannelInactive(
+            respond = { call ->
+                try {
+                    call.respond(
+                        object : OutgoingContent.ProtocolUpgrade() {
+                            override suspend fun upgrade(
+                                input: ByteReadChannel,
+                                output: ByteWriteChannel,
+                                engineContext: CoroutineContext,
+                                userContext: CoroutineContext
+                            ): Job {
+                                upgradeStarted.complete(Unit)
+                                val scope = CoroutineScope(currentCoroutineContext())
+                                return scope.launch(start = CoroutineStart.UNDISPATCHED) {
+                                    output.writeFully(content)
+                                }
+                            }
+                        }
+                    )
+                } catch (cause: Throwable) {
+                    responseFailure.complete(cause)
+                    throw cause
+                }
+            }
+        )
+
+        val cause = withTimeout(5.seconds) { responseFailure.await() }
+        assertIs<java.util.concurrent.CancellationException>(cause)
+        assertEquals("HTTP upgrade has been cancelled", cause.message)
+        assertFalse(upgradeStarted.isCompleted)
+    }
+
+    private suspend fun CoroutineScope.assertResponseFinishesWhenChannelInactive(
+        respond: suspend (ApplicationCall) -> Unit,
+        awaitResponseCoroutines: suspend () -> Unit = {}
+    ) {
         val handlerStarted = CompletableDeferred<Unit>()
         val shouldRespond = CompletableDeferred<Unit>()
         val callFinished = CompletableDeferred<Unit>()
+        val callJob = CompletableDeferred<Job>()
         val appStarted = CompletableDeferred<Application>()
         val channel: AtomicReference<Channel> = AtomicReference(null)
 
@@ -217,6 +285,7 @@ class NettySpecificTest {
             val server = embeddedServer(Netty, port = 0) {
                 routing {
                     get("/test") {
+                        callJob.complete(currentCoroutineContext().job)
                         handlerStarted.complete(Unit)
                         channel.set((call.pipelineCall.engineCall as NettyApplicationCall).context.channel())
                         shouldRespond.await()
@@ -228,7 +297,7 @@ class NettySpecificTest {
                             callFinished.complete(Unit)
                         }
 
-                        call.respond(HttpStatusCode.OK, "Hello")
+                        respond(call)
                     }
                 }
             }
@@ -267,9 +336,13 @@ class NettySpecificTest {
 
             // finishedEvent must be resolved (success or failure) — if responseReady is
             // never completed, this deferred hangs forever and the test times out
-            withTimeout(20.seconds) { callFinished.await() }
+            withTimeout(20.seconds) {
+                callFinished.await()
+                callJob.await().join()
+                awaitResponseCoroutines()
+            }
         } finally {
-            serverJob.cancel()
+            serverJob.cancelAndJoin()
         }
     }
 
@@ -282,7 +355,7 @@ class NettySpecificTest {
         logger.addAppender(listAppender)
 
         val environment = applicationEnvironment { log = logger }
-        val callEventGroup = NioEventLoopGroup(1)
+        val callEventGroup = MultiThreadIoEventLoopGroup(1, NioIoHandler.newFactory())
         val handler = NettyHttp1Handler(
             applicationProvider = { mockk(relaxed = true) },
             enginePipeline = mockk(relaxed = true),
@@ -764,6 +837,7 @@ class NettySpecificTest {
         }
     }
 
+    @Suppress("unused")
     private class Http2RawFrame(
         val frameType: Byte,
         val flags: Byte,
