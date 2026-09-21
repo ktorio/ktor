@@ -23,6 +23,10 @@ abstract fun interface io.ktor.client.content/ProgressListener { // io.ktor.clie
     abstract suspend fun onProgress(kotlin/Long, kotlin/Long?) // io.ktor.client.content/ProgressListener.onProgress|onProgress(kotlin.Long;kotlin.Long?){}[0]
 }
 
+abstract fun interface io.ktor.client.plugins.cookies/CookieAcceptancePolicy { // io.ktor.client.plugins.cookies/CookieAcceptancePolicy|null[0]
+    abstract suspend fun shouldAccept(io.ktor.http/Url, io.ktor.http/Cookie): kotlin/Boolean // io.ktor.client.plugins.cookies/CookieAcceptancePolicy.shouldAccept|shouldAccept(io.ktor.http.Url;io.ktor.http.Cookie){}[0]
+}
+
 abstract fun interface io.ktor.client.request/ResponseAdapter { // io.ktor.client.request/ResponseAdapter|null[0]
     abstract fun adapt(io.ktor.client.request/HttpRequestData, io.ktor.http/HttpStatusCode, io.ktor.http/Headers, io.ktor.utils.io/ByteReadChannel, io.ktor.http.content/OutgoingContent, kotlin.coroutines/CoroutineContext): kotlin/Any? // io.ktor.client.request/ResponseAdapter.adapt|adapt(io.ktor.client.request.HttpRequestData;io.ktor.http.HttpStatusCode;io.ktor.http.Headers;io.ktor.utils.io.ByteReadChannel;io.ktor.http.content.OutgoingContent;kotlin.coroutines.CoroutineContext){}[0]
 }
@@ -483,6 +487,14 @@ final class io.ktor.client.plugins.cookies/ConstantCookiesStorage : io.ktor.clie
     final fun close() // io.ktor.client.plugins.cookies/ConstantCookiesStorage.close|close(){}[0]
     final suspend fun addCookie(io.ktor.http/Url, io.ktor.http/Cookie) // io.ktor.client.plugins.cookies/ConstantCookiesStorage.addCookie|addCookie(io.ktor.http.Url;io.ktor.http.Cookie){}[0]
     final suspend fun get(io.ktor.http/Url): kotlin.collections/List<io.ktor.http/Cookie> // io.ktor.client.plugins.cookies/ConstantCookiesStorage.get|get(io.ktor.http.Url){}[0]
+}
+
+final class io.ktor.client.plugins.cookies/FilteredCookiesStorage : io.ktor.client.plugins.cookies/CookiesStorage { // io.ktor.client.plugins.cookies/FilteredCookiesStorage|null[0]
+    constructor <init>(kotlin/Array<out io.ktor.client.plugins.cookies/CookieAcceptancePolicy>..., kotlin.time/Clock = ...) // io.ktor.client.plugins.cookies/FilteredCookiesStorage.<init>|<init>(kotlin.Array<out|io.ktor.client.plugins.cookies.CookieAcceptancePolicy>...;kotlin.time.Clock){}[0]
+
+    final fun close() // io.ktor.client.plugins.cookies/FilteredCookiesStorage.close|close(){}[0]
+    final suspend fun addCookie(io.ktor.http/Url, io.ktor.http/Cookie) // io.ktor.client.plugins.cookies/FilteredCookiesStorage.addCookie|addCookie(io.ktor.http.Url;io.ktor.http.Cookie){}[0]
+    final suspend fun get(io.ktor.http/Url): kotlin.collections/List<io.ktor.http/Cookie> // io.ktor.client.plugins.cookies/FilteredCookiesStorage.get|get(io.ktor.http.Url){}[0]
 }
 
 final class io.ktor.client.plugins.cookies/HttpCookies : io.ktor.utils.io.core/Closeable { // io.ktor.client.plugins.cookies/HttpCookies|null[0]
