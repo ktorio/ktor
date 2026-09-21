@@ -21,6 +21,7 @@ This policy includes, but is not limited to, the following kinds of contribution
 - Code, usually in the form of a pull request
 - KLIPs or design proposals
 - Issues or security vulnerabilities
+- Documentation updates, pages, tutorials, and other content
 
 ## Direct Communication
 
