@@ -10,7 +10,6 @@ import io.ktor.server.request.*
 import io.ktor.util.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.currentCoroutineContext
 import kotlin.reflect.KClass
 
 internal val LOGGER = KtorSimpleLogger("io.ktor.server.plugins.doublereceive.DoubleReceive")
@@ -21,6 +20,8 @@ internal val LOGGER = KtorSimpleLogger("io.ktor.server.plugins.doublereceive.Dou
  * This might be useful if a plugin is already consumed a request body, so you cannot receive it inside a route handler.
  * For example, you can use `DoubleReceive` to log a request body using the `CallLogging` plugin and
  * then receive a body one more time inside the `post` route handler.
+ * Receive operations for the same call must be sequential. A channel returned by [ApplicationCall.receiveChannel]
+ * must reach end-of-stream or be cancelled before receiving the body again.
  *
  * You can learn more from [DoubleReceive](https://ktor.io/docs/double-receive.html).
  *
@@ -61,10 +62,10 @@ public val DoubleReceive: RouteScopedPlugin<DoubleReceiveConfig> = createRouteSc
 
         val content = if (pluginConfig.shouldUseFileCache.any { it(call) }) {
             LOGGER.trace("Storing raw body in file cache")
-            FileCache(value, context = currentCoroutineContext())
+            FileCache(value, context = call.coroutineContext)
         } else {
             LOGGER.trace("Storing raw body in memory cache")
-            MemoryCache(body, currentCoroutineContext())
+            MemoryCache(body, call.coroutineContext)
         }
 
         cache[DoubleReceiveCache::class] = content

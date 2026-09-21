@@ -1,8 +1,9 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 import io.ktor.server.plugins.doublereceive.*
+import io.ktor.server.request.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlinx.io.*
@@ -20,9 +21,15 @@ class DoubleReceiveTestJvm {
             EmptyCoroutineContext
         )
 
-        repeat(3) {
-            val received = cache.read().readBuffer().readByteArray()
-            assertContentEquals(content, received)
-        }
+        val first = cache.read()
+        assertFailsWith<RequestAlreadyConsumedException> { cache.read() }
+        assertContentEquals(content, first.readBuffer().readByteArray())
+
+        val second = cache.read()
+        assertFailsWith<RequestAlreadyConsumedException> { cache.read() }
+        second.cancel()
+
+        assertContentEquals(content, cache.read().readBuffer().readByteArray())
+        cache.dispose()
     }
 }

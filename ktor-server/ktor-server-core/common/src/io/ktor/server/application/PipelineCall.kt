@@ -1,22 +1,36 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+* Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
 */
 
 package io.ktor.server.application
 
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.server.engine.*
 import io.ktor.server.plugins.*
 import io.ktor.server.plugins.ContentTransformationException
 import io.ktor.server.request.*
 import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.sync.*
 
 private val RECEIVE_TYPE_KEY: AttributeKey<TypeInfo> = AttributeKey("ReceiveType")
+private val RECEIVE_GUARD_KEY: AttributeKey<ApplicationCallReceiveGuard> = AttributeKey("ApplicationCallReceiveGuard")
+
+internal class ApplicationCallReceiveGuard {
+    val mutex = Mutex()
+}
+
+private fun PipelineCall.receiveGuard(): ApplicationCallReceiveGuard = when (this) {
+    is BaseApplicationCall -> receiveGuard
+    is RoutingPipelineCall -> engineCall.receiveGuard()
+    else -> attributes.computeIfAbsent(RECEIVE_GUARD_KEY) { ApplicationCallReceiveGuard() }
+}
 
 /**
  * A single act of communication between a client and server.
@@ -67,12 +81,15 @@ public interface ApplicationCall : CoroutineScope {
      *
      * This function returns `null` only when [TypeInfo.isNullable] is `true`.
      * The caller is responsible for ensuring that [typeInfo] represents the same type as [T].
+     * Receive operations for the same call must be sequential.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ApplicationCall.receive)
      *
      * @param typeInfo instance specifying the type to be received.
      * @return an instance of [T] received from this call.
      * @throws ContentTransformationException when content cannot be transformed to the requested type.
+     * @throws RequestAlreadyConsumedException when the body has already been consumed or another receive operation is
+     * active for this call.
      */
     public suspend fun <T> receive(typeInfo: TypeInfo): T {
         @Suppress("DEPRECATION")
@@ -85,12 +102,15 @@ public interface ApplicationCall : CoroutineScope {
 
     /**
      * Receives content for this request.
+     * Receive operations for the same call must be sequential.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ApplicationCall.receiveNullable)
      *
      * @param typeInfo instance specifying type to be received.
      * @return instance of [T] received from this call.
      * @throws ContentTransformationException when content cannot be transformed to the requested type.
+     * @throws RequestAlreadyConsumedException when the body has already been consumed or another receive operation is
+     * active for this call.
      */
     @Deprecated("Use 'receive<T>(typeInfo)' with nullable T instead", ReplaceWith("receive<T?>(typeInfo)"))
     public suspend fun <T> receiveNullable(typeInfo: TypeInfo): T?
@@ -129,7 +149,23 @@ public interface PipelineCall : ApplicationCall {
      */
     public override val response: PipelineResponse
 
+    @Deprecated(
+        "Use 'receive<T>(typeInfo)' with nullable T instead",
+        replaceWith = ReplaceWith("receive<T?>(typeInfo)")
+    )
     public override suspend fun <T> receiveNullable(typeInfo: TypeInfo): T? {
+        val guard = receiveGuard()
+        if (!guard.mutex.tryLock()) {
+            throw RequestAlreadyConsumedException()
+        }
+        try {
+            return receiveNullableUnlocked(typeInfo)
+        } finally {
+            guard.mutex.unlock()
+        }
+    }
+
+    private suspend fun <T> receiveNullableUnlocked(typeInfo: TypeInfo): T? {
         val token = attributes.getOrNull(DoubleReceivePreventionTokenKey)
         if (token == null) {
             attributes.put(DoubleReceivePreventionTokenKey, DoubleReceivePreventionToken)

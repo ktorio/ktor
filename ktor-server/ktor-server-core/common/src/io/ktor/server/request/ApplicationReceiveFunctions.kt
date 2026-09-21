@@ -62,6 +62,7 @@ public open class ApplicationReceivePipeline(
 
 /**
  * Receives content for this request.
+ * Receive operations for the same call must be sequential.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.request.receiveOrNull)
  *
@@ -81,21 +82,27 @@ public suspend inline fun <reified T : Any> ApplicationCall.receiveOrNull(): T? 
 
 /**
  * Receives content for this request.
+ * Receive operations for the same call must be sequential.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.request.receive)
  *
  * @return instance of [T] received from this call.
  * @throws ContentTransformationException when content cannot be transformed to the requested type.
+ * @throws RequestAlreadyConsumedException when the body has already been consumed or another receive operation is
+ * active for this call.
  */
 public suspend inline fun <reified T> ApplicationCall.receive(): T = receive(typeInfo<T>())
 
 /**
  * Receives content for this request.
+ * Receive operations for the same call must be sequential.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.request.receiveNullable)
  *
  * @return instance of [T] received from this call.
  * @throws ContentTransformationException when content cannot be transformed to the requested type.
+ * @throws RequestAlreadyConsumedException when the body has already been consumed or another receive operation is
+ * active for this call.
  */
 @Deprecated(
     "Use 'receive<T>()' with nullable T instead",
@@ -105,12 +112,15 @@ public suspend inline fun <reified T> ApplicationCall.receiveNullable(): T? = re
 
 /**
  * Receives content for this request.
+ * Receive operations for the same call must be sequential.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.request.receive)
  *
  * @param type instance of `KClass` specifying type to be received.
  * @return instance of [T] received from this call.
  * @throws ContentTransformationException when content cannot be transformed to the requested type.
+ * @throws RequestAlreadyConsumedException when the body has already been consumed or another receive operation is
+ * active for this call.
  */
 public suspend fun <T : Any> ApplicationCall.receive(type: KClass<T>): T {
     val kotlinType = starProjectedTypeBridge(type)
@@ -201,11 +211,15 @@ public suspend inline fun ApplicationCall.receiveText(): String {
 
 /**
  * Receives channel content for this call.
+ * Receive operations for the same call must be sequential. The returned channel must reach end-of-stream or be
+ * cancelled before receiving the body again.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.request.receiveChannel)
  *
  * @return instance of [ByteReadChannel] to read incoming bytes for this call.
  * @throws ContentTransformationException when content cannot be transformed to the [ByteReadChannel].
+ * @throws RequestAlreadyConsumedException when the body has already been consumed or another receive operation is
+ * active for this call.
  */
 public suspend inline fun ApplicationCall.receiveChannel(): ByteReadChannel = receive()
 
@@ -281,11 +295,12 @@ internal val DoubleReceivePreventionTokenKey =
     AttributeKey<DoubleReceivePreventionToken>("DoubleReceivePreventionToken")
 
 /**
- * Thrown when a request body has already been received.
- * Usually it is caused by double [ApplicationCall.receive] invocation.
+ * Thrown when a request body has already been received or another receive operation is active for the same call.
+ * Receive operations must not run concurrently. A channel returned by [ApplicationCall.receiveChannel] must reach
+ * end-of-stream or be canceled before receiving the body again.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.request.RequestAlreadyConsumedException)
  */
 public class RequestAlreadyConsumedException : IllegalStateException(
-    "Request body has already been consumed (received)."
+    "Request body has already been consumed or is currently being received."
 )
