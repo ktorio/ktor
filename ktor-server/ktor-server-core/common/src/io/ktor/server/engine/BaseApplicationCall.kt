@@ -15,6 +15,7 @@ import io.ktor.util.*
  */
 public abstract class BaseApplicationCall(final override val application: Application) : PipelineCall {
     public final override val attributes: Attributes = Attributes()
+    internal val receiveGuard: ApplicationCallReceiveGuard = ApplicationCallReceiveGuard()
     override val parameters: Parameters get() = request.queryParameters
 
     public abstract override val request: BaseApplicationRequest

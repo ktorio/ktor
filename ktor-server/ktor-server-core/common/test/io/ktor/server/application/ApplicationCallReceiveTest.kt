@@ -11,9 +11,78 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import io.ktor.util.pipeline.*
+import kotlinx.coroutines.*
 import kotlin.test.*
 
 class ApplicationCallReceiveTest {
+
+    @Test
+    fun testReceiveFromReceivePipelineFailsWithoutRecursion() = testApplication {
+        var interceptions = 0
+        application {
+            receivePipeline.intercept(ApplicationReceivePipeline.Before) {
+                interceptions++
+                val cause = assertFailsWith<RequestAlreadyConsumedException> {
+                    call.receiveText()
+                }
+                assertEquals(
+                    "Request body has already been consumed or is currently being received.",
+                    cause.message
+                )
+            }
+
+            routing {
+                post("/") {
+                    call.respondText(call.receiveText())
+                }
+            }
+        }
+
+        val response = client.post("/") {
+            setBody("bodyContent")
+        }
+        assertEquals("bodyContent", response.bodyAsText())
+        assertEquals(1, interceptions)
+    }
+
+    @Test
+    fun testConcurrentReceiveFailsWithoutEnteringPipeline() = testApplication {
+        val firstReceiveEntered = CompletableDeferred<Unit>()
+        val releaseFirstReceive = CompletableDeferred<Unit>()
+        var interceptions = 0
+
+        application {
+            receivePipeline.intercept(ApplicationReceivePipeline.Before) {
+                interceptions++
+                firstReceiveEntered.complete(Unit)
+                releaseFirstReceive.await()
+            }
+
+            routing {
+                post("/") {
+                    coroutineScope {
+                        val firstReceive = async { call.receiveText() }
+                        firstReceiveEntered.await()
+                        try {
+                            assertFailsWith<RequestAlreadyConsumedException> {
+                                call.receiveText()
+                            }
+                        } finally {
+                            releaseFirstReceive.complete(Unit)
+                        }
+                        call.respondText(firstReceive.await())
+                    }
+                }
+            }
+        }
+
+        val response = client.post("/") {
+            setBody("bodyContent")
+        }
+        assertEquals("bodyContent", response.bodyAsText())
+        assertEquals(1, interceptions)
+    }
 
     @Test
     fun testReceiveNonNullable() = testApplication {
