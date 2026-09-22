@@ -6,7 +6,13 @@ package io.ktor.utils.io.jvm.javaio
 
 import io.ktor.test.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import kotlinx.io.IOException
+import java.util.concurrent.CountDownLatch
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
@@ -46,6 +52,38 @@ class RawSourceChannelTest {
         channel.cancel(IOException("test cancellation"))
         assertFailsWith<CancellationException> {
             channel.awaitContent(1)
+        }
+    }
+
+    @Test
+    fun `awaitContent completes when caller coroutine is cancelled on blocking stream`() {
+        val closeLatch = CountDownLatch(1)
+
+        val blockingInput = object : java.io.InputStream() {
+            override fun read(): Int {
+                closeLatch.await()
+                return -1
+            }
+
+            override fun close() {
+                closeLatch.countDown()
+            }
+        }
+
+        val channel = blockingInput.toByteReadChannel()
+
+        runBlocking {
+            val job = launch(Dispatchers.IO) {
+                channel.readFully(ByteArray(1024))
+            }
+
+            Thread.sleep(500)
+
+            job.cancel()
+
+            withTimeout(5000) {
+                job.join()
+            }
         }
     }
 }
