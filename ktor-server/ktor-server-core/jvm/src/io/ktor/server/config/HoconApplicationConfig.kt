@@ -5,6 +5,7 @@
 package io.ktor.server.config
 
 import com.typesafe.config.Config
+import com.typesafe.config.ConfigException
 import com.typesafe.config.ConfigFactory
 import com.typesafe.config.ConfigValueType
 import io.ktor.util.reflect.*
@@ -52,40 +53,49 @@ public class HoconConfigLoader : ConfigLoader {
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.config.HoconApplicationConfig)
  */
 public open class HoconApplicationConfig(private val config: Config) : ApplicationConfig {
-    override fun property(path: String): ApplicationConfigValue {
+    override fun property(path: String): ApplicationConfigValue = wrapConfigException(path) {
         if (!config.hasPath(path)) {
             throw ApplicationConfigurationException("Property $path not found.")
         }
-        return HoconApplicationConfigValue(config, path)
+        HoconApplicationConfigValue(config, path)
     }
 
-    override fun propertyOrNull(path: String): ApplicationConfigValue? {
+    override fun propertyOrNull(path: String): ApplicationConfigValue? = wrapConfigException(path) {
         if (!config.hasPath(path)) {
-            return null
+            null
+        } else {
+            HoconApplicationConfigValue(config, path)
         }
-        return HoconApplicationConfigValue(config, path)
     }
 
-    override fun configList(path: String): List<ApplicationConfig> {
-        return config.getConfigList(path).map { HoconApplicationConfig(it) }
+    override fun configList(path: String): List<ApplicationConfig> = wrapConfigException(path) {
+        if (!config.hasPath(path)) {
+            throw ApplicationConfigurationException("Path $path not found.")
+        }
+        config.getConfigList(path).map { HoconApplicationConfig(it) }
     }
 
-    override fun config(path: String): ApplicationConfig =
+    override fun config(path: String): ApplicationConfig = wrapConfigException(path) {
+        if (!config.hasPath(path)) {
+            throw ApplicationConfigurationException("Path $path not found.")
+        }
         HoconApplicationConfig(config.getConfig(path))
-
-    override fun keys(): Set<String> {
-        return config.entrySet().map { it.key }.toSet()
     }
 
-    override fun toMap(): Map<String, Any?> {
-        return config.root().unwrapped()
+    override fun keys(): Set<String> = wrapConfigException {
+        config.entrySet().map { it.key }.toSet()
+    }
+
+    override fun toMap(): Map<String, Any?> = wrapConfigException {
+        config.root().unwrapped()
     }
 
     private class HoconApplicationConfigValue(val config: Config, val path: String) : ApplicationConfigValue {
-        override fun getString(): String = config.getString(path)
-        override fun getList(): List<String> = config.getStringList(path)
+        override fun getString(): String = wrapConfigException(path) { config.getString(path) }
 
-        override val type: ApplicationConfigValue.Type =
+        override fun getList(): List<String> = wrapConfigException(path) { config.getStringList(path) }
+
+        override val type: ApplicationConfigValue.Type = wrapConfigException(path) {
             when (config.getValue(path).valueType()) {
                 ConfigValueType.STRING,
                 ConfigValueType.NUMBER,
@@ -97,15 +107,32 @@ public open class HoconApplicationConfig(private val config: Config) : Applicati
 
                 ConfigValueType.OBJECT -> ApplicationConfigValue.Type.OBJECT
             }
+        }
 
-        override fun getMap(): Map<String, Any?> =
+        override fun getMap(): Map<String, Any?> = wrapConfigException(path) {
             config.getObject(path).unwrapped()
+        }
 
         @OptIn(InternalAPI::class)
-        override fun getAs(type: TypeInfo): Any? {
-            return type.serializer()
+        override fun getAs(type: TypeInfo): Any? = wrapConfigException(path) {
+            type.serializer()
                 .deserialize(HoconDecoder(config, path))
         }
+    }
+}
+
+/**
+ * Translates a [ConfigException] thrown by the underlying Typesafe Config library into an
+ * [ApplicationConfigurationException], as required by the [ApplicationConfig] contract.
+ *
+ * The original exception is kept as the cause so that its diagnostics are not lost.
+ */
+private inline fun <T> wrapConfigException(path: String? = null, block: () -> T): T {
+    return try {
+        block()
+    } catch (cause: ConfigException) {
+        val location = if (path == null) "configuration" else "configuration at path $path"
+        throw ApplicationConfigurationException("Failed to read $location: ${cause.message}", cause)
     }
 }
 

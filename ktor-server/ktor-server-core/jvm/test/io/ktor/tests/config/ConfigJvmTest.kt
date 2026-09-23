@@ -65,6 +65,19 @@ class ConfigJvmTest {
         assertEquals(RootConfig(host = "127.0.0.1", port = 9000), config)
     }
 
+    @Test
+    fun testMissingConfigPathInLoadedHoconConfig() {
+        System.clearProperty("config.file")
+        System.setProperty("config.resource", "custom.config.conf")
+        val config = ConfigLoader.load()
+        assertIs<HoconApplicationConfig>(config)
+
+        val exception = assertFailsWith<ApplicationConfigurationException> {
+            config.config("nonexistent")
+        }
+        assertEquals("Path nonexistent not found.", exception.message)
+    }
+
     @Serializable
     data class RootConfig(
         val host: String,

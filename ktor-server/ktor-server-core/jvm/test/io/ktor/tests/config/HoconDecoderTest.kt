@@ -214,10 +214,11 @@ class HoconDecoderTest {
             }
         """.trimIndent()
 
-        assertFailsWith<ConfigException.WrongType> {
+        val exception = assertFailsWith<ApplicationConfigurationException> {
             parseConfig(content)
                 .propertyOrNull("test")?.getAs<SimpleInt>()
         }
+        assertIs<ConfigException.WrongType>(exception.cause)
     }
 
     @Test
