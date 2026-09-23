@@ -46,7 +46,7 @@ private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.DefaultRequest")
  * val client = HttpClient {
  *   defaultRequest {
  *     url("https://base.url/dir/")
- *     headers.appendIfNameAbsent(HttpHeaders.ContentType, ContentType.Application.Json)
+ *     headers.appendIfNameAbsent(HttpHeaders.ContentType, ContentType.Application.Json.toString())
  *   }
  * }
  * client.get("file")
@@ -55,7 +55,7 @@ private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.DefaultRequest")
  *   // <- requests "https://base.url/other_root/file", ContentType = Application.Json
  * client.get("//other.host/path")
  *   // <- requests "https://other.host/path", ContentType = Application.Json
- * client.get("https://some.url") { HttpHeaders.ContentType = ContentType.Application.Xml }
+ * client.get("https://some.url") { contentType(ContentType.Application.Xml) }
  *   // <- requests "https://some.url/", ContentType = Application.Xml
  * ```
  *
