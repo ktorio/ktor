@@ -2,12 +2,13 @@
  * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-import io.ktor.client.*
-import io.ktor.client.engine.mock.*
 import io.ktor.client.plugins.cookies.*
 import io.ktor.http.*
 import kotlinx.coroutines.test.runTest
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 import kotlin.time.ExperimentalTime
 
 @OptIn(ExperimentalTime::class)
@@ -15,7 +16,7 @@ class PublicSuffixCookiePolicyTest {
 
     @Test
     fun testRejectsExactIcannAndPrivatePublicSuffixes() = runTest {
-        val policy = loadPolicy(TEST_LIST)
+        val policy = PublicSuffixCookiePolicy
 
         assertRejected(policy, "https://example.com/", "com")
         assertRejected(policy, "https://example.co.uk/", "co.uk")
@@ -24,7 +25,7 @@ class PublicSuffixCookiePolicyTest {
 
     @Test
     fun testAcceptsRegistrableParentDomains() = runTest {
-        val policy = loadPolicy(TEST_LIST)
+        val policy = PublicSuffixCookiePolicy
 
         assertAccepted(policy, "https://www.example.com/", "example.com")
         assertAccepted(policy, "https://sub.example.co.uk/", "example.co.uk")
@@ -32,7 +33,7 @@ class PublicSuffixCookiePolicyTest {
 
     @Test
     fun testHandlesWildcardAndExceptionRules() = runTest {
-        val policy = loadPolicy(TEST_LIST)
+        val policy = PublicSuffixCookiePolicy
 
         assertRejected(policy, "https://shop.foo.ck/", "foo.ck")
         assertAccepted(policy, "https://www.ck/", "www.ck")
@@ -41,7 +42,7 @@ class PublicSuffixCookiePolicyTest {
 
     @Test
     fun testCanonicalizesLeadingDotsAndCase() = runTest {
-        val policy = loadPolicy(TEST_LIST)
+        val policy = PublicSuffixCookiePolicy
 
         assertRejected(policy, "https://example.com/", ".COM")
         assertRejected(policy, "https://user.github.io/", ".GitHub.IO")
@@ -49,34 +50,15 @@ class PublicSuffixCookiePolicyTest {
 
     @Test
     fun testCanonicalizesUnicodeAndPunycodeRules() = runTest {
-        val policy = loadPolicy(TEST_LIST)
+        val policy = PublicSuffixCookiePolicy
 
         assertRejected(policy, "https://example.公司.cn/", "公司.cn")
         assertRejected(policy, "https://example.xn--55qx5d.cn/", "xn--55qx5d.cn")
     }
 
     @Test
-    fun testNormalizesUnicodeRulesAndCookieDomains() = runTest {
-        val composedDomain = "\u00e5lesund.no"
-        val decomposedDomain = "a\u030alesund.no"
-        val policyWithComposedRule = loadPolicy("no\n$composedDomain\n")
-        val policyWithDecomposedRule = loadPolicy("no\n$decomposedDomain\n")
-
-        assertRejected(policyWithComposedRule, requestUrl(decomposedDomain), decomposedDomain)
-        assertRejected(policyWithDecomposedRule, requestUrl(composedDomain), composedDomain)
-    }
-
-    @Test
-    fun testNormalizesPunycodeBeforeMatchingRules() = runTest {
-        val policy = loadPolicy("no\n\u00e5lesund.no\n")
-
-        assertRejected(policy, requestUrl("xn--lesund-hua.no"), "xn--lesund-hua.no")
-        assertRejected(policy, requestUrl("xn--alesund-vie.no"), "xn--alesund-vie.no")
-    }
-
-    @Test
     fun testRejectsPublicSuffixEqualToResponseHost() = runTest {
-        val policy = loadPolicy(TEST_LIST)
+        val policy = PublicSuffixCookiePolicy
 
         assertRejected(policy, "https://com/", "com")
         assertRejected(policy, "https://github.io/", "github.io")
@@ -84,7 +66,7 @@ class PublicSuffixCookiePolicyTest {
 
     @Test
     fun testMissingAndBlankDomainsAndIpAddressesBypassPolicy() = runTest {
-        val policy = loadPolicy(TEST_LIST)
+        val policy = PublicSuffixCookiePolicy
 
         assertAccepted(policy, "https://example.com/", null)
         assertAccepted(policy, "https://example.com/", "")
@@ -92,51 +74,22 @@ class PublicSuffixCookiePolicyTest {
     }
 
     @Test
-    fun testLoadsListOnlyOnce() = runTest {
-        var requests = 0
-        val client = HttpClient(MockEngine) {
-            engine {
-                addHandler {
-                    requests++
-                    respondOk(TEST_LIST)
-                }
-            }
-        }
-
-        client.use { client ->
-            val policy = client.loadPublicSuffixCookiePolicy("https://example.test/list.dat")
-            assertRejected(policy, "https://example.com/", "com")
-            assertRejected(policy, "https://another.com/", "com")
-            assertEquals(1, requests)
-        }
+    fun testRejectsMalformedCookieDomain() = runTest {
+        assertFalse(
+            PublicSuffixCookiePolicy.shouldAccept(
+                Url("https://example.com/"),
+                Cookie("name", "value", domain = "xn--invalid-", path = "/")
+            )
+        )
     }
 
     @Test
-    fun testUnsuccessfulResponseFailsLoading() = runTest {
-        val client = HttpClient(MockEngine) {
-            engine { addHandler { respondError(HttpStatusCode.NotFound) } }
-        }
-
-        client.use { client ->
-            val cause = assertFailsWith<IllegalStateException> {
-                client.loadPublicSuffixCookiePolicy("https://example.test/list.dat")
-            }
-            assertContains(cause.message.orEmpty(), "404")
-        }
-    }
-
-    @Test
-    fun testEmptyResponseFailsLoading() = runTest {
-        assertMalformedList("")
-        assertMalformedList("// comments only\n")
-    }
-
-    @Test
-    fun testMalformedRuleFailsLoading() = runTest {
-        assertMalformedList("com\nfoo.*.example\n")
-        assertMalformedList("com\n!\n")
-        assertMalformedList("com\ninvalid rule\n")
-        assertMalformedList("com\nxn--invalid-\n")
+    fun testBundledListMetadata() {
+        assertEquals("https://publicsuffix.org/list/public_suffix_list.dat", PUBLIC_SUFFIX_LIST_SOURCE)
+        assertTrue(PUBLIC_SUFFIX_LIST_SHA256.matches(Regex("[0-9a-f]{64}")))
+        assertTrue(PUBLIC_SUFFIX_EXACT_RULE_CHUNKS.isNotEmpty())
+        assertTrue(PUBLIC_SUFFIX_WILDCARD_RULE_CHUNKS.isNotEmpty())
+        assertTrue(PUBLIC_SUFFIX_EXCEPTION_RULE_CHUNKS.isNotEmpty())
     }
 
     private suspend fun assertAccepted(policy: CookieAcceptancePolicy, url: String, domain: String?) {
@@ -157,48 +110,5 @@ class PublicSuffixCookiePolicyTest {
         val storage = FilteredCookiesStorage(policy)
         storage.addCookie(url, Cookie("name", "value", domain = domain, path = "/"))
         assertTrue(storage.get(url).isEmpty())
-    }
-
-    private fun requestUrl(domain: String): Url = URLBuilder(
-        protocol = URLProtocol.HTTPS,
-        host = "sub.$domain"
-    ).build()
-
-    private suspend fun loadPolicy(content: String): CookieAcceptancePolicy {
-        val client = HttpClient(MockEngine) {
-            engine { addHandler { respondOk(content) } }
-        }
-        return client.use { client ->
-            client.loadPublicSuffixCookiePolicy("https://example.test/list.dat")
-        }
-    }
-
-    private suspend fun assertMalformedList(content: String) {
-        val client = HttpClient(MockEngine) {
-            engine { addHandler { respondOk(content) } }
-        }
-        client.use { client ->
-            assertFailsWith<IllegalArgumentException> {
-                client.loadPublicSuffixCookiePolicy("https://example.test/list.dat")
-            }
-        }
-    }
-
-    private companion object {
-        val TEST_LIST = """
-            // ===BEGIN ICANN DOMAINS===
-            com
-            uk
-            co.uk
-            ck
-            *.ck
-            !www.ck
-            cn
-            公司.cn
-            // ===END ICANN DOMAINS===
-            // ===BEGIN PRIVATE DOMAINS===
-            github.io
-            // ===END PRIVATE DOMAINS===
-        """.trimIndent()
     }
 }

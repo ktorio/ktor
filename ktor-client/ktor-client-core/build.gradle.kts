@@ -1,11 +1,23 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
+
+import ktorbuild.UpdatePublicSuffixList
 
 description = "Ktor http client"
 
 plugins {
     id("ktorbuild.project.library")
+}
+
+tasks.register<UpdatePublicSuffixList>("updatePublicSuffixList") {
+    val destinationFile = layout.projectDirectory.file("jvm/src/io/ktor/client/plugins/cookies/PublicSuffixListData.kt")
+
+    group = "documentation"
+    description = "Downloads and generates the bundled Public Suffix List"
+    sourceUrl.set("https://publicsuffix.org/list/public_suffix_list.dat")
+    destination.set(destinationFile)
+    outputs.upToDateWhen { false }
 }
 
 kotlin {
