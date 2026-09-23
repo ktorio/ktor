@@ -8,6 +8,7 @@ import com.typesafe.config.ConfigFactory
 import kotlinx.serialization.Serializable
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 class MergedApplicationConfigJvmTest {
 
@@ -67,6 +68,22 @@ class MergedApplicationConfigJvmTest {
             listOf(SimpleObject(3, "third")),
             configObject.list
         )
+    }
+
+    @Test
+    fun mergedMissingConfigPath() {
+        val mapConfig = MapApplicationConfig("ktor.deployment.port" to "8080")
+        val hoconConfig = HoconApplicationConfig(
+            ConfigFactory.parseString("ktor { application { modules = [] } }")
+        )
+
+        // Hocon is the receiver so that it ends up as the fallback the lookup is delegated to.
+        val merged = hoconConfig.mergeWith(mapConfig)
+
+        val exception = assertFailsWith<ApplicationConfigurationException> {
+            merged.config("nonexistent")
+        }
+        assertEquals("Path nonexistent not found.", exception.message)
     }
 
     @Serializable

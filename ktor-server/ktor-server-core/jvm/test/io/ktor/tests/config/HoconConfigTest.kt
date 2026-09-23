@@ -102,6 +102,63 @@ class HoconConfigTest {
         )
     }
 
+    @Test
+    fun testMissingConfigPathThrowsConfigurationException() {
+        val config = HoconApplicationConfig(ConfigFactory.parseString("ktor { }"))
+
+        val exception = assertFailsWith<ApplicationConfigurationException> {
+            config.config("nonexistent")
+        }
+        assertEquals("Path nonexistent not found.", exception.message)
+    }
+
+    @Test
+    fun testMissingConfigListPathThrowsConfigurationException() {
+        val config = HoconApplicationConfig(ConfigFactory.parseString("ktor { }"))
+
+        val exception = assertFailsWith<ApplicationConfigurationException> {
+            config.configList("nonexistent")
+        }
+        assertEquals("Path nonexistent not found.", exception.message)
+    }
+
+    @Test
+    fun testConfigForEmptyObject() {
+        val config = HoconApplicationConfig(ConfigFactory.parseString("ktor { deployment { } }"))
+
+        val deployment = config.config("ktor.deployment")
+        assertEquals(emptySet<String>(), deployment.keys())
+    }
+
+    @Test
+    fun testWrongTypeConfigPath() {
+        val config = HoconApplicationConfig(ConfigFactory.parseString("auth { salt = ktor }"))
+
+        val exception = assertFailsWith<ApplicationConfigurationException> {
+            config.config("auth.salt")
+        }
+        assertIs<ConfigException.WrongType>(exception.cause)
+    }
+
+    @Test
+    fun testWrongTypePropertyValue() {
+        val config = HoconApplicationConfig(ConfigFactory.parseString("auth { salt = ktor }"))
+
+        assertFailsWith<ApplicationConfigurationException> { config.property("auth").getString() }
+        assertFailsWith<ApplicationConfigurationException> { config.property("auth.salt").getList() }
+        assertFailsWith<ApplicationConfigurationException> { config.property("auth.salt").getMap() }
+    }
+
+    @Test
+    fun testInvalidPathExpression() {
+        val config = HoconApplicationConfig(ConfigFactory.parseString("auth { salt = ktor }"))
+
+        val exception = assertFailsWith<ApplicationConfigurationException> {
+            config.propertyOrNull("")
+        }
+        assertIs<ConfigException.BadPath>(exception.cause)
+    }
+
     @Serializable
     data class SecurityUser(
         val name: String,
