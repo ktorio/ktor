@@ -5,7 +5,11 @@
 package io.ktor.test
 
 import com.lemonappdev.konsist.api.Konsist
+import com.lemonappdev.konsist.api.declaration.KoBaseDeclaration
+import com.lemonappdev.konsist.api.declaration.KoFileDeclaration
 import com.lemonappdev.konsist.api.declaration.KoFunctionDeclaration
+import com.lemonappdev.konsist.api.provider.KoAnnotationProvider
+import com.lemonappdev.konsist.api.provider.KoContainingDeclarationProvider
 import com.lemonappdev.konsist.api.verify.assertTrue
 import io.ktor.test.constants.FLAKY_NAME_TOKEN
 import kotlin.test.Test
@@ -62,9 +66,21 @@ class FlakyConventionTest {
 }
 
 /**
- * Whether the function carries [Flaky], matched by simple name.
+ * Whether the function, or the class (or nested class) it's declared in, carries [Flaky].
  *
- * Konsist's `hasAnnotationOf` resolves the annotation through the file's imports, so it misses uses
- * that need no import — such as the tests in this module, which share [Flaky]'s package.
+ * Matched by simple name: Konsist's `hasAnnotationOf` resolves the annotation through the file's
+ * imports, so it misses uses that need no import — such as the tests in this module, which share
+ * [Flaky]'s package.
  */
-private fun KoFunctionDeclaration.isFlaky(): Boolean = annotations.any { it.name == FLAKY_ANNOTATION }
+private fun KoFunctionDeclaration.isFlaky(): Boolean = hasFlakyAnnotationInChain()
+
+/**
+ * Stops at the containing file rather than checking it: [Flaky] can't target a file (its `@Target`
+ * is `CLASS`/`FUNCTION` only).
+ */
+private tailrec fun KoBaseDeclaration.hasFlakyAnnotationInChain(): Boolean {
+    if (this is KoFileDeclaration) return false
+    if (this is KoAnnotationProvider && annotations.any { it.name == FLAKY_ANNOTATION }) return true
+    val parent = (this as? KoContainingDeclarationProvider)?.containingDeclaration ?: return false
+    return parent.hasFlakyAnnotationInChain()
+}
