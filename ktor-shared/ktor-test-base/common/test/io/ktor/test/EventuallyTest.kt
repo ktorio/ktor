@@ -4,6 +4,7 @@
 
 package io.ktor.test
 
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertContains
@@ -40,7 +41,7 @@ class EventuallyTest {
 
     @Test
     fun `fails with the description when the condition never holds`() = runTest {
-        val error = assertFailsWith<EventuallyTimeoutException> {
+        val error = assertFailsWith<TimeoutCancellationException> {
             assertEventually("something that never happens", timeout = 50.milliseconds, interval = 1.milliseconds) {
                 false
             }
@@ -62,7 +63,7 @@ class EventuallyTest {
     fun `honors the timeout even when the interval is larger`() = runTest {
         val start = TimeSource.Monotonic.markNow()
 
-        assertFailsWith<EventuallyTimeoutException> {
+        assertFailsWith<TimeoutCancellationException> {
             assertEventually("never", timeout = 100.milliseconds, interval = 5.seconds) { false }
         }
 
@@ -73,10 +74,13 @@ class EventuallyTest {
     }
 
     @Test
-    fun `timing out stays retryable rather than being classified deterministic`() {
+    fun `timing out stays retryable rather than being classified deterministic`() = runTest {
         val guard = DeterministicFailureGuard()
 
-        guard.record(EventuallyTimeoutException("Timed out after 1s waiting for something"))
+        val error = assertFailsWith<TimeoutCancellationException> {
+            assertEventually("something", timeout = Duration.ZERO) { false }
+        }
+        guard.record(error)
 
         // Waiting for a condition and running out of time is load-dependent, so the retry loop must
         // get another attempt. An AssertionError here would make the guard replay it immediately.
@@ -87,7 +91,7 @@ class EventuallyTest {
     fun `waits in real time so the virtual clock does not skip the poll interval`() = runTest {
         val start = TimeSource.Monotonic.markNow()
 
-        val error = assertFailsWith<EventuallyTimeoutException> {
+        val error = assertFailsWith<TimeoutCancellationException> {
             assertEventually("never", timeout = 100.milliseconds, interval = 20.milliseconds) { false }
         }
 

@@ -24,7 +24,6 @@ kotlin {
         }
 
         jvmTest.dependencies {
-            // Enforces the `@Flaky` / `_flaky` naming convention across the repository's sources.
             implementation(libs.konsist)
         }
     }

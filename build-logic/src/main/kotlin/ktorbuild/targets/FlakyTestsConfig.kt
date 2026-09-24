@@ -31,7 +31,7 @@ internal fun Project.flakyTestsMode(): FlakyTestsMode =
  * they never receive the condition, so exempting them by type would leave them with no selector at
  * all and run quarantined tests in the default Android suite.
  */
-private val ANNOTATION_DRIVEN_TEST_TASKS = setOf("jvmTest", "stressTest", FLAKY_TEST_TASK)
+internal val ANNOTATION_DRIVEN_TEST_TASKS = setOf("jvmTest", "stressTest", FLAKY_TEST_TASK)
 
 /**
  * Applies the [FLAKY_MODE_PROPERTY] mode to every test task that cannot select `@Flaky` by
@@ -52,7 +52,6 @@ private fun AbstractTestTask.selectFlakyTests(mode: FlakyTestsMode) {
 
         FlakyTestsMode.ONLY -> {
             filter.includeTestsMatching(FLAKY_TEST_PATTERN)
-            // Most modules have no flaky tests at all, and that isn't a failure.
             filter.isFailOnNoMatchingTests = false
         }
 

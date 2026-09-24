@@ -53,43 +53,24 @@ internal fun Project.configureJvm() {
 private fun Project.configureTests() {
     val flakyTestsMode = flakyTestsMode()
 
-    // Take the test classpath from the JVM test *compilation*, not from the `jvmTest` task. A
-    // provider derived from `tasks.named("jvmTest")` carries that task as its producer, so depending
-    // on it makes Gradle run the whole default suite before `stressTest` or `flakyTest`. The
-    // compilation's own file collections are built by the compile tasks, which is all these need.
-    val jvmTestCompilation = kotlin.jvm().compilations.named("test")
-    val jvmTestRuntimeClasspath = files(
-        jvmTestCompilation.map { it.output.allOutputs },
-        jvmTestCompilation.map { it.runtimeDependencyFiles },
-    )
-    val jvmTestClassesDirs = files(jvmTestCompilation.map { it.output.classesDirs })
-
-    val jvmTest = tasks.named<KotlinJvmTest>("jvmTest") {
+    tasks.withType<Test>().matching { it.name in ANNOTATION_DRIVEN_TEST_TASKS }.configureEach {
         maxHeapSize = "2g"
-        exclude("**/*StressTest*")
-        // Auto-register FlakyTestCondition so @Flaky tests are excluded from the default run (they
-        // run only in the `flakyTest` task below, or with -Pktor.tests.flaky=only|all).
         systemProperty("junit.jupiter.extensions.autodetection.enabled", "true")
         systemProperty(FLAKY_MODE_PROPERTY, flakyTestsMode.propertyValue)
         useJUnitPlatform()
         configureJavaToolchain(java.toolchain.languageVersion, ktorBuild.jvmTestToolchain)
     }
 
-    tasks.register<Test>("stressTest") {
-        classpath = jvmTestRuntimeClasspath
-        testClassesDirs = jvmTestClassesDirs
+    val jvmTest = tasks.named<KotlinJvmTest>("jvmTest") {
+        exclude("**/*StressTest*")
+    }
 
-        maxHeapSize = "2g"
+    tasks.register<Test>("stressTest") {
+        inheritTestFilesFrom(jvmTest)
         jvmArgs("-XX:+HeapDumpOnOutOfMemoryError")
         setForkEvery(1)
         systemProperty("enable.stress.tests", "true")
-        // JVM test tasks are exempt from the `_flaky` name filter (see `configureFlakyTests`), so
-        // the condition is what keeps @Flaky tests out of this task too.
-        systemProperty("junit.jupiter.extensions.autodetection.enabled", "true")
-        systemProperty(FLAKY_MODE_PROPERTY, flakyTestsMode.propertyValue)
         include("**/*StressTest*")
-        useJUnitPlatform()
-        configureJavaToolchain(java.toolchain.languageVersion, ktorBuild.jvmTestToolchain)
     }
 
     // Runs ONLY @Flaky-annotated tests (excluded from the default `jvmTest`). Intended for a
@@ -98,13 +79,14 @@ private fun Project.configureTests() {
     // property, applied by `configureFlakyTests` — is the equivalent for Native/JS/Wasm, which have
     // no JUnit Platform.)
     tasks.register<Test>(FLAKY_TEST_TASK) {
-        classpath = jvmTestRuntimeClasspath
-        testClassesDirs = jvmTestClassesDirs
+        inheritTestFilesFrom(jvmTest)
         // Per-module `jvmTest` tweaks decide how a module's tests behave — Netty and the Jetty HTTP/2
         // modules set `enable.http2`, the Android client sets `http.maxConnections`. Without them a
         // quarantined test would run under different conditions here than in the suite it was
         // quarantined from, corrupting the very flip rate this task exists to measure.
         inheritExecutionSettingsFrom(jvmTest)
+
+        val classpath = classpath
 
         // Selection here is by annotation, and the condition that applies it ships in
         // `ktor-test-base`. A module that doesn't have it on the test runtime classpath has nothing
@@ -113,22 +95,34 @@ private fun Project.configureTests() {
         // tests in the first place, since the annotation ships in the same module, so skipping is
         // the correct outcome rather than a missed sample.
         onlyIf("FlakyTestCondition is on the test runtime classpath") {
-            jvmTestRuntimeClasspath.any { it.invariantSeparatorsPath.contains(TEST_BASE_MODULE) }
+            classpath.any { it.invariantSeparatorsPath.contains(TEST_BASE_MODULE) }
         }
 
-        maxHeapSize = "2g"
         // A quarantined test flipping is the expected outcome here, not a regression to block on.
         // Failures still land in the test reports and in Develocity, which is where the flip rate is tracked.
         ignoreFailures = true
         // Each run is a fresh sample of whether the test still flips, so an unchanged input tree is
         // no reason to skip it — up-to-date checking would report the previous run's verdict forever.
         outputs.upToDateWhen { false }
+        // Overrides the mode the shared configureEach block above set from the Gradle property: this
+        // task always runs @Flaky only, regardless of `-Pktor.tests.flaky`.
         systemProperty(FLAKY_MODE_PROPERTY, FlakyTestsMode.ONLY.propertyValue)
-        systemProperty("junit.jupiter.extensions.autodetection.enabled", "true")
         exclude("**/*StressTest*")
-        useJUnitPlatform()
-        configureJavaToolchain(java.toolchain.languageVersion, ktorBuild.jvmTestToolchain)
     }
+}
+
+/**
+ * Copies the test classpath and classes directories of [source] onto this task.
+ *
+ * `get()` realizes the task to read its already-configured `classpath`/`testClassesDirs`, which does
+ * *not* make this task depend on running [source] — unlike deriving a `FileCollection` from the
+ * provider (e.g. `source.map { it.classpath }`), which carries [source] as its producer and would
+ * make Gradle run the whole default suite before this task.
+ */
+private fun Test.inheritTestFilesFrom(source: TaskProvider<KotlinJvmTest>) {
+    val jvmTest = source.get()
+    classpath = jvmTest.classpath
+    testClassesDirs = jvmTest.testClassesDirs
 }
 
 /**
