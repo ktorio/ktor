@@ -32,7 +32,8 @@ import kotlin.coroutines.resumeWithException
 internal class DarwinWebsocketSession(
     callContext: CoroutineContext,
     private val task: NSURLSessionWebSocketTask,
-    channelsConfig: WebSocketChannelsConfig
+    channelsConfig: WebSocketChannelsConfig,
+    private val requestData: HttpRequestData,
 ) : WebSocketSession {
 
     private val requestTime: GMTDate = GMTDate()
@@ -181,11 +182,27 @@ internal class DarwinWebsocketSession(
         val headers = if (protocol != null) headersOf(HttpHeaders.SecWebSocketProtocol, protocol) else Headers.Empty
 
         val response = HttpResponseData(
-            task.getStatusCode()?.let { HttpStatusCode.fromValue(it) } ?: HttpStatusCode.SwitchingProtocols,
+            HttpStatusCode.SwitchingProtocols,
             requestTime,
             headers,
             HttpProtocolVersion.HTTP_1_1,
             this,
+            coroutineContext
+        )
+        this.response.complete(response)
+    }
+
+    // The server rejected the handshake. NSURLSessionWebSocketTask never delivers the response body in this
+    // case, but the status and headers are still available on the task's response, so expose those instead of
+    // failing the call outright — this lets the WebSockets plugin surface a WebSocketHandshakeException with a
+    // usable response, and lets the Auth plugin retry on a 401 (KTOR-7363).
+    private fun didFailHandshake(nsResponse: NSHTTPURLResponse) {
+        val response = HttpResponseData(
+            HttpStatusCode.fromValue(nsResponse.statusCode.toInt()),
+            requestTime,
+            nsResponse.readHeaders(requestData.method, requestData.attributes),
+            HttpProtocolVersion.HTTP_1_1,
+            ByteReadChannel.Empty,
             coroutineContext
         )
         this.response.complete(response)
@@ -197,9 +214,9 @@ internal class DarwinWebsocketSession(
             return
         }
 
-        // KTOR-7363 We want to proceed with the request if we get 401 Unauthorized status code
-        if (task.getStatusCode() == HttpStatusCode.Unauthorized.value) {
-            didOpen(protocol = null)
+        val nsResponse = task.response() as? NSHTTPURLResponse
+        if (nsResponse != null && nsResponse.statusCode.toInt() != HttpStatusCode.SwitchingProtocols.value) {
+            didFailHandshake(nsResponse)
             socketJob.complete()
             return
         }
@@ -230,9 +247,10 @@ private suspend fun NSURLSessionWebSocketTask.receiveMessage(): NSURLSessionWebS
     suspendCancellableCoroutine {
         receiveMessageWithCompletionHandler { message, error ->
             if (error != null) {
-                // KTOR-7363 We want to proceed with the request if we get 401 Unauthorized status code
+                // KTOR-7363 The handshake was rejected (status != 101 Switching Protocols): let didComplete
+                // build the failed-handshake response instead of failing this coroutine.
                 // KTOR-6198 We want to set correct close code and reason on URLSession:webSocketTask:didCloseWithCode:reason:
-                if ((getStatusCode() == HttpStatusCode.Unauthorized.value) ||
+                if ((getStatusCode()?.let { it != HttpStatusCode.SwitchingProtocols.value } == true) ||
                     (this.closeCode != NSURLSessionWebSocketCloseCodeInvalid)
                 ) {
                     it.cancel()

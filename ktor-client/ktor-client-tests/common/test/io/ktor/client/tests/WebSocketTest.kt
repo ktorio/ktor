@@ -33,7 +33,7 @@ internal val ENGINES_NOT_SUPPORTING_MAX_FRAME_SIZE = listOf("OkHttp", "Js", "Jav
 internal val ENGINES_NOT_SUPPORTING_MAX_FRAME_SIZE_SILENTLY = listOf("Java", "WinHttp")
 
 // Engines exposing the status and headers of a rejected WebSocket handshake, but not its body.
-private val ENGINES_WITHOUT_HANDSHAKE_RESPONSE_BODY = listOf("Curl")
+private val ENGINES_WITHOUT_HANDSHAKE_RESPONSE_BODY = listOf("Curl", "Darwin")
 
 // Engines exposing the full response of a rejected WebSocket handshake, body included.
 private val ENGINES_WITH_HANDSHAKE_RESPONSE = listOf("CIO", "OkHttp", "Java")
