@@ -157,7 +157,9 @@ internal class CurlMultiApiHandler : Closeable {
         return if (proxyType == ProxyType.SOCKS) url.replaceFirst("socks://", "socks5h://") else url
     }
 
-    fun cancelRequest(easyHandle: EasyHandle, cause: Throwable) {
+    fun cancelRequest(easyHandle: EasyHandle, responseCompletable: CompletableDeferred<CurlSuccess>, cause: Throwable) {
+        // The handle may have completed and its address may now belong to a new request.
+        if (activeHandles[easyHandle]?.responseCompletable !== responseCompletable) return
         cancelledHandles += Pair(easyHandle, cause)
     }
 
