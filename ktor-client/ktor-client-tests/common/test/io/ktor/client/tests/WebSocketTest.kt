@@ -36,7 +36,7 @@ internal val ENGINES_NOT_SUPPORTING_MAX_FRAME_SIZE_SILENTLY = listOf("Java", "Wi
 private val ENGINES_WITHOUT_HANDSHAKE_RESPONSE_BODY = listOf("Curl", "Darwin")
 
 // Engines exposing the full response of a rejected WebSocket handshake, body included.
-private val ENGINES_WITH_HANDSHAKE_RESPONSE = listOf("CIO", "OkHttp", "Java")
+private val ENGINES_WITH_HANDSHAKE_RESPONSE = listOf("CIO", "OkHttp", "Java", "WinHttp")
 
 private const val TEST_SIZE: Int = 100
 
@@ -401,7 +401,7 @@ class WebSocketTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
     }
 
     @Test
-    fun testAuthenticationWithValidRefreshToken() = clientTests(except("Js", "WinHttp")) {
+    fun testAuthenticationWithValidRefreshToken() = clientTests(except("Js")) {
         config {
             install(WebSockets)
 
@@ -444,7 +444,7 @@ class WebSocketTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
     }
 
     @Test
-    fun testAuthenticationWithInvalidToken() = clientTests(except("Js", "WinHttp")) {
+    fun testAuthenticationWithInvalidToken() = clientTests(except("Js")) {
         config {
             install(WebSockets)
 
