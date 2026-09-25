@@ -59,9 +59,9 @@ internal class CurlClientEngine(
                     curlProcessor,
                 )
             } else if (data.isUpgradeRequest()) {
-                // Server rejected the upgrade (e.g., 401 Unauthorized). The easy handle is already
-                // cleaned up by this point — don't create a WebSocket session or cancelWebSocket
-                // would enqueue a stale handle that may be reallocated for the retry request.
+                // Server rejected the upgrade.
+                // We don't have the response body. We proceed without the body, so that the rest of the response
+                // is available in WebSocketHandshakeException.response when it's thrown in WebSockets plugin.
                 ByteReadChannel.Empty
             } else {
                 val httpResponse = responseBody as CurlHttpResponseBody
