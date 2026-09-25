@@ -10,6 +10,7 @@ import io.ktor.client.plugins.*
 import io.ktor.client.plugins.sse.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
+import io.ktor.http.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.job
@@ -51,9 +52,13 @@ internal class WinHttpClientEngine(
         requestProducer.writeBody()
 
         val rawResponse = request.getResponse()
-        val responseBody: Any = if (data.isUpgradeRequest()) {
+        val isSwitchingProtocols = rawResponse.statusCode == HttpStatusCode.SwitchingProtocols.value
+        val responseBody: Any = if (data.isUpgradeRequest() && isSwitchingProtocols) {
             request.createWebSocket(callContext)
         } else {
+            // The server rejected the upgrade (e.g., 403 Forbidden). WinHTTP treats this as an ordinary
+            // HTTP response until the upgrade is explicitly completed, so the status, headers, and body are
+            // all still readable normally.
             request.readBody(callContext)
         }
 
