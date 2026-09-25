@@ -32,25 +32,38 @@ import kotlin.coroutines.CoroutineContext
  * @return A new [HttpClientCall] instance with all its content stored in memory.
  */
 @OptIn(InternalAPI::class)
-public suspend fun HttpClientCall.save(): HttpClientCall {
+public suspend fun HttpClientCall.save(): HttpClientCall = save(skipContentLengthCheck = false)
+
+/**
+ * Same as [HttpClientCall.save], but if [skipContentLengthCheck] is set to true,
+ * skips the check that the saved body length matches the `Content-Length` declared by the server.
+ *
+ * Intended for engines that can't read the body of a response they still need to expose, such as a
+ * WebSocket handshake rejected by the platform WebSocket client.
+ */
+@InternalAPI
+internal suspend fun HttpClientCall.save(skipContentLengthCheck: Boolean): HttpClientCall {
     if (this is SavedHttpCall) return this
 
     val responseBody = response.rawContent.readRemaining().readByteArray()
-    return SavedHttpCall(client, request, response, responseBody)
+    return SavedHttpCall(client, request, response, responseBody, skipContentLengthCheck = skipContentLengthCheck)
 }
 
 internal class SavedHttpCall(
     client: HttpClient,
     request: HttpRequest,
     response: HttpResponse,
-    private val responseBody: ByteArray
+    responseBody: ByteArray,
+    skipContentLengthCheck: Boolean = false,
 ) : HttpClientCall(client) {
 
     init {
         this.request = SavedHttpRequest(this, request)
         this.response = SavedHttpResponse(this, responseBody, response)
 
-        checkContentLength(response.contentLength(), responseBody.size.toLong(), request.method)
+        if (!skipContentLengthCheck) {
+            checkContentLength(response.contentLength(), responseBody.size.toLong(), request.method)
+        }
     }
 
     override val allowDoubleReceive: Boolean = true

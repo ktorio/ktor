@@ -240,7 +240,12 @@ public class WebSockets internal constructor(
                 }
                 if (status != HttpStatusCode.SwitchingProtocols) {
                     val failedResponse = try {
-                        context.save().also { it.attributes.put(FAILED_HANDSHAKE_RESPONSE_KEY, Unit) }.response
+                        // Engines that let their platform WebSocket client perform the handshake may not be able
+                        // to read the body of a rejected one, and report an empty body next to the `Content-Length`
+                        // the server declared. Skip the check so the status and headers aren't lost as well.
+                        context.save(skipContentLengthCheck = true)
+                            .also { it.attributes.put(FAILED_HANDSHAKE_RESPONSE_KEY, Unit) }
+                            .response
                     } catch (cause: CancellationException) {
                         throw cause
                     } catch (cause: Exception) {
