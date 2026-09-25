@@ -10,6 +10,7 @@ import io.ktor.client.plugins.*
 import io.ktor.client.plugins.sse.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
+import io.ktor.http.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.job
@@ -51,8 +52,16 @@ internal class WinHttpClientEngine(
         requestProducer.writeBody()
 
         val rawResponse = request.getResponse()
+        val isSwitchingProtocols = rawResponse.statusCode == HttpStatusCode.SwitchingProtocols.value
         val responseBody: Any = if (data.isUpgradeRequest()) {
-            request.createWebSocket(callContext)
+            if (isSwitchingProtocols) {
+                request.createWebSocket(callContext)
+            } else {
+                // Server rejected the upgrade.
+                // We proceed, so that the response is available in WebSocketHandshakeException.response
+                // when it's thrown in WebSockets plugin.
+                request.readBody(callContext)
+            }
         } else {
             request.readBody(callContext)
         }
