@@ -59,9 +59,12 @@ internal class CurlClientEngine(
                     curlProcessor,
                 )
             } else if (data.isUpgradeRequest()) {
-                // Server rejected the upgrade (e.g., 401 Unauthorized). The easy handle is already
-                // cleaned up by this point — don't create a WebSocket session or cancelWebSocket
-                // would enqueue a stale handle that may be reallocated for the retry request.
+                // Server rejected the upgrade (e.g., 403 Forbidden). libcurl aborts the transfer with
+                // CURLE_HTTP_RETURNED_ERROR while parsing the response headers and never reads the body,
+                // so only the status and headers of the rejected handshake are available.
+                // The easy handle is already cleaned up by this point — don't create a WebSocket session
+                // or cancelWebSocket would enqueue a stale handle that may be reallocated for the retry
+                // request.
                 ByteReadChannel.Empty
             } else {
                 val httpResponse = responseBody as CurlHttpResponseBody
