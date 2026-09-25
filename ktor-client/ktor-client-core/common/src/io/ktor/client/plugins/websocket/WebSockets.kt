@@ -242,24 +242,31 @@ public class WebSockets internal constructor(
                     return@intercept
                 }
                 if (context.attributes.contains(FAILED_HANDSHAKE_RESPONSE_KEY)) {
-                    // Reading the body of an already-captured failed handshake (WebSocketHandshakeException.response);
-                    // let the default transformers produce the body instead of handling the handshake again.
+                    // The user reads the body of a saved failed handshake. Let the default transformers handle it.
                     return@intercept
                 }
                 if (status != HttpStatusCode.SwitchingProtocols) {
+                    var saveFailure: Exception? = null
                     val failedResponse = try {
-                        context.save().also { it.attributes.put(FAILED_HANDSHAKE_RESPONSE_KEY, Unit) }.response
+                        // Some engines use platform WebSocket clients that can't read rejected handshake body.
+                        // The response then has an empty body but the Content-Length from the server.
+                        // `allowMissingBody = true` skips Content-Length validation for this case.
+                        context.save(allowMissingBody = true)
+                            .also { it.attributes.put(FAILED_HANDSHAKE_RESPONSE_KEY, Unit) }
+                            .response
                     } catch (cause: CancellationException) {
                         throw cause
                     } catch (cause: Exception) {
-                        LOGGER.trace { "Failed to read response body of failed WebSocket handshake: $cause" }
+                        saveFailure = cause
                         null
                     }
-                    throw WebSocketHandshakeException(
+                    val exception = WebSocketHandshakeException(
                         "Handshake exception, expected status code ${HttpStatusCode.SwitchingProtocols.value} " +
                             "but was ${status.value}",
                         response = failedResponse,
                     )
+                    saveFailure?.let { exception.addSuppressed(it) }
+                    throw exception
                 }
                 if (session !is WebSocketSession) {
                     throw WebSocketHandshakeException(

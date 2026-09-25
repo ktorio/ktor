@@ -10,6 +10,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.readBuffer
 import kotlinx.io.readByteArray
 import kotlin.coroutines.CoroutineContext
 
@@ -30,26 +31,41 @@ import kotlin.coroutines.CoroutineContext
  *
  * @return A new [HttpClientCall] instance with all its content stored in memory.
  */
+public suspend fun HttpClientCall.save(): HttpClientCall = save(allowMissingBody = false)
+
+/**
+ * Saves the call like [HttpClientCall.save].
+ *
+ * If [allowMissingBody] is `true`, an empty body passes the `Content-Length` check, also when `Content-Length`
+ * isn't zero. A body that isn't empty must still match `Content-Length`.
+ *
+ * Set [allowMissingBody] for engines that report an empty body because they can't read it. An example is
+ * a WebSocket handshake that the platform WebSocket client rejects.
+ */
 @OptIn(InternalAPI::class)
-public suspend fun HttpClientCall.save(): HttpClientCall {
+internal suspend fun HttpClientCall.save(allowMissingBody: Boolean): HttpClientCall {
     if (this is SavedHttpCall) return this
 
     val responseBody = response.rawContent.readBuffer().readByteArray()
-    return SavedHttpCall(client, request, response, responseBody)
+    val skipContentLengthCheck = allowMissingBody && responseBody.isEmpty()
+    return SavedHttpCall(client, request, response, responseBody, skipContentLengthCheck = skipContentLengthCheck)
 }
 
 internal class SavedHttpCall(
     client: HttpClient,
     request: HttpRequest,
     response: HttpResponse,
-    private val responseBody: ByteArray
+    responseBody: ByteArray,
+    skipContentLengthCheck: Boolean = false,
 ) : HttpClientCall(client) {
 
     init {
         this.request = SavedHttpRequest(this, request)
         this.response = SavedHttpResponse(this, responseBody, response)
 
-        checkContentLength(response.contentLength(), responseBody.size.toLong(), request.method)
+        if (!skipContentLengthCheck) {
+            checkContentLength(response.contentLength(), responseBody.size.toLong(), request.method)
+        }
     }
 
     override val allowDoubleReceive: Boolean = true
