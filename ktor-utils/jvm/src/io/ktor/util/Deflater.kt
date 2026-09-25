@@ -111,14 +111,14 @@ private val DeflateReaderCoroutineName = CoroutineName("encoder-deflate-reader")
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.deflated)
  */
-@OptIn(DelicateCoroutinesApi::class)
+@OptIn(DelicateCoroutinesApi::class, InternalAPI::class)
 public fun ByteReadChannel.deflated(
     gzip: Boolean = true,
     pool: ObjectPool<ByteBuffer> = KtorDefaultPool,
     coroutineContext: CoroutineContext = Dispatchers.Unconfined
 ): ByteReadChannel = GlobalScope.writer(coroutineContext + DeflateWriterCoroutineName, autoFlush = true) {
     this@deflated.deflateTo(channel, gzip, pool)
-}.channel
+}.also { attachWriterJob(it) }.channel
 
 /**
  * Launch a coroutine on [coroutineContext] that does deflate compression
