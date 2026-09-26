@@ -13,6 +13,7 @@ import io.ktor.server.plugins.conditionalheaders.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import io.ktor.util.date.*
 import kotlin.test.*
 
 class ETagsTest {
@@ -156,6 +157,46 @@ class ETagsTest {
             header(HttpHeaders.IfMatch, "tag0,tag2,tag3")
         }
         assertEquals(HttpStatusCode.PreconditionFailed, result.status)
+    }
+
+    @Test
+    fun `If-Modified-Since is ignored when If-None-Match is present`() = testApplication {
+        val lastModified = GMTDate(1_700_000_000_000L)
+        install(ConditionalHeaders) {
+            version { _, _ -> listOf(EntityTagVersion("tag1"), LastModifiedVersion(lastModified)) }
+        }
+        routing {
+            handle {
+                call.respondText("response")
+            }
+        }
+
+        val result = client.get {
+            header(HttpHeaders.IfNoneMatch, "tag2")
+            header(HttpHeaders.IfModifiedSince, lastModified.toHttpDate())
+        }
+        assertEquals(HttpStatusCode.OK, result.status)
+        assertEquals("response", result.bodyAsText())
+    }
+
+    @Test
+    fun `If-Unmodified-Since is ignored when If-Match is present`() = testApplication {
+        val lastModified = GMTDate(1_700_000_000_000L)
+        install(ConditionalHeaders) {
+            version { _, _ -> listOf(EntityTagVersion("tag1"), LastModifiedVersion(lastModified)) }
+        }
+        routing {
+            handle {
+                call.respondText("response")
+            }
+        }
+
+        val result = client.get {
+            header(HttpHeaders.IfMatch, "tag1")
+            header(HttpHeaders.IfUnmodifiedSince, GMTDate(lastModified.timestamp - 86_400_000L).toHttpDate())
+        }
+        assertEquals(HttpStatusCode.OK, result.status)
+        assertEquals("response", result.bodyAsText())
     }
 
     @Test
