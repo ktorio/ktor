@@ -4,13 +4,16 @@
 
 package io.ktor.client.engine.apache5
 
+import io.ktor.client.engine.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.job
 import org.apache.hc.client5.http.ConnectTimeoutException
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient
 import org.apache.hc.core5.concurrent.FutureCallback
@@ -24,7 +27,8 @@ import kotlin.coroutines.CoroutineContext
 internal suspend fun CloseableHttpAsyncClient.sendRequest(
     request: AsyncRequestProducer,
     callContext: CoroutineContext,
-    requestData: HttpRequestData
+    requestData: HttpRequestData,
+    engineJob: Job,
 ): HttpResponseData {
     val requestTime = GMTDate()
 
@@ -39,6 +43,11 @@ internal suspend fun CloseableHttpAsyncClient.sendRequest(
 
     val future = execute(request, responseConsumer, callback)!!
     bodyConsumer.attachFuture(future)
+
+    val engineClosedHandle = engineJob.invokeOnCompletion {
+        responseConsumer.failed(ClientEngineClosedException())
+    }
+    callContext.job.invokeOnCompletion { engineClosedHandle.dispose() }
 
     try {
         val rawResponse = responseConsumer.responseDeferred.await()
