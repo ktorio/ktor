@@ -16,6 +16,11 @@ class BundledPublicSuffixRulesTest {
     }
 
     @Test
+    fun testLoadBundledIcannPrivateWildcardAndExceptionRules() {
+        assertBundledPublicSuffixVectors(PublicSuffixRules.loadBundled())
+    }
+
+    @Test
     fun testBundledUnicodeAndPunycodeRules() = runBlocking {
         val policy = PublicSuffixCookiePolicy(PublicSuffixRules.bundled())
 

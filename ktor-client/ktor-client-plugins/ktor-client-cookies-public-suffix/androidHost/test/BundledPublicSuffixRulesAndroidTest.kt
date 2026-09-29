@@ -31,6 +31,32 @@ class BundledPublicSuffixRulesAndroidTest {
     }
 
     @Test
+    fun testLoadBundledReadsApplicationContextAssetsImmediately() {
+        val context = mockk<Context>()
+        val applicationContext = mockk<Context>()
+        val assets = mockk<AssetManager>()
+        every { context.applicationContext } returns applicationContext
+        every { applicationContext.assets } returns assets
+        every { assets.open(PUBLIC_SUFFIX_RESOURCE) } answers { bundledResource().inputStream() }
+
+        val rules = PublicSuffixRules.loadBundled(context)
+        verify(exactly = 1) { assets.open(PUBLIC_SUFFIX_RESOURCE) }
+
+        assertBundledPublicSuffixVectors(rules)
+        verify(exactly = 1) { assets.open(PUBLIC_SUFFIX_RESOURCE) }
+    }
+
+    @Test
+    fun testLoadBundledFailsImmediately() {
+        assertFailsWith<IOException> {
+            PublicSuffixRules.loadBundled(contextWithAssets { throw IOException("missing") })
+        }
+        assertFailsWith<IllegalStateException> {
+            PublicSuffixRules.loadBundled(contextWithAssets { byteArrayOf(0, 0, 0, 1).inputStream() })
+        }
+    }
+
+    @Test
     fun testMissingAssetFails() {
         val rules = PublicSuffixRules.bundled(contextWithAssets { throw IOException("missing") })
 
