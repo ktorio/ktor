@@ -10,6 +10,7 @@ import io.ktor.client.plugins.compression.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.test.base.*
+import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
@@ -231,6 +232,58 @@ class HttpStatementTest : ClientLoader(timeout = 5.seconds) {
         test { client ->
             client.prepareStream(delay = 1.minutes).execute { response ->
                 assertEquals(42, response.rawContent.readInt())
+            }
+        }
+    }
+
+    // KTOR-9951: Android's blocking InputStream.close() can wait for the next chunk before cleanup finishes.
+    @Test
+    fun `execute returns after partially reading bodyAsChannel`() = clientTests(except("Android")) {
+        test { client ->
+            client.prepareStream(delay = 1.minutes).execute { response ->
+                assertEquals(42, response.bodyAsChannel().readInt())
+            }
+        }
+    }
+
+    // KTOR-9951: Closing Android's partially read response stream can block.
+    @OptIn(InternalAPI::class)
+    @Test
+    fun `execute cancels bodyAsChannel when its output is full`() = clientTests(except("Android")) {
+        test { client ->
+            val body = client.prepareStream(chunkSize = 65536).execute { response ->
+                val channel = response.bodyAsChannel()
+                try {
+                    // Ensure the client-scoped copy is blocked writing to its output, not reading its source.
+                    waitForCondition("transformed channel to fill", timeout = 2.seconds) {
+                        !(channel as ByteChannel).hasFreeSpace
+                    }
+                    assertFalse(response.rawContent.isClosedForRead, "Engine body should still be streaming")
+                    channel
+                } catch (cause: Throwable) {
+                    channel.cancel()
+                    throw cause
+                }
+            }
+            try {
+                assertTrue((body as ByteChannel).isClosedForWrite, "bodyAsChannel writer is still open after execute")
+            } finally {
+                body.cancel()
+            }
+        }
+    }
+
+    // KTOR-9951: Android's blocking InputStream.close() can wait for the next chunk before cleanup finishes.
+    @Test
+    fun `cancelling bodyAsChannel cancels the response job inside execute`() = clientTests(except("Android")) {
+        test { client ->
+            client.prepareStream(delay = 1.minutes).execute { response ->
+                val body = response.bodyAsChannel()
+                assertEquals(42, body.readInt())
+                body.cancel()
+                waitForCondition("response job to be cancelled", timeout = 1.seconds) {
+                    response.coroutineContext.job.isCancelled
+                }
             }
         }
     }
