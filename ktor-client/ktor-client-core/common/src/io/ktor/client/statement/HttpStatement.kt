@@ -222,27 +222,44 @@ public class HttpStatement(
      * any pending network operations.
      */
     @PublishedApi
-    @OptIn(InternalAPI::class)
     internal suspend fun HttpResponse.cleanup(cause: Throwable?) {
         val job = coroutineContext.job as CompletableJob
+        val content = runCatching { engineContentForCleanup() }.getOrNull()
 
-        job.apply {
-            when (cause) {
-                null -> complete()
-                is CancellationException -> cancel(cause)
-                else -> cancel(CancellationException("Exception occurred during request execution", cause))
+        if (cause == null) {
+            // Pre-read closedCause to access the getter only once
+            // Reading closure first avoids mistaking a cancellation between the reads for clean EOF
+            val contentIsClosedForRead = content?.isClosedForRead == true
+            val contentCloseCause = content?.closedCause
+
+            if (contentIsClosedForRead && contentCloseCause == null) {
+                job.complete()
+            } else {
+                job.cancel(contentCloseCause.toCancellationException("Response body was abandoned"))
             }
-            // If the response is saved, the underlying channel is already closed and
-            // calling `rawContent` would create a new one
-            if (!isSaved) {
-                try {
-                    rawContent.cancel()
-                } catch (_: Throwable) {
-                }
-            }
-            join()
+        } else {
+            job.cancel(cause.toCancellationException("Exception occurred during request execution"))
         }
+
+        runCatching { content?.cancel() }
+        job.join()
     }
 
     override fun toString(): String = "HttpStatement[${builder.url}]"
 }
+
+@OptIn(InternalAPI::class)
+private fun HttpResponse.engineContentForCleanup(): ByteReadChannel? {
+    if (isSaved) return ByteReadChannel.Empty
+
+    return when (val origin = resolveOrigin()) {
+        is DefaultHttpResponse -> origin.rawContent
+        is SavedHttpResponse -> ByteReadChannel.Empty
+        else -> null
+    }
+}
+
+// Inline to keep the cleanup call site, not this helper, in newly created exception stack traces
+@Suppress("NOTHING_TO_INLINE")
+private inline fun Throwable?.toCancellationException(message: String): CancellationException =
+    this as? CancellationException ?: CancellationException(message, this)
