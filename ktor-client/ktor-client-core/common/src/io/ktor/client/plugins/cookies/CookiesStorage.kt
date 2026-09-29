@@ -5,7 +5,6 @@
 package io.ktor.client.plugins.cookies
 
 import io.ktor.http.*
-import io.ktor.util.*
 import io.ktor.utils.io.core.*
 
 /**
@@ -71,14 +70,12 @@ public fun Cookie.matches(requestUrl: Url): Boolean {
 }
 
 internal fun String.matchesDomain(domain: String): Boolean {
-    val host = toMatchingForm()
-    val normalizedDomain = domain.toMatchingForm().trimStart('.')
-    if (normalizedDomain.isEmpty()) return false
-    if (host == normalizedDomain) return true
-    return !hostIsIp(host) && host.endsWith(".$normalizedDomain")
+    val host = canonicalizeValidLabels()
+    val cookieDomain = domain.canonicalizeValidLabels().trimStart('.')
+    if (cookieDomain.isEmpty()) return false
+    if (host == cookieDomain) return true
+    return !hostIsIp(host) && host.endsWith(".$cookieDomain")
 }
-
-private fun String.toMatchingForm(): String = toAsciiDomainOrNull() ?: toLowerCasePreservingASCIIRules()
 
 /**
  * Fills [Cookie] with default values from [requestUrl].

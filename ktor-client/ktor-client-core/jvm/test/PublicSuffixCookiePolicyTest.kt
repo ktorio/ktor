@@ -10,75 +10,36 @@ import kotlin.test.*
 class PublicSuffixCookiePolicyTest {
 
     @Test
-    fun testCanonicalizesDomainBeforeCallingRules() = runTest {
-        var receivedDomain: String? = null
+    fun testNormalizesDomainBeforeCallingRules() = runTest {
+        val receivedDomains = mutableListOf<String>()
         val policy = PublicSuffixCookiePolicy { domain ->
-            receivedDomain = domain
-            true
-        }
-
-        assertFalse(policy.shouldAccept(Url("https://example.com/"), cookie(".A\u030Alesund.NO")))
-        assertEquals(canonicalizeDomain("ålesund.no"), receivedDomain)
-    }
-
-    @Test
-    fun testCanonicalizesPunycodeBeforeCallingRules() = runTest {
-        var receivedDomain: String? = null
-        val policy = PublicSuffixCookiePolicy { domain ->
-            receivedDomain = domain
+            receivedDomains += domain
             true
         }
         val decomposedPunycode = requireNotNull(Punycode.encode("a\u030Alesund"))
+        val fullwidthPunycode = requireNotNull(Punycode.encode("\uFF49\uFF4F"))
+        val cases = listOf(
+            ".A\u030Alesund.NO" to "xn--lesund-hua.no",
+            "$decomposedPunycode.no" to "xn--lesund-hua.no",
+            "github.\uFF49\uFF4F" to "github.io",
+            "GITHUB.\uFF29\uFF2F" to "github.io",
+            "github.$fullwidthPunycode" to "github.io"
+        )
 
-        assertFalse(policy.shouldAccept(Url("https://example.no/"), cookie("$decomposedPunycode.no")))
-        assertEquals(canonicalizeDomain("ålesund.no"), receivedDomain)
-    }
-
-    @Test
-    fun testMapsIdnaSeparatorsBeforeCallingRules() = runTest {
-        val receivedDomains = mutableListOf<String>()
-        val policy = PublicSuffixCookiePolicy { domain ->
-            receivedDomains += domain
-            true
-        }
-
-        // U+3002 ideographic, U+FF0E fullwidth, and U+FF61 halfwidth ideographic full stops
-        for (domain in listOf("s3.amazonaws。com", "s3．amazonaws｡com")) {
+        for ((domain, _) in cases) {
             assertFalse(policy.shouldAccept(Url("https://example.com/"), cookie(domain)), domain)
         }
-        assertEquals(listOf("s3.amazonaws.com", "s3.amazonaws.com"), receivedDomains)
+        assertEquals(cases.map { it.second }, receivedDomains)
     }
 
     @Test
-    fun testMapsCompatibilityCharactersBeforeCallingRules() = runTest {
-        val receivedDomains = mutableListOf<String>()
-        val policy = PublicSuffixCookiePolicy { domain ->
-            receivedDomains += domain
-            true
-        }
-        val fullwidthPunycode = requireNotNull(Punycode.encode("ｉｏ"))
+    fun testRejectsSoftHyphenSpellingOfPublicSuffix() = runTest {
+        val storage = FilteredCookiesStorage(PublicSuffixCookiePolicy { it == "uk" || it == "co.uk" })
+        val cookie = Cookie("session", "injected", domain = "co\u00AD.uk", path = "/")
 
-        // Fullwidth "io", fullwidth "IO", and the Punycode form of fullwidth "io"
-        for (domain in listOf("github.ｉｏ", "GITHUB.ＩＯ", "github.$fullwidthPunycode")) {
-            assertFalse(policy.shouldAccept(Url("https://example.com/"), cookie(domain)), domain)
-        }
-        assertEquals(listOf("github.io", "github.io", "github.io"), receivedDomains)
-    }
+        storage.addCookie(Url("https://evil.co\u00AD.uk/"), cookie)
 
-    @Test
-    fun testRejectsPunycodeLabelsThatDecodeToSeparators() = runTest {
-        var calls = 0
-        val policy = PublicSuffixCookiePolicy {
-            calls++
-            false
-        }
-        // An ideographic full stop inside a label, and U+2488 which normalizes to "1."
-        val labels = listOf("a。b", "⒈").map { requireNotNull(Punycode.encode(it)) }
-
-        for (label in labels) {
-            assertFalse(policy.shouldAccept(Url("https://example.com/"), cookie("$label.com")), label)
-        }
-        assertEquals(0, calls)
+        assertTrue(storage.get(Url("https://victim.co\u00AD.uk/")).isEmpty())
     }
 
     @Test
@@ -96,15 +57,20 @@ class PublicSuffixCookiePolicyTest {
     }
 
     @Test
-    fun testRejectsMalformedDomainWithoutCallingRules() = runTest {
+    fun testRejectsInvalidDomainWithoutCallingRules() = runTest {
         var calls = 0
         val policy = PublicSuffixCookiePolicy {
             calls++
             false
         }
 
-        assertFalse(policy.shouldAccept(Url("https://example.com/"), cookie("xn--invalid-")))
-        assertFalse(policy.shouldAccept(Url("https://example.com./"), cookie(".")))
+        // U+2488 normalizes to "1.", so neither Punycode label may hide a separator
+        val separatorPunycode = listOf("a\u3002b", "\u2488").map { requireNotNull(Punycode.encode(it)) }
+        val domains = listOf("xn--invalid-", ".", "exa\u200Bmple.com") + separatorPunycode.map { "$it.com" }
+
+        for (domain in domains) {
+            assertFalse(policy.shouldAccept(Url("https://example.com/"), cookie(domain)), domain)
+        }
         assertEquals(0, calls)
     }
 

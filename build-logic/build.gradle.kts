@@ -36,7 +36,7 @@ kotlin {
 val syncPublicSuffixSources = tasks.register<Sync>("syncPublicSuffixSources") {
     val cookiesLocation = "io/ktor/client/plugins/cookies"
     from(layout.projectDirectory.dir("../ktor-client/ktor-client-core/common/src/$cookiesLocation")) {
-        include("Punycode.kt", "IdnaDomains.kt")
+        include("Punycode.kt", "DomainCanonicalization.kt")
     }
     from(layout.projectDirectory.dir("../ktor-client/ktor-client-core/jvm/src/$cookiesLocation")) {
         include("PublicSuffixListParser.kt")

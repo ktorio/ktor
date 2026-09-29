@@ -10,6 +10,10 @@ import io.ktor.http.*
  * A cookie policy that rejects explicit public-suffix domains according to [rules].
  *
  * Cookies without a domain attribute and cookies with IP address domains bypass public-suffix validation.
+ * Otherwise, the domain attribute is stripped of a leading dot and converted to the canonical form described by
+ * [PublicSuffixRules], with Unicode compatibility normalization applied. A cookie whose domain cannot be
+ * canonicalized, for example because it contains invisible formatting characters, is rejected without consulting
+ * [rules].
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.cookies.PublicSuffixCookiePolicy)
  *
@@ -23,11 +27,7 @@ public class PublicSuffixCookiePolicy(
         val domain = cookie.domain?.takeUnless { it.isBlank() }?.trimStart('.') ?: return true
         if (hostIsIp(domain)) return true
 
-        val canonicalDomain = try {
-            canonicalizeDomain(domain)
-        } catch (_: IllegalArgumentException) {
-            return false
-        }
+        val canonicalDomain = canonicalizeDomainOrNull(domain, String::toNfkcLowercase) ?: return false
 
         return !rules.isPublicSuffix(canonicalDomain)
     }

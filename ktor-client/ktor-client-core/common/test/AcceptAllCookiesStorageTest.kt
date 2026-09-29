@@ -105,11 +105,12 @@ class AcceptAllCookiesStorageTest {
         val cases = listOf(
             "https://münchen.de/" to "xn--mnchen-3ya.de",
             "https://www.münchen.de/" to "XN--MNCHEN-3YA.DE",
+            "https://my_svc.münchen.de/" to "xn--mnchen-3ya.de",
             "https://xn--mnchen-3ya.de/" to "münchen.de",
             "https://MÜNCHEN.de/" to "münchen.de",
-            "https://münchen.de/" to "münchen。de",
-            "https://münchen.de/" to "münchen．de",
-            "https://münchen.de/" to "münchen｡de"
+            "https://münchen.de/" to "münchen\u3002de",
+            "https://münchen.de/" to "münchen\uFF0Ede",
+            "https://münchen.de/" to "münchen\uFF61de"
         )
 
         for ((url, domain) in cases) {
@@ -129,7 +130,7 @@ class AcceptAllCookiesStorageTest {
             "https://münchen.de/" to "xn--mnchen-3ya.com",
             "https://evil.de/" to "münchen.de",
             "https://evilmünchen.de/" to "münchen.de",
-            "https://münchen.de/" to "。"
+            "https://münchen.de/" to "\u3002"
         )
 
         for ((url, domain) in cases) {

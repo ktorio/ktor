@@ -12,8 +12,8 @@ class PunycodeTest {
         val cases = listOf(
             "münchen.de" to "xn--mnchen-3ya.de",
             "公司.cn" to "xn--55qx5d.cn",
-            "😀" to "xn--e28h",
-            "a😀b" to "xn--ab-no82a",
+            "\uD83D\uDE00" to "xn--e28h",
+            "a\uD83D\uDE00b" to "xn--ab-no82a",
             "example.com" to "example.com"
         )
 
