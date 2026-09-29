@@ -27,6 +27,12 @@ abstract fun interface io.ktor.client.plugins.cookies/CookieAcceptancePolicy { /
     abstract suspend fun shouldAccept(io.ktor.http/Url, io.ktor.http/Cookie): kotlin/Boolean // io.ktor.client.plugins.cookies/CookieAcceptancePolicy.shouldAccept|shouldAccept(io.ktor.http.Url;io.ktor.http.Cookie){}[0]
 }
 
+abstract fun interface io.ktor.client.plugins.cookies/PublicSuffixRules { // io.ktor.client.plugins.cookies/PublicSuffixRules|null[0]
+    abstract fun isPublicSuffix(kotlin/String): kotlin/Boolean // io.ktor.client.plugins.cookies/PublicSuffixRules.isPublicSuffix|isPublicSuffix(kotlin.String){}[0]
+
+    final object Companion // io.ktor.client.plugins.cookies/PublicSuffixRules.Companion|null[0]
+}
+
 abstract fun interface io.ktor.client.request/ResponseAdapter { // io.ktor.client.request/ResponseAdapter|null[0]
     abstract fun adapt(io.ktor.client.request/HttpRequestData, io.ktor.http/HttpStatusCode, io.ktor.http/Headers, io.ktor.utils.io/ByteReadChannel, io.ktor.http.content/OutgoingContent, kotlin.coroutines/CoroutineContext): kotlin/Any? // io.ktor.client.request/ResponseAdapter.adapt|adapt(io.ktor.client.request.HttpRequestData;io.ktor.http.HttpStatusCode;io.ktor.http.Headers;io.ktor.utils.io.ByteReadChannel;io.ktor.http.content.OutgoingContent;kotlin.coroutines.CoroutineContext){}[0]
 }

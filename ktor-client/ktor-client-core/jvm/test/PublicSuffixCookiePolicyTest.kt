@@ -5,110 +5,69 @@
 import io.ktor.client.plugins.cookies.*
 import io.ktor.http.*
 import kotlinx.coroutines.test.runTest
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
-import kotlin.time.ExperimentalTime
+import kotlin.test.*
 
-@OptIn(ExperimentalTime::class)
 class PublicSuffixCookiePolicyTest {
 
     @Test
-    fun testRejectsExactIcannAndPrivatePublicSuffixes() = runTest {
-        val policy = PublicSuffixCookiePolicy
+    fun testCanonicalizesDomainBeforeCallingRules() = runTest {
+        var receivedDomain: String? = null
+        val policy = PublicSuffixCookiePolicy { domain ->
+            receivedDomain = domain
+            true
+        }
 
-        assertRejected(policy, "https://example.com/", "com")
-        assertRejected(policy, "https://example.co.uk/", "co.uk")
-        assertRejected(policy, "https://user.github.io/", "github.io")
+        assertFalse(policy.shouldAccept(Url("https://example.com/"), cookie(".A\u030Alesund.NO")))
+        assertEquals(canonicalizeDomain("ålesund.no"), receivedDomain)
     }
 
     @Test
-    fun testAcceptsRegistrableParentDomains() = runTest {
-        val policy = PublicSuffixCookiePolicy
+    fun testCanonicalizesPunycodeBeforeCallingRules() = runTest {
+        var receivedDomain: String? = null
+        val policy = PublicSuffixCookiePolicy { domain ->
+            receivedDomain = domain
+            true
+        }
+        val decomposedPunycode = requireNotNull(Punycode.encode("a\u030Alesund"))
 
-        assertAccepted(policy, "https://www.example.com/", "example.com")
-        assertAccepted(policy, "https://sub.example.co.uk/", "example.co.uk")
+        assertFalse(policy.shouldAccept(Url("https://example.no/"), cookie("$decomposedPunycode.no")))
+        assertEquals(canonicalizeDomain("ålesund.no"), receivedDomain)
     }
 
     @Test
-    fun testHandlesWildcardAndExceptionRules() = runTest {
-        val policy = PublicSuffixCookiePolicy
+    fun testMissingBlankAndIpDomainsBypassRules() = runTest {
+        var calls = 0
+        val policy = PublicSuffixCookiePolicy {
+            calls++
+            true
+        }
 
-        assertRejected(policy, "https://shop.foo.ck/", "foo.ck")
-        assertAccepted(policy, "https://www.ck/", "www.ck")
-        assertAccepted(policy, "https://shop.www.ck/", "www.ck")
+        assertTrue(policy.shouldAccept(Url("https://example.com/"), cookie(null)))
+        assertTrue(policy.shouldAccept(Url("https://example.com/"), cookie("")))
+        assertTrue(policy.shouldAccept(Url("https://127.0.0.1/"), cookie("127.0.0.1")))
+        assertEquals(0, calls)
     }
 
     @Test
-    fun testCanonicalizesLeadingDotsAndCase() = runTest {
-        val policy = PublicSuffixCookiePolicy
+    fun testRejectsMalformedDomainWithoutCallingRules() = runTest {
+        var calls = 0
+        val policy = PublicSuffixCookiePolicy {
+            calls++
+            false
+        }
 
-        assertRejected(policy, "https://example.com/", ".COM")
-        assertRejected(policy, "https://user.github.io/", ".GitHub.IO")
+        assertFalse(policy.shouldAccept(Url("https://example.com/"), cookie("xn--invalid-")))
+        assertFalse(policy.shouldAccept(Url("https://example.com./"), cookie(".")))
+        assertEquals(0, calls)
     }
 
     @Test
-    fun testCanonicalizesUnicodeAndPunycodeRules() = runTest {
-        val policy = PublicSuffixCookiePolicy
+    fun testUsesProvidedRules() = runTest {
+        val policy = PublicSuffixCookiePolicy { it == "com" }
 
-        assertRejected(policy, "https://example.公司.cn/", "公司.cn")
-        assertRejected(policy, "https://example.xn--55qx5d.cn/", "xn--55qx5d.cn")
+        assertFalse(policy.shouldAccept(Url("https://com/"), cookie("com")))
+        assertTrue(policy.shouldAccept(Url("https://example.com/"), cookie("example.com")))
     }
 
-    @Test
-    fun testRejectsPublicSuffixEqualToResponseHost() = runTest {
-        val policy = PublicSuffixCookiePolicy
-
-        assertRejected(policy, "https://com/", "com")
-        assertRejected(policy, "https://github.io/", "github.io")
-    }
-
-    @Test
-    fun testMissingAndBlankDomainsAndIpAddressesBypassPolicy() = runTest {
-        val policy = PublicSuffixCookiePolicy
-
-        assertAccepted(policy, "https://example.com/", null)
-        assertAccepted(policy, "https://example.com/", "")
-        assertAccepted(policy, "https://127.0.0.1/", "127.0.0.1")
-    }
-
-    @Test
-    fun testRejectsMalformedCookieDomain() = runTest {
-        assertFalse(
-            PublicSuffixCookiePolicy.shouldAccept(
-                Url("https://example.com/"),
-                Cookie("name", "value", domain = "xn--invalid-", path = "/")
-            )
-        )
-    }
-
-    @Test
-    fun testBundledListMetadata() {
-        assertEquals("https://publicsuffix.org/list/public_suffix_list.dat", PUBLIC_SUFFIX_LIST_SOURCE)
-        assertTrue(PUBLIC_SUFFIX_LIST_SHA256.matches(Regex("[0-9a-f]{64}")))
-        assertTrue(PUBLIC_SUFFIX_EXACT_RULE_CHUNKS.isNotEmpty())
-        assertTrue(PUBLIC_SUFFIX_WILDCARD_RULE_CHUNKS.isNotEmpty())
-        assertTrue(PUBLIC_SUFFIX_EXCEPTION_RULE_CHUNKS.isNotEmpty())
-    }
-
-    private suspend fun assertAccepted(policy: CookieAcceptancePolicy, url: String, domain: String?) {
-        assertAccepted(policy, Url(url), domain)
-    }
-
-    private suspend fun assertAccepted(policy: CookieAcceptancePolicy, url: Url, domain: String?) {
-        val storage = FilteredCookiesStorage(policy)
-        storage.addCookie(url, Cookie("name", "value", domain = domain, path = "/"))
-        assertEquals("value", storage.get(url).single().value)
-    }
-
-    private suspend fun assertRejected(policy: CookieAcceptancePolicy, url: String, domain: String) {
-        assertRejected(policy, Url(url), domain)
-    }
-
-    private suspend fun assertRejected(policy: CookieAcceptancePolicy, url: Url, domain: String) {
-        val storage = FilteredCookiesStorage(policy)
-        storage.addCookie(url, Cookie("name", "value", domain = domain, path = "/"))
-        assertTrue(storage.get(url).isEmpty())
-    }
+    private fun cookie(domain: String?): Cookie = Cookie("name", "value", domain = domain, path = "/")
 }

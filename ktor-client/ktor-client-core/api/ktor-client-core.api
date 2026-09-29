@@ -807,8 +807,21 @@ public final class io/ktor/client/plugins/cookies/HttpCookiesKt {
 }
 
 public final class io/ktor/client/plugins/cookies/PublicSuffixCookiePolicy : io/ktor/client/plugins/cookies/CookieAcceptancePolicy {
-	public static final field INSTANCE Lio/ktor/client/plugins/cookies/PublicSuffixCookiePolicy;
+	public fun <init> (Lio/ktor/client/plugins/cookies/PublicSuffixRules;)V
 	public fun shouldAccept (Lio/ktor/http/Url;Lio/ktor/http/Cookie;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+}
+
+public abstract interface class io/ktor/client/plugins/cookies/PublicSuffixRules {
+	public static final field Companion Lio/ktor/client/plugins/cookies/PublicSuffixRules$Companion;
+	public abstract fun isPublicSuffix (Ljava/lang/String;)Z
+}
+
+public final class io/ktor/client/plugins/cookies/PublicSuffixRules$Companion {
+}
+
+public final class io/ktor/client/plugins/cookies/PublicSuffixRulesKt {
+	public static final fun loadPublicSuffixRules (Lio/ktor/client/HttpClient;Ljava/lang/String;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public static synthetic fun loadPublicSuffixRules$default (Lio/ktor/client/HttpClient;Ljava/lang/String;Lkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 
 public final class io/ktor/client/plugins/internal/SaveBodyAbandonedReadException : java/lang/RuntimeException {
