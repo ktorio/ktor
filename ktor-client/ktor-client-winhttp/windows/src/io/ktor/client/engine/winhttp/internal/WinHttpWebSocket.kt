@@ -4,6 +4,7 @@
 
 package io.ktor.client.engine.winhttp.internal
 
+import io.ktor.client.plugins.websocket.WebSocketException
 import io.ktor.utils.io.InternalAPI
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.pool.*
@@ -50,7 +51,7 @@ internal class WinHttpWebSocket(
 
     override var maxFrameSize: Long
         get() = Long.MAX_VALUE
-        set(_) {}
+        set(_) = throw WebSocketException("Max frame size switch is not supported in WinHttp engine.")
 
     override val incoming: ReceiveChannel<Frame>
         get() = _incoming
