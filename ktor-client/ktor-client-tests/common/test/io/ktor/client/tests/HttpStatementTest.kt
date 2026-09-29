@@ -14,7 +14,6 @@ import io.ktor.client.tests.utils.*
 import io.ktor.http.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.job
 import kotlinx.coroutines.withTimeoutOrNull
@@ -54,7 +53,7 @@ class HttpStatementTest : ClientLoader(timeout = 5.seconds) {
     }
 
     @Test
-    fun testGZipFromSavedResponse() = clientTests(except("native:CIO", "web:CIO", "WinHttp")) {
+    fun `saved gzip remains readable after job completion`() = clientTests(except("native:CIO", "web:CIO", "WinHttp")) {
         config {
             ContentEncoding {
                 gzip()
@@ -63,7 +62,7 @@ class HttpStatementTest : ClientLoader(timeout = 5.seconds) {
 
         test { client ->
             val response = client.get("$TEST_SERVER/compression/gzip")
-            assertTrue(response.coroutineContext[Job]!!.isCompleted)
+            assertTrue(response.coroutineContext.job.isCompleted)
 
             val content = response.body<String>()
             assertEquals("Compressed response!", content)
@@ -173,7 +172,7 @@ class HttpStatementTest : ClientLoader(timeout = 5.seconds) {
     }
 
     @Test
-    fun testJobFinishedAfterResponseRead() = clientTests {
+    fun `execute completes jobs for saved and streaming responses`() = clientTests {
         test { client ->
             val saved = client.prepareGet("$TEST_SERVER/content/hello").execute()
             assertTrue(saved.call.coroutineContext.job.isCompleted)
@@ -192,7 +191,7 @@ class HttpStatementTest : ClientLoader(timeout = 5.seconds) {
     // so the test times out waiting for enough data to arrive unless the content type is octet/stream or application/json.
     // See: https://developer.apple.com/forums/thread/64875
     @Test
-    fun testStreamingResponseExceptionCancelsImmediately() = clientTests {
+    fun `execute propagates block failure without waiting for the body`() = clientTests {
         test { client ->
             val exception = assertFailsWith<IllegalStateException> {
                 client.prepareStream(delay = 1.minutes).execute {
@@ -205,7 +204,7 @@ class HttpStatementTest : ClientLoader(timeout = 5.seconds) {
     }
 
     @Test
-    fun testStreamingResponseExceptionInBodyCancelsImmediately() = clientTests {
+    fun `body block propagates failure without waiting for the body`() = clientTests {
         test { client ->
             val exception = assertFailsWith<IllegalStateException> {
                 client.prepareStream(delay = 1.minutes).body<ByteReadChannel, Unit> {
