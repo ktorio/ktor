@@ -58,11 +58,9 @@ kotlin {
             resources.srcDir(publicSuffixResources)
         }
 
-        named("androidHostTest") {
-            dependencies {
-                implementation(libs.mockk)
-                implementation(kotlin("test-junit"))
-            }
+        optional.androidHostTest.dependencies {
+            implementation(libs.mockk)
+            implementation(kotlin("test-junit"))
         }
     }
 }
