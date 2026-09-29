@@ -29,9 +29,6 @@ import kotlin.time.Duration.Companion.seconds
 internal val ENGINES_WITHOUT_WS = listOf("Android", "Apache", "Apache5", "DarwinLegacy")
 internal val ENGINES_NOT_SUPPORTING_MAX_FRAME_SIZE = listOf("OkHttp", "Js", "Java", "WinHttp")
 
-// TODO: KTOR-9328 Options `maxFrameSize` and `masking` are silently ignored on some engines
-internal val ENGINES_NOT_SUPPORTING_MAX_FRAME_SIZE_SILENTLY = listOf("Java", "WinHttp")
-
 private const val TEST_SIZE: Int = 100
 
 class WebSocketTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
@@ -559,9 +556,7 @@ class WebSocketTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
     }
 
     @Test
-    fun testMaxFrameSizeNotSupported() = clientTests(
-        only(ENGINES_NOT_SUPPORTING_MAX_FRAME_SIZE - ENGINES_NOT_SUPPORTING_MAX_FRAME_SIZE_SILENTLY)
-    ) {
+    fun testMaxFrameSizeNotSupported() = clientTests(only(ENGINES_NOT_SUPPORTING_MAX_FRAME_SIZE)) {
         config {
             install(WebSockets) {
                 maxFrameSize = 10
