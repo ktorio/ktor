@@ -147,6 +147,7 @@ projects {
             +"ktor-client-auth"
             +"ktor-client-bom-remover"
             +"ktor-client-call-id"
+            +"ktor-client-cookies-public-suffix"
             +"ktor-client-content-negotiation" including {
                 +"ktor-client-content-negotiation-tests"
             }
