@@ -32,8 +32,10 @@ public class AcceptAllCookiesStorage(private val clock: () -> Long = { getTimeMi
     }
 
     override suspend fun addCookie(requestUrl: Url, cookie: Cookie) {
+        val cookieDomain = cookie.domain
         with(cookie) {
             if (name.isBlank()) return
+            if (!cookieDomain.isNullOrBlank() && !requestUrl.host.matchesDomain(cookieDomain)) return
         }
 
         mutex.withLock {
@@ -51,8 +53,7 @@ public class AcceptAllCookiesStorage(private val clock: () -> Long = { getTimeMi
         }
     }
 
-    override fun close() {
-    }
+    override fun close() {}
 
     private fun cleanup(timestamp: Long) {
         container.removeAll { (cookie, createdAt) ->
