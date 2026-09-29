@@ -5,7 +5,7 @@
 package io.ktor.client.plugins.cookies
 
 import java.text.Normalizer
-import java.text.Normalizer.Form.NFC
+import java.text.Normalizer.Form.NFKC
 
 // This file and Punycode.kt are also compiled into build-logic for the `updatePublicSuffixList` task,
 // so the bundled list and the runtime canonicalize domains identically.
@@ -15,6 +15,9 @@ private const val BEGIN_ICANN_DOMAINS = "// ===BEGIN ICANN DOMAINS==="
 private const val END_ICANN_DOMAINS = "// ===END ICANN DOMAINS==="
 private const val BEGIN_PRIVATE_DOMAINS = "// ===BEGIN PRIVATE DOMAINS==="
 private const val END_PRIVATE_DOMAINS = "// ===END PRIVATE DOMAINS==="
+
+// Full stop variants that UTS #46 maps to '.': ideographic, fullwidth, and halfwidth ideographic
+private val IDNA_SEPARATORS = charArrayOf('\u3002', '\uFF0E', '\uFF61')
 
 private enum class PublicSuffixSection {
     ICANN,
@@ -103,14 +106,16 @@ private fun malformedList(source: String, index: Int, line: String, cause: Throw
 }
 
 /**
- * Converts [domain] to its canonical form: lowercase, NFC-normalized, and Punycode-encoded.
+ * Converts [domain] to its canonical form: NFKC-normalized, lowercase, and Punycode-encoded,
+ * with the full stop variants that UTS #46 maps to `.` treated as label separators.
  *
  * @throws IllegalArgumentException when [domain] is not a valid domain name.
  */
 internal fun canonicalizeDomain(domain: String): String {
     require(domain.isNotEmpty() && domain.length <= 253) { "Invalid domain: $domain" }
 
-    val result = domain
+    val result = domain.toNfkcLowercase()
+        .replaceSeparators()
         .split('.')
         .joinToString(separator = ".", transform = ::canonicalizeLabel)
 
@@ -126,7 +131,11 @@ private fun canonicalizeLabel(label: String): String {
         require(decoded.any { it.code >= 0x80 }) { "Invalid Punycode label: $label" }
     }
 
-    val normalized = Normalizer.normalize(decoded.lowercase(), NFC)
+    // Punycode labels are decoded only here, so their content is mapped here as well.
+    // A label must not smuggle a separator: for example, U+2488 normalizes to "1.".
+    val normalized = decoded.toNfkcLowercase()
+    require(normalized.none { it == '.' || it in IDNA_SEPARATORS }) { "Invalid domain label: $label" }
+
     val canonicalLabel = requireNotNull(Punycode.encode(normalized)) {
         "Invalid domain label: $label"
     }
@@ -143,3 +152,10 @@ private fun canonicalizeLabel(label: String): String {
 
     return canonicalLabel
 }
+
+// Lowercasing can produce characters that are not NFKC-normalized, so normalize again afterward.
+private fun String.toNfkcLowercase(): String =
+    Normalizer.normalize(Normalizer.normalize(this, NFKC).lowercase(), NFKC)
+
+private fun String.replaceSeparators(): String =
+    IDNA_SEPARATORS.fold(this) { result, separator -> result.replace(separator, '.') }

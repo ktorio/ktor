@@ -35,6 +35,53 @@ class PublicSuffixCookiePolicyTest {
     }
 
     @Test
+    fun testMapsIdnaSeparatorsBeforeCallingRules() = runTest {
+        val receivedDomains = mutableListOf<String>()
+        val policy = PublicSuffixCookiePolicy { domain ->
+            receivedDomains += domain
+            true
+        }
+
+        // U+3002 ideographic, U+FF0E fullwidth, and U+FF61 halfwidth ideographic full stops
+        for (domain in listOf("s3.amazonaws。com", "s3．amazonaws｡com")) {
+            assertFalse(policy.shouldAccept(Url("https://example.com/"), cookie(domain)), domain)
+        }
+        assertEquals(listOf("s3.amazonaws.com", "s3.amazonaws.com"), receivedDomains)
+    }
+
+    @Test
+    fun testMapsCompatibilityCharactersBeforeCallingRules() = runTest {
+        val receivedDomains = mutableListOf<String>()
+        val policy = PublicSuffixCookiePolicy { domain ->
+            receivedDomains += domain
+            true
+        }
+        val fullwidthPunycode = requireNotNull(Punycode.encode("ｉｏ"))
+
+        // Fullwidth "io", fullwidth "IO", and the Punycode form of fullwidth "io"
+        for (domain in listOf("github.ｉｏ", "GITHUB.ＩＯ", "github.$fullwidthPunycode")) {
+            assertFalse(policy.shouldAccept(Url("https://example.com/"), cookie(domain)), domain)
+        }
+        assertEquals(listOf("github.io", "github.io", "github.io"), receivedDomains)
+    }
+
+    @Test
+    fun testRejectsPunycodeLabelsThatDecodeToSeparators() = runTest {
+        var calls = 0
+        val policy = PublicSuffixCookiePolicy {
+            calls++
+            false
+        }
+        // An ideographic full stop inside a label, and U+2488 which normalizes to "1."
+        val labels = listOf("a。b", "⒈").map { requireNotNull(Punycode.encode(it)) }
+
+        for (label in labels) {
+            assertFalse(policy.shouldAccept(Url("https://example.com/"), cookie("$label.com")), label)
+        }
+        assertEquals(0, calls)
+    }
+
+    @Test
     fun testMissingBlankAndIpDomainsBypassRules() = runTest {
         var calls = 0
         val policy = PublicSuffixCookiePolicy {
