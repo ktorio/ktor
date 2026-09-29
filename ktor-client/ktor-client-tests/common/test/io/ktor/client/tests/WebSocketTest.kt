@@ -28,6 +28,7 @@ import kotlin.time.Duration.Companion.seconds
 
 internal val ENGINES_WITHOUT_WS = listOf("Android", "Apache", "Apache5", "DarwinLegacy")
 internal val ENGINES_NOT_SUPPORTING_MAX_FRAME_SIZE = listOf("OkHttp", "Js", "Java", "WinHttp")
+internal val ENGINES_NOT_SUPPORTING_MASKING_SWITCH = listOf("OkHttp", "Js", "Java", "WinHttp", "Darwin", "Curl")
 
 private const val TEST_SIZE: Int = 100
 
@@ -570,6 +571,57 @@ class WebSocketTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
                 }
             }
             assertContains(exception.message!!, "Max frame size switch is not supported")
+        }
+    }
+
+    @Test
+    fun testMaskingEnabled() = clientTests {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
+                masking = true
+                assertTrue(masking)
+
+                send("abc")
+                assertEquals("abc", (incoming.receive() as Frame.Text).readText())
+            }
+        }
+    }
+
+    @Test
+    fun testMaskingSwitchSupported() = clientTests(except(ENGINES_NOT_SUPPORTING_MASKING_SWITCH)) {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
+                masking = false
+                assertFalse(masking)
+
+                send("abc")
+                assertEquals("abc", (incoming.receive() as Frame.Text).readText())
+            }
+        }
+    }
+
+    @Test
+    fun testMaskingSwitchNotSupported() = clientTests(only(ENGINES_NOT_SUPPORTING_MASKING_SWITCH)) {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
+                val exception = assertFailsWith<WebSocketException> {
+                    masking = false
+                }
+                assertContains(exception.message!!, "Masking switch is not supported")
+                assertTrue(masking)
+            }
         }
     }
 
