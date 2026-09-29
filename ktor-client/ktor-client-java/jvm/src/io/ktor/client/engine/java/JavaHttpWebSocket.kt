@@ -82,7 +82,9 @@ internal class JavaHttpWebSocket(
 
     override var masking: Boolean
         get() = true
-        set(_) {}
+        set(value) {
+            if (!value) throw WebSocketException("Masking switch is not supported in Java engine.")
+        }
 
     override var maxFrameSize: Long
         get() = Long.MAX_VALUE

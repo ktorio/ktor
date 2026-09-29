@@ -47,7 +47,9 @@ internal class WinHttpWebSocket(
     private val _outgoing = Channel.from<Frame>(channelsConfig.outgoing)
     override var masking: Boolean
         get() = true
-        set(_) {}
+        set(value) {
+            if (!value) throw WebSocketException("Masking switch is not supported in WinHttp engine.")
+        }
 
     override var maxFrameSize: Long
         get() = Long.MAX_VALUE
