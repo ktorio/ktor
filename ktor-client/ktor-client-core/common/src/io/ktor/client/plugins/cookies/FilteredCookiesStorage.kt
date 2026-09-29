@@ -50,6 +50,8 @@ public class FilteredCookiesStorage internal constructor(
      * Creates an initially empty in-memory cookie storage filtered by [policies].
      *
      * @param policies cookie acceptance policies, evaluated in the supplied order.
+     * @param clock the time source used to record when cookies are stored and to expire them
+     * according to their `Max-Age` or `Expires` attributes.
      */
     public constructor(
         vararg policies: CookieAcceptancePolicy,
