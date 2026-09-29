@@ -48,7 +48,9 @@ internal class JsWebSocketSession(
 
     override var masking: Boolean
         get() = true
-        set(_) = throw WebSocketException("Masking switch is not supported in JS engine.")
+        set(value) {
+            if (!value) throw WebSocketException("Masking switch is not supported in JS engine.")
+        }
 
     override var maxFrameSize: Long
         get() = Long.MAX_VALUE
