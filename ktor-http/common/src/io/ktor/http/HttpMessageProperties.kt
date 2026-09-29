@@ -4,6 +4,7 @@
 
 package io.ktor.http
 
+import io.ktor.util.date.*
 import io.ktor.utils.io.charsets.*
 
 /**
@@ -111,14 +112,27 @@ public fun HttpMessage.vary(): List<String>? = headers.getAll(HttpHeaders.Vary)?
 public fun HttpMessage.contentLength(): Long? = headers[HttpHeaders.ContentLength]?.toLongOrNull()
 
 /**
- * Parse `Set-Cookie` header value.
+ * Parse `Set-Cookie` header value. Pass the default expires date parser to the [setCookie] function.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.setCookie)
  */
-public fun HttpMessage.setCookie(): List<Cookie> = headers.getAll(HttpHeaders.SetCookie)
-    ?.flatMap { it.splitSetCookieHeader() }
-    ?.map { parseServerSetCookieHeader(it) }
-    ?: emptyList()
+public fun HttpMessage.setCookie(): List<Cookie> = setCookie(String::fromCookieToGmtDate)
+
+/**
+ * Parse `Set-Cookie` header values, using [expiresParser] in place of the built-in `Expires` date parser.
+ *
+ * See [parseServerSetCookieHeader] for the parser contract and the exceptions thrown on malformed values.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.setCookie)
+ *
+ * @param expiresParser the replacement date parser.
+ * @return the parsed cookies, or an empty list if there are no `Set-Cookie` headers.
+ */
+public fun HttpMessage.setCookie(expiresParser: (String) -> GMTDate?): List<Cookie> =
+    headers.getAll(HttpHeaders.SetCookie)
+        ?.flatMap { it.splitSetCookieHeader() }
+        ?.map { parseServerSetCookieHeader(it, expiresParser) }
+        ?: emptyList()
 
 /**
  * Parse `Set-Cookie` header value.
