@@ -7,9 +7,7 @@ import io.ktor.http.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.test.runTest
 import kotlin.test.*
-import kotlin.time.ExperimentalTime
 
-@OptIn(ExperimentalTime::class)
 class FilteredCookiesStorageTest {
 
     @Test

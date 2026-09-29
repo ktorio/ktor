@@ -772,8 +772,8 @@ public final class io/ktor/client/plugins/cookies/CookiesStorageKt {
 }
 
 public final class io/ktor/client/plugins/cookies/FilteredCookiesStorage : io/ktor/client/plugins/cookies/CookiesStorage {
+	public fun <init> ([Lio/ktor/client/plugins/cookies/CookieAcceptancePolicy;)V
 	public fun <init> ([Lio/ktor/client/plugins/cookies/CookieAcceptancePolicy;Lkotlin/time/Clock;)V
-	public synthetic fun <init> ([Lio/ktor/client/plugins/cookies/CookieAcceptancePolicy;Lkotlin/time/Clock;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
 	public fun addCookie (Lio/ktor/http/Url;Lio/ktor/http/Cookie;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun close ()V
 	public fun get (Lio/ktor/http/Url;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;

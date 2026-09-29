@@ -5,6 +5,7 @@
 package io.ktor.client.plugins.cookies
 
 import io.ktor.http.*
+import io.ktor.util.date.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.sync.*
 import kotlin.math.*
@@ -40,7 +41,6 @@ public fun interface CookieAcceptancePolicy {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.cookies.FilteredCookiesStorage)
  */
-@OptIn(ExperimentalTime::class)
 public class FilteredCookiesStorage internal constructor(
     private val policies: List<CookieAcceptancePolicy>,
     private val clock: () -> Long
@@ -49,13 +49,25 @@ public class FilteredCookiesStorage internal constructor(
     /**
      * Creates an initially empty in-memory cookie storage filtered by [policies].
      *
+     * Cookies are timestamped and expired using the system clock.
+     *
+     * @param policies cookie acceptance policies, evaluated in the supplied order.
+     */
+    public constructor(
+        vararg policies: CookieAcceptancePolicy
+    ) : this(policies = policies.toList(), clock = { getTimeMillis() })
+
+    /**
+     * Creates an initially empty in-memory cookie storage filtered by [policies].
+     *
      * @param policies cookie acceptance policies, evaluated in the supplied order.
      * @param clock the time source used to record when cookies are stored and to expire them
      * according to their `Max-Age` or `Expires` attributes.
      */
+    @ExperimentalTime
     public constructor(
         vararg policies: CookieAcceptancePolicy,
-        clock: Clock = Clock.System
+        clock: Clock
     ) : this(policies = policies.toList(), clock = { clock.now().toEpochMilliseconds() })
 
     private data class CookieWithTimestamp(val cookie: Cookie, val createdAt: Long)
