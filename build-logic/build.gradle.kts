@@ -34,9 +34,12 @@ kotlin {
 
 // Sharing Public Suffix List parsing with ktor-client-core
 val syncPublicSuffixSources = tasks.register<Sync>("syncPublicSuffixSources") {
-    val cookiesLocation = "../ktor-client/ktor-client-core/jvm/src/io/ktor/client/plugins/cookies"
-    from(layout.projectDirectory.dir(cookiesLocation)) {
-        include("PublicSuffixListParser.kt", "Punycode.kt")
+    val cookiesLocation = "io/ktor/client/plugins/cookies"
+    from(layout.projectDirectory.dir("../ktor-client/ktor-client-core/common/src/$cookiesLocation")) {
+        include("Punycode.kt", "IdnaDomains.kt")
+    }
+    from(layout.projectDirectory.dir("../ktor-client/ktor-client-core/jvm/src/$cookiesLocation")) {
+        include("PublicSuffixListParser.kt")
     }
     into(layout.buildDirectory.dir("generated/publicSuffix"))
 }

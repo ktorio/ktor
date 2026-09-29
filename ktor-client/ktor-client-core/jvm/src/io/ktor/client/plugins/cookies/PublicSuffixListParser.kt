@@ -7,7 +7,7 @@ package io.ktor.client.plugins.cookies
 import java.text.Normalizer
 import java.text.Normalizer.Form.NFKC
 
-// This file and Punycode.kt are also compiled into build-logic for the `updatePublicSuffixList` task,
+// This file, Punycode.kt, and IdnaDomains.kt are also compiled into build-logic for the `updatePublicSuffixList` task,
 // so the bundled list and the runtime canonicalize domains identically.
 // Keep them free of dependencies other than the Kotlin standard library and the JDK.
 
@@ -15,9 +15,6 @@ private const val BEGIN_ICANN_DOMAINS = "// ===BEGIN ICANN DOMAINS==="
 private const val END_ICANN_DOMAINS = "// ===END ICANN DOMAINS==="
 private const val BEGIN_PRIVATE_DOMAINS = "// ===BEGIN PRIVATE DOMAINS==="
 private const val END_PRIVATE_DOMAINS = "// ===END PRIVATE DOMAINS==="
-
-// Full stop variants that UTS #46 maps to '.': ideographic, fullwidth, and halfwidth ideographic
-private val IDNA_SEPARATORS = charArrayOf('\u3002', '\uFF0E', '\uFF61')
 
 private enum class PublicSuffixSection {
     ICANN,
@@ -115,7 +112,7 @@ internal fun canonicalizeDomain(domain: String): String {
     require(domain.isNotEmpty() && domain.length <= 253) { "Invalid domain: $domain" }
 
     val result = domain.toNfkcLowercase()
-        .replaceSeparators()
+        .replaceIdnaSeparators()
         .split('.')
         .joinToString(separator = ".", transform = ::canonicalizeLabel)
 
@@ -156,6 +153,3 @@ private fun canonicalizeLabel(label: String): String {
 // Lowercasing can produce characters that are not NFKC-normalized, so normalize again afterward.
 private fun String.toNfkcLowercase(): String =
     Normalizer.normalize(Normalizer.normalize(this, NFKC).lowercase(), NFKC)
-
-private fun String.replaceSeparators(): String =
-    IDNA_SEPARATORS.fold(this) { result, separator -> result.replace(separator, '.') }

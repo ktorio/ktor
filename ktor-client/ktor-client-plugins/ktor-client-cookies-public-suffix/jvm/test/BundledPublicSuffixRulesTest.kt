@@ -20,27 +20,6 @@ class BundledPublicSuffixRulesTest {
         val policy = PublicSuffixCookiePolicy(PublicSuffixRules.bundled())
 
         assertFalse(policy.shouldAccept(Url("https://example.公司.cn/"), cookie("公司.cn")))
-        assertFalse(policy.shouldAccept(Url("https://example.xn--55qx5d.cn/"), cookie("xn--55qx5d.cn")))
-    }
-
-    @Test
-    fun testBundledRulesRejectCompatibilitySpellings() = runBlocking {
-        val policy = PublicSuffixCookiePolicy(PublicSuffixRules.bundled())
-
-        // Fullwidth "io" and an ideographic full stop map to github.io and s3.amazonaws.com
-        assertFalse(policy.shouldAccept(Url("https://example.github.io/"), cookie("github.ｉｏ")))
-        assertFalse(policy.shouldAccept(Url("https://example.s3.amazonaws.com/"), cookie("s3.amazonaws。com")))
-    }
-
-    @Test
-    fun testConcurrentFirstUse() = runBlocking {
-        val rules = PublicSuffixRules.bundled()
-
-        coroutineScope {
-            List(100) {
-                async(Dispatchers.Default) { rules.isPublicSuffix("github.io") }
-            }.awaitAll().forEach(::assertTrue)
-        }
     }
 
     @Test

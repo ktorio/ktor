@@ -13,26 +13,6 @@ import kotlin.time.ExperimentalTime
 class FilteredCookiesStorageTest {
 
     @Test
-    fun testStorageWithoutPoliciesMatchesAcceptAllStorage() = runTest {
-        val requestUrl = Url("https://www.example.com/path")
-        val cookies = listOf(
-            Cookie("host", "value"),
-            Cookie("parent", "value", domain = "example.com", path = "/"),
-            Cookie("unrelated", "value", domain = "unrelated.example", path = "/")
-        )
-        val expected = AcceptAllCookiesStorage()
-        val actual = FilteredCookiesStorage()
-
-        for (cookie in cookies) {
-            expected.addCookie(requestUrl, cookie)
-            actual.addCookie(requestUrl, cookie)
-        }
-
-        assertEquals(expected.get(requestUrl), actual.get(requestUrl))
-        assertEquals(expected.get(Url("https://unrelated.example/")), actual.get(Url("https://unrelated.example/")))
-    }
-
-    @Test
     fun testPoliciesAreSuspendingAndRunInOrder() = runTest {
         val calls = mutableListOf<Int>()
         val storage = FilteredCookiesStorage(

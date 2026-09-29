@@ -57,7 +57,7 @@ internal object Punycode {
         result: StringBuilder
     ): Boolean {
         if (!string.requiresEncoding(position, limit)) {
-            result.append(string, position, limit)
+            result.appendRange(string, position, limit)
             return true
         }
 
@@ -138,7 +138,7 @@ internal object Punycode {
         result: StringBuilder
     ): Boolean {
         if (!string.regionMatches(position, PREFIX, 0, PREFIX.length, ignoreCase = true)) {
-            result.append(string, position, limit)
+            result.appendRange(string, position, limit)
             return true
         }
 
@@ -242,7 +242,7 @@ internal object Punycode {
                 high.isHighSurrogate() -> {
                     val low = getOrNull(index + 1)?.takeIf { index + 1 < limit } ?: return null
                     if (!low.isLowSurrogate()) return null
-                    result += Character.toCodePoint(high, low)
+                    result += toCodePoint(high, low)
                     index += 2
                 }
 
@@ -255,5 +255,18 @@ internal object Punycode {
             }
         }
         return result
+    }
+
+    private fun toCodePoint(high: Char, low: Char): Int =
+        ((high.code - 0xD800) shl 10) + (low.code - 0xDC00) + 0x10000
+
+    private fun StringBuilder.appendCodePoint(codePoint: Int) {
+        if (codePoint < 0x10000) {
+            append(codePoint.toChar())
+            return
+        }
+        val offset = codePoint - 0x10000
+        append((0xD800 + (offset shr 10)).toChar())
+        append((0xDC00 + (offset and 0x3FF)).toChar())
     }
 }

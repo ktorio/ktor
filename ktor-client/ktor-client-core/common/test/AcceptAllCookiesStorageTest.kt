@@ -101,6 +101,56 @@ class AcceptAllCookiesStorageTest {
     }
 
     @Test
+    fun testMatchesInternationalizedDomainsAcrossSpellings() = runTest {
+        val cases = listOf(
+            "https://münchen.de/" to "xn--mnchen-3ya.de",
+            "https://www.münchen.de/" to "XN--MNCHEN-3YA.DE",
+            "https://xn--mnchen-3ya.de/" to "münchen.de",
+            "https://MÜNCHEN.de/" to "münchen.de",
+            "https://münchen.de/" to "münchen。de",
+            "https://münchen.de/" to "münchen．de",
+            "https://münchen.de/" to "münchen｡de"
+        )
+
+        for ((url, domain) in cases) {
+            val storage = AcceptAllCookiesStorage()
+            val cookie = Cookie(name = "name", value = "value", domain = domain, path = "/")
+            storage.addCookie(Url(url), cookie)
+
+            for (requestUrl in listOf("https://münchen.de/", "https://xn--mnchen-3ya.de/")) {
+                assertEquals("value", storage.get(Url(requestUrl)).singleOrNull()?.value, "$url, $domain, $requestUrl")
+            }
+        }
+    }
+
+    @Test
+    fun testRejectsInternationalizedDomainsThatDoNotMatch() = runTest {
+        val cases = listOf(
+            "https://münchen.de/" to "xn--mnchen-3ya.com",
+            "https://evil.de/" to "münchen.de",
+            "https://evilmünchen.de/" to "münchen.de",
+            "https://münchen.de/" to "。"
+        )
+
+        for ((url, domain) in cases) {
+            val storage = AcceptAllCookiesStorage()
+            val cookie = Cookie(name = "name", value = "value", domain = domain, path = "/")
+            storage.addCookie(Url(url), cookie)
+
+            assertTrue(storage.get(Url(url)).isEmpty(), "$url, $domain")
+        }
+    }
+
+    @Test
+    fun testMatchesHostsThatAreNotValidDomainNames() = runTest {
+        val storage = AcceptAllCookiesStorage()
+        val cookie = Cookie(name = "name", value = "value", domain = "my_service", path = "/")
+        storage.addCookie(Url("http://my_service/"), cookie)
+
+        assertEquals("value", storage.get(Url("http://MY_SERVICE/")).singleOrNull()?.value)
+    }
+
+    @Test
     fun testRejectedCookieDoesNotReplaceExistingCookie() = runTest {
         val storage = AcceptAllCookiesStorage()
         val victimUrl = Url("https://victim.com/")
