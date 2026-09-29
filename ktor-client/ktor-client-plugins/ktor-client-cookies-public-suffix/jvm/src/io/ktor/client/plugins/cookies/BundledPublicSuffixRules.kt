@@ -16,8 +16,7 @@ import io.ktor.client.plugins.cookies.publicsuffix.*
  * @throws IllegalStateException when the bundled list is missing or corrupted.
  */
 public fun PublicSuffixRules.Companion.bundled(): PublicSuffixRules {
-    val classLoader = PublicSuffixRules::class.java.classLoader
-    val stream = classLoader.getResourceAsStream(PUBLIC_SUFFIX_RESOURCE)
+    val stream = BinaryPublicSuffixMatcher::class.java.getResourceAsStream("/$PUBLIC_SUFFIX_RESOURCE")
         ?: error("Unable to load $PUBLIC_SUFFIX_RESOURCE")
 
     return stream.use { resource -> BinaryPublicSuffixMatcher.from(resource.readBytes()) }

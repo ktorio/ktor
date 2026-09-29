@@ -13,4 +13,4 @@ import io.ktor.util.date.*
  */
 public class AcceptAllCookiesStorage(
     clock: () -> Long = { getTimeMillis() }
-) : CookiesStorage by FilteredCookiesStorage(emptyList(), clock)
+) : CookiesStorage by FilteredCookiesStorage(policies = emptyList(), clock)
