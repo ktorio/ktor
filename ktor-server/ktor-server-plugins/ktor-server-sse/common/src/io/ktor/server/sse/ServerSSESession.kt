@@ -152,14 +152,23 @@ public suspend inline fun <reified T : Any> ServerSSESessionWithSerialization.se
  *
  * The heartbeat will send the specified [Heartbeat.event] at the specified [Heartbeat.period] interval
  * as long as the session is active, or invoke [Heartbeat.eventProvider] on each tick when set.
+ * Only one heartbeat can be started per session.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sse.heartbeat)
  *
  * @param heartbeatConfig a lambda that configures the [Heartbeat] object used for the heartbeat.
+ * @throws IllegalStateException if a heartbeat has already been started for this session.
  */
 public fun ServerSSESession.heartbeat(heartbeatConfig: Heartbeat.() -> Unit = {}) {
     val heartbeat = Heartbeat().apply(heartbeatConfig)
-    val heartbeatJob = Job(call.coroutineContext[Job])
+    val heartbeatState = HeartbeatState()
+    val registeredState = call.attributes.computeIfAbsent(heartbeatStateKey) { heartbeatState }
+    check(registeredState === heartbeatState) {
+        "Only one heartbeat can be started per SSE session."
+    }
+
+    val heartbeatJob = Job(parent = coroutineContext[Job])
+    heartbeatState.job = heartbeatJob
     launch(heartbeatJob + CoroutineName("sse-heartbeat")) {
         while (true) {
             val event = heartbeat.eventProvider?.invoke() ?: heartbeat.event
@@ -167,10 +176,13 @@ public fun ServerSSESession.heartbeat(heartbeatConfig: Heartbeat.() -> Unit = {}
             delay(heartbeat.period)
         }
     }
-    call.attributes.put(heartbeatJobKey, heartbeatJob)
 }
 
-internal val heartbeatJobKey = AttributeKey<Job>("HeartbeatJobAttributeKey")
+internal class HeartbeatState {
+    var job: Job? = null
+}
+
+internal val heartbeatStateKey = AttributeKey<HeartbeatState>("HeartbeatStateAttributeKey")
 
 /**
  * Represents a heartbeat configuration for a [ServerSSESession].
