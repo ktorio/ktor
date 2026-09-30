@@ -32,6 +32,7 @@ kotlin {
             implementation(projects.ktorClientTests)
             implementation(projects.ktorClientLogging)
             implementation(projects.ktorClientJson)
+            implementation(projects.ktorNetwork)
             implementation(libs.kotlinx.serialization.json)
         }
     }
