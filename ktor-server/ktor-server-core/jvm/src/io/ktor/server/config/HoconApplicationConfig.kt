@@ -5,6 +5,7 @@
 package io.ktor.server.config
 
 import com.typesafe.config.Config
+import com.typesafe.config.ConfigException
 import com.typesafe.config.ConfigFactory
 import com.typesafe.config.ConfigValueType
 import io.ktor.util.reflect.*
@@ -67,11 +68,19 @@ public open class HoconApplicationConfig(private val config: Config) : Applicati
     }
 
     override fun configList(path: String): List<ApplicationConfig> {
-        return config.getConfigList(path).map { HoconApplicationConfig(it) }
+        return wrapConfigException(path) { config.getConfigList(path) }.map { HoconApplicationConfig(it) }
     }
 
     override fun config(path: String): ApplicationConfig =
-        HoconApplicationConfig(config.getConfig(path))
+        HoconApplicationConfig(wrapConfigException(path) { config.getConfig(path) })
+
+    private inline fun <T> wrapConfigException(path: String, block: () -> T): T = try {
+        block()
+    } catch (cause: ConfigException.Missing) {
+        throw ApplicationConfigurationException("Path $path not found.", cause)
+    } catch (cause: ConfigException) {
+        throw ApplicationConfigurationException("Failed to read path $path: ${cause.message}", cause)
+    }
 
     override fun keys(): Set<String> {
         return config.entrySet().map { it.key }.toSet()
