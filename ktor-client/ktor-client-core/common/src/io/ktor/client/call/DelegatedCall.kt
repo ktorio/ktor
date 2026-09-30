@@ -60,7 +60,7 @@ internal class DelegatedRequest(
 @OptIn(InternalAPI::class)
 internal class DelegatedResponse(
     override val call: HttpClientCall,
-    private val origin: HttpResponse,
+    internal val origin: HttpResponse,
     private val content: HttpResponse.() -> ByteReadChannel,
     override val headers: Headers = origin.headers
 ) : HttpResponse() {
@@ -76,4 +76,11 @@ internal class DelegatedResponse(
     override val requestTime: GMTDate get() = origin.requestTime
 
     override val responseTime: GMTDate get() = origin.responseTime
+}
+
+internal tailrec fun HttpResponse.resolveOrigin(): HttpResponse {
+    return when (this) {
+        is DelegatedResponse -> origin.resolveOrigin()
+        else -> this
+    }
 }
