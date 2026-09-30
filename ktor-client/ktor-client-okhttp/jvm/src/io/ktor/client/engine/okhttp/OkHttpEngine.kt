@@ -118,7 +118,11 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
                 }
             }
 
-        val responseContent = body.source().toChannel(callContext, requestData)
+        val responseContent = if (response.mayHaveBody()) {
+            body.source().toChannel(callContext, requestData)
+        } else {
+            ByteReadChannel.Empty
+        }
         return buildResponseData(response, requestTime, responseContent, callContext, requestData)
     }
 
@@ -170,6 +174,10 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
         return builder.build()
     }
 }
+
+private fun Response.mayHaveBody(): Boolean =
+    request.method != "HEAD" && code !in 100..199 && code != HttpStatusCode.NoContent.value &&
+        code != HttpStatusCode.NotModified.value
 
 @OptIn(DelicateCoroutinesApi::class, InternalCoroutinesApi::class, InternalAPI::class)
 private fun BufferedSource.toChannel(context: CoroutineContext, requestData: HttpRequestData): ByteReadChannel {
