@@ -70,32 +70,41 @@ internal class RawSourceChannel(
         }
     }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalAPI::class, InternalCoroutinesApi::class)
     override suspend fun awaitContent(min: Int): Boolean {
         if (closedToken != null) {
             rethrowCloseCauseIfNeeded()
             return buffer.remaining >= min
         }
 
-        withContext(coroutineContext) {
-            var result = 0L
-            while (buffer.remaining < min && result >= 0) {
-                result = try {
-                    source.readAtMostTo(buffer, Long.MAX_VALUE)
-                } catch (_: EOFException) {
-                    -1L
-                } catch (cause: IOException) {
+        val callerJob = currentCoroutineContext()[Job]
+        val cancellationHandler = callerJob?.invokeOnCompletion(onCancelling = true) { cause ->
+            closeSource(cause?.asCancellationException())
+        }
+
+        try {
+            withContext(coroutineContext) {
+                var result = 0L
+                while (buffer.remaining < min && result >= 0) {
+                    result = try {
+                        source.readAtMostTo(buffer, Long.MAX_VALUE)
+                    } catch (_: EOFException) {
+                        -1L
+                    } catch (cause: IOException) {
+                        rethrowCloseCauseIfNeeded()
+                        throw cause
+                    }
+                }
+
+                if (result == -1L) {
+                    source.close()
+                    job.complete()
                     rethrowCloseCauseIfNeeded()
-                    throw cause
+                    closedToken = CLOSED
                 }
             }
-
-            if (result == -1L) {
-                source.close()
-                job.complete()
-                rethrowCloseCauseIfNeeded()
-                closedToken = CLOSED
-            }
+        } finally {
+            cancellationHandler?.dispose()
         }
 
         return buffer.remaining >= min
