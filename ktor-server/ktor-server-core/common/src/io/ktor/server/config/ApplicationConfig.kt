@@ -95,6 +95,8 @@ public interface ApplicationConfigValue {
      * Get property string value
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.config.ApplicationConfigValue.getString)
+     *
+     * @throws ApplicationConfigurationException if the value is missing or cannot be read as a string
      */
     public fun getString(): String
 
@@ -102,6 +104,8 @@ public interface ApplicationConfigValue {
      * Get property list value
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.config.ApplicationConfigValue.getList)
+     *
+     * @throws ApplicationConfigurationException if the value is missing or cannot be read as a list of strings
      */
     public fun getList(): List<String>
 
@@ -109,6 +113,8 @@ public interface ApplicationConfigValue {
      * Get property as a map
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.config.ApplicationConfigValue.getMap)
+     *
+     * @throws ApplicationConfigurationException if the value is missing or cannot be read as a map
      */
     public fun getMap(): Map<String, Any?>
 
