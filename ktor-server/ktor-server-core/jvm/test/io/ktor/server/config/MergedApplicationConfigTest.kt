@@ -73,7 +73,7 @@ class MergedApplicationConfigJvmTest {
     }
 
     @Test
-    fun mergedConfigThrowsApplicationConfigurationExceptionForMissingPath() {
+    fun mergedConfigThrowsOnMissingPath() {
         val hocon = HoconApplicationConfig(ConfigFactory.parseString("ktor { deployment { port = 8080 } }"))
         // Map config has no "nonexistent.*" keys, so the lookup is delegated to the HOCON fallback.
         val merged = MapApplicationConfig("app.name" to "test").withFallback(hocon)

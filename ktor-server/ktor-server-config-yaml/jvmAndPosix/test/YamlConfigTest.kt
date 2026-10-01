@@ -612,6 +612,21 @@ class YamlConfigTest {
         assertTrue(cause.message!!.contains("Cycle detected"))
     }
 
+    @Test
+    fun testGetMapThrowsOnNonMapValue() {
+        val content = """
+            ktor:
+                port: 8080
+        """.trimIndent()
+        val yaml = Yaml.default.decodeFromString<YamlMap>(content)
+        val config = YamlConfig.from(yaml)
+
+        val exception = assertFailsWith<ApplicationConfigurationException> {
+            config.property("ktor.port").getMap()
+        }
+        assertTrue(exception.message!!.contains("ktor.port"))
+    }
+
     @Serializable
     data class SecurityUser(
         val name: String,

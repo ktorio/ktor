@@ -54,14 +54,14 @@ public class HoconConfigLoader : ConfigLoader {
  */
 public open class HoconApplicationConfig(private val config: Config) : ApplicationConfig {
     override fun property(path: String): ApplicationConfigValue {
-        if (!config.hasPath(path)) {
+        if (!wrapConfigException(path) { config.hasPath(path) }) {
             throw ApplicationConfigurationException("Property $path not found.")
         }
         return HoconApplicationConfigValue(config, path)
     }
 
     override fun propertyOrNull(path: String): ApplicationConfigValue? {
-        if (!config.hasPath(path)) {
+        if (!wrapConfigException(path) { config.hasPath(path) }) {
             return null
         }
         return HoconApplicationConfigValue(config, path)
@@ -74,14 +74,6 @@ public open class HoconApplicationConfig(private val config: Config) : Applicati
     override fun config(path: String): ApplicationConfig =
         HoconApplicationConfig(wrapConfigException(path) { config.getConfig(path) })
 
-    private inline fun <T> wrapConfigException(path: String, block: () -> T): T = try {
-        block()
-    } catch (cause: ConfigException.Missing) {
-        throw ApplicationConfigurationException("Path $path not found.", cause)
-    } catch (cause: ConfigException) {
-        throw ApplicationConfigurationException("Failed to read path $path: ${cause.message}", cause)
-    }
-
     override fun keys(): Set<String> {
         return config.entrySet().map { it.key }.toSet()
     }
@@ -91,11 +83,11 @@ public open class HoconApplicationConfig(private val config: Config) : Applicati
     }
 
     private class HoconApplicationConfigValue(val config: Config, val path: String) : ApplicationConfigValue {
-        override fun getString(): String = config.getString(path)
-        override fun getList(): List<String> = config.getStringList(path)
+        override fun getString(): String = wrapConfigException(path) { config.getString(path) }
+        override fun getList(): List<String> = wrapConfigException(path) { config.getStringList(path) }
 
         override val type: ApplicationConfigValue.Type =
-            when (config.getValue(path).valueType()) {
+            when (wrapConfigException(path) { config.getValue(path) }.valueType()) {
                 ConfigValueType.STRING,
                 ConfigValueType.NUMBER,
                 ConfigValueType.BOOLEAN -> ApplicationConfigValue.Type.SINGLE
@@ -108,14 +100,25 @@ public open class HoconApplicationConfig(private val config: Config) : Applicati
             }
 
         override fun getMap(): Map<String, Any?> =
-            config.getObject(path).unwrapped()
+            wrapConfigException(path) { config.getObject(path).unwrapped() }
 
         @OptIn(InternalAPI::class)
-        override fun getAs(type: TypeInfo): Any? {
-            return type.serializer()
-                .deserialize(HoconDecoder(config, path))
+        override fun getAs(type: TypeInfo): Any? = wrapConfigException(path) {
+            type.serializer().deserialize(HoconDecoder(config, path))
         }
     }
+}
+
+/**
+ * Translates Typesafe [ConfigException]s thrown by [block] into [ApplicationConfigurationException],
+ * keeping the original exception as the cause.
+ */
+private inline fun <T> wrapConfigException(path: String, block: () -> T): T = try {
+    block()
+} catch (cause: ConfigException.Missing) {
+    throw ApplicationConfigurationException("Path $path not found.", cause)
+} catch (cause: ConfigException) {
+    throw ApplicationConfigurationException("Failed to read path $path: ${cause.message}", cause)
 }
 
 /**

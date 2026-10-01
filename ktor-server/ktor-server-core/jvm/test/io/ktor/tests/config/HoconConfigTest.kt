@@ -103,7 +103,7 @@ class HoconConfigTest {
     }
 
     @Test
-    fun testConfigThrowsApplicationConfigurationExceptionForMissingPath() {
+    fun testConfigThrowsOnMissingPath() {
         val config = HoconApplicationConfig(ConfigFactory.parseString("ktor { deployment { port = 8080 } }"))
 
         val topLevel = assertFailsWith<ApplicationConfigurationException> { config.config("nonexistent") }
@@ -121,7 +121,7 @@ class HoconConfigTest {
     }
 
     @Test
-    fun testConfigListThrowsApplicationConfigurationExceptionForMissingPath() {
+    fun testConfigListThrowsOnMissingPath() {
         val config = HoconApplicationConfig(ConfigFactory.parseString("ktor { }"))
 
         val exception = assertFailsWith<ApplicationConfigurationException> { config.configList("ktor.users") }
@@ -130,7 +130,7 @@ class HoconConfigTest {
     }
 
     @Test
-    fun testConfigAndConfigListThrowApplicationConfigurationExceptionForWrongType() {
+    fun testConfigAndConfigListThrowOnWrongType() {
         val config = HoconApplicationConfig(ConfigFactory.parseString("ktor { deployment { port = 8080 } }"))
 
         val scalarAsObject = assertFailsWith<ApplicationConfigurationException> {
@@ -145,7 +145,7 @@ class HoconConfigTest {
     }
 
     @Test
-    fun testConfigAndConfigListThrowApplicationConfigurationExceptionForInvalidPathExpression() {
+    fun testConfigAndConfigListThrowOnInvalidPath() {
         val config = HoconApplicationConfig(ConfigFactory.parseString("ktor { deployment { port = 8080 } }"))
 
         for (path in listOf("", "ktor.", "ktor..deployment")) {
@@ -175,11 +175,61 @@ class HoconConfigTest {
     }
 
     @Test
-    fun testConfigThrowsApplicationConfigurationExceptionForUnresolvedConfig() {
+    fun testConfigThrowsOnUnresolvedSubstitution() {
         val unresolved = ConfigFactory.parseString("ktor { deployment = \${base} }\nbase { port = 8080 }")
         val config = HoconApplicationConfig(unresolved)
 
         val exception = assertFailsWith<ApplicationConfigurationException> { config.config("ktor.deployment") }
+        assertIs<ConfigException.NotResolved>(exception.cause)
+    }
+
+    @Test
+    fun testPropertyValueGettersThrowOnWrongType() {
+        val config = HoconApplicationConfig(
+            ConfigFactory.parseString(
+                """
+                ktor {
+                    port = 8080
+                    hosts = [a, b]
+                    deployment { port = 8080 }
+                }
+                """.trimIndent()
+            )
+        )
+
+        val listAsString = assertFailsWith<ApplicationConfigurationException> {
+            config.property("ktor.hosts").getString()
+        }
+        assertTrue(listAsString.message!!.startsWith("Failed to read path ktor.hosts:"))
+        assertIs<ConfigException.WrongType>(listAsString.cause)
+
+        val objectAsList = assertFailsWith<ApplicationConfigurationException> {
+            config.property("ktor.deployment").getList()
+        }
+        assertIs<ConfigException.WrongType>(objectAsList.cause)
+
+        val scalarAsMap = assertFailsWith<ApplicationConfigurationException> {
+            config.property("ktor.port").getMap()
+        }
+        assertIs<ConfigException.WrongType>(scalarAsMap.cause)
+    }
+
+    @Test
+    fun testPropertyValueGetAsThrowsOnWrongType() {
+        val config = HoconApplicationConfig(ConfigFactory.parseString("ktor { port = not-a-number }"))
+
+        val exception = assertFailsWith<ApplicationConfigurationException> {
+            config.property("ktor.port").getAs<Int>()
+        }
+        assertIs<ConfigException.WrongType>(exception.cause)
+    }
+
+    @Test
+    fun testPropertyThrowsOnUnresolvedSubstitution() {
+        val unresolved = ConfigFactory.parseString("ktor { port = \${base} }\nbase = 8080")
+        val config = HoconApplicationConfig(unresolved)
+
+        val exception = assertFailsWith<ApplicationConfigurationException> { config.property("ktor.port") }
         assertIs<ConfigException.NotResolved>(exception.cause)
     }
 
