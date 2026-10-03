@@ -146,4 +146,29 @@ class ClientHeadersTest : ClientLoader(timeout = 30.seconds) {
                 .forEach { testWithMethod(it) }
         }
     }
+
+    @Test
+    fun `raw source body is framed by the Content-Length header`() = clientTests {
+        test { client ->
+            val response = client.post("$TEST_SERVER/echo/headers") {
+                headers[HttpHeaders.ContentLength] = "5"
+                setBody(rawSourceOf("Hello"))
+            }.bodyAsText()
+
+            assertContains(response.lines(), "content-length: [5]")
+            assertTrue("Shouldn't send the Transfer-Encoding header") { "transfer-encoding" !in response }
+        }
+    }
+
+    // The Js engine can't stream a request body, so it buffers the source and always knows its size
+    @Test
+    fun `raw source body of unknown size is sent without Content-Length`() = clientTests(except("web:Js")) {
+        test { client ->
+            val response = client.post("$TEST_SERVER/echo/headers") {
+                setBody(rawSourceOf("Hello"))
+            }.bodyAsText()
+
+            assertTrue("Shouldn't send a Content-Length of unknown size") { "content-length" !in response }
+        }
+    }
 }

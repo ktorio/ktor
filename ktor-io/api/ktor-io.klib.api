@@ -480,6 +480,7 @@ final fun io.ktor.utils.io.core/Sink(io.ktor.utils.io.pool/ObjectPool<*>): kotli
 final fun io.ktor.utils.io.core/String(kotlin/ByteArray, kotlin/Int = ..., kotlin/Int = ..., io.ktor.utils.io.charsets/Charset = ...): kotlin/String // io.ktor.utils.io.core/String|String(kotlin.ByteArray;kotlin.Int;kotlin.Int;io.ktor.utils.io.charsets.Charset){}[0]
 final fun io.ktor.utils.io/ByteReadChannel(kotlin/ByteArray, kotlin/Int = ..., kotlin/Int = ...): io.ktor.utils.io/ByteReadChannel // io.ktor.utils.io/ByteReadChannel|ByteReadChannel(kotlin.ByteArray;kotlin.Int;kotlin.Int){}[0]
 final fun io.ktor.utils.io/ByteReadChannel(kotlin/String, io.ktor.utils.io.charsets/Charset = ...): io.ktor.utils.io/ByteReadChannel // io.ktor.utils.io/ByteReadChannel|ByteReadChannel(kotlin.String;io.ktor.utils.io.charsets.Charset){}[0]
+final fun io.ktor.utils.io/ByteReadChannel(kotlinx.io/RawSource, kotlin.coroutines/CoroutineContext = ...): io.ktor.utils.io/ByteReadChannel // io.ktor.utils.io/ByteReadChannel|ByteReadChannel(kotlinx.io.RawSource;kotlin.coroutines.CoroutineContext){}[0]
 final fun io.ktor.utils.io/ByteReadChannel(kotlinx.io/Source): io.ktor.utils.io/ByteReadChannel // io.ktor.utils.io/ByteReadChannel|ByteReadChannel(kotlinx.io.Source){}[0]
 final fun io.ktor.utils.io/ioDispatcher(): kotlinx.coroutines/CoroutineDispatcher // io.ktor.utils.io/ioDispatcher|ioDispatcher(){}[0]
 final inline fun (kotlin/Long).io.ktor.utils.io.core.internal/toIntOrFail(kotlin/String): kotlin/Int // io.ktor.utils.io.core.internal/toIntOrFail|toIntOrFail@kotlin.Long(kotlin.String){}[0]

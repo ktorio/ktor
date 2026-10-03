@@ -18,6 +18,9 @@ import io.ktor.test.dispatcher.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
+import kotlinx.io.Buffer
+import kotlinx.io.RawSource
+import kotlinx.io.writeString
 import kotlin.test.*
 
 class IgnoreTypesTest {
@@ -99,5 +102,55 @@ class IgnoreTypesTest {
         }
 
         assertEquals(jsonBody, response.bodyAsText())
+    }
+
+    @Test
+    fun testRequestWithIgnoredRawSource() = testSuspend {
+        val body = "raw bytes"
+
+        val client = HttpClient(MockEngine) {
+            install(ContentNegotiation) {
+                register(ContentType.Application.Json, converter)
+            }
+            engine {
+                addHandler { request ->
+                    assertEquals(body, request.body.toByteReadPacket().readText())
+                    respond("OK")
+                }
+            }
+        }
+
+        client.post("/") {
+            contentType(ContentType.Application.Json)
+            setBody(rawSourceOf(body))
+        }
+    }
+
+    @Test
+    fun testTriesToConvertRawSource() = testSuspend {
+        val client = HttpClient(MockEngine) {
+            install(ContentNegotiation) {
+                register(ContentType.Application.Json, converter)
+                clearIgnoredTypes()
+            }
+            engine {
+                addHandler { respond("OK") }
+            }
+        }
+
+        val sendError = assertFails {
+            client.post("/") {
+                contentType(ContentType.Application.Json)
+                setBody(rawSourceOf("raw bytes"))
+            }
+        }
+        assertEquals("This should not be called", sendError.message)
+    }
+
+    /** A [RawSource] that is deliberately not a [kotlinx.io.Source], to cover the whole hierarchy. */
+    private fun rawSourceOf(text: String): RawSource = object : RawSource {
+        private val buffer = Buffer().apply { writeString(text) }
+        override fun readAtMostTo(sink: Buffer, byteCount: Long): Long = buffer.readAtMostTo(sink, byteCount)
+        override fun close() = buffer.close()
     }
 }
