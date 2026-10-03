@@ -33,14 +33,17 @@ import io.netty.handler.ssl.SslProvider
 import io.netty.handler.ssl.SupportedCipherSuiteFilter
 import io.netty.handler.timeout.ReadTimeoutException
 import io.netty.handler.timeout.ReadTimeoutHandler
+import io.netty.handler.timeout.WriteTimeoutException
 import io.netty.handler.timeout.WriteTimeoutHandler
 import io.netty.util.concurrent.EventExecutor
 import io.netty.util.concurrent.EventExecutorGroup
+import io.netty.util.concurrent.ScheduledFuture
 import java.io.FileInputStream
 import java.nio.channels.ClosedChannelException
 import java.security.KeyStore
 import java.security.PrivateKey
 import java.security.cert.X509Certificate
+import java.util.concurrent.TimeUnit
 import javax.net.ssl.TrustManagerFactory
 import kotlin.coroutines.CoroutineContext
 
@@ -308,7 +311,7 @@ public class NettyChannelInitializer(
                         } else {
                             pipe.addAfter(ctx.name(), "continue", HttpServerExpectContinueHandler())
                         }
-                        pipe.addAfter("continue", "timeout", WriteTimeoutHandler(responseWriteTimeout))
+                        pipe.addAfter("continue", "timeout", KtorWriteTimeoutHandler(responseWriteTimeout))
                         pipe.addAfter("timeout", "http1", http1handler)
 
                         pipe.remove(upgradeHandler)
@@ -343,7 +346,7 @@ public class NettyChannelInitializer(
                     }
                     addLast("codec", httpServerCodec())
                     addLast("continue", HttpServerExpectContinueHandler())
-                    addLast("timeout", WriteTimeoutHandler(responseWriteTimeout))
+                    addLast("timeout", KtorWriteTimeoutHandler(responseWriteTimeout))
                     addLast("http1", handler)
                     channelPipelineConfig()
                 }
@@ -416,6 +419,56 @@ internal class KtorReadTimeoutHandler(requestReadTimeout: Int) : ReadTimeoutHand
         if (!closed) {
             ctx?.fireExceptionCaught(ReadTimeoutException.INSTANCE)
             closed = true
+        }
+    }
+}
+
+/**
+ * Progress aware timeout handler that fails the channel with [WriteTimeoutException] when response
+ * data is pending but no bytes have been written to the socket for [timeoutSeconds] seconds.
+ *
+ * A slow client that keeps reading is never disconnected.
+ * A stalled client is detected within one to two [timeoutSeconds] periods.
+ * A non-positive [timeoutSeconds] disables the timeout.
+ */
+internal class KtorWriteTimeoutHandler(private val timeoutSeconds: Int) : WriteTimeoutHandler(timeoutSeconds) {
+
+    private var recheck: ScheduledFuture<*>? = null
+    private var lastMessageHashCode = 0
+    private var lastPendingBytes = 0L
+    private var lastProgress = 0L
+
+    override fun writeTimedOut(ctx: ChannelHandlerContext) {
+        // Several overdue writes share one re-check loop
+        if (recheck == null) check(ctx)
+    }
+
+    override fun handlerRemoved(ctx: ChannelHandlerContext) {
+        recheck?.cancel(false)
+        recheck = null
+        super.handlerRemoved(ctx)
+    }
+
+    private fun check(ctx: ChannelHandlerContext) {
+        recheck = null
+        val buffer = ctx.channel().unsafe().outboundBuffer() ?: return
+        val pendingBytes = buffer.totalPendingWriteBytes()
+        if (pendingBytes == 0L) return
+
+        val messageHashCode = System.identityHashCode(buffer.current())
+        val progress = buffer.currentProgress()
+        val changed = messageHashCode != lastMessageHashCode ||
+            pendingBytes != lastPendingBytes ||
+            progress != lastProgress
+
+        lastMessageHashCode = messageHashCode
+        lastPendingBytes = pendingBytes
+        lastProgress = progress
+
+        if (changed) {
+            recheck = ctx.executor().schedule({ check(ctx) }, timeoutSeconds.toLong(), TimeUnit.SECONDS)
+        } else {
+            super.writeTimedOut(ctx)
         }
     }
 }
