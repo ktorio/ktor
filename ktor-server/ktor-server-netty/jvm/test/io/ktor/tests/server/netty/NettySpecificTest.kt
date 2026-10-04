@@ -27,13 +27,18 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.test.dispatcher.*
 import io.ktor.utils.io.*
+import io.mockk.every
 import io.mockk.mockk
+import io.mockk.slot
+import io.mockk.verify
 import io.netty.channel.Channel
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelInboundHandlerAdapter
 import io.netty.channel.EventLoopGroup
 import io.netty.channel.embedded.EmbeddedChannel
 import io.netty.channel.nio.NioEventLoopGroup
+import io.netty.util.concurrent.EventExecutor
+import io.netty.util.concurrent.ScheduledFuture
 import kotlinx.coroutines.*
 import org.junit.jupiter.api.Test
 import org.slf4j.LoggerFactory
@@ -41,6 +46,7 @@ import java.io.IOException
 import java.net.BindException
 import java.net.ServerSocket
 import java.util.concurrent.ExecutorService
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.test.*
@@ -656,6 +662,65 @@ class NettySpecificTest {
         } finally {
             server.stopSuspend()
         }
+    }
+
+    @Test
+    fun `delay schedules on the call's netty executor and resumes when the task fires`() = runBlocking {
+        val executor = mockk<EventExecutor>(relaxed = true)
+        every { executor.execute(any()) } answers { firstArg<Runnable>().run() }
+
+        val scheduledFuture = mockk<ScheduledFuture<Any>>(relaxed = true)
+        val taskSlot = slot<Runnable>()
+        val delaySlot = slot<Long>()
+        every {
+            executor.schedule(capture(taskSlot), capture(delaySlot), eq(TimeUnit.MILLISECONDS))
+        } returns scheduledFuture
+
+        val callContext = NettyDispatcher + NettyDispatcher.CurrentContext(mockk(relaxed = true), executor)
+        val completed = CompletableDeferred<Unit>()
+
+        val job = launch(callContext) {
+            delay(100.milliseconds)
+            completed.complete(Unit)
+        }
+
+        withTimeout(5.seconds) {
+            while (!taskSlot.isCaptured) yield()
+        }
+        assertEquals(100L, delaySlot.captured, "delay() must forward its exact duration to the executor")
+        assertFalse(completed.isCompleted, "coroutine must stay suspended until the scheduled task fires")
+
+        // Simulate the executor firing the scheduled task on its own event-loop thread
+        taskSlot.captured.run()
+
+        withTimeout(5.seconds) { completed.await() }
+        job.join()
+
+        verify(exactly = 1) { executor.schedule(any<Runnable>(), eq(100L), eq(TimeUnit.MILLISECONDS)) }
+    }
+
+    @Test
+    fun `cancelling a delayed call cancels the underlying netty scheduled task`() = runBlocking {
+        val executor = mockk<EventExecutor>(relaxed = true)
+        every { executor.execute(any()) } answers { firstArg<Runnable>().run() }
+
+        val scheduledFuture = mockk<ScheduledFuture<Any>>(relaxed = true)
+        every {
+            executor.schedule(any<Runnable>(), any<Long>(), eq(TimeUnit.MILLISECONDS))
+        } returns scheduledFuture
+
+        val callContext = NettyDispatcher + NettyDispatcher.CurrentContext(mockk(relaxed = true), executor)
+        val started = CompletableDeferred<Unit>()
+
+        val job = launch(callContext) {
+            started.complete(Unit)
+            delay(10.seconds)
+        }
+
+        withTimeout(5.seconds) { started.await() }
+        job.cancelAndJoin()
+
+        verify(exactly = 1) { scheduledFuture.cancel(false) }
     }
 
     @Test

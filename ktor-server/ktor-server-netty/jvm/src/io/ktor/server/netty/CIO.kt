@@ -75,8 +75,13 @@ public suspend fun <T> Future<T>.suspendAwait(exception: (Throwable, Continuatio
  * by default for the user context dispatcher.  There are some scenarios where the
  * underlying netty channel is closed prematurely, in which case we fallback to the
  * caller thread.
+ *
+ * Also implements [Delay] so `delay()` and timeout scheduling (`withTimeout`) are scheduled
+ * directly on the call's own Netty [EventExecutor] (a [java.util.concurrent.ScheduledExecutorService])
+ * instead of kotlinx.coroutines' single shared `DefaultExecutor` thread.
  */
-internal object NettyDispatcher : CoroutineDispatcher() {
+@OptIn(InternalCoroutinesApi::class, ExperimentalCoroutinesApi::class)
+internal object NettyDispatcher : CoroutineDispatcher(), Delay {
     override fun isDispatchNeeded(context: CoroutineContext): Boolean {
         return !context[CurrentContextKey]!!.executor.inEventLoop()
     }
@@ -92,6 +97,34 @@ internal object NettyDispatcher : CoroutineDispatcher() {
                 LOG.error("Failed to dispatch", cause)
             }
         }
+    }
+
+    override fun scheduleResumeAfterDelay(timeMillis: Long, continuation: CancellableContinuation<Unit>) {
+        val executor = continuation.context[CurrentContextKey]!!.executor
+        val future = try {
+            executor.schedule(
+                { with(continuation) { resumeUndispatched(Unit) } },
+                timeMillis,
+                TimeUnit.MILLISECONDS
+            )
+        } catch (cause: Throwable) {
+            LOG.error("Failed to schedule delay", cause)
+            continuation.resume(Unit)
+            return
+        }
+        continuation.invokeOnCancellation { future.cancel(false) }
+    }
+
+    override fun invokeOnTimeout(timeMillis: Long, block: Runnable, context: CoroutineContext): DisposableHandle {
+        val executor = context[CurrentContextKey]!!.executor
+        val future = try {
+            executor.schedule(block, timeMillis, TimeUnit.MILLISECONDS)
+        } catch (cause: Throwable) {
+            LOG.error("Failed to schedule timeout", cause)
+            block.run()
+            return DisposableHandle { }
+        }
+        return DisposableHandle { future.cancel(false) }
     }
 
     /**
