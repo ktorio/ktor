@@ -51,9 +51,9 @@ internal class WinHttpWebSocket(
             if (!value) throw WebSocketException("Masking switch is not supported in WinHttp engine.")
         }
 
-    override var maxFrameSize: Long
-        get() = Long.MAX_VALUE
-        set(_) = throw WebSocketException("Max frame size switch is not supported in WinHttp engine.")
+    // Not enforced here: incoming frames don't match frames on the wire.
+    // DefaultWebSocketSession enforces it on reassembled messages.
+    override var maxFrameSize: Long = Long.MAX_VALUE
 
     override val incoming: ReceiveChannel<Frame>
         get() = _incoming
