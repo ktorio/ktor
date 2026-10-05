@@ -98,8 +98,9 @@ class ConnectErrorsTest {
                             client.getOutputStream().let { out ->
                                 out.write("HTTP/1.0 200 OK\r\nContent-Type: text/plain\r\n\r\nOK".toByteArray())
                                 out.flush()
-                                out.close()
                             }
+                            // Half-close and drain the request: close() with unread input sends RST instead of FIN
+                            client.shutdownOutput()
                             client.getInputStream().readBytes()
                         }
                     } catch (_: Exception) {
@@ -125,8 +126,9 @@ class ConnectErrorsTest {
                             client.getOutputStream().let { out ->
                                 out.write("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\n\r\nOK".toByteArray())
                                 out.flush()
-                                out.close()
                             }
+                            // Half-close and drain the request: close() with unread input sends RST instead of FIN
+                            client.shutdownOutput()
                             client.getInputStream().readBytes()
                         }
                     } catch (ignore: SocketException) {
