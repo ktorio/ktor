@@ -21,7 +21,9 @@ class NativeSocketWriterTest {
             withSocketPair { descriptor, peer ->
                 val channel = ByteChannel().apply { close() }
                 val writer = attachForWritingImpl(channel, descriptor, selectable(descriptor), unusedSelector)
-                while (!writer.isCompleted) yield()
+                withTimeout(5_000) {
+                    while (!writer.isCompleted) yield()
+                }
                 assertOutputClosed(peer)
                 writer.join()
             }
@@ -29,16 +31,37 @@ class NativeSocketWriterTest {
     }
 
     @Test
-    fun `writer cancelled before starting shuts down the socket output`() = runBlocking {
+    fun `writer cancellation observers see socket output shut down`() = runBlocking {
         withSocketPair { descriptor, peer ->
-            val scope = CoroutineScope(Job().apply { cancel() })
-            val writer = scope.attachForWritingImpl(ByteChannel(), descriptor, selectable(descriptor), unusedSelector)
-            withTimeout(5_000) {
-                while (!isOutputClosed(peer)) yield()
+            val channel = ByteChannel()
+            val observer = launch(Dispatchers.Unconfined) {
+                assertFails { channel.readByte() }
+                assertOutputClosed(peer)
             }
+            val scope = CoroutineScope(Job().apply { cancel() })
+            val writer = scope.attachForWritingImpl(channel, descriptor, selectable(descriptor), unusedSelector)
+            observer.join()
             writer.join()
-            assertTrue(writer.isCompleted)
-            assertOutputClosed(peer)
+        }
+    }
+
+    @Test
+    fun `writer cancelled before starting shuts down the socket output`() = runBlocking {
+        val scope = CoroutineScope(Job().apply { cancel() })
+        repeat(1_000) {
+            withSocketPair { descriptor, peer ->
+                val channel = ByteChannel().apply {
+                    writeByte(42)
+                    flush()
+                }
+                val writer = scope.attachForWritingImpl(channel, descriptor, selectable(descriptor), unusedSelector)
+                withTimeout(5_000) {
+                    while (!writer.isCompleted) yield()
+                }
+                assertOutputClosed(peer)
+                writer.join()
+                assertTrue(writer.isCancelled)
+            }
         }
     }
 
@@ -49,11 +72,6 @@ class NativeSocketWriterTest {
             recv(peer, byte.ptr, 1u, MSG_DONTWAIT).toLong(),
             "Writer completed before SHUT_WR: errno=$errno"
         )
-    }
-
-    private fun isOutputClosed(peer: Int): Boolean = memScoped {
-        val byte = alloc<ByteVar>()
-        recv(peer, byte.ptr, 1u, MSG_DONTWAIT).toLong() == 0L
     }
 
     private inline fun withSocketPair(block: (Int, Int) -> Unit) = memScoped {

@@ -10,8 +10,29 @@ import kotlinx.coroutines.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 class WriterReaderTest {
+
+    @OptIn(InternalAPI::class, DelicateCoroutinesApi::class)
+    @Test
+    fun `atomic reader cleans up when cancelled before dispatch`() = runTest {
+        val parent = Job().apply { cancel() }
+        var cleanedUp = false
+        val reader = reader(parent, ByteChannel(), start = CoroutineStart.ATOMIC) {
+            try {
+                coroutineContext.ensureActive()
+                error("Cancelled reader must not perform work")
+            } finally {
+                cleanedUp = true
+            }
+        }
+
+        reader.join()
+        assertTrue(reader.isCancelled)
+        assertTrue(cleanedUp)
+        assertFailsWith<CancellationException> { reader.channel.writeByte(42) }
+    }
 
     @OptIn(DelicateCoroutinesApi::class)
     @Test

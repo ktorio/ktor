@@ -340,13 +340,33 @@ public fun CoroutineScope.reader(
     block: suspend ReaderScope.() -> Unit
 ): ReaderJob = reader(coroutineContext, ByteChannel(), block)
 
-@OptIn(InternalCoroutinesApi::class)
+@OptIn(InternalAPI::class)
 public fun CoroutineScope.reader(
     coroutineContext: CoroutineContext,
     channel: ByteChannel,
     block: suspend ReaderScope.() -> Unit
+): ReaderJob = reader(coroutineContext, channel, CoroutineStart.DEFAULT, block)
+
+/**
+ * Starts a channel reader with an explicit coroutine [start] mode.
+ *
+ * Intended for readers that must enter their cleanup block even when cancelled before dispatch.
+ *
+ * @param coroutineContext additional context for the reader coroutine.
+ * @param channel the channel to read from.
+ * @param start the coroutine start mode.
+ * @param block the reader body.
+ * @return the reader job and its writable channel.
+ */
+@InternalAPI
+@OptIn(InternalCoroutinesApi::class)
+public fun CoroutineScope.reader(
+    coroutineContext: CoroutineContext,
+    channel: ByteChannel,
+    start: CoroutineStart,
+    block: suspend ReaderScope.() -> Unit
 ): ReaderJob {
-    val job = launch(coroutineContext) {
+    val job = launch(coroutineContext, start = start) {
         val nested = Job(this.coroutineContext.job)
         try {
             block(ReaderScope(channel, this.coroutineContext + nested))

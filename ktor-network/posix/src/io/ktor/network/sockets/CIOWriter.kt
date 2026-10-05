@@ -8,81 +8,70 @@ import io.ktor.network.selector.*
 import io.ktor.network.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.errors.*
-import kotlinx.atomicfu.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import kotlinx.io.IOException
 import kotlin.math.*
 
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class, InternalAPI::class, DelicateCoroutinesApi::class)
 internal fun CoroutineScope.attachForWritingImpl(
     userChannel: ByteChannel,
     descriptor: Int,
     selectable: Selectable,
     selector: SelectorManager
-): ReaderJob {
-    val started = atomic(false)
-    return reader(Dispatchers.IO, userChannel) {
-        started.value = true
-        try {
-            val source = channel
-            var sockedClosed = false
-            var needSelect = false
-            var total = 0
-            while (!sockedClosed && !source.isClosedForRead) {
-                val count = source.read { memory, start, stop ->
-                    val written = memory.usePinned { pinned ->
-                        val bufferStart = pinned.addressOf(start).reinterpret<ByteVar>()
-                        val remaining = stop - start
-                        val bytesWritten = if (remaining > 0) {
-                            ktor_send(descriptor, bufferStart, remaining.convert(), 0)
-                        } else {
-                            0
-                        }
-
-                        when (bytesWritten) {
-                            0 -> sockedClosed = true
-
-                            -1 -> {
-                                val error = getSocketError()
-                                if (isWouldBlockError(error)) {
-                                    needSelect = true
-                                } else {
-                                    throw PosixException.forSocketError(error)
-                                }
-                            }
-                        }
-
-                        bytesWritten
+): ReaderJob = reader(Dispatchers.IO, userChannel, start = CoroutineStart.ATOMIC) {
+    try {
+        coroutineContext.ensureActive()
+        val source = channel
+        var sockedClosed = false
+        var needSelect = false
+        var total = 0
+        while (!sockedClosed && !source.isClosedForRead) {
+            val count = source.read { memory, start, stop ->
+                val written = memory.usePinned { pinned ->
+                    val bufferStart = pinned.addressOf(start).reinterpret<ByteVar>()
+                    val remaining = stop - start
+                    val bytesWritten = if (remaining > 0) {
+                        ktor_send(descriptor, bufferStart, remaining.convert(), 0)
+                    } else {
+                        0
                     }
 
-                    max(0, written)
+                    when (bytesWritten) {
+                        0 -> sockedClosed = true
+
+                        -1 -> {
+                            val error = getSocketError()
+                            if (isWouldBlockError(error)) {
+                                needSelect = true
+                            } else {
+                                throw PosixException.forSocketError(error)
+                            }
+                        }
+                    }
+
+                    bytesWritten
                 }
 
-                total += count
-                if (!sockedClosed && needSelect) {
-                    selector.select(selectable, SelectInterest.WRITE)
-                    needSelect = false
-                }
+                max(0, written)
             }
 
-            if (!source.isClosedForRead) {
-                val availableForRead = source.availableForRead
-                val cause = IOException("Failed writing to closed socket. Some bytes remaining: $availableForRead")
-                source.cancel(cause)
-            } else {
-                source.closedCause?.let { throw it }
-            }
-        } finally {
-            // SocketBase can close and release the descriptor as soon as this job is completed.
-            ktor_shutdown(descriptor, ShutdownCommands.Send)
-        }
-    }.apply {
-        invokeOnCompletion {
-            // A cancelled coroutine may never enter its body or execute the finally block.
-            if (!started.value) {
-                ktor_shutdown(descriptor, ShutdownCommands.Send)
+            total += count
+            if (!sockedClosed && needSelect) {
+                selector.select(selectable, SelectInterest.WRITE)
+                needSelect = false
             }
         }
+
+        if (!source.isClosedForRead) {
+            val availableForRead = source.availableForRead
+            val cause = IOException("Failed writing to closed socket. Some bytes remaining: $availableForRead")
+            source.cancel(cause)
+        } else {
+            source.closedCause?.let { throw it }
+        }
+    } finally {
+        // SocketBase can close and release the descriptor as soon as this job is completed.
+        ktor_shutdown(descriptor, ShutdownCommands.Send)
     }
 }
