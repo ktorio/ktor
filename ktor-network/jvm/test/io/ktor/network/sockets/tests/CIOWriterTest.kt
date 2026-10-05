@@ -8,7 +8,6 @@ import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
-import java.lang.management.ManagementFactory
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.nio.channels.ServerSocketChannel
@@ -16,10 +15,9 @@ import java.nio.channels.SocketChannel
 import java.nio.channels.WritableByteChannel
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 class CIOWriterTest {
 
@@ -27,33 +25,65 @@ class CIOWriterTest {
     fun `writer does not loop when peer stops reading`() = runBlocking {
         val server = ServerSocketChannel.open().bind(InetSocketAddress("127.0.0.1", 0))
         val selector = SelectorManager(Dispatchers.IO)
-        val socket = aSocket(selector).tcp().connect("127.0.0.1", (server.localAddress as InetSocketAddress).port)
-        server.accept()
-        launch(Dispatchers.IO) {
-            socket.openWriteChannel(autoFlush = true).writeFully(ByteArray(64 shl 20))
+
+        val clientChannel = SocketChannel.open()
+        clientChannel.configureBlocking(false)
+        clientChannel.connect(InetSocketAddress("127.0.0.1", (server.localAddress as InetSocketAddress).port))
+        while (!clientChannel.finishConnect()) {
+            // Wait for the loopback connection to complete.
         }
-        delay(1000.milliseconds)
 
-        val threads = ManagementFactory.getThreadMXBean()
-        val before = threads.allThreadIds.associateWith { threads.getThreadCpuTime(it) }
-        delay(1000.milliseconds)
+        val accepted = server.accept()
+        accepted.configureBlocking(true)
 
-        var busiestId: Long? = null
-        var busiestMs: Long = Long.MIN_VALUE
-        for ((id, start) in before.entries) {
-            if (busiestMs < threads.getThreadCpuTime(id) - start) {
-                busiestMs = threads.getThreadCpuTime(id) - start
-                busiestId = id
+        val writeAttempts = AtomicInteger(0)
+        val backpressureStarted = CompletableDeferred<Unit>()
+        val countingChannel = object : WritableByteChannel {
+            override fun isOpen(): Boolean = clientChannel.isOpen
+            override fun close() = clientChannel.close()
+            override fun write(src: ByteBuffer): Int {
+                writeAttempts.incrementAndGet()
+                val rc = clientChannel.write(src)
+                if (rc == 0) {
+                    backpressureStarted.complete(Unit)
+                }
+                return rc
             }
         }
 
-        busiestMs /= 1_000_000
-        assertNotNull(busiestId)
-        val threadName = threads.getThreadInfo(busiestId).threadName
+        val socket = SocketImpl(clientChannel, selector)
+        val byteChannel = ByteChannel(autoFlush = true)
+        val writerJob = attachForWritingDirectImpl(byteChannel, countingChannel, socket, selector)
 
-        assertTrue(
-            busiestMs < 200,
-            "A thread $threadName burned ${busiestMs}ms CPU"
-        )
+        val producer = launch(Dispatchers.IO) {
+            byteChannel.writeFully(ByteArray(64 shl 20))
+        }
+
+        try {
+            withTimeout(10.seconds) {
+                backpressureStarted.await()
+            }
+            val attemptsAfterWarmup = writeAttempts.get()
+
+            val pollInterval = 20.milliseconds
+            val pollCount = 25 // 500ms total upper bound
+            repeat(pollCount) {
+                delay(pollInterval)
+                val attemptsDuringBackpressure = writeAttempts.get() - attemptsAfterWarmup
+                assertTrue(
+                    attemptsDuringBackpressure < 1000,
+                    "Writer attempted $attemptsDuringBackpressure writes while the peer was " +
+                        "not reading, indicating a busy loop"
+                )
+            }
+        } finally {
+            producer.cancel()
+            writerJob.cancel()
+            byteChannel.cancel()
+            socket.close()
+            accepted.close()
+            server.close()
+            selector.close()
+        }
     }
 }
