@@ -10,11 +10,34 @@ import io.ktor.http.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import kotlinx.coroutines.*
 import java.io.*
 import java.nio.file.*
 import kotlin.test.*
 
 class RespondFunctionsJvmTest {
+
+    @Test
+    fun `respond output stream over max channel size`() = testApplication {
+        val channelMaxSize = 1024 * 1024
+        val chunkSize = 5_000
+        routing {
+            get("/boundary") {
+                call.respondOutputStream {
+                    var written = 0
+                    while (written < channelMaxSize) {
+                        val toWrite = minOf(chunkSize, channelMaxSize - written)
+                        write(ByteArray(toWrite) { 1 })
+                        written += toWrite
+                    }
+                }
+            }
+        }
+
+        val response = client.get("/boundary")
+        assertEquals(channelMaxSize, response.bodyAsBytes().size)
+    }
+
     @Test
     fun testRespondBytes() = testApplication {
         routing {
