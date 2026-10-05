@@ -27,7 +27,7 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 internal val ENGINES_WITHOUT_WS = listOf("Android", "Apache", "Apache5", "DarwinLegacy")
-internal val ENGINES_NOT_SUPPORTING_MAX_FRAME_SIZE = listOf("OkHttp", "Js", "Java", "WinHttp")
+internal val ENGINES_NOT_SUPPORTING_MAX_FRAME_SIZE = listOf("OkHttp", "Js")
 internal val ENGINES_NOT_SUPPORTING_MASKING_SWITCH = listOf("OkHttp", "Js", "Java", "WinHttp", "Darwin", "Curl")
 
 private const val TEST_SIZE: Int = 100
@@ -545,13 +545,53 @@ class WebSocketTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
         val shortMessage = "abc"
         val longMessage = "def".repeat(500)
         test { client ->
-            assertFailsWith<FrameTooBigException> {
-                client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
-                    send(shortMessage)
-                    assertEquals(shortMessage, (incoming.receive() as Frame.Text).readText())
-                    send(longMessage)
-                    incoming.receive() // This should throw FrameTooBigException
-                }
+            client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
+                send(shortMessage)
+                assertEquals(shortMessage, (incoming.receive() as Frame.Text).readText())
+                send(longMessage)
+                assertFailsWith<FrameTooBigException> { incoming.receive() }
+            }
+        }
+    }
+
+    @Test
+    fun testMaxFrameSizeFragmentedMessage() = clientTests(
+        except(ENGINES_NOT_SUPPORTING_MAX_FRAME_SIZE)
+    ) {
+        config {
+            install(WebSockets) {
+                maxFrameSize = 10
+            }
+        }
+
+        // Every fragment fits into the limit, only the reassembled message exceeds it
+        val fittingMessage = "abcdefgh"
+        val oversizedMessage = "x".repeat(20)
+        test { client ->
+            client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/fragmented-echo?fragmentSize=4") {
+                send(fittingMessage)
+                assertEquals(fittingMessage, (incoming.receive() as Frame.Text).readText())
+                send(oversizedMessage)
+                assertFailsWith<FrameTooBigException> { incoming.receive() }.also { println(it.cause) }
+            }
+        }
+    }
+
+    @Test
+    fun testMaxFrameSizeEndlessMessage() = clientTests(
+        except(ENGINES_NOT_SUPPORTING_MAX_FRAME_SIZE),
+        timeout = 10.seconds,
+    ) {
+        config {
+            install(WebSockets) {
+                maxFrameSize = 10
+            }
+        }
+
+        // The message never ends, so a client buffering it before checking the size would never fail
+        test { client ->
+            client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/endless-message") {
+                assertFailsWith<FrameTooBigException> { incoming.receive() }
             }
         }
     }
