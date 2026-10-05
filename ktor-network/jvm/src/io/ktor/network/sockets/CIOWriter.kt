@@ -36,12 +36,10 @@ internal fun CoroutineScope.attachForWritingDirectImpl(
 
             var rc = 0
             channel.read { buffer ->
-                while (buffer.hasRemaining()) {
-                    timeout.withTimeout {
-                        do {
-                            rc = nioChannel.write(buffer)
-                        } while (buffer.hasRemaining() && rc > 0)
-                    }
+                timeout.withTimeout {
+                    do {
+                        rc = nioChannel.write(buffer)
+                    } while (buffer.hasRemaining() && rc > 0)
                 }
             }
 
