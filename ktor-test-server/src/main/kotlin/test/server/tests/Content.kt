@@ -10,12 +10,18 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.server.util.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.delay
 import test.server.fail
 import test.server.makeString
+import java.util.concurrent.ConcurrentHashMap
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
 internal fun Application.contentTestServer() {
+    val activeStreams = ConcurrentHashMap.newKeySet<String>()
+
     routing {
         route("/content") {
             get("/uri") {
@@ -107,21 +113,39 @@ internal fun Application.contentTestServer() {
                 call.respond(HttpStatusCode.OK)
             }
             get("/stream") {
-                val delay = call.parameters["delay"]?.toLong() ?: 0L
+                val startDelay = call.parameters["startDelay"]?.toLong()?.milliseconds ?: Duration.ZERO
+                val delay = call.parameters["delay"]?.toLong()?.milliseconds ?: Duration.ZERO
+                val chunk = call.parameters["chunkSize"]?.toInt()?.let { ByteArray(it) }
+                    ?: byteArrayOf(0, 0, 0, 42) // 42 (4-byte int)
+                val chunkCount = call.parameters["chunkCount"]?.toInt()
+                val id = call.parameters["id"]
                 call.respond(
                     object : OutgoingContent.WriteChannelContent() {
-                        override val contentType: ContentType
-                            get() = ContentType.Application.OctetStream
+                        override val contentType = ContentType.Application.OctetStream
+                        override val contentLength: Long? = chunkCount?.let { it.toLong() * chunk.size }
 
                         override suspend fun writeTo(channel: ByteWriteChannel) {
-                            while (true) {
-                                channel.writeInt(42)
-                                channel.flush()
-                                delay(delay)
+                            if (id != null) activeStreams.add(id)
+                            try {
+                                delay(startDelay)
+                                var remainingChunks = chunkCount
+                                while (remainingChunks == null || remainingChunks > 0) {
+                                    channel.writeFully(chunk)
+                                    channel.flush()
+                                    delay(delay)
+                                    remainingChunks = remainingChunks?.minus(1)
+                                }
+                            } finally {
+                                if (id != null) activeStreams.remove(id)
                             }
                         }
                     }
                 )
+            }
+
+            get("/stream/active") {
+                val id: String by call.parameters
+                call.respondText(activeStreams.contains(id).toString())
             }
 
             get("/binary") {
