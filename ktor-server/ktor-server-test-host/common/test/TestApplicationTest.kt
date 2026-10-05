@@ -468,7 +468,7 @@ class TestApplicationTest {
         assertEquals("test", client.get("/").bodyAsText())
     }
 
-    private fun testSocketTimeoutRead(timeout: Long, expectException: Boolean) = testApplication {
+    private fun testSocketTimeoutRead(timeout: Long, idleMillis: Long, expectException: Boolean) = testApplication {
         routing {
             get {
                 call.respond(
@@ -477,7 +477,7 @@ class TestApplicationTest {
                         override suspend fun writeTo(channel: ByteWriteChannel) {
                             channel.writeByteArray("Hello".toByteArray())
                             channel.flush()
-                            delay(300)
+                            delay(idleMillis)
                         }
                     }
                 )
@@ -502,11 +502,16 @@ class TestApplicationTest {
         }
     }
 
+    // The timeout is detected by polling, so it needs an idle period well above the timeout to fire reliably
     @Test
-    fun testSocketTimeoutReadElapsed() = testSocketTimeoutRead(100, true)
+    fun testSocketTimeoutReadElapsed() = testSocketTimeoutRead(timeout = 100, idleMillis = 1000, expectException = true)
 
     @Test
-    fun testSocketTimeoutReadNotElapsed() = testSocketTimeoutRead(1000, false)
+    fun testSocketTimeoutReadNotElapsed() = testSocketTimeoutRead(
+        timeout = 1000,
+        idleMillis = 300,
+        expectException = false
+    )
 
     @Test
     fun configuration_file_is_not_loaded_automatically() = testApplication {
