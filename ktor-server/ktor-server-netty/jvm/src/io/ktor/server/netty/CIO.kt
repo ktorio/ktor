@@ -108,8 +108,13 @@ internal object NettyDispatcher : CoroutineDispatcher(), Delay {
                 TimeUnit.MILLISECONDS
             )
         } catch (cause: Throwable) {
-            LOG.error("Failed to schedule delay", cause)
-            continuation.resume(Unit)
+            LOG.error("Failed to schedule delay on the call executor, falling back", cause)
+            val fallbackFuture = fallbackScheduler.schedule(
+                { continuation.resume(Unit) },
+                timeMillis,
+                TimeUnit.MILLISECONDS
+            )
+            continuation.invokeOnCancellation { fallbackFuture.cancel(false) }
             return
         }
         continuation.invokeOnCancellation { future.cancel(false) }
@@ -120,11 +125,18 @@ internal object NettyDispatcher : CoroutineDispatcher(), Delay {
         val future = try {
             executor.schedule(block, timeMillis, TimeUnit.MILLISECONDS)
         } catch (cause: Throwable) {
-            LOG.error("Failed to schedule timeout", cause)
-            block.run()
-            return DisposableHandle { }
+            LOG.error("Failed to schedule timeout on the call executor, falling back", cause)
+            val fallbackFuture = fallbackScheduler.schedule(block, timeMillis, TimeUnit.MILLISECONDS)
+            return DisposableHandle { fallbackFuture.cancel(false) }
         }
         return DisposableHandle { future.cancel(false) }
+    }
+
+    // Used when the call's own Netty executor rejects scheduling (during shutdown, for example).
+    private val fallbackScheduler: ScheduledExecutorService by lazy {
+        Executors.newSingleThreadScheduledExecutor { runnable ->
+            Thread(runnable, "ktor-netty-dispatcher-fallback").apply { isDaemon = true }
+        }
     }
 
     /**
