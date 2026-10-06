@@ -13,63 +13,65 @@ import kotlinx.coroutines.*
 import kotlinx.io.IOException
 import kotlin.math.*
 
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class, InternalAPI::class, DelicateCoroutinesApi::class)
 internal fun CoroutineScope.attachForWritingImpl(
     userChannel: ByteChannel,
     descriptor: Int,
     selectable: Selectable,
     selector: SelectorManager
-): ReaderJob = reader(Dispatchers.IO, userChannel) {
-    val source = channel
-    var sockedClosed = false
-    var needSelect = false
-    var total = 0
-    while (!sockedClosed && !source.isClosedForRead) {
-        val count = source.read { memory, start, stop ->
-            val written = memory.usePinned { pinned ->
-                val bufferStart = pinned.addressOf(start).reinterpret<ByteVar>()
-                val remaining = stop - start
-                val bytesWritten = if (remaining > 0) {
-                    ktor_send(descriptor, bufferStart, remaining.convert(), 0)
-                } else {
-                    0
-                }
+): ReaderJob = reader(Dispatchers.IO, userChannel, start = CoroutineStart.ATOMIC) {
+    try {
+        coroutineContext.ensureActive()
+        val source = channel
+        var sockedClosed = false
+        var needSelect = false
+        var total = 0
+        while (!sockedClosed && !source.isClosedForRead) {
+            val count = source.read { memory, start, stop ->
+                val written = memory.usePinned { pinned ->
+                    val bufferStart = pinned.addressOf(start).reinterpret<ByteVar>()
+                    val remaining = stop - start
+                    val bytesWritten = if (remaining > 0) {
+                        ktor_send(descriptor, bufferStart, remaining.convert(), 0)
+                    } else {
+                        0
+                    }
 
-                when (bytesWritten) {
-                    0 -> sockedClosed = true
+                    when (bytesWritten) {
+                        0 -> sockedClosed = true
 
-                    -1 -> {
-                        val error = getSocketError()
-                        if (isWouldBlockError(error)) {
-                            needSelect = true
-                        } else {
-                            throw PosixException.forSocketError(error)
+                        -1 -> {
+                            val error = getSocketError()
+                            if (isWouldBlockError(error)) {
+                                needSelect = true
+                            } else {
+                                throw PosixException.forSocketError(error)
+                            }
                         }
                     }
+
+                    bytesWritten
                 }
 
-                bytesWritten
+                max(0, written)
             }
 
-            max(0, written)
+            total += count
+            if (!sockedClosed && needSelect) {
+                selector.select(selectable, SelectInterest.WRITE)
+                needSelect = false
+            }
         }
 
-        total += count
-        if (!sockedClosed && needSelect) {
-            selector.select(selectable, SelectInterest.WRITE)
-            needSelect = false
+        if (!source.isClosedForRead) {
+            val availableForRead = source.availableForRead
+            val cause = IOException("Failed writing to closed socket. Some bytes remaining: $availableForRead")
+            source.cancel(cause)
+        } else {
+            source.closedCause?.let { throw it }
         }
-    }
-
-    if (!source.isClosedForRead) {
-        val availableForRead = source.availableForRead
-        val cause = IOException("Failed writing to closed socket. Some bytes remaining: $availableForRead")
-        source.cancel(cause)
-    } else {
-        source.closedCause?.let { throw it }
-    }
-}.apply {
-    invokeOnCompletion {
+    } finally {
+        // SocketBase can close and release the descriptor as soon as this job is completed.
         ktor_shutdown(descriptor, ShutdownCommands.Send)
     }
 }
