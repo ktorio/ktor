@@ -4,19 +4,26 @@
 
 package io.ktor.server.netty
 
-import io.netty.channel.*
-import io.netty.channel.epoll.*
-import io.netty.channel.kqueue.*
-import io.netty.channel.nio.*
-import io.netty.channel.socket.*
-import io.netty.util.concurrent.*
-import java.util.Spliterator
+import io.netty.channel.EventLoopGroup
+import io.netty.channel.MultiThreadIoEventLoopGroup
+import io.netty.channel.epoll.Epoll
+import io.netty.channel.epoll.EpollIoHandler
+import io.netty.channel.kqueue.KQueue
+import io.netty.channel.kqueue.KQueueIoHandler
+import io.netty.channel.nio.NioIoHandler
+import io.netty.channel.socket.ServerSocketChannel
+import io.netty.channel.uring.IoUring
+import io.netty.channel.uring.IoUringIoHandler
+import io.netty.util.concurrent.DefaultThreadFactory
+import io.netty.util.concurrent.EventExecutor
+import io.netty.util.concurrent.Ticker
+import java.util.*
 import java.util.function.Consumer
-import kotlin.reflect.*
+import kotlin.reflect.KClass
 
 /**
- * Transparently allows for the creation of [EventLoopGroup]'s utilising the optimal implementation for
- * a given operating system, subject to availability, or falling back to [NioEventLoopGroup] if none is available.
+ * Transparently creates [EventLoopGroup] using io_uring, epoll or kqueue in that order when available,
+ * falling back to [NioIoHandler] otherwise.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.EventLoopGroupProxy)
  */
@@ -40,21 +47,17 @@ public class EventLoopGroupProxy(
 
         public fun create(parallelism: Int): EventLoopGroupProxy {
             val defaultFactory = DefaultThreadFactory(EventLoopGroupProxy::class.java, true)
-            val channelClass = getChannelClass()
-
-            return when {
-                KQueue.isAvailable() -> EventLoopGroupProxy(
-                    channelClass,
-                    KQueueEventLoopGroup(parallelism, defaultFactory)
-                )
-
-                Epoll.isAvailable() -> EventLoopGroupProxy(
-                    channelClass,
-                    EpollEventLoopGroup(parallelism, defaultFactory)
-                )
-
-                else -> EventLoopGroupProxy(channelClass, NioEventLoopGroup(parallelism, defaultFactory))
+            val ioHandlerFactory = when {
+                IoUring.isAvailable() -> IoUringIoHandler.newFactory()
+                Epoll.isAvailable() -> EpollIoHandler.newFactory()
+                KQueue.isAvailable() -> KQueueIoHandler.newFactory()
+                else -> NioIoHandler.newFactory()
             }
+
+            return EventLoopGroupProxy(
+                getChannelClass(),
+                MultiThreadIoEventLoopGroup(parallelism, defaultFactory, ioHandlerFactory)
+            )
         }
     }
 }

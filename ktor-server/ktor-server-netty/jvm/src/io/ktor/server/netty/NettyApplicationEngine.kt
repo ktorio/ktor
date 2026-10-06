@@ -29,6 +29,9 @@ import io.netty.channel.socket.nio.NioChannelOption
 import io.netty.channel.socket.nio.NioDatagramChannel
 import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.channel.unix.UnixChannelOption
+import io.netty.channel.uring.IoUring
+import io.netty.channel.uring.IoUringDatagramChannel
+import io.netty.channel.uring.IoUringServerSocketChannel
 import io.netty.handler.codec.http.HttpObjectDecoder
 import io.netty.handler.codec.http.HttpServerCodec
 import io.netty.handler.codec.quic.QuicSslContext
@@ -336,7 +339,7 @@ public class NettyApplicationEngine(
      * provider rejects it anyway" (for example, Windows) — the two require different advice.
      */
     private val reusePortResolution: Result<ChannelOption<Boolean>> by lazy {
-        if (KQueue.isAvailable() || Epoll.isAvailable()) {
+        if (IoUring.isAvailable() || Epoll.isAvailable() || KQueue.isAvailable()) {
             Result.success(UnixChannelOption.SO_REUSEPORT)
         } else {
             try {
@@ -370,7 +373,7 @@ public class NettyApplicationEngine(
      * that received it, so a single socket pins the entire HTTP/3 endpoint to one thread. Binding
      * multiple sockets with `SO_REUSEPORT` lets the kernel spread connections across event loops.
      * Kernel-side UDP load balancing across `SO_REUSEPORT` sockets is a Linux kernel feature
-     * (available with both epoll and NIO transports), so the automatic default stays at 1 elsewhere.
+     * (available with io_uring, epoll, and NIO transports), so the automatic default stays at 1 elsewhere.
      */
     private val http3SocketCount: Int by lazy {
         val configured = configuration.http3Configuration?.udpSocketCount
@@ -379,7 +382,7 @@ public class NettyApplicationEngine(
                 check(configured == 1 || reusePortOption != null) {
                     "udpSocketCount = $configured requires SO_REUSEPORT support, but " +
                         "${reusePortResolution.exceptionOrNull()?.message}. " +
-                        "Use a native transport (epoll/kqueue) or set udpSocketCount = 1."
+                        "Use a native transport (io_uring/epoll/kqueue) or set udpSocketCount = 1."
                 }
                 configured
             }
@@ -569,14 +572,16 @@ public class NettyApplicationEngine(
 }
 
 internal fun getChannelClass(): KClass<out ServerSocketChannel> = when {
-    KQueue.isAvailable() -> KQueueServerSocketChannel::class
+    IoUring.isAvailable() -> IoUringServerSocketChannel::class
     Epoll.isAvailable() -> EpollServerSocketChannel::class
+    KQueue.isAvailable() -> KQueueServerSocketChannel::class
     else -> NioServerSocketChannel::class
 }
 
 internal fun getDatagramChannelClass(): KClass<out DatagramChannel> = when {
-    KQueue.isAvailable() -> KQueueDatagramChannel::class
+    IoUring.isAvailable() -> IoUringDatagramChannel::class
     Epoll.isAvailable() -> EpollDatagramChannel::class
+    KQueue.isAvailable() -> KQueueDatagramChannel::class
     else -> NioDatagramChannel::class
 }
 
