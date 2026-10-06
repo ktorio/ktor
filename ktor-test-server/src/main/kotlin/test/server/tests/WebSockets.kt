@@ -87,10 +87,15 @@ internal fun Application.webSockets() {
             }
             webSocketRaw("endless-message") {
                 // Never sends the final fragment, so the message can't be received in full.
-                // Stops when the client closes the connection.
+                // Flushing applies backpressure: the outgoing channel is unlimited, and `send` alone never suspends.
                 val fragment = "x".repeat(4).toByteArray()
-                while (true) {
+                repeat(16 * 1024) {
                     send(Frame.Text(fin = false, fragment))
+                    flush()
+                }
+                // Keep the message unfinished until the client closes the connection
+                for (frame in incoming) {
+                    if (frame is Frame.Close) break
                 }
             }
             webSocket("sub-protocol", protocol = "test-protocol") {
