@@ -11,6 +11,8 @@ import io.ktor.server.plugins.*
 import io.ktor.server.util.*
 import io.ktor.utils.io.*
 import java.io.File
+import java.io.IOException
+import java.net.JarURLConnection
 import java.net.URL
 import java.util.concurrent.ConcurrentHashMap
 
@@ -101,11 +103,12 @@ public fun resourceClasspathResource(
         }
 
         "jar" -> {
-            if (path.endsWith("/")) {
-                null
-            } else {
-                val zipFile = findContainingJarFile(url.toString()) ?: return URIFileContent(url, mimeResolve(url))
-                JarFileContent(zipFile, path, mimeResolve(url)).takeIf { it.isFile }
+            val zipFile = findContainingJarFile(url.toString())
+            when {
+                path.endsWith("/") -> null
+                zipFile != null -> JarFileContent(zipFile, path, mimeResolve(url)).takeIf { it.isFile }
+                url.isJarDirectory() -> null
+                else -> URIFileContent(url, mimeResolve(url))
             }
         }
 
@@ -115,6 +118,16 @@ public fun resourceClasspathResource(
 
         else -> null
     }
+}
+
+/**
+ * Checks whether a JAR URL that can't be opened as a local [java.util.jar.JarFile]
+ * (e.g. Spring Boot `jar:nested:`) points to a directory entry.
+ */
+private fun URL.isJarDirectory(): Boolean = try {
+    (openConnection() as? JarURLConnection)?.jarEntry?.isDirectory == true
+} catch (_: IOException) {
+    false
 }
 
 /**

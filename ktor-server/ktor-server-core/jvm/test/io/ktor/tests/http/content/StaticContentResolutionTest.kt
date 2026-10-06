@@ -15,7 +15,11 @@ import io.ktor.server.testing.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.runBlocking
 import java.io.File
+import java.net.JarURLConnection
 import java.net.URL
+import java.net.URLStreamHandler
+import java.util.jar.JarEntry
+import java.util.jar.JarFile
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -62,6 +66,21 @@ class StaticContentResolutionTest {
         assertTrue(content is URIFileContent)
         assertEquals(nestedJarUrl.toURI(), content.uri)
         assertEquals(ContentType.Text.Html, content.contentType)
+    }
+
+    @OptIn(InternalAPI::class)
+    @Test
+    fun `resourceClasspathResource returns null for directory in nested jar`() {
+        val handler = object : URLStreamHandler() {
+            override fun openConnection(u: URL) = object : JarURLConnection(u) {
+                override fun connect() {}
+                override fun getJarFile(): JarFile = error("not used")
+                override fun getJarEntry() = JarEntry("static/")
+            }
+        }
+        val url = URL(null, "jar:file:/outer.jar!/lib/dep.jar!/static", handler)
+
+        assertNull(resourceClasspathResource(url, "static") { ContentType.Application.OctetStream })
     }
 
     @Test
