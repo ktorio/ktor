@@ -185,8 +185,8 @@ internal class JavaHttpWebSocket(
             headers = headersOf(response.headers().map())
 
             // NOTE: For current OpenJDKs, response.body() is either null or String, but this isn't part of the
-            // public API and could theoretically change in the future.
-            (response.body() as? String)?.let { body = ByteReadChannel(it.toByteArray()) }
+            // public API and could theoretically change in the future. Older JDKs (e.g., 11) discard the body.
+            body = (response.body() as? String)?.let { ByteReadChannel(it.toByteArray()) } ?: ByteReadChannel.Empty
         }
 
         return HttpResponseData(

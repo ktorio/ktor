@@ -32,11 +32,16 @@ internal val ENGINES_NOT_SUPPORTING_MAX_FRAME_SIZE = listOf("OkHttp", "Js", "Jav
 // TODO: KTOR-9328 Options `maxFrameSize` and `masking` are silently ignored on some engines
 internal val ENGINES_NOT_SUPPORTING_MAX_FRAME_SIZE_SILENTLY = listOf("Java", "WinHttp")
 
-// Engines exposing the status and headers of a rejected WebSocket handshake, but not its body.
-private val ENGINES_WITHOUT_HANDSHAKE_RESPONSE_BODY = listOf("Curl", "Darwin")
+// Engines not exposing the response of a rejected WebSocket handshake.
+private val ENGINES_WITHOUT_HANDSHAKE_RESPONSE = listOf("Js")
 
-// Engines exposing the full response of a rejected WebSocket handshake, body included.
-private val ENGINES_WITH_HANDSHAKE_RESPONSE = listOf("CIO", "OkHttp", "Java", "WinHttp")
+// Engines not exposing the response body of a rejected WebSocket handshake.
+private val ENGINES_WITHOUT_HANDSHAKE_RESPONSE_BODY = listOf("Curl", "Darwin") +
+    ENGINES_WITHOUT_HANDSHAKE_RESPONSE +
+    PLATFORM_ENGINES_WITHOUT_HANDSHAKE_RESPONSE_BODY
+
+// Engines not exposing the response body of a rejected WebSocket handshake on the current runtime only.
+internal expect val PLATFORM_ENGINES_WITHOUT_HANDSHAKE_RESPONSE_BODY: List<String>
 
 private const val TEST_SIZE: Int = 100
 
@@ -585,7 +590,16 @@ class WebSocketTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
     }
 
     @Test
-    fun testFailedHandshakeExposesResponse() = clientTests(only(ENGINES_WITH_HANDSHAKE_RESPONSE)) {
+    fun testFailedHandshakeExposesResponseBody() = clientTests(except(ENGINES_WITHOUT_HANDSHAKE_RESPONSE_BODY)) {
+        testWebSocketHandshakeError(checkBody = true)
+    }
+
+    @Test
+    fun testFailedHandshakeExposesResponse() = clientTests(except(ENGINES_WITHOUT_HANDSHAKE_RESPONSE)) {
+        testWebSocketHandshakeError(checkBody = false)
+    }
+
+    private fun TestClientBuilder<*>.testWebSocketHandshakeError(checkBody: Boolean) {
         config {
             install(WebSockets)
         }
@@ -600,32 +614,11 @@ class WebSocketTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
             val response = assertNotNull(exception.response)
             assertEquals(HttpStatusCode.Forbidden, response.status)
             assertEquals("forbidden", response.headers["X-Handshake-Reason"])
-            assertEquals("handshake forbidden", response.bodyAsText())
+            if (checkBody) {
+                assertEquals("handshake forbidden", response.bodyAsText())
+            }
         }
     }
-
-    @Test
-    fun testFailedHandshakeExposesResponseWithoutBody() =
-        clientTests(only(ENGINES_WITHOUT_HANDSHAKE_RESPONSE_BODY)) {
-            // These engines let their platform WebSocket client perform the handshake, and it discards
-            // the body of a rejected one before the engine can read it. Only the status and headers of
-            // the rejected handshake are available, and the body is empty.
-            config {
-                install(WebSockets)
-            }
-
-            test { client ->
-                val exception = assertFailsWith<WebSocketHandshakeException> {
-                    client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/handshake-403") {
-                        fail("Unreachable")
-                    }
-                }
-
-                val response = assertNotNull(exception.response)
-                assertEquals(HttpStatusCode.Forbidden, response.status)
-                assertEquals("forbidden", response.headers["X-Handshake-Reason"])
-            }
-        }
 
     @Test
     fun testWebSocketHeaders() = clientTests {
