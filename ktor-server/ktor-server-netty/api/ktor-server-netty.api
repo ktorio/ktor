@@ -86,6 +86,7 @@ public final class io/ktor/server/netty/NettyApplicationEngine$Configuration : i
 	public fun <init> ()V
 	public final fun enableHttp3 (Lkotlin/jvm/functions/Function1;)V
 	public static synthetic fun enableHttp3$default (Lio/ktor/server/netty/NettyApplicationEngine$Configuration;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+	public final fun getAllIdleTimeoutSeconds ()I
 	public final fun getChannelPipelineConfig ()Lkotlin/jvm/functions/Function1;
 	public final fun getConfigureBootstrap ()Lkotlin/jvm/functions/Function1;
 	public final fun getEnableFlushConsolidation ()Z
@@ -95,11 +96,14 @@ public final class io/ktor/server/netty/NettyApplicationEngine$Configuration : i
 	public final fun getMaxChunkSize ()I
 	public final fun getMaxHeaderSize ()I
 	public final fun getMaxInitialLineLength ()I
+	public final fun getReaderIdleTimeoutSeconds ()I
 	public final fun getRequestReadTimeoutSeconds ()I
 	public final fun getResponseWriteTimeoutSeconds ()I
 	public final fun getRunningLimit ()I
 	public final fun getShareWorkGroup ()Z
 	public final fun getTcpKeepAlive ()Z
+	public final fun getWriterIdleTimeoutSeconds ()I
+	public final fun setAllIdleTimeoutSeconds (I)V
 	public final fun setChannelPipelineConfig (Lkotlin/jvm/functions/Function1;)V
 	public final fun setConfigureBootstrap (Lkotlin/jvm/functions/Function1;)V
 	public final fun setEnableFlushConsolidation (Z)V
@@ -109,11 +113,13 @@ public final class io/ktor/server/netty/NettyApplicationEngine$Configuration : i
 	public final fun setMaxChunkSize (I)V
 	public final fun setMaxHeaderSize (I)V
 	public final fun setMaxInitialLineLength (I)V
+	public final fun setReaderIdleTimeoutSeconds (I)V
 	public final fun setRequestReadTimeoutSeconds (I)V
 	public final fun setResponseWriteTimeoutSeconds (I)V
 	public final fun setRunningLimit (I)V
 	public final fun setShareWorkGroup (Z)V
 	public final fun setTcpKeepAlive (Z)V
+	public final fun setWriterIdleTimeoutSeconds (I)V
 }
 
 public abstract class io/ktor/server/netty/NettyApplicationRequest : io/ktor/server/engine/BaseApplicationRequest, kotlinx/coroutines/CoroutineScope {
@@ -170,6 +176,7 @@ public final class io/ktor/server/netty/NettyChannelInitializer : io/netty/chann
 	public fun <init> (Lkotlin/jvm/functions/Function0;Lio/ktor/server/engine/EnginePipeline;Lio/ktor/server/application/ApplicationEnvironment;Lio/netty/util/concurrent/EventExecutorGroup;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lio/ktor/server/engine/EngineConnectorConfig;IIILkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;Z)V
 	public fun <init> (Lkotlin/jvm/functions/Function0;Lio/ktor/server/engine/EnginePipeline;Lio/ktor/server/application/ApplicationEnvironment;Lio/netty/util/concurrent/EventExecutorGroup;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lio/ktor/server/engine/EngineConnectorConfig;IIILkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;ZZ)V
 	public fun <init> (Lkotlin/jvm/functions/Function0;Lio/ktor/server/engine/EnginePipeline;Lio/ktor/server/application/ApplicationEnvironment;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lio/ktor/server/engine/EngineConnectorConfig;IIILkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;ZZZ)V
+	public fun <init> (Lkotlin/jvm/functions/Function0;Lio/ktor/server/engine/EnginePipeline;Lio/ktor/server/application/ApplicationEnvironment;Lkotlin/jvm/functions/Function1;Lkotlin/coroutines/CoroutineContext;Lkotlin/coroutines/CoroutineContext;Lio/ktor/server/engine/EngineConnectorConfig;IIILkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function1;ZZZIII)V
 	public synthetic fun initChannel (Lio/netty/channel/Channel;)V
 }
 

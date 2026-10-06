@@ -22,7 +22,12 @@ class EngineMainTest {
                         deployment {
                             maxInitialLineLength: 2048,
                             maxHeaderSize: 1024,
-                            maxChunkSize: 42
+                            maxChunkSize: 42,
+                            
+                            responseWriteTimeoutSeconds: 60,
+                            readerIdleTimeoutSeconds: 45,
+                            writerIdleTimeoutSeconds: 30,
+                            allIdleTimeoutSeconds: 120
                         }
                     }
                 """.trimIndent()
@@ -34,6 +39,11 @@ class EngineMainTest {
         assertEquals(2048, configuration.maxInitialLineLength)
         assertEquals(1024, configuration.maxHeaderSize)
         assertEquals(42, configuration.maxChunkSize)
+
+        assertEquals(60, configuration.responseWriteTimeoutSeconds)
+        assertEquals(45, configuration.readerIdleTimeoutSeconds)
+        assertEquals(30, configuration.writerIdleTimeoutSeconds)
+        assertEquals(120, configuration.allIdleTimeoutSeconds)
     }
 
     @Test
@@ -54,5 +64,10 @@ class EngineMainTest {
         assertEquals(HttpObjectDecoder.DEFAULT_MAX_INITIAL_LINE_LENGTH, configuration.maxInitialLineLength)
         assertEquals(HttpObjectDecoder.DEFAULT_MAX_HEADER_SIZE, configuration.maxHeaderSize)
         assertEquals(HttpObjectDecoder.DEFAULT_MAX_CHUNK_SIZE, configuration.maxChunkSize)
+
+        assertEquals(0, configuration.responseWriteTimeoutSeconds)
+        assertEquals(0, configuration.readerIdleTimeoutSeconds)
+        assertEquals(10, configuration.writerIdleTimeoutSeconds)
+        assertEquals(0, configuration.allIdleTimeoutSeconds)
     }
 }

@@ -88,11 +88,38 @@ public class NettyApplicationEngine(
         public var configureBootstrap: ServerBootstrap.() -> Unit = {}
 
         /**
-         * Timeout in seconds for sending responses to client
+         * Timeout in seconds for each response write to complete, "0" disables it.
+         * Can disconnect slow clients mid-response; prefer [writerIdleTimeoutSeconds].
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.NettyApplicationEngine.Configuration.responseWriteTimeoutSeconds)
          */
-        public var responseWriteTimeoutSeconds: Int = 10
+        public var responseWriteTimeoutSeconds: Int = 0
+
+        /**
+         * Closes an idle connection after this many seconds without receiving data, "0" disables it.
+         * Never interrupts a running call or a response being sent.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.NettyApplicationEngine.Configuration.readerIdleTimeoutSeconds)
+         */
+        public var readerIdleTimeoutSeconds: Int = 0
+
+        /**
+         * Closes the connection when response data is pending but nothing was written for this many seconds,
+         * "0" disables it. Slow clients that keep reading are not disconnected; to also cap very slow readers,
+         * set [responseWriteTimeoutSeconds].
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.NettyApplicationEngine.Configuration.writerIdleTimeoutSeconds)
+         */
+        public var writerIdleTimeoutSeconds: Int = 10
+
+        /**
+         * Closes the connection after this many seconds without reading or writing, "0" disables it.
+         * Unlike [readerIdleTimeoutSeconds], this also applies while a call runs without sending anything,
+         * including quiet WebSocket sessions.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.NettyApplicationEngine.Configuration.allIdleTimeoutSeconds)
+         */
+        public var allIdleTimeoutSeconds: Int = 0
 
         /**
          * Timeout in seconds for reading requests from client, "0" is infinite.
@@ -308,7 +335,10 @@ public class NettyApplicationEngine(
                     configuration.channelPipelineConfig,
                     configuration.enableHttp2,
                     configuration.enableH2c,
-                    configuration.enableFlushConsolidation
+                    configuration.enableFlushConsolidation,
+                    configuration.readerIdleTimeoutSeconds,
+                    configuration.writerIdleTimeoutSeconds,
+                    configuration.allIdleTimeoutSeconds,
                 )
             )
             if (configuration.tcpKeepAlive) {
