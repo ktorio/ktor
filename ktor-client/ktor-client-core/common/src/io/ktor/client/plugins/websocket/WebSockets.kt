@@ -239,24 +239,28 @@ public class WebSockets internal constructor(
                     return@intercept
                 }
                 if (status != HttpStatusCode.SwitchingProtocols) {
+                    var saveFailure: Exception? = null
                     val failedResponse = try {
                         // Engines that let their platform WebSocket client perform the handshake may not be able
                         // to read the body of a rejected one, and report an empty body next to the `Content-Length`
-                        // the server declared. Skip the check so the status and headers aren't lost as well.
-                        context.save(skipContentLengthCheck = true)
+                        // the server declared. Accept it so the status and headers aren't lost as well.
+                        context.save(allowMissingBody = true)
                             .also { it.attributes.put(FAILED_HANDSHAKE_RESPONSE_KEY, Unit) }
                             .response
                     } catch (cause: CancellationException) {
                         throw cause
                     } catch (cause: Exception) {
-                        LOGGER.trace { "Failed to read response body of failed WebSocket handshake: $cause" }
+                        saveFailure = cause
                         null
                     }
-                    throw WebSocketHandshakeException(
+                    val exception = WebSocketHandshakeException(
                         "Handshake exception, expected status code ${HttpStatusCode.SwitchingProtocols.value} " +
                             "but was ${status.value}",
                         response = failedResponse,
                     )
+                    // The rejected handshake stays the primary error; keep the reason the response is missing.
+                    saveFailure?.let { exception.addSuppressed(it) }
+                    throw exception
                 }
                 if (session !is WebSocketSession) {
                     throw WebSocketHandshakeException(

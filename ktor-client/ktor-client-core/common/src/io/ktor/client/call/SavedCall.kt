@@ -10,6 +10,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.readBuffer
 import kotlinx.io.readByteArray
 import kotlin.coroutines.CoroutineContext
 
@@ -31,21 +32,21 @@ import kotlin.coroutines.CoroutineContext
  *
  * @return A new [HttpClientCall] instance with all its content stored in memory.
  */
-@OptIn(InternalAPI::class)
-public suspend fun HttpClientCall.save(): HttpClientCall = save(skipContentLengthCheck = false)
+public suspend fun HttpClientCall.save(): HttpClientCall = save(allowMissingBody = false)
 
 /**
- * Same as [HttpClientCall.save], but if [skipContentLengthCheck] is set to true,
- * skips the check that the saved body length matches the `Content-Length` declared by the server.
+ * Same as [HttpClientCall.save], but if [allowMissingBody] is set to true, an empty body is accepted
+ * even if the server declared a non-zero `Content-Length`. A non-empty body is still checked.
  *
  * Intended for engines that can't read the body of a response they still need to expose, such as a
- * WebSocket handshake rejected by the platform WebSocket client.
+ * WebSocket handshake rejected by the platform WebSocket client, and report an empty body instead.
  */
-@InternalAPI
-internal suspend fun HttpClientCall.save(skipContentLengthCheck: Boolean): HttpClientCall {
+@OptIn(InternalAPI::class)
+internal suspend fun HttpClientCall.save(allowMissingBody: Boolean): HttpClientCall {
     if (this is SavedHttpCall) return this
 
-    val responseBody = response.rawContent.readRemaining().readByteArray()
+    val responseBody = response.rawContent.readBuffer().readByteArray()
+    val skipContentLengthCheck = allowMissingBody && responseBody.isEmpty()
     return SavedHttpCall(client, request, response, responseBody, skipContentLengthCheck = skipContentLengthCheck)
 }
 
