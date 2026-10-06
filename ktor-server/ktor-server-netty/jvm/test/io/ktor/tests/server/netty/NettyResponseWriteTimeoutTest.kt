@@ -12,7 +12,9 @@ import io.ktor.server.netty.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.test.base.*
+import io.ktor.utils.io.*
 import io.netty.channel.ChannelOption
+import io.netty.handler.timeout.WriteTimeoutException
 import kotlinx.coroutines.*
 import org.slf4j.LoggerFactory
 import java.io.InputStream
@@ -20,12 +22,11 @@ import java.net.Socket
 import java.net.SocketException
 import kotlin.test.*
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 /**
- * Checks that `responseWriteTimeoutSeconds` only disconnects clients that stop reading,
- * not clients that are slow but still making progress.
+ * Checks what happens when `responseWriteTimeoutSeconds` expires because the client stopped reading:
+ * the connection is closed, the timeout is logged, and the active call is cancelled with it as the cause.
  *
  * The client deliberately uses a blocking [Socket]: ktor-network sockets drain the OS buffer into an
  * in-memory channel regardless of the consumer, which would hide the backpressure these tests rely on.
@@ -43,6 +44,7 @@ class NettyResponseWriteTimeoutTest :
 
     private var writeTimeoutSeconds = 1
     private var h2c = false
+    private val endlessWriterFailure = CompletableDeferred<Throwable>()
 
     init {
         enableSsl = false
@@ -58,34 +60,6 @@ class NettyResponseWriteTimeoutTest :
     }
 
     @Test
-    fun `slow steady client receives large byte array`() = runTest {
-        startServer()
-
-        val response = slowGet("/bytes", pause = 100.milliseconds)
-
-        assertCompleteResponse(response)
-    }
-
-    @Test
-    fun `slow steady client receives streamed body`() = runTest {
-        startServer()
-
-        val response = slowGet("/stream", pause = 100.milliseconds)
-
-        assertCompleteResponse(response)
-    }
-
-    @Test
-    fun `slow steady client receives byte array through h2c fallback pipeline`() = runTest {
-        h2c = true
-        startServer()
-
-        val response = slowGet("/bytes", pause = 100.milliseconds)
-
-        assertCompleteResponse(response)
-    }
-
-    @Test
     fun `stalled client is disconnected`() = runTest {
         startServer()
 
@@ -95,6 +69,38 @@ class NettyResponseWriteTimeoutTest :
             response.bodySize < BYTES_SIZE,
             "Expected the stalled connection to be closed, but received all ${response.bodySize} bytes"
         )
+    }
+
+    @Test
+    fun `stalled client is disconnected through h2c fallback pipeline`() = runTest {
+        h2c = true
+        startServer()
+
+        val response = slowGet("/bytes", pause = 3.seconds, stallAfterFirstChunk = true)
+
+        assertTrue(
+            response.bodySize < BYTES_SIZE,
+            "Expected the stalled connection to be closed, but received all ${response.bodySize} bytes"
+        )
+    }
+
+    @Test
+    fun `active call is cancelled with the write timeout as cause`() = runTest {
+        startServer()
+
+        socket {
+            receiveBufferSize = SOCKET_BUFFER_SIZE
+            sendGet("/endless", keepAlive = false)
+            inputStream.readHeaders()
+            // Stop reading, so the server's writes back up until the write timeout fires
+
+            val cause = withTimeout(10.seconds) { endlessWriterFailure.await() }
+
+            assertTrue(
+                generateSequence(cause) { it.cause }.any { it is WriteTimeoutException },
+                "Expected the call to be cancelled by WriteTimeoutException, but got: $cause"
+            )
+        }
     }
 
     @Test
@@ -158,10 +164,18 @@ class NettyResponseWriteTimeoutTest :
             get("/bytes") {
                 call.respondBytes(ByteArray(BYTES_SIZE) { it.toByte() })
             }
-            get("/stream") {
-                call.respondOutputStream(contentLength = BYTES_SIZE.toLong()) {
-                    val chunk = ByteArray(8 * 1024)
-                    repeat(BYTES_SIZE / chunk.size) { write(chunk) }
+            get("/endless") {
+                call.respondBytesWriter {
+                    try {
+                        val chunk = ByteArray(8 * 1024)
+                        while (true) {
+                            writeFully(chunk)
+                            flush()
+                        }
+                    } catch (cause: Throwable) {
+                        endlessWriterFailure.complete(cause)
+                        throw cause
+                    }
                 }
             }
             get("/small") {

@@ -211,6 +211,10 @@ internal class NettyHttp1Handler(
                 environment.log.debug(
                     "Response write timed out, closing connection to ${context.channel().remoteAddress()}"
                 )
+                // Handled like ReadTimeoutException, except that no 408 can be sent once the response has started
+                activeCalls.forEach { call ->
+                    call.coroutineContext.cancel(CancellationException(cause))
+                }
                 context.close()
             }
 
