@@ -1,0 +1,150 @@
+name: Move YouTrack Issues to Ready for Review
+
+on:
+  pull_request_target:
+    types: [ opened, reopened, ready_for_review, edited ]
+
+permissions: {}
+
+jobs:
+  ready-for-review:
+    name: Move issues to Ready for Review
+    runs-on: ubuntu-latest
+
+    if: github.repository == 'ktorio/ktor' &&
+      github.event.pull_request.user.type != 'Bot' &&
+      !github.event.pull_request.draft
+
+    env:
+      YOUTRACK_URL: https://youtrack.jetbrains.com
+      YOUTRACK_TOKEN: ${{ secrets.YOUTRACK_TOKEN }}
+      TARGET_STATE: Ready for Review
+
+    steps:
+      # `author_association` is not reliable here: it reports org members with private membership as CONTRIBUTOR.
+      # Team members move their issues themselves, so treat everyone without write access as external.
+      - name: Check if author is an external contributor
+        id: author
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+        run: |
+          set -euo pipefail
+          PERMISSION=$(gh api "repos/$GH_REPO/collaborators/$PR_AUTHOR/permission" --jq '.permission')
+          echo "Permission of $PR_AUTHOR: $PERMISSION"
+
+          if [ "$PERMISSION" = "admin" ] || [ "$PERMISSION" = "write" ]; then
+            echo "external=false" >> "$GITHUB_OUTPUT"
+            echo "$PR_AUTHOR is a team member, skipping"
+          else
+            echo "external=true" >> "$GITHUB_OUTPUT"
+            echo "$PR_AUTHOR is an external contributor"
+          fi
+
+      - name: Collect issue IDs
+        id: issues
+        if: steps.author.outputs.external == 'true'
+        env:
+          EVENT_ACTION: ${{ github.event.action }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          CHANGES: ${{ toJson(github.event.changes) }}
+        run: |
+          set -euo pipefail
+
+          # Prints IDs of issues mentioned anywhere in the title ($1) or referenced in the body ($2) with
+          # a closing keyword: "Fixes KTOR-1", "Closes: KTOR-1, KTOR-2", "Fix [KTOR-1](<url>)", "Resolves <issue url>".
+          extract_ids() {
+            local keyword='(^|[^[:alnum:]_])([Cc]lose[sd]?|[Ff]ix(e[sd])?|[Rr]esolve[sd]?)[*_]*:?[*_]*[[:space:]]+'
+            local ref='\[?(https?://youtrack\.jetbrains\.com/issue/)?KTOR-[0-9]+(\]\([^)[:space:]]*\))?'
+            local separator='(,[[:space:]]*(and[[:space:]]+)?|[[:space:]]+and[[:space:]]+)'
+            {
+              printf '%s\n' "$1" | grep -oE 'KTOR-[0-9]+' || true
+              printf '%s\n' "$2" | grep -oE "$keyword$ref($separator$ref)*" | grep -oE 'KTOR-[0-9]+' || true
+            } | awk '!seen[$0]++'
+          }
+
+          IDS=$(extract_ids "$PR_TITLE" "$PR_BODY")
+
+          # Editing the PR must not move issues again after someone has changed their state during the review,
+          # so take only the issues that were not referenced before the edit.
+          if [ "$EVENT_ACTION" = "edited" ]; then
+            OLD_TITLE=$(jq -r --arg current "$PR_TITLE" 'if has("title") then .title.from else $current end' <<< "$CHANGES")
+            OLD_BODY=$(jq -r --arg current "$PR_BODY" 'if has("body") then .body.from // "" else $current end' <<< "$CHANGES")
+            OLD_IDS=$(extract_ids "$OLD_TITLE" "$OLD_BODY")
+            IDS=$(grep -vxFf <(printf '%s\n' "$OLD_IDS") <<< "$IDS" || true)
+          fi
+
+          IDS=$(xargs <<< "$IDS")
+          echo "ids=$IDS" >> "$GITHUB_OUTPUT"
+          echo "Issues to move: ${IDS:-none}"
+
+      - name: Move issues to Ready for Review
+        if: steps.issues.outputs.ids != ''
+        env:
+          ISSUE_IDS: ${{ steps.issues.outputs.ids }}
+        run: |
+          set -euo pipefail
+          FAILED=0
+
+          for ISSUE_ID in $ISSUE_IDS; do
+            RESPONSE=$(curl -s -w "\n%{http_code}" \
+              -H "Accept: application/json" \
+              -H "Authorization: Bearer $YOUTRACK_TOKEN" \
+              "$YOUTRACK_URL/api/issues/$ISSUE_ID?fields=resolved,customFields(name,value(name))")
+
+            HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+            BODY=$(echo "$RESPONSE" | sed '$d')
+
+            if [ "$HTTP_CODE" = "404" ]; then
+              echo "::warning title=Unknown YouTrack issue::Issue $ISSUE_ID does not exist in YouTrack, skipping"
+              continue
+            fi
+
+            if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
+              echo "::error::Failed to get issue $ISSUE_ID (HTTP $HTTP_CODE): $BODY"
+              FAILED=1
+              continue
+            fi
+
+            STATE=$(echo "$BODY" | jq -r '.customFields[] | select(.name == "State") | .value.name // empty')
+            RESOLVED=$(echo "$BODY" | jq -r '.resolved // empty')
+
+            if [ -n "$RESOLVED" ] || [ "$STATE" = "$TARGET_STATE" ]; then
+              echo "$ISSUE_ID is already in state '$STATE', skipping"
+              continue
+            fi
+
+            PAYLOAD=$(jq -n \
+              --arg state "$TARGET_STATE" \
+              '{
+                customFields: [
+                  {
+                    name: "State",
+                    "$type": "StateIssueCustomField",
+                    value: { name: $state }
+                  }
+                ]
+              }')
+
+            RESPONSE=$(curl -s -w "\n%{http_code}" \
+              -X POST \
+              -H "Authorization: Bearer $YOUTRACK_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d "$PAYLOAD" \
+              "$YOUTRACK_URL/api/issues/$ISSUE_ID?fields=idReadable")
+
+            HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+            BODY=$(echo "$RESPONSE" | sed '$d')
+
+            if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
+              echo "::error::Failed to move issue $ISSUE_ID to '$TARGET_STATE' (HTTP $HTTP_CODE): $BODY"
+              FAILED=1
+              continue
+            fi
+
+            echo "Moved $ISSUE_ID: '$STATE' -> '$TARGET_STATE' ($YOUTRACK_URL/issue/$ISSUE_ID)"
+          done
+
+          exit "$FAILED"
