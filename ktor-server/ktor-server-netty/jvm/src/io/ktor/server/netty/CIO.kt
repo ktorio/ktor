@@ -82,54 +82,10 @@ public suspend fun <T> Future<T>.suspendAwait(exception: (Throwable, Continuatio
  */
 @OptIn(InternalCoroutinesApi::class, ExperimentalCoroutinesApi::class)
 internal object NettyDispatcher : CoroutineDispatcher(), Delay {
-    override fun isDispatchNeeded(context: CoroutineContext): Boolean {
-        return !context[CurrentContextKey]!!.executor.inEventLoop()
-    }
-
-    override fun dispatch(context: CoroutineContext, block: Runnable) {
-        val executor = context[CurrentContextKey]!!.executor
-        if (executor.isShuttingDown) {
-            Dispatchers.IO.dispatch(context, block)
-        } else {
-            try {
-                executor.execute(block)
-            } catch (cause: Throwable) {
-                LOG.error("Failed to dispatch", cause)
-            }
-        }
-    }
-
-    override fun scheduleResumeAfterDelay(timeMillis: Long, continuation: CancellableContinuation<Unit>) {
-        val executor = continuation.context[CurrentContextKey]!!.executor
-        val future = try {
-            executor.schedule(
-                { with(continuation) { resumeUndispatched(Unit) } },
-                timeMillis,
-                TimeUnit.MILLISECONDS
-            )
-        } catch (cause: Throwable) {
-            LOG.error("Failed to schedule delay on the call executor, falling back", cause)
-            val fallbackFuture = fallbackScheduler.schedule(
-                { continuation.resume(Unit) },
-                timeMillis,
-                TimeUnit.MILLISECONDS
-            )
-            continuation.invokeOnCancellation { fallbackFuture.cancel(false) }
-            return
-        }
-        continuation.invokeOnCancellation { future.cancel(false) }
-    }
-
-    override fun invokeOnTimeout(timeMillis: Long, block: Runnable, context: CoroutineContext): DisposableHandle {
-        val executor = context[CurrentContextKey]!!.executor
-        val future = try {
-            executor.schedule(block, timeMillis, TimeUnit.MILLISECONDS)
-        } catch (cause: Throwable) {
-            LOG.error("Failed to schedule timeout on the call executor, falling back", cause)
-            val fallbackFuture = fallbackScheduler.schedule(block, timeMillis, TimeUnit.MILLISECONDS)
-            return DisposableHandle { fallbackFuture.cancel(false) }
-        }
-        return DisposableHandle { future.cancel(false) }
+    private inline fun <E> execute(context: CoroutineContext, action: EventExecutor.() -> E): E {
+        val current = context[CurrentContextKey]
+        checkNotNull(current) { "NettyDispatcher context is missing from the coroutine context" }
+        return current.executor.action()
     }
 
     // Used when the call's own Netty executor rejects scheduling (during shutdown, for example).
@@ -137,6 +93,59 @@ internal object NettyDispatcher : CoroutineDispatcher(), Delay {
         Executors.newSingleThreadScheduledExecutor { runnable ->
             Thread(runnable, "ktor-netty-dispatcher-fallback").apply { isDaemon = true }
         }
+    }
+
+    override fun isDispatchNeeded(context: CoroutineContext): Boolean {
+        return execute(context) { !inEventLoop() }
+    }
+
+    override fun dispatch(context: CoroutineContext, block: Runnable) {
+        execute(context) {
+            if (isShuttingDown) {
+                Dispatchers.IO.dispatch(context, block)
+            } else {
+                try {
+                    execute(block)
+                } catch (_: RejectedExecutionException) {
+                    // isShuttingDown may have changed after check
+                    Dispatchers.IO.dispatch(context, block)
+                } catch (cause: Throwable) {
+                    LOG.error("Failed to dispatch", cause)
+                }
+            }
+        }
+    }
+
+    override fun scheduleResumeAfterDelay(timeMillis: Long, continuation: CancellableContinuation<Unit>) {
+        val future = try {
+            execute(continuation.context) {
+                schedule(
+                    { with(continuation) { resumeUndispatched(Unit) } },
+                    timeMillis,
+                    TimeUnit.MILLISECONDS
+                )
+            }
+        } catch (cause: RejectedExecutionException) {
+            LOG.error("Failed to schedule delay on the call executor, falling back", cause)
+            fallbackScheduler.schedule(
+                { continuation.resume(Unit) },
+                timeMillis,
+                TimeUnit.MILLISECONDS
+            )
+        }
+        continuation.invokeOnCancellation { future.cancel(false) }
+    }
+
+    override fun invokeOnTimeout(timeMillis: Long, block: Runnable, context: CoroutineContext): DisposableHandle {
+        val future = try {
+            execute(context) {
+                schedule(block, timeMillis, TimeUnit.MILLISECONDS)
+            }
+        } catch (cause: RejectedExecutionException) {
+            LOG.error("Failed to schedule timeout on the call executor, falling back", cause)
+            fallbackScheduler.schedule(block, timeMillis, TimeUnit.MILLISECONDS)
+        }
+        return DisposableHandle { future.cancel(false) }
     }
 
     /**

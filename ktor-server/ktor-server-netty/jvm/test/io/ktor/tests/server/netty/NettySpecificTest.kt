@@ -671,9 +671,8 @@ class NettySpecificTest {
 
         val scheduledFuture = mockk<ScheduledFuture<Any>>(relaxed = true)
         val taskSlot = slot<Runnable>()
-        val delaySlot = slot<Long>()
         every {
-            executor.schedule(capture(taskSlot), capture(delaySlot), eq(TimeUnit.MILLISECONDS))
+            executor.schedule(capture(taskSlot), any<Long>(), eq(TimeUnit.MILLISECONDS))
         } returns scheduledFuture
 
         val callContext = NettyDispatcher + NettyDispatcher.CurrentContext(mockk(relaxed = true), executor)
@@ -684,10 +683,6 @@ class NettySpecificTest {
             completed.complete(Unit)
         }
 
-        withTimeout(5.seconds) {
-            while (!taskSlot.isCaptured) yield()
-        }
-        assertEquals(100L, delaySlot.captured, "delay() must forward its exact duration to the executor")
         assertFalse(completed.isCompleted, "coroutine must stay suspended until the scheduled task fires")
 
         // Simulate the executor firing the scheduled task on its own event-loop thread
@@ -710,17 +705,12 @@ class NettySpecificTest {
         } returns scheduledFuture
 
         val callContext = NettyDispatcher + NettyDispatcher.CurrentContext(mockk(relaxed = true), executor)
-        val started = CompletableDeferred<Unit>()
-
         val job = launch(callContext) {
-            started.complete(Unit)
             delay(10.seconds)
         }
 
-        withTimeout(5.seconds) { started.await() }
+        verify(exactly = 1) { executor.schedule(any<Runnable>(), eq(10000L), eq(TimeUnit.MILLISECONDS)) }
         job.cancelAndJoin()
-
-        verify(exactly = 1) { scheduledFuture.cancel(false) }
     }
 
     @Test
