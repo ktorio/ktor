@@ -86,8 +86,10 @@ internal class JavaHttpWebSocket(
             if (!value) throw WebSocketException("Masking switch is not supported in Java engine.")
         }
 
-    // Not enforced here: incoming frames don't match frames on the wire.
-    // DefaultWebSocketSession enforces it on reassembled messages.
+    /**
+     * Not enforced here: incoming frames don't match frames on the wire.
+     * [DefaultWebSocketSessionImpl] enforces it on reassembled messages.
+     */
     override var maxFrameSize: Long = Long.MAX_VALUE
 
     override val incoming: ReceiveChannel<Frame>
