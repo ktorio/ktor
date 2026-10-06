@@ -39,6 +39,11 @@ public final class io/ktor/client/HttpClientConfig {
 
 public abstract interface class io/ktor/client/HttpClientEngineContainer {
 	public abstract fun getFactory ()Lio/ktor/client/engine/HttpClientEngineFactory;
+	public fun getPriority ()D
+}
+
+public final class io/ktor/client/HttpClientEngineContainer$DefaultImpls {
+	public static fun getPriority (Lio/ktor/client/HttpClientEngineContainer;)D
 }
 
 public final class io/ktor/client/HttpClientJvmKt {
@@ -709,6 +714,11 @@ public final class io/ktor/client/plugins/cache/storage/CachedResponseData {
 public final class io/ktor/client/plugins/cache/storage/FileCacheStorageKt {
 	public static final fun FileStorage (Ljava/io/File;Lkotlinx/coroutines/CoroutineDispatcher;)Lio/ktor/client/plugins/cache/storage/CacheStorage;
 	public static synthetic fun FileStorage$default (Ljava/io/File;Lkotlinx/coroutines/CoroutineDispatcher;ILjava/lang/Object;)Lio/ktor/client/plugins/cache/storage/CacheStorage;
+}
+
+public final class io/ktor/client/plugins/cache/storage/FileStorageKt {
+	public static final fun FileStorage (Lkotlinx/io/files/Path;Lkotlinx/io/files/FileSystem;Lkotlinx/coroutines/CoroutineDispatcher;)Lio/ktor/client/plugins/cache/storage/CacheStorage;
+	public static synthetic fun FileStorage$default (Lkotlinx/io/files/Path;Lkotlinx/io/files/FileSystem;Lkotlinx/coroutines/CoroutineDispatcher;ILjava/lang/Object;)Lio/ktor/client/plugins/cache/storage/CacheStorage;
 }
 
 public abstract class io/ktor/client/plugins/cache/storage/HttpCacheStorage {

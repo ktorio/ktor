@@ -140,6 +140,20 @@ public abstract class NettyApplicationResponse(
         sendResponse(content = ByteReadChannel.Empty)
     }
 
+    /**
+     * Marks the call as answered when the response was completed at the channel level without going
+     * through [respondOutgoingContent] — either because an internal response was sent directly
+     * (for example, the built-in 400 for a malformed request or the built-in 408 for a read timeout),
+     * or because the response was given up on entirely (see [cancel]).
+     * If not called, the response will not be marked as sent, and a later failure could try to respond again and hit
+     * the "already completed" guard in [io.ktor.server.netty.http1.NettyHttp1ApplicationResponse].
+     */
+    internal fun markAsSent() {
+        responseMessageSent = true
+        @OptIn(InternalAPI::class)
+        isSent = true
+    }
+
     internal fun close() {
         val existingChannel = responseChannel
         if (existingChannel is ByteWriteChannel) {
@@ -162,7 +176,7 @@ public abstract class NettyApplicationResponse(
         if (!responseMessageSent) {
             responseChannel = ByteReadChannel.Empty
             responseReady.tryFailure(CancellationException("Response was cancelled"))
-            responseMessageSent = true
+            markAsSent()
         }
     }
 

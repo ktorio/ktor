@@ -881,11 +881,18 @@
                 "type": "object",
                 "title": "Cat",
                 "required": [
+                    "type",
                     "id",
                     "name",
                     "lives"
                 ],
                 "properties": {
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "openapi.Cat"
+                        ]
+                    },
                     "id": {
                         "type": "integer"
                     },
@@ -901,11 +908,18 @@
                 "type": "object",
                 "title": "Dog",
                 "required": [
+                    "type",
                     "id",
                     "name",
                     "breed"
                 ],
                 "properties": {
+                    "type": {
+                        "type": "string",
+                        "enum": [
+                            "openapi.Dog"
+                        ]
+                    },
                     "id": {
                         "type": "integer"
                     },

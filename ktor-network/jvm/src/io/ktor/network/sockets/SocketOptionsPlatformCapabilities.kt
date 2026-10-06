@@ -36,6 +36,7 @@ internal object SocketOptionsPlatformCapabilities {
         val socketChannelClass = Class.forName("java.nio.channels.SocketChannel")
 
         socketChannelClass.methods.firstOrNull { method ->
+            @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
             method.modifiers.let { modifiers -> Modifier.isPublic(modifiers) && !Modifier.isStatic(modifiers) } &&
                 method.name == "setOption" &&
                 method.parameterTypes.size == 2 &&
@@ -52,6 +53,7 @@ internal object SocketOptionsPlatformCapabilities {
         val socketChannelClass = Class.forName("java.nio.channels.ServerSocketChannel")
 
         socketChannelClass.methods.firstOrNull { method ->
+            @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
             method.modifiers.let { modifiers -> Modifier.isPublic(modifiers) && !Modifier.isStatic(modifiers) } &&
                 method.name == "setOption" &&
                 method.parameterTypes.size == 2 &&
@@ -68,6 +70,7 @@ internal object SocketOptionsPlatformCapabilities {
         val socketChannelClass = Class.forName("java.nio.channels.DatagramChannel")
 
         socketChannelClass.methods.firstOrNull { method ->
+            @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
             method.modifiers.let { modifiers ->
                 Modifier.isPublic(modifiers) && !Modifier.isStatic(modifiers)
             } &&

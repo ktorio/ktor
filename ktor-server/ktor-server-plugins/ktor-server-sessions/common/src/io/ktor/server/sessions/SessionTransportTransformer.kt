@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.sessions
@@ -13,7 +13,6 @@ public interface SessionTransportTransformer {
     /**
      * Untransforms a [transportValue] that represents a transformed session.
      *
-     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.SessionTransportTransformer.transformRead)
      *
      * @return Untransformed value or null
@@ -22,7 +21,6 @@ public interface SessionTransportTransformer {
 
     /**
      * Transforms a [transportValue] that represents session data.
-     *
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.SessionTransportTransformer.transformWrite)
      *
@@ -35,7 +33,6 @@ public interface SessionTransportTransformer {
  * Un-applies a list of session transformations to a [cookieValue] representing a transformed session string.
  * If any of the unapplication of transformations fail returning a null, this function also returns null.
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.transformRead)
  *
  * @return A string representing the original session contents.
@@ -47,7 +44,6 @@ public fun List<SessionTransportTransformer>.transformRead(cookieValue: String?)
 
 /**
  * Applies a list of session transformations to a [value] representing session data.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.transformWrite)
  *

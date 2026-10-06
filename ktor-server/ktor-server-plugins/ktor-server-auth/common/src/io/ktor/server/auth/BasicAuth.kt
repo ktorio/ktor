@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.server.auth
 
@@ -13,7 +13,6 @@ import kotlin.io.encoding.Base64
 
 /**
  * A `basic` [Authentication] provider.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.BasicAuthenticationProvider)
  *

@@ -53,7 +53,7 @@ class ConnectionTest {
             flush()
         }
 
-        socket.openReadChannel().readRemaining()
+        socket.openReadChannel().readBuffer()
         Unit
     }
 

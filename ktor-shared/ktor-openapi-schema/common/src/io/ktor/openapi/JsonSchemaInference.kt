@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.openapi
@@ -8,13 +8,16 @@ import io.ktor.openapi.AdditionalProperties.*
 import io.ktor.openapi.JsonSchema.*
 import io.ktor.openapi.ReferenceOr.*
 import io.ktor.utils.io.*
-import kotlinx.serialization.*
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonClassDiscriminator
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.modules.EmptySerializersModule
 import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.serializer
 import kotlin.reflect.KClass
 import kotlin.reflect.KType
 import kotlin.reflect.typeOf
@@ -67,9 +70,9 @@ public val KotlinxSerializerDefaultFormats: (SerialDescriptor) -> String? = { ty
 /**
  * Infers JSON schema from kotlinx-serialization descriptors using the supplied module.
  *
- * @property module a [SerializersModule] to use for serialization.
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.KotlinxSerializerJsonSchemaInference)
+ *
+ * @property module a [SerializersModule] to use for serialization.
  */
 public class KotlinxSerializerJsonSchemaInference(
     private val module: SerializersModule,
@@ -216,13 +219,14 @@ public class KotlinxSerializerJsonSchemaInference(
                                         subclassDescriptor = subclassDescriptor,
                                         serialName = serialName,
                                     )
-                            buildSchemaOrReference(
+                            buildSealedSubclassSchema(
+                                discriminatorProperty = discriminatorProperty,
+                                discriminatorValue = serialName,
                                 descriptor = subclassDescriptor,
-                                referenceName = componentName,
+                                componentName = componentName,
                                 visiting = visiting,
                                 annotations = sealedElementsDescriptor.getElementAnnotations(i),
                                 serializer = subclassSerializer,
-                                schemaTitleOverride = componentName,
                             )
                         }
                     val discriminatorMapping = (0..<sealedElementsDescriptor.elementsCount)
@@ -442,6 +446,43 @@ public class KotlinxSerializerJsonSchemaInference(
             subclassName
         }
     }
+
+    private fun buildSealedSubclassSchema(
+        discriminatorProperty: String,
+        discriminatorValue: String,
+        descriptor: SerialDescriptor,
+        componentName: String,
+        visiting: MutableSet<String>,
+        annotations: List<Annotation>,
+        serializer: KSerializer<*>?,
+    ): ReferenceOr<JsonSchema> {
+        val schema = buildSchemaOrReference(
+            descriptor = descriptor,
+            referenceName = componentName,
+            visiting = visiting,
+            annotations = annotations,
+            serializer = serializer,
+            schemaTitleOverride = componentName,
+        )
+
+        if (schema !is Value) return schema
+
+        return Value(
+            schema.value.copy(
+                required = (listOf(discriminatorProperty) + schema.value.required.orEmpty()).distinct(),
+                properties =
+                mapOf(
+                    discriminatorProperty to Value(
+                        JsonSchema(
+                            type = JsonType.STRING,
+                            enum = listOf(GenericElement(discriminatorValue)),
+                        )
+                    )
+                ) +
+                    (schema.value.properties.orEmpty() - discriminatorProperty),
+            )
+        )
+    }
 }
 
 /**
@@ -462,7 +503,6 @@ public class KotlinxSerializerJsonSchemaInference(
  * Note: This function does not handle circular references. For types with circular dependencies,
  * consider implementing depth tracking or schema references to avoid stack overflow.
  */
-@OptIn(ExperimentalSerializationApi::class, InternalSerializationApi::class, InternalAPI::class)
 public fun SerialDescriptor.buildJsonSchema(
     includeTitle: Boolean = true,
     includeAnnotations: List<Annotation> = emptyList(),
@@ -537,6 +577,7 @@ public fun jsonSchemaFromAnnotations(
     properties: Map<String, ReferenceOr<JsonSchema>>? = null,
     additionalProperties: AdditionalProperties? = null,
     enum: List<GenericElement?>? = null,
+    const: GenericElement? = null,
     format: String? = null,
     discriminator: JsonSchemaDiscriminator? = null,
     oneOf: List<ReferenceOr<JsonSchema>>? = null,
@@ -615,6 +656,8 @@ public fun jsonSchemaFromAnnotations(
         enum = annotations.firstInstanceOf<JsonSchema.Enum>()?.value
             ?.map { parseJsonLiteralOrUseString(it) }
             ?.takeIf { it.isNotEmpty() } ?: enum,
+        const = annotations.firstInstanceOf<Const>()?.value
+            ?.let { parseJsonLiteralToGenericElement(it) } ?: const,
         multipleOf = annotations.firstInstanceOf<MultipleOf>()?.value,
         id = annotations.firstInstanceOf<Id>()?.value,
         anchor = annotations.firstInstanceOf<Anchor>()?.value,

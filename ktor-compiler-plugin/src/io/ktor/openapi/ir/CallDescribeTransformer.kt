@@ -7,7 +7,9 @@ import io.ktor.openapi.routing.*
 import org.jetbrains.kotlin.backend.common.extensions.IrPluginContext
 import org.jetbrains.kotlin.ir.IrStatement
 import org.jetbrains.kotlin.ir.declarations.*
-import org.jetbrains.kotlin.ir.expressions.*
+import org.jetbrains.kotlin.ir.expressions.IrCall
+import org.jetbrains.kotlin.ir.expressions.IrExpression
+import org.jetbrains.kotlin.ir.expressions.IrFunctionExpression
 import org.jetbrains.kotlin.ir.symbols.IrTypeParameterSymbol
 import org.jetbrains.kotlin.ir.symbols.IrValueSymbol
 import org.jetbrains.kotlin.ir.types.IrType
@@ -22,6 +24,8 @@ import org.jetbrains.kotlin.name.Name
 /**
  * Finds all route selector calls and chains `describe` calls with relevant details that can be found
  * at compile time.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.ir.CallDescribeTransformer)
  */
 class CallDescribeTransformer(
     val logger: Logger,
@@ -119,6 +123,8 @@ class CallDescribeTransformer(
      *
      * If this is a match, we can populate more details from the lambda argument by looking for any call
      * references, like `call.respond(...)`, for example.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.ir.CallDescribeTransformer.visitCall)
      */
     override fun visitCall(expression: IrCall): IrExpression {
         // Maintain a type-parameter substitution scope for the subtree under this call.

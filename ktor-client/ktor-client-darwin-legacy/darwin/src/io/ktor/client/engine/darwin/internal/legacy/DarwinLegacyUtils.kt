@@ -7,6 +7,7 @@ package io.ktor.client.engine.darwin.internal.legacy
 import io.ktor.client.call.*
 import io.ktor.http.content.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.readBuffer
 import kotlinx.cinterop.*
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
@@ -24,9 +25,9 @@ internal suspend fun OutgoingContent.toNSData(): NSData? = when (this) {
 
     is OutgoingContent.WriteChannelContent -> GlobalScope.writer(Dispatchers.Unconfined) {
         writeTo(channel)
-    }.channel.readRemaining().readByteArray().toNSData()
+    }.channel.readBuffer().readByteArray().toNSData()
 
-    is OutgoingContent.ReadChannelContent -> readFrom().readRemaining().readByteArray().toNSData()
+    is OutgoingContent.ReadChannelContent -> readFrom().readBuffer().readByteArray().toNSData()
 
     is OutgoingContent.NoContent -> null
 

@@ -55,6 +55,7 @@ public fun Source.encodeBase64(): String = Base64.encode(readByteArray())
     level = DeprecationLevel.WARNING,
     replaceWith = ReplaceWith("Base64.decode(this).decodeToString()", "kotlin.io.encoding.Base64")
 )
+@Suppress("DEPRECATION")
 public fun String.decodeBase64String(): String = decodeBase64Bytes().decodeToString()
 
 /**

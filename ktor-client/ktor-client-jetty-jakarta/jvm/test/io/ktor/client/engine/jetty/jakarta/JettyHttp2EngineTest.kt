@@ -11,13 +11,11 @@ import io.ktor.client.request.*
 import io.ktor.client.test.base.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
-import io.ktor.http.content.*
 import io.ktor.test.dispatcher.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.Job
 import kotlinx.io.IOException
-import org.eclipse.jetty.http.HttpHeader
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith

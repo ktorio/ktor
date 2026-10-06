@@ -42,7 +42,7 @@ class ChunkedTest {
             output.close()
         }
 
-        val content = output.readRemaining().readText()
+        val content = output.readBuffer().readText()
         assertEquals("a=1", content)
     }
 
@@ -89,7 +89,7 @@ class ChunkedTest {
 
         assertEquals(0, parsed.availableForRead)
         assertTrue { parsed.isClosedForRead }
-        assertEquals("trailing", ch.readRemaining().readText())
+        assertEquals("trailing", ch.readBuffer().readText())
     }
 
     @Test
@@ -187,7 +187,7 @@ class ChunkedTest {
         }
 
         yield()
-        val encodedText = encoded.readRemaining().inputStream().reader().readText()
+        val encodedText = encoded.readBuffer().inputStream().reader().readText()
         assertEquals("0\r\n\r\n", encodedText)
     }
 
@@ -213,7 +213,7 @@ class ChunkedTest {
         output.close()
         yield()
 
-        val encodedText = encoded.readRemaining().inputStream().reader().readText()
+        val encodedText = encoded.readBuffer().inputStream().reader().readText()
         assertEquals("6\r\n123456\r\n0\r\n\r\n", encodedText)
     }
 

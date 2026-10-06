@@ -1,10 +1,12 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.utils.io
 
-import kotlinx.io.*
+import kotlinx.io.Buffer
+import kotlinx.io.IOException
+import kotlinx.io.Source
 
 /**
  * Channel for asynchronous reading of sequences of bytes.
@@ -26,7 +28,6 @@ public interface ByteReadChannel {
     /**
      * Suspend the channel until it has [min] bytes or gets closed. Throws exception if the channel was closed with an
      * error. If there are bytes available in the channel, this function returns immediately.
-     *
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.ByteReadChannel.awaitContent)
      *

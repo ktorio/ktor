@@ -8,7 +8,6 @@ import io.ktor.client.network.sockets.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
@@ -63,6 +62,13 @@ internal suspend fun <T> HttpURLConnection.timeoutAwareConnection(
             cause.isTimeoutException() -> ConnectTimeoutException(request, cause)
             else -> cause
         }
+    }
+}
+
+@OptIn(InternalCoroutinesApi::class)
+internal fun HttpURLConnection.disconnectOnCancellation(callContext: CoroutineContext) {
+    callContext.job.invokeOnCompletion(onCancelling = true) { cause ->
+        if (cause != null) disconnect()
     }
 }
 

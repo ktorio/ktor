@@ -42,7 +42,7 @@ internal fun ApacheRequestProducer(
     }
 
     val supportsRequestBody = requestData.method.supportsRequestBody
-    val hasContent = requestData.body !is OutgoingContent.NoContent
+    val hasContent = !requestData.body.isEmpty()
     val contentLength = length?.toLong() ?: -1
     val isChunked = contentLength == -1L && supportsRequestBody && hasContent
 
@@ -73,6 +73,7 @@ private fun setupRequest(requestData: HttpRequestData, config: Apache5EngineConf
             .setRedirectsEnabled(followRedirects)
             .setConnectionRequestTimeout(connectionRequestTimeout, TimeUnit.MILLISECONDS)
             .customRequest()
+            .setContentCompressionEnabled(false)
             .build()
     }
 

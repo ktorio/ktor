@@ -193,6 +193,7 @@ internal fun HttpRequestData.headersToCurl(): CPointer<curl_slist> {
 }
 
 @OptIn(ExperimentalForeignApi::class, UnsafeNumber::class)
+@Suppress("REDUNDANT_CALL_OF_CONVERSION_METHOD")
 internal fun Long.fromCurl(): HttpProtocolVersion = when (this) {
     CURL_HTTP_VERSION_1_0.toLong() -> HttpProtocolVersion.HTTP_1_0
 

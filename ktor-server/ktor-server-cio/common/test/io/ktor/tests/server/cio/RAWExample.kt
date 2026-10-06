@@ -13,7 +13,7 @@ import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
-import kotlin.concurrent.*
+import kotlin.concurrent.Volatile
 
 @Volatile
 private var cachedDateText: String = GMTDate().toHttpDate()
@@ -28,8 +28,6 @@ private val notFound404_11 = RequestResponseBuilder().apply {
 
 /**
  * This is just an example demonstrating how to create CIO low-level http server
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.tests.server.cio.example)
  */
 @OptIn(DelicateCoroutinesApi::class)
 fun example() {
@@ -57,7 +55,7 @@ fun example() {
                     response.bytes(HelloWorld)
                     output.writePacket(response.build())
                 } else {
-                    output.writePacket(notFound404_11.copy())
+                    output.writePacket(notFound404_11.peek())
                 }
 
                 output.flushAndClose()

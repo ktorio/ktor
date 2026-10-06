@@ -33,7 +33,8 @@ public abstract class BaseApplicationResponse(
         get() = responded
 
     final override var isSent: Boolean = false
-        private set
+        @InternalAPI
+        protected set
 
     override val cookies: ResponseCookies by lazy(LazyThreadSafetyMode.NONE) {
         ResponseCookies(this)
@@ -165,6 +166,7 @@ public abstract class BaseApplicationResponse(
 
             is OutgoingContent.ContentWrapper -> respondOutgoingContent(content.delegate())
         }
+        @OptIn(InternalAPI::class)
         isSent = true
     }
 

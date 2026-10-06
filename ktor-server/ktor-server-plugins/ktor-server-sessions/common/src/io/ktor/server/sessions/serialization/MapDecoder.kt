@@ -11,7 +11,7 @@ import kotlinx.serialization.encoding.*
 import kotlinx.serialization.internal.*
 import kotlinx.serialization.modules.*
 
-@OptIn(ExperimentalSerializationApi::class, InternalSerializationApi::class)
+@OptIn(InternalSerializationApi::class)
 internal class MapDecoder(
     override val serializersModule: SerializersModule,
     string: String,

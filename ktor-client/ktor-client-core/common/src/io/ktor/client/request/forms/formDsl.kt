@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.request.forms
@@ -11,11 +11,9 @@ import io.ktor.utils.io.core.*
 import kotlinx.io.Buffer
 import kotlinx.io.Sink
 import kotlinx.io.Source
-import kotlin.contracts.ExperimentalContracts
 
 /**
  * A multipart form item. Use it to build a form in client.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.forms.FormPart)
  *
@@ -230,7 +228,6 @@ public class FormBuilder @PublishedApi internal constructor() {
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.forms.append)
  */
 
-@OptIn(ExperimentalContracts::class)
 public inline fun FormBuilder.append(
     key: String,
     headers: Headers = Headers.Empty,
@@ -242,7 +239,6 @@ public inline fun FormBuilder.append(
 
 /**
  * A reusable [Input] form entry.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.forms.InputProvider)
  *
@@ -271,7 +267,6 @@ public class ChannelProvider(public val size: Long? = null, public val block: ()
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.forms.append)
  */
 
-@OptIn(ExperimentalContracts::class)
 public fun FormBuilder.append(
     key: String,
     filename: String,

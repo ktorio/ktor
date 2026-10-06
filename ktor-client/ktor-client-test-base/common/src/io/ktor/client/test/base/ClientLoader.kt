@@ -20,8 +20,6 @@ private typealias ClientTestFailure = TestFailure<HttpClientEngineFactory<*>>
 
 /**
  * Helper interface to test clients.
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.test.base.ClientLoader)
  */
 abstract class ClientLoader(
     rule: EngineSelectionRule = EngineSelectionRule { true },
@@ -32,8 +30,6 @@ abstract class ClientLoader(
 
     /**
      * Perform test against all clients from dependencies.
-     *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.test.base.ClientLoader.clientTests)
      */
     fun clientTests(
         rule: EngineSelectionRule = EngineSelectionRule { true },
@@ -77,8 +73,6 @@ abstract class ClientLoader(
 
     /**
      * Print coroutines in debug mode.
-     *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.test.base.ClientLoader.dumpCoroutines)
      */
     fun dumpCoroutines(): Unit = platformDumpCoroutines()
 
@@ -90,44 +84,32 @@ abstract class ClientLoader(
 
     /**
      * Defines that test should be executed only with the specified [engine].
-     *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.test.base.ClientLoader.only)
      */
     fun only(engine: String): EngineSelectionRule = only(listOf(engine))
 
     /**
      * Includes the set of [engines] for the test
-     *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.test.base.ClientLoader.only)
      */
     fun only(vararg engines: String): EngineSelectionRule = only(engines.asList())
 
     /**
      * Includes the set of [engines] for the test
-     *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.test.base.ClientLoader.only)
      */
     fun only(engines: List<String>): EngineSelectionRule = EngineSelectionRule.only(engines)
 
     /**
      * Excludes the specified [engines] from test execution.
-     *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.test.base.ClientLoader.except)
      */
     fun except(vararg engines: String): EngineSelectionRule = except(engines.asList())
 
     /**
      * Excludes the specified [engines] from test execution.
-     *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.test.base.ClientLoader.except)
      */
     fun except(engineList: List<String>, vararg engines: String): EngineSelectionRule =
         except(engineList + engines.asList())
 
     /**
      * Excludes the specified [engines] from test execution.
-     *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.test.base.ClientLoader.except)
      */
     fun except(engines: List<String>): EngineSelectionRule = EngineSelectionRule.except(engines)
 
@@ -209,8 +191,6 @@ internal val HttpClientEngineFactory<*>.engineName: String
 /**
  * Decides whether an engine should be tested or not.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.test.base.EngineSelectionRule)
- *
  * @see ClientLoader.except
  * @see ClientLoader.only
  */
@@ -220,8 +200,6 @@ fun interface EngineSelectionRule {
     companion object {
         /**
          * Includes the set of [engines] for the test
-         *
-         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.test.base.EngineSelectionRule.only)
          */
         fun only(engines: List<String>): EngineSelectionRule {
             val includePatterns = engines.map(EnginePattern::parse)
@@ -230,8 +208,6 @@ fun interface EngineSelectionRule {
 
         /**
          * Excludes the specified [engines] from test execution.
-         *
-         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.test.base.EngineSelectionRule.except)
          */
         fun except(engines: List<String>): EngineSelectionRule {
             val skipPatterns = engines.map(EnginePattern::parse)

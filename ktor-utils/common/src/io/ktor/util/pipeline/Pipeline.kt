@@ -1,13 +1,15 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.util.pipeline
 
 import io.ktor.util.*
 import io.ktor.util.debug.*
-import kotlinx.atomicfu.*
-import kotlin.coroutines.*
+import kotlinx.atomicfu.atomic
+import kotlinx.coroutines.currentCoroutineContext
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.CoroutineContext
 
 // helper interface for `startInterceptorCoroutineUninterceptedOrReturn`
 internal typealias PipelineInterceptorCoroutine<TSubject, TContext> =
@@ -62,7 +64,6 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
         }
 
     /**
-     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.pipeline.Pipeline.isEmpty)
      *
      * @return `true` if there are no interceptors installed regardless number of phases
@@ -89,7 +90,7 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.pipeline.Pipeline.execute)
      */
     public suspend fun execute(context: TContext, subject: TSubject): TSubject =
-        createContext(context, subject, coroutineContext).execute(subject)
+        createContext(context, subject, currentCoroutineContext()).execute(subject)
 
     /**
      * Adds [phase] to the end of this pipeline
@@ -479,15 +480,13 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
             else -> (fromPhaseOrContent as PhaseContent<*, *>).relation
         }
 
-        when {
-            fromPhaseRelation is PipelinePhaseRelation.Last ->
-                addPhase(fromPhase)
+        when (fromPhaseRelation) {
+            is PipelinePhaseRelation.Last -> addPhase(fromPhase)
 
-            fromPhaseRelation is PipelinePhaseRelation.Before && hasPhase(fromPhaseRelation.relativeTo) ->
+            is PipelinePhaseRelation.Before if hasPhase(fromPhaseRelation.relativeTo) ->
                 insertPhaseBefore(fromPhaseRelation.relativeTo, fromPhase)
 
-            fromPhaseRelation is PipelinePhaseRelation.After ->
-                insertPhaseAfter(fromPhaseRelation.relativeTo, fromPhase)
+            is PipelinePhaseRelation.After -> insertPhaseAfter(fromPhaseRelation.relativeTo, fromPhase)
 
             else -> return false
         }

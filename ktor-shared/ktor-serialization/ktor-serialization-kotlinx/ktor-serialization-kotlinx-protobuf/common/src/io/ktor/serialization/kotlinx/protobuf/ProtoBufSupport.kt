@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.serialization.kotlinx.protobuf
@@ -7,8 +7,8 @@ package io.ktor.serialization.kotlinx.protobuf
 import io.ktor.http.*
 import io.ktor.serialization.*
 import io.ktor.serialization.kotlinx.*
-import kotlinx.serialization.*
-import kotlinx.serialization.protobuf.*
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.protobuf.ProtoBuf
 
 /**
  * The default protobuf configuration used in [KotlinxSerializationConverter]. The settings are:
@@ -28,7 +28,6 @@ public val DefaultProtoBuf: ProtoBuf = ProtoBuf {
  * to the [ContentNegotiation] plugin using kotlinx.serialization.
  *
  * You can learn more from the corresponding [client](https://ktor.io/docs/client-serialization.html#register_protobuf) and [server](https://ktor.io/docs/server-serialization.html#register_protobuf) documentation.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.serialization.kotlinx.protobuf.protobuf)
  *

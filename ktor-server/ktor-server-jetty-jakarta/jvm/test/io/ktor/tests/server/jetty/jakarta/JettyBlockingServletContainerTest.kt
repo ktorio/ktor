@@ -7,7 +7,6 @@ package io.ktor.tests.server.jetty.jakarta
 import io.ktor.server.jetty.jakarta.*
 import io.ktor.server.testing.suites.*
 import kotlin.test.Ignore
-import kotlin.time.Duration.Companion.milliseconds
 
 class JettyBlockingServletContainerCompressionTest :
     CompressionTestSuite<JettyApplicationEngineBase, JettyApplicationEngineBase.Configuration>(Servlet(async = false))

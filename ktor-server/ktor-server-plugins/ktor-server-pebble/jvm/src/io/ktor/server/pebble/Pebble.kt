@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.pebble
@@ -10,8 +10,8 @@ import io.ktor.server.application.*
 import io.ktor.server.application.hooks.*
 import io.ktor.server.request.*
 import io.ktor.utils.io.*
-import io.pebbletemplates.pebble.*
-import java.io.*
+import io.pebbletemplates.pebble.PebbleEngine
+import java.io.StringWriter
 import java.util.*
 
 /**
@@ -33,7 +33,6 @@ public class PebbleConfiguration : PebbleEngine.Builder() {
 
 /**
  * A response content handled by the [Pebble] plugin.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.pebble.PebbleContent)
  *

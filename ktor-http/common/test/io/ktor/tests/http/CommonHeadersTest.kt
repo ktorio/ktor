@@ -27,6 +27,15 @@ class CommonHeadersTest {
     }
 
     @Test
+    fun parseQualityParameterCaseInsensitive() {
+        val items = parseAndSortContentTypeHeader("audio/*; Q=0.2, audio/basic")
+        assertEquals(2, items.count())
+        assertEquals("audio/basic", items[0].value)
+        assertEquals("audio/*", items[1].value)
+        assertEquals(0.2, items[1].quality)
+    }
+
+    @Test
     fun parseAcceptHeaderWithPreference() {
         val items = parseAndSortContentTypeHeader("text/plain; q=0.5, text/html,text/x-dvi; q=0.8, text/x-c")
         assertEquals(4, items.count())
@@ -162,6 +171,36 @@ class CommonHeadersTest {
         assertEquals(
             listOf(HeaderValue("justValue", listOf(HeaderValueParam("x", "\"abc\\")))),
             parseHeaderValue("justValue;x=\"abc\\")
+        )
+        assertEquals(
+            listOf(HeaderValue("justValue", listOf(HeaderValueParam("x", "\"abc\\q")))),
+            parseHeaderValue("justValue;x=\"abc\\q")
+        )
+    }
+
+    @Test
+    fun `parse quoted parameter value with escaped character at the end`() {
+        assertEquals(
+            listOf(HeaderValue("justValue", listOf(HeaderValueParam("a", "quoted\"")))),
+            parseHeaderValue("justValue; a=\"quoted\\\"\"")
+        )
+        assertEquals(
+            listOf(HeaderValue("justValue", listOf(HeaderValueParam("a", "quoted\\")))),
+            parseHeaderValue("justValue; a=\"quoted\\\\\"")
+        )
+        assertEquals(
+            listOf(HeaderValue("justValue", listOf(HeaderValueParam("a", "\"")))),
+            parseHeaderValue("justValue; a=\"\\\"\"")
+        )
+    }
+
+    @Test
+    fun `parse round trips a rendered parameter value ending with a quote`() {
+        val rendered = ContentDisposition.File.withParameter("filename", "a\"").toString()
+        assertEquals("file; filename=\"a\\\"\"", rendered)
+        assertEquals(
+            listOf(HeaderValue("file", listOf(HeaderValueParam("filename", "a\"")))),
+            parseHeaderValue(rendered)
         )
     }
 

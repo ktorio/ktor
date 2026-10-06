@@ -11,8 +11,10 @@ import io.ktor.util.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import io.ktor.websocket.*
-import kotlinx.coroutines.*
-import kotlin.coroutines.*
+import kotlinx.coroutines.CompletableJob
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlin.coroutines.CoroutineContext
 
 internal val LOGGER = KtorSimpleLogger("io.ktor.server.websocket.WebSockets")
 
@@ -28,7 +30,6 @@ internal val LOGGER = KtorSimpleLogger("io.ktor.server.websocket.WebSockets")
  *     }
  * }
  * ```
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.websocket.WebSockets)
  *
@@ -131,6 +132,7 @@ public class WebSockets private constructor(
          *     outgoing = bounded(capacity = 512, onOverflow = ChannelOverflow.SUSPEND)
          * }
          * ```
+         *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.websocket.WebSockets.WebSocketOptions.channels)
          */
         public fun channels(block: WebSocketChannelsConfig.() -> Unit) {

@@ -1,11 +1,10 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.http
 
 import io.ktor.util.date.*
-import kotlin.native.concurrent.*
 
 private val HTTP_DATE_FORMATS = listOf(
     "***, dd MMM YYYY hh:mm:ss zzz",
@@ -42,7 +41,6 @@ public fun String.fromHttpToGmtDate(): GMTDate = with(trim()) {
 
 /**
  * Convert valid cookie date [String] to [GMTDate] trying first the RFC6265 standard, falling back on [fromHttpToGmtDate]
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.fromCookieToGmtDate)
  *

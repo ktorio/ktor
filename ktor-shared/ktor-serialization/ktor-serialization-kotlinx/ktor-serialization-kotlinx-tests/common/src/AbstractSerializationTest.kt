@@ -8,6 +8,7 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.serialization.*
 import io.ktor.serialization.kotlinx.*
+import io.ktor.test.*
 import io.ktor.test.dispatcher.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
@@ -42,7 +43,7 @@ public abstract class AbstractSerializationTest<T : SerialFormat> {
 
     @Test
     public fun testMapsElements() {
-        testSuspend {
+        runTest {
             val testSerializer = KotlinxSerializationConverter(defaultSerializationFormat)
             testSerializer.testSerialize(
                 mapOf(
@@ -85,7 +86,7 @@ public abstract class AbstractSerializationTest<T : SerialFormat> {
 
     @Test
     public fun testRegisterCustom() {
-        testSuspend {
+        runTest {
             val serializer = KotlinxSerializationConverter(defaultSerializationFormat)
 
             val user = User(1, "vasya")
@@ -96,7 +97,7 @@ public abstract class AbstractSerializationTest<T : SerialFormat> {
 
     @Test
     public fun testRegisterCustomList() {
-        testSuspend {
+        runTest {
             val serializer = KotlinxSerializationConverter(defaultSerializationFormat)
 
             val user = User(2, "petya")
@@ -117,7 +118,7 @@ public abstract class AbstractSerializationTest<T : SerialFormat> {
 
     @Test
     public open fun testRegisterCustomFlow() {
-        testSuspend {
+        runTest {
             val serializer = KotlinxSerializationConverter(defaultSerializationFormat)
 
             val user = User(2, "petya")
@@ -150,7 +151,7 @@ public abstract class AbstractSerializationTest<T : SerialFormat> {
                     content.writeTo(channel)
                     channel.close()
                 }
-                channel.readRemaining().readByteArray()
+                channel.readBuffer().readByteArray()
             }
 
             else -> error("Failed to get serialized $data")

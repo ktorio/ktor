@@ -212,6 +212,36 @@ class AuthTest : ClientLoader() {
     }
 
     @Test
+    fun `digest provider does not fail when server sends non-digest challenge`() = testWithEngine(MockEngine) {
+        val authorizationHeaders = mutableListOf<String?>()
+        config {
+            install(Auth) {
+                digest {
+                    credentials { DigestAuthCredentials(username = "any", password = "any") }
+                }
+            }
+            engine {
+                addHandler { request ->
+                    authorizationHeaders += request.headers[HttpHeaders.Authorization]
+                    respond(
+                        "ERROR",
+                        HttpStatusCode.Unauthorized,
+                        headersOf(HttpHeaders.WWWAuthenticate, "Basic realm=\"Ktor Server\", charset=UTF-8")
+                    )
+                }
+            }
+        }
+
+        test { client ->
+            authorizationHeaders.clear()
+            val response = client.get("/")
+            assertEquals(HttpStatusCode.Unauthorized, response.status)
+            // The retry is sent without credentials because there is no Digest challenge to answer
+            assertEquals(listOf<String?>(null, null), authorizationHeaders)
+        }
+    }
+
+    @Test
     fun testBasicAuthWithoutNegotiationLegacy() = clientTests {
         config {
             install(Auth) {
@@ -866,13 +896,8 @@ class AuthTest : ClientLoader() {
             engine {
                 addHandler { request ->
                     val authHeader = request.headers[HttpHeaders.Authorization]
-                    if (authHeader == null) {
-                        // no header - this is expected for refresh token requests
-                        respond("OK", HttpStatusCode.OK)
-                    } else {
-                        // header is invalid throw unauthorized
-                        respond("No Auth Header", HttpStatusCode.Unauthorized)
-                    }
+                    // Respond with the authorization header as body so it can be checked in this test.
+                    respond(authHeader.orEmpty())
                 }
             }
         }
@@ -880,14 +905,23 @@ class AuthTest : ClientLoader() {
         test { client ->
             // Test without circuit breaker - should add auth header with invalid token
             val response1 = client.get("/")
-            assertEquals(HttpStatusCode.Unauthorized, response1.status)
+            assertEquals("Bearer invalid", response1.bodyAsText())
 
             // Test with circuit breaker - should not add auth header
             val response2 = client.get("/") {
                 // add AuthCircuitBreaker like any refresh token request would have
                 attributes.put(AuthCircuitBreaker, Unit)
             }
-            assertEquals(HttpStatusCode.OK, response2.status)
+            assertEquals("", response2.bodyAsText())
+
+            // Test with circuit breaker - should keep custom auth header
+            val response3 = client.get("/") {
+                // add AuthCircuitBreaker like any refresh token request would have
+                attributes.put(AuthCircuitBreaker, Unit)
+                // Add a different auth header which could be needed for the token refresh request
+                header(HttpHeaders.Authorization, "token refresh")
+            }
+            assertEquals("token refresh", response3.bodyAsText())
         }
     }
 

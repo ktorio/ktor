@@ -56,7 +56,7 @@ internal class BaseCache<in K : Any, V : Any>(val calc: suspend (K) -> V) : Cach
     private val container = ConcurrentMap<K, Deferred<V>>()
 
     override suspend fun getOrCompute(key: K): V {
-        val coroutineContext = coroutineContext
+        val coroutineContext = currentCoroutineContext()
         return container.computeIfAbsent(key) {
             CoroutineScope(coroutineContext.minusKey(Job)).async(Dispatchers.Unconfined) {
                 calc(key)

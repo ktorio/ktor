@@ -6,7 +6,6 @@ package io.ktor.http.cio
 
 import io.ktor.http.*
 import io.ktor.http.cio.internals.*
-import io.ktor.utils.io.InternalAPI
 import io.ktor.utils.io.core.*
 
 /**

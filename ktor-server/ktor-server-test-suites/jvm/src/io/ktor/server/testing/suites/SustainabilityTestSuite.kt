@@ -341,7 +341,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
             launch(dispatcher) {
                 try {
                     withUrl("/$i") {
-                        rawContent.toInputStream().reader().use { reader ->
+                        rawContent.asInputStream(coroutineContext.job).reader().use { reader ->
                             val firstByte = reader.read()
                             if (firstByte == -1) {
                                 fail("Premature end of response stream at iteration $i")
@@ -971,7 +971,6 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         }
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
     @Test
     open fun testJobsAreCancelledOnShutdown() = runTest {
         var applicationJob: Job? = null
@@ -1009,7 +1008,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         assertTrue(routingJob.isActive, "Routing job should be active")
 
         // Stop the server
-        server.stop(1, 10, TimeUnit.SECONDS)
+        server.stop(1, 5, TimeUnit.SECONDS)
 
         // Verify both jobs are canceled
         assertTrue(applicationJob.isCancelled, "Application job should be canceled")

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.plugins.csrf
@@ -25,7 +25,6 @@ public class CSRFConfig {
      * All incoming requests must have an "Origin" header matching one of the hosts
      * defined using this method.
      *
-     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.csrf.CSRFConfig.allowOrigin)
      *
      * @param origin expected "Origin" header, revealing the URL of the site leading up
@@ -41,7 +40,6 @@ public class CSRFConfig {
      * header.  This avoids needing to configure the expected host name where your
      * application is deployed but will not work when it is deployed behind a proxy.
      *
-     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.csrf.CSRFConfig.originMatchesHost)
      *
      * @see [CSRF Cheatsheet, Identifying the target origin](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#identifying-the-target-origin)
@@ -54,7 +52,6 @@ public class CSRFConfig {
      * Checks if the given header is present on each call to the server, and if its value
      * conforms to the optional predicate.  If conditions already exist for the header, they
      * must all be satisfied.
-     *
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.csrf.CSRFConfig.checkHeader)
      *
@@ -70,7 +67,6 @@ public class CSRFConfig {
      * Handle CSRF error conditions.  By default, a 400 response is returned with a string response
      * containing the error.  As with any security-related error, it is advised to log the problem and
      * return some generic response.
-     *
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.csrf.CSRFConfig.onFailure)
      *

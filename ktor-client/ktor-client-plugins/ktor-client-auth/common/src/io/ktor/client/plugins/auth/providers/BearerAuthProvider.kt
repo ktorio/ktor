@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.plugins.auth.providers
@@ -10,6 +10,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
+import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 
 /**
@@ -50,6 +51,9 @@ public class RefreshTokensParams(
 
     /**
      * Marks that this request is for refreshing auth tokens, resulting in a special handling of it.
+     *
+     * When a request is marked, no additional Authorization headers are included, and any custom
+     * Authorization headers are kept.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.providers.RefreshTokensParams.markAsRefreshTokenRequest)
      */
@@ -114,10 +118,10 @@ public class BearerAuthConfig {
      * the cached tokens and are used to retry the failed request. Return `null` when refresh is not possible; the
      * original request is not retried with new bearer credentials, and the unauthorized response is returned.
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.providers.BearerAuthConfig.refreshTokens)
+     *
      * @param block a callback that receives the unauthorized response, client, and previously loaded tokens, and
      * returns refreshed bearer tokens or `null` when refresh fails.
-     *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.providers.BearerAuthConfig.refreshTokens)
      */
     public fun refreshTokens(block: suspend RefreshTokensParams.() -> BearerTokens?) {
         refreshTokens = block
@@ -139,10 +143,10 @@ public class BearerAuthConfig {
      * By default, bearer authentication sends credentials with every request. Use this predicate to limit
      * preemptive authentication to trusted hosts, paths, or other request properties.
      *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.providers.BearerAuthConfig.sendWithoutRequest)
+     *
      * @param block a predicate that receives an outgoing request and returns `true` when bearer credentials
      * should be sent with it before receiving a challenge.
-     *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.providers.BearerAuthConfig.sendWithoutRequest)
      */
     public fun sendWithoutRequest(block: (HttpRequestBuilder) -> Boolean) {
         sendWithoutRequest = block
@@ -207,7 +211,7 @@ public class BearerAuthProvider(
      */
     override fun isApplicable(auth: HttpAuthHeader): Boolean {
         if (auth.authScheme != AuthScheme.Bearer) {
-            LOGGER.trace("Bearer Auth Provider is not applicable for $auth")
+            LOGGER.trace { "Bearer Auth Provider is not applicable for $auth" }
             return false
         }
         val isSameRealm = when {
@@ -227,16 +231,12 @@ public class BearerAuthProvider(
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.auth.providers.BearerAuthProvider.addRequestHeaders)
      */
     override suspend fun addRequestHeaders(request: HttpRequestBuilder, authHeader: HttpAuthHeader?) {
+        if (request.attributes.contains(AuthCircuitBreaker)) return
         val token = tokensHolder.loadToken() ?: return
 
         request.headers {
             val tokenValue = "Bearer ${token.accessToken}"
-            if (contains(HttpHeaders.Authorization)) {
-                remove(HttpHeaders.Authorization)
-            }
-            if (request.attributes.contains(AuthCircuitBreaker).not()) {
-                append(HttpHeaders.Authorization, tokenValue)
-            }
+            this[HttpHeaders.Authorization] = tokenValue
         }
     }
 

@@ -1,14 +1,15 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.config
 
-import com.typesafe.config.*
-import io.ktor.util.reflect.TypeInfo
-import io.ktor.util.reflect.serializer
-import io.ktor.utils.io.InternalAPI
-import java.io.*
+import com.typesafe.config.Config
+import com.typesafe.config.ConfigFactory
+import com.typesafe.config.ConfigValueType
+import io.ktor.util.reflect.*
+import io.ktor.utils.io.*
+import java.io.File
 
 /**
  * Loads a [Config] from a hocon file.
@@ -19,7 +20,6 @@ public class HoconConfigLoader : ConfigLoader {
 
     /**
      * Tries loading an application configuration from the specified [path].
-     *
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.config.HoconConfigLoader.load)
      *

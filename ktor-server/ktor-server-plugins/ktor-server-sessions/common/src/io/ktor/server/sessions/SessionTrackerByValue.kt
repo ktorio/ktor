@@ -1,16 +1,16 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.server.sessions
 
 import io.ktor.server.application.*
-import kotlin.reflect.*
+import io.ktor.util.logging.*
+import kotlin.reflect.KClass
 
 /**
  * [SessionTracker] that stores the contents of the session as part of HTTP Cookies/Headers.
  * It uses a specific [serializer] to serialize and deserialize objects of type [type].
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.SessionTrackerByValue)
  *
@@ -26,7 +26,7 @@ public class SessionTrackerByValue<S : Any>(
             try {
                 serializer.deserialize(serialized)
             } catch (t: Throwable) {
-                call.application.log.debug("Failed to deserialize session: $serialized", t)
+                call.application.log.debug(t) { "Failed to deserialize session: $serialized" }
                 null
             }
         }

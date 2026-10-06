@@ -10,8 +10,11 @@ import io.ktor.utils.io.*
 /**
  * Constructs an asynchronous [HttpClient] using optional [block] for configuring this client.
  *
- * The [HttpClientEngine] is selected from the dependencies.
- * https://ktor.io/docs/http-client-engines.html
+ * The [HttpClientEngine] is selected from the registered [engines].
+ * All registered engine factories are ranked by their priority and the one with the highest priority is used.
+ * An exception is thrown if no engines are registered.
+ *
+ * See https://ktor.io/docs/http-client-engines.html
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.HttpClient)
  */
@@ -20,7 +23,6 @@ public actual fun HttpClient(
 ): HttpClient = HttpClient(FACTORY, block)
 
 @OptIn(InternalAPI::class)
-private val FACTORY = engines.firstOrNull() ?: error(
-    "Failed to find HTTP client engine implementation: consider adding client engine dependency. " +
-        "See https://ktor.io/docs/http-client-engines.html"
-)
+private val FACTORY = run {
+    selectDefaultHttpClientEngine(engines.entries())
+}

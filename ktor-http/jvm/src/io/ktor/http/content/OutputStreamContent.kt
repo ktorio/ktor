@@ -30,7 +30,7 @@ public class OutputStreamContent(
      * Writes the content body directly to the given [stream], bypassing the [ByteWriteChannel] intermediary.
      *
      * Engine implementations that have access to a native blocking [OutputStream] (e.g. servlet engines
-     * backed by a thread-per-request model) should call this method instead of [writeTo(ByteWriteChannel)]
+     * backed by a thread-per-request model) should call this method instead of `writeTo(ByteWriteChannel)`
      * to avoid dispatching to [kotlinx.coroutines.Dispatchers.IO] and the `runBlocking` bridge inside
      * [ByteWriteChannel.toOutputStream].
      *

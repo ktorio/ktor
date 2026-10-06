@@ -7,9 +7,7 @@ package io.ktor.http.content
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.jvm.javaio.*
-import kotlinx.coroutines.CoroutineDispatcher
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import java.io.OutputStream
 import java.io.Writer
 
@@ -38,12 +36,13 @@ private val BlockingBridgeDispatcher = Dispatchers.IO.limitedParallelism(
  *
  * The stream passed to [block] is owned by this function and must not be used after [block] returns.
  */
+@OptIn(InternalAPI::class)
 internal suspend inline fun ByteWriteChannel.withBlockingOutputStream(
     dispatcher: CoroutineDispatcher = BlockingBridgeDispatcher,
     crossinline block: suspend (OutputStream) -> Unit,
 ) {
     withContext(dispatcher) {
-        val outputStream = toOutputStream()
+        val outputStream = asOutputStream(coroutineContext.job)
         block(outputStream)
     }
 }
@@ -57,13 +56,14 @@ internal suspend inline fun ByteWriteChannel.withBlockingOutputStream(
  *
  * The writer passed to [block] is owned by this function and must not be used after [block] returns.
  */
+@OptIn(InternalAPI::class)
 internal suspend inline fun ByteWriteChannel.withBlockingWriter(
     charset: Charset,
     dispatcher: CoroutineDispatcher = BlockingBridgeDispatcher,
     crossinline block: suspend (Writer) -> Unit,
 ) {
     withContext(dispatcher) {
-        val writer = toOutputStream().nonClosing().writer(charset)
+        val writer = asOutputStream(coroutineContext.job).nonClosing().writer(charset)
         writer.use { block(it) }
     }
 }

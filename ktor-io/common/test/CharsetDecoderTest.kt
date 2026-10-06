@@ -7,7 +7,6 @@
 
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
-import kotlinx.io.*
 import kotlin.test.*
 
 class CharsetDecoderTest {

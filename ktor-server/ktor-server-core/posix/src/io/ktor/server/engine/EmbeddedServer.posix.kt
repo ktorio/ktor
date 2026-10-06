@@ -20,6 +20,7 @@ actual constructor(
     engineFactory: ApplicationEngineFactory<TEngine, TConfiguration>,
     engineConfigBlock: TConfiguration.() -> Unit
 ) {
+    @Suppress("DEPRECATION")
     public actual val monitor: Events = rootConfig.environment.monitor
 
     public actual val environment: ApplicationEnvironment = rootConfig.environment

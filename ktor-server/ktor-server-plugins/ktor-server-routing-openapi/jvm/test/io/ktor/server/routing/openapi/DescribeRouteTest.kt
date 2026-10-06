@@ -27,6 +27,7 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonClassDiscriminator
 import kotlin.reflect.typeOf
@@ -41,7 +42,6 @@ class DescribeRouteTest {
 
     val testMessage = Message.DM(1L, "Hello, world!", 16777216000)
 
-    @OptIn(ExperimentalSerializationApi::class)
     val jsonFormat = Json {
         encodeDefaults = false
         prettyPrint = true
@@ -227,9 +227,11 @@ class DescribeRouteTest {
         assertNotNull(okResponse, "OK response is missing")
         assertEquals("A list of messages", okResponse.description)
         assertEquals("child", okResponse.extensions?.get("x-bonus")?.deserialize(String.serializer()))
+        val actualOkSchema = okResponse.content?.get(ContentType.Application.Json)?.schema?.valueOrNull()
+        assertNotNull(actualOkSchema, "OK response schema is missing")
         assertEquals(
-            KotlinxJsonSchemaInference.jsonSchema<List<Message>>(),
-            okResponse.content?.get(ContentType.Application.Json)?.schema?.valueOrNull()
+            jsonFormat.encodeToString(KotlinxJsonSchemaInference.jsonSchema<List<Message>>()),
+            jsonFormat.encodeToString(actualOkSchema),
         )
         val badRequestResponse = responses.responses?.get(HttpStatusCode.BadRequest.value)?.valueOrNull()
         assertNotNull(badRequestResponse, "Bad request response is missing")
@@ -859,10 +861,10 @@ class DescribeRouteTest {
         val openApiSpec = jsonFormat.decodeFromString<OpenApiDoc>(responseText)
         val schemas = openApiSpec.components?.schemas ?: fail("Schema components should be defined")
 
-        val nodeSchema = schemas["Node"] ?: fail("Node schema should be present: ${schemas.keys}")
+        val nodeSchema = schemas["RecursiveResponse.Node"] ?: fail("Node schema should be present: ${schemas.keys}")
         val nextSchema = nodeSchema.properties?.get("next")?.valueOrNull() ?: fail("Expected nullable next schema")
         assertEquals(
-            "#/components/schemas/Node",
+            "#/components/schemas/RecursiveResponse.Node",
             (nextSchema.oneOf?.firstOrNull() as? ReferenceOr.Reference)?.ref,
             "Unexpected recursive subtype schema in final OpenAPI: $nodeSchema",
         )
@@ -898,10 +900,10 @@ class DescribeRouteTest {
         val openApiSpec = jsonFormat.decodeFromString<OpenApiDoc>(responseText)
         val schemas = openApiSpec.components?.schemas ?: fail("Schema components should be defined")
 
-        val nodeSchema = schemas["Node"] ?: fail("Node schema should be present: ${schemas.keys}")
+        val nodeSchema = schemas["RecursiveListResponse.Node"] ?: fail("Node schema should be present: ${schemas.keys}")
         val childrenSchema = nodeSchema.properties?.get("children")?.valueOrNull() ?: fail("Expected children schema")
         assertEquals(
-            "#/components/schemas/Node",
+            "#/components/schemas/RecursiveListResponse.Node",
             (childrenSchema.items as? ReferenceOr.Reference)?.ref,
             "Unexpected recursive list subtype schema in final OpenAPI: $nodeSchema",
         )
@@ -999,6 +1001,48 @@ class DescribeRouteTest {
             "https://example.com/schemas/shared_case",
             schema.discriminator?.mapping?.get("external"),
         )
+    }
+
+    @Test
+    fun `schema titles with dots are not truncated`() = testApplication {
+        install(ContentNegotiation) {
+            json(jsonFormat)
+        }
+        @OptIn(ExperimentalKtorApi::class)
+        routing {
+            get("/routes") {
+                call.respond(
+                    OpenApiDoc(info = OpenApiInfo("Test API", "1.0.0")) +
+                        call.application.routingRoot.descendants()
+                )
+            }.hide()
+
+            get("/test") {
+                call.respondText("ok")
+            }.describe {
+                responses {
+                    HttpStatusCode.OK {
+                        schema = jsonSchema<DotSerialNameDto>()
+                    }
+                    HttpStatusCode.Created {
+                        schema = jsonSchema<DotTitleDto>()
+                    }
+                }
+            }
+        }
+
+        val routesResponse = client.get("/routes")
+        val responseText = routesResponse.bodyAsText()
+        val openApiSpec = jsonFormat.decodeFromString<OpenApiDoc>(responseText)
+        val schemas = openApiSpec.components?.schemas ?: fail("Schema components should be defined")
+
+        assertFalse("Bar1" in schemas, "Schema title with dot should not be truncated to 'Bar1': ${schemas.keys}")
+        assertFalse("Bar2" in schemas, "Schema title with dot should not be truncated to 'Bar2': ${schemas.keys}")
+        assertTrue(
+            "DTO.Bar1" in schemas,
+            "Full dot-containing SerialName should be used as component key: ${schemas.keys}"
+        )
+        assertTrue("DTO.Bar2" in schemas, "Full dot-containing Title should be used as component key: ${schemas.keys}")
     }
 
     private inline fun <reified T : Any> componentName(): String =
@@ -1124,3 +1168,11 @@ data class AnnotatedSharedCaseLists(
     @JsonSchema.ItemsRef(SecondNested.SharedCase::class)
     val second: List<String>,
 )
+
+@Serializable
+@SerialName("DTO.Bar1")
+data class DotSerialNameDto(val value: String)
+
+@Serializable
+@JsonSchema.Title("DTO.Bar2")
+data class DotTitleDto(val value: String)

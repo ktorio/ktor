@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.utils.io
@@ -13,7 +13,6 @@ import kotlinx.io.RawSource
  * This enables the usage of a `ByteReadChannel` as a `RawSource` for reading operations.
  *
  * Please note: the [RawSource] produced by this operation uses [runBlocking] to wait for the content to be available.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.asSource)
  *

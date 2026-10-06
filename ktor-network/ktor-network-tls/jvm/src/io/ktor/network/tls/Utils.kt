@@ -18,7 +18,7 @@ internal value class Digest(val state: Sink) : Closeable {
     fun update(packet: Source) {
         synchronized(state) {
             if (packet.exhausted()) return
-            state.writePacket(packet.copy())
+            state.writePacket(packet.peek())
         }
     }
 
@@ -54,7 +54,7 @@ internal operator fun Digest.plusAssign(record: TLSHandshake) {
     update(
         buildPacket {
             writeTLSHandshakeType(record.type, record.packet.remaining.toInt())
-            if (record.packet.remaining > 0) writePacket(record.packet.copy())
+            if (record.packet.remaining > 0) writePacket(record.packet.peek())
         }
     )
 }

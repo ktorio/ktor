@@ -76,8 +76,7 @@ public actual class ConcurrentMap<Key, Value> public actual constructor(
     override fun hashCode(): Int = synchronized(lock) { delegate.hashCode() }
 
     override fun equals(other: Any?): Boolean = synchronized(lock) {
-        if (other !is Map<*, *>) return false
-        return other == delegate
+        return other is Map<*, *> && other == delegate
     }
 
     override fun toString(): String = "ConcurrentMapNative by $delegate"

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.network.tls.extensions
@@ -35,7 +35,7 @@ public enum class HashAlgorithm(public val code: Byte, public val openSSLName: S
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.extensions.HashAlgorithm.Companion.byCode)
          *
-         * @throws TLSExtension if no hash algorithm found by code
+         * @throws TLSException if no hash algorithm found by code
          */
         public fun byCode(code: Byte): HashAlgorithm = entries.find { it.code == code }
             ?: throw TLSException("Unknown hash algorithm: $code")
@@ -72,7 +72,6 @@ public enum class SignatureAlgorithm(public val code: Byte) {
 
 /**
  * Hash and signature algorithm pair
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.extensions.HashAndSign)
  *

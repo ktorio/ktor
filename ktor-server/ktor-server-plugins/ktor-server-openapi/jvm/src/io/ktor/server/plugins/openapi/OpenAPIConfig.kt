@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.plugins.openapi
@@ -70,7 +70,10 @@ public class OpenAPIConfig private constructor(
     /**
      * Specifies a code generator for [OpenAPIConfig].
      *
-     * See also [StaticHtml2Codegen], [StaticHtmlCodegen] and etc.
+     * See also [StaticHtml2Codegen], [StaticHtmlCodegen] etc.
+     *
+     * These swagger-codegen generators officially support OpenAPI 3.0.x. OpenAPI 3.1.x documents may fail to generate
+     * or produce incomplete results.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.openapi.OpenAPIConfig.codegen)
      */

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 @file:Suppress("FunctionName")
@@ -22,7 +22,6 @@ import kotlin.time.Duration.Companion.milliseconds
  *     }
  * }
  * ```
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.websocket.WebSockets)
  *

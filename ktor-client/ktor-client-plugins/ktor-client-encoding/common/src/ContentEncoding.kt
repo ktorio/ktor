@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.plugins.compression
@@ -41,7 +41,6 @@ public class ContentEncodingConfig {
     /**
      * Installs the `gzip` encoder.
      *
-     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.compression.ContentEncodingConfig.gzip)
      *
      * @param quality a priority value to use in the `Accept-Encoding` header.
@@ -52,7 +51,6 @@ public class ContentEncodingConfig {
 
     /**
      * Installs the `deflate` encoder.
-     *
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.compression.ContentEncodingConfig.deflate)
      *
@@ -75,7 +73,6 @@ public class ContentEncodingConfig {
 
     /**
      * Installs a custom encoder.
-     *
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.compression.ContentEncodingConfig.customEncoder)
      *
@@ -237,7 +234,6 @@ internal object ReceiveStateHook : ClientHook<suspend (HttpResponse) -> HttpResp
 /**
  * Installs or configures the [ContentEncoding] plugin.
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.compression.ContentEncoding)
  *
  * @param block: a [ContentEncoding] configuration.
@@ -266,7 +262,6 @@ internal val DecompressionListAttribute: AttributeKey<List<String>> = AttributeK
 /**
  * Compresses request body using [ContentEncoding] plugin.
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.compression.compress)
  *
  * @param contentEncoderName names of compression encoders to use, such as "gzip", "deflate", etc
@@ -277,7 +272,6 @@ public fun HttpRequestBuilder.compress(vararg contentEncoderName: String) {
 
 /**
  * Compress request body using [ContentEncoding] plugin.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.compression.compress)
  *

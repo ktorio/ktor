@@ -43,7 +43,7 @@ public data class HeaderValue(val value: String, val params: List<HeaderValuePar
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.HeaderValue.quality)
      */
-    val quality: Double = params.firstOrNull { it.name == "q" }
+    val quality: Double = params.firstOrNull { it.name.equals("q", ignoreCase = true) }
         ?.value
         ?.toDoubleOrNull()
         ?.takeIf { it in 0.0..1.0 }
@@ -212,12 +212,12 @@ private fun parseHeaderValueParameterValueQuoted(value: String, start: Int): Pai
     loop@ while (position <= value.lastIndex) {
         val currentChar = value[position]
 
-        when {
-            currentChar == '"' && value.nextIsDelimiterOrEnd(position) -> {
+        when (currentChar) {
+            '"' if value.nextIsDelimiterOrEnd(position) -> {
                 return position + 1 to builder.toString()
             }
 
-            currentChar == '\\' && position < value.lastIndex - 2 -> {
+            '\\' if position < value.lastIndex -> {
                 builder.append(value[position + 1])
                 position += 2
                 continue@loop
@@ -229,7 +229,7 @@ private fun parseHeaderValueParameterValueQuoted(value: String, start: Int): Pai
     }
 
     // The value is unquoted here
-    return position to '"' + builder.toString()
+    return position to value.substring(start - 1, position)
 }
 
 private fun String.nextIsDelimiterOrEnd(start: Int): Boolean {

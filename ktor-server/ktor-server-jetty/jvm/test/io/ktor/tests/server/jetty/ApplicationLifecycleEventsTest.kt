@@ -4,12 +4,14 @@
 
 package io.ktor.tests.server.jetty
 
-import io.ktor.server.servlet.KtorServletContextListener
+import io.ktor.server.servlet.KtorServletContainerInitializer
 import io.ktor.server.servlet.ServletApplicationEngine
+import io.ktor.utils.io.InternalAPI
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.server.ServerConnector
 import org.eclipse.jetty.servlet.ServletContextHandler
 import org.eclipse.jetty.servlet.ServletHolder
+import org.eclipse.jetty.util.component.LifeCycle
 import java.net.HttpURLConnection
 import java.net.URI
 import kotlin.test.AfterTest
@@ -28,9 +30,8 @@ import kotlin.test.assertTrue
  *  - `ApplicationStopped` is triggered on undeploy even if no request was ever served.
  *
  * The servlet is mounted like a real WAR — no engine attributes are injected and no `load-on-startup`
- * is configured. [KtorServletContextListener] is registered directly, mirroring what
- * [io.ktor.server.servlet.KtorServletContainerInitializer] does when a container auto-discovers it via
- * `META-INF/services` (validated separately below).
+ * is configured. [KtorServletContainerInitializer.onStartup] is invoked directly, mirroring what a
+ * container does when it auto-discovers it via `META-INF/services` (validated separately below).
  */
 class ApplicationLifecycleEventsTest {
 
@@ -87,6 +88,7 @@ class ApplicationLifecycleEventsTest {
         )
     }
 
+    @OptIn(InternalAPI::class)
     private fun startServer(): Server {
         val server = Server()
         server.addConnector(ServerConnector(server).apply { port = 0 })
@@ -103,9 +105,13 @@ class ApplicationLifecycleEventsTest {
                 },
                 "/*"
             )
-            // Mirror what KtorServletContainerInitializer does when auto-discovered via META-INF/services.
-            addEventListener(KtorServletContextListener())
         }
+        context.addLifeCycleListener(object : LifeCycle.Listener {
+            override fun lifeCycleStarting(event: LifeCycle) {
+                context.servletContext.setExtendedListenerTypes(true)
+                KtorServletContainerInitializer().onStartup(null, context.servletContext)
+            }
+        })
         server.handler = context
 
         server.start()

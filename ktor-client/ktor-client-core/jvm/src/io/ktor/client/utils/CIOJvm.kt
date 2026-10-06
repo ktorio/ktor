@@ -4,8 +4,6 @@
 
 package io.ktor.client.utils
 
-import io.ktor.util.*
-import io.ktor.utils.io.*
 import io.ktor.utils.io.pool.*
 import java.nio.*
 

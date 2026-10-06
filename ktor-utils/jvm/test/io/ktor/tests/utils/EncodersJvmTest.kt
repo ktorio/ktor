@@ -47,7 +47,7 @@ class EncodersJvmTest {
 }
 
 private suspend fun Encoder.encodeBytes(bytes: ByteArray): ByteArray =
-    encode(ByteReadChannel(bytes), currentCoroutineContext()).readRemaining().readByteArray()
+    encode(ByteReadChannel(bytes), currentCoroutineContext()).readBuffer().readByteArray()
 
 private suspend fun Encoder.decodeBytes(bytes: ByteArray): ByteArray =
-    decode(ByteReadChannel(bytes), currentCoroutineContext()).readRemaining().readByteArray()
+    decode(ByteReadChannel(bytes), currentCoroutineContext()).readBuffer().readByteArray()

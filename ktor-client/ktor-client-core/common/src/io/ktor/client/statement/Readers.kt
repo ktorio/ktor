@@ -1,11 +1,11 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.client.statement
 
 import io.ktor.utils.io.*
-import kotlinx.io.*
+import kotlinx.io.readByteArray
 
 /**
  * Reads exactly [count] bytes of the [HttpResponse.rawContent].
@@ -26,13 +26,12 @@ public suspend fun HttpResponse.readBytes(count: Int): ByteArray = ByteArray(cou
  * The content will retain its original
  * compression or encoding as received from the server.
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.statement.readRawBytes)
  *
  * @return the raw payload of the HTTP response as a byte array
  */
 @OptIn(InternalAPI::class)
-public suspend fun HttpResponse.readRawBytes(): ByteArray = rawContent.readRemaining().readByteArray()
+public suspend fun HttpResponse.readRawBytes(): ByteArray = rawContent.readBuffer().readByteArray()
 
 /**
  * Reads the raw payload of the HTTP response as a byte array.
@@ -43,14 +42,13 @@ public suspend fun HttpResponse.readRawBytes(): ByteArray = rawContent.readRemai
  *
  * If you need to read the content as decoded bytes, use the [bodyAsBytes()] method instead.
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.statement.readBytes)
  *
  * @return the raw payload of the HTTP response as a byte array
  */
 @OptIn(InternalAPI::class)
 @Deprecated("This method was renamed to readRawBytes() to reflect what it does.", ReplaceWith("readRawBytes()"))
-public suspend fun HttpResponse.readBytes(): ByteArray = rawContent.readRemaining().readByteArray()
+public suspend fun HttpResponse.readBytes(): ByteArray = rawContent.readBuffer().readByteArray()
 
 /**
  * Efficiently discards the remaining bytes of [HttpResponse.rawContent].

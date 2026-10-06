@@ -89,7 +89,7 @@ class TCPSocketTest {
                     val serverInput = serverConnection.openReadChannel()
                     val serverOutput = serverConnection.openWriteChannel()
 
-                    serverOutput.writeSource(serverInput.readRemaining())
+                    serverOutput.writeSource(serverInput.readBuffer())
                     serverOutput.flushAndClose()
 
                     serverConnection.close()
@@ -105,7 +105,7 @@ class TCPSocketTest {
             clientOutput.writeByteArray(content)
             clientOutput.flushAndClose()
 
-            val response = clientInput.readRemaining().readByteArray()
+            val response = clientInput.readBuffer().readByteArray()
             assertTrue(
                 response.contentEquals(content),
                 "Test fail with size: ${content.size}, actual size: ${response.size}"

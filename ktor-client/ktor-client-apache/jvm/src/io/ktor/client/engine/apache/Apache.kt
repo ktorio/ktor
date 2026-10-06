@@ -35,6 +35,7 @@ import io.ktor.client.engine.*
     ),
     level = DeprecationLevel.WARNING
 )
+@Suppress("DEPRECATION")
 public data object Apache : HttpClientEngineFactory<ApacheEngineConfig> {
     override fun create(block: ApacheEngineConfig.() -> Unit): HttpClientEngine {
         val config = ApacheEngineConfig().apply(block)
@@ -46,8 +47,10 @@ public data object Apache : HttpClientEngineFactory<ApacheEngineConfig> {
     message = "Apache engine is deprecated. Consider using Apache5 engine instead.",
     level = DeprecationLevel.WARNING
 )
+@Suppress("DEPRECATION")
 public class ApacheEngineContainer : HttpClientEngineContainer {
     override val factory: HttpClientEngineFactory<*> = Apache
+    override val priority: Double get() = -1.0
 
     override fun toString(): String = "Apache"
 }

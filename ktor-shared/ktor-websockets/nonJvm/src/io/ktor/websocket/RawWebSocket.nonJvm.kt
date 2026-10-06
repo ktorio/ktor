@@ -5,11 +5,10 @@
 package io.ktor.websocket
 
 import io.ktor.utils.io.*
-import kotlin.coroutines.*
+import kotlin.coroutines.CoroutineContext
 
 /**
  * Creates a RAW web socket session from connection
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.RawWebSocket)
  *

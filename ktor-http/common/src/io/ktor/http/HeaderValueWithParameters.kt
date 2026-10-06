@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.http
 
@@ -8,13 +8,11 @@ import io.ktor.util.*
 import io.ktor.utils.io.*
 
 /** Separator symbols listed in RFC https://tools.ietf.org/html/rfc2616#section-2.2 */
-private val HeaderFieldValueSeparators =
-    setOf('(', ')', '<', '>', '@', ',', ';', ':', '\\', '\"', '/', '[', ']', '?', '=', '{', '}', ' ', '\t', '\n', '\r')
+private val HeaderFieldValueSeparators = AsciiBitSet.of("()<>@,;:\\\"/[]?={} \t\n\r")
 
 /**
  * Represents a header value that consist of [content] followed by [parameters].
  * Useful for headers such as `Content-Type`, `Content-Disposition` and so on.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.HeaderValueWithParameters)
  *
@@ -108,7 +106,7 @@ private fun String.needQuotes(): Boolean {
     if (isQuoted()) return false
 
     for (element in this) {
-        if (HeaderFieldValueSeparators.contains(element)) return true
+        if (element in HeaderFieldValueSeparators) return true
     }
 
     return false

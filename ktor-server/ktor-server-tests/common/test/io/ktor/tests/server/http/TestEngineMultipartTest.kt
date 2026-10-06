@@ -6,6 +6,7 @@ package io.ktor.tests.server.http
 
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
@@ -42,7 +43,7 @@ class TestEngineMultipartTest {
             extraFileAssertions = { file ->
                 assertEquals(
                     bytes.toHexString(),
-                    file.provider().readRemaining().readByteArray().toHexString()
+                    file.provider().readBuffer().readByteArray().toHexString()
                 )
             }
         )
@@ -54,7 +55,7 @@ class TestEngineMultipartTest {
         return testMultiPartsFileItemBase(
             filename = "file.txt",
             provider = { ByteReadChannel(string.toByteArray()) },
-            extraFileAssertions = { file -> assertEquals(string, file.provider().readRemaining().readText()) }
+            extraFileAssertions = { file -> assertEquals(string, file.provider().readBuffer().readText()) }
         )
     }
 
@@ -68,7 +69,7 @@ class TestEngineMultipartTest {
 
             assertEquals("fileField", file.name)
             assertEquals("file.bin", file.originalFileName)
-            assertEquals(bytes.toHexString(), file.provider().readRemaining().readByteArray().toHexString())
+            assertEquals(bytes.toHexString(), file.provider().readBuffer().readByteArray().toHexString())
 
             file.release()
         }) {
@@ -109,6 +110,42 @@ class TestEngineMultipartTest {
     }
 
     @Test
+    fun testReceiveMultipartFormItem() = testApplication {
+        routing {
+            post {
+                val part = call.receiveMultipart().readPart() as PartData.FormItem
+                val name = part.name
+                val value = part.value
+                part.release()
+                call.respondText("$name=$value")
+            }
+        }
+
+        val response = client.post {
+            setBody(MultiPartFormDataContent(formData { append("data", "value") }))
+        }
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals("data=value", response.bodyAsText())
+    }
+
+    @Test
+    fun testReceiveParametersFromMultipart() = testApplication {
+        routing {
+            post {
+                call.respondText(call.receiveParameters()["data"] ?: "missing")
+            }
+        }
+
+        val response = client.post {
+            setBody(MultiPartFormDataContent(formData { append("data", "value") }))
+        }
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals("value", response.bodyAsText())
+    }
+
+    @Test
     fun testMultipartIsNotTruncated() {
         if (!PlatformUtils.IS_JVM) return
 
@@ -120,7 +157,7 @@ class TestEngineMultipartTest {
                         val part = multipart.readPart() ?: break
                         when (part) {
                             is PartData.FileItem -> {
-                                part.provider().readRemaining().readText()
+                                part.provider().readBuffer().readText()
                             }
 
                             is PartData.FormItem -> {
@@ -128,7 +165,7 @@ class TestEngineMultipartTest {
                             }
 
                             is PartData.BinaryChannelItem -> {
-                                part.provider().readRemaining().readText()
+                                part.provider().readBuffer().readText()
                             }
 
                             is PartData.BinaryItem -> {
@@ -160,8 +197,6 @@ class TestEngineMultipartTest {
 
     @Test
     fun testMultipartBiggerThanLimitFails() {
-        if (!PlatformUtils.IS_JVM) return
-
         testApplication {
             routing {
                 post {
@@ -259,7 +294,7 @@ internal fun buildMultipart(
                     append(
                         when (it) {
                             is PartData.FileItem -> {
-                                channel.writeFully(it.provider().readRemaining().readByteArray())
+                                channel.writeFully(it.provider().readBuffer().readByteArray())
                                 ""
                             }
 

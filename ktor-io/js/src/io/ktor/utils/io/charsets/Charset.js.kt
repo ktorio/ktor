@@ -130,6 +130,8 @@ internal actual fun CharsetEncoder.encodeToByteArrayImpl(
 public actual fun CharsetDecoder.decode(input: Source, dst: Appendable, max: Int): Int {
     val decoder = Decoder(charset.name, true)
 
+    // ensure buffer is filled
+    input.request(max.toLong())
     val count = minOf(input.buffer.size, max.toLong())
     val array = input.readByteArray(count.toInt())
     val result = try {

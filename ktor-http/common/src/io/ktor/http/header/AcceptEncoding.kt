@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http.header
@@ -8,7 +8,6 @@ import io.ktor.http.*
 
 /**
  * Represents the `Accept-Encoding` HTTP header, which specifies the content encoding the client is willing to accept.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.header.AcceptEncoding)
  *
@@ -22,7 +21,6 @@ public class AcceptEncoding(
 
     /**
      * Constructs an `AcceptEncoding` instance with a specified encoding type and q-value.
-     *
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.header.AcceptEncoding.AcceptEncoding)
      *
@@ -51,7 +49,6 @@ public class AcceptEncoding(
         /**
          * Merges multiple `AcceptEncoding` instances into a single string separated by commas.
          *
-         *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.header.AcceptEncoding.Companion.mergeAcceptEncodings)
          *
          * @param encodings A variable number of `AcceptEncoding` objects to be merged.
@@ -64,7 +61,6 @@ public class AcceptEncoding(
 
     /**
      * Returns a new `AcceptEncoding` instance with the specified q-value parameter.
-     *
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.header.AcceptEncoding.withQValue)
      *
@@ -82,7 +78,6 @@ public class AcceptEncoding(
     /**
      * Checks if `this` `AcceptEncoding` matches a [pattern] `AcceptEncoding`, taking into account
      * wildcard symbols `*` and parameters such as q-values.
-     *
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.header.AcceptEncoding.match)
      *

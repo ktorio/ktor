@@ -10,13 +10,14 @@ import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.*
-import kotlinx.io.*
-import kotlin.coroutines.*
-import kotlin.random.*
+import kotlinx.io.EOFException
+import kotlinx.io.Source
+import kotlinx.io.readByteArray
+import kotlin.coroutines.CoroutineContext
+import kotlin.random.Random
 
 /**
  * Creates a RAW web socket session from connection.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.RawWebSocket)
  *
@@ -218,7 +219,6 @@ public suspend fun ByteWriteChannel.writeFrame(frame: Frame, masking: Boolean) {
 
 /**
  * Reads bits from [ByteReadChannel] and converts into a WebSocket [Frame].
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.readFrame)
  *

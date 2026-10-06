@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.util
@@ -8,7 +8,7 @@ import io.ktor.http.*
 import io.ktor.server.plugins.*
 import io.ktor.util.converters.*
 import io.ktor.util.reflect.*
-import kotlin.reflect.*
+import kotlin.reflect.KProperty
 
 /**
  * Operator function that allows to delegate variables by call parameters.
@@ -25,10 +25,10 @@ import kotlin.reflect.*
  * }
  * ```
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.util.getValue)
+ *
  * @throws MissingRequestParameterException if no values associated with name and [R] is not nullable
  * @throws ParameterConversionException when conversion from String to [R] fails
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.util.getValue)
  */
 public inline operator fun <reified R> Parameters.getValue(thisRef: Any?, property: KProperty<*>): R =
     getOrFail<R>(property.name)
@@ -57,13 +57,14 @@ public inline fun <reified R> Parameters.getOrFail(name: String): R =
     getOrFailImpl(name, typeInfo<R>())
 
 @PublishedApi
+@Suppress("UNCHECKED_CAST")
 internal fun <R> Parameters.getOrFailImpl(name: String, typeInfo: TypeInfo): R {
-    return if (typeInfo.kotlinType?.isMarkedNullable == true && get(name) == null) {
+    return if (typeInfo.isNullable && get(name) == null) {
+        @Suppress("UNCHECKED_CAST")
         null as R
     } else {
         val values = getAll(name) ?: throw MissingRequestParameterException(name)
         try {
-            @Suppress("UNCHECKED_CAST")
             DefaultConversionService.fromValues(values, typeInfo) as R
         } catch (cause: Exception) {
             throw ParameterConversionException(name, typeInfo.type.simpleName ?: typeInfo.type.toString(), cause)

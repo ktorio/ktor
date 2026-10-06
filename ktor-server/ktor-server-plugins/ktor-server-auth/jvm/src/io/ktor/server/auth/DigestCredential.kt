@@ -189,12 +189,12 @@ public class DigestCredential(
         result = 31 * result + userName.hashCode()
         result = 31 * result + digestUri.hashCode()
         result = 31 * result + nonce.hashCode()
-        result = 31 * result + (opaque?.hashCode() ?: 0)
-        result = 31 * result + (nonceCount?.hashCode() ?: 0)
+        result = 31 * result + opaque.hashCode()
+        result = 31 * result + nonceCount.hashCode()
         result = 31 * result + digestAlgorithm.hashCode()
         result = 31 * result + response.hashCode()
-        result = 31 * result + (cnonce?.hashCode() ?: 0)
-        result = 31 * result + (qop?.hashCode() ?: 0)
+        result = 31 * result + cnonce.hashCode()
+        result = 31 * result + qop.hashCode()
         result = 31 * result + charset.hashCode()
         return result
     }
@@ -311,11 +311,11 @@ internal fun DigestCredential.verifyWithHA1(
  * - Session algorithm support (where HA1 includes nonce and cnonce)
  * - auth-int support (where HA2 includes the entity body hash)
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.expectedDigest)
+ *
  * @param method The HTTP method of the request
  * @param userNameRealmPasswordDigest The H(username:realm:password) value
  * @param entityBodyHash The hash of the request entity body (for qop=auth-int)
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.expectedDigest)
  */
 public fun DigestCredential.expectedDigest(
     method: HttpMethod,

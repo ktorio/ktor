@@ -11,6 +11,8 @@ import io.ktor.client.webrtc.*
 
 /**
  * JVM implementation of a WebRTC media track wrapper.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.media.JvmMediaTrack)
  */
 public abstract class JvmMediaTrack(
     internal val inner: MediaStreamTrack,
@@ -62,12 +64,16 @@ public class JvmVideoTrack(native: MediaStreamTrack, onDispose: () -> Unit = {})
 
 /**
  * Helper to access native tracks. Use with caution.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.media.getNative)
  */
 public fun WebRtcMedia.VideoTrack.getNative(): VideoTrack =
     (this as JvmMediaTrack).inner as VideoTrack
 
 /**
  * Helper to access native tracks. Use with caution.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.media.getNative)
  */
 public fun WebRtcMedia.AudioTrack.getNative(): AudioTrack =
     (this as JvmMediaTrack).inner as AudioTrack

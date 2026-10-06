@@ -210,6 +210,8 @@ public abstract class WebRtcDataChannel private constructor(
      *
      * If the data channel is closed, the iterator keeps returning messages already stored in the buffer
      * and completes when no buffered messages remain.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcDataChannel.iterator)
      */
     public operator fun iterator(): ChannelIterator<WebRtc.DataChannel.Message> {
         return receiveChannel.iterator()

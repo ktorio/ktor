@@ -55,7 +55,7 @@ public class ExperimentalJsonConverter(private val format: Json) : ContentConver
 
     override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? {
         val serializer = format.serializersModule.serializerForTypeInfo(typeInfo)
-        val contentPacket = content.readRemaining()
+        val contentPacket = content.readBuffer()
         return try {
             format.decodeFromSource(serializer, contentPacket)
         } catch (cause: Throwable) {

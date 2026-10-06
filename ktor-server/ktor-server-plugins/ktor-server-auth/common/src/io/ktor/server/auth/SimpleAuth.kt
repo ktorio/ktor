@@ -1,12 +1,11 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.auth
 
 /**
  * A user's principal identified by [name].
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.UserIdPrincipal)
  *
@@ -17,7 +16,6 @@ public data class UserIdPrincipal(val name: String)
 
 /**
  * A user's credentials identified by [name] and [password].
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.UserPasswordCredential)
  *
@@ -32,7 +30,6 @@ public data class BearerTokenCredential(val token: String)
 /**
  * An in-memory table that keeps usernames and password hashes.
  * This allows you not to compromise user passwords if your data source is leaked.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.UserHashedTableAuth)
  *

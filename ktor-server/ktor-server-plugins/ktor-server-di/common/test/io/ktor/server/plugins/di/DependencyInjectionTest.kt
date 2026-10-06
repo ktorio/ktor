@@ -7,6 +7,7 @@ package io.ktor.server.plugins.di
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.server.application.*
+import io.ktor.server.plugins.di.utils.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
@@ -15,6 +16,7 @@ import io.ktor.test.dispatcher.*
 import io.ktor.util.logging.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.CancellationException
+import io.ktor.utils.io.InternalAPI
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.consumeAsFlow
@@ -559,6 +561,15 @@ class DependencyInjectionTest {
             closed,
             "Expected all dependencies to be closed in the correct order"
         )
+    }
+
+    @Test
+    @OptIn(InternalAPI::class)
+    fun `raw type preserves nullability`() {
+        val rawType = typeInfo<List<String>?>().toRawType()
+
+        assertNull(rawType.kotlinType)
+        assertTrue(rawType.isNullable)
     }
 
     @Test

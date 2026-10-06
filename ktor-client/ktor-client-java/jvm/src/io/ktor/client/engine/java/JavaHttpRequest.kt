@@ -18,17 +18,23 @@ import java.time.*
 import java.util.*
 import kotlin.coroutines.*
 
+/**
+ * Headers managed or restricted by `java.net.http.HttpClient` itself. Passing any of these to
+ * `HttpRequest.Builder.header(...)` throws `IllegalArgumentException`, so the engine omits them:
+ * [HttpHeaders.ContentLength] is derived from the [HttpRequest.BodyPublisher], and the JDK controls
+ * the transport headers [HttpHeaders.Connection], [HttpHeaders.Expect] and [HttpHeaders.Upgrade].
+ *
+ * Other headers the JDK once restricted (`Date`, `From`, `Via`, `Warning`) are intentionally absent:
+ * since [JDK-8213189](https://bugs.openjdk.org/browse/JDK-8213189) the JDK accepts them, so the
+ * engine delegates to it rather than silently dropping caller-supplied values.
+ */
 internal val DISALLOWED_HEADERS = TreeSet(String.CASE_INSENSITIVE_ORDER).apply {
     addAll(
         setOf(
             HttpHeaders.Connection,
             HttpHeaders.ContentLength,
-            HttpHeaders.Date,
             HttpHeaders.Expect,
-            HttpHeaders.From,
-            HttpHeaders.Upgrade,
-            HttpHeaders.Via,
-            HttpHeaders.Warning
+            HttpHeaders.Upgrade
         )
     )
 }
@@ -50,7 +56,11 @@ internal fun HttpRequestData.convertToHttpRequest(callContext: CoroutineContext)
             }
         }
 
-        method(method.value, body.convertToHttpRequestBody(callContext))
+        if (method == HttpMethod.Get && body.isEmpty()) {
+            GET()
+        } else {
+            method(method.value, body.convertToHttpRequestBody(callContext))
+        }
     }
 
     return builder.build()

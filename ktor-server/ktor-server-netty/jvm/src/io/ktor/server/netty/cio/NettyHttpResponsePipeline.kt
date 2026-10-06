@@ -27,12 +27,25 @@ import kotlin.coroutines.CoroutineContext
 private const val UNFLUSHED_LIMIT = 65536
 
 /**
- * Contains methods for handling http request with Netty
+ * Contains methods for handling HTTP responses with Netty.
+ *
+ * The pipeline serializes response writes in request order and flushes pending writes once the
+ * channel read cycle is complete.
+ *
+ * @property context Netty channel context used to write, flush, read from, and close the channel.
+ * @property httpHandlerState Shared state used to coordinate request counters, read-completion state,
+ *                            and back-pressure decisions for the handler.
+ * @property coroutineContext Coroutine context used to launch response body writer coroutines.
+ * @property onFailure Optional action invoked after a failed call's counters are decremented. For HTTP/2, this is
+ *                     used to trigger [flushIfNeeded] on the most-recently-created pipeline (which may differ from
+ *                     `this` due to the shared-handler-per-stream design), so that any of its pending writes are
+ *                     flushed regardless of thread-scheduling order.
  */
 internal class NettyHttpResponsePipeline(
     private val context: ChannelHandlerContext,
     private val httpHandlerState: NettyHttpHandlerState,
-    override val coroutineContext: CoroutineContext
+    override var coroutineContext: CoroutineContext,
+    private val onFailure: (() -> Unit)? = null
 ) : CoroutineScope {
     /**
      * True if there is unflushed written data in channel
@@ -51,14 +64,13 @@ internal class NettyHttpResponsePipeline(
     /** Flush if all is true:
      * - there is some unflushed data
      * - nothing to read from the channel
-     * - there are no active non-streaming requests
+     *
+     * Flushing never reorders already-written data (Netty's outbound buffer is FIFO), so it is always safe
+     * to flush as soon as the current read cycle is done, regardless of how many other requests on this
+     * connection are still being computed or written.
      */
     internal fun flushIfNeeded() {
-        if (
-            isDataNotFlushed.value &&
-            httpHandlerState.isChannelReadCompleted.value &&
-            httpHandlerState.activeRequests.value == httpHandlerState.streamingResponses.value
-        ) {
+        if (isDataNotFlushed.value && httpHandlerState.isChannelReadCompleted.value) {
             context.flush()
             isDataNotFlushed.compareAndSet(expect = true, update = false)
         }
@@ -80,7 +92,11 @@ internal class NettyHttpResponsePipeline(
         } catch (actualException: Throwable) {
             respondWithFailure(call, actualException)
         } finally {
-            call.responseWriteJob.cancel()
+            // On the failure path above, responseWriteJob is already cancelled by respondWithFailure;
+            // completing it here again is then a no-op. On the (overwhelmingly common) success path,
+            // this is the actual completion signal, so it goes through complete()'s fast path rather
+            // than cancel()'s always-slow-path Finishing/exception-aggregation machinery.
+            call.completeResponseWriteJob()
         }
     }
 
@@ -112,7 +128,10 @@ internal class NettyHttpResponsePipeline(
             else -> actualException
         }
 
+        httpHandlerState.activeRequests.decrementAndGet()
+
         flushIfNeeded()
+        onFailure?.invoke()
         call.response.responseChannel.cancel(t)
         call.responseWriteJob.cancel()
         call.response.cancel()
@@ -150,27 +169,18 @@ internal class NettyHttpResponsePipeline(
             null
         }
 
-        if (call.isStreamingResponse) {
-            httpHandlerState.streamingResponses.decrementAndGet()
-        }
         httpHandlerState.onLastResponseMessage(context)
         call.finishedEvent.setSuccess()
 
-        lastMessageFuture?.addListener {
-            if (prepareForClose) {
-                close(lastFuture)
-                return@addListener
-            }
-        }
         if (prepareForClose) {
-            close(lastFuture)
+            close(call, lastMessageFuture ?: lastFuture)
             return
         }
         scheduleFlush()
     }
 
-    fun close(lastFuture: ChannelFuture) {
-        context.flush()
+    fun close(call: NettyApplicationCall, lastFuture: ChannelFuture) {
+        call.flushBeforeClose(context, lastFuture)
         isDataNotFlushed.compareAndSet(expect = true, update = false)
         lastFuture.addListener {
             context.close()
@@ -210,9 +220,6 @@ internal class NettyHttpResponsePipeline(
             responseMessage is Http3HeadersFrame -> responseMessage.headers().getInt("content-length", -1)
             else -> -1
         }
-
-        call.isStreamingResponse = true
-        httpHandlerState.streamingResponses.incrementAndGet()
 
         launch(context.executor().asCoroutineDispatcher(), start = CoroutineStart.UNDISPATCHED) {
             respondWithBodyAndTrailerMessage(

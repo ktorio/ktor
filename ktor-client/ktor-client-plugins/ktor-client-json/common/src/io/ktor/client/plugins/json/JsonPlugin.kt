@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 @file:Suppress("DEPRECATION_ERROR")
@@ -15,7 +15,7 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
-import kotlin.reflect.*
+import kotlin.reflect.KClass
 
 internal val DefaultCommonIgnoredTypes: Set<KClass<*>> = setOf(
     ByteArray::class,
@@ -49,7 +49,6 @@ public expect fun defaultSerializer(): JsonSerializer
  *
  * Note: It will de-serialize the body response if the specified type is a public accessible class
  *       and the Content-Type is one of [acceptContentTypes] list (`application/json` by default).
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.json.JsonPlugin)
  *
@@ -250,7 +249,7 @@ public class JsonPlugin internal constructor(
                 val contentType = context.response.contentType() ?: return@intercept
                 if (!plugin.canHandle(contentType)) return@intercept
 
-                val parsedBody = plugin.serializer.read(info, body.readRemaining())
+                val parsedBody = plugin.serializer.read(info, body.readBuffer())
                 val response = HttpResponseContainer(info, parsedBody)
                 proceedWith(response)
             }

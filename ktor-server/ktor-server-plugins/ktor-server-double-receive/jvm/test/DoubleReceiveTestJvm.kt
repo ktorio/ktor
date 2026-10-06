@@ -21,7 +21,7 @@ class DoubleReceiveTestJvm {
         )
 
         repeat(3) {
-            val received = cache.read().readRemaining().readByteArray()
+            val received = cache.read().readBuffer().readByteArray()
             assertContentEquals(content, received)
         }
     }

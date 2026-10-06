@@ -121,7 +121,7 @@ public fun <P : Pipeline<*, PipelineCall>, B : Any, F : Any> P.install(
             try {
                 val installed = plugin.install(this, configure)
                 registry.put(plugin.key, installed)
-                // environment.log.trace("`${plugin.name}` plugin was installed successfully.")
+                // environment.log.trace { "`${plugin.name}` plugin was installed successfully." }
                 installed
             } catch (t: Throwable) {
                 // environment.log.error("`${plugin.name}` plugin failed to install.", t)

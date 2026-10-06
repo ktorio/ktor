@@ -76,7 +76,7 @@ class FormDslJsTest {
             channel.close()
         }
 
-        val result = channel.readRemaining().readByteArray()
+        val result = channel.readBuffer().readByteArray()
         writeJob.join()
 
         result

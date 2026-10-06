@@ -81,6 +81,13 @@ io.ktor:ktor-client-darwin/.jar
 io.ktor:ktor-client-darwin/javadoc.jar
 io.ktor:ktor-client-darwin/kotlin-tooling-metadata.json
 io.ktor:ktor-client-darwin/sources.jar
+io.ktor:ktor-client-engine-defaults-jvm/.jar
+io.ktor:ktor-client-engine-defaults-jvm/javadoc.jar
+io.ktor:ktor-client-engine-defaults-jvm/sources.jar
+io.ktor:ktor-client-engine-defaults/.jar
+io.ktor:ktor-client-engine-defaults/javadoc.jar
+io.ktor:ktor-client-engine-defaults/kotlin-tooling-metadata.json
+io.ktor:ktor-client-engine-defaults/sources.jar
 io.ktor:ktor-client-encoding-jvm/.jar
 io.ktor:ktor-client-encoding-jvm/javadoc.jar
 io.ktor:ktor-client-encoding-jvm/sources.jar
@@ -384,6 +391,13 @@ io.ktor:ktor-server-auth-ldap/.jar
 io.ktor:ktor-server-auth-ldap/javadoc.jar
 io.ktor:ktor-server-auth-ldap/kotlin-tooling-metadata.json
 io.ktor:ktor-server-auth-ldap/sources.jar
+io.ktor:ktor-server-auth-oidc-jvm/.jar
+io.ktor:ktor-server-auth-oidc-jvm/javadoc.jar
+io.ktor:ktor-server-auth-oidc-jvm/sources.jar
+io.ktor:ktor-server-auth-oidc/.jar
+io.ktor:ktor-server-auth-oidc/javadoc.jar
+io.ktor:ktor-server-auth-oidc/kotlin-tooling-metadata.json
+io.ktor:ktor-server-auth-oidc/sources.jar
 io.ktor:ktor-server-auth/.jar
 io.ktor:ktor-server-auth/javadoc.jar
 io.ktor:ktor-server-auth/kotlin-tooling-metadata.json

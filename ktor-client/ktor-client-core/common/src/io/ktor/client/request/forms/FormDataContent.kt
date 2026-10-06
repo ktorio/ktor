@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.client.request.forms
 
@@ -9,8 +9,8 @@ import io.ktor.http.content.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
-import kotlinx.io.*
-import kotlin.random.*
+import kotlinx.io.readByteArray
+import kotlin.random.Random
 
 private val RN_BYTES = "\r\n".toByteArray()
 
@@ -18,7 +18,6 @@ private val RN_BYTES = "\r\n".toByteArray()
  * [OutgoingContent] with for the `application/x-www-form-urlencoded` formatted request.
  *
  * Example: [Form parameters](https://ktor.io/docs/request.html#form_parameters).
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.forms.FormDataContent)
  *
@@ -39,7 +38,6 @@ public class FormDataContent(
  * [OutgoingContent] for a `multipart/form-data` formatted request.
  *
  * Example: [Upload a file](https://ktor.io/docs/request.html#upload_file).
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.forms.MultiPartFormDataContent)
  *

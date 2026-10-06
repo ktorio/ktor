@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.plugins.callid
@@ -8,7 +8,8 @@ import io.ktor.callid.*
 import io.ktor.client.plugins.api.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import kotlin.coroutines.*
+import kotlinx.coroutines.currentCoroutineContext
+import kotlin.coroutines.CoroutineContext
 
 internal typealias CallIdGenerator = suspend (HttpRequestBuilder) -> String?
 internal typealias CallIdInterceptor = (request: HttpRequestBuilder, callId: String) -> Unit
@@ -25,7 +26,6 @@ public class CallIdConfig {
 
     /**
      * If set to `true`, adds a default generator that uses current [CoroutineContext] to retrieve a call ID.
-     *
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.callid.CallIdConfig.useCoroutineContext)
      *
@@ -48,7 +48,6 @@ public class CallIdConfig {
     /**
      * Allows you to add a call ID to the request.
      *
-     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.callid.CallIdConfig.intercept)
      *
      * @see [addToHeader]
@@ -59,7 +58,6 @@ public class CallIdConfig {
 
     /**
      * Adds a call ID to specified header named [header].
-     *
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.callid.CallIdConfig.addToHeader)
      *
@@ -92,7 +90,7 @@ public val CallId: ClientPlugin<CallIdConfig> = createClientPlugin("CallId", ::C
     val interceptors = pluginConfig.requestInterceptors.toMutableList()
 
     if (pluginConfig.useCoroutineContext) {
-        generators.add(0) { coroutineContext[KtorCallIdContextElement]?.callId }
+        generators.add(0) { currentCoroutineContext()[KtorCallIdContextElement]?.callId }
     }
     if (interceptors.isEmpty()) {
         interceptors.add { request, callId -> request.header(HttpHeaders.XRequestId, callId) }

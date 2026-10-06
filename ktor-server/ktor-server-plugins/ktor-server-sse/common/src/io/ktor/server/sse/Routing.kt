@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.sse
@@ -13,7 +13,6 @@ import io.ktor.util.reflect.*
 /**
  * Adds a route to handle Server-Sent Events (SSE) at the specified [path] using the provided [handler].
  * Requires [SSE] plugin to be installed.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sse.sse)
  *
@@ -48,7 +47,6 @@ public fun Route.sse(path: String, handler: suspend ServerSSESession.() -> Unit)
  * Adds a route to handle Server-Sent Events (SSE) using the provided [handler].
  * Requires [SSE] plugin to be installed.
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sse.sse)
  *
  * @param handler A function that defines the behavior of the SSE session. It is invoked when a client connects to the SSE
@@ -77,7 +75,6 @@ public fun Route.sse(handler: suspend ServerSSESession.() -> Unit): Route = proc
 /**
  * Adds a route to handle Server-Sent Events (SSE) at the specified [path] using the provided [handler].
  * Requires [SSE] plugin to be installed.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sse.sse)
  *
@@ -117,7 +114,6 @@ public fun Route.sse(
 /**
  * Adds a route to handle Server-Sent Events (SSE) using the provided [handler].
  * Requires [SSE] plugin to be installed.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sse.sse)
  *

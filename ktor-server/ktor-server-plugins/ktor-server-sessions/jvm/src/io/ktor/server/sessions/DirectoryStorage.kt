@@ -1,14 +1,16 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.sessions
 
-import java.io.*
+import java.io.Closeable
+import java.io.File
+import java.io.FileNotFoundException
+import java.io.IOException
 
 /**
  * Creates a storage that serializes a session's data to a file under the [rootDir] directory.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.directorySessionStorage)
  *

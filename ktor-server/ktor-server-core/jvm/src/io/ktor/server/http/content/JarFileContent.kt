@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.http.content
@@ -9,13 +9,14 @@ import io.ktor.http.content.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
-import java.io.*
-import java.nio.file.*
-import java.util.jar.*
+import java.io.File
+import java.io.IOException
+import java.nio.file.Path
+import java.util.jar.JarEntry
+import java.util.jar.JarFile
 
 /**
  * Represents an [OutgoingContent] for a resource inside a Jar file
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.JarFileContent)
  *

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.websocket
@@ -9,10 +9,12 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.pool.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.channels.*
-import java.nio.*
-import kotlin.coroutines.*
-import kotlin.properties.*
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.channels.SendChannel
+import java.nio.ByteBuffer
+import kotlin.coroutines.CoroutineContext
+import kotlin.properties.Delegates
 
 @Suppress("FunctionName")
 @Deprecated("Maintained for binary compatibility", level = DeprecationLevel.HIDDEN)
@@ -33,7 +35,6 @@ public fun RawWebSocket(
 
 /**
  * Creates a RAW web socket session from connection
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.RawWebSocket)
  *

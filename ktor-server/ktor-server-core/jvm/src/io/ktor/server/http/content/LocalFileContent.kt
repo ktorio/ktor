@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.http.content
@@ -9,13 +9,14 @@ import io.ktor.http.content.*
 import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
-import java.io.*
-import java.nio.file.*
-import kotlin.io.path.*
+import java.io.File
+import java.io.IOException
+import java.nio.file.Files
+import java.nio.file.Path
+import kotlin.io.path.extension
 
 /**
  * OutgoingContent representing a local [file] with a specified [contentType], [expires] date and [caching]
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.LocalFileContent)
  *

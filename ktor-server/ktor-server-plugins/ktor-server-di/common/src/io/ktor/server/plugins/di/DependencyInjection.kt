@@ -8,10 +8,9 @@ import io.ktor.server.application.*
 import io.ktor.server.plugins.di.utils.*
 import io.ktor.util.*
 import io.ktor.util.reflect.*
-import io.ktor.utils.io.CancellationException
+import io.ktor.utils.io.*
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlin.reflect.KClass
 import kotlin.reflect.KFunction
@@ -59,7 +58,6 @@ import kotlin.reflect.KFunction
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.DI)
  */
-@OptIn(ExperimentalCoroutinesApi::class)
 public val DI: ApplicationPlugin<DependencyInjectionConfig> =
     createApplicationPlugin("DI", ::DependencyInjectionConfig) {
         val startupMode = environment.startupMode
@@ -318,13 +316,12 @@ public inline fun <reified T> DependencyKey(
 /**
  * Determines if the type associated with a `DependencyKey` is nullable.
  *
- * This function checks whether the `kotlinType` property of the `type` in the `DependencyKey`
- * is marked as nullable. If there is no `kotlinType`, it will return `false`.
+ * This function checks whether the `isNullable` property of the `type` in the `DependencyKey`
+ * is set to `true`.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.di.isNullable)
  */
-public fun DependencyKey.isNullable(): Boolean =
-    type.kotlinType?.isMarkedNullable == true
+public fun DependencyKey.isNullable(): Boolean = type.isNullable
 
 /**
  * Common parent for dependency injection problems.

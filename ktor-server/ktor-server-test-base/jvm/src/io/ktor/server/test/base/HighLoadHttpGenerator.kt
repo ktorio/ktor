@@ -7,14 +7,18 @@ package io.ktor.server.test.base
 import io.ktor.http.*
 import io.ktor.http.cio.*
 import io.ktor.utils.io.core.*
-import java.net.*
-import java.nio.*
+import java.net.InetSocketAddress
+import java.net.URL
+import java.nio.ByteBuffer
 import java.nio.ByteOrder
-import java.nio.channels.*
-import java.nio.channels.spi.*
-import java.util.concurrent.*
+import java.nio.channels.SelectionKey
+import java.nio.channels.Selector
+import java.nio.channels.SocketChannel
+import java.nio.channels.spi.SelectorProvider
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicLong
-import kotlin.concurrent.*
+import kotlin.concurrent.Volatile
+import kotlin.concurrent.thread
 import kotlin.io.use
 import kotlin.text.toByteArray
 
@@ -30,8 +34,6 @@ import kotlin.text.toByteArray
  * due to long long tasks queue. If server could manage so much requests then
  * RPS is much higher (up to 10x higher) in this mode
  * but load generator provides absolutely no diagnostics.
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.test.base.HighLoadHttpGenerator)
  */
 class HighLoadHttpGenerator(
     val host: String,

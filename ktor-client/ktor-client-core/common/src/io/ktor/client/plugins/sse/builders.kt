@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.plugins.sse
@@ -66,11 +66,11 @@ public fun HttpClientConfig<*>.SSE(config: SSEConfig.() -> Unit) {
  * }
  * ```
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEventsSession)
+ *
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEventsSession)
  */
 public suspend fun HttpClient.serverSentEventsSession(
     reconnectionTime: Duration? = null,
@@ -94,11 +94,11 @@ public suspend fun HttpClient.serverSentEventsSession(
  * }
  * ```
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEventsSession)
+ *
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEventsSession)
  */
 public suspend fun HttpClient.serverSentEventsSession(
     scheme: String? = null,
@@ -133,11 +133,11 @@ public suspend fun HttpClient.serverSentEventsSession(
  * }
  * ```
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEventsSession)
+ *
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEventsSession)
  */
 public suspend fun HttpClient.serverSentEventsSession(
     urlString: String,
@@ -171,11 +171,11 @@ public suspend fun HttpClient.serverSentEventsSession(
  * }
  * ```
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEvents)
+ *
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEvents)
  */
 @OptIn(InternalAPI::class)
 public suspend fun HttpClient.serverSentEvents(
@@ -215,11 +215,11 @@ public suspend fun HttpClient.serverSentEvents(
  * }
  * ```
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEvents)
+ *
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEvents)
  */
 public suspend fun HttpClient.serverSentEvents(
     scheme: String? = null,
@@ -261,11 +261,11 @@ public suspend fun HttpClient.serverSentEvents(
  * }
  * ```
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEvents)
+ *
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEvents)
  */
 public suspend fun HttpClient.serverSentEvents(
     urlString: String,
@@ -302,11 +302,11 @@ public suspend fun HttpClient.serverSentEvents(
  * }
  * ```
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sseSession)
+ *
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sseSession)
  */
 public suspend fun HttpClient.sseSession(
     reconnectionTime: Duration? = null,
@@ -335,11 +335,11 @@ public suspend fun HttpClient.sseSession(
  * }
  * ```
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sseSession)
+ *
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sseSession)
  */
 public suspend fun HttpClient.sseSession(
     scheme: String? = null,
@@ -377,11 +377,11 @@ public suspend fun HttpClient.sseSession(
  * }
  * ```
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sseSession)
+ *
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sseSession)
  */
 public suspend fun HttpClient.sseSession(
     urlString: String,
@@ -409,11 +409,11 @@ public suspend fun HttpClient.sseSession(
  * }
  * ```
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sse)
+ *
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sse)
  */
 public suspend fun HttpClient.sse(
     request: HttpRequestBuilder.() -> Unit,
@@ -440,11 +440,11 @@ public suspend fun HttpClient.sse(
  * }
  * ```
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sse)
+ *
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sse)
  */
 public suspend fun HttpClient.sse(
     scheme: String? = null,
@@ -486,11 +486,11 @@ public suspend fun HttpClient.sse(
  * }
  * ```
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sse)
+ *
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sse)
  */
 public suspend fun HttpClient.sse(
     urlString: String,
@@ -536,13 +536,13 @@ public suspend fun HttpClient.sse(
  * }
  * ```
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEventsSession)
+ *
  * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
  *                    into an object
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEventsSession)
  */
 public suspend fun HttpClient.serverSentEventsSession(
     deserialize: (TypeInfo, String) -> Any?,
@@ -584,13 +584,13 @@ public suspend fun HttpClient.serverSentEventsSession(
  * }
  * ```
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEventsSession)
+ *
  * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
  *                    into an object
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEventsSession)
  */
 public suspend fun HttpClient.serverSentEventsSession(
     scheme: String? = null,
@@ -634,13 +634,13 @@ public suspend fun HttpClient.serverSentEventsSession(
  * }
  * ```
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEventsSession)
+ *
  * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
  *                    into an object
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEventsSession)
  */
 public suspend fun HttpClient.serverSentEventsSession(
     urlString: String,
@@ -684,13 +684,13 @@ public suspend fun HttpClient.serverSentEventsSession(
  * }
  * ```
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEvents)
+ *
  * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
  *                    into an object
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEvents)
  */
 @OptIn(InternalAPI::class)
 public suspend fun HttpClient.serverSentEvents(
@@ -749,13 +749,13 @@ public suspend fun HttpClient.serverSentEvents(
  * }
  * ```
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEvents)
+ *
  * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
  *                    into an object
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEvents)
  */
 public suspend fun HttpClient.serverSentEvents(
     scheme: String? = null,
@@ -811,13 +811,13 @@ public suspend fun HttpClient.serverSentEvents(
  * }
  * ```
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEvents)
+ *
  * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
  *                    into an object
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.serverSentEvents)
  */
 public suspend fun HttpClient.serverSentEvents(
     urlString: String,
@@ -867,13 +867,13 @@ public suspend fun HttpClient.serverSentEvents(
  * }
  * ```
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sseSession)
+ *
  * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
  *                    into an object
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sseSession)
  */
 public suspend fun HttpClient.sseSession(
     deserialize: (TypeInfo, String) -> Any?,
@@ -916,13 +916,13 @@ public suspend fun HttpClient.sseSession(
  * }
  * ```
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sseSession)
+ *
  * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
  *                    into an object
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sseSession)
  */
 public suspend fun HttpClient.sseSession(
     scheme: String? = null,
@@ -972,13 +972,13 @@ public suspend fun HttpClient.sseSession(
  * }
  * ```
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sseSession)
+ *
  * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
  *                    into an object
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sseSession)
  */
 public suspend fun HttpClient.sseSession(
     urlString: String,
@@ -1026,13 +1026,13 @@ public suspend fun HttpClient.sseSession(
  * }
  * ```
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sse)
+ *
  * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
  *                    into an object
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sse)
  */
 public suspend fun HttpClient.sse(
     request: HttpRequestBuilder.() -> Unit,
@@ -1080,13 +1080,13 @@ public suspend fun HttpClient.sse(
  * }
  * ```
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sse)
+ *
  * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
  *                    into an object
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sse)
  */
 public suspend fun HttpClient.sse(
     scheme: String? = null,
@@ -1141,13 +1141,13 @@ public suspend fun HttpClient.sse(
  * }
  * ```
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sse)
+ *
  * @param deserialize The deserializer function to transform the `data` field of the `TypedServerSentEvent`
  *                    into an object
  * @param reconnectionTime The time duration to wait before attempting reconnection in case of connection loss
  * @param showCommentEvents When enabled, events containing only comments field will be presented in the incoming flow
  * @param showRetryEvents When enabled, retry directives (lines starting with `retry:`) are emitted as events
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.sse)
  */
 public suspend fun HttpClient.sse(
     urlString: String,

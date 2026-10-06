@@ -103,7 +103,7 @@ class ByteRangesChannelTest {
 
     private fun String.replaceEndlines() = replace("\r\n", "\n")
     private suspend fun ByteReadChannel.readText(): String {
-        return Charsets.ISO_8859_1.newDecoder().decode(readRemaining())
+        return Charsets.ISO_8859_1.newDecoder().decode(readBuffer())
     }
 
     private fun asyncOf(text: String): (LongRange) -> ByteReadChannel = { range ->

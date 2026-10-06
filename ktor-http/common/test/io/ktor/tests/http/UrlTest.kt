@@ -111,8 +111,6 @@ class UrlTest {
     /**
      * https://tools.ietf.org/html/rfc1738#section-5
      * hsegment = *[ uchar | ";" | ":" | "@" | "&" | "=" ]
-     *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.tests.http.UrlTest.testPath)
      */
     @Test
     fun testPath() {
@@ -361,6 +359,13 @@ class UrlTest {
         assertEquals(null, parseUrl("incorrecturl"))
         assertEquals(null, parseUrl("http://localhost:7000Value"))
         assertEquals(null, parseUrl("https://example.com?url=https%3A%2F%2Fwww.google.com%2"))
+    }
+
+    @Test
+    fun testParseUrlWithSpaceInHost() {
+        assertEquals(null, parseUrl("http:// example.com"))
+        assertEquals(null, parseUrl("http://exa mple.com"))
+        assertEquals(null, parseUrl("http://example.com :8080"))
     }
 
     @Test

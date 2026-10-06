@@ -46,7 +46,7 @@ val testArrays = testSize.map {
     makeArray(it)
 }
 
-class ContentTest : ClientLoader() {
+class ContentTest : ClientLoader(timeout = 1.minutes) {
 
     @Test
     fun testGetFormData() = clientTests {
@@ -91,7 +91,7 @@ class ContentTest : ClientLoader() {
         test { client ->
             testArrays.forEach { content ->
                 val responseData = client.echo<ByteReadChannel>(content)
-                val data = responseData.readRemaining().readByteArray()
+                val data = responseData.readBuffer().readByteArray()
                 assertArrayEquals(
                     "Test fail with size: ${content.size}, actual size: ${data.size}",
                     content,
@@ -416,8 +416,6 @@ class ContentTest : ClientLoader() {
     /**
      * This is a bit of an edge case where the initial content reader fails to read the response body
      * before a second reader comes in. When this happens, we simply cancel the initial reader.
-     *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.tests.ContentTest.testSaveBody)
      */
     @OptIn(InternalAPI::class)
     @Test

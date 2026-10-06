@@ -1,12 +1,11 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.sessions
 
 /**
  * A storage that provides the ability to [write], [read], and [invalidate] session data.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.SessionStorage)
  *
@@ -24,7 +23,6 @@ public interface SessionStorage {
      * Invalidates a session with the [id] identifier.
      * This method prevents a session [id] from being accessible after this call.
      *
-     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.SessionStorage.invalidate)
      *
      * @throws NoSuchElementException when a session [id] is not found.
@@ -33,7 +31,6 @@ public interface SessionStorage {
 
     /**
      * Reads a session with the [id] identifier.
-     *
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.SessionStorage.read)
      *

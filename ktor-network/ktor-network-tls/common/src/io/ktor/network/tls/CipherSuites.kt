@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.network.tls
@@ -54,7 +54,6 @@ public enum class CipherType {
 /**
  * Represents a TLS cipher suite
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.CipherSuite)
  *
  * @property code numeric cipher suite code
@@ -101,7 +100,7 @@ public data class CipherSuite(
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.CIOCipherSuites)
  */
-@Suppress("KDocMissingDocumentation", "PublicApiImplicitType", "MemberVisibilityCanBePrivate")
+@Suppress("KDocMissingDocumentation")
 public object CIOCipherSuites {
     public val TLS_RSA_WITH_AES_128_GCM_SHA256: CipherSuite = CipherSuite(
         0x009c, "TLS_RSA_WITH_AES_128_GCM_SHA256", "AES128-GCM-SHA256",

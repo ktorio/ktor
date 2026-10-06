@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http.content
@@ -50,7 +50,6 @@ public interface Version {
 /**
  * Represent the result of the version comparison between content being sent and HTTP request.
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.content.VersionCheckResult)
  *
  * @param statusCode represents [HttpStatusCode] associated with the result.
@@ -84,7 +83,6 @@ public enum class VersionCheckResult(public val statusCode: HttpStatusCode) {
  *
  * For better accuracy, use ETag instead.
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.content.LastModifiedVersion)
  *
  *  @param lastModified of the current content, for example the file's last modified date
@@ -93,7 +91,6 @@ public data class LastModifiedVersion(val lastModified: GMTDate) : Version {
     private val truncatedModificationDate: GMTDate = lastModified.truncateToSeconds()
 
     /**
-     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.content.LastModifiedVersion.check)
      *
      *  @return [VersionCheckResult.OK] if all headers pass or there are no headers in the request,
@@ -215,16 +212,14 @@ public data class EntityTagVersion(val etag: String, val weak: Boolean) : Versio
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.content.EntityTagVersion.match)
      */
     public fun match(other: EntityTagVersion): Boolean {
-        if (weak || other.weak) return false
-        return weakMatch(other)
+        return !(weak || other.weak) && weakMatch(other)
     }
 
     /**
      * Checks whether two entity-tags match (weak).
      */
     private fun weakMatch(other: EntityTagVersion): Boolean {
-        if (this == STAR || other == STAR) return true
-        return opaque == other.opaque
+        return this == STAR || other == STAR || opaque == other.opaque
     }
 
     /**

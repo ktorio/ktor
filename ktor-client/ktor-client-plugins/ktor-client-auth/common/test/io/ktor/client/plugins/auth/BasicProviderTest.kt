@@ -9,7 +9,6 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
 import io.ktor.test.*
-import io.ktor.utils.io.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -51,7 +50,6 @@ class BasicProviderTest {
         assertTrue(provider.isApplicable(header), "Provider with capitalized scheme should be applicable")
     }
 
-    @OptIn(InternalAPI::class)
     @Test
     fun `update credentials after clearToken`() = runTest {
         var credentials = BasicAuthCredentials("admin", "admin")

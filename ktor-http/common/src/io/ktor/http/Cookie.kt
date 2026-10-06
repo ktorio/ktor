@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 @file:OptIn(InternalAPI::class)
@@ -9,14 +9,13 @@ package io.ktor.http
 import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
-import kotlinx.serialization.*
+import kotlinx.serialization.Serializable
 import kotlin.io.encoding.Base64
-import kotlin.jvm.*
+import kotlin.jvm.JvmName
 
 /**
  * Represents a cookie with name, content and a set of settings such as expiration, visibility and security.
  * A cookie with neither [expires] nor [maxAge] is a session cookie.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.Cookie)
  *
@@ -108,7 +107,7 @@ public fun parseServerSetCookieHeader(cookiesHeader: String): Cookie {
         name = first.key,
         value = decodeCookieValue(first.value, encoding),
         encoding = encoding,
-        maxAge = loweredMap["max-age"]?.toIntClamping(),
+        maxAge = loweredMap["max-age"]?.toMaxAgeOrNull(),
         expires = runCatching { loweredMap["expires"]?.fromCookieToGmtDate() }.getOrNull(),
         domain = loweredMap["domain"],
         path = loweredMap["path"],
@@ -237,7 +236,7 @@ public fun encodeCookieValue(value: String, encoding: CookieEncoding): String = 
         else -> value
     }
 
-    CookieEncoding.BASE64_ENCODING -> value.encodeBase64()
+    CookieEncoding.BASE64_ENCODING -> Base64.encode(value.encodeToByteArray())
 
     CookieEncoding.URI_ENCODING -> value.encodeURLParameter(spaceToPlus = true)
 }
@@ -285,4 +284,18 @@ private inline fun cookiePartFlag(name: String, value: Boolean) =
 private inline fun cookiePartExt(name: String, value: String?) =
     if (value == null) cookiePartFlag(name, true) else cookiePart(name, value, CookieEncoding.RAW)
 
-private fun String.toIntClamping(): Int = toLong().coerceIn(0L, Int.MAX_VALUE.toLong()).toInt()
+/**
+ * Parses the `Max-Age` attribute value as a number of seconds clamped to the [Int] range.
+ *
+ * Returns `null` when the value is not a decimal number, as RFC 6265 (section 5.2.2) requires such
+ * an attribute to be ignored. A negative value means the cookie expires immediately, so it maps to `0`.
+ */
+private fun String.toMaxAgeOrNull(): Int? {
+    val digitsStart = if (startsWith('-')) 1 else 0
+    if (digitsStart > lastIndex) return null
+    for (index in digitsStart..lastIndex) {
+        if (this[index] !in '0'..'9') return null
+    }
+    if (digitsStart == 1) return 0
+    return toLongOrNull()?.coerceAtMost(Int.MAX_VALUE.toLong())?.toInt() ?: Int.MAX_VALUE
+}

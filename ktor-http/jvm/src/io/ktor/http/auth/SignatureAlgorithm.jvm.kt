@@ -9,6 +9,8 @@ import java.security.Signature
 /**
  * Creates a [Signature] instance for this algorithm.
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.auth.toJcaSignature)
+ *
  * @return A new Signature configured for this algorithm's JCA signature function
  * @throws [java.security.NoSuchAlgorithmException] If the algorithm is not supported by the JVM
  */

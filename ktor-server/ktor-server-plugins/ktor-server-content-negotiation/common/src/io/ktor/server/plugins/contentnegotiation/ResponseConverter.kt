@@ -11,6 +11,7 @@ import io.ktor.server.application.*
 import io.ktor.server.http.content.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
+import io.ktor.util.logging.*
 import io.ktor.utils.io.charsets.*
 
 private val NOT_ACCEPTABLE = HttpStatusCodeContent(HttpStatusCode.NotAcceptable)
@@ -22,13 +23,13 @@ internal fun PluginBuilder<ContentNegotiationConfig>.convertResponseBody() = onC
     }
 
     if (pluginConfig.ignoredTypes.any { it.isInstance(subject) }) {
-        val sourceClass = subject::class.simpleName
-        val requestInfo = "${call.request.httpMethod.value} ${call.request.uri}"
+        LOGGER.trace {
+            val sourceClass = subject::class.simpleName
+            val requestInfo = "${call.request.httpMethod.value} ${call.request.uri}"
 
-        LOGGER.trace(
             "Skipping response body transformation from $sourceClass to OutgoingContent for the $requestInfo request" +
                 " because the $sourceClass type is ignored. See [ContentNegotiationConfig::ignoreType]."
-        )
+        }
         return@onCallRespond
     }
 
@@ -71,31 +72,29 @@ internal fun PluginBuilder<ContentNegotiationConfig>.convertResponseBody() = onC
             )
 
             if (result == null) {
-                LOGGER.trace("Can't convert body $subject with ${registration.converter}")
+                LOGGER.trace { "Can't convert body $subject with ${registration.converter}" }
                 continue
             }
 
             val transformedContent = transformDefaultContent(call, result)
             if (transformedContent == null) {
-                LOGGER.trace("Can't convert body $subject with ${registration.converter}")
+                LOGGER.trace { "Can't convert body $subject with ${registration.converter}" }
                 continue
             }
 
             if (checkAcceptHeader && !checkAcceptHeader(acceptItems, transformedContent.contentType)) {
-                LOGGER.trace(
-                    "Can't send content with ${transformedContent.contentType} to client " +
-                        "because it is not acceptable"
-                )
+                LOGGER.trace {
+                    "Can't send content with ${transformedContent.contentType} to client because it is not acceptable"
+                }
                 return@transformBody NOT_ACCEPTABLE
             }
 
             return@transformBody transformedContent
         }
 
-        LOGGER.trace(
-            "No suitable content converter found for response type ${responseType.type}" +
-                " and body $subject"
-        )
+        LOGGER.trace {
+            "No suitable content converter found for response type ${responseType.type} and body $subject"
+        }
         return@transformBody subject
     }
 }

@@ -28,7 +28,7 @@ class ZstdTest {
 
         val encodedReadChannel = encodeBytes(bytes)
         val decodedReadChannel = ZstdEncoder().decode(encodedReadChannel)
-        val decodedBytes = decodedReadChannel.readRemaining().readByteArray()
+        val decodedBytes = decodedReadChannel.readBuffer().readByteArray()
 
         assertContentEquals(bytes, decodedBytes)
     }
@@ -39,12 +39,12 @@ class ZstdTest {
         val secondPart = "ktor".repeat(DEFAULT_BUFFER_SIZE)
         val string = firstPart + secondPart
 
-        val firstFrame = encodeString(firstPart).readRemaining().readByteArray()
-        val secondFrame = encodeString(secondPart).readRemaining().readByteArray()
+        val firstFrame = encodeString(firstPart).readBuffer().readByteArray()
+        val secondFrame = encodeString(secondPart).readBuffer().readByteArray()
 
         val encodedReadChannel = ByteReadChannel(firstFrame + secondFrame)
         val decodedReadChannel = ZstdEncoder().decode(encodedReadChannel)
-        val decodedString = decodedReadChannel.readRemaining().readText()
+        val decodedString = decodedReadChannel.readBuffer().readText()
 
         assertEquals(string, decodedString)
     }
@@ -61,7 +61,7 @@ class ZstdTest {
             encodedReadChannel.decodeTo(decodedReadChannel, DirectByteBufferPool(capacity = 10, bufferSize = 5))
         }
         decodedReadChannel.close()
-        val decodedString = decodedReadChannel.readRemaining().readText()
+        val decodedString = decodedReadChannel.readBuffer().readText()
 
         assertEquals(string, decodedString)
     }

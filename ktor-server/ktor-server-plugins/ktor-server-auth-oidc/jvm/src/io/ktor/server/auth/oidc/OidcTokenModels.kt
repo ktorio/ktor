@@ -1,0 +1,256 @@
+/*
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
+@file:OptIn(ExperimentalTime::class)
+
+package io.ktor.server.auth.oidc
+
+import com.auth0.jwt.interfaces.DecodedJWT
+import com.auth0.jwt.interfaces.Payload
+import io.ktor.utils.io.*
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.*
+import kotlin.io.encoding.Base64
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
+import kotlin.time.toKotlinInstant
+
+/**
+ * Structured JWT claims access.
+ *
+ * Claims are decoded from an already verified token by the OpenID Connect plugin. Accessing these values does not
+ * perform verification by itself.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.TokenClaims)
+ */
+@ExperimentalKtorApi
+public class TokenClaims internal constructor(private val jwt: DecodedJWT) {
+    /**
+     * Decoded JWT header as JSON.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.TokenClaims.header)
+     */
+    public val header: JsonObject by lazy { parseJsonObject(jwt.header) }
+
+    /**
+     * Decoded JWT payload claims as JSON.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.TokenClaims.payload)
+     */
+    public val payload: JsonObject by lazy { parseJsonObject(jwt.payload) }
+
+    /**
+     * Key identifier from the JWT header.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.TokenClaims.keyId)
+     */
+    public val keyId: String? get() = jwt.keyId
+
+    /**
+     * Type from the JWT header.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.TokenClaims.type)
+     */
+    public val type: String? get() = jwt.type
+
+    /**
+     * Signing algorithm from the JWT header.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.TokenClaims.algorithm)
+     */
+    public val algorithm: String? get() = jwt.algorithm
+
+    /**
+     * Issuer claim.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.TokenClaims.issuer)
+     */
+    public val issuer: String? get() = jwt.issuer
+
+    /**
+     * Subject claim.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.TokenClaims.subject)
+     */
+    public val subject: String? get() = jwt.subject
+
+    /**
+     * Audience claim values.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.TokenClaims.audience)
+     */
+    public val audience: List<String> get() = jwt.audience ?: emptyList()
+
+    /**
+     * Expiration time.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.TokenClaims.expiresAt)
+     */
+    public val expiresAt: Instant? get() = jwt.expiresAtAsInstant?.toKotlinInstant()
+
+    /**
+     * Not-before time.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.TokenClaims.notBefore)
+     */
+    public val notBefore: Instant? get() = jwt.notBeforeAsInstant?.toKotlinInstant()
+
+    /**
+     * Issuance time.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.TokenClaims.issuedAt)
+     */
+    public val issuedAt: Instant? get() = jwt.issuedAtAsInstant?.toKotlinInstant()
+
+    /**
+     * JWT ID claim.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.TokenClaims.jwtId)
+     */
+    public val jwtId: String? get() = jwt.id
+
+    /**
+     * Returns a decoded JWT payload claim by name.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.TokenClaims.claim)
+     *
+     * @param name claim name.
+     * @return JSON claim value, or `null` when absent.
+     */
+    public fun claim(name: String): JsonElement? = payload[name]
+
+    /**
+     * Returns a decoded JWT payload claim as a string.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.TokenClaims.claimString)
+     *
+     * @param name claim name.
+     * @return claim string value, or `null` when the claim is absent.
+     * @throws IllegalArgumentException when the claim is present but not a JSON string.
+     */
+    public fun claimString(name: String): String? = payload.stringValue(name)
+
+    /**
+     * Returns a JWT header value as a string.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.TokenClaims.headerString)
+     *
+     * @param name header name.
+     * @return header string value, or `null` when the header is absent.
+     * @throws IllegalArgumentException when the header is present but not a JSON string.
+     */
+    public fun headerString(name: String): String? = header.stringValue(name)
+
+    private fun JsonObject.stringValue(name: String): String? {
+        val element = this[name] ?: return null
+        val primitive = element as? JsonPrimitive
+        require(primitive != null && primitive.isString) {
+            "'$name' is not a JSON string: $element"
+        }
+        return primitive.content
+    }
+
+    private fun parseJsonObject(raw: String): JsonObject {
+        return runCatching {
+            val decoded = Base64.UrlSafe.withPadding(Base64.PaddingOption.ABSENT).decode(raw)
+            Json.parseToJsonElement(decoded.decodeToString()) as? JsonObject
+        }.getOrNull() ?: JsonObject(emptyMap())
+    }
+}
+
+/**
+ * Normalized RFC 7662 token introspection response.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.TokenIntrospection)
+ *
+ * @property active whether the token is currently active.
+ * @property scope OAuth scope string returned by the introspection endpoint.
+ * @property clientId client identifier associated with the token.
+ * @property username resource owner username, when returned by the authorization server.
+ * @property tokenType token type, such as `Bearer`.
+ * @property expiresAt expiration time as seconds since the Unix epoch.
+ * @property issuedAt issuance time as seconds since the Unix epoch.
+ * @property notBefore not-before time as seconds since the Unix epoch.
+ * @property subject subject identifier associated with the token.
+ * @property audience normalized token audiences. String audiences are preserved as a single value.
+ * @property issuer token issuer.
+ * @property jwtId token identifier.
+ * @property claims raw JSON claims returned by the introspection endpoint.
+ */
+@ExperimentalKtorApi
+@Serializable
+public class TokenIntrospection(
+    public val active: Boolean,
+    public val scope: String? = null,
+    @SerialName("client_id")
+    public val clientId: String? = null,
+    public val username: String? = null,
+    @SerialName("token_type")
+    public val tokenType: String? = null,
+    @SerialName("exp")
+    public val expiresAt: Long? = null,
+    @SerialName("iat")
+    public val issuedAt: Long? = null,
+    @SerialName("nbf")
+    public val notBefore: Long? = null,
+    @SerialName("sub")
+    public val subject: String? = null,
+    @SerialName("aud")
+    public val audience: List<String> = emptyList(),
+    @SerialName("iss")
+    public val issuer: String? = null,
+    @SerialName("jti")
+    public val jwtId: String? = null,
+    public val claims: JsonObject = JsonObject(emptyMap()),
+)
+
+internal fun JsonObject.toTokenIntrospection(): TokenIntrospection =
+    TokenIntrospection(
+        active = boolean("active") ?: false,
+        scope = string("scope"),
+        clientId = string("client_id"),
+        username = string("username"),
+        tokenType = string("token_type"),
+        expiresAt = long("exp"),
+        issuedAt = long("iat"),
+        notBefore = long("nbf"),
+        subject = string("sub"),
+        audience = audience("aud"),
+        issuer = string("iss"),
+        jwtId = string("jti"),
+        claims = this,
+    )
+
+private fun JsonObject.string(name: String): String? =
+    this[name]?.jsonPrimitive?.takeIf { it.isString }?.contentOrNull
+
+private fun JsonObject.boolean(name: String): Boolean? =
+    this[name]?.jsonPrimitive?.booleanOrNull
+
+private fun JsonObject.long(name: String): Long? =
+    this[name]?.jsonPrimitive?.longOrNull
+
+private fun JsonObject.audience(name: String): List<String> =
+    when (val value = this[name]) {
+        is JsonArray -> value.mapNotNull { it.jsonPrimitive.takeIf { primitive -> primitive.isString }?.contentOrNull }
+        is JsonPrimitive -> value.contentOrNull?.let(::listOf).orEmpty()
+        else -> emptyList()
+    }
+
+internal fun Payload.extractUserInfo(): OidcToken.UserInfo {
+    requireToken(!subject.isNullOrBlank()) {
+        "subject 'claim' is missing from the JWT payload"
+    }
+    return OidcToken.UserInfo(
+        subject = subject,
+        name = getClaim("name").asString(),
+        email = getClaim("email").asString(),
+        emailVerified = getClaim("email_verified").asBoolean(),
+        picture = getClaim("picture").asString(),
+        givenName = getClaim("given_name").asString(),
+        familyName = getClaim("family_name").asString(),
+        preferredUsername = getClaim("preferred_username").asString(),
+    )
+}

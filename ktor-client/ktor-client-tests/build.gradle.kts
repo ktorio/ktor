@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 description = "Common tests for client"
@@ -43,9 +43,14 @@ kotlin {
             implementation(projects.ktorClientApache5)
             runtimeOnly(projects.ktorClientAndroid)
             runtimeOnly(projects.ktorClientOkhttp)
-            runtimeOnly(projects.ktorClientJava)
             implementation(libs.kotlinx.coroutines.slf4j)
             implementation(libs.junit)
+
+            val jvmToolchain = ktorBuild.jvmTestToolchain.get()
+            val java11 = JavaLanguageVersion.of(11)
+            if (jvmToolchain.canCompileOrRun(java11)) {
+                runtimeOnly(projects.ktorClientJava)
+            }
         }
 
         jsTest.dependencies {

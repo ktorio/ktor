@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.plugins
@@ -8,7 +8,6 @@ import io.ktor.client.*
 import io.ktor.client.plugins.api.*
 import io.ktor.client.request.*
 import io.ktor.http.*
-import io.ktor.util.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 
@@ -20,7 +19,6 @@ public class UserAgentConfig(public var agent: String = "Ktor http-client")
 /**
  * A plugin that adds a `User-Agent` header to all requests.
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.UserAgent)
  *
  * @property agent a `User-Agent` header value.
@@ -31,7 +29,7 @@ public val UserAgent: ClientPlugin<UserAgentConfig> = createClientPlugin("UserAg
 
     onRequest { request, _ ->
         if (!request.headers.contains(HttpHeaders.UserAgent)) {
-            LOGGER.trace("Adding User-Agent header: agent for ${request.url}")
+            LOGGER.trace { "Adding User-Agent header: agent for ${request.url}" }
             request.header(HttpHeaders.UserAgent, agent)
         }
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.utils.io
@@ -83,7 +83,6 @@ public annotation class ExperimentalKtorApi
  *
  * Please note that the specified [version] and the fact of making something a candidate is not a guarantee,
  * so the target version could be changed without any notice or even the promotion could be cancelled at all.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.PublicAPICandidate)
  *

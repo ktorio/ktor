@@ -6,8 +6,6 @@ package ktorbuild
 
 import ktorbuild.targets.KtorTargets
 import org.gradle.kotlin.dsl.assign
-import org.gradle.kotlin.dsl.getValue
-import org.gradle.kotlin.dsl.provideDelegate
 import org.gradle.kotlin.dsl.withType
 import org.jetbrains.dokka.gradle.tasks.DokkaGenerateModuleTask
 import org.jetbrains.dokka.gradle.tasks.DokkaGeneratePublicationTask
@@ -75,7 +73,7 @@ fun KotlinMultiplatformExtension.createCInterop(
         .all {
             check(this is KotlinNativeTarget) { "Can't create cinterop for non-native target $targetName" }
 
-            val main by compilations
+            val main = compilations.getByName("main")
             main.cinterops.create(name) {
                 definitionFile = projectDirectory.file(definitionFilePath(targetName))
                 configure(targetName)

@@ -15,6 +15,8 @@ import io.ktor.client.webrtc.*
  * The factory automatically configures the audio device module with the system's default audio capture device
  * during initialization. Audio sources created by this factory will use the configured audio options
  * based on the provided constraints.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.media.DefaultAudioFactory)
  */
 public class DefaultAudioFactory : AudioFactory {
 

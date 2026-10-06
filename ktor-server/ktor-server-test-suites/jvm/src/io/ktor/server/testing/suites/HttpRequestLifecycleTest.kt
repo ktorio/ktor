@@ -6,10 +6,12 @@ package io.ktor.server.testing.suites
 
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.server.application.install
+import io.ktor.network.selector.*
+import io.ktor.network.sockets.*
+import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.http.*
-import io.ktor.server.plugins.calllogging.CallLogging
+import io.ktor.server.plugins.calllogging.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.test.base.*
@@ -18,9 +20,6 @@ import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.channels.Channel
-import java.io.OutputStreamWriter
-import java.net.InetSocketAddress
-import java.net.Socket
 import kotlin.concurrent.atomics.AtomicInt
 import kotlin.concurrent.atomics.ExperimentalAtomicApi
 import kotlin.concurrent.atomics.incrementAndFetch
@@ -242,37 +241,100 @@ abstract class HttpRequestLifecycleTest<TEngine : ApplicationEngine, TConfigurat
         }
         startServer(server)
 
-        // Use a raw socket to send pipelined HTTP/1.1 requests
-        val socket = Socket()
-        socket.tcpNoDelay = true
-        socket.connect(InetSocketAddress("127.0.0.1", port))
-
-        try {
-            val writer = OutputStreamWriter(socket.getOutputStream(), Charsets.US_ASCII)
-            repeat(pipelinedCount) {
-                writer.write("GET /slow HTTP/1.1\r\n")
-                writer.write("Host: localhost:$port\r\n")
-                writer.write("Connection: keep-alive\r\n")
-                writer.write("\r\n")
-            }
-            writer.flush()
-
-            // Wait for all requests to start processing on the server
-            withTimeout(10.seconds) {
+        SelectorManager().use { selector ->
+            aSocket(selector).tcp().connect("127.0.0.1", port) {
+                lingerSeconds = 0
+            }.use { socket ->
+                val output = socket.openWriteChannel()
                 repeat(pipelinedCount) {
-                    allStarted.receive()
+                    output.writeStringUtf8("GET /slow HTTP/1.1\r\n")
+                    output.writeStringUtf8("Host: localhost:$port\r\n")
+                    output.writeStringUtf8("Connection: keep-alive\r\n")
+                    output.writeStringUtf8("\r\n")
                 }
+                output.flush()
+
+                withTimeout(10.seconds) {
+                    repeat(pipelinedCount) {
+                        allStarted.receive()
+                    }
+                }
+
+                socket.close()
+                socket.awaitClosed()
             }
-        } finally {
-            // Abruptly close the connection
-            socket.setSoLinger(true, 0)
-            socket.close()
         }
 
-        // Verify that ALL pipelined requests were cancelled, not just the last one
         withTimeout(10.seconds) {
             allCancelled.await()
         }
         assertEquals(pipelinedCount, cancelledCount.load())
+    }
+
+    @Test
+    fun testConnectionCloseRequestCompletesSuspendingHandler() = runTest {
+        val handlerStarted = CompletableDeferred<Unit>()
+        val resumeHandler = CompletableDeferred<Unit>()
+        val handlerOutcome = CompletableDeferred<String>()
+
+        val server = createServer {
+            install(HttpRequestLifecycle) {
+                cancelCallOnClose = true
+            }
+            routing {
+                post("/slow") {
+                    handlerStarted.complete(Unit)
+                    try {
+                        resumeHandler.await()
+                        call.respondText("pong")
+                        handlerOutcome.complete("completed")
+                    } catch (cause: CancellationException) {
+                        handlerOutcome.complete("cancelled")
+                        throw cause
+                    }
+                }
+            }
+        }
+        startServer(server)
+
+        val response = SelectorManager().use { selector ->
+            aSocket(selector).tcp().connect("127.0.0.1", port) {
+                socketTimeout = 30.seconds.inWholeMilliseconds
+            }.use { socket ->
+                val output = socket.openWriteChannel()
+                val input = socket.openReadChannel()
+                val body = """{"key":"value"}"""
+                val httpMessage = "POST /slow HTTP/1.1\r\n" +
+                    "Host: localhost:$port\r\n" +
+                    "Content-Type: application/json\r\n" +
+                    "Content-Length: ${body.length}\r\n" +
+                    "Connection: close\r\n" +
+                    "\r\n"
+                output.writeStringUtf8(httpMessage)
+                output.flush()
+
+                handlerStarted.await()
+                output.writeStringUtf8(body)
+                output.flush()
+
+                resumeHandler.complete(Unit)
+                input.readRemaining().readText()
+            }
+        }
+        val outcome = withTimeoutOrNull(5.seconds) { handlerOutcome.await() } ?: "still suspended"
+        assertTrue(
+            response.contains("\r\n\r\n"),
+            "Malformed HTTP response: missing header terminator; " +
+                "server closed after ${response.length} bytes (handler outcome: $outcome): \"$response\"",
+        )
+        assertTrue(
+            response.startsWith("HTTP/1.1 200"),
+            "Expected a 200 response (handler outcome: $outcome), got: \"$response\"",
+        )
+        assertTrue(
+            response.endsWith("pong"),
+            "Expected the full body (handler outcome: $outcome), got: \"$response\"",
+        )
+        assertEquals("completed", outcome, "Full response received, so the handler must have run to completion")
     }
 }

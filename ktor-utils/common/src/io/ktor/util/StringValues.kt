@@ -214,7 +214,9 @@ public open class StringValuesImpl(
             hashNext = IntArray(0)
         } else if (!caseInsensitiveName) {
             entryCount = values.size
+            @Suppress("UNCHECKED_CAST")
             keyStorage = arrayOfNulls<String>(entryCount) as Array<String>
+            @Suppress("UNCHECKED_CAST")
             valueStorage = arrayOfNulls<List<String>>(entryCount) as Array<List<String>>
 
             // Size hash table to next power of two, minimum 4
@@ -248,7 +250,9 @@ public open class StringValuesImpl(
             }
 
             entryCount = deduped.size
+            @Suppress("UNCHECKED_CAST")
             keyStorage = arrayOfNulls<String>(entryCount) as Array<String>
+            @Suppress("UNCHECKED_CAST")
             valueStorage = arrayOfNulls<List<String>>(entryCount) as Array<List<String>>
 
             val tableSize = tableSizeFor(entryCount)

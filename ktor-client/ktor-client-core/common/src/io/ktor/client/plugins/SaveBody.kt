@@ -30,7 +30,6 @@ private val LOGGER by lazy { KtorSimpleLogger("io.ktor.client.plugins.SaveBody")
  *
  * @see HttpClientCall.save
  */
-@OptIn(InternalAPI::class)
 internal val SaveBody: ClientPlugin<Unit> = createClientPlugin("SaveBody") {
     client.receivePipeline.intercept(HttpReceivePipeline.Before) { response ->
         val call = response.call
@@ -40,16 +39,33 @@ internal val SaveBody: ClientPlugin<Unit> = createClientPlugin("SaveBody") {
             return@intercept
         }
 
+        var failure: Throwable? = null
         val savedResponse = try {
             LOGGER.trace { "Saving body for ${call.request.url}" }
             call.save().response
+        } catch (e: Throwable) {
+            failure = e
+            throw e
         } finally {
-            runCatching { response.rawContent.cancel() }
-                .onFailure { LOGGER.debug("Failed to cancel response body", it) }
+            response.tryCancelBody(failure)
         }
 
         attributes.put(RESPONSE_BODY_SAVED, Unit)
         proceedWith(savedResponse)
+    }
+}
+
+@OptIn(InternalAPI::class)
+internal fun HttpResponse.tryCancelBody(e: Throwable? = null) {
+    val byteChannel = rawContent
+    if (!byteChannel.isClosedForRead) {
+        try {
+            byteChannel.cancel(e)
+        } catch (cause: CancellationException) {
+            throw cause
+        } catch (cause: Exception) {
+            LOGGER.debug("Failed to cancel response body", cause)
+        }
     }
 }
 

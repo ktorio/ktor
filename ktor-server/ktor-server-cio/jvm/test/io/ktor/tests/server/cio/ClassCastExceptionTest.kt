@@ -14,8 +14,8 @@ import io.ktor.server.routing.*
 import io.ktor.server.test.base.*
 import io.ktor.server.websocket.*
 import kotlinx.coroutines.*
-import java.util.concurrent.*
-import kotlin.test.*
+import java.util.concurrent.TimeUnit
+import kotlin.test.Test
 import io.ktor.client.engine.cio.CIO as CioClient
 import io.ktor.server.cio.CIO as CioServer
 
@@ -26,8 +26,6 @@ class ClassCastExceptionTest : EngineTestBase<CIOApplicationEngine, CIOApplicati
 
     /**
      * Regression test for KTOR-349
-     *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.tests.server.cio.ClassCastExceptionTest.testClassCastException)
      */
     @Test
     @Http1Only

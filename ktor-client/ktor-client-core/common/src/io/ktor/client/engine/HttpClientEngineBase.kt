@@ -1,14 +1,18 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine
 
 import io.ktor.util.*
 import io.ktor.utils.io.*
-import kotlinx.atomicfu.*
-import kotlinx.coroutines.*
-import kotlin.coroutines.*
+import kotlinx.atomicfu.AtomicInt
+import kotlinx.atomicfu.atomic
+import kotlinx.coroutines.CompletableJob
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.Job
+import kotlin.coroutines.CoroutineContext
 
 /**
  * Abstract base implementation of [HttpClientEngine], providing lifecycle management for the [dispatcher]
@@ -22,7 +26,6 @@ import kotlin.coroutines.*
  *
  * Developers creating custom HTTP client engines are encouraged to use this class as their parent,
  * as it handles much of the boilerplate related to engine lifecycle and coroutine management.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.HttpClientEngineBase)
  *

@@ -18,25 +18,37 @@ import kotlin.time.Duration.Companion.seconds
  *
  * An instance of this class is provided to the lambda passed to
  * [io.ktor.server.netty.NettyApplicationEngine.Configuration.enableHttp3].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.http3.NettyHttp3Configuration)
  */
 @KtorDsl
 public class NettyHttp3Configuration {
 
     /**
-     * The [QuicTokenHandler] used to generate and validate QUIC retry tokens.
-     * By default, a secure HMAC-SHA256-based handler is used that cryptographically
-     * signs tokens with a randomly generated key and rejects forged or expired tokens.
+     * The [QuicTokenHandler] used to generate and validate QUIC address-validation (Retry) tokens.
      *
-     * Callers may replace this with a custom [QuicTokenHandler] implementation
-     * to use a different signing strategy or integrate with external token services.
+     * When `null` (the default), no address validation is performed and connections are accepted
+     * on the first Initial packet. Setting a handler enables stateless Retry: every new connection
+     * without a token receives a Retry packet and must restart the handshake, which adds one full
+     * round trip and roughly doubles the Initial packet processing per connection. Enable it when
+     * the endpoint is exposed to untrusted networks and needs protection against source-address
+     * spoofing and amplification attacks.
+     *
+     * [HmacQuicTokenHandler] is provided as a secure implementation that signs tokens
+     * with HMAC-SHA256 and rejects forged or expired tokens. Callers may also supply a custom
+     * [QuicTokenHandler] to use a different signing strategy or integrate with external token services.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.http3.NettyHttp3Configuration.quicTokenHandler)
      */
-    public var quicTokenHandler: QuicTokenHandler = HmacQuicTokenHandler()
+    public var quicTokenHandler: QuicTokenHandler? = null
 
     /**
      * Maximum idle timeout for QUIC connections.
      * If no data is exchanged within this period, the connection is closed.
      *
      * Must be strictly positive.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.http3.NettyHttp3Configuration.quicMaxIdleTimeout)
      */
     public var quicMaxIdleTimeout: Duration = 30.seconds
         set(value) {
@@ -51,6 +63,8 @@ public class NettyHttp3Configuration {
      * on the entire QUIC connection, in bytes.
      *
      * Must be strictly positive.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.http3.NettyHttp3Configuration.quicInitialMaxData)
      */
     public var quicInitialMaxData: Long = 10_000_000
         set(value) {
@@ -65,6 +79,8 @@ public class NettyHttp3Configuration {
      * QUIC streams, in bytes.
      *
      * Must be strictly positive.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.http3.NettyHttp3Configuration.quicInitialMaxStreamDataBidirectionalLocal)
      */
     public var quicInitialMaxStreamDataBidirectionalLocal: Long = 1_000_000
         set(value) {
@@ -79,6 +95,8 @@ public class NettyHttp3Configuration {
      * QUIC streams, in bytes.
      *
      * Must be strictly positive.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.http3.NettyHttp3Configuration.quicInitialMaxStreamDataBidirectionalRemote)
      */
     public var quicInitialMaxStreamDataBidirectionalRemote: Long = 1_000_000
         set(value) {
@@ -93,6 +111,8 @@ public class NettyHttp3Configuration {
      * peer is allowed to open.
      *
      * Must be strictly positive.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.http3.NettyHttp3Configuration.quicInitialMaxStreamsBidirectional)
      */
     public var quicInitialMaxStreamsBidirectional: Long = 100
         set(value) {
@@ -103,10 +123,73 @@ public class NettyHttp3Configuration {
         }
 
     /**
+     * The number of UDP sockets to bind for the HTTP/3 endpoint.
+     *
+     * All QUIC channels of a socket are served by the single event loop the socket is registered on,
+     * so binding one socket pins the entire HTTP/3 endpoint to one thread. Binding multiple sockets
+     * with `SO_REUSEPORT` lets the kernel distribute connections across sockets (and therefore across
+     * event loops) by hashing the client address.
+     *
+     * When `null` (the default), the number of worker event loops is used on Linux, where the
+     * kernel balances UDP traffic across `SO_REUSEPORT` sockets (with both epoll and NIO
+     * transports), and a single socket elsewhere. Values greater than 1 require `SO_REUSEPORT`
+     * support from the platform (Linux, macOS/BSD; not available on Windows). On platforms
+     * without kernel load balancing, all traffic is delivered to one of the sockets.
+     *
+     * With more than one socket, the socket index is encoded into server-issued connection IDs
+     * (via Netty's [io.netty.handler.codec.quic.QuicCodecDispatcher]), and datagrams that the
+     * kernel's address hash delivers to the wrong socket (for example, after connection migration
+     * or NAT rebinding) are re-dispatched to the owning socket. Connection-id generation is managed
+     * by the engine in this mode and must not be overridden via [configureQuicServerCodec].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.http3.NettyHttp3Configuration.udpSocketCount)
+     */
+    public var udpSocketCount: Int? = null
+        set(value) {
+            require(value == null || value > 0) {
+                "udpSocketCount must be > 0, but was $value"
+            }
+            field = value
+        }
+
+    /**
+     * The `SO_RCVBUF` size in bytes for the HTTP/3 UDP sockets, or `0` to use the system default.
+     *
+     * Under load, an undersized receive buffer causes dropped datagrams, which QUIC treats as packet
+     * loss and recovers from at a significant throughput cost. Consider raising this (for example,
+     * to a few megabytes) for high-throughput deployments; the effective value may be capped by the
+     * operating system.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.http3.NettyHttp3Configuration.udpReceiveBufferSize)
+     */
+    public var udpReceiveBufferSize: Int = 0
+        set(value) {
+            require(value >= 0) {
+                "udpReceiveBufferSize must be >= 0, but was $value"
+            }
+            field = value
+        }
+
+    /**
+     * The `SO_SNDBUF` size in bytes for the HTTP/3 UDP sockets, or `0` to use the system default.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.http3.NettyHttp3Configuration.udpSendBufferSize)
+     */
+    public var udpSendBufferSize: Int = 0
+        set(value) {
+            require(value >= 0) {
+                "udpSendBufferSize must be >= 0, but was $value"
+            }
+            field = value
+        }
+
+    /**
      * User-provided function to configure the QUIC server codec builder.
      * This lambda is invoked on the [QuicServerCodecBuilder] after all default
      * settings have been applied, allowing callers to override or add any
      * QUIC transport parameters.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.http3.NettyHttp3Configuration.configureQuicServerCodec)
      */
     public var configureQuicServerCodec: QuicServerCodecBuilder.() -> Unit = {}
 }

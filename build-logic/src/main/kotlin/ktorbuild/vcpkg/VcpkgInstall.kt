@@ -33,6 +33,7 @@ abstract class VcpkgInstall @Inject constructor(
 ) : DefaultTask() {
 
     @get:InputDirectory
+    @get:PathSensitive(PathSensitivity.RELATIVE)
     internal abstract val manifestDir: DirectoryProperty
 
     @get:Input

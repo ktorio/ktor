@@ -6,7 +6,7 @@ package io.ktor.client.engine.okhttp
 
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
-import io.ktor.client.io.configurePlatform
+import io.ktor.client.io.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.sse.*
 import io.ktor.client.plugins.websocket.*
@@ -112,7 +112,16 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
         val response = engine.execute(engineRequest, requestData, callContext)
 
         val body = response.body
-        callContext.job.invokeOnCompletion { body.close() }
+        // ResponseBody.close() may perform blocking I/O, so run it on the engine dispatcher instead of the
+        // thread completing callContext. Register the child now so requestsJob waits for cleanup during shutdown.
+        CoroutineScope(requestsJob + dispatcher + CoroutineName("okhttp-response-body-close"))
+            .launch(start = CoroutineStart.ATOMIC) {
+                try {
+                    callContext.job.join()
+                } finally {
+                    runCatching { body.close() }
+                }
+            }
 
         val responseContent = body.source().toChannel(callContext, requestData)
         return buildResponseData(response, requestTime, responseContent, callContext, requestData)
@@ -167,25 +176,31 @@ public class OkHttpEngine(override val config: OkHttpConfig) : HttpClientEngineB
     }
 }
 
-@OptIn(DelicateCoroutinesApi::class, InternalCoroutinesApi::class)
-private fun BufferedSource.toChannel(context: CoroutineContext, requestData: HttpRequestData): ByteReadChannel =
-    GlobalScope.writer(context) {
+@OptIn(DelicateCoroutinesApi::class, InternalCoroutinesApi::class, InternalAPI::class)
+private fun BufferedSource.toChannel(context: CoroutineContext, requestData: HttpRequestData): ByteReadChannel {
+    val responseChannel = ByteChannel()
+    return GlobalScope.writer(context, responseChannel) {
         use { source ->
             var lastRead = 0
             while (source.isOpen && context.isActive && lastRead >= 0) {
-                channel.write { buffer ->
+                val bytesWritten = responseChannel.writeAvailable { buffer ->
                     lastRead = try {
                         source.read(buffer)
                     } catch (cause: Throwable) {
                         val cancelOrCloseCause =
-                            kotlin.runCatching { context.job.getCancellationException() }.getOrNull() ?: cause
+                            runCatching { context.job.getCancellationException() }.getOrDefault(cause)
                         throw mapExceptions(cancelOrCloseCause, requestData)
                     }
                 }
-                channel.flush()
+                responseChannel.rethrowCloseCauseIfNeeded()
+                if (bytesWritten == -1) break
+
+                responseChannel.flushWriteBuffer()
+                if (!responseChannel.hasFreeSpace) responseChannel.flush()
             }
         }
     }.channel
+}
 
 private fun mapExceptions(cause: Throwable, request: HttpRequestData): Throwable = when (cause) {
     is java.net.SocketTimeoutException -> SocketTimeoutException(request, cause)

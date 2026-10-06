@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.application
@@ -7,7 +7,6 @@ package io.ktor.server.application
 import io.ktor.server.config.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
-import io.ktor.util.pipeline.*
 
 /**
  * Creates an [ApplicationPlugin] that can be installed into an [Application].
@@ -24,7 +23,6 @@ import io.ktor.util.pipeline.*
  * ```
  *
  * You can learn more from [Custom plugins](https://ktor.io/docs/custom-plugins.html).
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.createApplicationPlugin)
  *
@@ -58,7 +56,6 @@ public fun <PluginConfigT : Any> createApplicationPlugin(
  * ```
  *
  * You can learn more from [Custom plugins](https://ktor.io/docs/custom-plugins.html).
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.createApplicationPlugin)
  *
@@ -108,7 +105,6 @@ private class ApplicationPluginImpl<PluginConfigT : Any>(
  *
  * You can learn more from [Custom plugins](https://ktor.io/docs/custom-plugins.html).
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.createRouteScopedPlugin)
  *
  * @param name A name of a plugin that is used to get its instance
@@ -141,7 +137,6 @@ public fun <PluginConfigT : Any> createRouteScopedPlugin(
  * ```
  *
  * You can learn more from [Custom plugins](https://ktor.io/docs/custom-plugins.html).
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.createRouteScopedPlugin)
  *
@@ -199,7 +194,6 @@ private class RouteScopedPluginImpl<PluginConfigT : Any>(
  *
  * You can learn more from [Custom plugins](https://ktor.io/docs/custom-plugins.html).
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.createApplicationPlugin)
  *
  * @param name A name of a plugin that is used to get an instance of the plugin installed to the [Application].
@@ -228,7 +222,6 @@ public fun createApplicationPlugin(
  * ```
  *
  * You can learn more from [Custom plugins](https://ktor.io/docs/custom-plugins.html).
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.createRouteScopedPlugin)
  *

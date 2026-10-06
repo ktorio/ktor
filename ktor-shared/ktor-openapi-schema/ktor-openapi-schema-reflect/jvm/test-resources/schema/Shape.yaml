@@ -4,16 +4,26 @@ oneOf:
   - type: object
     title: io.ktor.openapi.reflect.Shape.Circle
     required:
+      - type
       - radius
     properties:
+      type:
+        type: string
+        enum:
+          - io.ktor.openapi.reflect.Shape.Circle
       radius:
         type: number
   - type: object
     title: io.ktor.openapi.reflect.Shape.Rectangle
     required:
+      - type
       - width
       - height
     properties:
+      type:
+        type: string
+        enum:
+          - io.ktor.openapi.reflect.Shape.Rectangle
       width:
         type: number
       height:

@@ -6,7 +6,7 @@ package io.ktor.client.engine.cio
 
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
-import io.ktor.client.plugins.websocket.WEBSOCKETS_KEY
+import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.client.utils.*
 import io.ktor.http.*
@@ -27,9 +27,9 @@ internal suspend fun writeRequest(
     callContext: CoroutineContext,
     overProxy: Boolean,
     closeChannel: Boolean = true
-) = withContext(callContext) {
-    writeHeaders(request, output, overProxy, closeChannel)
-    writeBody(request, output, callContext)
+): Job? = withContext(callContext) {
+    writeHeaders(request, output, overProxy = overProxy, closeChannelOnError = closeChannel)
+    writeBody(request, output, callContext, closeChannel)
 }
 
 @OptIn(InternalAPI::class)
@@ -37,7 +37,7 @@ internal suspend fun writeHeaders(
     request: HttpRequestData,
     output: ByteWriteChannel,
     overProxy: Boolean,
-    closeChannel: Boolean = true
+    closeChannelOnError: Boolean = true
 ) {
     val builder = RequestResponseBuilder()
 
@@ -45,10 +45,11 @@ internal suspend fun writeHeaders(
     val url = request.url.rebuildIfNeeded()
     val headers = request.headers
     val body = request.body
+    val contentBody = body.getUnwrapped()
 
-    val contentLength = headers[HttpHeaders.ContentLength] ?: body.contentLength?.toString()
+    val contentLength = headers[HttpHeaders.ContentLength] ?: contentBody.contentLength?.toString()
     val contentEncoding = headers[HttpHeaders.TransferEncoding]
-    val responseEncoding = body.headers[HttpHeaders.TransferEncoding]
+    val responseEncoding = contentBody.headers[HttpHeaders.TransferEncoding]
     val chunked = isChunked(contentLength, responseEncoding, contentEncoding)
     val expected = headers[HttpHeaders.Expect]
 
@@ -67,7 +68,7 @@ internal suspend fun writeHeaders(
             builder.headerLine(HttpHeaders.Host, host)
         }
 
-        val hasContent = body !is OutgoingContent.NoContent
+        val hasContent = contentBody !is OutgoingContent.NoContent
         if (contentLength != null) {
             if (method.supportsRequestBody || hasContent) {
                 builder.headerLine(HttpHeaders.ContentLength, contentLength)
@@ -80,7 +81,7 @@ internal suspend fun writeHeaders(
             builder.headerLine(key, value)
         }
 
-        if (chunked && contentEncoding == null && responseEncoding == null && body !is OutgoingContent.NoContent) {
+        if (chunked && contentEncoding == null && responseEncoding == null && hasContent) {
             builder.headerLine(HttpHeaders.TransferEncoding, "chunked")
         }
 
@@ -92,7 +93,7 @@ internal suspend fun writeHeaders(
         output.writePacket(builder.build())
         output.flush()
     } catch (cause: Throwable) {
-        if (closeChannel) {
+        if (closeChannelOnError) {
             output.flushAndClose()
         }
         throw cause
@@ -101,17 +102,17 @@ internal suspend fun writeHeaders(
     }
 }
 
-@Suppress("TYPEALIAS_EXPANSION_DEPRECATION", "DEPRECATION")
-internal suspend fun writeBody(
+@Suppress("DEPRECATION")
+internal fun writeBody(
     request: HttpRequestData,
     output: ByteWriteChannel,
     callContext: CoroutineContext,
     closeChannel: Boolean = true
-) {
+): Job? {
     val body = request.body.getUnwrapped()
     if (body is OutgoingContent.NoContent) {
         if (closeChannel) output.close()
-        return
+        return null
     }
     if (body is OutgoingContent.ProtocolUpgrade) {
         throw UnsupportedContentTypeException(body)
@@ -126,7 +127,7 @@ internal suspend fun writeBody(
     val channel = chunkedJob?.channel ?: output
 
     val scope = CoroutineScope(callContext + CoroutineName("cio-client-body-writer"))
-    scope.launch {
+    return scope.launch {
         try {
             processOutgoingContent(request, body, channel)
         } catch (cause: Throwable) {

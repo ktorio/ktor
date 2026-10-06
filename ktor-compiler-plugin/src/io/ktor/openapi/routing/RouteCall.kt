@@ -7,6 +7,8 @@ import org.jetbrains.kotlin.text
 /**
  * Returns an instance of [RouteCall], unless the [fir] expression has no source location information.
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.routing.RouteCall)
+ *
  * @param fir the FIR expression to create a route call from
  * @param fields the route fields to include in the route call
  * @param isLeaf whether the route call represents a leaf node in the routing tree
@@ -33,6 +35,8 @@ fun RouteCall(
 
 /**
  * Code references to the Ktor routing API.  These recorded, then merged to form the model of the OpenAPI specification.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.openapi.routing.RouteCall)
  */
 class RouteCall(
     override val filePath: String,

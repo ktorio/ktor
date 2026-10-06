@@ -1,16 +1,22 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.network.selector
 
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
-import java.io.*
-import java.nio.channels.*
-import java.util.concurrent.atomic.*
-import kotlin.coroutines.*
-import kotlin.coroutines.intrinsics.*
+import kotlinx.coroutines.channels.ClosedSendChannelException
+import java.io.Closeable
+import java.nio.channels.ClosedChannelException
+import java.nio.channels.ClosedSelectorException
+import java.nio.channels.Selector
+import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.atomic.AtomicReference
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.intrinsics.COROUTINE_SUSPENDED
+import kotlin.coroutines.intrinsics.suspendCoroutineUninterceptedOrReturn
+import kotlin.coroutines.resume
 
 /**
  * Default CIO selector manager implementation
@@ -35,7 +41,15 @@ public class ActorSelectorManager(context: CoroutineContext) : SelectorManagerSu
 
     override val coroutineContext: CoroutineContext = context + CoroutineName("selector")
 
+    @Volatile
+    private var parentCancellationHandler: DisposableHandle? = null
+
     init {
+        @OptIn(InternalCoroutinesApi::class)
+        parentCancellationHandler = context[Job]?.invokeOnCompletion(onCancelling = true) { cause ->
+            if (cause != null) close()
+        }
+
         launch {
             val selector = provider.openSelector() ?: error("openSelector() = null")
             selectorRef = selector
@@ -177,6 +191,8 @@ public class ActorSelectorManager(context: CoroutineContext) : SelectorManagerSu
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.selector.ActorSelectorManager.close)
      */
     override fun close() {
+        parentCancellationHandler?.dispose()
+        parentCancellationHandler = null
         closed = true
         selectionQueue.close()
         if (!continuation.resume(Unit)) {

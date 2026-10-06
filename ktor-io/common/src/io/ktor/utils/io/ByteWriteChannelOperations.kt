@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.utils.io
@@ -46,7 +46,6 @@ public suspend fun ByteWriteChannel.writeFloat(value: Float) {
 /**
  * Writes a 64-bit floating-point value to the current [ByteWriteChannel].
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.writeDouble)
  *
  * @param value The floating-point value to be written to the channel.
@@ -69,7 +68,6 @@ public suspend fun ByteWriteChannel.writeByteArray(array: ByteArray) {
     flushIfNeeded()
 }
 
-@OptIn(InternalAPI::class)
 public suspend fun ByteWriteChannel.writeSource(source: Source) {
     writePacket(source)
 }
@@ -86,7 +84,6 @@ public suspend fun ByteWriteChannel.writeFully(value: ByteArray, startIndex: Int
     flushIfNeeded()
 }
 
-@OptIn(InternalAPI::class)
 public suspend fun ByteWriteChannel.writeBuffer(source: RawSource) {
     writePacket(source.buffered())
 }

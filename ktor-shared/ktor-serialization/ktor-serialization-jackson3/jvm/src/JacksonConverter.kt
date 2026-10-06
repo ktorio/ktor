@@ -10,21 +10,22 @@ import io.ktor.serialization.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
-import io.ktor.utils.io.jvm.javaio.*
-import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.*
-import tools.jackson.core.*
+import kotlinx.coroutines.flow.Flow
+import tools.jackson.core.JacksonException
+import tools.jackson.core.JsonEncoding
+import tools.jackson.core.JsonGenerator
 import tools.jackson.core.StreamWriteFeature
-import tools.jackson.core.util.*
-import tools.jackson.databind.*
+import tools.jackson.core.util.DefaultIndenter
+import tools.jackson.core.util.DefaultPrettyPrinter
+import tools.jackson.databind.ObjectMapper
 import tools.jackson.databind.json.JsonMapper
-import tools.jackson.module.kotlin.*
-import java.io.*
+import tools.jackson.module.kotlin.KotlinModule
+import tools.jackson.module.kotlin.jacksonObjectMapper
+import java.io.Flushable
 import kotlin.text.*
 
 /**
  * A content converter that uses Jackson
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.serialization.jackson3.JacksonConverter)
  *
@@ -92,18 +93,17 @@ public class JacksonConverter(
 
     override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? {
         try {
-            return withContext(Dispatchers.IO) {
-                val type = objectMapper.constructType(typeInfo.reifiedType)
-                val objectReader = objectMapper.readerFor(type)
+            val type = objectMapper.constructType(typeInfo.reifiedType)
+            val objectReader = objectMapper.readerFor(type)
 
-                // Jackson handles decoding of Unicode charsets automatically, no need to create a reader.
-                // Additionally, a byte-based source is required for binary format (Smile).
-                if (isUnicode(charset)) {
-                    objectReader.readValue(content.toInputStream())
-                } else {
-                    val reader = content.toInputStream().reader(charset)
-                    objectReader.readValue(reader)
-                }
+            val bytes = content.toByteArray()
+
+            // Jackson decodes Unicode charsets from bytes automatically, and a byte-based
+            // source is required for binary formats (Smile).
+            return if (isUnicode(charset)) {
+                objectReader.readValue(bytes)
+            } else {
+                objectReader.readValue(String(bytes, charset))
             }
         } catch (cause: Exception) {
             val convertException = JsonConvertException("Illegal json parameter found: ${cause.message}", cause)
@@ -156,7 +156,6 @@ public class JacksonConverter(
  *
  * You can learn more from the corresponding [client](https://ktor.io/docs/client-serialization.html#-3bcvpz_158) and [server](https://ktor.io/docs/server-serialization.html#-230zkf_175) documentation.
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.serialization.jackson3.jackson)
  *
  * @param contentType the content type to send with a request
@@ -189,7 +188,6 @@ public fun Configuration.jackson(
  * Registers the `application/json` content type to the [ContentNegotiation] plugin using Jackson.
  *
  * You can learn more from the corresponding [client](https://ktor.io/docs/client-serialization.html#-3bcvpz_158) and [server](https://ktor.io/docs/server-serialization.html#-230zkf_175) documentation.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.serialization.jackson3.jackson)
  *

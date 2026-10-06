@@ -1,16 +1,15 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.util
 
 import io.ktor.utils.io.pool.*
-import java.nio.*
-import java.nio.charset.*
+import java.nio.ByteBuffer
+import java.nio.charset.Charset
 
 /**
  * Moves bytes from `this` buffer to the [destination] buffer
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.moveTo)
  *

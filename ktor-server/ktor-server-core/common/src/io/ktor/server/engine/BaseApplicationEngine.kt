@@ -14,14 +14,13 @@ import io.ktor.server.routing.*
 import io.ktor.util.date.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CompletableDeferred
 
 /**
  * Base class for implementing [ApplicationEngine]
  *
  * It creates default engine pipeline, provides [application] property and installs default transformations
  * on respond and receive
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.BaseApplicationEngine)
  *

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http
@@ -13,7 +13,6 @@ public const val DEFAULT_PORT: Int = 0
 
 /**
  * A URL builder with all mutable components
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.URLBuilder)
  *
@@ -234,7 +233,6 @@ internal val URLBuilder.encodedUserAndPassword: String
 /**
  * Adds [segments] to current [encodedPath].
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.appendPathSegments)
  *
  * @param segments path items to append
@@ -251,7 +249,6 @@ public fun URLBuilder.appendPathSegments(segments: List<String>, encodeSlash: Bo
 
 /**
  * Adds [components] to current [encodedPath]
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.appendPathSegments)
  *

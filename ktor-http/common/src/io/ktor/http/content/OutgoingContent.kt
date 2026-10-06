@@ -1,14 +1,17 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.http.content
 
 import io.ktor.http.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
-import kotlin.coroutines.*
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlin.coroutines.CoroutineContext
 
 /**
  * A subject of pipeline when body of HTTP message is `null`
@@ -70,9 +73,9 @@ public sealed class OutgoingContent {
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.content.OutgoingContent.setProperty)
      */
     public open fun <T : Any> setProperty(key: AttributeKey<T>, value: T?) {
-        when {
-            value == null && extensionProperties == null -> return
-            value == null -> extensionProperties?.remove(key)
+        when (value) {
+            null if extensionProperties == null -> return
+            null -> extensionProperties?.remove(key)
             else -> (extensionProperties ?: Attributes()).also { extensionProperties = it }.put(key, value)
         }
     }
@@ -93,7 +96,6 @@ public sealed class OutgoingContent {
 
     /**
      * Variant of a [OutgoingContent] with payload read from [ByteReadChannel]
-     *
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.content.OutgoingContent.ReadChannelContent)
      */

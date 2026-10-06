@@ -16,12 +16,14 @@ import io.netty.handler.codec.http3.Http3Headers
 import io.netty.handler.codec.http3.Http3HeadersFrame
 import io.netty.handler.codec.http3.Http3RequestStreamInboundHandler
 import io.netty.util.AttributeKey
+import io.netty.util.concurrent.EventExecutor
 import kotlinx.coroutines.*
 import kotlin.coroutines.CoroutineContext
 
 internal class NettyHttp3Handler(
     private val enginePipeline: EnginePipeline,
     private val application: Application,
+    private val resolveCallExecutor: (ChannelHandlerContext) -> EventExecutor,
     private val userCoroutineContext: CoroutineContext,
     runningLimit: Int
 ) : Http3RequestStreamInboundHandler(), CoroutineScope {
@@ -90,16 +92,18 @@ internal class NettyHttp3Handler(
         context.fireChannelReadComplete()
     }
 
-    @Suppress("OverridingDeprecatedMember")
     override fun exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
-        application.log.error("HTTP/3 stream exception", cause)
+        // Stream-level failures (client resets, aborted downloads) are routine under load;
+        // log at debug to keep error logging out of the hot path, matching the HTTP/2 handler.
+        application.log.debug("HTTP/3 stream exception", cause)
         ctx.close()
     }
 
     private fun startHttp3(context: ChannelHandlerContext, headers: Http3Headers) {
-        val callJob = Job(parent = parentJob)
+        val callJob = Job(parent = handlerJob)
+        val callExecutor = resolveCallExecutor(context)
         // Combine the cached static context with the per-stream dispatcher and per-call [Job] only.
-        val callContext = staticCallContext + NettyDispatcher.CurrentContext(context) + callJob
+        val callContext = staticCallContext + NettyDispatcher.CurrentContext(context, callExecutor) + callJob
         val call = NettyHttp3ApplicationCall(
             application,
             context,
@@ -111,7 +115,12 @@ internal class NettyHttp3Handler(
 
         responseWriter.processResponse(call)
 
-        context.executor().execute {
+        // Dispatching to the call executor keeps user handler code off the QUIC event loop,
+        // which drives every connection and stream of this connector (same model as HTTP/1/2).
+        // When resolveCallExecutor is pinned directly to context.executor() (shareWorkGroup), calls that
+        // never suspend skip that hop entirely and run on the QUIC event loop instead; calls that do
+        // suspend still resume on that same thread via NettyDispatcher.
+        callExecutor.execute {
             val callScope = CoroutineScope(context = callContext)
             callScope.launch(start = CoroutineStart.UNDISPATCHED) {
                 try {
@@ -126,6 +135,12 @@ internal class NettyHttp3Handler(
     }
 
     companion object {
+        // Attribute holding the per-[QuicChannel] connection-scoped [Job] that connection-level
+        // [SupervisorJob]s are parented to, so per-call [Job]s fan out across many small
+        // per-connection children lists instead of contending on the single shared
+        // `Application.applicationJob` list.
+        internal val ConnectionJobKey: AttributeKey<Job> = AttributeKey.valueOf("ktor.Http3ConnectionJob")
+
         private val ApplicationCallKey = AttributeKey.valueOf<NettyHttp3ApplicationCall>("ktor.Http3ApplicationCall")
 
         private var ChannelHandlerContext.applicationCall: NettyHttp3ApplicationCall?

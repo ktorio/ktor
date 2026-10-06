@@ -31,6 +31,32 @@ public class KtorServletContainerInitializer : ServletContainerInitializer {
     override fun onStartup(classes: MutableSet<Class<*>>?, ctx: ServletContext) {
         // Embedded engine mode owns the lifecycle; do not register the listener.
         if (ctx.getAttribute(ApplicationAttributeKey) != null) return
+
+        // Required for lifecycle events in Tomcat
+        val registrations = ctx.servletRegistrations?.values?.filter { registration ->
+            val className = registration.className ?: return@filter false
+            val servletClass = runCatching { ctx.classLoader.loadClass(className) }.getOrNull()
+            servletClass != null && ServletApplicationEngine::class.java.isAssignableFrom(servletClass)
+        }.orEmpty()
+
+        // Context-managed lifecycle assumes a single Ktor application per web application context.
+        // With more than one ServletApplicationEngine, fall back to per-servlet self-bootstrap so each
+        // servlet keeps its own application (matching the pre-listener behavior) instead of sharing one.
+        val registration = registrations.singleOrNull() ?: run {
+            if (registrations.size > 1) {
+                ctx.log(
+                    "Multiple ServletApplicationEngine registrations found; context-managed application " +
+                        "lifecycle is disabled. Each servlet bootstraps its own application on init()."
+                )
+            }
+            return
+        }
+
+        val initParameters = registration.initParameters.toList() + ctx.contextInitParameters()
+
+        // Deferred to KtorServletContextListener.contextInitialized()
+        ctx.setAttribute(ResolvedConfigKey, ResolvedServletConfig(ctx.classLoader, initParameters))
+
         ctx.addListener(KtorServletContextListener::class.java)
     }
 }
@@ -53,33 +79,10 @@ public class KtorServletContainerInitializer : ServletContainerInitializer {
 public class KtorServletContextListener : ServletContextListener {
     override fun contextInitialized(sce: ServletContextEvent) {
         val ctx = sce.servletContext
-        // Embedded engine mode owns the lifecycle.
-        if (ctx.getAttribute(ApplicationAttributeKey) != null) return
-        // Defensive: never start the application twice.
-        if (ctx.managedEmbeddedServer() != null) return
+        val resolvedConfig = ctx.getAttribute(ResolvedConfigKey) as? ResolvedServletConfig ?: return
+        ctx.removeAttribute(ResolvedConfigKey)
 
-        val registrations = ctx.servletRegistrations?.values?.filter { registration ->
-            val className = registration.className ?: return@filter false
-            val servletClass = runCatching { ctx.classLoader.loadClass(className) }.getOrNull()
-            servletClass != null && ServletApplicationEngine::class.java.isAssignableFrom(servletClass)
-        }.orEmpty()
-
-        // Context-managed lifecycle assumes a single Ktor application per web application context.
-        // With more than one ServletApplicationEngine, fall back to per-servlet self-bootstrap so each
-        // servlet keeps its own application (matching the pre-listener behavior) instead of sharing one.
-        val registration = registrations.singleOrNull() ?: run {
-            if (registrations.size > 1) {
-                ctx.log(
-                    "Multiple ServletApplicationEngine registrations found; context-managed application " +
-                        "lifecycle is disabled. Each servlet bootstraps its own application on init()."
-                )
-            }
-            return
-        }
-
-        val initParameters = registration.initParameters.toList() + ctx.contextInitParameters()
-
-        val bootstrap = bootstrapServletApplication(ctx, initParameters)
+        val bootstrap = bootstrapServletApplication(ctx, resolvedConfig.initParameters, resolvedConfig.classLoader)
         bootstrap.server.start()
 
         ctx.setAttribute(ManagedServerKey, bootstrap.server)
@@ -96,6 +99,13 @@ public class KtorServletContextListener : ServletContextListener {
         ctx.removeAttribute(ApplicationEnginePipelineAttributeKey)
     }
 }
+
+internal const val ResolvedConfigKey: String = "_ktor_resolved_servlet_config"
+
+internal class ResolvedServletConfig(
+    val classLoader: ClassLoader,
+    val initParameters: List<Pair<String, String>>
+)
 
 private fun ServletContext.contextInitParameters(): List<Pair<String, String>> =
     initParameterNames?.toList().orEmpty().mapNotNull { name ->

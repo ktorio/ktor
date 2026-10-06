@@ -35,7 +35,7 @@ tasks.validatePlugins {
 // Because Gradle's classloader is hierarchical, the original class will be replaced.
 // Copied from https://github.com/kotest/kotest/pull/4301
 
-val kotlinDslPluginSources: Configuration by configurations.creating {
+val kotlinDslPluginSources: Configuration = configurations.create("kotlinDslPluginSources") {
     description = "Download the original Gradle Kotlin DSL plugin source code."
     isCanBeConsumed = false
     isCanBeResolved = false
@@ -45,7 +45,7 @@ val kotlinDslPluginSources: Configuration by configurations.creating {
     }
 }
 
-val kotlinDslPluginSourcesResolver: Configuration by configurations.creating {
+val kotlinDslPluginSourcesResolver: Configuration = configurations.create("kotlinDslPluginSourcesResolver") {
     description = "Resolve files from ${kotlinDslPluginSources.name}."
     isCanBeConsumed = false
     isCanBeResolved = true
@@ -56,7 +56,7 @@ val kotlinDslPluginSourcesResolver: Configuration by configurations.creating {
     }
 }
 
-val suppressGradlePluginVersionWarning by tasks.registering {
+val suppressGradlePluginVersionWarning = tasks.register("suppressGradlePluginVersionWarning") {
     description = "Download EmbeddedKotlinPlugin.kt and patch it to disable the warning."
 
     val src = kotlinDslPluginSourcesResolver.incoming.files

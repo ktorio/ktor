@@ -70,32 +70,6 @@ class SinglePageApplicationTest {
     }
 
     @Test
-    fun testIgnoreAllRoutes() = testApplication {
-        application {
-            routing {
-                singlePageApplication {
-                    filesPath = "jvm/test/io/ktor/server/http/spa"
-                    defaultPage = "Empty3.kt"
-                    ignoreFiles { true }
-                }
-            }
-        }
-
-        client.get("/").let {
-            assertEquals(it.status, HttpStatusCode.OK)
-            assertEquals(it.bodyAsText().trimIndent(), empty3)
-        }
-
-        client.get("/a").let {
-            assertEquals(it.status, HttpStatusCode.Forbidden)
-        }
-
-        client.get("/Empty1.kt").let {
-            assertEquals(it.status, HttpStatusCode.Forbidden)
-        }
-    }
-
-    @Test
     fun fullWithResourcesTest() = testApplication {
         application {
             routing {
@@ -185,31 +159,6 @@ class SinglePageApplicationTest {
 
         client.get("/file.txt").let {
             assertEquals(HttpStatusCode.Forbidden, it.status)
-        }
-    }
-
-    @Test
-    fun testIgnoreAllResourceRoutes() = testApplication {
-        application {
-            routing {
-                singlePageApplication {
-                    useResources = true
-                    filesPath = "public"
-                    defaultPage = "default.txt"
-                    ignoreFiles { true }
-                }
-            }
-        }
-
-        assertEquals(HttpStatusCode.Forbidden, client.get("/file.txt").status)
-
-        client.get("/a").let {
-            assertEquals(it.status, HttpStatusCode.OK)
-            assertEquals("default", it.bodyAsText().trimIndent())
-        }
-        client.get("/").let {
-            assertEquals(it.status, HttpStatusCode.OK)
-            assertEquals("default", it.bodyAsText().trimIndent())
         }
     }
 

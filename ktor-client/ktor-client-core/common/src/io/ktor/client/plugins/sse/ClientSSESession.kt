@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.plugins.sse
@@ -120,7 +120,6 @@ public interface SSESessionWithDeserialization : CoroutineScope {
  * Deserialize the provided [data] into an object of type [T] using the deserializer function
  * defined in the [SSESessionWithDeserialization] interface.
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.deserialize)
  *
  * @param data The string data to deserialize.
@@ -158,7 +157,6 @@ public inline fun <reified T> SSESessionWithDeserialization.deserialize(data: St
  * Deserialize the provided [event] data into an object of type [T] using the deserializer function
  * defined in the [SSESessionWithDeserialization] interface.
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.deserialize)
  *
  * @param event The Server-sent event containing data to deserialize.
@@ -193,7 +191,6 @@ public inline fun <reified T> SSESessionWithDeserialization.deserialize(
 /**
  * A client session for handling Server-Sent Events (SSE) from a server.
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.ClientSSESession)
  *
  * @property call The HTTP call associated with the session.
@@ -216,7 +213,6 @@ public class ClientSSESession(public val call: HttpClientCall, delegate: SSESess
 
 /**
  * A client session with deserialization support for handling Server-Sent Events (SSE) from a server.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.sse.ClientSSESessionWithDeserialization)
  *

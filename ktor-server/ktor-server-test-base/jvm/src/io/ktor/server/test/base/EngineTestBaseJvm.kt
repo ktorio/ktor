@@ -19,6 +19,7 @@ import io.ktor.server.testing.*
 import io.ktor.test.*
 import io.ktor.test.junit.*
 import io.ktor.util.*
+import io.ktor.util.logging.*
 import kotlinx.coroutines.*
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assumptions.assumeTrue
@@ -101,13 +102,13 @@ actual abstract class EngineTestBase<
             enableHttp2 = false
         }
 
-        testLog.trace("Starting server on port $port (SSL $sslPort)")
+        testLog.trace { "Starting server on port $port (SSL $sslPort)" }
     }
 
     override fun afterTest() {
         try {
             allConnections.forEach { it.disconnect() }
-            testLog.trace("Disposing server on port $port (SSL $sslPort)")
+            testLog.trace { "Disposing server on port $port (SSL $sslPort)" }
             server?.stop(0, 500, TimeUnit.MILLISECONDS)
         } finally {
             testJob.cancel()

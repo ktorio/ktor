@@ -158,6 +158,7 @@ internal external interface TcpServerLocalAddressInfo : ServerLocalAddressInfo {
 
 internal fun ServerLocalAddressInfo.toSocketAddress(): SocketAddress = when (jsTypeOf(this)) {
     "string" -> {
+        @Suppress("REDUNDANT_CALL_OF_CONVERSION_METHOD")
         UnixSocketAddress(unsafeCast<JsString>().toString())
     }
 

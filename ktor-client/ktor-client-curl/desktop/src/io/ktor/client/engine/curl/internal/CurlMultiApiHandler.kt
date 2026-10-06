@@ -21,10 +21,14 @@ import platform.posix.size_tVar
 @OptIn(ExperimentalForeignApi::class)
 private class RequestHolder(
     val responseCompletable: CompletableDeferred<CurlSuccess>,
+    val requestHeaders: CPointer<curl_slist>,
+    val responseDataRef: StableRef<CurlResponseBuilder>,
     val requestWrapper: StableRef<CurlRequestBodyData>,
     val responseWrapper: StableRef<CurlResponseBodyData>,
 ) {
     fun dispose() {
+        curl_slist_free_all(requestHeaders)
+        responseDataRef.dispose()
         requestWrapper.dispose()
         responseWrapper.dispose()
     }
@@ -54,7 +58,10 @@ internal class CurlMultiApiHandler : Closeable {
 
     fun scheduleRequest(request: CurlRequestData, deferred: CompletableDeferred<CurlSuccess>): EasyHandle {
         val easyHandle = curl_easy_init()
-            ?: error("Could not initialize an easy handle")
+            ?: run {
+                curl_slist_free_all(request.headers)
+                error("Could not initialize an easy handle")
+            }
 
         val bodyStartedReceiving = CompletableDeferred<Unit>()
         val responseBody = if (request.isUpgradeRequest) {
@@ -70,59 +77,79 @@ internal class CurlMultiApiHandler : Closeable {
             }
         }
         val responseData = CurlResponseBuilder(request, bodyStartedReceiving, responseBody)
-        val responseDataRef = responseData.asStablePointer()
-        val responseWrapper = responseBody.asStablePointer()
+        val responseDataRef = responseData.toStableRef()
+        val responseWrapper = responseBody.toStableRef()
+        val requestWrapper = CurlRequestBodyData(
+            body = request.content,
+            callContext = request.callContext,
+            onUnpause = { unpauseEasyHandle(easyHandle) },
+        ).toStableRef()
+        val requestHolder = RequestHolder(
+            deferred,
+            request.headers,
+            responseDataRef,
+            requestWrapper,
+            responseWrapper,
+        )
 
         bodyStartedReceiving.invokeOnCompletion {
             val result = collectSuccessResponse(easyHandle) ?: return@invokeOnCompletion
             activeHandles[easyHandle]!!.responseCompletable.complete(result)
         }
 
-        setupMethod(easyHandle, request.method, request.contentLength)
-        val requestWrapper = setupUploadContent(easyHandle, request)
-        val requestHolder = RequestHolder(
-            deferred,
-            requestWrapper.asStableRef(),
-            responseWrapper.asStableRef()
-        )
+        try {
+            setupMethod(easyHandle, request.method, request.contentLength)
+            setupUploadContent(easyHandle, requestWrapper.asCPointer())
 
-        activeHandles[easyHandle] = requestHolder
-
-        easyHandle.apply {
-            option(CURLOPT_URL, request.url)
-            option(CURLOPT_HTTPHEADER, request.headers)
-            option(CURLOPT_HEADERFUNCTION, staticCFunction(::onHeadersReceived))
-            option(CURLOPT_HEADERDATA, responseDataRef)
-            option(CURLOPT_WRITEFUNCTION, staticCFunction(::onBodyChunkReceived))
-            option(CURLOPT_WRITEDATA, responseWrapper)
-            option(CURLOPT_PRIVATE, responseDataRef)
-            option(CURLOPT_ACCEPT_ENCODING, "")
-            request.connectTimeout?.let {
-                if (it != HttpTimeoutConfig.INFINITE_TIMEOUT_MS) {
-                    option(CURLOPT_CONNECTTIMEOUT_MS, request.connectTimeout)
-                } else {
-                    option(CURLOPT_CONNECTTIMEOUT_MS, Long.MAX_VALUE)
+            easyHandle.apply {
+                option(CURLOPT_URL, request.url)
+                option(CURLOPT_HTTPHEADER, request.headers)
+                option(CURLOPT_HEADERFUNCTION, staticCFunction(::onHeadersReceived))
+                option(CURLOPT_HEADERDATA, responseDataRef.asCPointer())
+                option(CURLOPT_WRITEFUNCTION, staticCFunction(::onBodyChunkReceived))
+                option(CURLOPT_WRITEDATA, responseWrapper.asCPointer())
+                option(CURLOPT_PRIVATE, responseDataRef.asCPointer())
+                option(CURLOPT_ACCEPT_ENCODING, "")
+                request.connectTimeout?.let {
+                    if (it != HttpTimeoutConfig.INFINITE_TIMEOUT_MS) {
+                        option(CURLOPT_CONNECTTIMEOUT_MS, request.connectTimeout)
+                    } else {
+                        option(CURLOPT_CONNECTTIMEOUT_MS, Long.MAX_VALUE)
+                    }
                 }
-            }
 
-            request.proxy?.let { proxy ->
-                option(CURLOPT_PROXY, fixProxyUrl(proxy.toString(), proxy.type))
-                option(CURLOPT_SUPPRESS_CONNECT_HEADERS, 1L)
-                if (request.forceProxyTunneling) {
-                    option(CURLOPT_HTTPPROXYTUNNEL, 1L)
+                request.proxy?.let { proxy ->
+                    option(CURLOPT_PROXY, fixProxyUrl(proxy.toString(), proxy.type))
+                    option(CURLOPT_SUPPRESS_CONNECT_HEADERS, 1L)
+                    if (request.forceProxyTunneling) {
+                        option(CURLOPT_HTTPPROXYTUNNEL, 1L)
+                    }
                 }
+
+                if (!request.sslVerify) {
+                    option(CURLOPT_SSL_VERIFYPEER, 0L)
+                    option(CURLOPT_SSL_VERIFYHOST, 0L)
+                }
+                request.caPath?.let { option(CURLOPT_CAPATH, it) }
+                request.caInfo?.let { option(CURLOPT_CAINFO, it) }
             }
 
-            if (!request.sslVerify) {
-                option(CURLOPT_SSL_VERIFYPEER, 0L)
-                option(CURLOPT_SSL_VERIFYHOST, 0L)
+            curl_multi_add_handle(multiHandle, easyHandle).verify()
+        } catch (cause: Throwable) {
+            try {
+                try {
+                    responseData.responseBody.close(cause)
+                } finally {
+                    responseData.headersBytes.close()
+                }
+            } finally {
+                curl_easy_cleanup(easyHandle)
+                requestHolder.dispose()
             }
-            request.caPath?.let { option(CURLOPT_CAPATH, it) }
-            request.caInfo?.let { option(CURLOPT_CAINFO, it) }
+            throw cause
         }
 
-        curl_multi_add_handle(multiHandle, easyHandle).verify()
-
+        activeHandles[easyHandle] = requestHolder
         return easyHandle
     }
 
@@ -201,20 +228,11 @@ internal class CurlMultiApiHandler : Closeable {
         }
     }
 
-    private fun setupUploadContent(easyHandle: EasyHandle, request: CurlRequestData): COpaquePointer {
-        val requestPointer = CurlRequestBodyData(
-            body = request.content,
-            callContext = request.callContext,
-            onUnpause = {
-                unpauseEasyHandle(easyHandle)
-            }
-        ).asStablePointer()
-
+    private fun setupUploadContent(easyHandle: EasyHandle, requestPointer: COpaquePointer) {
         easyHandle.apply {
             option(CURLOPT_READDATA, requestPointer)
             option(CURLOPT_READFUNCTION, staticCFunction(::onBodyChunkRequested))
         }
-        return requestPointer
     }
 
     private fun handleCompleted() {
@@ -317,8 +335,6 @@ internal class CurlMultiApiHandler : Closeable {
         httpStatusCode: Long,
         proxyCode: CURLproxycode,
     ): CurlFail? {
-        curl_slist_free_all(request.headers)
-
         if (message != CURLMSG.CURLMSG_DONE) {
             return CurlFail(
                 IllegalStateException("Request $request failed: $message")

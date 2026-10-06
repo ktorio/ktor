@@ -10,8 +10,8 @@ import io.netty.channel.kqueue.*
 import io.netty.channel.nio.*
 import io.netty.channel.socket.*
 import io.netty.util.concurrent.*
-import java.lang.reflect.*
-import java.util.concurrent.*
+import java.util.Spliterator
+import java.util.function.Consumer
 import kotlin.reflect.*
 
 /**
@@ -22,8 +22,19 @@ import kotlin.reflect.*
  */
 public class EventLoopGroupProxy(
     public val channel: KClass<out ServerSocketChannel>,
-    group: EventLoopGroup
+    private val group: EventLoopGroup
 ) : EventLoopGroup by group {
+    override fun ticker(): Ticker? {
+        return group.ticker()
+    }
+
+    override fun forEach(action: Consumer<in EventExecutor>) {
+        group.forEach(action)
+    }
+
+    override fun spliterator(): Spliterator<EventExecutor> {
+        return group.spliterator()
+    }
 
     public companion object {
 

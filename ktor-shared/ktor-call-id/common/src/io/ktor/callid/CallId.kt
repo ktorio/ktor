@@ -1,11 +1,11 @@
 /*
- * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.callid
 
-import kotlinx.coroutines.*
-import kotlin.coroutines.*
+import kotlinx.coroutines.withContext
+import kotlin.coroutines.CoroutineContext
 
 /**
  * The default call ID's generator dictionary.
@@ -16,7 +16,6 @@ public const val CALL_ID_DEFAULT_DICTIONARY: String = "abcdefghijklmnopqrstuvwxy
 
 /**
  * A coroutine context element that holds a call ID of the current coroutine.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.callid.KtorCallIdContextElement)
  *
@@ -31,7 +30,6 @@ public class KtorCallIdContextElement(public val callId: String) : CoroutineCont
 
 /**
  * Adds [callId] to the current coroutine context.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.callid.withCallId)
  *

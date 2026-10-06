@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.client.request
 
@@ -28,7 +28,6 @@ import io.ktor.http.*
  * In addition to this generic [HttpClient.request] method, there are more specific extension functions, such as
  * [HttpClient.get], [HttpClient.post], [HttpClient.put], and [HttpClient.delete], which are often more
  * convenient for common HTTP methods.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.request)
  *
@@ -72,7 +71,6 @@ public suspend inline fun HttpClient.prepareRequest(
  * [HttpClient.get], [HttpClient.post], [HttpClient.put], and [HttpClient.delete], which are often more
  * convenient for common HTTP methods.
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.request)
  *
  * @param block The [HttpRequestBuilder] block used to configure request parameters.
@@ -111,7 +109,6 @@ public suspend inline fun HttpClient.prepareRequest(block: HttpRequestBuilder.()
  * In addition to this generic [HttpClient.request] method, there are more specific extension functions, such as
  * [HttpClient.get], [HttpClient.post], [HttpClient.put], and [HttpClient.delete], which are often more
  * convenient for common HTTP methods.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.request)
  *
@@ -162,7 +159,6 @@ public suspend inline fun HttpClient.prepareRequest(
  * In addition to this generic [HttpClient.request] method, there are more specific extension functions, such as
  * [HttpClient.get], [HttpClient.post], [HttpClient.put], and [HttpClient.delete], which are often more
  * convenient for common HTTP methods.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.request.request)
  *

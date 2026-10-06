@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.config
@@ -21,7 +21,6 @@ public interface ConfigLoader {
     /**
      * Tries loading an application configuration from the specified [path].
      *
-     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.config.ConfigLoader.load)
      *
      * @return configuration or null if the path is not found or configuration format is not supported.
@@ -36,10 +35,10 @@ public interface ConfigLoader {
          * If a single path is provided, the configuration from the given path is loaded.
          * If multiple paths are provided, the configurations are merged in sequence.
          *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.config.ConfigLoader.Companion.loadAll)
+         *
          * @param configPaths A variable number of configuration file paths to load.
          * @return An [ApplicationConfig] instance representing the loaded configuration(s).
-         *
-         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.config.ConfigLoader.Companion.loadAll)
          */
         public fun loadAll(vararg configPaths: String): ApplicationConfig =
             when (configPaths.size) {

@@ -8,12 +8,12 @@ import io.ktor.http.content.*
 import io.ktor.test.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.*
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.debug.junit5.CoroutinesTimeout
-import kotlinx.coroutines.launch
 import kotlin.test.Test
+import kotlin.test.assertFailsWith
+import kotlin.time.Duration.Companion.seconds
 
 @CoroutinesTimeout(testTimeoutMs = 5_000)
 class BlockingBridgeTest {
@@ -21,7 +21,6 @@ class BlockingBridgeTest {
     // Limit parallelism to 1 thread to make it easier to exhaust the dispatcher
     private val singleThreadDispatcher = Dispatchers.IO.limitedParallelism(1, "test-io-dispatcher")
 
-    @OptIn(InternalAPI::class)
     @Test
     fun `withBlockingOutputStream in combination with reader should not exhaust dispatcher`() = runTest {
         val readerStarted = CompletableDeferred<Unit>()
@@ -42,6 +41,27 @@ class BlockingBridgeTest {
                     stream.write(42)
                 }
             }
+        }
+    }
+
+    @Test
+    fun `withBlockingOutputStream propagates cancellation`() = runTest(timeout = 5.seconds) {
+        val channel = ByteChannel()
+        val writeStarted = CompletableDeferred<Unit>()
+        val writer = async(singleThreadDispatcher + CoroutineName("writer")) {
+            channel.withBlockingOutputStream(singleThreadDispatcher) { stream ->
+                writeStarted.complete(Unit)
+                stream.write(ByteArray(2 * 1024 * 1024))
+            }
+        }
+
+        writeStarted.await()
+        writer.cancel()
+
+        try {
+            assertFailsWith<CancellationException> { writer.await() }
+        } finally {
+            channel.cancel()
         }
     }
 

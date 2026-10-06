@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.events
@@ -8,7 +8,7 @@ import io.ktor.util.collections.*
 import io.ktor.util.internal.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.*
+import kotlinx.coroutines.DisposableHandle
 
 @OptIn(InternalAPI::class)
 public class Events {
@@ -92,7 +92,6 @@ public typealias EventHandler<T> = (T) -> Unit
  * Event is used as a key so both [hashCode] and [equals] need to be implemented properly.
  * Inheriting of this class is an experimental feature.
  * Instantiate directly if inheritance not necessary.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.events.EventDefinition)
  *

@@ -46,6 +46,7 @@ private class FlowContentFragment(override val consumer: TagConsumer<*>) : FlowC
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.html.respondHtmlFragment)
  */
+@Deprecated("Use respondHtmlPartial instead", ReplaceWith("respondHtmlPartial(status, block)"))
 public suspend fun ApplicationCall.respondHtmlFragment(
     status: HttpStatusCode = HttpStatusCode.OK,
     block: FlowContent.() -> Unit
@@ -55,6 +56,29 @@ public suspend fun ApplicationCall.respondHtmlFragment(
         FlowContentFragment(consumer).block()
     }
     respond(TextContent(text, ContentType.Text.Html.withCharset(Charsets.UTF_8), status))
+}
+
+/**
+ * Responds to a client with an HTML response using the specified [block] to build an HTML fragment.
+ * Unlike [respondHtml], this function does not wrap the content in `<!DOCTYPE html>`, `<html>`, or `<body>` tags.
+ * This is useful for returning partial HTML content, such as HTMX responses.
+ * You can learn more from [HTML DSL](https://ktor.io/docs/html-dsl.html).
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.html.respondHtmlPartial)
+ */
+public suspend inline fun ApplicationCall.respondHtmlPartial(
+    status: HttpStatusCode = HttpStatusCode.OK,
+    block: TagConsumer<Appendable>.() -> Unit
+) {
+    respond(
+        TextContent(
+            buildString {
+                appendHTML(prettyPrint = false).block()
+            },
+            ContentType.Text.Html.withCharset(Charsets.UTF_8),
+            status
+        )
+    )
 }
 
 /**

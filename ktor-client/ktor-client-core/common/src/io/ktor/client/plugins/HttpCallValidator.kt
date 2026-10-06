@@ -121,12 +121,12 @@ public val HttpCallValidator: ClientPlugin<HttpCallValidatorConfig> = createClie
     val expectSuccess: Boolean = pluginConfig.expectSuccess
 
     suspend fun validateResponse(response: HttpResponse) {
-        LOGGER.trace("Validating response for request ${response.call.request.url}")
+        LOGGER.trace { "Validating response for request ${response.call.request.url}" }
         responseValidators.forEach { it(response) }
     }
 
     suspend fun processException(cause: Throwable, request: HttpRequest) {
-        LOGGER.trace("Processing exception $cause for request ${request.url}")
+        LOGGER.trace(cause) { "Processing exception ${cause::class} for request ${request.url}" }
         callExceptionHandlers.forEach {
             when (it) {
                 is ExceptionHandlerWrapper -> it.handler(cause)

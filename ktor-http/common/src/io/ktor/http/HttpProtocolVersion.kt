@@ -14,7 +14,6 @@ package io.ktor.http
  * @property minor specifies protocol minor version.
  */
 public data class HttpProtocolVersion(val name: String, val major: Int, val minor: Int) {
-    @Suppress("PublicApiImplicitType")
     public companion object {
         /**
          * HTTP/3.0 version.
@@ -63,11 +62,11 @@ public data class HttpProtocolVersion(val name: String, val major: Int, val mino
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.HttpProtocolVersion.Companion.fromValue)
          */
-        public fun fromValue(name: String, major: Int, minor: Int): HttpProtocolVersion = when {
-            name == "HTTP" && major == 1 && minor == 0 -> HTTP_1_0
-            name == "HTTP" && major == 1 && minor == 1 -> HTTP_1_1
-            name == "HTTP" && major == 2 && minor == 0 -> HTTP_2_0
-            name == "HTTP" && major == 3 && minor == 0 -> HTTP_3_0
+        public fun fromValue(name: String, major: Int, minor: Int): HttpProtocolVersion = when (name) {
+            "HTTP" if major == 1 && minor == 0 -> HTTP_1_0
+            "HTTP" if major == 1 && minor == 1 -> HTTP_1_1
+            "HTTP" if major == 2 && minor == 0 -> HTTP_2_0
+            "HTTP" if major == 3 && minor == 0 -> HTTP_3_0
             else -> HttpProtocolVersion(name, major, minor)
         }
 

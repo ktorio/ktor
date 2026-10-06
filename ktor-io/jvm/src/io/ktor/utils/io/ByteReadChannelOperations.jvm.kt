@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.utils.io
@@ -32,7 +32,6 @@ public fun ByteReadChannel(content: ByteBuffer): ByteReadChannel {
  * Reads bytes from the channel and writes them to the buffer up to its limit.
  * If the channel's read buffer is exhausted, it suspends until there are bytes available.
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readAvailable)
  *
  * @param buffer the buffer to write the read bytes into
@@ -59,7 +58,6 @@ public fun ByteString(buffer: ByteBuffer): ByteString {
  * Copy up to [limit] bytes to blocking NIO [channel].
  * Copying to a non-blocking channel requires selection and not supported.
  * It is suspended if no data are available in a byte channel but may block if destination NIO channel blocks.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.copyTo)
  *
@@ -149,7 +147,6 @@ public suspend fun ByteReadChannel.readFully(buffer: ByteBuffer) {
  * eg: it could be 4 bytes available for read but the provided byte buffer could have only 2 available bytes:
  * in this case you have to invoke read again (with decreased [min] accordingly).
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.readAvailable)
  *
  * @param min amount of bytes available for read, should be positive
@@ -189,7 +186,6 @@ public fun ByteReadChannel.readAvailable(block: (ByteBuffer) -> Int): Int {
  * [consumer] lambda should modify buffer's position accordingly. It also could temporarily modify limit however
  * it should restore it before return. It is not recommended to access any bytes of the buffer outside of the
  * provided byte range [position(); limit()) as there could be any garbage or incomplete data.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.read)
  *

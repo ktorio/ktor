@@ -5,6 +5,7 @@
 package test.server.tests
 
 import io.ktor.http.*
+import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -14,6 +15,7 @@ import io.ktor.utils.io.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
 internal fun Application.serverSentEvents() {
@@ -73,6 +75,14 @@ internal fun Application.serverSentEvents() {
                     writeSseEvents(events)
                 }
             }
+            route("/content-length") {
+                handle {
+                    val events = flowOf(
+                        SseEvent(call.request.headers[HttpHeaders.ContentLength].orEmpty())
+                    )
+                    call.respondSseEvents(events)
+                }
+            }
             post("/echo") {
                 call.respondSseEvents(
                     flow {
@@ -92,6 +102,17 @@ internal fun Application.serverSentEvents() {
             get("/content-type-text-plain") {
                 call.response.header(HttpHeaders.ContentType, ContentType.Text.Plain.toString())
                 call.respond(HttpStatusCode.OK)
+            }
+
+            get("/content-type-missing") {
+                val lastEventId = call.request.header(HttpHeaders.LastEventID)?.toIntOrNull() ?: 0
+                call.respond(
+                    object : OutgoingContent.WriteChannelContent() {
+                        override suspend fun writeTo(channel: ByteWriteChannel) {
+                            channel.writeStringUtf8("id: ${lastEventId + 1}\ndata: hello\n\n")
+                        }
+                    }
+                )
             }
 
             get("/person") {

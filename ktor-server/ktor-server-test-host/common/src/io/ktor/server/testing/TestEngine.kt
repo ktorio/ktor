@@ -33,6 +33,7 @@ public fun createTestEnvironment(
     "Use new `testApplication` API: https://ktor.io/docs/migration-to-20x.html#testing-api",
     level = DeprecationLevel.ERROR,
 )
+@Suppress("DEPRECATION")
 public fun <R> withApplication(
     environment: ApplicationEnvironment = createTestEnvironment(),
     configure: TestApplicationEngine.Configuration.() -> Unit = {},

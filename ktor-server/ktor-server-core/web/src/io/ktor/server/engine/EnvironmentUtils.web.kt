@@ -7,6 +7,7 @@ package io.ktor.server.engine
 internal actual fun getKtorEnvironmentProperties(): List<Pair<String, String>> = buildList {
     val keys = getEnvironmentKeys()
     repeat(keys.length) { index ->
+        @Suppress("REDUNDANT_CALL_OF_CONVERSION_METHOD")
         val key = keys[index]?.toString() ?: return@repeat
         if (key.startsWith("ktor.")) {
             val value = getEnvironmentProperty(key) ?: return@repeat

@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.config.yaml
@@ -19,7 +19,6 @@ internal const val DEFAULT_YAML_FILENAME = "application.yaml"
 public class YamlConfigLoader : ConfigLoader {
     /**
      * Tries loading an application configuration from the specified [path].
-     *
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.config.yaml.YamlConfigLoader.load)
      *
@@ -43,6 +42,7 @@ public expect fun YamlConfig(path: String?): YamlConfig?
 /**
  * Implements [ApplicationConfig] by loading a configuration from a YAML file.
  * Values can reference to environment variables with `$ENV_VAR`, `${ENV_VAR}`, or `"$ENV_VAR:default_value"` syntax.
+ * Prefix an extra `$` to keep a literal dollar: `$$ENV` is `$ENV`.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.config.yaml.YamlConfig)
  */
@@ -121,15 +121,7 @@ public class YamlConfig private constructor(yamlMap: YamlMap) : ApplicationConfi
 
     @Deprecated("Redundant; handled automatically")
     public fun checkEnvironmentVariables() {
-        fun check(element: YamlNode?) {
-            when (element) {
-                is YamlScalar -> resolveReference(rootNode, element.content, visited = mutableSetOf())
-                is YamlMap -> element.entries.forEach { entry -> check(entry.value) }
-                is YamlList -> element.items.forEach { check(it) }
-                else -> return
-            }
-        }
-        check(rootNode)
+        // Substitution already ran at construction; re-resolving would treat escaped $$ as a new reference.
     }
 
     private inner class YamlNodeConfigValue(
@@ -200,6 +192,8 @@ private fun YamlScalar.resolveReferences(rootNode: YamlMap): YamlNode {
 }
 
 private fun resolveReference(rootNode: YamlMap, value: String, visited: MutableSet<String>): String? {
+    if (value.startsWith("$$")) return value.drop(1)
+
     if (value.startsWith("$") && !visited.add(value)) {
         throw ApplicationConfigurationException("Cycle detected in references: $visited")
     }

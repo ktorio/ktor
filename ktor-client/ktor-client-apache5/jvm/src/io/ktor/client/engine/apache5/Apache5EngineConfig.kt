@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.apache5
@@ -73,7 +73,6 @@ public class Apache5EngineConfig : HttpClientEngineConfig() {
      * Default value is [HostnameVerificationPolicy.BOTH] which provides maximum security
      * by performing verification at both stages.
      *
-     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.apache5.Apache5EngineConfig.sslHostnameVerificationPolicy)
      *
      * @see HostnameVerificationPolicy
@@ -106,6 +105,9 @@ public class Apache5EngineConfig : HttpClientEngineConfig() {
 
     /**
      * Customizes a [RequestConfig.Builder] in the specified [block].
+     *
+     * Apache's automatic response decompression is disabled after this block.
+     * Use Ktor's `ContentEncoding` plugin to configure response decoding.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.apache5.Apache5EngineConfig.customizeRequest)
      */

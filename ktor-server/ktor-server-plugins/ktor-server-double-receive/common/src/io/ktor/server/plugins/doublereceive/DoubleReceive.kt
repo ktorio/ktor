@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2022 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.plugins.doublereceive
@@ -10,8 +10,8 @@ import io.ktor.server.request.*
 import io.ktor.util.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.*
-import kotlin.coroutines.*
-import kotlin.reflect.*
+import kotlinx.coroutines.currentCoroutineContext
+import kotlin.reflect.KClass
 
 internal val LOGGER = KtorSimpleLogger("io.ktor.server.plugins.doublereceive.DoubleReceive")
 
@@ -23,7 +23,6 @@ internal val LOGGER = KtorSimpleLogger("io.ktor.server.plugins.doublereceive.Dou
  * then receive a body one more time inside the `post` route handler.
  *
  * You can learn more from [DoubleReceive](https://ktor.io/docs/double-receive.html).
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.doublereceive.DoubleReceive)
  */
@@ -40,15 +39,15 @@ public val DoubleReceive: RouteScopedPlugin<DoubleReceiveConfig> = createRouteSc
         val cache = call.receiveCache
 
         if (cache.containsKey(call.receiveType.type)) {
-            LOGGER.trace("Return cached value for ${call.receiveType.type}")
+            LOGGER.trace { "Return cached value for ${call.receiveType.type}" }
             return@on cache[call.receiveType.type]!!
         }
 
         if (!cacheRawRequest) {
-            LOGGER.trace(
+            LOGGER.trace {
                 "Return origin body because cache is not available for ${call.receiveType.type} and " +
                     "raw caching is disabled"
-            )
+            }
             return@on body
         }
 
@@ -62,10 +61,10 @@ public val DoubleReceive: RouteScopedPlugin<DoubleReceiveConfig> = createRouteSc
 
         val content = if (pluginConfig.shouldUseFileCache.any { it(call) }) {
             LOGGER.trace("Storing raw body in file cache")
-            FileCache(value, context = coroutineContext)
+            FileCache(value, context = currentCoroutineContext())
         } else {
             LOGGER.trace("Storing raw body in memory cache")
-            MemoryCache(body, coroutineContext)
+            MemoryCache(body, currentCoroutineContext())
         }
 
         cache[DoubleReceiveCache::class] = content
@@ -82,7 +81,7 @@ public val DoubleReceive: RouteScopedPlugin<DoubleReceiveConfig> = createRouteSc
 
         val cache = call.receiveCache
         cache[body::class] = body
-        LOGGER.trace("Storing transformed body for type ${body::class} in memory cache")
+        LOGGER.trace { "Storing transformed body for type ${body::class} in memory cache" }
         return@on body
     }
 }

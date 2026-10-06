@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.server.routing
 
@@ -14,7 +14,6 @@ import io.ktor.server.plugins.*
  *
  * When passes, it puts a request host and port into
  * call parameters by the [HostRouteSelector.HostNameParameter] and [HostRouteSelector.PortParameter] keys.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.host)
  *
@@ -32,7 +31,6 @@ public fun Route.host(host: String, port: Int = 0, build: Route.() -> Unit): Rou
  * When passes, it puts a request host and port into
  * call parameters by the [HostRouteSelector.HostNameParameter] and [HostRouteSelector.PortParameter] keys.
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.host)
  *
  * @param hostPattern is a  regular expression to match request host
@@ -48,7 +46,6 @@ public fun Route.host(hostPattern: Regex, port: Int = 0, build: Route.() -> Unit
  *
  * When passes, it puts request host and port into
  * call parameters by the [HostRouteSelector.HostNameParameter] and [HostRouteSelector.PortParameter] keys.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.host)
  *
@@ -71,7 +68,6 @@ public fun Route.host(
  *
  * When passes, it puts request host and port into
  * call parameters by the [HostRouteSelector.HostNameParameter] and [HostRouteSelector.PortParameter] keys.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.host)
  *
@@ -96,7 +92,6 @@ public fun Route.host(
  *
  * When passes, it puts a request host and port into
  * call parameters by the [HostRouteSelector.HostNameParameter] and [HostRouteSelector.PortParameter] keys.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.port)
  *
@@ -129,13 +124,16 @@ public data class HostRouteSelector(
         require(hostList.isNotEmpty() || hostPatterns.isNotEmpty() || portsList.isNotEmpty())
     }
 
-    override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
+    override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation =
+        tryEvaluate(context, segmentIndex)
+
+    override fun tryEvaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation {
         val requestHost = context.call.request.origin.serverHost
         val requestPort = context.call.request.origin.serverPort
 
         if (hostList.isNotEmpty() || hostPatterns.isNotEmpty()) {
             val matches1 = requestHost in hostList
-            val matches2 = if (!matches1) hostPatterns.any { it.matches(requestHost) } else false
+            val matches2 = !matches1 && hostPatterns.any { it.matches(requestHost) }
 
             if (!matches1 && !matches2) {
                 return RouteSelectorEvaluation.Failed

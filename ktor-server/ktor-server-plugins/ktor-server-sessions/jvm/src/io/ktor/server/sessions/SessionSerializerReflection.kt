@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.sessions
@@ -24,7 +24,6 @@ private const val TYPE_TOKEN_PARAMETER_NAME: String = "\$type"
  * A reflection-based session serializer. Can be used for backward compatibility with previous versions.
  * A serialized format is textual and optimized for size as it could be transferred via HTTP headers or cookies.
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.reflectionSessionSerializer)
  *
  * @property T is a session instance class handled by this serializer
@@ -35,7 +34,6 @@ public inline fun <reified T : Any> reflectionSessionSerializer(): SessionSerial
 /**
  * A reflection-based session serializer. Can be used for backward compatibility with previous versions.
  * A serialized format is textual and optimized for size as it could be transferred via HTTP headers or cookies.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sessions.reflectionSessionSerializer)
  *
@@ -205,10 +203,10 @@ internal class SessionSerializerReflection<T : Any>(
         when {
             value == null -> null
 
-            isListType(type) -> when {
-                value !is List<*> && value is Iterable<*> -> coerceType(type, value.toList())
+            isListType(type) -> when (value) {
+                !is List<*> if value is Iterable<*> -> coerceType(type, value.toList())
 
-                value !is List<*> -> throw IllegalArgumentException(
+                !is List<*> -> throw IllegalArgumentException(
                     "Couldn't coerce type ${value::class.java} to $type"
                 )
 
@@ -228,10 +226,10 @@ internal class SessionSerializerReflection<T : Any>(
                 }
             }
 
-            isSetType(type) -> when {
-                value !is Set<*> && value is Iterable<*> -> coerceType(type, value.toSet())
+            isSetType(type) -> when (value) {
+                !is Set<*> if value is Iterable<*> -> coerceType(type, value.toSet())
 
-                value !is Set<*> -> throw IllegalArgumentException("Couldn't coerce type ${value::class.java} to $type")
+                !is Set<*> -> throw IllegalArgumentException("Couldn't coerce type ${value::class.java} to $type")
 
                 else -> {
                     val contentType = type.arguments.single().type
@@ -487,22 +485,22 @@ internal class SessionSerializerReflection<T : Any>(
         .joinToString("&")
         .encodeURLQueryComponent()
 
-    @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
+    @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN", "RemoveRedundantQualifierName")
     private fun isListType(type: KType): Boolean {
         return getRawType(type)?.let { java.util.List::class.java.isAssignableFrom(it) } ?: false
     }
 
-    @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
+    @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN", "RemoveRedundantQualifierName")
     private fun isSetType(type: KType): Boolean {
         return getRawType(type)?.let { java.util.Set::class.java.isAssignableFrom(it) } ?: false
     }
 
-    @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
+    @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN", "RemoveRedundantQualifierName")
     private fun isEnumType(type: KType): Boolean {
         return getRawType(type)?.let { java.lang.Enum::class.java.isAssignableFrom(it) } ?: false
     }
 
-    @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
+    @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN", "RemoveRedundantQualifierName")
     private fun isMapType(type: KType): Boolean {
         return getRawType(type)?.let { java.util.Map::class.java.isAssignableFrom(it) } ?: false
     }

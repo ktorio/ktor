@@ -92,7 +92,6 @@ public class HttpStatement(
      *
      * For retrieving a specific data type directly, consider using [body<T>()].
      *
-     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.statement.HttpStatement.execute)
      *
      * @return [HttpResponse] The complete response with the body loaded into memory.
@@ -105,7 +104,6 @@ public class HttpStatement(
      *
      * If [T] represents a streaming type (such as [ByteReadChannel]), it is the caller's responsibility to
      * properly manage the resource, ensuring it is closed when no longer needed.
-     *
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.statement.HttpStatement.body)
      *
@@ -214,7 +212,6 @@ public class HttpStatement(
     }
 
     @PublishedApi
-    @OptIn(InternalAPI::class)
     @Deprecated("Use cleanup(cause) instead", level = DeprecationLevel.HIDDEN)
     internal suspend fun HttpResponse.cleanup(): Unit = cleanup(cause = null)
 

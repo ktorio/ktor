@@ -16,6 +16,7 @@ import io.ktor.server.engine.*
     "The ktor-server-tomcat module is deprecated and will be removed in the next major release as it " +
         "references an outdated version of Tomcat. Please use the ktor-server-tomcat-jakarta module instead."
 )
+@Suppress("DEPRECATION")
 public object EngineMain {
     /**
      * Main function for starting EngineMain with Tomcat

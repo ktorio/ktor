@@ -15,6 +15,8 @@ import java.nio.ByteBuffer
 
 /**
  * WebRtc data channel implementation based on `dev.onvoid.webrtc.RTCDataChannel`.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.JvmWebRtcDataChannel)
  */
 public class JvmWebRtcDataChannel(
     internal val inner: RTCDataChannel,
@@ -139,6 +141,8 @@ public class JvmWebRtcDataChannel(
 
 /**
  * Returns the native RTCDataChannel. Use with caution.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.getNative)
  */
 public fun WebRtcDataChannel.getNative(): RTCDataChannel {
     return (this as JvmWebRtcDataChannel).inner

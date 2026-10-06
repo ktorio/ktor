@@ -6,8 +6,9 @@ package io.ktor.util.cio
 
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
-import java.io.*
-import java.nio.charset.*
+import java.io.BufferedWriter
+import java.io.Writer
+import java.nio.charset.Charset
 
 /**
  * Open a buffered writer to the channel

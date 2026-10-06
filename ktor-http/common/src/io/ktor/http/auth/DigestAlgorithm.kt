@@ -33,6 +33,8 @@ public class DigestAlgorithm(
 ) {
     /**
      * Creates a [DigestAlgorithm] without an XML Signature [uri].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.auth.DigestAlgorithm.DigestAlgorithm)
      */
     public constructor(
         name: String,

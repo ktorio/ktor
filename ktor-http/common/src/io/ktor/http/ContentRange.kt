@@ -4,8 +4,6 @@
 
 package io.ktor.http
 
-import io.ktor.util.*
-
 /**
  * Format `Content-Range` header value
  *

@@ -11,7 +11,6 @@ import io.ktor.util.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.charsets.*
 import kotlin.jvm.*
-import kotlin.native.concurrent.*
 
 private val ValidateMark = AttributeKey<Unit>("ValidateMark")
 private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.DefaultResponseValidation")
@@ -29,7 +28,7 @@ public fun HttpClientConfig<*>.addDefaultResponseValidation() {
         validateResponse { response ->
             val expectSuccess = response.call.attributes[ExpectSuccessAttributeKey]
             if (!expectSuccess) {
-                LOGGER.trace("Skipping default response validation for ${response.call.request.url}")
+                LOGGER.trace { "Skipping default response validation for ${response.call.request.url}" }
                 return@validateResponse
             }
 
@@ -55,7 +54,9 @@ public fun HttpClientConfig<*>.addDefaultResponseValidation() {
                 in 500..599 -> ServerResponseException(exceptionResponse, exceptionResponseText)
                 else -> ResponseException(exceptionResponse, exceptionResponseText)
             }
-            LOGGER.trace("Default response validation for ${response.call.request.url} failed with $exception")
+            LOGGER.trace(exception) {
+                "Default response validation for ${response.call.request.url} failed with exception"
+            }
             throw exception
         }
     }

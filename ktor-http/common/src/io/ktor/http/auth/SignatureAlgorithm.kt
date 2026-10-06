@@ -9,6 +9,8 @@ package io.ktor.http.auth
  *
  * Two signature algorithms with the same [name] are considered equivalent.
  *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.auth.SignatureAlgorithm)
+ *
  * @property name The common name of the signature algorithm
  * @property jcaAlgorithm The Java Cryptography Architecture signature algorithm name
  * @property digestAlgorithm The digest algorithm used by this signature algorithm
@@ -34,7 +36,11 @@ public class SignatureAlgorithm(
     override fun hashCode(): Int = name.hashCode()
 
     public companion object {
-        /** RSA with SHA-256 signature algorithm */
+        /**
+         * RSA with SHA-256 signature algorithm
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.auth.SignatureAlgorithm.Companion.RSA_SHA_256)
+         */
         public val RSA_SHA_256: SignatureAlgorithm = SignatureAlgorithm(
             name = "RSA-SHA-256",
             jcaAlgorithm = "SHA256withRSA",
@@ -44,7 +50,11 @@ public class SignatureAlgorithm(
             jwaName = "RS256"
         )
 
-        /** RSA with SHA-384 signature algorithm */
+        /**
+         * RSA with SHA-384 signature algorithm
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.auth.SignatureAlgorithm.Companion.RSA_SHA_384)
+         */
         public val RSA_SHA_384: SignatureAlgorithm = SignatureAlgorithm(
             name = "RSA-SHA-384",
             jcaAlgorithm = "SHA384withRSA",
@@ -54,7 +64,11 @@ public class SignatureAlgorithm(
             jwaName = "RS384"
         )
 
-        /** RSA with SHA-512 signature algorithm */
+        /**
+         * RSA with SHA-512 signature algorithm
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.auth.SignatureAlgorithm.Companion.RSA_SHA_512)
+         */
         public val RSA_SHA_512: SignatureAlgorithm = SignatureAlgorithm(
             name = "RSA-SHA-512",
             jcaAlgorithm = "SHA512withRSA",
@@ -64,7 +78,11 @@ public class SignatureAlgorithm(
             jwaName = "RS512"
         )
 
-        /** ECDSA with SHA-256 signature algorithm */
+        /**
+         * ECDSA with SHA-256 signature algorithm
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.auth.SignatureAlgorithm.Companion.ECDSA_SHA_256)
+         */
         public val ECDSA_SHA_256: SignatureAlgorithm = SignatureAlgorithm(
             name = "ECDSA-SHA-256",
             jcaAlgorithm = "SHA256withECDSA",
@@ -74,7 +92,11 @@ public class SignatureAlgorithm(
             jwaName = "ES256"
         )
 
-        /** ECDSA with SHA-384 signature algorithm */
+        /**
+         * ECDSA with SHA-384 signature algorithm
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.auth.SignatureAlgorithm.Companion.ECDSA_SHA_384)
+         */
         public val ECDSA_SHA_384: SignatureAlgorithm = SignatureAlgorithm(
             name = "ECDSA-SHA-384",
             jcaAlgorithm = "SHA384withECDSA",
@@ -84,7 +106,11 @@ public class SignatureAlgorithm(
             jwaName = "ES384"
         )
 
-        /** ECDSA with SHA-512 signature algorithm */
+        /**
+         * ECDSA with SHA-512 signature algorithm
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.auth.SignatureAlgorithm.Companion.ECDSA_SHA_512)
+         */
         public val ECDSA_SHA_512: SignatureAlgorithm = SignatureAlgorithm(
             name = "ECDSA-SHA-512",
             jcaAlgorithm = "SHA512withECDSA",
@@ -97,6 +123,8 @@ public class SignatureAlgorithm(
         /**
          * Parses an XML Signature algorithm URI into a [SignatureAlgorithm].
          *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.auth.SignatureAlgorithm.Companion.fromXmlUri)
+         *
          * @param uri The XML Signature algorithm URI
          * @return The corresponding [SignatureAlgorithm] or null if not recognized
          */
@@ -106,6 +134,8 @@ public class SignatureAlgorithm(
 
         /**
          * Parses a JSON Web Algorithm name into a [SignatureAlgorithm].
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.auth.SignatureAlgorithm.Companion.fromJwaName)
          *
          * @param name The JSON Web Algorithm name
          * @return The corresponding [SignatureAlgorithm] or null if not recognized

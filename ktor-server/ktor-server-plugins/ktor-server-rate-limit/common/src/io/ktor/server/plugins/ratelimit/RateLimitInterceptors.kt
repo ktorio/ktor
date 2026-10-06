@@ -10,7 +10,15 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.util.collections.*
 import io.ktor.util.date.*
+import io.ktor.util.logging.*
 import kotlinx.coroutines.*
+import kotlin.time.Duration.Companion.milliseconds
+
+private object ValidatorsPhase : Hook<suspend (ApplicationCall) -> Unit> {
+    override fun install(pipeline: ApplicationCallPipeline, handler: suspend (ApplicationCall) -> Unit) {
+        pipeline.intercept(ApplicationCallPipeline.Validators) { handler(call) }
+    }
+}
 
 private object PluginsPhase : Hook<suspend (ApplicationCall) -> Unit> {
     override fun install(pipeline: ApplicationCallPipeline, handler: suspend (ApplicationCall) -> Unit) {
@@ -21,15 +29,19 @@ private object PluginsPhase : Hook<suspend (ApplicationCall) -> Unit> {
 internal val RateLimitInterceptors = createRouteScopedPlugin(
     "RateLimitInterceptors",
     ::RateLimitInterceptorsConfig,
-    PluginBuilder<RateLimitInterceptorsConfig>::rateLimiterPluginBuilder
-)
+) {
+    rateLimiterPluginBuilder(ValidatorsPhase)
+}
 internal val RateLimitApplicationInterceptors = createApplicationPlugin(
     "RateLimitApplicationInterceptors",
     ::RateLimitInterceptorsConfig,
-    PluginBuilder<RateLimitInterceptorsConfig>::rateLimiterPluginBuilder
-)
+) {
+    rateLimiterPluginBuilder(PluginsPhase)
+}
 
-private fun PluginBuilder<RateLimitInterceptorsConfig>.rateLimiterPluginBuilder() {
+private fun PluginBuilder<RateLimitInterceptorsConfig>.rateLimiterPluginBuilder(
+    hook: Hook<suspend (ApplicationCall) -> Unit>,
+) {
     val configs = application.attributes.getOrNull(RateLimiterConfigsRegistryKey) ?: emptyMap()
     val providers = pluginConfig.providerNames.map { name ->
         configs[name] ?: throw IllegalStateException(
@@ -40,14 +52,14 @@ private fun PluginBuilder<RateLimitInterceptorsConfig>.rateLimiterPluginBuilder(
     val registry = application.attributes.computeIfAbsent(RateLimiterInstancesRegistryKey) { ConcurrentMap() }
     val clearOnRefillJobs = ConcurrentMap<ProviderKey, Job>()
 
-    on(PluginsPhase) { call ->
+    on(hook) { call ->
         providers.forEach { provider ->
             if (call.isHandled) return@on
 
-            LOGGER.trace("Using rate limit ${provider.name} for ${call.request.uri}")
+            LOGGER.trace { "Using rate limit ${provider.name} for ${call.request.uri}" }
             val key = provider.requestKey(call)
             val weight = provider.requestWeight(call, key)
-            LOGGER.trace("Using key=$key and weight=$weight for ${call.request.uri}")
+            LOGGER.trace { "Using key=$key and weight=$weight for ${call.request.uri}" }
 
             val providerKey = ProviderKey(provider.name, key)
             val rateLimiterForCall = registry.computeIfAbsent(providerKey) {
@@ -62,7 +74,7 @@ private fun PluginBuilder<RateLimitInterceptorsConfig>.rateLimiterPluginBuilder(
             provider.modifyResponse(call, state)
             when (state) {
                 is RateLimiter.State.Exhausted -> {
-                    LOGGER.trace("Declining ${call.request.uri} because of too many requests")
+                    LOGGER.trace { "Declining ${call.request.uri} because of too many requests" }
                     call.respond(HttpStatusCode.TooManyRequests)
                 }
 
@@ -70,12 +82,13 @@ private fun PluginBuilder<RateLimitInterceptorsConfig>.rateLimiterPluginBuilder(
                     if (rateLimiterForCall != RateLimiter.Unlimited) {
                         clearOnRefillJobs[providerKey]?.cancel()
                         clearOnRefillJobs[providerKey] = application.launch {
-                            delay(state.refillAtTimeMillis - getTimeMillis())
+                            val duration = state.refillAtTimeMillis - getTimeMillis()
+                            delay(duration.milliseconds)
                             registry.remove(providerKey, rateLimiterForCall)
                             clearOnRefillJobs.remove(providerKey)
                         }
                     }
-                    LOGGER.trace("Allowing ${call.request.uri}")
+                    LOGGER.trace { "Allowing ${call.request.uri}" }
                 }
             }
         }

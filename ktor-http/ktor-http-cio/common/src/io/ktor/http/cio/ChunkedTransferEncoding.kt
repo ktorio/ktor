@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http.cio
@@ -50,13 +50,11 @@ public fun CoroutineScope.decodeChunked(input: ByteReadChannel, contentLength: L
 /**
  * Decode chunked transfer encoding from the [input] channel and write the result in [out].
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.decodeChunked)
  *
  * @throws EOFException if stream has ended unexpectedly.
  * @throws ParserException if the format is invalid.
  */
-@OptIn(InternalAPI::class)
 public suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel) {
     var totalBytesCopied = 0L
 

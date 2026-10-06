@@ -7,7 +7,6 @@ package io.ktor.network.util
 import io.ktor.util.date.*
 import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
-import kotlin.contracts.*
 
 /**
  * Infinite timeout in milliseconds.

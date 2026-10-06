@@ -1,17 +1,17 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.utils.io.jvm.javaio
 
 import io.ktor.utils.io.*
-import kotlinx.io.*
-import java.io.*
+import kotlinx.io.InternalIoApi
+import kotlinx.io.readTo
+import java.io.OutputStream
 
 /**
  * Copies up to [limit] bytes from [this] byte channel to [out] stream suspending on read channel
  * and blocking on output
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.jvm.javaio.copyTo)
  *

@@ -9,7 +9,7 @@ package io.ktor.client.utils
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.utils.CacheControl)
  */
-@Suppress("KDocMissingDocumentation", "MemberVisibilityCanBePrivate")
+@Suppress("KDocMissingDocumentation")
 public object CacheControl {
     public const val MAX_AGE: String = "max-age"
     public const val MIN_FRESH: String = "min-fresh"

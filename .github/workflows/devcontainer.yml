@@ -27,6 +27,7 @@ env:
 jobs:
   build:
     name: Build
+    if: github.repository == 'ktorio/ktor'
     runs-on: ubuntu-latest
     permissions:
       contents: read

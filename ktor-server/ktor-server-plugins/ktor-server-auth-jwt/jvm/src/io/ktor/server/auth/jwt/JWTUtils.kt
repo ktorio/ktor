@@ -116,7 +116,7 @@ internal suspend fun verifyAndValidate(
     val jwt = try {
         token.getBlob(schemes)?.let { jwtVerifier?.verify(it) }
     } catch (cause: JWTVerificationException) {
-        JWTLogger.debug("JWT verification failed: ${cause.message}", cause)
+        JWTLogger.debug("JWT verification failed: {}", cause.message, cause)
         null
     } ?: return null
 

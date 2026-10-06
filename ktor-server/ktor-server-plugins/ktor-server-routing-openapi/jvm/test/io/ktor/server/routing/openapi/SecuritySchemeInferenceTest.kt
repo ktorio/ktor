@@ -8,10 +8,6 @@ import io.ktor.client.*
 import io.ktor.openapi.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.apikey.*
-import io.ktor.server.routing.openapi.findSecuritySchemes
-import io.ktor.server.routing.openapi.registerBasicAuthSecurityScheme
-import io.ktor.server.routing.openapi.registerBearerAuthSecurityScheme
-import io.ktor.server.routing.openapi.registerOpenIdConnectSecurityScheme
 import io.ktor.server.sessions.*
 import io.ktor.server.testing.*
 import kotlinx.serialization.Serializable

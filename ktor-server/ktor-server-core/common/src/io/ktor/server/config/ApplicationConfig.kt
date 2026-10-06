@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.server.config
 
@@ -115,9 +115,9 @@ public interface ApplicationConfigValue {
     /**
      * Convert the property to an arbitrary type using deserialization.
      *
-     * @param type the desired type of the return value provided by `typeInfo<T>()`
-     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.config.ApplicationConfigValue.getAs)
+     *
+     * @param type the desired type of the return value provided by `typeInfo<T>()`
      */
     public fun getAs(type: TypeInfo): Any?
 
@@ -202,7 +202,6 @@ public class ApplicationConfigurationException(message: String, cause: Throwable
 /**
  * Try read String value from [ApplicationConfig].
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.config.tryGetString)
  *
  * @return null if key is missing
@@ -212,7 +211,6 @@ public fun ApplicationConfig.tryGetString(key: String): String? =
 
 /**
  * Try read list of String values from [ApplicationConfig].
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.config.tryGetStringList)
  *

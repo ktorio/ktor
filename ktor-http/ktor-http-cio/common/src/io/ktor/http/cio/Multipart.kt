@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.http.cio
@@ -52,6 +52,7 @@ public sealed class MultipartEvent {
     public class Preamble(
         public val body: Source
     ) : MultipartEvent() {
+        @Deprecated("Use releaseSuspend instead", level = DeprecationLevel.WARNING)
         override fun release() {
             body.close()
         }
@@ -64,7 +65,6 @@ public sealed class MultipartEvent {
      * Represents a multipart part. There could be any number of parts in a multipart stream. Please note that
      * it is important to consume [body] otherwise multipart parser could get stuck (suspend)
      * so you will not receive more events.
-     *
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.MultipartEvent.MultipartPart)
      *
@@ -105,6 +105,7 @@ public sealed class MultipartEvent {
     public class Epilogue(
         public val body: Source
     ) : MultipartEvent() {
+        @Deprecated("Use releaseSuspend instead", level = DeprecationLevel.WARNING)
         override fun release() {
             body.close()
         }
@@ -228,7 +229,7 @@ private fun CoroutineScope.parseMultipart(
     val preambleData = writer {
         parsePreambleImpl(firstBoundary, countedInput, channel, 8193)
         channel.flushAndClose()
-    }.channel.readRemaining()
+    }.channel.readBuffer()
 
     if (preambleData.remaining > 0L) {
         send(MultipartEvent.Preamble(preambleData))
@@ -279,7 +280,7 @@ private fun CoroutineScope.parseMultipart(
             send(MultipartEvent.Epilogue(countedInput.readPacket(size.toInt())))
         }
     } else {
-        val epilogueContent = countedInput.readRemaining()
+        val epilogueContent = countedInput.readBuffer()
         if (!epilogueContent.exhausted()) {
             send(MultipartEvent.Epilogue(epilogueContent))
         }

@@ -1,11 +1,10 @@
 /*
-* Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.server.auth
 
-import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpMethod
+import io.ktor.http.*
 import io.ktor.http.auth.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -283,9 +282,9 @@ public class DigestAuthenticationProvider internal constructor(
          *
          * The digest should be computed as `H(username:realm:password)` using the specified algorithm's hash function.
          *
-         * @see [DigestAlgorithm] for supported algorithms
-         *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.DigestAuthenticationProvider.Config.digestProvider)
+         *
+         * @see [DigestAlgorithm] for supported algorithms
          */
         public fun digestProvider(digest: DigestProviderFunctionV2) {
             digestProvider = digest

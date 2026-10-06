@@ -39,7 +39,7 @@ public sealed interface AdditionalProperties {
 
     public companion object {
         internal object Serializer : KSerializer<AdditionalProperties> {
-            @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
+            @OptIn(InternalSerializationApi::class)
             override val descriptor =
                 buildSerialDescriptor("io.ktor.openapi.AdditionalProperties", SerialKind.CONTEXTUAL)
 

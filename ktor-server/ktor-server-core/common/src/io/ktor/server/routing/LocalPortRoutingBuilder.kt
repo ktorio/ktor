@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.server.routing
 
@@ -16,7 +16,6 @@ import io.ktor.server.application.*
  *
  * For multi-tenant applications, you may want to use [io.ktor.server.routing.port],
  * which takes HTTP headers into consideration.
- *
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.localPort)
  *
@@ -34,7 +33,6 @@ public fun Route.localPort(port: Int, build: Route.() -> Unit): Route {
 /**
  * Evaluates a route against the port on which a call is received.
  *
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.LocalPortRouteSelector)
  *
  * @param port the port to match against
@@ -42,6 +40,9 @@ public fun Route.localPort(port: Int, build: Route.() -> Unit): Route {
 public data class LocalPortRouteSelector(val port: Int) : RouteSelector() {
 
     override suspend fun evaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation =
+        tryEvaluate(context, segmentIndex)
+
+    override fun tryEvaluate(context: RoutingResolveContext, segmentIndex: Int): RouteSelectorEvaluation =
         if (context.call.request.local.localPort == port) {
             val parameters = parametersOf(LocalPortParameter, port.toString())
             RouteSelectorEvaluation.Success(RouteSelectorEvaluation.qualityConstant, parameters)

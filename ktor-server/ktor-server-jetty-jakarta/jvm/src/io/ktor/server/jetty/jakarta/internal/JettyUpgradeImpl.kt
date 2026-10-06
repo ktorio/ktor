@@ -10,12 +10,10 @@ import io.ktor.utils.io.*
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import kotlinx.coroutines.CoroutineName
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import org.eclipse.jetty.ee10.servlet.ServletApiRequest
 import org.eclipse.jetty.io.AbstractEndPoint
-import org.eclipse.jetty.io.Connection
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.CoroutineContext
 

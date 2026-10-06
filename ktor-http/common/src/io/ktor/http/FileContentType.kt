@@ -83,9 +83,7 @@ internal fun List<ContentType>.selectDefault(): ContentType {
 }
 
 private fun ContentType.matchApplicationTypeWithCharset(): Boolean {
-    if (!match(ContentType.Application.Any)) return false
-
-    return when {
+    return match(ContentType.Application.Any) && when {
         match(ContentType.Application.Atom) ||
             match(ContentType.Application.JavaScript) ||
             match(ContentType.Application.Rss) ||

@@ -4,7 +4,7 @@
 @file:Suppress("UnstableApiUsage")
 
 import ktorbuild.internal.*
-import org.jetbrains.dokka.gradle.tasks.DokkaGeneratePublicationTask
+import org.jetbrains.dokka.gradle.tasks.*
 import java.time.Year
 
 plugins {
@@ -40,13 +40,21 @@ dokka {
 }
 
 tasks.withType<DokkaGeneratePublicationTask>().configureEach {
-    // Generate Dokka only for stable releases 'X.Y.Z' to save time when building snapshots, EAPs, etc.
-    // Comment these lines if you want to test Dokka generation locally
-    val projectVersion = project.version.toString()
-    onlyIf("Version is stable") { isStableVersion(projectVersion) }
+    onlyIfStableVersion()
 
     // Reduce memory consumption on CI
     if (ktorBuild.isCI.get()) {
         withLimitedParallelism("dokka", maxParallelTasks = 2)
     }
+}
+
+tasks.withType<LogHtmlPublicationLinkTask>().configureEach {
+    onlyIfStableVersion()
+}
+
+// Generate Dokka only for stable releases 'X.Y.Z' to save time when building snapshots, EAPs, etc.
+// Comment these lines if you want to test Dokka generation locally
+private fun DefaultTask.onlyIfStableVersion() {
+    val version = project.version.toString()
+    onlyIf("Version is stable") { isStableVersion(version) }
 }

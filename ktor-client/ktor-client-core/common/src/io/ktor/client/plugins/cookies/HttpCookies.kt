@@ -52,7 +52,7 @@ public class HttpCookies internal constructor(
         with(builder) {
             val url = builder.url.clone().build()
             val cookies = headers[HttpHeaders.Cookie]?.let { cookieHeader ->
-                LOGGER.trace("Saving cookie $cookieHeader for ${builder.url}")
+                LOGGER.trace { "Saving cookie $cookieHeader for ${builder.url}" }
                 parseClientCookiesHeader(cookieHeader).map { (name, encodedValue) ->
                     Cookie(name, encodedValue, encoding = CookieEncoding.RAW)
                 }
@@ -68,7 +68,7 @@ public class HttpCookies internal constructor(
             if (cookies.isNotEmpty()) {
                 val cookieHeader = renderClientCookies(cookies)
                 headers[HttpHeaders.Cookie] = cookieHeader
-                LOGGER.trace("Sending cookie $cookieHeader for ${builder.url}")
+                LOGGER.trace { "Sending cookie $cookieHeader for ${builder.url}" }
             } else {
                 headers.remove(HttpHeaders.Cookie)
             }
@@ -78,7 +78,7 @@ public class HttpCookies internal constructor(
     internal suspend fun saveCookiesFrom(response: HttpResponse) {
         val url = response.request.url
         response.headers.getAll(HttpHeaders.SetCookie)?.forEach {
-            LOGGER.trace("Received cookie $it in response for ${response.call.request.url}")
+            LOGGER.trace { "Received cookie $it in response for ${response.call.request.url}" }
         }
         response.setCookie().forEach {
             storage.addCookie(url, it)

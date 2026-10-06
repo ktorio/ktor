@@ -151,7 +151,7 @@ class ContentNegotiationTest {
 
         override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? {
             if (typeInfo.type != Wrapper::class) return null
-            return Wrapper(content.readRemaining().readText().removeSurrounding("[", "]"))
+            return Wrapper(content.readBuffer().readText().removeSurrounding("[", "]"))
         }
     }
 
@@ -168,7 +168,7 @@ class ContentNegotiationTest {
 
         override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? {
             if (typeInfo.type != Wrapper::class) return null
-            return Wrapper(content.readRemaining().readText())
+            return Wrapper(content.readBuffer().readText())
         }
     }
 
@@ -788,7 +788,7 @@ class ContentNegotiationTest {
                         typeInfo: TypeInfo,
                         content: ByteReadChannel
                     ): Any {
-                        content.readRemaining().readText().let { text ->
+                        content.readBuffer().readText().let { text ->
                             return text.substring(0, text.length - 1)
                         }
                     }
@@ -866,7 +866,7 @@ class ContentNegotiationTest {
                         content: ByteReadChannel
                     ): Any {
                         requestDeserialized = true
-                        return User(content.readRemaining().readText())
+                        return User(content.readBuffer().readText())
                     }
                 }
             )
