@@ -28,12 +28,9 @@ import io.ktor.server.routing.*
 import io.ktor.test.dispatcher.*
 import io.ktor.utils.io.*
 import io.mockk.mockk
-import io.netty.channel.Channel
-import io.netty.channel.ChannelHandlerContext
-import io.netty.channel.ChannelInboundHandlerAdapter
-import io.netty.channel.EventLoopGroup
+import io.netty.channel.*
 import io.netty.channel.embedded.EmbeddedChannel
-import io.netty.channel.nio.NioEventLoopGroup
+import io.netty.channel.nio.NioIoHandler
 import kotlinx.coroutines.*
 import org.junit.jupiter.api.Test
 import org.slf4j.LoggerFactory
@@ -282,7 +279,7 @@ class NettySpecificTest {
         logger.addAppender(listAppender)
 
         val environment = applicationEnvironment { log = logger }
-        val callEventGroup = NioEventLoopGroup(1)
+        val callEventGroup = MultiThreadIoEventLoopGroup(1, NioIoHandler.newFactory())
         val handler = NettyHttp1Handler(
             applicationProvider = { mockk(relaxed = true) },
             enginePipeline = mockk(relaxed = true),
