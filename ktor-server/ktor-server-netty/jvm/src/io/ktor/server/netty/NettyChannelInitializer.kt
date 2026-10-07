@@ -449,9 +449,9 @@ public class NettyChannelInitializer(
         }
     }
 
-    private fun idleStateHandler(http1Handler: NettyHttp1Handler): KtorIdleStateHandler? {
+    private fun idleStateHandler(http1Handler: NettyHttp1Handler): NettyIdleStateHandler? {
         if (readerIdleTimeout <= 0 && writerIdleTimeout <= 0 && allIdleTimeout <= 0) return null
-        return KtorIdleStateHandler(readerIdleTimeout, writerIdleTimeout, allIdleTimeout, http1Handler::hasActiveCalls)
+        return NettyIdleStateHandler(readerIdleTimeout, writerIdleTimeout, allIdleTimeout, http1Handler::hasActiveCalls)
     }
 
     public companion object {
@@ -503,7 +503,7 @@ internal class KtorReadTimeoutHandler(requestReadTimeout: Int) : ReadTimeoutHand
  * The first idle event is ignored for writer idle: [IdleStateHandler] raises it without checking output progress,
  * so it would fail a large write that is still moving bytes. Idle events are not passed further down the pipeline.
  */
-internal class KtorIdleStateHandler(
+internal class NettyIdleStateHandler(
     readerIdleTimeoutSeconds: Int,
     writerIdleTimeoutSeconds: Int,
     allIdleTimeoutSeconds: Int,

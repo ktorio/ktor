@@ -16,13 +16,13 @@ import java.util.concurrent.TimeUnit
 import kotlin.test.*
 
 /**
- * Tests [KtorIdleStateHandler] on an [EmbeddedChannel] with a frozen clock, so idle timeouts run in virtual time.
+ * Tests [NettyIdleStateHandler] on an [EmbeddedChannel] with a frozen clock, so idle timeouts run in virtual time.
  */
-class KtorIdleStateHandlerTest {
+class NettyIdleStateHandlerTest {
 
     @Test
     fun `writer idle - stalled write fails the channel`() {
-        withChannel(KtorIdleStateHandler(0, 1, 0) { true }) { channel ->
+        withChannel(NettyIdleStateHandler(0, 1, 0) { true }) { channel ->
             // Not flushed, so the data stays pending without any progress
             channel.write(bytes(1024))
             channel.advanceSeconds(2)
@@ -33,7 +33,7 @@ class KtorIdleStateHandlerTest {
 
     @Test
     fun `writer idle - slow write that keeps progressing is not failed`() {
-        withChannel(KtorIdleStateHandler(0, 1, 0) { true }, SlowWriteChannel(bytesPerFlush = 100)) { channel ->
+        withChannel(NettyIdleStateHandler(0, 1, 0) { true }, SlowWriteChannel(bytesPerFlush = 100)) { channel ->
             // A single large write, like a ByteArray response, delivered a little at a time
             channel.writeAndFlush(bytes(10_000))
             repeat(10) {
@@ -48,7 +48,7 @@ class KtorIdleStateHandlerTest {
 
     @Test
     fun `writer idle - nothing pending keeps the connection open`() {
-        withChannel(KtorIdleStateHandler(0, 1, 0) { false }) { channel ->
+        withChannel(NettyIdleStateHandler(0, 1, 0) { false }) { channel ->
             channel.advanceSeconds(5)
 
             channel.checkException()
@@ -58,7 +58,7 @@ class KtorIdleStateHandlerTest {
 
     @Test
     fun `reader idle - closes the connection when no call is active`() {
-        withChannel(KtorIdleStateHandler(1, 0, 0) { false }) { channel ->
+        withChannel(NettyIdleStateHandler(1, 0, 0) { false }) { channel ->
             channel.advanceSeconds(1)
 
             assertFalse(channel.isOpen)
@@ -67,7 +67,7 @@ class KtorIdleStateHandlerTest {
 
     @Test
     fun `reader idle - keeps the connection open while a call is active`() {
-        withChannel(KtorIdleStateHandler(1, 0, 0) { true }) { channel ->
+        withChannel(NettyIdleStateHandler(1, 0, 0) { true }) { channel ->
             channel.advanceSeconds(5)
 
             assertTrue(channel.isOpen)
@@ -76,7 +76,7 @@ class KtorIdleStateHandlerTest {
 
     @Test
     fun `reader idle - keeps the connection open while response data is pending`() {
-        withChannel(KtorIdleStateHandler(1, 0, 0) { false }) { channel ->
+        withChannel(NettyIdleStateHandler(1, 0, 0) { false }) { channel ->
             channel.write(bytes(1024))
             channel.advanceSeconds(5)
 
@@ -86,7 +86,7 @@ class KtorIdleStateHandlerTest {
 
     @Test
     fun `all idle - closes the connection when nothing is pending`() {
-        withChannel(KtorIdleStateHandler(0, 0, 1) { true }) { channel ->
+        withChannel(NettyIdleStateHandler(0, 0, 1) { true }) { channel ->
             channel.advanceSeconds(1)
 
             assertFalse(channel.isOpen)
@@ -95,7 +95,7 @@ class KtorIdleStateHandlerTest {
 
     @Test
     fun `all idle - keeps the connection open while response data is pending`() {
-        withChannel(KtorIdleStateHandler(0, 0, 1) { true }) { channel ->
+        withChannel(NettyIdleStateHandler(0, 0, 1) { true }) { channel ->
             channel.write(bytes(1024))
             channel.advanceSeconds(5)
 
@@ -105,7 +105,7 @@ class KtorIdleStateHandlerTest {
 
     @Test
     fun `disabled timeouts never close the connection`() {
-        withChannel(KtorIdleStateHandler(0, 0, 0) { false }) { channel ->
+        withChannel(NettyIdleStateHandler(0, 0, 0) { false }) { channel ->
             channel.write(bytes(1024))
             channel.advanceSeconds(60)
 
@@ -117,7 +117,7 @@ class KtorIdleStateHandlerTest {
     @Test
     fun `idle events are not passed down the pipeline`() {
         val events = mutableListOf<Any>()
-        withChannel(KtorIdleStateHandler(1, 1, 1) { true }) { channel ->
+        withChannel(NettyIdleStateHandler(1, 1, 1) { true }) { channel ->
             channel.pipeline().addLast(object : ChannelInboundHandlerAdapter() {
                 override fun userEventTriggered(ctx: ChannelHandlerContext, evt: Any) {
                     events += evt
@@ -131,7 +131,7 @@ class KtorIdleStateHandlerTest {
     }
 
     private fun withChannel(
-        handler: KtorIdleStateHandler,
+        handler: NettyIdleStateHandler,
         channel: EmbeddedChannel = EmbeddedChannel(),
         block: (EmbeddedChannel) -> Unit
     ) {
