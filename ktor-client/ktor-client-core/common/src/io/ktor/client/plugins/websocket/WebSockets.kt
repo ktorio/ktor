@@ -315,7 +315,8 @@ public open class WebSocketException(message: String, cause: Throwable?) : Illeg
  *
  * @property response the HTTP response of the failed handshake, exposing the status, headers, and body returned
  * by the server. It is `null` when the engine doesn't expose the rejected handshake response.
- * Availability varies by engine.
+ * Availability varies by engine. On some, the response data is available except of the body; in these cases,
+ * [HttpResponse.body] will be empty.
  */
 public class WebSocketHandshakeException(
     message: String,
