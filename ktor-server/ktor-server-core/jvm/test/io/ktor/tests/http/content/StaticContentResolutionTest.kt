@@ -17,11 +17,13 @@ import kotlinx.coroutines.runBlocking
 import java.io.File
 import java.net.JarURLConnection
 import java.net.URL
+import java.net.URLConnection
 import java.net.URLStreamHandler
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -70,17 +72,27 @@ class StaticContentResolutionTest {
 
     @OptIn(InternalAPI::class)
     @Test
-    fun `resourceClasspathResource returns null for directory in nested jar`() {
-        val handler = object : URLStreamHandler() {
-            override fun openConnection(u: URL) = object : JarURLConnection(u) {
-                override fun connect() {}
-                override fun getJarFile(): JarFile = error("not used")
-                override fun getJarEntry() = JarEntry("static/")
+    fun `resourceClasspathResource returns null for directory in nested jar and closes non-cached jar file`() {
+        val jarFile = object : JarFile(File(baseUrl.toURI())) {
+            var closed = false
+            override fun close() {
+                closed = true
+                super.close()
             }
+        }
+        lateinit var connection: JarURLConnection
+        val handler = object : URLStreamHandler() {
+            override fun openConnection(u: URL): URLConnection = object : JarURLConnection(u) {
+                override fun connect() {}
+                override fun getJarFile(): JarFile = jarFile
+                override fun getJarEntry() = JarEntry("static/")
+            }.also { connection = it }
         }
         val url = URL(null, "jar:file:/outer.jar!/lib/dep.jar!/static", handler)
 
         assertNull(resourceClasspathResource(url, "static") { ContentType.Application.OctetStream })
+        assertFalse(connection.useCaches, "Should not close a shared cached jar file")
+        assertTrue(jarFile.closed, "Jar file should be closed")
     }
 
     @Test
