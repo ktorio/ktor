@@ -66,6 +66,15 @@ class DefaultWebSocketTest {
     }
 
     @Test
+    fun `close reason is closed abnormally when connection is closed without close frame`() = runTestWithRealTime {
+        client2server.flushAndClose()
+
+        val reason: CloseReason = server.closeReason.await()
+        // 1006 is CLOSED_ABNORMALLY
+        assertEquals(CloseReason(1006, "Connection was closed without close frame"), reason)
+    }
+
+    @Test
     fun pingPong() = runTestWithRealTime {
         val pingsMessages = (1..5).map { "ping $it" }
 

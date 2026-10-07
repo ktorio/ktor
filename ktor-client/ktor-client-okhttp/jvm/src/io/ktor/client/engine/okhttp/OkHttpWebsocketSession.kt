@@ -56,7 +56,7 @@ internal class OkHttpWebsocketSession(
         Channel.from<Frame>(channelsConfig.incoming)
     }
     private val _outgoing = Channel.from<Frame>(channelsConfig.outgoing)
-    private val _closeReason = CompletableDeferred<CloseReason?>()
+    private val _closeReason = CompletableDeferred<CloseReason>()
 
     override val incoming: ReceiveChannel<Frame>
         get() = _incoming
@@ -64,7 +64,7 @@ internal class OkHttpWebsocketSession(
     override val outgoing: SendChannel<Frame>
         get() = _outgoing
 
-    override val closeReason: Deferred<CloseReason?>
+    override val closeReason: Deferred<CloseReason>
         get() = _closeReason
 
     @OptIn(InternalAPI::class)

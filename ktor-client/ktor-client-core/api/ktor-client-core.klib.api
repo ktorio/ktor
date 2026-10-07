@@ -617,7 +617,7 @@ final class io.ktor.client.plugins.websocket/DefaultClientWebSocketSession : io.
     final val call // io.ktor.client.plugins.websocket/DefaultClientWebSocketSession.call|{}call[0]
         final fun <get-call>(): io.ktor.client.call/HttpClientCall // io.ktor.client.plugins.websocket/DefaultClientWebSocketSession.call.<get-call>|<get-call>(){}[0]
     final val closeReason // io.ktor.client.plugins.websocket/DefaultClientWebSocketSession.closeReason|{}closeReason[0]
-        final fun <get-closeReason>(): kotlinx.coroutines/Deferred<io.ktor.websocket/CloseReason?> // io.ktor.client.plugins.websocket/DefaultClientWebSocketSession.closeReason.<get-closeReason>|<get-closeReason>(){}[0]
+        final fun <get-closeReason>(): kotlinx.coroutines/Deferred<io.ktor.websocket/CloseReason> // io.ktor.client.plugins.websocket/DefaultClientWebSocketSession.closeReason.<get-closeReason>|<get-closeReason>(){}[0]
     final val coroutineContext // io.ktor.client.plugins.websocket/DefaultClientWebSocketSession.coroutineContext|{}coroutineContext[0]
         final fun <get-coroutineContext>(): kotlin.coroutines/CoroutineContext // io.ktor.client.plugins.websocket/DefaultClientWebSocketSession.coroutineContext.<get-coroutineContext>|<get-coroutineContext>(){}[0]
     final val extensions // io.ktor.client.plugins.websocket/DefaultClientWebSocketSession.extensions|{}extensions[0]
