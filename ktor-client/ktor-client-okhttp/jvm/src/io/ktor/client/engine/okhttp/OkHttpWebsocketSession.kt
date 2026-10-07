@@ -148,6 +148,8 @@ internal class OkHttpWebsocketSession(
 
         if (statusCode == HttpStatusCode.Unauthorized.value) {
             originResponse.complete(response)
+            // this branch means a failed handshake
+            // we don't care about _closeReason, as `this` session object won't be available to the user
             _incoming.close()
             outgoing.close()
         } else {
