@@ -203,8 +203,10 @@ class HttpStatementTest : ClientLoader(timeout = 5.seconds) {
         }
     }
 
+    // KTOR-9951: The body transform reads the channel in the background, and Android's blocking
+    // InputStream.close() can wait for the next chunk before cleanup finishes.
     @Test
-    fun `body block propagates failure without waiting for the body`() = clientTests {
+    fun `body block propagates failure without waiting for the body`() = clientTests(except("Android")) {
         test { client ->
             val exception = assertFailsWith<IllegalStateException> {
                 client.prepareStream(delay = 1.minutes).body<ByteReadChannel, Unit> {
