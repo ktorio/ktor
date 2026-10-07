@@ -12,6 +12,7 @@ import io.ktor.server.websocket.*
 import io.ktor.util.*
 import io.ktor.websocket.*
 import kotlinx.serialization.json.Json
+import kotlin.random.Random
 
 internal fun Application.webSockets() {
     routing {
@@ -115,6 +116,11 @@ internal fun Application.webSockets() {
                 val size = call.request.queryParameters["size"]?.toIntOrNull() ?: error("No size provided")
                 val payload = "x".repeat(size)
                 send(Frame.Text(payload))
+            }
+            // Raw sessions bypass extensions, so the frame is never compressed
+            webSocketRaw("uncompressed-binary") {
+                val size = call.request.queryParameters["size"]?.toIntOrNull() ?: error("No size provided")
+                send(Frame.Binary(fin = true, Random(seed = 0).nextBytes(size)))
             }
             get("500") {
                 call.respond(HttpStatusCode.InternalServerError)

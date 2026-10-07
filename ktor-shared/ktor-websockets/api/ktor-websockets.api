@@ -22,6 +22,7 @@ public final class io/ktor/websocket/ChannelOverflowException : java/lang/Runtim
 }
 
 public final class io/ktor/websocket/CloseReason {
+	public static final field Companion Lio/ktor/websocket/CloseReason$Companion;
 	public fun <init> (Lio/ktor/websocket/CloseReason$Codes;Ljava/lang/String;)V
 	public fun <init> (SLjava/lang/String;)V
 	public final fun component1 ()S
@@ -59,6 +60,10 @@ public final class io/ktor/websocket/CloseReason$Codes : java/lang/Enum {
 
 public final class io/ktor/websocket/CloseReason$Codes$Companion {
 	public final fun byCode (S)Lio/ktor/websocket/CloseReason$Codes;
+}
+
+public final class io/ktor/websocket/CloseReason$Companion {
+	public final fun truncated (Lio/ktor/websocket/CloseReason$Codes;Ljava/lang/String;)Lio/ktor/websocket/CloseReason;
 }
 
 public abstract interface class io/ktor/websocket/DefaultWebSocketSession : io/ktor/websocket/WebSocketSession {

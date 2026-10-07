@@ -163,6 +163,10 @@ final class io.ktor.websocket/CloseReason { // io.ktor.websocket/CloseReason|nul
             final fun byCode(kotlin/Short): io.ktor.websocket/CloseReason.Codes? // io.ktor.websocket/CloseReason.Codes.Companion.byCode|byCode(kotlin.Short){}[0]
         }
     }
+
+    final object Companion { // io.ktor.websocket/CloseReason.Companion|null[0]
+        final fun truncated(io.ktor.websocket/CloseReason.Codes, kotlin/String): io.ktor.websocket/CloseReason // io.ktor.websocket/CloseReason.Companion.truncated|truncated(io.ktor.websocket.CloseReason.Codes;kotlin.String){}[0]
+    }
 }
 
 final class io.ktor.websocket/FrameTooBigException : kotlin/Exception, kotlinx.coroutines/CopyableThrowable<io.ktor.websocket/FrameTooBigException> { // io.ktor.websocket/FrameTooBigException|null[0]

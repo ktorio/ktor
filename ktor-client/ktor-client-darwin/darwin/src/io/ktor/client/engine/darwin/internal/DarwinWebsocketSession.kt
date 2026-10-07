@@ -85,7 +85,13 @@ internal class DarwinWebsocketSession(
 
     private suspend fun receiveMessages() {
         while (true) {
-            val message = task.receiveMessage()
+            val message = try {
+                task.receiveMessage()
+            } catch (cause: FrameTooBigException) {
+                if (!response.isCompleted) throw cause
+                closeFrameTooBig(cause)
+                return
+            }
             val frame = when (message.type) {
                 NSURLSessionWebSocketMessageTypeData ->
                     Frame.Binary(true, message.data()!!.toByteArray())
@@ -208,8 +214,21 @@ internal class DarwinWebsocketSession(
         }
 
         val exception = convertWebsocketError(error)
+        // The session is already handed over to the user, so the error is reported through it
+        // instead of failing the call
+        if (exception is FrameTooBigException && response.isCompleted) {
+            closeFrameTooBig(exception)
+            return
+        }
         response.completeExceptionally(exception)
         socketJob.completeExceptionally(exception)
+    }
+
+    private fun closeFrameTooBig(cause: FrameTooBigException) {
+        _incoming.close(cause)
+        val reason = CloseReason.truncated(CloseReason.Codes.TOO_BIG, cause.message)
+        task.cancelWithCloseCode(reason.code.convert(), reason.message.toByteArray().toNSData())
+        socketJob.cancel()
     }
 
     @OptIn(DelicateCoroutinesApi::class)
