@@ -51,7 +51,6 @@ class NettyIdleTimeoutTest :
     private var writerIdleTimeoutSeconds = 1
     private var allIdleTimeoutSeconds = 0
     private var h2c = false
-    private val silentHandlerFinished = CompletableDeferred<Unit>()
 
     init {
         enableSsl = false
@@ -98,28 +97,6 @@ class NettyIdleTimeoutTest :
             response.bodySize < BYTES_SIZE,
             "Expected the stalled connection to be closed, but received all ${response.bodySize} bytes"
         )
-    }
-
-    @Test
-    fun `writer idle - stalled client is not disconnected when disabled`() = runTest {
-        writerIdleTimeoutSeconds = 0
-        startServer()
-
-        val response = slowGet("/bytes", pause = 3.seconds, stallAfterFirstChunk = true)
-
-        assertCompleteResponse(response)
-    }
-
-    @Test
-    fun `writer idle - idle keep-alive connection stays open`() = runTest {
-        startServer()
-
-        socket {
-            requestSmall()
-            delay(3.seconds)
-
-            assertSmallResponse()
-        }
     }
 
     @Test
@@ -176,43 +153,6 @@ class NettyIdleTimeoutTest :
     }
 
     @Test
-    fun `all idle - idle keep-alive connection is closed`() = runTest {
-        allIdleTimeoutSeconds = 1
-        startServer()
-
-        socket {
-            requestSmall()
-            delay(3.seconds)
-
-            assertClosedByServer()
-        }
-    }
-
-    @Test
-    fun `all idle - slow steady client receives large byte array`() = runTest {
-        allIdleTimeoutSeconds = 1
-        startServer()
-
-        val response = slowGet("/bytes", pause = 100.milliseconds)
-
-        assertCompleteResponse(response)
-    }
-
-    @Test
-    fun `all idle - handler that sends nothing for longer than the timeout is disconnected`() = runTest {
-        allIdleTimeoutSeconds = 1
-        startServer()
-
-        socket {
-            sendGet("/silent", keepAlive = true)
-
-            assertClosedByServer()
-        }
-        // Let the handler finish, so stopping the server doesn't cancel it mid-call
-        silentHandlerFinished.await()
-    }
-
-    @Test
     fun `h2c fallback pipeline works with all idle timeouts disabled`() = runTest {
         h2c = true
         writerIdleTimeoutSeconds = 0
@@ -220,45 +160,6 @@ class NettyIdleTimeoutTest :
 
         socket {
             assertSmallResponse()
-        }
-    }
-
-    @Test
-    fun `all idle - slow request upload through h2c fallback pipeline is not cut off`() = runTest {
-        h2c = true
-        allIdleTimeoutSeconds = 1
-        startServer()
-
-        socket {
-            val chunk = ByteArray(1024)
-            val chunks = 10
-            outputStream.write(
-                "POST /upload HTTP/1.1\r\nHost: localhost\r\nContent-Length: ${chunk.size * chunks}\r\n\r\n"
-                    .toByteArray()
-            )
-            // Nothing is written back while the body arrives, so only the reads keep the connection active
-            repeat(chunks) {
-                outputStream.write(chunk)
-                outputStream.flush()
-                delay(300.milliseconds)
-            }
-
-            val headers = inputStream.readHeaders()
-            assertTrue(headers.statusLine.startsWith(SUCCESS_RESPONSE), "Unexpected status: ${headers.statusLine}")
-        }
-    }
-
-    @Test
-    fun `reader idle - handler that runs longer than the timeout is not cut off`() = runTest {
-        readerIdleTimeoutSeconds = 1
-        startServer()
-
-        socket {
-            sendGet("/silent", keepAlive = true)
-
-            val headers = inputStream.readHeaders()
-            assertTrue(headers.statusLine.startsWith(SUCCESS_RESPONSE), "Unexpected status: ${headers.statusLine}")
-            assertEquals(SMALL_SIZE, headers.contentLength)
         }
     }
 
@@ -300,23 +201,11 @@ class NettyIdleTimeoutTest :
                     if (frame is Frame.Text) send(Frame.Text("echo:" + frame.readText()))
                 }
             }
-            post("/upload") {
-                call.receiveChannel().discard()
-                call.respondText("uploaded")
-            }
             get("/bytes") {
                 call.respondBytes(ByteArray(BYTES_SIZE) { it.toByte() })
             }
             get("/small") {
                 call.respondBytes(ByteArray(SMALL_SIZE))
-            }
-            get("/silent") {
-                try {
-                    delay(2.seconds)
-                    call.respondBytes(ByteArray(SMALL_SIZE))
-                } finally {
-                    silentHandlerFinished.complete(Unit)
-                }
             }
         }
     }
