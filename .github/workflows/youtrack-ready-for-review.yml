@@ -13,6 +13,7 @@ jobs:
 
     if: github.repository == 'ktorio/ktor' &&
       github.event.pull_request.user.type != 'Bot' &&
+      github.event.pull_request.state == 'open' &&
       !github.event.pull_request.draft
 
     env:
@@ -57,7 +58,7 @@ jobs:
           # a closing keyword: "Fixes KTOR-1", "Closes: KTOR-1, KTOR-2", "Fix [KTOR-1](<url>)", "Resolves <issue url>".
           extract_ids() {
             local keyword='(^|[^[:alnum:]_])([Cc]lose[sd]?|[Ff]ix(e[sd])?|[Rr]esolve[sd]?)[*_]*:?[*_]*[[:space:]]+'
-            local ref='\[?(https?://youtrack\.jetbrains\.com/issue/)?KTOR-[0-9]+(\]\([^)[:space:]]*\))?'
+            local ref='[<[]?(https?://youtrack\.jetbrains\.com/issue/)?KTOR-[0-9]+(>|\]\([^)[:space:]]*\))?'
             local separator='(,[[:space:]]*(and[[:space:]]+)?|[[:space:]]+and[[:space:]]+)'
             {
               printf '%s\n' "$1" | grep -oE 'KTOR-[0-9]+' || true
