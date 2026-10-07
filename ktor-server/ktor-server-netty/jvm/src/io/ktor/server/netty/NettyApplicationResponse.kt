@@ -74,7 +74,11 @@ public abstract class NettyApplicationResponse(
     override suspend fun responseChannel(): ByteWriteChannel {
         val channel = ByteChannel()
         val chunked = headers[HttpHeaders.TransferEncoding] == "chunked"
-        sendResponse(chunked, content = channel)
+        if (!sendResponse(chunked, content = channel)) {
+            val cause = CancellationException("Response was cancelled")
+            channel.cancel(cause)
+            throw cause
+        }
 
         awaitProcessingResponseIfInfoOrNoContent()
 
@@ -90,7 +94,7 @@ public abstract class NettyApplicationResponse(
         val status = status()
 
         if (status != null) {
-            val infoOrNoContent = status == HttpStatusCode.NoContent || (status.value >= 100 && status.value < 200)
+            val infoOrNoContent = status == HttpStatusCode.NoContent || (status.value in 100..<200)
 
             if (infoOrNoContent && call is NettyApplicationCall) {
                 (call as NettyApplicationCall).responseWriteJob.join()
@@ -116,10 +120,10 @@ public abstract class NettyApplicationResponse(
         return null
     }
 
-    internal fun sendResponse(chunked: Boolean = true, content: ByteReadChannel) {
+    internal fun sendResponse(chunked: Boolean = true, content: ByteReadChannel): Boolean {
         if (!canRespond) {
             cancelIfChannelNotActive()
-            return
+            return false
         }
 
         responseChannel = content
@@ -134,6 +138,7 @@ public abstract class NettyApplicationResponse(
         }
         responseReady.setSuccess()
         responseMessageSent = true
+        return true
     }
 
     internal fun ensureResponseSent() {
