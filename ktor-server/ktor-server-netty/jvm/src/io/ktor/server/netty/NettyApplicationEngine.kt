@@ -98,10 +98,11 @@ public class NettyApplicationEngine(
         /**
          * Closes an idle connection after this many seconds without receiving data, "0" disables it.
          * Never interrupts a running call or a response being sent.
+         * The default of 45 seconds matches the CIO engine's `connectionIdleTimeoutSeconds`.
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.NettyApplicationEngine.Configuration.readerIdleTimeoutSeconds)
          */
-        public var readerIdleTimeoutSeconds: Int = 0
+        public var readerIdleTimeoutSeconds: Int = 45
 
         /**
          * Closes the connection when response data is pending but nothing was written for this many seconds,

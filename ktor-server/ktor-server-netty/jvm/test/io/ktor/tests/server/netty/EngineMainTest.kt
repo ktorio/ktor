@@ -66,7 +66,7 @@ class EngineMainTest {
         assertEquals(HttpObjectDecoder.DEFAULT_MAX_CHUNK_SIZE, configuration.maxChunkSize)
 
         assertEquals(0, configuration.responseWriteTimeoutSeconds)
-        assertEquals(0, configuration.readerIdleTimeoutSeconds)
+        assertEquals(45, configuration.readerIdleTimeoutSeconds)
         assertEquals(10, configuration.writerIdleTimeoutSeconds)
         assertEquals(0, configuration.allIdleTimeoutSeconds)
     }
