@@ -5,6 +5,7 @@
 package io.ktor.client.tests
 
 import io.ktor.client.*
+import io.ktor.client.engine.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.api.*
 import io.ktor.client.plugins.auth.*
@@ -18,6 +19,7 @@ import io.ktor.http.*
 import io.ktor.serialization.*
 import io.ktor.test.*
 import io.ktor.util.reflect.*
+import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
@@ -592,6 +594,37 @@ class WebSocketTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
         test { client ->
             client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/endless-message") {
                 assertFailsWith<FrameTooBigException> { incoming.receive() }
+            }
+        }
+    }
+
+    @Test
+    fun testMaxFrameSizeExceededBeforeSessionIsConsumed() = clientTests(
+        except(ENGINES_NOT_SUPPORTING_MAX_FRAME_SIZE),
+        retries = 0,
+    ) {
+        test { delegateClient ->
+            // The oversized frame arrives while the engine is still returning the handshake response
+            @OptIn(InternalAPI::class)
+            val delayingEngine = object : HttpClientEngine by delegateClient.engine {
+                override suspend fun execute(data: HttpRequestData): HttpResponseData =
+                    delegateClient.engine.execute(data).also { delay(10.milliseconds) }
+
+                // The default implementation calls `execute` on the engine it's installed on,
+                // so it must not be delegated
+                override fun install(client: HttpClient) = super.install(client)
+            }
+
+            val delayingClient = HttpClient(delayingEngine) {
+                install(WebSockets) {
+                    maxFrameSize = 10
+                }
+            }
+
+            delayingClient.use {
+                it.webSocket("$TEST_WEBSOCKET_SERVER/websockets/uncompressed-binary?size=1024") {
+                    assertFailsWith<FrameTooBigException> { incoming.receive() }
+                }
             }
         }
     }
