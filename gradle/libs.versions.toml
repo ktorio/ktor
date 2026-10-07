@@ -150,6 +150,7 @@ netty-codec-http2 = { module = "io.netty:netty-codec-http2", version.ref = "nett
 netty-codec-http3 = { module = "io.netty:netty-codec-http3", version.ref = "netty" }
 netty-transport-native-kqueue = { module = "io.netty:netty-transport-native-kqueue", version.ref = "netty" }
 netty-transport-native-epoll = { module = "io.netty:netty-transport-native-epoll", version.ref = "netty" }
+netty-transport-native-iouring = { module = "io.netty:netty-transport-native-io_uring", version.ref = "netty" }
 netty-tcnative = { module = "io.netty:netty-tcnative", version.ref = "netty-tcnative" }
 netty-tcnative-boringssl-static = { module = "io.netty:netty-tcnative-boringssl-static", version.ref = "netty-tcnative" }
 

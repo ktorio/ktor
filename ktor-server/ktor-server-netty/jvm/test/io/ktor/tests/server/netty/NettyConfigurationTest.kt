@@ -12,10 +12,11 @@ import io.ktor.server.netty.*
 import io.ktor.util.logging.*
 import io.mockk.*
 import io.netty.channel.*
-import io.netty.channel.nio.*
-import kotlinx.coroutines.*
-import java.util.concurrent.*
-import kotlin.test.*
+import io.netty.channel.nio.NioIoHandler
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import java.util.concurrent.TimeUnit
+import kotlin.test.Test
 
 class NettyConfigurationTest {
     private fun server(
@@ -45,8 +46,8 @@ class NettyConfigurationTest {
 
     @Test
     fun configuredChildAndParentGroupShutdownGracefully() {
-        val parentGroup = spyk(NioEventLoopGroup())
-        val childGroup = spyk(NioEventLoopGroup())
+        val parentGroup = spyk(MultiThreadIoEventLoopGroup(NioIoHandler.newFactory()))
+        val childGroup = spyk(MultiThreadIoEventLoopGroup(NioIoHandler.newFactory()))
         val server = server {
             configureBootstrap = {
                 group(parentGroup, childGroup)

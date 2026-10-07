@@ -11,10 +11,11 @@ import io.ktor.server.test.base.*
 import io.ktor.utils.io.*
 import io.netty.bootstrap.Bootstrap
 import io.netty.channel.*
-import io.netty.channel.nio.NioEventLoopGroup
+import io.netty.channel.nio.NioIoHandler
 import io.netty.channel.socket.nio.NioDatagramChannel
 import io.netty.handler.codec.http3.*
-import io.netty.handler.codec.quic.*
+import io.netty.handler.codec.quic.QuicChannel
+import io.netty.handler.codec.quic.QuicSslContextBuilder
 import java.net.InetSocketAddress
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
@@ -50,7 +51,7 @@ class NettyHttp3MultipleConnectionsTest :
     }
 
     private class H3Conn(
-        val group: NioEventLoopGroup,
+        val group: IoEventLoopGroup,
         val udp: Channel,
         val quic: QuicChannel
     ) {
@@ -62,7 +63,7 @@ class NettyHttp3MultipleConnectionsTest :
     }
 
     private fun openConn(label: String): H3Conn? {
-        val group = NioEventLoopGroup(1)
+        val group = MultiThreadIoEventLoopGroup(1, NioIoHandler.newFactory())
         try {
             val sslContext = QuicSslContextBuilder.forClient()
                 .trustManager(io.netty.handler.ssl.util.InsecureTrustManagerFactory.INSTANCE)
@@ -90,7 +91,7 @@ class NettyHttp3MultipleConnectionsTest :
             }
             println("[probe] $label: connected in ${ms}ms")
             return H3Conn(group, udp, quic)
-        } catch (ignored: TimeoutException) {
+        } catch (_: TimeoutException) {
             println("[probe] $label: CONNECT TIMED OUT after 5s")
             group.shutdownGracefully(0, 500, TimeUnit.MILLISECONDS)
             return null

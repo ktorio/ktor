@@ -4,18 +4,20 @@
 
 package io.ktor.tests.server.netty
 
-import io.ktor.server.application.*
 import io.ktor.server.netty.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.test.base.*
 import io.ktor.utils.io.*
 import io.netty.bootstrap.Bootstrap
-import io.netty.channel.*
-import io.netty.channel.nio.NioEventLoopGroup
+import io.netty.channel.ChannelHandlerContext
+import io.netty.channel.ChannelInboundHandlerAdapter
+import io.netty.channel.MultiThreadIoEventLoopGroup
+import io.netty.channel.nio.NioIoHandler
 import io.netty.channel.socket.nio.NioDatagramChannel
 import io.netty.handler.codec.http3.*
-import io.netty.handler.codec.quic.*
+import io.netty.handler.codec.quic.QuicChannel
+import io.netty.handler.codec.quic.QuicSslContextBuilder
 import java.net.InetSocketAddress
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.LinkedBlockingQueue
@@ -141,7 +143,7 @@ class NettyHttp3CallExecutorTest :
     }
 
     private suspend fun withHttp3Client(block: suspend (QuicChannel) -> Unit) {
-        val group = NioEventLoopGroup(1)
+        val group = MultiThreadIoEventLoopGroup(1, NioIoHandler.newFactory())
         try {
             val quicSslContext = QuicSslContextBuilder.forClient()
                 .trustManager(io.netty.handler.ssl.util.InsecureTrustManagerFactory.INSTANCE)

@@ -35,6 +35,7 @@ kotlin {
 
             api(libs.netty.transport.native.kqueue)
             api(libs.netty.transport.native.epoll)
+            implementation(libs.netty.transport.native.iouring)
             if (nativeClassifier != null) {
                 api(libs.netty.tcnative.boringssl.static)
             }
