@@ -110,7 +110,11 @@ internal class NettyHttp1ApplicationResponse(
             upgradedWriteChannel.close()
             bodyHandler.close()
             upgradedReadChannel.cancel(it)
-            context.channel().close()
+            // Close only once the response pipeline has handed over everything the session wrote, such as
+            // its close frame; the empty write completes after all earlier writes, so they are flushed first
+            (call as NettyApplicationCall).finishedEvent.addListener {
+                context.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE)
+            }
         }
 
         (call as NettyApplicationCall).responseWriteJob.join()
