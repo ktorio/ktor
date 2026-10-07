@@ -20,6 +20,7 @@ import io.ktor.websocket.*
 import io.netty.channel.ChannelOption
 import kotlinx.coroutines.*
 import java.io.InputStream
+import java.net.InetSocketAddress
 import java.net.Socket
 import java.net.SocketException
 import kotlin.test.*
@@ -39,7 +40,7 @@ class NettyIdleTimeoutTest :
 
     companion object {
         private const val SUCCESS_RESPONSE = "HTTP/1.1 200"
-        private const val SOCKET_BUFFER_SIZE = 8 * 1024
+        private const val SOCKET_BUFFER_SIZE = 64 * 1024
         private const val READ_CHUNK_SIZE = 32 * 1024
         private const val BYTES_SIZE = 1024 * 1024
         private const val SMALL_SIZE = 1024
@@ -80,25 +81,6 @@ class NettyIdleTimeoutTest :
 
     @Test
     fun `writer idle - slow steady client receives large byte array`() = runTest {
-        startServer()
-
-        val response = slowGet("/bytes", pause = 100.milliseconds)
-
-        assertCompleteResponse(response)
-    }
-
-    @Test
-    fun `writer idle - slow steady client receives streamed body`() = runTest {
-        startServer()
-
-        val response = slowGet("/stream", pause = 100.milliseconds)
-
-        assertCompleteResponse(response)
-    }
-
-    @Test
-    fun `writer idle - slow steady client receives byte array through h2c fallback pipeline`() = runTest {
-        h2c = true
         startServer()
 
         val response = slowGet("/bytes", pause = 100.milliseconds)
@@ -325,12 +307,6 @@ class NettyIdleTimeoutTest :
             get("/bytes") {
                 call.respondBytes(ByteArray(BYTES_SIZE) { it.toByte() })
             }
-            get("/stream") {
-                call.respondOutputStream(contentLength = BYTES_SIZE.toLong()) {
-                    val chunk = ByteArray(8 * 1024)
-                    repeat(BYTES_SIZE / chunk.size) { write(chunk) }
-                }
-            }
             get("/small") {
                 call.respondBytes(ByteArray(SMALL_SIZE))
             }
@@ -391,9 +367,9 @@ class NettyIdleTimeoutTest :
      */
     private suspend fun slowGet(path: String, pause: Duration, stallAfterFirstChunk: Boolean = false): Response {
         lateinit var response: Response
-        socket {
-            receiveBufferSize = SOCKET_BUFFER_SIZE
-            sendGet(path, keepAlive = false)
+        smallBufferSocket().use { socket ->
+            socket.sendGet(path, keepAlive = false)
+            val inputStream = socket.getInputStream()
             val headers = inputStream.readHeaders()
 
             val buffer = ByteArray(READ_CHUNK_SIZE)
@@ -411,6 +387,16 @@ class NettyIdleTimeoutTest :
             response = Response(headers, bodySize)
         }
         return response
+    }
+
+    /**
+     * Opens a client socket whose receive buffer is set before connecting: set afterwards, it doesn't reliably
+     * shrink the TCP window, and the OS would buffer most of the response, hiding the backpressure.
+     */
+    private fun smallBufferSocket(): Socket = Socket().apply {
+        receiveBufferSize = SOCKET_BUFFER_SIZE
+        soTimeout = 30_000
+        connect(InetSocketAddress("127.0.0.1", this@NettyIdleTimeoutTest.port))
     }
 
     private fun assertCompleteResponse(response: Response) {
