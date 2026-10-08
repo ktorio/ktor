@@ -75,23 +75,81 @@ public suspend fun <T> Future<T>.suspendAwait(exception: (Throwable, Continuatio
  * by default for the user context dispatcher.  There are some scenarios where the
  * underlying netty channel is closed prematurely, in which case we fallback to the
  * caller thread.
+ *
+ * Also implements [Delay] so `delay()` and timeout scheduling (`withTimeout`) are scheduled
+ * directly on the call's own Netty [EventExecutor] (a [java.util.concurrent.ScheduledExecutorService])
+ * instead of kotlinx.coroutines' single shared `DefaultExecutor` thread.
  */
-internal object NettyDispatcher : CoroutineDispatcher() {
+@OptIn(InternalCoroutinesApi::class, ExperimentalCoroutinesApi::class)
+internal object NettyDispatcher : CoroutineDispatcher(), Delay {
+    private inline fun <E> execute(
+        context: CoroutineContext,
+        action: EventExecutor.() -> E,
+        fallback: () -> E,
+    ): E {
+        try {
+            val current = context[CurrentContextKey]
+            checkNotNull(current) { "NettyDispatcher context is missing from the coroutine context" }
+            return if (!current.executor.isShuttingDown) {
+                current.executor.action()
+            } else {
+                fallback()
+            }
+        } catch (_: RejectedExecutionException) {
+            return fallback()
+        } catch (cause: Throwable) {
+            LOG.error("Failed to execute task", cause)
+            throw cause
+        }
+    }
+
+    // Used when the call's own Netty executor rejects scheduling (during shutdown, for example)
+    private val fallbackScheduler: ScheduledExecutorService by lazy {
+        Executors.newSingleThreadScheduledExecutor { runnable ->
+            Thread(runnable, "ktor-netty-dispatcher-fallback").apply { isDaemon = true }
+        }
+    }
+
     override fun isDispatchNeeded(context: CoroutineContext): Boolean {
-        return !context[CurrentContextKey]!!.executor.inEventLoop()
+        return context[CurrentContextKey]?.executor?.inEventLoop() != true
     }
 
     override fun dispatch(context: CoroutineContext, block: Runnable) {
-        val executor = context[CurrentContextKey]!!.executor
-        if (executor.isShuttingDown) {
-            Dispatchers.IO.dispatch(context, block)
-        } else {
-            try {
-                executor.execute(block)
-            } catch (cause: Throwable) {
-                LOG.error("Failed to dispatch", cause)
+        execute(
+            context = context,
+            action = { execute(block) },
+            fallback = { Dispatchers.IO.dispatch(context, block) }
+        )
+    }
+
+    override fun scheduleResumeAfterDelay(timeMillis: Long, continuation: CancellableContinuation<Unit>) {
+        val future = execute(
+            context = continuation.context,
+            action = {
+                schedule(
+                    { with(continuation) { resumeUndispatched(Unit) } },
+                    timeMillis,
+                    TimeUnit.MILLISECONDS
+                )
+            },
+            fallback = {
+                fallbackScheduler.schedule(
+                    { continuation.resume(Unit) },
+                    timeMillis,
+                    TimeUnit.MILLISECONDS
+                )
             }
-        }
+        )
+        continuation.invokeOnCancellation { future.cancel(false) }
+    }
+
+    override fun invokeOnTimeout(timeMillis: Long, block: Runnable, context: CoroutineContext): DisposableHandle {
+        val future = execute(
+            context = context,
+            action = { schedule(block, timeMillis, TimeUnit.MILLISECONDS) },
+            fallback = { fallbackScheduler.schedule(block, timeMillis, TimeUnit.MILLISECONDS) }
+        )
+        return DisposableHandle { future.cancel(false) }
     }
 
     /**
