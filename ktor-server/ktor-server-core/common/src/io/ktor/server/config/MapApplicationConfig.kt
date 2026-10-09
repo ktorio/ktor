@@ -181,11 +181,15 @@ internal class MapApplicationConfigValue(
             else -> ApplicationConfigValue.Type.NULL
         }
     }
-    override fun getString(): String = map[path]!!
+    override fun getString(): String =
+        map[path] ?: throw ApplicationConfigurationException("Property $path not found.")
     override fun getList(): List<String> {
         val size =
             map[combine(path, "size")] ?: throw ApplicationConfigurationException("Property $path.size not found.")
-        return (0 until size.toInt()).map { map[combine(path, it)]!! }
+        return (0 until size.toInt()).map { index ->
+            val elementPath = combine(path, index)
+            map[elementPath] ?: throw ApplicationConfigurationException("Property $elementPath not found.")
+        }
     }
 
     override fun getMap(): Map<String, Any?> {
