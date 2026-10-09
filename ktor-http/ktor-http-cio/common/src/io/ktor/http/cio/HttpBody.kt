@@ -37,6 +37,7 @@ public fun expectHttpUpgrade(request: Request): Boolean = expectHttpUpgrade(
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.expectHttpBody)
  *
  * @return `true` if request or response with the specified parameters could have a body
+ * @throws ParserException if [transferEncoding] is present and is not exactly `chunked`
  */
 public fun expectHttpBody(
     method: HttpMethod,
@@ -46,8 +47,7 @@ public fun expectHttpBody(
     @Suppress("UNUSED_PARAMETER") contentType: CharSequence?
 ): Boolean {
     if (transferEncoding != null) {
-        // verify header value
-        isTransferEncodingChunked(transferEncoding)
+        requireChunkedTransferEncoding(transferEncoding)
         return true
     }
     if (contentLength != -1L) return contentLength > 0L
@@ -62,14 +62,23 @@ public fun expectHttpBody(
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.expectHttpBody)
  *
  * @return `true` if request or response with the specified parameters could have a body
+ * @throws ParserException if the message has more than one `Content-Length` or `Transfer-Encoding` header,
+ * has both of them, or has a `Transfer-Encoding` other than `chunked`
  */
-public fun expectHttpBody(request: Request): Boolean = expectHttpBody(
-    request.method,
-    request.headers["Content-Length"]?.parseDecLong() ?: -1,
-    request.headers["Transfer-Encoding"],
-    ConnectionOptions.parse(request.headers["Connection"]),
-    request.headers["Content-Type"]
-)
+public fun expectHttpBody(request: Request): Boolean {
+    val contentLength = request.headers.singleOrNull("Content-Length")
+    val transferEncoding = request.headers.singleOrNull("Transfer-Encoding")
+    val connectionOptions = ConnectionOptions.parse(request.headers["Connection"])
+    val contentType = request.headers["Content-Type"]
+    checkFramingHeaders(contentLength, transferEncoding)
+    return expectHttpBody(
+        request.method,
+        contentLength?.parseDecLong() ?: -1,
+        transferEncoding,
+        connectionOptions,
+        contentType
+    )
+}
 
 /**
  * Parse HTTP request or response body using [contentLength], [transferEncoding] and [connectionOptions]
@@ -127,8 +136,9 @@ public suspend fun parseHttpBody(
  * @param
  */
 @Deprecated(
-    "Please use method with version parameter",
-    level = DeprecationLevel.ERROR
+    message = "Please use method with version parameter",
+    level = DeprecationLevel.ERROR,
+    replaceWith = ReplaceWith("parseHttpBody(null, contentLength, transferEncoding, connectionOptions, input, out)")
 )
 public suspend fun parseHttpBody(
     contentLength: Long,
@@ -145,19 +155,62 @@ public suspend fun parseHttpBody(
  * writing it to [out]. Usually doesn't fail but closing [out] channel with error.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.parseHttpBody)
+ *
+ * @throws ParserException if the message has more than one `Content-Length`
+ * or `Transfer-Encoding` header, has both of them, or has a `Transfer-Encoding` other than `chunked`
  */
 public suspend fun parseHttpBody(
     headers: HttpHeadersMap,
     input: ByteReadChannel,
     out: ByteWriteChannel
-): Unit = parseHttpBody(
-    null,
-    headers["Content-Length"]?.parseDecLong() ?: -1,
-    headers["Transfer-Encoding"],
-    ConnectionOptions.parse(headers["Connection"]),
-    input,
-    out
-)
+) {
+    val contentLength = headers.singleOrNull("Content-Length")
+    val transferEncoding = headers.singleOrNull("Transfer-Encoding")
+    val connectionOptions = ConnectionOptions.parse(headers["Connection"])
+
+    checkFramingHeaders(contentLength, transferEncoding)
+    transferEncoding?.let(::requireChunkedTransferEncoding)
+
+    parseHttpBody(
+        version = null,
+        contentLength?.parseDecLong() ?: -1,
+        transferEncoding,
+        connectionOptions,
+        input,
+        out
+    )
+}
+
+/**
+ * Returns the single value of the [name] header or `null` if absent.
+ *
+ * @throws ParserException if the header appears more than once (RFC 9110, Section 5.3)
+ */
+internal fun HttpHeadersMap.singleOrNull(name: String): CharSequence? {
+    val iterator = getAll(name).iterator()
+    if (!iterator.hasNext()) return null
+    val value = iterator.next()
+    if (iterator.hasNext()) throw ParserException("Duplicate $name header")
+    return value
+}
+
+/**
+ * A message must not carry both framing headers, otherwise its body length is ambiguous
+ * and the message could be used for request smuggling (RFC 9112, Section 6.1).
+ */
+internal fun checkFramingHeaders(contentLength: CharSequence?, transferEncoding: CharSequence?) {
+    if (contentLength != null && transferEncoding != null) {
+        throw ParserException("Transfer-Encoding and Content-Length headers must not be sent together")
+    }
+}
+
+internal fun requireChunkedTransferEncoding(transferEncoding: CharSequence) {
+    // Only SP and HTAB are optional whitespace in header values
+    val trimmed = transferEncoding.trim { it == ' ' || it == '\t' }
+    if (!trimmed.equalsLowerCase(other = "chunked")) {
+        throw ParserException("Unsupported Transfer-Encoding: '$transferEncoding'. Only 'chunked' is supported")
+    }
+}
 
 private fun isTransferEncodingChunked(transferEncoding: CharSequence): Boolean {
     if (transferEncoding.equalsLowerCase(other = "chunked")) {
