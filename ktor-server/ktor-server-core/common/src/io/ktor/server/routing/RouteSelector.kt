@@ -869,8 +869,10 @@ public data class HttpMultiAcceptRouteSelector(
                 return RouteSelectorEvaluation.Missing
             }
 
+            // A qvalue of 0 means "not acceptable", so such an entry must never match (RFC 9110, 12.5.1).
+            // The list is sorted by quality, so the first match is also the most preferred one.
             val header = parsedHeaders.firstOrNull { header ->
-                contentTypes.any { it.isCompatibleWith(header.toContentType()) }
+                header.quality > 0.0 && contentTypes.any { it.isCompatibleWith(header.toContentType()) }
             }
             if (header != null) {
                 return RouteSelectorEvaluation.Success(header.quality)

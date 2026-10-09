@@ -563,6 +563,38 @@ class RoutingProcessingTest {
     }
 
     @Test
+    fun `accept route is not matched when the Accept entry has zero quality`() = testApplication {
+        routing {
+            route("/") {
+                accept(ContentType.Application.Json) {
+                    handle {
+                        call.respondText("JSON")
+                    }
+                }
+            }
+        }
+
+        // RFC 9110 12.5.1: a qvalue of 0 means "not acceptable"
+        client.get("/") {
+            header(HttpHeaders.Accept, "application/json;q=0")
+        }.let {
+            assertEquals(HttpStatusCode.NotAcceptable, it.status)
+        }
+
+        client.get("/") {
+            header(HttpHeaders.Accept, "*/*;q=0")
+        }.let {
+            assertEquals(HttpStatusCode.NotAcceptable, it.status)
+        }
+
+        client.get("/") {
+            header(HttpHeaders.Accept, "application/json;q=0.5")
+        }.let {
+            assertEquals("JSON", it.bodyAsText())
+        }
+    }
+
+    @Test
     fun testContentTypeHeaderProcessing() = testApplication {
         routing {
             route("/") {
