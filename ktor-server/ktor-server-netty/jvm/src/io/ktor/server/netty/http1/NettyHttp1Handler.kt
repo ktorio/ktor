@@ -53,6 +53,11 @@ internal class NettyHttp1Handler(
 
     private val activeCalls = ConcurrentLinkedQueue<NettyHttp1ApplicationCall>()
 
+    /**
+     * True while a request on this connection is being handled or its response is being sent.
+     */
+    internal fun hasActiveCalls(): Boolean = state.activeRequests.value > 0
+
     private var activated = false
 
     // Per-channel cache of the connection-stable portion of the per-call coroutine context.
