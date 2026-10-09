@@ -8,6 +8,8 @@ jobs:
   export-to-youtrack:
     name: Export to YouTrack
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
     env:
       YOUTRACK_URL: https://youtrack.jetbrains.com
       YOUTRACK_TOKEN: ${{ secrets.YOUTRACK_TOKEN }}
@@ -178,3 +180,17 @@ jobs:
           fi
 
           echo "Tagged $ISSUE_ID with 'github-issue'"
+
+      - name: Comment on GitHub issue with YouTrack link
+        env:
+          ISSUE_ID: ${{ steps.find-existing.outputs.issue_id || steps.create-issue.outputs.issue_id }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          YOUTRACK_ISSUE_URL="$YOUTRACK_URL/issue/$ISSUE_ID"
+          echo "Commenting on GitHub issue #$ISSUE_NUMBER with YouTrack link: $YOUTRACK_ISSUE_URL"
+
+          gh issue comment "$ISSUE_NUMBER" \
+            --repo "${{ github.repository }}" \
+            --body "Exported to YouTrack: [$ISSUE_ID]($YOUTRACK_ISSUE_URL)"
