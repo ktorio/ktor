@@ -27,10 +27,8 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 internal val ENGINES_WITHOUT_WS = listOf("Android", "Apache", "Apache5", "DarwinLegacy")
-internal val ENGINES_NOT_SUPPORTING_MAX_FRAME_SIZE = listOf("OkHttp", "Js", "Java", "WinHttp")
-
-// TODO: KTOR-9328 Options `maxFrameSize` and `masking` are silently ignored on some engines
-internal val ENGINES_NOT_SUPPORTING_MAX_FRAME_SIZE_SILENTLY = listOf("Java", "WinHttp")
+internal val ENGINES_NOT_SUPPORTING_MAX_FRAME_SIZE = listOf("OkHttp", "Js")
+internal val ENGINES_NOT_SUPPORTING_MASKING_SWITCH = listOf("OkHttp", "Js", "Java", "WinHttp", "Darwin", "Curl")
 
 private const val TEST_SIZE: Int = 100
 
@@ -547,21 +545,59 @@ class WebSocketTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
         val shortMessage = "abc"
         val longMessage = "def".repeat(500)
         test { client ->
-            assertFailsWith<FrameTooBigException> {
-                client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
-                    send(shortMessage)
-                    assertEquals(shortMessage, (incoming.receive() as Frame.Text).readText())
-                    send(longMessage)
-                    incoming.receive() // This should throw FrameTooBigException
-                }
+            client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
+                send(shortMessage)
+                assertEquals(shortMessage, (incoming.receive() as Frame.Text).readText())
+                send(longMessage)
+                assertFailsWith<FrameTooBigException> { incoming.receive() }
             }
         }
     }
 
     @Test
-    fun testMaxFrameSizeNotSupported() = clientTests(
-        only(ENGINES_NOT_SUPPORTING_MAX_FRAME_SIZE - ENGINES_NOT_SUPPORTING_MAX_FRAME_SIZE_SILENTLY)
+    fun testMaxFrameSizeFragmentedMessage() = clientTests(
+        except(ENGINES_NOT_SUPPORTING_MAX_FRAME_SIZE)
     ) {
+        config {
+            install(WebSockets) {
+                maxFrameSize = 10
+            }
+        }
+
+        // Every fragment fits into the limit, only the reassembled message exceeds it
+        val fittingMessage = "abcdefgh"
+        val oversizedMessage = "x".repeat(20)
+        test { client ->
+            client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/fragmented-echo?fragmentSize=4") {
+                send(fittingMessage)
+                assertEquals(fittingMessage, (incoming.receive() as Frame.Text).readText())
+                send(oversizedMessage)
+                assertFailsWith<FrameTooBigException> { incoming.receive() }.also { println(it.cause) }
+            }
+        }
+    }
+
+    @Test
+    fun testMaxFrameSizeEndlessMessage() = clientTests(
+        except(ENGINES_NOT_SUPPORTING_MAX_FRAME_SIZE),
+        timeout = 10.seconds,
+    ) {
+        config {
+            install(WebSockets) {
+                maxFrameSize = 10
+            }
+        }
+
+        // The message never ends, so a client buffering it before checking the size would never fail
+        test { client ->
+            client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/endless-message") {
+                assertFailsWith<FrameTooBigException> { incoming.receive() }
+            }
+        }
+    }
+
+    @Test
+    fun testMaxFrameSizeNotSupported() = clientTests(only(ENGINES_NOT_SUPPORTING_MAX_FRAME_SIZE)) {
         config {
             install(WebSockets) {
                 maxFrameSize = 10
@@ -575,6 +611,57 @@ class WebSocketTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
                 }
             }
             assertContains(exception.message!!, "Max frame size switch is not supported")
+        }
+    }
+
+    @Test
+    fun testMaskingEnabled() = clientTests {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
+                masking = true
+                assertTrue(masking)
+
+                send("abc")
+                assertEquals("abc", (incoming.receive() as Frame.Text).readText())
+            }
+        }
+    }
+
+    @Test
+    fun testMaskingSwitchSupported() = clientTests(except(ENGINES_NOT_SUPPORTING_MASKING_SWITCH)) {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
+                masking = false
+                assertFalse(masking)
+
+                send("abc")
+                assertEquals("abc", (incoming.receive() as Frame.Text).readText())
+            }
+        }
+    }
+
+    @Test
+    fun testMaskingSwitchNotSupported() = clientTests(only(ENGINES_NOT_SUPPORTING_MASKING_SWITCH)) {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
+                val exception = assertFailsWith<WebSocketException> {
+                    masking = false
+                }
+                assertContains(exception.message!!, "Masking switch is not supported")
+                assertTrue(masking)
+            }
         }
     }
 

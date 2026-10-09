@@ -64,6 +64,40 @@ internal fun Application.webSockets() {
                     }
                 }
             }
+            webSocketRaw("fragmented-echo") {
+                val fragmentSize = call.request.queryParameters["fragmentSize"]?.toIntOrNull()
+                    ?: error("No fragmentSize provided")
+                var message = ByteArray(0)
+                for (frame in incoming) {
+                    when (frame) {
+                        is Frame.Text -> {
+                            message += frame.data
+                            if (!frame.fin) continue
+                            val chunks = message.toList().chunked(fragmentSize)
+                            chunks.forEachIndexed { index, chunk ->
+                                send(Frame.Text(fin = index == chunks.lastIndex, chunk.toByteArray()))
+                            }
+                            message = ByteArray(0)
+                        }
+
+                        is Frame.Close -> return@webSocketRaw
+                        else -> error("Unsupported frame type: ${frame.frameType}.")
+                    }
+                }
+            }
+            webSocketRaw("endless-message") {
+                // Never sends the final fragment, so the message can't be received in full.
+                // Flushing applies backpressure: the outgoing channel is unlimited, and `send` alone never suspends.
+                val fragment = "x".repeat(4).toByteArray()
+                repeat(16 * 1024) {
+                    send(Frame.Text(fin = false, fragment))
+                    flush()
+                }
+                // Keep the message unfinished until the client closes the connection
+                for (frame in incoming) {
+                    if (frame is Frame.Close) break
+                }
+            }
             webSocket("sub-protocol", protocol = "test-protocol") {
                 for (frame in incoming) {
                     when (frame) {

@@ -24,6 +24,8 @@ public val WEBSOCKETS_KEY: AttributeKey<WebSockets> = AttributeKey<WebSockets>("
 
 internal val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.websocket.WebSockets")
 
+internal const val DEFAULT_MAX_FRAME_SIZE: Long = Int.MAX_VALUE.toLong()
+
 /**
  * Indicates if a client engine supports WebSockets.
  *
@@ -66,7 +68,7 @@ public class WebSockets internal constructor(
      */
     public constructor(
         pingIntervalMillis: Long = PINGER_DISABLED,
-        maxFrameSize: Long = Int.MAX_VALUE.toLong()
+        maxFrameSize: Long = DEFAULT_MAX_FRAME_SIZE
     ) : this(pingIntervalMillis, maxFrameSize, WebSocketExtensionsConfig())
 
     /**
@@ -74,7 +76,7 @@ public class WebSockets internal constructor(
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.WebSockets.WebSockets)
      */
-    public constructor() : this(PINGER_DISABLED, Int.MAX_VALUE.toLong(), WebSocketExtensionsConfig())
+    public constructor() : this(PINGER_DISABLED, DEFAULT_MAX_FRAME_SIZE, WebSocketExtensionsConfig())
 
     private fun installExtensions(context: HttpRequestBuilder) {
         val installed = extensionsConfig.build()
@@ -108,7 +110,9 @@ public class WebSockets internal constructor(
 
         val timeoutMillis = (pingIntervalMillis * 2)
         return DefaultWebSocketSession(session, pingIntervalMillis, timeoutMillis, channelsConfig).also {
-            it.maxFrameSize = this@WebSockets.maxFrameSize
+            if (maxFrameSize != DEFAULT_MAX_FRAME_SIZE) {
+                it.maxFrameSize = maxFrameSize
+            }
         }
     }
 
@@ -136,9 +140,12 @@ public class WebSockets internal constructor(
         /**
          * Sets maximum frame size in bytes.
          *
+         * Engines that can't enforce the limit throw [WebSocketException] when a session is established
+         * with a non-default value.
+         *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.WebSockets.Config.maxFrameSize)
          */
-        public var maxFrameSize: Long = Int.MAX_VALUE.toLong()
+        public var maxFrameSize: Long = DEFAULT_MAX_FRAME_SIZE
 
         /**
          * A converter for serialization/deserialization
@@ -241,7 +248,7 @@ public class WebSockets internal constructor(
 
                 LOGGER.trace { "Receive websocket session from ${context.request.url}: $session" }
 
-                if (plugin.maxFrameSize != Int.MAX_VALUE.toLong()) {
+                if (plugin.maxFrameSize != DEFAULT_MAX_FRAME_SIZE) {
                     session.maxFrameSize = plugin.maxFrameSize
                 }
 
