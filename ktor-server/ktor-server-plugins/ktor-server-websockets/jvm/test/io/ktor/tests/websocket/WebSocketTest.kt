@@ -24,6 +24,7 @@ import kotlinx.io.readByteArray
 import kotlin.random.Random
 import kotlin.test.*
 import kotlin.time.Duration.Companion.seconds
+import kotlin.use
 
 @CoroutinesTimeout(30_000)
 class WebSocketTest {
@@ -503,6 +504,34 @@ class WebSocketTest {
             val wsRawRoute: Route = webSocketRaw("/ws-raw") {}
             assertNotNull(wsRawRoute)
         }
+    }
+
+    @Test
+    fun `WebSocket session structured concurrency`() {
+        val messages = mutableListOf<String>()
+        testApplication {
+            install(WebSockets)
+            routing {
+                webSocket("/ws") {
+                    launch(CoroutineName("/ws handler")) {
+                        for (message in incoming) {
+                            // we need to block non-cooperatively while the whole application gets canceled
+                            // application shutdown should pause until this coroutine is terminated
+                            Thread.sleep(200)
+                            messages.add(message.data.toString(Charsets.UTF_8))
+                        }
+                    }
+                }
+            }
+            client.config {
+                install(io.ktor.client.plugins.websocket.WebSockets)
+            }.use {
+                it.webSocket("/ws") {
+                    outgoing.send(Frame.Text("Hello"))
+                }
+            }
+        }
+        assertContentEquals(expected = listOf("Hello"), actual = messages)
     }
 }
 
