@@ -1,0 +1,5 @@
+public final class io/ktor/client/plugins/cookies/BundledPublicSuffixRulesKt {
+	public static final fun bundled (Lio/ktor/client/plugins/cookies/PublicSuffixRules$Companion;)Lio/ktor/client/plugins/cookies/PublicSuffixRules;
+	public static final fun loadBundled (Lio/ktor/client/plugins/cookies/PublicSuffixRules$Companion;)Lio/ktor/client/plugins/cookies/PublicSuffixRules;
+}
+

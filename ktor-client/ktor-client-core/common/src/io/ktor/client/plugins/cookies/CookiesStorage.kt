@@ -1,11 +1,10 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.client.plugins.cookies
 
 import io.ktor.http.*
-import io.ktor.util.*
 import io.ktor.utils.io.core.*
 
 /**
@@ -71,11 +70,11 @@ public fun Cookie.matches(requestUrl: Url): Boolean {
 }
 
 internal fun String.matchesDomain(domain: String): Boolean {
-    val host = toLowerCasePreservingASCIIRules()
-    val normalizedDomain = domain.toLowerCasePreservingASCIIRules().trimStart('.')
-    if (normalizedDomain.isEmpty()) return false
-    if (host == normalizedDomain) return true
-    return !hostIsIp(host) && host.endsWith(".$normalizedDomain")
+    val host = canonicalizeValidLabels()
+    val cookieDomain = domain.canonicalizeValidLabels().trimStart('.')
+    if (cookieDomain.isEmpty()) return false
+    if (host == cookieDomain) return true
+    return !hostIsIp(host) && host.endsWith(".$cookieDomain")
 }
 
 /**
