@@ -17,6 +17,7 @@ import org.apache.directory.api.ldap.codec.api.*
 import org.apache.directory.api.ldap.util.*
 import java.net.*
 import java.util.*
+import javax.naming.Context
 import javax.naming.directory.*
 import javax.naming.ldap.*
 import kotlin.test.*
@@ -96,6 +97,56 @@ class LdapAuthTest {
     }
 
     @Test
+    fun testLoginToServerWithCustomPrincipal(port: Int) = testApplication {
+        install(Authentication) {
+            basic {
+                realm = "realm"
+                validate { credential ->
+                    ldapAuthenticate(credential, "ldap://$localhost:$port", "uid=%s,ou=users,ou=system") {
+                        val attributes = getAttributes("uid=${it.name},ou=users,ou=system")
+                        LdapUserPrincipal(it.name, attributes.get("cn")?.get()?.toString() ?: "")
+                    }
+                }
+            }
+        }
+
+        routing {
+            authenticate {
+                get("/") {
+                    val principal = call.authentication.principal<LdapUserPrincipal>()
+                    call.respondText(principal?.let { "${it.username}:${it.displayName}" } ?: "null")
+                }
+            }
+        }
+
+        client.get("/") {
+            header(
+                HttpHeaders.Authorization,
+                "Basic " + Base64.getEncoder().encodeToString("user-test:test".toByteArray())
+            )
+        }.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("user-test:Test user", response.bodyAsText())
+        }
+        client.get("/") {
+            header(
+                HttpHeaders.Authorization,
+                "Basic " + Base64.getEncoder().encodeToString("user-test:bad-pass".toByteArray())
+            )
+        }.let { response ->
+            assertEquals(HttpStatusCode.Unauthorized, response.status)
+        }
+        client.get("/") {
+            header(
+                HttpHeaders.Authorization,
+                "Basic " + Base64.getEncoder().encodeToString("bad-user:bad-pass".toByteArray())
+            )
+        }.let { response ->
+            assertEquals(HttpStatusCode.Unauthorized, response.status)
+        }
+    }
+
+    @Test
     fun testCustomLogin(port: Int) = testApplication {
         install(Authentication) {
             val ldapUrl = "ldap://$localhost:$port"
@@ -169,6 +220,64 @@ class LdapAuthTest {
     }
 
     @Test
+    fun testCustomCredentialAndPrincipalLogin(port: Int) = testApplication {
+        install(Authentication) {
+            val ldapUrl = "ldap://$localhost:$port"
+
+            basic {
+                validate { credential ->
+                    val customCredential = LdapCredentials(credential.name, credential.password)
+                    val configure: (MutableMap<String, Any?>) -> Unit = { env ->
+                        env[Context.SECURITY_AUTHENTICATION] = "simple"
+                        env[Context.SECURITY_PRINCIPAL] =
+                            "uid=${ldapEscape(customCredential.username)},ou=users,ou=system"
+                        env[Context.SECURITY_CREDENTIALS] = customCredential.password
+                    }
+
+                    ldapAuthenticate(customCredential, ldapUrl, configure) {
+                        LdapUserPrincipal(it.username, "display-${it.username}")
+                    }
+                }
+            }
+        }
+
+        routing {
+            authenticate {
+                get("/") {
+                    val principal = call.authentication.principal<LdapUserPrincipal>()
+                    call.respondText(principal?.let { "${it.username}:${it.displayName}" } ?: "null")
+                }
+            }
+        }
+
+        client.get("/") {
+            header(
+                HttpHeaders.Authorization,
+                "Basic " + Base64.getEncoder().encodeToString("user-test:test".toByteArray())
+            )
+        }.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("user-test:display-user-test", response.bodyAsText())
+        }
+        client.get("/") {
+            header(
+                HttpHeaders.Authorization,
+                "Basic " + Base64.getEncoder().encodeToString("user-test:bad-pass".toByteArray())
+            )
+        }.let { response ->
+            assertEquals(HttpStatusCode.Unauthorized, response.status)
+        }
+        client.get("/") {
+            header(
+                HttpHeaders.Authorization,
+                "Basic " + Base64.getEncoder().encodeToString("bad-user:bad-pass".toByteArray())
+            )
+        }.let { response ->
+            assertEquals(HttpStatusCode.Unauthorized, response.status)
+        }
+    }
+
+    @Test
     fun testEnsureUser(port: Int, ldapCodecService: LdapApiService) {
         val env = Hashtable<String, String>()
         env["java.naming.factory.initial"] = "com.sun.jndi.ldap.LdapCtxFactory"
@@ -200,3 +309,10 @@ class LdapAuthTest {
                 "127.0.0.1"
             }
 }
+
+private data class LdapUserPrincipal(
+    val username: String,
+    val displayName: String
+)
+
+private class LdapCredentials(val username: String, val password: String)
