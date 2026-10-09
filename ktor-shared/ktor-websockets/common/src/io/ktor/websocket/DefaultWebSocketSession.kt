@@ -55,12 +55,13 @@ public interface DefaultWebSocketSession : WebSocketSession {
     public var timeoutMillis: Long
 
     /**
-     * A close reason for this session. It could be `null` if a session is terminated with no close reason
-     * (for example, due to connection failure).
+     * A close reason for this session.
+     * If the connection is closed without a close frame, it is completed with
+     * [CloseReason.Codes.CLOSED_ABNORMALLY]. It may be completed exceptionally if the connection fails.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.DefaultWebSocketSession.closeReason)
      */
-    public val closeReason: Deferred<CloseReason?>
+    public val closeReason: Deferred<CloseReason>
 
     /**
      * Starts a WebSocket conversation.
@@ -191,7 +192,7 @@ internal class DefaultWebSocketSessionImpl(
             runOrCancelPinger()
         }
 
-    override val closeReason: Deferred<CloseReason?> = closeReasonRef
+    override val closeReason: Deferred<CloseReason> = closeReasonRef
 
     @OptIn(InternalAPI::class)
     override fun start(negotiatedExtensions: List<WebSocketExtension<*>>) {
