@@ -7,6 +7,8 @@ package io.ktor.server.auth.oidc
 import com.auth0.jwk.InvalidPublicKeyException
 import com.auth0.jwk.Jwk
 import com.auth0.jwk.JwkException
+import com.auth0.jwk.RateLimitReachedException
+import com.auth0.jwk.SigningKeyNotFoundException
 import com.auth0.jwt.JWT
 import com.auth0.jwt.exceptions.JWTDecodeException
 import com.auth0.jwt.exceptions.JWTVerificationException
@@ -20,6 +22,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
 import io.ktor.server.auth.*
+import io.ktor.server.auth.jwt.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -39,10 +42,24 @@ import kotlin.time.Instant
  * @param message describes why the token was rejected.
  */
 @ExperimentalKtorApi
-public class OidcTokenRejectedException(override val message: String) : RuntimeException(message)
+public class OidcTokenRejectedException(
+    override val message: String,
+    override val cause: Throwable?
+) : RuntimeException(message)
 
-private fun rejectToken(message: String): Nothing =
-    throw OidcTokenRejectedException(message)
+private fun rejectToken(message: String, cause: Throwable? = null): Nothing =
+    throw OidcTokenRejectedException(message, cause)
+
+/**
+ * Thrown when the signing key for a token cannot be resolved because of a JWKS failure.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcSigningKeyUnavailableException)
+ */
+@ExperimentalKtorApi
+public class OidcSigningKeyUnavailableException(
+    message: String,
+    cause: Throwable? = null,
+) : RuntimeException(message, cause)
 
 internal inline fun requireToken(condition: Boolean, lazyMessage: () -> String) {
     @OptIn(ExperimentalContracts::class)
@@ -50,7 +67,7 @@ internal inline fun requireToken(condition: Boolean, lazyMessage: () -> String) 
         returns() implies condition
     }
     if (condition) return
-    rejectToken(lazyMessage())
+    rejectToken(message = lazyMessage(), cause = null)
 }
 
 private enum class JwtTokenType {
@@ -146,7 +163,7 @@ internal suspend fun OidcProvider.verifyJwtAccessToken(token: String): OidcToken
     val jwt = try {
         JWT.decode(token)
     } catch (cause: JWTDecodeException) {
-        rejectToken(cause.message ?: "Failed to decode access token")
+        rejectToken("Failed to decode access token", cause)
     }
     val verifiedJwt = verifyJwtToken(token, jwt, bearerConfig.audience, tokenType = JwtTokenType.AccessToken)
     verifiedJwt.requireAccessTokenPurpose()
@@ -222,7 +239,7 @@ internal suspend fun OidcProvider.buildIdToken(
     val decoded = try {
         JWT.decode(idToken)
     } catch (cause: JWTDecodeException) {
-        rejectToken(cause.message ?: "Failed to decode ID token")
+        rejectToken("Failed to decode ID token", cause)
     }
     val verifiedJwt = verifyJwtToken(
         token = idToken,
@@ -292,7 +309,7 @@ private suspend fun OidcProvider.fetchUserInfo(
         val decoded = try {
             JWT.decode(token)
         } catch (cause: JWTDecodeException) {
-            rejectToken(cause.message ?: "Failed to decode UserInfo JWT")
+            rejectToken("Failed to decode UserInfo JWT", cause)
         }
         val decodedToken = verifyJwtToken(
             token = token,
@@ -314,7 +331,8 @@ private suspend fun OidcProvider.fetchUserInfo(
 private fun ContentType?.isJwt(): Boolean =
     this?.withoutParameters()?.match(ContentType("application", "jwt")) == true
 
-// throws only OidcTokenRejectedException
+// throws only OidcTokenRejectedException, or OidcSigningKeyUnavailableException when the JWK cannot be resolved
+@OptIn(InternalAPI::class)
 context(state: OidcProvider.State)
 private suspend fun OidcProvider.verifyJwtToken(
     token: String,
@@ -327,8 +345,17 @@ private suspend fun OidcProvider.verifyJwtToken(
     val jwk = try {
         withContext(Dispatchers.IO) { state.jwkProvider.get(keyId) }
     } catch (cause: JwkException) {
-        rejectToken("JWT kid $keyId does not match any JWK. ${cause.message}")
+        when (cause) {
+            is RateLimitReachedException ->
+                throw OidcSigningKeyUnavailableException("The JWKS request rate limit is exhausted", cause)
+
+            is SigningKeyNotFoundException if cause.causedByProviderSentInvalidJwk() ->
+                throw OidcSigningKeyUnavailableException("The JWKS endpoint did not yield usable keys", cause)
+
+            else -> rejectToken("JWT kid $keyId does not match any JWK.", cause)
+        }
     }
+
     requireToken(jwk.isUsableForJwsVerification(tokenAlgorithm)) {
         "JWK $keyId cannot verify JWT algorithm ${tokenAlgorithm.jwaName}"
     }
@@ -342,7 +369,7 @@ private suspend fun OidcProvider.verifyJwtToken(
             .build()
             .verify(token)
     } catch (cause: JWTVerificationException) {
-        rejectToken(cause.message ?: "Failed to verify JWT")
+        rejectToken("Failed to verify JWT", cause)
     } catch (cause: InvalidPublicKeyException) {
         rejectToken(cause.message ?: "Invalid public key")
     }

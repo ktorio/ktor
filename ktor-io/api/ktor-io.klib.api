@@ -1,8 +1,6 @@
 // Klib ABI Dump
 // Targets: [androidNativeArm32, androidNativeArm64, androidNativeX64, androidNativeX86, iosArm64, iosSimulatorArm64, iosX64, js, linuxArm64, linuxX64, macosArm64, macosX64, mingwX64, tvosArm64, tvosSimulatorArm64, tvosX64, wasmJs, watchosArm32, watchosArm64, watchosDeviceArm64, watchosSimulatorArm64, watchosX64]
 // Alias: native => [androidNativeArm32, androidNativeArm64, androidNativeX64, androidNativeX86, iosArm64, iosSimulatorArm64, iosX64, linuxArm64, linuxX64, macosArm64, macosX64, mingwX64, tvosArm64, tvosSimulatorArm64, tvosX64, watchosArm32, watchosArm64, watchosDeviceArm64, watchosSimulatorArm64, watchosX64]
-// Alias: apple => [iosArm64, iosSimulatorArm64, iosX64, macosArm64, macosX64, tvosArm64, tvosSimulatorArm64, tvosX64, watchosArm32, watchosArm64, watchosDeviceArm64, watchosSimulatorArm64, watchosX64]
-// Alias: linux => [linuxArm64, linuxX64]
 // Rendering settings:
 // - Signature version: 2
 // - Show manifest properties: true
@@ -545,59 +543,9 @@ final suspend inline fun (io.ktor.utils.io/ByteReadChannel).io.ktor.utils.io/rea
 open class io.ktor.utils.io.locks/SynchronizedObject { // io.ktor.utils.io.locks/SynchronizedObject|null[0]
     constructor <init>() // io.ktor.utils.io.locks/SynchronizedObject.<init>|<init>(){}[0]
 
-    final val lock // io.ktor.utils.io.locks/SynchronizedObject.lock|{}lock[0]
-        final fun <get-lock>(): kotlin.concurrent/AtomicReference<io.ktor.utils.io.locks/SynchronizedObject.LockState> // io.ktor.utils.io.locks/SynchronizedObject.lock.<get-lock>|<get-lock>(){}[0]
-
     final fun lock() // io.ktor.utils.io.locks/SynchronizedObject.lock|lock(){}[0]
     final fun tryLock(): kotlin/Boolean // io.ktor.utils.io.locks/SynchronizedObject.tryLock|tryLock(){}[0]
     final fun unlock() // io.ktor.utils.io.locks/SynchronizedObject.unlock|unlock(){}[0]
-
-    final enum class Status : kotlin/Enum<io.ktor.utils.io.locks/SynchronizedObject.Status> { // io.ktor.utils.io.locks/SynchronizedObject.Status|null[0]
-        enum entry FAT // io.ktor.utils.io.locks/SynchronizedObject.Status.FAT|null[0]
-        enum entry THIN // io.ktor.utils.io.locks/SynchronizedObject.Status.THIN|null[0]
-        enum entry UNLOCKED // io.ktor.utils.io.locks/SynchronizedObject.Status.UNLOCKED|null[0]
-
-        final val entries // io.ktor.utils.io.locks/SynchronizedObject.Status.entries|#static{}entries[0]
-            final fun <get-entries>(): kotlin.enums/EnumEntries<io.ktor.utils.io.locks/SynchronizedObject.Status> // io.ktor.utils.io.locks/SynchronizedObject.Status.entries.<get-entries>|<get-entries>#static(){}[0]
-
-        final fun valueOf(kotlin/String): io.ktor.utils.io.locks/SynchronizedObject.Status // io.ktor.utils.io.locks/SynchronizedObject.Status.valueOf|valueOf#static(kotlin.String){}[0]
-        final fun values(): kotlin/Array<io.ktor.utils.io.locks/SynchronizedObject.Status> // io.ktor.utils.io.locks/SynchronizedObject.Status.values|values#static(){}[0]
-    }
-
-    final class LockState { // io.ktor.utils.io.locks/SynchronizedObject.LockState|null[0]
-        final val mutex // io.ktor.utils.io.locks/SynchronizedObject.LockState.mutex|{}mutex[0]
-            final fun <get-mutex>(): kotlinx.cinterop/CPointer<io.ktor.io.interop.mutex/mutex_node>? // io.ktor.utils.io.locks/SynchronizedObject.LockState.mutex.<get-mutex>|<get-mutex>(){}[0]
-        final val nestedLocks // io.ktor.utils.io.locks/SynchronizedObject.LockState.nestedLocks|{}nestedLocks[0]
-            final fun <get-nestedLocks>(): kotlin/Int // io.ktor.utils.io.locks/SynchronizedObject.LockState.nestedLocks.<get-nestedLocks>|<get-nestedLocks>(){}[0]
-        final val ownerThreadId // io.ktor.utils.io.locks/SynchronizedObject.LockState.ownerThreadId|{}ownerThreadId[0]
-            // Targets: [apple]
-            final fun <get-ownerThreadId>(): kotlinx.cinterop/CPointer<platform.posix/_opaque_pthread_t>? // io.ktor.utils.io.locks/SynchronizedObject.LockState.ownerThreadId.<get-ownerThreadId>|<get-ownerThreadId>(){}[0]
-
-            // Targets: [linux, mingwX64]
-            final fun <get-ownerThreadId>(): kotlin/ULong? // io.ktor.utils.io.locks/SynchronizedObject.LockState.ownerThreadId.<get-ownerThreadId>|<get-ownerThreadId>(){}[0]
-
-            // Targets: [androidNativeArm32, androidNativeX86]
-            final fun <get-ownerThreadId>(): kotlin/Int? // io.ktor.utils.io.locks/SynchronizedObject.LockState.ownerThreadId.<get-ownerThreadId>|<get-ownerThreadId>(){}[0]
-
-            // Targets: [androidNativeArm64, androidNativeX64]
-            final fun <get-ownerThreadId>(): kotlin/Long? // io.ktor.utils.io.locks/SynchronizedObject.LockState.ownerThreadId.<get-ownerThreadId>|<get-ownerThreadId>(){}[0]
-        final val status // io.ktor.utils.io.locks/SynchronizedObject.LockState.status|{}status[0]
-            final fun <get-status>(): io.ktor.utils.io.locks/SynchronizedObject.Status // io.ktor.utils.io.locks/SynchronizedObject.LockState.status.<get-status>|<get-status>(){}[0]
-        final val waiters // io.ktor.utils.io.locks/SynchronizedObject.LockState.waiters|{}waiters[0]
-            final fun <get-waiters>(): kotlin/Int // io.ktor.utils.io.locks/SynchronizedObject.LockState.waiters.<get-waiters>|<get-waiters>(){}[0]
-
-        // Targets: [apple]
-        constructor <init>(io.ktor.utils.io.locks/SynchronizedObject.Status, kotlin/Int, kotlin/Int, kotlinx.cinterop/CPointer<platform.posix/_opaque_pthread_t>? = ..., kotlinx.cinterop/CPointer<io.ktor.io.interop.mutex/mutex_node>? = ...) // io.ktor.utils.io.locks/SynchronizedObject.LockState.<init>|<init>(io.ktor.utils.io.locks.SynchronizedObject.Status;kotlin.Int;kotlin.Int;kotlinx.cinterop.CPointer<platform.posix._opaque_pthread_t>?;kotlinx.cinterop.CPointer<io.ktor.io.interop.mutex.mutex_node>?){}[0]
-
-        // Targets: [linux, mingwX64]
-        constructor <init>(io.ktor.utils.io.locks/SynchronizedObject.Status, kotlin/Int, kotlin/Int, kotlin/ULong? = ..., kotlinx.cinterop/CPointer<io.ktor.io.interop.mutex/mutex_node>? = ...) // io.ktor.utils.io.locks/SynchronizedObject.LockState.<init>|<init>(io.ktor.utils.io.locks.SynchronizedObject.Status;kotlin.Int;kotlin.Int;kotlin.ULong?;kotlinx.cinterop.CPointer<io.ktor.io.interop.mutex.mutex_node>?){}[0]
-
-        // Targets: [androidNativeArm32, androidNativeX86]
-        constructor <init>(io.ktor.utils.io.locks/SynchronizedObject.Status, kotlin/Int, kotlin/Int, kotlin/Int? = ..., kotlinx.cinterop/CPointer<io.ktor.io.interop.mutex/mutex_node>? = ...) // io.ktor.utils.io.locks/SynchronizedObject.LockState.<init>|<init>(io.ktor.utils.io.locks.SynchronizedObject.Status;kotlin.Int;kotlin.Int;kotlin.Int?;kotlinx.cinterop.CPointer<io.ktor.io.interop.mutex.mutex_node>?){}[0]
-
-        // Targets: [androidNativeArm64, androidNativeX64]
-        constructor <init>(io.ktor.utils.io.locks/SynchronizedObject.Status, kotlin/Int, kotlin/Int, kotlin/Long? = ..., kotlinx.cinterop/CPointer<io.ktor.io.interop.mutex/mutex_node>? = ...) // io.ktor.utils.io.locks/SynchronizedObject.LockState.<init>|<init>(io.ktor.utils.io.locks.SynchronizedObject.Status;kotlin.Int;kotlin.Int;kotlin.Long?;kotlinx.cinterop.CPointer<io.ktor.io.interop.mutex.mutex_node>?){}[0]
-    }
 }
 
 // Targets: [native]

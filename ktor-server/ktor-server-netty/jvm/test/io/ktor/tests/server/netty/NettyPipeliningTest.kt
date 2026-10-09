@@ -154,6 +154,51 @@ class NettyPipeliningTest :
         }
     }
 
+    @Test
+    fun `keep-alive connection with runningLimit 1 serves a second sequential request`() = runTest {
+        val server = embeddedServer(
+            Netty,
+            module = {
+                routing {
+                    get("/") {
+                        call.respondText("response")
+                    }
+                }
+            },
+            configure = {
+                runningLimit = 1
+                connector {
+                    port = this@NettyPipeliningTest.port
+                    host = TEST_SERVER_HOST
+                }
+            }
+        )
+        server.start(wait = false)
+
+        try {
+            SelectorManager().use { selector ->
+                aSocket(selector).tcp().connect(TEST_SERVER_HOST, port).use { socket ->
+                    val writeChannel = socket.openWriteChannel()
+                    val readChannel = socket.openReadChannel()
+
+                    // First request must complete normally to increment activeRequests
+                    writeChannel.writeStringUtf8(pipelinedRequest("/"))
+                    writeChannel.flush()
+                    val firstResponse = withTimeout(5.seconds) { readChannel.readHttpResponse() }
+                    assertTrue(firstResponse.contains("response"), "Expected response, got:\n$firstResponse")
+
+                    // The second request must wait for first to finish
+                    writeChannel.writeStringUtf8(pipelinedRequest("/"))
+                    writeChannel.flush()
+                    val secondResponse = withTimeout(5.seconds) { readChannel.readHttpResponse() }
+                    assertTrue(secondResponse.contains("response"), "Expected response, got:\n$secondResponse")
+                }
+            }
+        } finally {
+            server.stop()
+        }
+    }
+
     private fun pipelinedRequest(path: String): String =
         "GET $path HTTP/1.1\r\nHost: $TEST_SERVER_HOST\r\nConnection: keep-alive\r\n\r\n"
 

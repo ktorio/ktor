@@ -10,6 +10,13 @@ import kotlinx.coroutines.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNull
+
+/** Long enough to rule out scheduling noise, short enough to fail fast on a regression. */
+private const val TIMEOUT = 5000L
+
+/** Awaiting data that must not arrive; kept short to avoid stalling the suite. */
+private const val NOT_ARRIVING_TIMEOUT = 500L
 
 class WriterReaderTest {
 
@@ -69,5 +76,55 @@ class WriterReaderTest {
         out.flushAndClose()
 
         assertEquals(42, incoming.readByte())
+    }
+
+    @Test
+    fun testWriterAutoFlushPublishesBeforeBlockCompletes() = runTestWithRealTime {
+        val writer = writer(autoFlush = true) {
+            channel.writeByte(42)
+            awaitCancellation()
+        }
+
+        assertEquals(42, withTimeout(TIMEOUT) { writer.channel.readByte() })
+        writer.cancel()
+    }
+
+    @Test
+    fun testReaderAutoFlushPublishesBeforeBlockCompletes() = runTestWithRealTime {
+        val received = CompletableDeferred<Byte>()
+        val reader = reader(autoFlush = true) {
+            received.complete(channel.readByte())
+            awaitCancellation()
+        }
+
+        reader.channel.writeByte(42)
+
+        assertEquals(42, withTimeout(TIMEOUT) { received.await() })
+        reader.cancel()
+    }
+
+    @Test
+    fun testWriterWithoutAutoFlushWaitsForFlush() = runTestWithRealTime {
+        val writer = writer(autoFlush = false) {
+            channel.writeByte(42)
+            awaitCancellation()
+        }
+
+        assertNull(withTimeoutOrNull(NOT_ARRIVING_TIMEOUT) { writer.channel.readByte() })
+        writer.cancel()
+    }
+
+    @Test
+    fun testReaderWithoutAutoFlushWaitsForFlush() = runTestWithRealTime {
+        val received = CompletableDeferred<Byte>()
+        val reader = reader(autoFlush = false) {
+            received.complete(channel.readByte())
+            awaitCancellation()
+        }
+
+        reader.channel.writeByte(42)
+
+        assertNull(withTimeoutOrNull(NOT_ARRIVING_TIMEOUT) { received.await() })
+        reader.cancel()
     }
 }

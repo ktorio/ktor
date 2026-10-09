@@ -69,14 +69,14 @@ class OidcUserInfoTest {
             otherKeys.idToken(subject = "userinfo-user") {
                 audience = "api-audience"
                 keyId = keys.keyId
-            } to "signature",
+            } to "Failed to verify jwt",
             keys.idToken(subject = "userinfo-user") {
                 issuer = "https://issuer.example.net"
                 audience = "api-audience"
-            } to "issuer",
+            } to "Failed to verify jwt",
             keys.idToken(subject = "userinfo-user") {
                 audience = "other-client"
-            } to "audience",
+            } to "Failed to verify jwt",
             keys.idToken(subject = "other-user") {
                 audience = "api-audience"
             } to "UserInfo subject mismatch",

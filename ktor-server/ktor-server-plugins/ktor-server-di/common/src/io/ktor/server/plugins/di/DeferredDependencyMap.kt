@@ -34,4 +34,5 @@ internal fun <T, U : T> CompletableDeferred<T>.completeWith(other: Deferred<U>) 
             complete(other.getCompleted())
         }
     }
+    other.start()
 }

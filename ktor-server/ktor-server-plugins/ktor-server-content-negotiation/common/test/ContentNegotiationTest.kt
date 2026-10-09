@@ -768,6 +768,109 @@ class ContentNegotiationTest {
     }
 
     @Test
+    fun `zero quality Accept entry is rejected with 406 when compliance is checked`() = testApplication {
+        install(ContentNegotiation) {
+            checkAcceptHeaderCompliance = true
+            register(customContentType, customContentConverter)
+        }
+
+        routing {
+            get("/") {
+                call.respond(Wrapper("OK"))
+            }
+        }
+
+        client.get("/") {
+            header(HttpHeaders.Accept, "$customContentType;q=0")
+        }.let { response ->
+            assertEquals(HttpStatusCode.NotAcceptable, response.status)
+        }
+
+        client.get("/") {
+            header(HttpHeaders.Accept, "$customContentType;q=0, */*;q=0")
+        }.let { response ->
+            assertEquals(HttpStatusCode.NotAcceptable, response.status)
+        }
+    }
+
+    @Test
+    fun `most specific Accept entry decides over a wildcard when compliance is checked`() = testApplication {
+        install(ContentNegotiation) {
+            checkAcceptHeaderCompliance = true
+            register(customContentType, customContentConverter)
+        }
+
+        routing {
+            get("/") {
+                call.respond(Wrapper("OK"))
+            }
+        }
+
+        client.get("/") {
+            header(HttpHeaders.Accept, "$customContentType;q=0, */*")
+        }.let { response ->
+            assertEquals(HttpStatusCode.NotAcceptable, response.status)
+        }
+
+        client.get("/") {
+            header(HttpHeaders.Accept, "application/*;q=0, */*")
+        }.let { response ->
+            assertEquals(HttpStatusCode.NotAcceptable, response.status)
+        }
+
+        client.get("/") {
+            header(HttpHeaders.Accept, "*/*;q=0, $customContentType")
+        }.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("[OK]", response.bodyAsText())
+        }
+    }
+
+    @Test
+    fun `positive quality Accept entry is still served when compliance is checked`() = testApplication {
+        install(ContentNegotiation) {
+            checkAcceptHeaderCompliance = true
+            register(customContentType, customContentConverter)
+        }
+
+        routing {
+            get("/") {
+                call.respond(Wrapper("OK"))
+            }
+        }
+
+        client.get("/") {
+            header(HttpHeaders.Accept, "$customContentType;q=0.1")
+        }.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("[OK]", response.bodyAsText())
+        }
+    }
+
+    @Test
+    fun `a representation rejected with zero quality is skipped for the next acceptable one`() = testApplication {
+        install(ContentNegotiation) {
+            checkAcceptHeaderCompliance = true
+            register(customContentType, customContentConverter)
+            register(ContentType.Text.Plain, textContentConverter)
+        }
+
+        routing {
+            get("/") {
+                call.respond(Wrapper("OK"))
+            }
+        }
+
+        client.get("/") {
+            header(HttpHeaders.Accept, "$customContentType;q=0, */*")
+        }.let { response ->
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals(ContentType.Text.Plain, response.contentType()?.withoutParameters())
+            assertEquals("OK", response.bodyAsText())
+        }
+    }
+
+    @Test
     fun testWithCharset() = testApplication {
         install(ContentNegotiation) {
             clearIgnoredTypes()
