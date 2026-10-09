@@ -236,6 +236,46 @@ class ByteChannelOutputStreamTest {
     }
 
     @Test
+    fun `writes are streamed to client`() {
+        val channelMaxSize = CHANNEL_MAX_SIZE
+        val chunkSize = 5_000
+        val channel = ByteChannel(autoFlush = false)
+        val outputStream = ByteChannelOutputStream(channel)
+
+        val writeThread = thread(isDaemon = true) {
+            var written = 0
+            while (written < channelMaxSize) {
+                val toWrite = minOf(chunkSize, channelMaxSize - written)
+                outputStream.write(ByteArray(toWrite) { 1 })
+                written += toWrite
+            }
+            outputStream.close()
+        }
+
+        try {
+            val result = CompletableFuture<Int>()
+            thread(isDaemon = true) {
+                result.complete(
+                    runCatching {
+                        runBlocking {
+                            val buffer = ByteArray(channelMaxSize)
+                            channel.readFully(buffer)
+                            buffer.size
+                        }
+                    }.getOrDefault(-1)
+                )
+            }
+
+            assertEquals(channelMaxSize, result.get(10, TimeUnit.SECONDS))
+            writeThread.join(5_000)
+            assertFalse(writeThread.isAlive)
+        } finally {
+            channel.cancel()
+            writeThread.interrupt()
+        }
+    }
+
+    @Test
     fun `write is interrupted when thread is interrupted`() {
         val channel = ByteChannel()
         val parent = Job()
