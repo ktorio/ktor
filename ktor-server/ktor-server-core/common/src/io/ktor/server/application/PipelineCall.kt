@@ -16,21 +16,35 @@ import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
+import kotlinx.atomicfu.*
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.sync.*
 
 private val RECEIVE_TYPE_KEY: AttributeKey<TypeInfo> = AttributeKey("ReceiveType")
-private val RECEIVE_GUARD_KEY: AttributeKey<ApplicationCallReceiveGuard> = AttributeKey("ApplicationCallReceiveGuard")
+private val RECEIVE_GUARD_KEY: AttributeKey<ReceiveGuard> = AttributeKey("ReceiveGuard")
 
-internal class ApplicationCallReceiveGuard {
-    val mutex = Mutex()
+/**
+ * Rejects overlapping receive operations for a call: nested ones started from
+ * an [ApplicationReceivePipeline] interceptor and concurrent ones.
+ */
+internal class ReceiveGuard {
+    private val inProgress = atomic(false)
+
+    fun tryAcquire(): Boolean = inProgress.compareAndSet(expect = false, update = true)
+
+    fun release() {
+        inProgress.value = false
+    }
 }
 
-private fun PipelineCall.receiveGuard(): ApplicationCallReceiveGuard = when (this) {
-    is BaseApplicationCall -> receiveGuard
-    is RoutingPipelineCall -> engineCall.receiveGuard()
-    else -> attributes.computeIfAbsent(RECEIVE_GUARD_KEY) { ApplicationCallReceiveGuard() }
-}
+private fun PipelineCall.receiveGuard(): ReceiveGuard =
+    when (this) {
+        is BaseApplicationCall -> receiveGuard
+
+        is RoutingPipelineCall -> engineCall.receiveGuard()
+
+        // Call attributes aren't thread-safe, so concurrent receives are detected on a best-effort basis here.
+        else -> attributes.computeIfAbsent(RECEIVE_GUARD_KEY) { ReceiveGuard() }
+    }
 
 /**
  * A single act of communication between a client and server.
@@ -81,15 +95,15 @@ public interface ApplicationCall : CoroutineScope {
      *
      * This function returns `null` only when [TypeInfo.isNullable] is `true`.
      * The caller is responsible for ensuring that [typeInfo] represents the same type as [T].
-     * Receive operations for the same call must be sequential.
+     * Receive operations for the same call must be sequential and must not be started from
+     * an [ApplicationReceivePipeline] interceptor.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ApplicationCall.receive)
      *
      * @param typeInfo instance specifying the type to be received.
      * @return an instance of [T] received from this call.
      * @throws ContentTransformationException when content cannot be transformed to the requested type.
-     * @throws RequestAlreadyConsumedException when the body has already been consumed or another receive operation is
-     * active for this call.
+     * @throws IllegalStateException when another receive operation is in progress for this call.
      */
     public suspend fun <T> receive(typeInfo: TypeInfo): T {
         @Suppress("DEPRECATION")
@@ -102,15 +116,15 @@ public interface ApplicationCall : CoroutineScope {
 
     /**
      * Receives content for this request.
-     * Receive operations for the same call must be sequential.
+     * Receive operations for the same call must be sequential and must not be started from
+     * an [ApplicationReceivePipeline] interceptor.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.ApplicationCall.receiveNullable)
      *
      * @param typeInfo instance specifying type to be received.
      * @return instance of [T] received from this call.
      * @throws ContentTransformationException when content cannot be transformed to the requested type.
-     * @throws RequestAlreadyConsumedException when the body has already been consumed or another receive operation is
-     * active for this call.
+     * @throws IllegalStateException when another receive operation is in progress for this call.
      */
     @Deprecated("Use 'receive<T>(typeInfo)' with nullable T instead", ReplaceWith("receive<T?>(typeInfo)"))
     public suspend fun <T> receiveNullable(typeInfo: TypeInfo): T?
@@ -155,33 +169,30 @@ public interface PipelineCall : ApplicationCall {
     )
     public override suspend fun <T> receiveNullable(typeInfo: TypeInfo): T? {
         val guard = receiveGuard()
-        if (!guard.mutex.tryLock()) {
-            throw RequestAlreadyConsumedException()
+        check(guard.tryAcquire()) {
+            "The request body is already being received for this call. Receive operations must be sequential " +
+                "and must not be started from an ApplicationReceivePipeline interceptor."
         }
         try {
-            return receiveNullableUnlocked(typeInfo)
+            val token = attributes.getOrNull(DoubleReceivePreventionTokenKey)
+            if (token == null) {
+                attributes.put(DoubleReceivePreventionTokenKey, DoubleReceivePreventionToken)
+            }
+
+            receiveType = typeInfo
+            val incomingContent = token ?: request.receiveChannel()
+            val transformed = request.pipeline.execute(this, incomingContent)
+            when {
+                transformed == NullBody -> return null
+                transformed === DoubleReceivePreventionToken -> throw RequestAlreadyConsumedException()
+                !typeInfo.type.isInstance(transformed) -> throw CannotTransformContentToTypeException(typeInfo)
+            }
+
+            @Suppress("UNCHECKED_CAST")
+            return transformed as T
         } finally {
-            guard.mutex.unlock()
+            guard.release()
         }
-    }
-
-    private suspend fun <T> receiveNullableUnlocked(typeInfo: TypeInfo): T? {
-        val token = attributes.getOrNull(DoubleReceivePreventionTokenKey)
-        if (token == null) {
-            attributes.put(DoubleReceivePreventionTokenKey, DoubleReceivePreventionToken)
-        }
-
-        receiveType = typeInfo
-        val incomingContent = token ?: request.receiveChannel()
-        val transformed = request.pipeline.execute(this, incomingContent)
-        when {
-            transformed == NullBody -> return null
-            transformed === DoubleReceivePreventionToken -> throw RequestAlreadyConsumedException()
-            !typeInfo.type.isInstance(transformed) -> throw CannotTransformContentToTypeException(typeInfo)
-        }
-
-        @Suppress("UNCHECKED_CAST")
-        return transformed as T
     }
 
     @OptIn(InternalAPI::class)

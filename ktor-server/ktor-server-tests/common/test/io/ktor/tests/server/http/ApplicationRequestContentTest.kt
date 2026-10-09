@@ -23,6 +23,8 @@ import kotlinx.coroutines.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertIsNot
+import kotlin.test.assertTrue
 
 class ApplicationRequestContentTest {
     @Test
@@ -249,9 +251,7 @@ class ApplicationRequestContentTest {
 
         routing {
             post("/") {
-                assertFailsWith<RequestAlreadyConsumedException> {
-                    call.receiveText()
-                }
+                assertReceiveInProgressFailure { call.receiveText() }
                 call.respondText("receive rejected")
             }
         }
@@ -284,9 +284,7 @@ class ApplicationRequestContentTest {
                     val firstReceive = async { call.receiveText() }
                     firstReceiveEntered.await()
                     try {
-                        assertFailsWith<RequestAlreadyConsumedException> {
-                            call.receive<ByteArray>()
-                        }
+                        assertReceiveInProgressFailure { call.receive<ByteArray>() }
                     } finally {
                         releaseFirstReceive.complete(Unit)
                     }
@@ -338,3 +336,9 @@ data class IntList(val values: List<Int>) {
 }
 
 private class MySpecialException : Exception("Expected exception")
+
+private suspend fun assertReceiveInProgressFailure(block: suspend () -> Unit) {
+    val cause = assertFailsWith<IllegalStateException> { block() }
+    assertIsNot<RequestAlreadyConsumedException>(cause)
+    assertTrue(cause.message!!.startsWith("The request body is already being received for this call."))
+}

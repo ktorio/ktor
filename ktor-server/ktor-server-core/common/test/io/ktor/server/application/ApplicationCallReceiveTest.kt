@@ -23,13 +23,7 @@ class ApplicationCallReceiveTest {
         application {
             receivePipeline.intercept(ApplicationReceivePipeline.Before) {
                 interceptions++
-                val cause = assertFailsWith<RequestAlreadyConsumedException> {
-                    call.receiveText()
-                }
-                assertEquals(
-                    "Request body has already been consumed or is currently being received.",
-                    cause.message
-                )
+                assertReceiveInProgressFailure { call.receiveText() }
             }
 
             routing {
@@ -65,9 +59,7 @@ class ApplicationCallReceiveTest {
                         val firstReceive = async { call.receiveText() }
                         firstReceiveEntered.await()
                         try {
-                            assertFailsWith<RequestAlreadyConsumedException> {
-                                call.receiveText()
-                            }
+                            assertReceiveInProgressFailure { call.receiveText() }
                         } finally {
                             releaseFirstReceive.complete(Unit)
                         }
@@ -116,4 +108,14 @@ class ApplicationCallReceiveTest {
             assertEquals("Cannot transform this request's content to String", response)
         }
     }
+}
+
+private suspend fun assertReceiveInProgressFailure(block: suspend () -> Unit) {
+    val cause = assertFailsWith<IllegalStateException> { block() }
+    assertIsNot<RequestAlreadyConsumedException>(cause)
+    assertEquals(
+        "The request body is already being received for this call. Receive operations must be sequential " +
+            "and must not be started from an ApplicationReceivePipeline interceptor.",
+        cause.message
+    )
 }
