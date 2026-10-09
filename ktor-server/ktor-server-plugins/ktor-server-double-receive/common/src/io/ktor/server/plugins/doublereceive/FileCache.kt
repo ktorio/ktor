@@ -5,13 +5,15 @@
 package io.ktor.server.plugins.doublereceive
 
 import io.ktor.utils.io.*
-import kotlin.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 
 internal expect class FileCache(
-    body: ByteReadChannel,
-    bufferSize: Int = 4096,
-    context: CoroutineContext = EmptyCoroutineContext
+    bufferSize: Int = 4096
 ) : DoubleReceiveCache {
-    override suspend fun read(): ByteReadChannel
+    override fun CoroutineScope.launchPump(channel: ByteReadChannel): Job
+
+    override suspend fun reader(): ByteReadChannel
+
     override fun dispose()
 }

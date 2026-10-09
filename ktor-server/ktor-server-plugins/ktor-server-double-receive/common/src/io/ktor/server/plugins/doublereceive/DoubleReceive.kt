@@ -10,7 +10,6 @@ import io.ktor.server.request.*
 import io.ktor.util.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.currentCoroutineContext
 import kotlin.reflect.KClass
 
 internal val LOGGER = KtorSimpleLogger("io.ktor.server.plugins.doublereceive.DoubleReceive")
@@ -21,6 +20,8 @@ internal val LOGGER = KtorSimpleLogger("io.ktor.server.plugins.doublereceive.Dou
  * This might be useful if a plugin is already consumed a request body, so you cannot receive it inside a route handler.
  * For example, you can use `DoubleReceive` to log a request body using the `CallLogging` plugin and
  * then receive a body one more time inside the `post` route handler.
+ * Receive operations for the same call must be sequential. Receiving the body again cancels a channel returned by
+ * a previous [ApplicationCall.receiveChannel] call, and the new receive gets the whole body.
  *
  * You can learn more from [DoubleReceive](https://ktor.io/docs/double-receive.html).
  *
@@ -54,26 +55,31 @@ public val DoubleReceive: RouteScopedPlugin<DoubleReceiveConfig> = createRouteSc
         val cacheValue = cache[DoubleReceiveCache::class] as? DoubleReceiveCache
         if (cacheValue != null) {
             LOGGER.trace("Return raw body from cache")
-            return@on cacheValue.read()
+            return@on cacheValue.reader()
         }
 
-        val value = body as? ByteReadChannel ?: return@on body
+        if (body !is ByteReadChannel) {
+            return@on body
+        }
 
-        val content = if (pluginConfig.shouldUseFileCache.any { it(call) }) {
+        val bodyCache = if (pluginConfig.shouldUseFileCache.any { it(call) }) {
             LOGGER.trace("Storing raw body in file cache")
-            FileCache(value, context = currentCoroutineContext())
+            FileCache()
         } else {
             LOGGER.trace("Storing raw body in memory cache")
-            MemoryCache(body, currentCoroutineContext())
+            InMemoryCache()
         }
 
-        cache[DoubleReceiveCache::class] = content
-        return@on content.read()
+        with(bodyCache) {
+            call.launchPump(channel = body)
+        }
+        cache[DoubleReceiveCache::class] = bodyCache
+
+        return@on bodyCache.reader()
     }
 
     on(ResponseSent) { call ->
-        val cache = call.receiveCache
-        (cache[DoubleReceiveCache::class] as DoubleReceiveCache?)?.dispose()
+        (call.receiveCache[DoubleReceiveCache::class] as? DoubleReceiveCache)?.dispose()
     }
 
     on(ReceiveBodyTransformed) { call, body ->

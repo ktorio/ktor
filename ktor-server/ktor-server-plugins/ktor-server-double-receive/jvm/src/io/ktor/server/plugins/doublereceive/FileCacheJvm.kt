@@ -1,67 +1,111 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.plugins.doublereceive
 
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
+import kotlinx.atomicfu.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.sync.*
+import kotlinx.coroutines.CancellationException
+import kotlinx.io.IOException
 import java.io.*
 import java.nio.*
-import kotlin.coroutines.*
 
 internal actual class FileCache actual constructor(
-    private val body: ByteReadChannel,
-    bufferSize: Int,
-    context: CoroutineContext
+    private val bufferSize: Int
 ) : DoubleReceiveCache {
-    private val lock = Mutex(locked = true)
+
+    private sealed interface State {
+        /** The body is being written to the file. Readers wait for [done]. */
+        class Saving(val done: CompletableDeferred<Unit>) : State
+
+        /** The whole body is in the file. */
+        object Saved : State
+
+        class Failed(val cause: Throwable) : State
+    }
+
     private val file = File.createTempFile("ktor-double-receive-cache", ".tmp")
+    private val state = atomic<State>(initial = State.Saving(done = CompletableDeferred()))
 
-    @OptIn(DelicateCoroutinesApi::class)
-    private val saveJob = GlobalScope.launch(context + Dispatchers.IO) {
-        val buffer = ByteBuffer.allocate(bufferSize)
+    actual override fun CoroutineScope.launchPump(channel: ByteReadChannel): Job =
+        launch(context = Dispatchers.IO, start = CoroutineStart.UNDISPATCHED) {
+            try {
+                val buffer = ByteBuffer.allocate(bufferSize)
 
-        try {
-            FileOutputStream(file).use { stream ->
-                stream.channel.use { out ->
-                    out.truncate(0L)
-                    buffer.position(buffer.limit())
+                FileOutputStream(file).use { stream ->
+                    stream.channel.use { out ->
+                        out.truncate(0L)
 
-                    while (true) {
-                        while (buffer.hasRemaining()) {
-                            out.write(buffer)
+                        while (channel.readAvailable(buffer) != -1) {
+                            if (state.value !is State.Saving) {
+                                return@launch
+                            }
+                            buffer.flip()
+                            while (buffer.hasRemaining()) {
+                                out.write(buffer)
+                            }
+                            buffer.clear()
                         }
-                        buffer.clear()
-
-                        if (body.readAvailable(buffer) == -1) break
-                        buffer.flip()
                     }
                 }
+
+                channel.closedCause?.let { throw it }
+                transitionFromSaving(State.Saved, cause = null)
+            } catch (cause: Throwable) {
+                // Readers get the failure from the cache, so only cancellation is propagated to the caller.
+                fail(cause)
+                if (cause is CancellationException) throw cause
             }
-        } finally {
-            lock.unlock()
+        }
+
+    actual override suspend fun reader(): ByteReadChannel {
+        while (true) {
+            when (val current = state.value) {
+                is State.Saving -> current.done.await()
+                State.Saved -> return file.readChannel()
+                is State.Failed -> throw current.cause
+            }
         }
     }
 
-    actual override suspend fun read(): ByteReadChannel =
-        lock.withLock {
-            file.readChannel()
-        }
-
     actual override fun dispose() {
-        runCatching {
-            saveJob.cancel()
+        val cause = IOException("The receive cache was disposed")
+        val nextState = State.Failed(cause)
+        while (true) {
+            when (val current = state.value) {
+                is State.Saving -> if (transitionFromSaving(nextState, cause)) break
+                State.Saved -> if (state.compareAndSet(expect = current, update = nextState)) break
+                is State.Failed -> return
+            }
         }
-        runCatching {
+        file.delete()
+    }
+
+    private fun fail(cause: Throwable) {
+        val cause = cause.takeIf { it !is CancellationException } ?: IOException("Receiving was cancelled", cause)
+        if (transitionFromSaving(State.Failed(cause), cause)) {
             file.delete()
         }
-        if (!body.isClosedForRead) {
-            runCatching {
-                body.cancel()
+    }
+
+    /**
+     * Moves from [State.Saving] to [nextState] and resolves its `done`.
+     * Returns `false` if the cache has already left [State.Saving].
+     */
+    private fun transitionFromSaving(nextState: State, cause: Throwable?): Boolean {
+        while (true) {
+            val current = state.value as? State.Saving ?: return false
+            if (!state.compareAndSet(expect = current, update = nextState)) continue
+
+            if (cause != null) {
+                current.done.completeExceptionally(cause)
+            } else {
+                current.done.complete(Unit)
             }
+            return true
         }
     }
 }
