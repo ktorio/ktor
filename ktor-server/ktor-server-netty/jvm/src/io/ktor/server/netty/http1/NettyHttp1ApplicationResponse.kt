@@ -79,6 +79,7 @@ internal class NettyHttp1ApplicationResponse(
     override suspend fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
         val nettyContext = context
         val nettyChannel = nettyContext.channel()
+        val nettyCall = call as NettyApplicationCall
 
         val bodyHandler = nettyContext.pipeline().get(RequestBodyHandler::class.java)
         val upgradedReadChannel = bodyHandler.upgrade()
@@ -110,10 +111,14 @@ internal class NettyHttp1ApplicationResponse(
             upgradedWriteChannel.close()
             bodyHandler.close()
             upgradedReadChannel.cancel(it)
-            context.channel().close()
+            // Close only once the response pipeline has handed over everything the session wrote, such as
+            // its close frame; the empty write completes after all earlier writes, so they are flushed first
+            nettyCall.finishedEvent.addListener {
+                context.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE)
+            }
         }
 
-        (call as NettyApplicationCall).responseWriteJob.join()
+        nettyCall.responseWriteJob.join()
         job.join()
     }
 
