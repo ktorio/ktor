@@ -1,0 +1,136 @@
+name: Update YouTrack Issue State
+
+on:
+  pull_request_target:
+    types: [ opened, reopened, ready_for_review, edited, closed ]
+
+permissions: {}
+
+jobs:
+  update-state:
+    name: Move issues to ${{ github.event.pull_request.merged && 'Fixed' || 'Ready for Review' }}
+    runs-on: ubuntu-latest
+
+    if: github.repository == 'ktorio/ktor' &&
+      ((github.event.pull_request.state == 'open' && !github.event.pull_request.draft) ||
+      (github.event.action == 'closed' && github.event.pull_request.merged))
+
+    env:
+      YOUTRACK_URL: https://youtrack.jetbrains.com
+      YOUTRACK_TOKEN: ${{ secrets.YOUTRACK_TOKEN }}
+      TARGET_STATE: ${{ github.event.pull_request.merged && 'Fixed' || 'Ready for Review' }}
+
+    steps:
+      - name: Collect issue IDs
+        id: issues
+        env:
+          EVENT_ACTION: ${{ github.event.action }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          CHANGES: ${{ toJson(github.event.changes) }}
+        run: |
+          set -euo pipefail
+
+          # Only a leading title ID or an explicit closing reference in the title or body selects an issue.
+          extract_ids() {
+            local keyword='(^|[^[:alnum:]_])([Cc]lose[sd]?|[Ff]ix(e[sd])?|[Rr]esolve[sd]?)[*_]*:?[*_]*[[:space:]]+'
+            local ref='[<[]?(https?://youtrack\.jetbrains\.com/issue/)?KTOR-[0-9]+(>|\]\([^)[:space:]]*\))?'
+            local separator='(,[[:space:]]*(and[[:space:]]+)?|[[:space:]]+and[[:space:]]+)'
+            {
+              if [[ "$1" =~ ^(KTOR-[0-9]+):?[[:space:]]+[^[:space:]] ]]; then
+                printf '%s\n' "${BASH_REMATCH[1]}"
+              fi
+              printf '%s\n' "$1" "$2" | grep -oiE "$keyword$ref($separator$ref)*" | grep -oE 'KTOR-[0-9]+' || true
+            } | awk '!seen[$0]++'
+          }
+
+          IDS=$(extract_ids "$PR_TITLE" "$PR_BODY")
+
+          # The limit applies to all referenced issues before edit filtering.
+          ISSUE_COUNT=$(awk 'NF { count++ } END { print count+0 }' <<< "$IDS")
+          if [ "$ISSUE_COUNT" -gt 15 ]; then
+            echo "::error::PR references $ISSUE_COUNT unique YouTrack issues. The limit is 15. Remove extra references."
+            exit 1
+          fi
+
+          # Editing the PR must not move issues again after someone has changed their state during the review,
+          # so take only the issues that were not referenced before the edit.
+          if [ "$EVENT_ACTION" = "edited" ]; then
+            OLD_TITLE=$(jq -r --arg current "$PR_TITLE" 'if has("title") then .title.from else $current end' <<< "$CHANGES")
+            OLD_BODY=$(jq -r --arg current "$PR_BODY" 'if has("body") then .body.from // "" else $current end' <<< "$CHANGES")
+            OLD_IDS=$(extract_ids "$OLD_TITLE" "$OLD_BODY")
+            IDS=$(grep -vxFf <(printf '%s\n' "$OLD_IDS") <<< "$IDS" || true)
+          fi
+
+          IDS=$(xargs <<< "$IDS")
+          echo "ids=$IDS" >> "$GITHUB_OUTPUT"
+          echo "Issues to move: ${IDS:-none}"
+
+      - name: Move issues to target state
+        if: steps.issues.outputs.ids != ''
+        env:
+          ISSUE_IDS: ${{ steps.issues.outputs.ids }}
+        run: |
+          set -euo pipefail
+          FAILED=0
+
+          for ISSUE_ID in $ISSUE_IDS; do
+            RESPONSE=$(curl -s -w "\n%{http_code}" \
+              -H "Accept: application/json" \
+              -H "Authorization: Bearer $YOUTRACK_TOKEN" \
+              "$YOUTRACK_URL/api/issues/$ISSUE_ID?fields=resolved,customFields(name,value(name))")
+
+            HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+            BODY=$(echo "$RESPONSE" | sed '$d')
+
+            if [ "$HTTP_CODE" = "404" ]; then
+              echo "::warning title=Unknown YouTrack issue::Issue $ISSUE_ID does not exist in YouTrack, skipping"
+              continue
+            fi
+
+            if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
+              echo "::error::Failed to get issue $ISSUE_ID (HTTP $HTTP_CODE): $BODY"
+              FAILED=1
+              continue
+            fi
+
+            STATE=$(echo "$BODY" | jq -r '.customFields[] | select(.name == "State") | .value.name // empty')
+            RESOLVED=$(echo "$BODY" | jq -r '.resolved // empty')
+
+            if [ "$STATE" = "$TARGET_STATE" ] || { [ -n "$RESOLVED" ] && [ "$TARGET_STATE" != "Fixed" ]; }; then
+              echo "$ISSUE_ID is already in state '$STATE', skipping"
+              continue
+            fi
+
+            PAYLOAD=$(jq -n \
+              --arg state "$TARGET_STATE" \
+              '{
+                customFields: [
+                  {
+                    name: "State",
+                    "$type": "StateIssueCustomField",
+                    value: { name: $state }
+                  }
+                ]
+              }')
+
+            RESPONSE=$(curl -s -w "\n%{http_code}" \
+              -X POST \
+              -H "Authorization: Bearer $YOUTRACK_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d "$PAYLOAD" \
+              "$YOUTRACK_URL/api/issues/$ISSUE_ID?fields=idReadable")
+
+            HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+            BODY=$(echo "$RESPONSE" | sed '$d')
+
+            if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
+              echo "::error::Failed to move issue $ISSUE_ID to '$TARGET_STATE' (HTTP $HTTP_CODE): $BODY"
+              FAILED=1
+              continue
+            fi
+
+            echo "Moved $ISSUE_ID: '$STATE' -> '$TARGET_STATE' ($YOUTRACK_URL/issue/$ISSUE_ID)"
+          done
+
+          exit "$FAILED"
