@@ -40,7 +40,7 @@ jobs:
               if [[ "$1" =~ ^(KTOR-[0-9]+):?[[:space:]]+[^[:space:]] ]]; then
                 printf '%s\n' "${BASH_REMATCH[1]}"
               fi
-              printf '%s\n' "$1" "$2" | grep -oE "$keyword$ref($separator$ref)*" | grep -oE 'KTOR-[0-9]+' || true
+              printf '%s\n' "$1" "$2" | grep -oiE "$keyword$ref($separator$ref)*" | grep -oE 'KTOR-[0-9]+' || true
             } | awk '!seen[$0]++'
           }
 
