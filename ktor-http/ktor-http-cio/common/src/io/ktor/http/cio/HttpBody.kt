@@ -182,19 +182,6 @@ public suspend fun parseHttpBody(
 }
 
 /**
- * Returns the single value of the [name] header or `null` if absent.
- *
- * @throws ParserException if the header appears more than once (RFC 9110, Section 5.3)
- */
-internal fun HttpHeadersMap.singleOrNull(name: String): CharSequence? {
-    val iterator = getAll(name).iterator()
-    if (!iterator.hasNext()) return null
-    val value = iterator.next()
-    if (iterator.hasNext()) throw ParserException("Duplicate $name header")
-    return value
-}
-
-/**
  * A message must not carry both framing headers, otherwise its body length is ambiguous
  * and the message could be used for request smuggling (RFC 9112, Section 6.1).
  */
