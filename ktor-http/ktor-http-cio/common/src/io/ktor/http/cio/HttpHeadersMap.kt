@@ -5,6 +5,7 @@
 package io.ktor.http.cio
 
 import io.ktor.http.cio.internals.*
+import io.ktor.utils.io.InternalAPI
 import io.ktor.utils.io.pool.*
 import kotlin.math.absoluteValue
 
@@ -103,7 +104,8 @@ public class HttpHeadersMap internal constructor(private val builder: CharArrayB
      *
      * @throws ParserException if the header appears more than once
      */
-    internal fun singleOrNull(name: String): CharSequence? {
+    @InternalAPI
+    public fun singleOrNull(name: String): CharSequence? {
         if (size == 0) return null
 
         val hash = name.hashCodeLowerCase().absoluteValue

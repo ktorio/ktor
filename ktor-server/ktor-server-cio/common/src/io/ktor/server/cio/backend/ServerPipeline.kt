@@ -96,11 +96,9 @@ public fun CoroutineScope.startServerConnectionPipeline(
             }
 
             try {
-                @Suppress("INVISIBLE_REFERENCE")
                 val contentLengthHeader = request.headers.singleOrNull("Content-Length")
                 connectionOptions = ConnectionOptions.parse(request.headers["Connection"])
 
-                @Suppress("INVISIBLE_REFERENCE")
                 transferEncoding = request.headers.singleOrNull("Transfer-Encoding")
 
                 if (contentLengthHeader != null && transferEncoding != null) {

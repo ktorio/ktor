@@ -69,6 +69,7 @@ public final class io/ktor/http/cio/HttpHeadersMap {
 	public final fun put (IIII)V
 	public final fun put (IIIIII)V
 	public final fun release ()V
+	public final fun singleOrNull (Ljava/lang/String;)Ljava/lang/CharSequence;
 	public fun toString ()Ljava/lang/String;
 	public final fun valueAt (I)Ljava/lang/CharSequence;
 	public final fun valueAtOffset (I)Ljava/lang/CharSequence;

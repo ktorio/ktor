@@ -65,6 +65,7 @@ public fun expectHttpBody(
  * @throws ParserException if the message has more than one `Content-Length` or `Transfer-Encoding` header,
  * has both of them, or has a `Transfer-Encoding` other than `chunked`
  */
+@OptIn(InternalAPI::class)
 public fun expectHttpBody(request: Request): Boolean {
     val contentLength = request.headers.singleOrNull("Content-Length")
     val transferEncoding = request.headers.singleOrNull("Transfer-Encoding")
@@ -159,6 +160,7 @@ public suspend fun parseHttpBody(
  * @throws ParserException if the message has more than one `Content-Length`
  * or `Transfer-Encoding` header, has both of them, or has a `Transfer-Encoding` other than `chunked`
  */
+@OptIn(InternalAPI::class)
 public suspend fun parseHttpBody(
     headers: HttpHeadersMap,
     input: ByteReadChannel,
