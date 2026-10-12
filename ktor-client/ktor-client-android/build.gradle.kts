@@ -23,9 +23,11 @@ kotlin {
             implementation(projects.ktorNetworkTls)
             implementation(projects.ktorNetworkTlsCertificates)
             compileOnly(libs.robolectric.android)
+            compileOnly(libs.robolectric.sandbox)
 
             if (isTestJdk21OrHigher) {
                 runtimeOnly(libs.robolectric.android)
+                runtimeOnly(libs.robolectric.sandbox)
             }
         }
     }
@@ -35,4 +37,10 @@ kotlin {
 // to avoid failures due to lack of local socket ports
 tasks.named<KotlinJvmTest>("jvmTest") {
     jvmArgs("-Dhttp.maxConnections=32")
+    if (isTestJdk21OrHigher) {
+        jvmArgs(
+            "--add-opens=java.base/java.lang=ALL-UNNAMED",
+            "--add-opens=java.base/java.lang.reflect=ALL-UNNAMED",
+        )
+    }
 }
