@@ -1,0 +1,40 @@
+name: Close issues resolved in YouTrack
+
+on:
+  schedule:
+    - cron: '2-59/5 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: close-youtrack-issues
+  cancel-in-progress: false
+
+jobs:
+  close:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out the synchronization script
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          persist-credentials: false
+          sparse-checkout: .github/scripts
+
+      - name: Create a token for Ktor issues
+        id: token
+        uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349
+        with:
+          app-id: ${{ vars.KTOR_YOUTRACK_APP_ID }}
+          private-key: ${{ secrets.KTOR_YOUTRACK_APP_PRIVATE_KEY }}
+          owner: ktorio
+          repositories: ktor
+          permission-issues: write
+
+      - name: Close resolved counterparts
+        env:
+          YOUTRACK_TOKEN: ${{ secrets.YOUTRACK_TOKEN }}
+          GH_TOKEN: ${{ steps.token.outputs.token }}
+        run: python3 .github/scripts/sync-youtrack-closures.py
