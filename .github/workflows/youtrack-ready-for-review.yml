@@ -1,51 +1,28 @@
-name: Move YouTrack Issues to Ready for Review
+name: Update YouTrack Issue State
 
 on:
   pull_request_target:
-    types: [ opened, reopened, ready_for_review, edited ]
+    types: [ opened, reopened, ready_for_review, edited, closed ]
 
 permissions: {}
 
 jobs:
-  ready-for-review:
-    name: Move issues to Ready for Review
+  update-state:
+    name: Move issues to ${{ github.event.pull_request.merged && 'Fixed' || 'Ready for Review' }}
     runs-on: ubuntu-latest
 
     if: github.repository == 'ktorio/ktor' &&
-      github.event.pull_request.user.type != 'Bot' &&
-      github.event.pull_request.state == 'open' &&
-      !github.event.pull_request.draft
+      ((github.event.pull_request.state == 'open' && !github.event.pull_request.draft) ||
+      (github.event.action == 'closed' && github.event.pull_request.merged))
 
     env:
       YOUTRACK_URL: https://youtrack.jetbrains.com
       YOUTRACK_TOKEN: ${{ secrets.YOUTRACK_TOKEN }}
-      TARGET_STATE: Ready for Review
+      TARGET_STATE: ${{ github.event.pull_request.merged && 'Fixed' || 'Ready for Review' }}
 
     steps:
-      # `author_association` is not reliable here: it reports org members with private membership as CONTRIBUTOR.
-      # Team members move their issues themselves, so treat everyone without write access as external.
-      - name: Check if author is an external contributor
-        id: author
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_REPO: ${{ github.repository }}
-          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
-        run: |
-          set -euo pipefail
-          PERMISSION=$(gh api "repos/$GH_REPO/collaborators/$PR_AUTHOR/permission" --jq '.permission')
-          echo "Permission of $PR_AUTHOR: $PERMISSION"
-
-          if [ "$PERMISSION" = "admin" ] || [ "$PERMISSION" = "write" ]; then
-            echo "external=false" >> "$GITHUB_OUTPUT"
-            echo "$PR_AUTHOR is a team member, skipping"
-          else
-            echo "external=true" >> "$GITHUB_OUTPUT"
-            echo "$PR_AUTHOR is an external contributor"
-          fi
-
       - name: Collect issue IDs
         id: issues
-        if: steps.author.outputs.external == 'true'
         env:
           EVENT_ACTION: ${{ github.event.action }}
           PR_TITLE: ${{ github.event.pull_request.title }}
@@ -81,7 +58,7 @@ jobs:
           echo "ids=$IDS" >> "$GITHUB_OUTPUT"
           echo "Issues to move: ${IDS:-none}"
 
-      - name: Move issues to Ready for Review
+      - name: Move issues to target state
         if: steps.issues.outputs.ids != ''
         env:
           ISSUE_IDS: ${{ steps.issues.outputs.ids }}
@@ -112,7 +89,7 @@ jobs:
             STATE=$(echo "$BODY" | jq -r '.customFields[] | select(.name == "State") | .value.name // empty')
             RESOLVED=$(echo "$BODY" | jq -r '.resolved // empty')
 
-            if [ -n "$RESOLVED" ] || [ "$STATE" = "$TARGET_STATE" ]; then
+            if [ "$STATE" = "$TARGET_STATE" ] || { [ -n "$RESOLVED" ] && [ "$TARGET_STATE" != "Fixed" ]; }; then
               echo "$ISSUE_ID is already in state '$STATE', skipping"
               continue
             fi
