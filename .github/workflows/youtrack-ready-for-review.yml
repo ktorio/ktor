@@ -31,19 +31,27 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Prints IDs of issues mentioned anywhere in the title ($1) or referenced in the body ($2) with
-          # a closing keyword: "Fixes KTOR-1", "Closes: KTOR-1, KTOR-2", "Fix [KTOR-1](<url>)", "Resolves <issue url>".
+          # Only a leading title ID or an explicit closing reference in the title or body selects an issue.
           extract_ids() {
             local keyword='(^|[^[:alnum:]_])([Cc]lose[sd]?|[Ff]ix(e[sd])?|[Rr]esolve[sd]?)[*_]*:?[*_]*[[:space:]]+'
             local ref='[<[]?(https?://youtrack\.jetbrains\.com/issue/)?KTOR-[0-9]+(>|\]\([^)[:space:]]*\))?'
             local separator='(,[[:space:]]*(and[[:space:]]+)?|[[:space:]]+and[[:space:]]+)'
             {
-              printf '%s\n' "$1" | grep -oE 'KTOR-[0-9]+' || true
-              printf '%s\n' "$2" | grep -oE "$keyword$ref($separator$ref)*" | grep -oE 'KTOR-[0-9]+' || true
+              if [[ "$1" =~ ^(KTOR-[0-9]+):?[[:space:]]+[^[:space:]] ]]; then
+                printf '%s\n' "${BASH_REMATCH[1]}"
+              fi
+              printf '%s\n' "$1" "$2" | grep -oE "$keyword$ref($separator$ref)*" | grep -oE 'KTOR-[0-9]+' || true
             } | awk '!seen[$0]++'
           }
 
           IDS=$(extract_ids "$PR_TITLE" "$PR_BODY")
+
+          # The limit applies to all referenced issues before edit filtering.
+          ISSUE_COUNT=$(awk 'NF { count++ } END { print count+0 }' <<< "$IDS")
+          if [ "$ISSUE_COUNT" -gt 15 ]; then
+            echo "::error::PR references $ISSUE_COUNT unique YouTrack issues. The limit is 15. Remove extra references."
+            exit 1
+          fi
 
           # Editing the PR must not move issues again after someone has changed their state during the review,
           # so take only the issues that were not referenced before the edit.
