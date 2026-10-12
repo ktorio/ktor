@@ -18,7 +18,7 @@ import kotlin.time.Duration.Companion.milliseconds
  */
 public fun WebSockets(
     pingInterval: Duration?,
-    maxFrameSize: Long = Int.MAX_VALUE.toLong(),
+    maxFrameSize: Long = DEFAULT_MAX_FRAME_SIZE,
 ): WebSockets = WebSockets(
     pingIntervalMillis = pingInterval?.inWholeMilliseconds ?: PINGER_DISABLED,
     maxFrameSize = maxFrameSize,
