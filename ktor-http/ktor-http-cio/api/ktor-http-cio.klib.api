@@ -94,6 +94,7 @@ final class io.ktor.http.cio/HttpHeadersMap { // io.ktor.http.cio/HttpHeadersMap
     final fun put(kotlin/Int, kotlin/Int, kotlin/Int, kotlin/Int) // io.ktor.http.cio/HttpHeadersMap.put|put(kotlin.Int;kotlin.Int;kotlin.Int;kotlin.Int){}[0]
     final fun put(kotlin/Int, kotlin/Int, kotlin/Int, kotlin/Int, kotlin/Int, kotlin/Int) // io.ktor.http.cio/HttpHeadersMap.put|put(kotlin.Int;kotlin.Int;kotlin.Int;kotlin.Int;kotlin.Int;kotlin.Int){}[0]
     final fun release() // io.ktor.http.cio/HttpHeadersMap.release|release(){}[0]
+    final fun singleOrNull(kotlin/String): kotlin/CharSequence? // io.ktor.http.cio/HttpHeadersMap.singleOrNull|singleOrNull(kotlin.String){}[0]
     final fun toString(): kotlin/String // io.ktor.http.cio/HttpHeadersMap.toString|toString(){}[0]
     final fun valueAt(kotlin/Int): kotlin/CharSequence // io.ktor.http.cio/HttpHeadersMap.valueAt|valueAt(kotlin.Int){}[0]
     final fun valueAtOffset(kotlin/Int): kotlin/CharSequence // io.ktor.http.cio/HttpHeadersMap.valueAtOffset|valueAtOffset(kotlin.Int){}[0]

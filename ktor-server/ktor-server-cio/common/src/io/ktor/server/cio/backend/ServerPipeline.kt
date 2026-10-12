@@ -77,13 +77,13 @@ public fun CoroutineScope.startServerConnectionPipeline(
 
             val response = ByteChannel()
 
-            val transferEncoding = request.headers["Transfer-Encoding"]
             val upgrade = request.headers["Upgrade"]
             val contentType = request.headers["Content-Type"]
             val version = HttpProtocolVersion.parse(request.version)
 
             val connectionOptions: ConnectionOptions?
             val contentLength: Long
+            val transferEncoding: CharSequence?
             val expectedHttpBody: Boolean
             val expectedHttpUpgrade: Boolean
 
@@ -96,14 +96,19 @@ public fun CoroutineScope.startServerConnectionPipeline(
             }
 
             try {
-                val contentLengthHeaders = request.headers.getAll("Content-Length").toList()
+                val contentLengthHeader = request.headers.singleOrNull("Content-Length")
                 connectionOptions = ConnectionOptions.parse(request.headers["Connection"])
-                if (contentLengthHeaders.size > 1) {
-                    throw ParserException("Duplicate Content-Length header")
+
+                transferEncoding = request.headers.singleOrNull("Transfer-Encoding")
+
+                if (contentLengthHeader != null && transferEncoding != null) {
+                    throw ParserException("Transfer-Encoding and Content-Length headers must not be sent together")
+                }
+                if (transferEncoding != null && version != HttpProtocolVersion.HTTP_1_1) {
+                    throw ParserException("Transfer-Encoding header is not allowed in $version requests")
                 }
 
-                contentLength = if (contentLengthHeaders.size == 1) contentLengthHeaders[0].parseDecLong() else -1
-
+                contentLength = contentLengthHeader?.parseDecLong() ?: -1
                 expectedHttpBody = expectHttpBody(
                     request.method,
                     contentLength,
