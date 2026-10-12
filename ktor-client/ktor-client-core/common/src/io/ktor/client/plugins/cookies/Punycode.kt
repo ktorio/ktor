@@ -18,12 +18,12 @@
 package io.ktor.client.plugins.cookies
 
 /**
- * An RFC 3492 Punycode encoder and decoder adapted from OkHttp 5.5.0 without its Okio dependency.
+ * An RFC 3492 Punycode encoder adapted from OkHttp 5.5.0 without its Okio dependency.
  *
  * Source: https://github.com/square/okhttp/blob/parent-5.5.0/okhttp/src/commonJvmAndroid/kotlin/okhttp3/internal/idn/Punycode.kt
  */
 internal object Punycode {
-    const val PREFIX: String = "xn--"
+    private const val PREFIX = "xn--"
 
     private const val BASE = 36
     private const val T_MIN = 1
@@ -114,88 +114,6 @@ internal object Punycode {
         return true
     }
 
-    /** Returns `null` if a Punycode label is malformed or cannot be decoded without integer overflow. */
-    fun decode(string: String): String? {
-        var position = 0
-        val result = StringBuilder()
-
-        while (position < string.length) {
-            val dot = string.indexOf('.', startIndex = position).takeIf { it >= 0 } ?: string.length
-            if (!decodeLabel(string, position, dot, result)) return null
-
-            if (dot == string.length) break
-            result.append('.')
-            position = dot + 1
-        }
-
-        return result.toString()
-    }
-
-    private fun decodeLabel(
-        string: String,
-        position: Int,
-        limit: Int,
-        result: StringBuilder
-    ): Boolean {
-        if (!string.regionMatches(position, PREFIX, 0, PREFIX.length, ignoreCase = true)) {
-            result.appendRange(string, position, limit)
-            return true
-        }
-
-        var current = position + PREFIX.length
-        val codePoints = mutableListOf<Int>()
-        val lastDelimiter = string.lastIndexOf('-', startIndex = limit - 1)
-        if (lastDelimiter >= current) {
-            while (current < lastDelimiter) {
-                val codePoint = string[current++]
-                if (codePoint !in 'a'..'z' && codePoint !in 'A'..'Z' && codePoint !in '0'..'9' && codePoint != '-') {
-                    return false
-                }
-                codePoints += codePoint.code
-            }
-            current++
-        }
-
-        var n = INITIAL_N
-        var index = 0
-        var bias = INITIAL_BIAS
-
-        while (current < limit) {
-            val oldIndex = index
-            var weight = 1
-
-            for (k in BASE until Int.MAX_VALUE step BASE) {
-                if (current == limit) return false
-                val digit = decodeDigit(string[current++]) ?: return false
-                if (digit != 0 && weight > Int.MAX_VALUE / digit) return false
-                val increment = digit * weight
-                if (index > Int.MAX_VALUE - increment) return false
-                index += increment
-
-                val threshold = threshold(k, bias)
-                if (digit < threshold) break
-                val scale = BASE - threshold
-                if (weight > Int.MAX_VALUE / scale) return false
-                weight *= scale
-            }
-
-            bias = adapt(index - oldIndex, codePoints.size + 1, oldIndex == 0)
-            val increment = index / (codePoints.size + 1)
-            if (n > Int.MAX_VALUE - increment) return false
-            n += increment
-            index %= codePoints.size + 1
-
-            if (n > 0x10ffff || n in 0xd800..0xdfff) return false
-            codePoints.add(index, n)
-            index++
-        }
-
-        for (codePoint in codePoints) {
-            result.appendCodePoint(codePoint)
-        }
-        return true
-    }
-
     private fun adapt(sourceDelta: Int, points: Int, firstTime: Boolean): Int {
         var delta = if (firstTime) sourceDelta / DAMP else sourceDelta / 2
         delta += delta / points
@@ -217,13 +135,6 @@ internal object Punycode {
         value < 26 -> ('a'.code + value).toChar()
         value < 36 -> ('0'.code + value - 26).toChar()
         else -> error("Unexpected Punycode digit: $value")
-    }
-
-    private fun decodeDigit(value: Char): Int? = when (value) {
-        in 'a'..'z' -> value - 'a'
-        in 'A'..'Z' -> value - 'A'
-        in '0'..'9' -> value - '0' + 26
-        else -> null
     }
 
     private fun String.requiresEncoding(position: Int, limit: Int): Boolean {
@@ -259,14 +170,4 @@ internal object Punycode {
 
     private fun toCodePoint(high: Char, low: Char): Int =
         ((high.code - 0xD800) shl 10) + (low.code - 0xDC00) + 0x10000
-
-    private fun StringBuilder.appendCodePoint(codePoint: Int) {
-        if (codePoint < 0x10000) {
-            append(codePoint.toChar())
-            return
-        }
-        val offset = codePoint - 0x10000
-        append((0xD800 + (offset shr 10)).toChar())
-        append((0xDC00 + (offset and 0x3FF)).toChar())
-    }
 }

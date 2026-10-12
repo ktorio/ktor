@@ -21,10 +21,11 @@ class BundledPublicSuffixRulesTest {
     }
 
     @Test
-    fun testBundledUnicodeAndPunycodeRules() = runBlocking {
+    fun testBundledInternationalizedRules() = runBlocking {
         val policy = PublicSuffixCookiePolicy(PublicSuffixRules.bundled())
 
-        assertFalse(policy.shouldAccept(Url("https://example.公司.cn/"), cookie("公司.cn")))
+        assertFalse(policy.shouldAccept(Url("https://example.xn--55qx5d.cn/"), cookie("xn--55qx5d.cn")))
+        assertTrue(policy.shouldAccept(Url("https://example.xn--55qx5d.cn/"), cookie("example.xn--55qx5d.cn")))
     }
 
     @Test

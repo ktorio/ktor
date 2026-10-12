@@ -10,36 +10,63 @@ import kotlin.test.*
 class PublicSuffixCookiePolicyTest {
 
     @Test
-    fun testNormalizesDomainBeforeCallingRules() = runTest {
+    fun testLowercasesDomainBeforeCallingRules() = runTest {
         val receivedDomains = mutableListOf<String>()
         val policy = PublicSuffixCookiePolicy { domain ->
             receivedDomains += domain
             true
         }
-        val decomposedPunycode = requireNotNull(Punycode.encode("a\u030Alesund"))
-        val fullwidthPunycode = requireNotNull(Punycode.encode("\uFF49\uFF4F"))
         val cases = listOf(
-            ".A\u030Alesund.NO" to "xn--lesund-hua.no",
-            "$decomposedPunycode.no" to "xn--lesund-hua.no",
-            "github.\uFF49\uFF4F" to "github.io",
-            "GITHUB.\uFF29\uFF2F" to "github.io",
-            "github.$fullwidthPunycode" to "github.io"
+            ".GitHub.IO" to "github.io",
+            "XN--LESUND-HUA.no" to "xn--lesund-hua.no",
+            "co.uk" to "co.uk"
         )
 
         for ((domain, _) in cases) {
             assertFalse(policy.shouldAccept(Url("https://example.com/"), cookie(domain)), domain)
         }
+
         assertEquals(cases.map { it.second }, receivedDomains)
     }
 
+    // OkHttp maps U+1C83 to U+0441, so it connects to xn--p1acf where Ktor would compute xn--p1ag837p
     @Test
-    fun testRejectsSoftHyphenSpellingOfPublicSuffix() = runTest {
-        val storage = FilteredCookiesStorage(PublicSuffixCookiePolicy { it == "uk" || it == "co.uk" })
-        val cookie = Cookie("session", "injected", domain = "co\u00AD.uk", path = "/")
+    fun testRejectsUnicodeSpellingsOfPublicSuffix() = runTest {
+        val cases = listOf(
+            "https://evil.\u0440\u0443\u1C83/" to "xn--p1ag837p",
+            "https://evil.\u0440\u0443\u1C83/" to "\u0440\u0443\u1C83",
+            "https://evil.\u0440\u0443\u1C83/" to "\u0440\u0443\u0441",
+            "https://evil.\u0440\u0443\u1C83/" to "xn--p1acf",
+            "https://evil.xn--p1acf/" to "xn--p1acf",
+            "https://evil.co\u00AD.uk/" to "co\u00AD.uk",
+            "https://evil.co\u00AD.uk/" to "co.uk"
+        )
+        val victims = listOf(
+            "https://victim.\u0440\u0443\u1C83/",
+            "https://victim.\u0440\u0443\u0441/",
+            "https://victim.xn--p1acf/",
+            "https://victim.xn--p1ag837p/",
+            "https://victim.co\u00AD.uk/",
+            "https://victim.co.uk/"
+        )
 
-        storage.addCookie(Url("https://evil.co\u00AD.uk/"), cookie)
+        for ((url, domain) in cases) {
+            val storage = FilteredCookiesStorage(PublicSuffixCookiePolicy { it == "xn--p1acf" || it == "co.uk" })
+            storage.addCookie(Url(url), Cookie("session", "injected", domain = domain, path = "/"))
 
-        assertTrue(storage.get(Url("https://victim.co\u00AD.uk/")).isEmpty())
+            for (victim in victims) {
+                assertTrue(storage.get(Url(victim)).isEmpty(), "$url, $domain, $victim")
+            }
+        }
+    }
+
+    @Test
+    fun testAcceptsPunycodeDomainBelowPublicSuffix() = runTest {
+        val storage = FilteredCookiesStorage(PublicSuffixCookiePolicy { it == "xn--p1acf" })
+        val cookie = Cookie("session", "value", domain = "example.xn--p1acf", path = "/")
+        storage.addCookie(Url("https://www.example.xn--p1acf/"), cookie)
+
+        assertEquals("value", storage.get(Url("https://example.xn--p1acf/")).singleOrNull()?.value)
     }
 
     @Test
@@ -64,9 +91,17 @@ class PublicSuffixCookiePolicyTest {
             false
         }
 
-        // U+2488 normalizes to "1.", so neither Punycode label may hide a separator
-        val separatorPunycode = listOf("a\u3002b", "\u2488").map { requireNotNull(Punycode.encode(it)) }
-        val domains = listOf("xn--invalid-", ".", "exa\u200Bmple.com") + separatorPunycode.map { "$it.com" }
+        val domains = listOf(
+            ".",
+            "example..com",
+            "my_service",
+            "\u0440\u0443\u0441",
+            "\u0440\u0443\u1C83",
+            "github.\uFF49\uFF4F",
+            "co\u00AD.uk",
+            "exa\u200Bmple.com",
+            "example\u3002com"
+        )
 
         for (domain in domains) {
             assertFalse(policy.shouldAccept(Url("https://example.com/"), cookie(domain)), domain)

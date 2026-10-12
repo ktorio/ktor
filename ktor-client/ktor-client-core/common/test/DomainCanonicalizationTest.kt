@@ -8,60 +8,60 @@ import kotlin.test.*
 class DomainCanonicalizationTest {
 
     @Test
-    fun testCanonicalizesDomains() {
-        val cases = listOf(
-            "Example.COM" to "example.com",
-            "münchen.de" to "xn--mnchen-3ya.de",
-            "XN--MNCHEN-3YA.de" to "xn--mnchen-3ya.de",
-            "münchen\u3002de" to "xn--mnchen-3ya.de",
-            "münchen\uFF0Ede" to "xn--mnchen-3ya.de",
-            "münchen\uFF61de" to "xn--mnchen-3ya.de"
-        )
+    fun testAcceptsCanonicalDomains() {
+        val domains = listOf("com", "example.com", "xn--mnchen-3ya.de", "a-1.b2.example", "xn--p1ag837p")
 
-        for ((domain, canonical) in cases) {
-            assertEquals(canonical, canonicalizeDomainOrNull(domain), domain)
+        for (domain in domains) {
+            assertTrue(domain.isCanonicalDomain(), domain)
         }
     }
 
     @Test
-    fun testRejectsInvalidDomains() {
-        val softHyphenPunycode = requireNotNull(Punycode.encode("co\u00AD"))
+    fun testRejectsNonCanonicalDomains() {
         val domains = listOf(
             "",
             ".",
             "example..com",
             "example.com.",
+            ".example.com",
             "-example.com",
+            "example-.com",
+            "Example.com",
             "my_service",
-            "xn--invalid-",
-            // Whitespace, control, and invisible characters, including a supplementary variation selector
-            "co\u2028.uk",
-            "co\u0085.uk",
+            "ex%61mple.com",
+            "münchen.de",
             "co\u00AD.uk",
-            "co\u200B.uk",
-            "co\u200D.uk",
-            "\uFEFFexample.com",
-            "example\uFE0F.com",
-            "example\uDB40\uDD01.com",
-            "$softHyphenPunycode.uk"
+            "exa\u200Bmple.com",
+            "münchen\u3002de",
+            "a".repeat(64) + ".com",
+            List(64) { "abc" }.joinToString(".")
         )
 
         for (domain in domains) {
-            assertNull(canonicalizeDomainOrNull(domain), domain)
+            assertFalse(domain.isCanonicalDomain(), domain)
         }
     }
 
     @Test
-    fun testCanonicalizeValidLabelsKeepsInvalidLabels() {
+    fun testCanonicalizesRuleDomains() {
         val cases = listOf(
-            "My_Svc.münchen.de" to "my_svc.xn--mnchen-3ya.de",
-            "Example.com." to "example.com.",
-            "a\uD800b.münchen.de" to "a\uD800b.xn--mnchen-3ya.de",
-            "co\u00AD.uk" to "co\u00AD.uk"
+            "Example.COM" to "example.com",
+            "münchen.de" to "xn--mnchen-3ya.de",
+            "公司.cn" to "xn--55qx5d.cn",
+            "XN--MNCHEN-3YA.de" to "xn--mnchen-3ya.de"
         )
 
-        for ((value, canonical) in cases) {
-            assertEquals(canonical, value.canonicalizeValidLabels(), value)
+        for ((domain, canonical) in cases) {
+            assertEquals(canonical, canonicalizeDomainOrNull(domain) { it.lowercase() }, domain)
+        }
+    }
+
+    @Test
+    fun testRejectsInvalidRuleDomains() {
+        val domains = listOf("", ".", "example..com", "example.com.", "-example.com", "my_service", "a\uD800b.com")
+
+        for (domain in domains) {
+            assertNull(canonicalizeDomainOrNull(domain) { it.lowercase() }, domain)
         }
     }
 }

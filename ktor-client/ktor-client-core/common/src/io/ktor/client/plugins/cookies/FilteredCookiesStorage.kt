@@ -36,6 +36,8 @@ public fun interface CookieAcceptancePolicy {
  * An in-memory [CookiesStorage] that stores cookies accepted by all [policies].
  *
  * Mandatory cookie name and domain validation is always applied before the policies.
+ * A cookie domain is matched against the request host by a case-insensitive ASCII comparison, so the Unicode and
+ * Punycode spellings of an internationalized domain do not match each other.
  *
  * @param policies cookie acceptance policies, evaluated in the supplied order.
  *

@@ -8,7 +8,7 @@ import kotlin.test.*
 class PunycodeTest {
 
     @Test
-    fun testEncodesAndDecodesLabels() {
+    fun testEncodesLabels() {
         val cases = listOf(
             "münchen.de" to "xn--mnchen-3ya.de",
             "公司.cn" to "xn--55qx5d.cn",
@@ -19,7 +19,6 @@ class PunycodeTest {
 
         for ((unicode, ascii) in cases) {
             assertEquals(ascii, Punycode.encode(unicode), unicode)
-            assertEquals(unicode, Punycode.decode(ascii), ascii)
         }
     }
 

@@ -43,7 +43,8 @@ class PublicSuffixRulesLoadingTest {
         ).use { it.loadPublicSuffixRules() }
         val policy = PublicSuffixCookiePolicy(rules)
 
-        assertFalse(policy.shouldAccept(Url("https://example.ålesund.no/"), cookie("ålesund.no")))
+        assertFalse(policy.shouldAccept(Url("https://example.xn--lesund-hua.no/"), cookie("xn--lesund-hua.no")))
+        assertTrue(policy.shouldAccept(Url("https://example.xn--lesund-hua.no/"), cookie("example.xn--lesund-hua.no")))
     }
 
     @Test
