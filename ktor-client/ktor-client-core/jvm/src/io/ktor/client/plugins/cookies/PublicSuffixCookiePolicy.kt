@@ -26,8 +26,11 @@ public class PublicSuffixCookiePolicy(
     override suspend fun shouldAccept(requestUrl: Url, cookie: Cookie): Boolean {
         val domain = cookie.domain?.takeUnless { it.isBlank() }?.trimStart('.') ?: return true
         if (hostIsIp(domain)) return true
+        if (domain.isNonAscii()) return false
 
         val canonicalDomain = domain.toLowerCasePreservingASCIIRules()
         return canonicalDomain.isCanonicalDomain() && !rules.isPublicSuffix(canonicalDomain)
     }
 }
+
+private fun String.isNonAscii() = any { it.code >= 0x80 }

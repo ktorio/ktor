@@ -100,7 +100,9 @@ class PublicSuffixCookiePolicyTest {
             "github.\uFF49\uFF4F",
             "co\u00AD.uk",
             "exa\u200Bmple.com",
-            "example\u3002com"
+            "example\u3002com",
+            "co.u\u212A",
+            "example.\u0130o"
         )
 
         for (domain in domains) {
