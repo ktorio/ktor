@@ -6,6 +6,7 @@ package io.ktor.tests.http.cio
 
 import io.ktor.http.cio.*
 import io.ktor.http.cio.internals.*
+import io.ktor.utils.io.InternalAPI
 import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -68,6 +69,7 @@ class HttpHeadersMapTest {
     }
 
     @Test
+    @Suppress("DEPRECATION")
     fun testPutMultipleValuesPerKey(): Unit = test {
         val rawHeaders = "keyEven: 0,2,4,6; keyOdd: 1,3,5,7"
         val builder = CharArrayBuilder().also { it.append(rawHeaders) }
@@ -219,6 +221,7 @@ class HttpHeadersMapTest {
     }
 
     @Test
+    @OptIn(InternalAPI::class)
     fun testSingleOrNull() = test {
         val rawHeaders = "Content-Length: 42; Connection: close; Duplicate-Header: first; Duplicate-Header: second"
         val builder = CharArrayBuilder().also { it.append(rawHeaders) }
