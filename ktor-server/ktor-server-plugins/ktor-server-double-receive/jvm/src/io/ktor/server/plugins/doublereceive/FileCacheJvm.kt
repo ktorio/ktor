@@ -29,9 +29,13 @@ internal actual class FileCache actual constructor(
 
     private val file = File.createTempFile("ktor-double-receive-cache", ".tmp")
     private val state = atomic<State>(initial = State.Saving(done = CompletableDeferred()))
+    private val pump = atomic<Job?>(initial = null)
 
     actual override fun CoroutineScope.launchPump(channel: ByteReadChannel): Job =
-        launch(context = Dispatchers.IO, start = CoroutineStart.UNDISPATCHED) {
+        launch(context = Dispatchers.IO, start = CoroutineStart.ATOMIC) {
+            if (state.value !is State.Saving) {
+                return@launch
+            }
             try {
                 val buffer = ByteBuffer.allocate(bufferSize)
 
@@ -59,6 +63,12 @@ internal actual class FileCache actual constructor(
                 fail(cause)
                 if (cause is CancellationException) throw cause
             }
+        }.also { job ->
+            if (state.value is State.Failed) {
+                job.cancel()
+                return@also
+            }
+            pump.value = job
         }
 
     actual override suspend fun reader(): ByteReadChannel {
@@ -81,6 +91,7 @@ internal actual class FileCache actual constructor(
                 is State.Failed -> return
             }
         }
+        pump.value?.cancel()
         file.delete()
     }
 

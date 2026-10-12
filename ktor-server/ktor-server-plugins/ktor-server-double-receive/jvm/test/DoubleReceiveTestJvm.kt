@@ -39,7 +39,7 @@ class DoubleReceiveTestJvm {
     }
 
     @Test
-    fun testFileCacheDisposalFailsWaitingReader() = runBlocking<Unit> {
+    fun testFileCacheDisposalFailsWaitingReader() = runBlocking {
         val body = ByteChannel()
         val cache = startFileCache(body)
         val reader = async { runCatching { cache.reader() } }
@@ -61,10 +61,8 @@ class DoubleReceiveTestJvm {
 
         cache.dispose()
 
-        val content = ByteArray(4 * 1024 * 1024)
+        // The body is never written or closed, so the pump finishes only if disposal stops it
         withTimeout(5.seconds) {
-            body.writeFully(content)
-            body.close()
             pump.join()
         }
         assertFalse(body.isClosedForRead)
