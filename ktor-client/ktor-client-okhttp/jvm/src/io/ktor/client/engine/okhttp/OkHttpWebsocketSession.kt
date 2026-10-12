@@ -14,6 +14,7 @@ import kotlinx.coroutines.channels.*
 import okhttp3.*
 import okio.ByteString
 import okio.ByteString.Companion.toByteString
+import java.io.IOException
 import kotlin.coroutines.CoroutineContext
 
 @OptIn(InternalAPI::class)
@@ -28,6 +29,10 @@ internal class OkHttpWebsocketSession(
     private val self = CompletableDeferred<OkHttpWebsocketSession>()
 
     internal val originResponse: CompletableDeferred<Response> = CompletableDeferred()
+
+    // Body of a failed-handshake response.
+    internal var failedHandshakeBody: ByteArray? = null
+        private set
 
     private val channelsConfig: WebSocketChannelsConfig = wsConfig.channelsConfig
 
@@ -144,17 +149,23 @@ internal class OkHttpWebsocketSession(
 
     override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
         super.onFailure(webSocket, t, response)
-        val statusCode = response?.code
 
-        if (statusCode == HttpStatusCode.Unauthorized.value) {
-            originResponse.complete(response)
-            _incoming.close()
-            outgoing.close()
-        } else {
+        if (response == null || response.code == HttpStatusCode.SwitchingProtocols.value) {
+            // Network error (no response) or post-handshake failure (status code 101).
             originResponse.completeExceptionally(t)
             _closeReason.completeExceptionally(t)
             _incoming.close(t)
             outgoing.close(t)
+        } else {
+            // A failed handshake. Materialize the handshake response so it can be exposed.
+            failedHandshakeBody = try {
+                response.body.bytes()
+            } catch (_: IOException) {
+                null
+            }
+            originResponse.complete(response)
+            _incoming.close()
+            outgoing.close()
         }
     }
 
