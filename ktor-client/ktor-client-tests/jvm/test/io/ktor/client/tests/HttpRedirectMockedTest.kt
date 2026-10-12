@@ -68,6 +68,40 @@ class HttpRedirectMockedTest {
     }
 
     @Test
+    fun `query-only redirect keeps the request path`() = testWithEngine(MockEngine) {
+        config {
+            server { "?child" }
+        }
+
+        test { client ->
+            client.get("http://localhost/a/../b?old").let { response ->
+                assertEquals("OK", response.bodyAsText())
+                assertEquals("/a/../b?child", response.request.url.fullPath)
+            }
+        }
+    }
+
+    @Test
+    fun `relative redirect removes dot segments from a path built with segments`() = testWithEngine(MockEngine) {
+        config {
+            server { "../child" }
+        }
+
+        test { client ->
+            client.get {
+                url {
+                    protocol = URLProtocol.HTTP
+                    host = "localhost"
+                    path("a", "parent")
+                }
+            }.let { response ->
+                assertEquals("OK", response.bodyAsText())
+                assertEquals("/child", response.request.url.fullPath)
+            }
+        }
+    }
+
+    @Test
     fun testAbsoluteRedirect() = testWithEngine(MockEngine) {
         config {
             server { "/child" }
