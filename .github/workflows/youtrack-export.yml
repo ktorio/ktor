@@ -189,6 +189,17 @@ jobs:
         run: |
           set -euo pipefail
           YOUTRACK_ISSUE_URL="$YOUTRACK_URL/issue/$ISSUE_ID"
+
+          # Check if comment is already there
+          EXISTING=$(gh api "repos/${{ github.repository }}/issues/$ISSUE_NUMBER/comments" \
+            --paginate \
+            --jq ".[] | select(.body | contains(\"$YOUTRACK_ISSUE_URL\")) | .id" | head -1)
+
+          if [ -n "$EXISTING" ]; then
+            echo "Comment linking to $YOUTRACK_ISSUE_URL already exists (comment ID: $EXISTING), skipping"
+            exit 0
+          fi
+
           echo "Commenting on GitHub issue #$ISSUE_NUMBER with YouTrack link: $YOUTRACK_ISSUE_URL"
 
           gh issue comment "$ISSUE_NUMBER" \
