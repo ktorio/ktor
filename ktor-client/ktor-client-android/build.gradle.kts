@@ -9,15 +9,24 @@ plugins {
     id("test-server")
 }
 
+val isTestJdk21OrHigher = ktorBuild.jvmTestToolchain.get().canCompileOrRun(JavaLanguageVersion.of(21))
+
 kotlin {
     sourceSets {
         jvmMain.dependencies {
             api(projects.ktorClientCore)
+            // Used to compile against Android SDK without the android plugin
+            compileOnly(libs.robolectric.android)
         }
         jvmTest.dependencies {
             implementation(projects.ktorClientTests)
             implementation(projects.ktorNetworkTls)
             implementation(projects.ktorNetworkTlsCertificates)
+            compileOnly(libs.robolectric.android)
+
+            if (isTestJdk21OrHigher) {
+                runtimeOnly(libs.robolectric.android)
+            }
         }
     }
 }
