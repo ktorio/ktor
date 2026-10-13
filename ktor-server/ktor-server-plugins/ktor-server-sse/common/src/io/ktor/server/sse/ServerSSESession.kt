@@ -8,6 +8,7 @@ import io.ktor.server.application.*
 import io.ktor.sse.*
 import io.ktor.util.*
 import io.ktor.util.reflect.*
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.*
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
@@ -153,6 +154,7 @@ public suspend inline fun <reified T : Any> ServerSSESessionWithSerialization.se
  * The heartbeat will send the specified [Heartbeat.event] at the specified [Heartbeat.period] interval
  * as long as the session is active, or invoke [Heartbeat.eventProvider] on each tick when set.
  * Only one heartbeat can be started per session.
+ * The heartbeat is stopped when the session handler returns; calling this function after that has no effect.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.sse.heartbeat)
  *
@@ -161,15 +163,13 @@ public suspend inline fun <reified T : Any> ServerSSESessionWithSerialization.se
  */
 public fun ServerSSESession.heartbeat(heartbeatConfig: Heartbeat.() -> Unit = {}) {
     val heartbeat = Heartbeat().apply(heartbeatConfig)
-    val heartbeatState = HeartbeatState()
-    val registeredState = call.attributes.computeIfAbsent(heartbeatStateKey) { heartbeatState }
-    check(registeredState === heartbeatState) {
+    val heartbeatState = call.attributes[heartbeatStateKey]
+    check(heartbeatState.tryStart()) {
         "Only one heartbeat can be started per SSE session."
     }
 
-    val heartbeatJob = Job(parent = coroutineContext[Job])
-    heartbeatState.job = heartbeatJob
-    launch(heartbeatJob + CoroutineName("sse-heartbeat")) {
+    // If the session handler has already returned, the job is cancelled and the heartbeat never starts.
+    launch(heartbeatState.job + CoroutineName("sse-heartbeat")) {
         while (true) {
             val event = heartbeat.eventProvider?.invoke() ?: heartbeat.event
             send(event)
@@ -178,8 +178,11 @@ public fun ServerSSESession.heartbeat(heartbeatConfig: Heartbeat.() -> Unit = {}
     }
 }
 
-internal class HeartbeatState {
-    var job: Job? = null
+internal class HeartbeatState(parent: Job?) {
+    val job: Job = Job(parent)
+    private val started = atomic(false)
+
+    fun tryStart(): Boolean = started.compareAndSet(expect = false, update = true)
 }
 
 internal val heartbeatStateKey = AttributeKey<HeartbeatState>("HeartbeatStateAttributeKey")

@@ -27,6 +27,7 @@ import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -353,7 +354,7 @@ class ServerSentEventsTest {
                     period = 10.milliseconds
                 }
 
-                val heartbeatJob = checkNotNull(call.attributes[heartbeatStateKey].job)
+                val heartbeatJob = call.attributes[heartbeatStateKey].job
                 assertTrue(currentCoroutineContext().job.children.any { it === heartbeatJob })
                 heartbeatJob.invokeOnCompletion { heartbeatStopped.complete(Unit) }
 
@@ -372,6 +373,28 @@ class ServerSentEventsTest {
             heartbeatStopped.await()
         }
         session.cancel()
+    }
+
+    @Test
+    fun `heartbeat started after the handler returned does not keep the session open`() = testApplication {
+        install(SSE)
+        routing {
+            sse {
+                launch {
+                    delay(50.milliseconds)
+                    heartbeat {
+                        period = 10.milliseconds
+                    }
+                }
+                send("ready")
+            }
+        }
+
+        val body = withTimeout(5.seconds) {
+            client.get("/").bodyAsText()
+        }
+        assertContains(body, "data: ready")
+        assertFalse(body.contains("heartbeat"))
     }
 
     @Test

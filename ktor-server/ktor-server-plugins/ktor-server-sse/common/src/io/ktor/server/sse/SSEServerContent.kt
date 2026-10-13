@@ -11,6 +11,7 @@ import io.ktor.server.request.*
 import io.ktor.util.logging.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
@@ -55,11 +56,12 @@ public class SSEServerContent(
                         override val serializer: (TypeInfo, Any) -> String = serialize
                     }
                 }
+                val heartbeatState = HeartbeatState(parent = coroutineContext[Job])
+                call.attributes.put(heartbeatStateKey, heartbeatState)
                 try {
                     session.handle()
                 } finally {
-                    val heartbeat = call.attributes.getOrNull(heartbeatStateKey)
-                    heartbeat?.job?.cancel()
+                    heartbeatState.job.cancel()
                 }
             }
         } finally {
