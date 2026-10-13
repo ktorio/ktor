@@ -25,9 +25,16 @@ public enum class TLSVersion(public val code: Int) {
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.TLSVersion.Companion.byCode)
          */
-        public fun byCode(code: Int): TLSVersion = when (code) {
-            in 0x0300..0x0303 -> byOrdinal[code - 0x0300]
-            else -> throw IllegalArgumentException("Invalid TLS version code $code")
-        }
+        public fun byCode(code: Int): TLSVersion =
+            byCodeOrNull(code) ?: throw IllegalArgumentException("Invalid TLS version code $code")
+
+        /**
+         * Find version instance by its numeric [code], or return `null` if the code is not a known TLS
+         * version.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.tls.TLSVersion.Companion.byCodeOrNull)
+         */
+        public fun byCodeOrNull(code: Int): TLSVersion? =
+            if (code in 0x0300..0x0303) byOrdinal[code - 0x0300] else null
     }
 }

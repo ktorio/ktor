@@ -73,8 +73,13 @@ internal class TLSClientHandshake(
 
                 when (record.type) {
                     TLSRecordType.Alert -> {
-                        val level = TLSAlertLevel.byCode(packet.readByte().toInt())
-                        val code = TLSAlertType.byCode(packet.readByte().toInt())
+                        val levelCode = packet.readByte().toInt()
+                        val level = TLSAlertLevel.byCodeOrNull(levelCode)
+                            ?: throw TlsException("Invalid TLS alert level code: $levelCode")
+
+                        val typeCode = packet.readByte().toInt()
+                        val code = TLSAlertType.byCodeOrNull(typeCode)
+                            ?: throw TlsException("Invalid TLS alert type code: $typeCode")
 
                         if (code == TLSAlertType.CloseNotify) return@produce
                         val cause = TLSException("Received alert during handshake. Level: $level, code: $code")
