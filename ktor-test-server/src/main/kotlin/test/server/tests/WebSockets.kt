@@ -11,6 +11,7 @@ import io.ktor.server.routing.*
 import io.ktor.server.websocket.*
 import io.ktor.util.*
 import io.ktor.websocket.*
+import kotlinx.coroutines.delay
 import kotlinx.serialization.json.Json
 
 internal fun Application.webSockets() {
@@ -81,6 +82,23 @@ internal fun Application.webSockets() {
                 val size = call.request.queryParameters["size"]?.toIntOrNull() ?: error("No size provided")
                 val payload = "x".repeat(size)
                 send(Frame.Text(payload))
+            }
+            webSocketRaw("fragments") {
+                val sizes = call.parameters["sizes"]?.split(",")?.map { it.toInt() } ?: error("No sizes provided")
+                val type = FrameType.valueOf(call.parameters["type"]?.uppercase() ?: "BINARY")
+                val delayMillis = call.parameters["delayMs"]?.toLong() ?: 0L
+                sizes.forEachIndexed { index, size ->
+                    val data = ByteArray(size) { ('a'.code + index % 26).toByte() }
+                    send(Frame.byType(fin = index == sizes.lastIndex, type, data, false, false, false))
+                    if (delayMillis > 0) {
+                        flush()
+                        delay(delayMillis)
+                    }
+                }
+                send(Frame.Close(CloseReason(CloseReason.Codes.NORMAL, "done")))
+                for (frame in incoming) {
+                    if (frame is Frame.Close) break
+                }
             }
             get("500") {
                 call.respond(HttpStatusCode.InternalServerError)
