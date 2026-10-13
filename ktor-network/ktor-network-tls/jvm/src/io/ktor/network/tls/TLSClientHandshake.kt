@@ -113,35 +113,44 @@ internal class TLSClientHandshake(
 
     @OptIn(ObsoleteCoroutinesApi::class)
     val output: SendChannel<TLSRecord> = actor(CoroutineName("cio-tls-encoder")) {
-        for (rawRecord in channel) {
-            try {
-                val record = if (useCipher) cipher.encrypt(rawRecord) else rawRecord
-                if (rawRecord.type == TLSRecordType.ChangeCipherSpec) useCipher = true
-
-                rawOutput.writeRecord(record)
-            } catch (cause: Throwable) {
-                channel.close(cause)
-                break
-            }
-        }
-    }.apply {
-        invokeOnClose {
-            launch(CoroutineName("cio-tls-closer")) {
+        try {
+            for (rawRecord in channel) {
                 try {
-                    val closeRecord = TLSRecord(
-                        TLSRecordType.Alert,
-                        packet = buildPacket {
-                            writeByte(TLSAlertLevel.WARNING.code.toByte())
-                            writeByte(TLSAlertType.CloseNotify.code.toByte())
-                        }
-                    )
-                    val record = if (useCipher) cipher.encrypt(closeRecord) else closeRecord
+                    val record = if (useCipher) cipher.encrypt(rawRecord) else rawRecord
+                    if (rawRecord.type == TLSRecordType.ChangeCipherSpec) useCipher = true
+
                     rawOutput.writeRecord(record)
-                    rawOutput.flushAndClose()
-                } finally {
-                    closeTask.complete()
+                } catch (cause: Throwable) {
+                    channel.close(cause)
+                    break
                 }
             }
+        } finally {
+            // The close_notify must be written by the encoder itself, after the last record:
+            // rawOutput is a single-writer channel and the cipher state is not thread-safe.
+            try {
+                sendCloseNotify(rawOutput)
+            } finally {
+                closeTask.complete()
+            }
+        }
+    }
+
+    private suspend fun sendCloseNotify(rawOutput: ByteWriteChannel) {
+        try {
+            val closeRecord = TLSRecord(
+                TLSRecordType.Alert,
+                packet = buildPacket {
+                    writeByte(TLSAlertLevel.WARNING.code.toByte())
+                    writeByte(TLSAlertType.CloseNotify.code.toByte())
+                }
+            )
+            val record = if (useCipher) cipher.encrypt(closeRecord) else closeRecord
+            rawOutput.writeRecord(record)
+        } catch (_: Throwable) {
+            // The connection is already broken, there is no one to notify.
+        } finally {
+            rawOutput.flushAndClose()
         }
     }
 
