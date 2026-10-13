@@ -49,10 +49,16 @@ internal class SavedHttpCall(
         this.request = SavedHttpRequest(this, request)
         this.response = SavedHttpResponse(this, responseBody, response)
 
-        checkContentLength(response.contentLength(), responseBody.size.toLong(), request.method)
+        checkContentLength(response.status, response.contentLength(), responseBody.size.toLong(), request.method)
     }
 
     override val allowDoubleReceive: Boolean = true
+}
+
+internal fun checkContentLength(status: HttpStatusCode, contentLength: Long?, bodySize: Long, method: HttpMethod) {
+    val code = status.value
+    if (code in 100..199 || code == HttpStatusCode.NoContent.value || code == HttpStatusCode.NotModified.value) return
+    checkContentLength(contentLength, bodySize, method)
 }
 
 internal class SavedHttpRequest(
