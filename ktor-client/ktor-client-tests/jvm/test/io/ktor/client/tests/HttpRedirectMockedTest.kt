@@ -102,6 +102,27 @@ class HttpRedirectMockedTest {
     }
 
     @Test
+    fun `relative redirect keeps empty segments after the root of a path built with segments`() =
+        testWithEngine(MockEngine) {
+            config {
+                server { "..//child" }
+            }
+
+            test { client ->
+                client.get {
+                    url {
+                        protocol = URLProtocol.HTTP
+                        host = "localhost"
+                        path("a", "parent")
+                    }
+                }.let { response ->
+                    assertEquals("OK", response.bodyAsText())
+                    assertEquals("//child", response.request.url.fullPath)
+                }
+            }
+        }
+
+    @Test
     fun testAbsoluteRedirect() = testWithEngine(MockEngine) {
         config {
             server { "/child" }

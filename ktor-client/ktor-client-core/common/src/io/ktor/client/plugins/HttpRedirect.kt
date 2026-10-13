@@ -132,19 +132,20 @@ private fun HttpStatusCode.isRedirect(): Boolean = when (value) {
 
 /**
  * Removes `.` and `..` segments from the path of a resolved redirect target (RFC 3986, section 5.2.4).
- * A leading empty segment marks the root and is kept, so `..` cannot go above it.
+ * The path is absolute even when it was built without a leading empty segment, so one is added for the root.
+ * The root is kept, so `..` cannot go above it.
  */
 private fun List<String>.removeDotSegments(): List<String> {
     if (none { it == "." || it == ".." }) return this
-    val rootSegments = if (firstOrNull() == "") 1 else 0
-    val output = ArrayList<String>(size)
-    forEachIndexed { index, segment ->
-        val isLast = index == lastIndex
+    val segments = if (firstOrNull() == "") this else listOf("") + this
+    val output = ArrayList<String>(segments.size)
+    segments.forEachIndexed { index, segment ->
+        val isLast = index == segments.lastIndex
         when (segment) {
             "." -> if (isLast) output.add("")
 
             ".." -> {
-                if (output.size > rootSegments) output.removeAt(output.lastIndex)
+                if (output.size > 1) output.removeAt(output.lastIndex)
                 if (isLast) output.add("")
             }
 
