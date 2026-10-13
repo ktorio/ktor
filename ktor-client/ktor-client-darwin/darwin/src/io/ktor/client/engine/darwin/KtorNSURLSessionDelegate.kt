@@ -114,8 +114,7 @@ public class KtorNSURLSessionDelegate(
         )
         webSocketSessions[task.id] = taskHandler
         // Fields MUST be assigned to the task BEFORE starting it.
-        // The "maximum message size" actually refers to the underlying buffer,
-        // so it will allow >= maxFrameSize, depending on how quickly our bytes are read to the buffer.
+        // NSURLSession negotiates permessage-deflate on its own and applies the limit to compressed messages.
         @OptIn(ExperimentalForeignApi::class)
         task.setMaximumMessageSize(wsConfig.maxFrameSize.convert())
         return taskHandler.response
