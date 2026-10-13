@@ -27,7 +27,7 @@ import kotlin.time.Duration.Companion.milliseconds
  *
  * @param pingInterval duration between pings or `null` to disable pings.
  * @param timeout write/ping timeout after that a connection will be closed.
- * @param maxFrameSize maximum frame that could be received or sent.
+ * @param maxFrameSize maximum frame that could be received.
  * @param masking whether masking need to be enabled (useful for security).
  */
 public fun WebSockets(

@@ -140,6 +140,8 @@ public class WebSockets internal constructor(
         /**
          * Sets maximum frame size in bytes.
          *
+         * The limit applies to the incoming data before any possible decompression.
+         *
          * Engines that can't enforce the limit throw [WebSocketException] when a session is established
          * with a non-default value.
          *

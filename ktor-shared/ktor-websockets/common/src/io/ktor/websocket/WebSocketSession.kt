@@ -28,7 +28,10 @@ public interface WebSocketSession : CoroutineScope {
     public var masking: Boolean
 
     /**
-     * Specifies the frame size limit. A connection will be closed if violated.
+     * Specifies the frame size limit in bytes. A connection will be closed if violated.
+     *
+     * In case a message is fragmented, the limit applies to the total size of the frames of a fragmented message.
+     * The limit applies to the incoming data before any possible decompression.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.WebSocketSession.maxFrameSize)
      */
