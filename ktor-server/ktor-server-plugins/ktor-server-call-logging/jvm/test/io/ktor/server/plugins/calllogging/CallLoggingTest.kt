@@ -574,6 +574,31 @@ class CallLoggingTest {
         assertEquals(1, messages.count { it == "INFO: /" })
     }
 
+    @Test
+    fun nullMdcProviderDoesNotKeepStaleThreadValue() = testApplication {
+        var tenantId: String? = null
+        application {
+            install(CallLogging) {
+                mdc("tenantId") { it.request.headers["X-Tenant-Id"] }
+            }
+            intercept(ApplicationCallPipeline.Setup) {
+                MDC.put("tenantId", "leaked_tenant")
+                proceed()
+                MDC.clear()
+            }
+            routing {
+                get("/") {
+                    tenantId = MDC.get("tenantId")
+                    call.respondText("OK")
+                }
+            }
+        }
+
+        client.get("/")
+
+        assertNull(tenantId, "MDC key `tenantId` must be absent when its provider returns null")
+    }
+
     private fun green(value: Any): String = colored(value, Ansi.Color.GREEN)
     private fun red(value: Any): String = colored(value, Ansi.Color.RED)
     private fun cyan(value: Any): String = colored(value, Ansi.Color.CYAN)
