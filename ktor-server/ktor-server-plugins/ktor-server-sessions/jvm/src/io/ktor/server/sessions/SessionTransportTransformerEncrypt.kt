@@ -34,7 +34,7 @@ import javax.crypto.spec.SecretKeySpec
  * @property ivGenerator is a function that generates input vectors
  * @property encryptAlgorithm is an encryption algorithm name
  * @property signAlgorithm is a signing algorithm name
- * @property backwardCompatibleRead set to true to also accept session values produced by older Ktor versions
+ * @property backwardCompatibleRead set to true to also accept session values produced by Ktor < 3.0 (unencrypted) and Ktor < 3.6.1 (missing IV)
  */
 public class SessionTransportTransformerEncrypt(
     public val encryptionKeySpec: SecretKeySpec,
