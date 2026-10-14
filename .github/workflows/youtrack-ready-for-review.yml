@@ -4,7 +4,8 @@ on:
   pull_request_target:
     types: [ opened, reopened, ready_for_review, edited, closed ]
 
-permissions: {}
+permissions:
+  contents: read
 
 jobs:
   update-state:
@@ -21,6 +22,13 @@ jobs:
       TARGET_STATE: ${{ github.event.pull_request.merged && 'Fixed' || 'Ready for Review' }}
 
     steps:
+      - name: Check out the issue selection script
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          ref: ${{ github.workflow_sha }}
+          persist-credentials: false
+          sparse-checkout: .github/scripts
+
       - name: Collect issue IDs
         id: issues
         env:
@@ -28,117 +36,14 @@ jobs:
           PR_TITLE: ${{ github.event.pull_request.title }}
           PR_BODY: ${{ github.event.pull_request.body }}
           CHANGES: ${{ toJson(github.event.changes) }}
-        run: |
-          set -euo pipefail
+        run: bash .github/scripts/collect-youtrack-issues.sh
 
-          # Only a leading title ID or an explicit closing reference in the title or body selects an issue.
-          extract_ids() {
-            local keyword='(^|[^[:alnum:]_])([Cc]lose[sd]?|[Ff]ix(e[sd])?|[Rr]esolve[sd]?)[*_]*:?[*_]*[[:space:]]+'
-            local ref='[<[]?(https?://youtrack\.jetbrains\.com/issue/)?KTOR-[0-9]+(>|\]\([^)[:space:]]*\))?'
-            local separator='(,[[:space:]]*(and[[:space:]]+)?|[[:space:]]+and[[:space:]]+)'
-            {
-              if [[ "$1" =~ ^(KTOR-[0-9]+):?[[:space:]]+[^[:space:]] ]]; then
-                printf '%s\n' "${BASH_REMATCH[1]}"
-              fi
-              printf '%s\n' "$1" "$2" | grep -oiE "$keyword$ref($separator$ref)*" | grep -oE 'KTOR-[0-9]+' || true
-            } | awk '!seen[$0]++'
-          }
-
-          IDS=$(extract_ids "$PR_TITLE" "$PR_BODY")
-
-          # The limit applies to all referenced issues before edit filtering.
-          ISSUE_COUNT=$(awk 'NF { count++ } END { print count+0 }' <<< "$IDS")
-          if [ "$ISSUE_COUNT" -gt 15 ]; then
-            echo "::error::PR references $ISSUE_COUNT unique YouTrack issues. The limit is 15. Remove extra references."
-            exit 1
-          fi
-
-          # Editing the PR must not move issues again after someone has changed their state during the review,
-          # so take only the issues that were not referenced before the edit.
-          if [ "$EVENT_ACTION" = "edited" ]; then
-            OLD_TITLE=$(jq -r --arg current "$PR_TITLE" 'if has("title") then .title.from else $current end' <<< "$CHANGES")
-            OLD_BODY=$(jq -r --arg current "$PR_BODY" 'if has("body") then .body.from // "" else $current end' <<< "$CHANGES")
-            OLD_IDS=$(extract_ids "$OLD_TITLE" "$OLD_BODY")
-            IDS=$(grep -vxFf <(printf '%s\n' "$OLD_IDS") <<< "$IDS" || true)
-          fi
-
-          IDS=$(xargs <<< "$IDS")
-          echo "ids=$IDS" >> "$GITHUB_OUTPUT"
-          echo "Issues to move: ${IDS:-none}"
-
-      - name: Ensure target release exists
+      - name: Find target release
         id: release
-        if: github.event.pull_request.merged && steps.issues.outputs.ids != ''
+        if: github.event.pull_request.merged && steps.issues.outputs.needs_release == 'true'
         env:
           TARGET_RELEASE: ${{ github.event.pull_request.milestone.title }}
-        run: |
-          set -euo pipefail
-
-          if [ -z "${TARGET_RELEASE//[[:space:]]/}" ]; then
-            echo "::error title=Missing PR milestone::This PR has no milestone. Select a milestone before merge."
-            exit 1
-          fi
-
-          FIELDS=$(curl -fsS --get \
-            -H "Authorization: Bearer $YOUTRACK_TOKEN" \
-            --data-urlencode 'fields=field(name),bundle(id)' \
-            --data-urlencode '$top=100' \
-            "$YOUTRACK_URL/api/admin/projects/KTOR/customFields")
-          BUNDLE_ID=$(jq -er '
-            map(select(.field.name == "Target release"))[0].bundle.id
-            // error("KTOR has no Target release enum bundle")
-          ' <<< "$FIELDS")
-          VALUES_URL="$YOUTRACK_URL/api/admin/customFieldSettings/bundles/enum/$BUNDLE_ID/values"
-
-          find_release() {
-            local skip=0 values release_id value_count
-            while true; do
-              values=$(curl -fsS --get \
-                -H "Authorization: Bearer $YOUTRACK_TOKEN" \
-                --data-urlencode 'fields=id,name' \
-                --data-urlencode '$top=100' \
-                --data-urlencode "\$skip=$skip" \
-                "$VALUES_URL") || return $?
-              release_id=$(jq -r --arg name "$TARGET_RELEASE" \
-                '.[] | select(.name == $name) | .id' <<< "$values") || return $?
-              if [ -n "$release_id" ]; then
-                printf '%s\n' "$release_id"
-                return
-              fi
-              value_count=$(jq length <<< "$values") || return $?
-              if [ "$value_count" -lt 100 ]; then
-                return
-              fi
-              skip=$((skip + 100))
-            done
-          }
-
-          RELEASE_ID=$(find_release)
-          if [ -z "$RELEASE_ID" ]; then
-            PAYLOAD=$(jq -n --arg name "$TARGET_RELEASE" '{name: $name}')
-            RESPONSE=$(curl -sS -w "\n%{http_code}" \
-              -X POST \
-              -H "Authorization: Bearer $YOUTRACK_TOKEN" \
-              -H "Content-Type: application/json" \
-              -d "$PAYLOAD" \
-              "$VALUES_URL?fields=id")
-            HTTP_CODE=$(echo "$RESPONSE" | tail -1)
-            BODY=$(echo "$RESPONSE" | sed '$d')
-
-            if [ "$HTTP_CODE" -ge 200 ] && [ "$HTTP_CODE" -lt 300 ]; then
-              RELEASE_ID=$(jq -er '.id' <<< "$BODY")
-            else
-              # Another PR can create the same release between the lookup and the POST.
-              RELEASE_ID=$(find_release)
-              if [ -z "$RELEASE_ID" ]; then
-                echo "::error::Failed to create Target release '$TARGET_RELEASE' (HTTP $HTTP_CODE): $BODY"
-                exit 1
-              fi
-            fi
-          fi
-
-          echo "id=$RELEASE_ID" >> "$GITHUB_OUTPUT"
-          echo "Target release: $TARGET_RELEASE"
+        run: bash .github/scripts/find-youtrack-release.sh
 
       - name: Move issues to target state
         if: steps.issues.outputs.ids != ''
@@ -179,7 +84,15 @@ jobs:
 
             RELEASE_TO_SET=""
             if [ "$TARGET_STATE" = "Fixed" ]; then
-              RELEASE_TO_SET="$RELEASE_ID"
+              ISSUE_TYPE=$(jq -r '.customFields[] | select(.name == "Type") | .value.name // empty' <<< "$BODY")
+              case "$ISSUE_TYPE" in
+                Bug|Feature|Task|"Security Problem"|Improvement)
+                  if jq -e 'any(.customFields[]; .name == "Target release" and .value == null)' \
+                    <<< "$BODY" > /dev/null; then
+                    RELEASE_TO_SET="$RELEASE_ID"
+                  fi
+                  ;;
+              esac
             fi
 
             PAYLOAD=$(jq -n \
