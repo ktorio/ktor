@@ -1,0 +1,65 @@
+# Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+
+name: Validate PR Milestone
+
+on:
+  pull_request_target:
+    types: [ opened, edited, reopened, synchronize, ready_for_review, converted_to_draft, milestoned, demilestoned ]
+
+permissions:
+  pull-requests: write
+
+concurrency:
+  group: pr-milestone-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  validate-milestone:
+    name: Check PR milestone
+    runs-on: ubuntu-latest
+    if: github.repository == 'ktorio/ktor' && github.event.pull_request.state == 'open'
+
+    steps:
+      - name: Check milestone
+        id: milestone
+        env:
+          MILESTONE: ${{ github.event.pull_request.milestone.title }}
+        run: |
+          set -euo pipefail
+          if [ -z "${MILESTONE//[[:space:]]/}" ]; then
+            echo "missing=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "missing=false" >> "$GITHUB_OUTPUT"
+            echo "PR milestone: $MILESTONE"
+          fi
+
+      - name: Remind the author to select a milestone
+        if: steps.milestone.outputs.missing == 'true' && !github.event.pull_request.draft
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          MARKER='<!-- ktor-pr-milestone-required -->'
+          COMMENTS=$(gh api --paginate --slurp "repos/$GH_REPO/issues/$PR_NUMBER/comments?per_page=100")
+          if jq -e --arg marker "$MARKER" '
+            any(.[][]; .user.login == "github-actions[bot]" and ((.body // "") | contains($marker)))
+          ' <<< "$COMMENTS" > /dev/null; then
+            exit 0
+          fi
+
+          COMMENT_FILE=$(mktemp)
+          trap 'rm -f "$COMMENT_FILE"' EXIT
+          cat > "$COMMENT_FILE" <<'EOF'
+          Select a milestone for this PR before merge. Its title sets the YouTrack Target release.
+
+          <!-- ktor-pr-milestone-required -->
+          EOF
+          gh pr comment "$PR_NUMBER" --repo "$GH_REPO" --body-file "$COMMENT_FILE"
+
+      - name: Require a milestone
+        if: steps.milestone.outputs.missing == 'true'
+        run: |
+          echo "::error title=Missing PR milestone::This PR has no milestone. Select a milestone before merge."
+          exit 1

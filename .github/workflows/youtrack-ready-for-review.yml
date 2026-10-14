@@ -66,10 +66,85 @@ jobs:
           echo "ids=$IDS" >> "$GITHUB_OUTPUT"
           echo "Issues to move: ${IDS:-none}"
 
+      - name: Ensure target release exists
+        id: release
+        if: github.event.pull_request.merged && steps.issues.outputs.ids != ''
+        env:
+          TARGET_RELEASE: ${{ github.event.pull_request.milestone.title }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${TARGET_RELEASE//[[:space:]]/}" ]; then
+            echo "::error title=Missing PR milestone::This PR has no milestone. Select a milestone before merge."
+            exit 1
+          fi
+
+          FIELDS=$(curl -fsS --get \
+            -H "Authorization: Bearer $YOUTRACK_TOKEN" \
+            --data-urlencode 'fields=field(name),bundle(id)' \
+            --data-urlencode '$top=100' \
+            "$YOUTRACK_URL/api/admin/projects/KTOR/customFields")
+          BUNDLE_ID=$(jq -er '
+            map(select(.field.name == "Target release"))[0].bundle.id
+            // error("KTOR has no Target release enum bundle")
+          ' <<< "$FIELDS")
+          VALUES_URL="$YOUTRACK_URL/api/admin/customFieldSettings/bundles/enum/$BUNDLE_ID/values"
+
+          find_release() {
+            local skip=0 values release_id value_count
+            while true; do
+              values=$(curl -fsS --get \
+                -H "Authorization: Bearer $YOUTRACK_TOKEN" \
+                --data-urlencode 'fields=id,name' \
+                --data-urlencode '$top=100' \
+                --data-urlencode "\$skip=$skip" \
+                "$VALUES_URL") || return $?
+              release_id=$(jq -r --arg name "$TARGET_RELEASE" \
+                '.[] | select(.name == $name) | .id' <<< "$values") || return $?
+              if [ -n "$release_id" ]; then
+                printf '%s\n' "$release_id"
+                return
+              fi
+              value_count=$(jq length <<< "$values") || return $?
+              if [ "$value_count" -lt 100 ]; then
+                return
+              fi
+              skip=$((skip + 100))
+            done
+          }
+
+          RELEASE_ID=$(find_release)
+          if [ -z "$RELEASE_ID" ]; then
+            PAYLOAD=$(jq -n --arg name "$TARGET_RELEASE" '{name: $name}')
+            RESPONSE=$(curl -sS -w "\n%{http_code}" \
+              -X POST \
+              -H "Authorization: Bearer $YOUTRACK_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d "$PAYLOAD" \
+              "$VALUES_URL?fields=id")
+            HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+            BODY=$(echo "$RESPONSE" | sed '$d')
+
+            if [ "$HTTP_CODE" -ge 200 ] && [ "$HTTP_CODE" -lt 300 ]; then
+              RELEASE_ID=$(jq -er '.id' <<< "$BODY")
+            else
+              # Another PR can create the same release between the lookup and the POST.
+              RELEASE_ID=$(find_release)
+              if [ -z "$RELEASE_ID" ]; then
+                echo "::error::Failed to create Target release '$TARGET_RELEASE' (HTTP $HTTP_CODE): $BODY"
+                exit 1
+              fi
+            fi
+          fi
+
+          echo "id=$RELEASE_ID" >> "$GITHUB_OUTPUT"
+          echo "Target release: $TARGET_RELEASE"
+
       - name: Move issues to target state
         if: steps.issues.outputs.ids != ''
         env:
           ISSUE_IDS: ${{ steps.issues.outputs.ids }}
+          RELEASE_ID: ${{ steps.release.outputs.id }}
         run: |
           set -euo pipefail
           FAILED=0
@@ -102,16 +177,28 @@ jobs:
               continue
             fi
 
+            RELEASE_TO_SET=""
+            if [ "$TARGET_STATE" = "Fixed" ]; then
+              RELEASE_TO_SET="$RELEASE_ID"
+            fi
+
             PAYLOAD=$(jq -n \
               --arg state "$TARGET_STATE" \
+              --arg release "$RELEASE_TO_SET" \
               '{
-                customFields: [
+                customFields: ([
                   {
                     name: "State",
                     "$type": "StateIssueCustomField",
                     value: { name: $state }
                   }
-                ]
+                ] + (if $release != "" then [
+                  {
+                    name: "Target release",
+                    "$type": "SingleEnumIssueCustomField",
+                    value: { id: $release }
+                  }
+                ] else [] end))
               }')
 
             RESPONSE=$(curl -s -w "\n%{http_code}" \
