@@ -300,7 +300,9 @@ internal class RoutingPathTree private constructor(private val root: Node) {
                     }
 
                     is HttpMethodRouteSelector -> {
-                        if (node.handlers.isNotEmpty() && node.children.isEmpty()) {
+                        // Children (e.g. a header check) can select a different route, so the index cannot decide.
+                        if (node.children.isNotEmpty()) return null
+                        if (node.handlers.isNotEmpty()) {
                             siblings.methods.getOrPut(selector.method) { mutableListOf() }.add(node)
                         }
                     }
