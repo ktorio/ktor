@@ -1,0 +1,138 @@
+# Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+
+name: Validate PR Milestone
+
+on:
+  pull_request_target:
+    types: [ opened, edited, reopened, synchronize, ready_for_review, converted_to_draft, milestoned, demilestoned ]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: pr-milestone-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+jobs:
+  find-issues:
+    name: Prepare milestone check
+    runs-on: ubuntu-latest
+    if: github.repository == 'ktorio/ktor' && github.event.pull_request.state == 'open'
+
+    outputs:
+      needs_release: ${{ steps.issues.outputs.needs_release }}
+
+    env:
+      YOUTRACK_URL: https://youtrack.jetbrains.com
+      YOUTRACK_TOKEN: ${{ secrets.YOUTRACK_TOKEN }}
+
+    steps:
+      - name: Check out the issue selection script
+        if: '!github.event.pull_request.draft'
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          ref: ${{ github.workflow_sha }}
+          persist-credentials: false
+          sparse-checkout: .github/scripts
+
+      - name: Find issues to fix on merge
+        id: issues
+        if: '!github.event.pull_request.draft'
+        env:
+          EVENT_ACTION: ${{ github.event.action }}
+          TARGET_STATE: Fixed
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: bash .github/scripts/collect-youtrack-issues.sh
+
+      - name: Remove milestone reminder
+        if: github.event.pull_request.milestone != null || steps.issues.outputs.needs_release != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          MARKER='<!-- ktor-pr-milestone-required -->'
+          COMMENTS=$(gh api --paginate --slurp "repos/$GH_REPO/issues/$PR_NUMBER/comments?per_page=100")
+          COMMENT_IDS=$(jq -r --arg marker "$MARKER" '
+            .[][] | select(.user.login == "github-actions[bot]" and ((.body // "") | contains($marker))) | .id
+          ' <<< "$COMMENTS")
+          for COMMENT_ID in $COMMENT_IDS; do
+            gh api --method DELETE "repos/$GH_REPO/issues/comments/$COMMENT_ID"
+          done
+
+  validate-milestone:
+    name: Check PR milestone
+    needs: find-issues
+    if: always() && (needs.find-issues.result == 'failure' ||
+      needs.find-issues.result == 'cancelled' || needs.find-issues.outputs.needs_release == 'true')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Require milestone preparation to succeed
+        if: needs.find-issues.result != 'success'
+        run: |
+          echo "::error title=Milestone preparation failed::The 'Prepare milestone check' job didn't succeed." \
+            "Check its logs and fix the reported error."
+          exit 1
+
+      - name: Check milestone
+        id: milestone
+        env:
+          MILESTONE: ${{ github.event.pull_request.milestone.title }}
+        run: |
+          set -euo pipefail
+          if [ -z "${MILESTONE//[[:space:]]/}" ]; then
+            echo "missing=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "missing=false" >> "$GITHUB_OUTPUT"
+            echo "PR milestone: $MILESTONE"
+          fi
+
+      - name: Remind the author to select a milestone
+        if: steps.milestone.outputs.missing == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          MARKER='<!-- ktor-pr-milestone-required -->'
+          COMMENTS=$(gh api --paginate --slurp "repos/$GH_REPO/issues/$PR_NUMBER/comments?per_page=100")
+          if jq -e --arg marker "$MARKER" '
+            any(.[][]; .user.login == "github-actions[bot]" and ((.body // "") | contains($marker)))
+          ' <<< "$COMMENTS" > /dev/null; then
+            exit 0
+          fi
+
+          COMMENT_FILE=$(mktemp)
+          trap 'rm -f "$COMMENT_FILE"' EXIT
+          cat > "$COMMENT_FILE" <<'EOF'
+          Some referenced issues need a Target release. Select a PR milestone or set their Target release in YouTrack.
+
+          <!-- ktor-pr-milestone-required -->
+          EOF
+          gh pr comment "$PR_NUMBER" --repo "$GH_REPO" --body-file "$COMMENT_FILE"
+
+      - name: Require a milestone
+        if: steps.milestone.outputs.missing == 'true'
+        run: |
+          echo "::error title=Missing PR milestone::Some referenced issues need a Target release." \
+            "Select a PR milestone or set their Target release in YouTrack."
+          exit 1
+
+      - name: Check out the release lookup script
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          ref: ${{ github.workflow_sha }}
+          persist-credentials: false
+          sparse-checkout: .github/scripts
+
+      - name: Check milestone exists in YouTrack
+        env:
+          YOUTRACK_URL: https://youtrack.jetbrains.com
+          YOUTRACK_TOKEN: ${{ secrets.YOUTRACK_TOKEN }}
+          TARGET_RELEASE: ${{ github.event.pull_request.milestone.title }}
+        run: bash .github/scripts/find-youtrack-release.sh

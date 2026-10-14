@@ -4,7 +4,8 @@ on:
   pull_request_target:
     types: [ opened, reopened, ready_for_review, edited, closed ]
 
-permissions: {}
+permissions:
+  contents: read
 
 jobs:
   update-state:
@@ -21,6 +22,13 @@ jobs:
       TARGET_STATE: ${{ github.event.pull_request.merged && 'Fixed' || 'Ready for Review' }}
 
     steps:
+      - name: Check out the issue selection script
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09
+        with:
+          ref: ${{ github.workflow_sha }}
+          persist-credentials: false
+          sparse-checkout: .github/scripts
+
       - name: Collect issue IDs
         id: issues
         env:
@@ -28,48 +36,20 @@ jobs:
           PR_TITLE: ${{ github.event.pull_request.title }}
           PR_BODY: ${{ github.event.pull_request.body }}
           CHANGES: ${{ toJson(github.event.changes) }}
-        run: |
-          set -euo pipefail
+        run: bash .github/scripts/collect-youtrack-issues.sh
 
-          # Only a leading title ID or an explicit closing reference in the title or body selects an issue.
-          extract_ids() {
-            local keyword='(^|[^[:alnum:]_])([Cc]lose[sd]?|[Ff]ix(e[sd])?|[Rr]esolve[sd]?)[*_]*:?[*_]*[[:space:]]+'
-            local ref='[<[]?(https?://youtrack\.jetbrains\.com/issue/)?KTOR-[0-9]+(>|\]\([^)[:space:]]*\))?'
-            local separator='(,[[:space:]]*(and[[:space:]]+)?|[[:space:]]+and[[:space:]]+)'
-            {
-              if [[ "$1" =~ ^(KTOR-[0-9]+):?[[:space:]]+[^[:space:]] ]]; then
-                printf '%s\n' "${BASH_REMATCH[1]}"
-              fi
-              printf '%s\n' "$1" "$2" | grep -oiE "$keyword$ref($separator$ref)*" | grep -oE 'KTOR-[0-9]+' || true
-            } | awk '!seen[$0]++'
-          }
-
-          IDS=$(extract_ids "$PR_TITLE" "$PR_BODY")
-
-          # The limit applies to all referenced issues before edit filtering.
-          ISSUE_COUNT=$(awk 'NF { count++ } END { print count+0 }' <<< "$IDS")
-          if [ "$ISSUE_COUNT" -gt 15 ]; then
-            echo "::error::PR references $ISSUE_COUNT unique YouTrack issues. The limit is 15. Remove extra references."
-            exit 1
-          fi
-
-          # Editing the PR must not move issues again after someone has changed their state during the review,
-          # so take only the issues that were not referenced before the edit.
-          if [ "$EVENT_ACTION" = "edited" ]; then
-            OLD_TITLE=$(jq -r --arg current "$PR_TITLE" 'if has("title") then .title.from else $current end' <<< "$CHANGES")
-            OLD_BODY=$(jq -r --arg current "$PR_BODY" 'if has("body") then .body.from // "" else $current end' <<< "$CHANGES")
-            OLD_IDS=$(extract_ids "$OLD_TITLE" "$OLD_BODY")
-            IDS=$(grep -vxFf <(printf '%s\n' "$OLD_IDS") <<< "$IDS" || true)
-          fi
-
-          IDS=$(xargs <<< "$IDS")
-          echo "ids=$IDS" >> "$GITHUB_OUTPUT"
-          echo "Issues to move: ${IDS:-none}"
+      - name: Find target release
+        id: release
+        if: github.event.pull_request.merged && steps.issues.outputs.needs_release == 'true'
+        env:
+          TARGET_RELEASE: ${{ github.event.pull_request.milestone.title }}
+        run: bash .github/scripts/find-youtrack-release.sh
 
       - name: Move issues to target state
         if: steps.issues.outputs.ids != ''
         env:
           ISSUE_IDS: ${{ steps.issues.outputs.ids }}
+          RELEASE_ID: ${{ steps.release.outputs.id }}
         run: |
           set -euo pipefail
           FAILED=0
@@ -102,16 +82,36 @@ jobs:
               continue
             fi
 
+            RELEASE_TO_SET=""
+            if [ "$TARGET_STATE" = "Fixed" ]; then
+              ISSUE_TYPE=$(jq -r '.customFields[] | select(.name == "Type") | .value.name // empty' <<< "$BODY")
+              case "$ISSUE_TYPE" in
+                Bug|Feature|Task|"Security Problem"|Improvement)
+                  if jq -e 'any(.customFields[]; .name == "Target release" and .value == null)' \
+                    <<< "$BODY" > /dev/null; then
+                    RELEASE_TO_SET="$RELEASE_ID"
+                  fi
+                  ;;
+              esac
+            fi
+
             PAYLOAD=$(jq -n \
               --arg state "$TARGET_STATE" \
+              --arg release "$RELEASE_TO_SET" \
               '{
-                customFields: [
+                customFields: ([
                   {
                     name: "State",
                     "$type": "StateIssueCustomField",
                     value: { name: $state }
                   }
-                ]
+                ] + (if $release != "" then [
+                  {
+                    name: "Target release",
+                    "$type": "SingleEnumIssueCustomField",
+                    value: { id: $release }
+                  }
+                ] else [] end))
               }')
 
             RESPONSE=$(curl -s -w "\n%{http_code}" \
