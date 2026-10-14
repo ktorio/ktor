@@ -110,4 +110,5 @@ fun Project.javaModuleName(): String {
         .replace('-', '.')
         .replace("default.headers", "defaultheaders")
         .replace("double.receive", "doublereceive")
+        .replace("public.suffix", "publicsuffix")
 }

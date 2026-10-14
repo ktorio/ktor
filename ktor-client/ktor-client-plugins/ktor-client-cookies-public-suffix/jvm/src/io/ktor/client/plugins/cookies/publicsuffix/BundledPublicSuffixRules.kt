@@ -2,9 +2,9 @@
  * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
-package io.ktor.client.plugins.cookies
+package io.ktor.client.plugins.cookies.publicsuffix
 
-import io.ktor.client.plugins.cookies.publicsuffix.*
+import io.ktor.client.plugins.cookies.*
 
 /**
  * Creates public-suffix rules backed by the list bundled in this module's JVM resources.
@@ -13,7 +13,7 @@ import io.ktor.client.plugins.cookies.publicsuffix.*
  * which blocks the calling thread while it runs. If loading fails, that call throws and the next call retries.
  * Use [loadBundled] to load the list immediately instead.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.cookies.bundled)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.cookies.publicsuffix.bundled)
  */
 public fun PublicSuffixRules.Companion.bundled(): PublicSuffixRules = LazyPublicSuffixRules(::readBundledResource)
 
@@ -23,7 +23,7 @@ public fun PublicSuffixRules.Companion.bundled(): PublicSuffixRules = LazyPublic
  * The list is read and validated before this function returns, so a missing or corrupted list fails here rather than
  * on first use. Reuse the returned rules instead of calling this repeatedly. Use [bundled] to defer loading.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.cookies.loadBundled)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.cookies.publicsuffix.loadBundled)
  *
  * @throws IllegalStateException when the bundled list is missing or corrupted.
  */
