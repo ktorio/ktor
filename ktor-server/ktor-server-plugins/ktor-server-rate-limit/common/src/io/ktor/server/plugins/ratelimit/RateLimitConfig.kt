@@ -116,6 +116,17 @@ public class RateLimitProviderConfig(internal val name: RateLimitName) {
         }
     }
 
+    // TODO: Think about better name
+    public fun rateLimiterIncremental(
+        limit: Int,
+        refillRate: Duration,
+        clock: () -> Long = { getTimeMillis() }
+    ) {
+        rateLimiter { _: ApplicationCall, _: Any ->
+            RateLimiter.incremental(limit = limit, refillRate = refillRate, clock = clock)
+        }
+    }
+
     /**
      * Sets a function that returns a key for a request. Requests with different keys will have independent Rate-Limits.
      * Keys should have good equals and hashCode implementations.
