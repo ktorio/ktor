@@ -139,7 +139,7 @@ internal class InMemoryCache : DoubleReceiveCache {
                 }
                 channel.closedCause?.let { throw it }
                 complete(cacheBuffer)
-            } catch (cause: Throwable) {
+            } catch (cause: Exception) {
                 // Readers get the failure from the cache, so only cancellation is propagated to the caller.
                 cacheBuffer.clear()
                 fail(cause)

@@ -10,6 +10,7 @@ import io.ktor.server.request.*
 import io.ktor.util.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.Job
 import kotlin.reflect.KClass
 
 internal val LOGGER = KtorSimpleLogger("io.ktor.server.plugins.doublereceive.DoubleReceive")
@@ -34,14 +35,20 @@ public val DoubleReceive: RouteScopedPlugin<DoubleReceiveConfig> = createRouteSc
     val filters = pluginConfig.filters
     val cacheRawRequest: Boolean = pluginConfig.cacheRawRequest
 
+    fun cleanup(call: ApplicationCall) {
+        val cache = call.receiveCache
+        cache.retrieve(DoubleReceiveCache::class)?.dispose()
+        cache.retrieve(Job::class)?.cancel()
+    }
+
     on(ReceiveBytes) { call, body ->
         if (filters.any { it(call, body) }) return@on body
 
         val cache = call.receiveCache
 
-        if (cache.containsKey(call.receiveType.type)) {
-            LOGGER.trace { "Return cached value for ${call.receiveType.type}" }
-            return@on cache[call.receiveType.type]!!
+        cache.retrieve(call.receiveType.type)?.let { cachedValue ->
+            LOGGER.trace { "Return cached value for ${cachedValue::class}" }
+            return@on cachedValue
         }
 
         if (!cacheRawRequest) {
@@ -52,7 +59,7 @@ public val DoubleReceive: RouteScopedPlugin<DoubleReceiveConfig> = createRouteSc
             return@on body
         }
 
-        val cacheValue = cache[DoubleReceiveCache::class] as? DoubleReceiveCache
+        val cacheValue = cache.retrieve(DoubleReceiveCache::class)
         if (cacheValue != null) {
             LOGGER.trace("Return raw body from cache")
             return@on cacheValue.reader()
@@ -70,17 +77,18 @@ public val DoubleReceive: RouteScopedPlugin<DoubleReceiveConfig> = createRouteSc
             InMemoryCache()
         }
 
-        with(bodyCache) {
+        cache[Job::class] = with(bodyCache) {
             call.launchPump(channel = body)
         }
         cache[DoubleReceiveCache::class] = bodyCache
+        call.coroutineContext[Job]?.invokeOnCompletion {
+            cleanup(call)
+        }
 
         return@on bodyCache.reader()
     }
 
-    on(ResponseSent) { call ->
-        (call.receiveCache[DoubleReceiveCache::class] as? DoubleReceiveCache)?.dispose()
-    }
+    on(ResponseSent) { call -> cleanup(call) }
 
     on(ReceiveBodyTransformed) { call, body ->
         if (filters.any { it(call, body) }) return@on body
@@ -94,6 +102,12 @@ public val DoubleReceive: RouteScopedPlugin<DoubleReceiveConfig> = createRouteSc
 
 private val ApplicationCall.receiveCache: ReceiveCache
     get() = attributes.computeIfAbsent(ReceiveCacheKey) { mutableMapOf() }
+
+@Suppress("UNCHECKED_CAST")
+private fun <T : Any> ReceiveCache.retrieve(type: KClass<T>): T? {
+    val entry = this[type] ?: return null
+    return entry as T
+}
 
 private val ReceiveCacheKey = AttributeKey<ReceiveCache>("ReceiveCache")
 

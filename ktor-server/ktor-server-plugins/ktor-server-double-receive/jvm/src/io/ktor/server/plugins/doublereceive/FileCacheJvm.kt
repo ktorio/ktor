@@ -29,7 +29,6 @@ internal actual class FileCache actual constructor(
 
     private val file = File.createTempFile("ktor-double-receive-cache", ".tmp")
     private val state = atomic<State>(initial = State.Saving(done = CompletableDeferred()))
-    private val pump = atomic<Job?>(initial = null)
 
     actual override fun CoroutineScope.launchPump(channel: ByteReadChannel): Job =
         launch(context = Dispatchers.IO, start = CoroutineStart.ATOMIC) {
@@ -58,17 +57,11 @@ internal actual class FileCache actual constructor(
 
                 channel.closedCause?.let { throw it }
                 transitionFromSaving(State.Saved, cause = null)
-            } catch (cause: Throwable) {
+            } catch (cause: Exception) {
                 // Readers get the failure from the cache, so only cancellation is propagated to the caller.
                 fail(cause)
                 if (cause is CancellationException) throw cause
             }
-        }.also { job ->
-            if (state.value is State.Failed) {
-                job.cancel()
-                return@also
-            }
-            pump.value = job
         }
 
     actual override suspend fun reader(): ByteReadChannel {
@@ -91,7 +84,6 @@ internal actual class FileCache actual constructor(
                 is State.Failed -> return
             }
         }
-        pump.value?.cancel()
         file.delete()
     }
 

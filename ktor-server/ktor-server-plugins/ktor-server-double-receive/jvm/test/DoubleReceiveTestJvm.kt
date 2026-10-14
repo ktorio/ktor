@@ -52,23 +52,6 @@ class DoubleReceiveTestJvm {
         }
         body.close()
     }
-
-    @Test
-    fun testFileCacheReadAfterDisposeFails() = runBlocking<Unit> {
-        val body = ByteChannel()
-        val cache = FileCache()
-        val pump = with(cache) { launchPump(channel = body) }
-
-        cache.dispose()
-
-        // The body is never written or closed, so the pump finishes only if disposal stops it
-        withTimeout(5.seconds) {
-            pump.join()
-        }
-        assertFalse(body.isClosedForRead)
-        assertNull(body.closedCause)
-        assertFailsWith<IOException>("File cache disposed") { cache.reader() }
-    }
 }
 
 // Starts the cache the same way the plugin does.
