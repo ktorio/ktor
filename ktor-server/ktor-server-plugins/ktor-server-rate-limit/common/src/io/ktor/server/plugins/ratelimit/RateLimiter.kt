@@ -73,5 +73,13 @@ public interface RateLimiter {
         ): RateLimiter {
             return DefaultRateLimiter(limit, refillPeriod, clock)
         }
+
+        public fun incremental(
+            limit: Int,
+            refillRate: Duration,
+            clock: () -> Long = ::getTimeMillis
+        ): RateLimiter {
+            return IncrementalRateLimiter(limit, refillRate, clock)
+        }
     }
 }

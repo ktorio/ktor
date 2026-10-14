@@ -6,6 +6,7 @@ package io.ktor.server.plugins.ratelimit
 
 import io.ktor.util.date.*
 import kotlinx.atomicfu.*
+import kotlin.math.absoluteValue
 import kotlin.time.*
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -38,4 +39,34 @@ internal class DefaultRateLimiter(
     }
 
     private fun timeToWaitMillis() = refillPeriod.inWholeMilliseconds - (clock() - lastRefillTimeMillis)
+}
+
+internal class IncrementalRateLimiter(
+    private val limit: Int,
+    private val refillRate: Duration,
+    private val clock: () -> Long = ::getTimeMillis,
+): RateLimiter {
+    private val currentTokens = atomic(limit)
+    private var lastRefillTimeMillis = clock()
+
+    override suspend fun tryConsume(tokens: Int): RateLimiter.State {
+        while (true) {
+            val passed = clock() - lastRefillTimeMillis
+            if (currentTokens.value < limit && passed >= refillRate.inWholeMilliseconds) {
+                val restoreTokens = (passed / refillRate.inWholeMilliseconds).toInt()
+                val newTokens = (currentTokens.value + restoreTokens).coerceAtMost(limit)
+                currentTokens.value = newTokens
+                lastRefillTimeMillis = clock()
+            }
+
+            val current = currentTokens.value
+            val new = current - tokens
+
+            if (new < 0) return RateLimiter.State.Exhausted(refillRate * new.absoluteValue)
+            if (currentTokens.compareAndSet(current, new)) {
+                val fullRefillAt = lastRefillTimeMillis + (limit - new) * refillRate.inWholeMilliseconds
+                return RateLimiter.State.Available(new, limit, fullRefillAt)
+            }
+        }
+    }
 }
