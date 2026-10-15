@@ -7,6 +7,7 @@ package io.ktor.network.sockets.tests
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
 import io.ktor.test.dispatcher.*
+import kotlinx.cinterop.*
 import kotlinx.coroutines.*
 import kotlinx.io.*
 import platform.posix.*
@@ -14,6 +15,38 @@ import kotlin.test.*
 import kotlin.time.Duration.Companion.minutes
 
 class TcpSocketTestNix {
+
+    @Test
+    fun testAcceptedIpv4SocketDisablesNagle() = testAcceptedTcpSocketDisablesNagle("127.0.0.1")
+
+    @Test
+    fun testAcceptedIpv6SocketDisablesNagle() = testAcceptedTcpSocketDisablesNagle("::1")
+
+    @OptIn(ExperimentalForeignApi::class)
+    private fun testAcceptedTcpSocketDisablesNagle(host: String) = testSockets { selector ->
+        val tcp = aSocket(selector).tcp()
+        tcp.bind(host, port = 0).use { server ->
+            tcp.connect(host, port = server.port).use {
+                server.accept().use { connection ->
+                    memScoped {
+                        val value = alloc<IntVar>()
+                        val size = alloc<UIntVar> { this.value = sizeOf<IntVar>().convert() }
+                        assertEquals(
+                            0,
+                            getsockopt(
+                                (connection as TCPSocketNative).descriptor,
+                                IPPROTO_TCP,
+                                TCP_NODELAY,
+                                value.ptr,
+                                size.ptr
+                            )
+                        )
+                        assertEquals(1, value.value)
+                    }
+                }
+            }
+        }
+    }
 
     @Test
     fun testDescriptorClose() = testSuspend {
