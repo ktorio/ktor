@@ -13,19 +13,45 @@ import kotlin.time.Duration
 import kotlin.time.TimeMark
 import kotlin.time.TimeSource
 
+/**
+ * A single attempt of one test case run by [runTestWithData].
+ *
+ * @property data The test case's input data, as supplied via [runTestWithData]'s `testCases`.
+ * @property retry Which attempt this is: `0` for the first attempt, incrementing on each retry.
+ */
 data class TestCase<T>(val data: T, val retry: Int)
 
+/**
+ * A [TestCase] attempt that failed, run by [runTestWithData].
+ *
+ * @property testCase The test case and retry number this result belongs to.
+ * @property cause The throwable that failed the attempt.
+ * @property duration How long the attempt took before it failed.
+ */
 data class TestFailure<T>(
     override val testCase: TestCase<T>,
     val cause: Throwable,
     override val duration: Duration,
 ) : TestExecutionResult<T>
 
+/**
+ * A [TestCase] attempt that completed without throwing, run by [runTestWithData].
+ *
+ * @property testCase The test case and retry number this result belongs to.
+ * @property duration How long the attempt took to complete.
+ */
 data class TestSuccess<T>(
     override val testCase: TestCase<T>,
     override val duration: Duration,
 ) : TestExecutionResult<T>
 
+/**
+ * The outcome of a single [TestCase] attempt run by [runTestWithData]: either a [TestSuccess] or a
+ * [TestFailure].
+ *
+ * @property testCase The test case and retry number this result belongs to.
+ * @property duration How long the attempt took.
+ */
 sealed interface TestExecutionResult<T> {
     val testCase: TestCase<T>
     val duration: Duration
