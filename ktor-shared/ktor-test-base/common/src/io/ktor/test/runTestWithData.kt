@@ -4,6 +4,7 @@
 
 package io.ktor.test
 
+import io.ktor.utils.io.InternalAPI
 import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.TestScope
 import kotlin.coroutines.CoroutineContext
@@ -12,37 +13,19 @@ import kotlin.time.Duration
 import kotlin.time.TimeMark
 import kotlin.time.TimeSource
 
-/**
- * Represents a test case with associated data and retry attempt information.
- *
- * @property data The input data for the test case.
- * @property retry The current retry attempt number for this test case. `0` means the initial test run before retries.
- */
 data class TestCase<T>(val data: T, val retry: Int)
 
-/**
- * Represents a failed test execution with the [cause] of failure.
- */
 data class TestFailure<T>(
     override val testCase: TestCase<T>,
     val cause: Throwable,
     override val duration: Duration,
 ) : TestExecutionResult<T>
 
-/**
- * Represents a successful test execution.
- */
 data class TestSuccess<T>(
     override val testCase: TestCase<T>,
     override val duration: Duration,
 ) : TestExecutionResult<T>
 
-/**
- * The result of a test execution. Can be [TestFailure] or [TestSuccess].
- *
- * @property testCase The test case associated with this execution.
- * @property duration The duration of the test execution.
- */
 sealed interface TestExecutionResult<T> {
     val testCase: TestCase<T>
     val duration: Duration
@@ -51,25 +34,6 @@ sealed interface TestExecutionResult<T> {
 /**
  * Executes multiple test cases with retry capabilities and timeout control.
  * Timeout is independent for each attempt in each test case.
- *
- * Example usage:
- * ```
- * @Test
- * fun dataDrivenTest() = runTestWithData(
- *     testCases = listOf("test1", "test2"),
- *     timeout = 10.seconds,
- *     retries = 2,
- *     afterEach = { (data, retry), error ->
- *         println("Test case $data attempt $retry ${if (error != null) "failed" else "succeeded"}")
- *     },
- *     afterAll = { println("All tests completed") },
- *     handleFailures = { failures ->
- *         failures.forEach { (cause, data) -> println("Test $data failed: $cause") }
- *     },
- * ) { (data, retry) ->
- *     // test implementation
- * }
- * ```
  *
  * @param testCases Data to be used in tests. Each element represents a separate test case.
  * @param context Optional coroutine context for test execution. Defaults to [EmptyCoroutineContext].
@@ -87,6 +51,7 @@ sealed interface TestExecutionResult<T> {
  *
  * @return [TestResult] representing the completion of all test cases.
  */
+@OptIn(InternalAPI::class)
 fun <T> runTestWithData(
     testCases: Iterable<T>,
     context: CoroutineContext = EmptyCoroutineContext,
@@ -111,8 +76,6 @@ fun <T> runTestWithData(
                 recover = { cause ->
                     val failure = TestFailure(testCase, cause, start?.elapsedNow() ?: Duration.ZERO)
                     afterEach(failure)
-                    // Record and stop (as on the last retry) to let the failure surface.
-                    // Not rethrowing is what ends the retry loop; handleFailures reports the failure.
                     if (retry == retries || guard.hasFailure) failures += failure else throw cause
                 }
             ) {

@@ -4,20 +4,15 @@
 
 package io.ktor.test
 
+import io.ktor.utils.io.InternalAPI
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
 import kotlin.test.assertSame
 
-/**
- * Covers `retryTest`'s loop control on the targets whose actual runs the attempts synchronously.
- *
- * The web actual chains promises instead, so a test lambda that throws synchronously — the only way
- * to provoke a failure without a real `runTest` — never reaches its `catch` links and would prove
- * nothing there. Its behavior is exercised through `BaseTest` in the server test suites.
- */
 class RetryTestTest {
 
+    @OptIn(InternalAPI::class)
     @Test
     fun `stops on the attempt that recorded a deterministic failure`() {
         val guard = DeterministicFailureGuard()
@@ -32,8 +27,6 @@ class RetryTestTest {
             }
         }
 
-        // Without the predicate the loop would run all four attempts to reach a verdict the first
-        // one already produced.
         assertEquals(1, attempts, "A deterministic failure should not be attempted again")
         assertSame(cause, thrown, "The recorded failure should surface as is")
     }

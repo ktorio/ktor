@@ -20,8 +20,6 @@ actual inline fun retryTest(
     crossinline test: (Int) -> TestResult,
 ): TestResult {
     check(retries >= 0) { "Retries count shouldn't be negative but it is $retries" }
-    // Rethrowing rejects the promise, which the remaining `catch` links pass along untouched — the
-    // web equivalent of breaking out of the loop.
     return (1..retries).fold(test(0)) { acc, retry ->
         acc.catch { cause -> if (shouldRetry(cause)) test(retry) else throw cause }
     }

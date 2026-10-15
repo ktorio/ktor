@@ -7,6 +7,7 @@ package io.ktor.server.test.base
 import io.ktor.test.*
 import io.ktor.test.dispatcher.*
 import io.ktor.test.junit.*
+import io.ktor.utils.io.InternalAPI
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.debug.junit5.CoroutinesTimeout
@@ -45,6 +46,7 @@ actual abstract class BaseTest actual constructor() {
         errorCollector += error
     }
 
+    @OptIn(InternalAPI::class)
     actual fun runTest(
         timeout: Duration,
         retries: Int,

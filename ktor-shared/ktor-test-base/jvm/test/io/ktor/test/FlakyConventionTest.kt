@@ -14,8 +14,11 @@ import com.lemonappdev.konsist.api.verify.assertTrue
 import io.ktor.test.constants.FLAKY_NAME_TOKEN
 import kotlin.test.Test
 
-/** Simple name of [Flaky], matched textually — see [isFlaky]. */
 private const val FLAKY_ANNOTATION = "Flaky"
+
+private const val TEST_ANNOTATION = "Test"
+
+private val FLAKY_TICKET_PATTERN = Regex("""[A-Z]+-\d+""")
 
 /**
  * Enforces that the two flaky-test selectors agree wherever both apply.
@@ -34,7 +37,7 @@ class FlakyConventionTest {
 
     @Test
     fun `Flaky annotation and name token agree outside jvm-only test sources`() {
-        val functions = nonJvmTestFunctions()
+        val functions = nonJvmTestFunctions().filter { it.isTest() }
 
         functions
             .filter { it.isFlaky() }
@@ -51,13 +54,25 @@ class FlakyConventionTest {
             ) { it.isFlaky() }
     }
 
-    /**
-     * Test functions from every test source set except the JVM-only one.
-     *
-     * The repository uses a flattened, platform-centric source layout (`<module>/<platform>/test`),
-     * so source sets are selected by path rather than by Konsist's `scopeFromSourceSet`, which
-     * expects the conventional `src/<name>` directories.
-     */
+    @Test
+    fun `Flaky ticket references a tracked issue`() {
+        val flakyUsages = Konsist.scopeFromProject()
+            .files
+            .flatMap { file ->
+                file.classes(includeNested = true, includeLocal = true) +
+                    file.functions(includeNested = true, includeLocal = true)
+            }
+            .flatMap { it.annotations }
+            .filter { it.name == FLAKY_ANNOTATION }
+
+        flakyUsages.assertTrue(
+            additionalMessage = "@Flaky's ticket argument must be a YouTrack issue id like 'KTOR-1234'.",
+        ) { annotation ->
+            val ticket = annotation.arguments.firstOrNull()?.value ?: return@assertTrue false
+            FLAKY_TICKET_PATTERN.matches(ticket)
+        }
+    }
+
     private fun nonJvmTestFunctions(): List<KoFunctionDeclaration> = Konsist
         .scopeFromProject()
         .files
@@ -65,19 +80,10 @@ class FlakyConventionTest {
         .flatMap { it.functions(includeNested = true) }
 }
 
-/**
- * Whether the function, or the class (or nested class) it's declared in, carries [Flaky].
- *
- * Matched by simple name: Konsist's `hasAnnotationOf` resolves the annotation through the file's
- * imports, so it misses uses that need no import — such as the tests in this module, which share
- * [Flaky]'s package.
- */
 private fun KoFunctionDeclaration.isFlaky(): Boolean = hasFlakyAnnotationInChain()
 
-/**
- * Stops at the containing file rather than checking it: [Flaky] can't target a file (its `@Target`
- * is `CLASS`/`FUNCTION` only).
- */
+private fun KoFunctionDeclaration.isTest(): Boolean = annotations.any { it.name == TEST_ANNOTATION }
+
 private tailrec fun KoBaseDeclaration.hasFlakyAnnotationInChain(): Boolean {
     if (this is KoFileDeclaration) return false
     if (this is KoAnnotationProvider && annotations.any { it.name == FLAKY_ANNOTATION }) return true

@@ -5,6 +5,7 @@
 package io.ktor.server.test.base
 
 import io.ktor.test.*
+import io.ktor.utils.io.InternalAPI
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.test.TestResult
 import kotlin.time.Duration
@@ -34,6 +35,7 @@ expect abstract class BaseTest() {
  * `runTest`'s own timeout error is an `AssertionError` too, but stays retryable because it is thrown
  * around [block] rather than by it, so the guard never sees it.
  */
+@OptIn(InternalAPI::class)
 internal fun BaseTest.runTestAttempts(
     retries: Int,
     runAttempt: (block: suspend CoroutineScope.() -> Unit) -> TestResult,

@@ -19,18 +19,7 @@ internal const val FLAKY_TEST_TASK = "flakyTest"
 internal fun Project.flakyTestsMode(): FlakyTestsMode =
     FlakyTestsMode.of(providers.gradleProperty(FLAKY_MODE_PROPERTY).orNull)
 
-/**
- * Test tasks that select `@Flaky` by annotation and must therefore *not* also get the name filter.
- *
- * Exactly the tasks `JvmConfig` gives [FLAKY_MODE_PROPERTY] and the JUnit autodetection that
- * registers `FlakyTestCondition`. Stacking both selectors on them would *intersect* rather than
- * agree: [FlakyTestsMode.ONLY] would run only the tests that are both annotated **and** named
- * `*_flaky*`, silently skipping every `@Flaky` test that carries no name token.
- *
- * Matching by name rather than by task type matters: Android host tests are `Test` tasks too, but
- * they never receive the condition, so exempting them by type would leave them with no selector at
- * all and run quarantined tests in the default Android suite.
- */
+/** Test tasks that select `@Flaky` by annotation and must therefore *not* also get the name filter. */
 internal val ANNOTATION_DRIVEN_TEST_TASKS = setOf("jvmTest", "stressTest", FLAKY_TEST_TASK)
 
 /**
