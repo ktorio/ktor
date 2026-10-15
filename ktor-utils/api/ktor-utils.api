@@ -709,10 +709,13 @@ public final class io/ktor/util/date/DateJvmKt {
 }
 
 public final class io/ktor/util/date/DateKt {
+	public static final fun GMTDate (Lkotlin/time/Instant;)Lio/ktor/util/date/GMTDate;
 	public static final fun minus (Lio/ktor/util/date/GMTDate;J)Lio/ktor/util/date/GMTDate;
 	public static final fun minus-HG0u8IE (Lio/ktor/util/date/GMTDate;J)Lio/ktor/util/date/GMTDate;
 	public static final fun plus (Lio/ktor/util/date/GMTDate;J)Lio/ktor/util/date/GMTDate;
 	public static final fun plus-HG0u8IE (Lio/ktor/util/date/GMTDate;J)Lio/ktor/util/date/GMTDate;
+	public static final fun toGMTDate (Lkotlin/time/Instant;)Lio/ktor/util/date/GMTDate;
+	public static final fun toInstant (Lio/ktor/util/date/GMTDate;)Lkotlin/time/Instant;
 	public static final fun truncateToSeconds (Lio/ktor/util/date/GMTDate;)Lio/ktor/util/date/GMTDate;
 }
 
