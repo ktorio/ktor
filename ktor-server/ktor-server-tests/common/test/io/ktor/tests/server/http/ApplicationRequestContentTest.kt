@@ -5,6 +5,7 @@
 package io.ktor.tests.server.http
 
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
@@ -18,9 +19,12 @@ import io.ktor.server.testing.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
+import kotlinx.coroutines.*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertIsNot
+import kotlin.test.assertTrue
 
 class ApplicationRequestContentTest {
     @Test
@@ -234,6 +238,69 @@ class ApplicationRequestContentTest {
     }
 
     @Test
+    fun testRecursiveDoubleReceiveFailsWithoutReenteringPipeline() = testApplication {
+        install(DoubleReceive)
+        var interceptions = 0
+
+        application {
+            receivePipeline.intercept(ApplicationReceivePipeline.Before) {
+                interceptions++
+                call.receiveText()
+            }
+        }
+
+        routing {
+            post("/") {
+                assertReceiveInProgressFailure { call.receiveText() }
+                call.respondText("receive rejected")
+            }
+        }
+
+        val response = client.post("/") {
+            setBody("bodyContent")
+        }
+        assertEquals("receive rejected", response.bodyAsText())
+        assertEquals(1, interceptions)
+    }
+
+    @Test
+    fun testConcurrentDoubleReceiveFailsWithoutEnteringPipeline() = testApplication {
+        install(DoubleReceive)
+        val firstReceiveEntered = CompletableDeferred<Unit>()
+        val releaseFirstReceive = CompletableDeferred<Unit>()
+        var interceptions = 0
+
+        application {
+            receivePipeline.intercept(ApplicationReceivePipeline.Before) {
+                interceptions++
+                firstReceiveEntered.complete(Unit)
+                releaseFirstReceive.await()
+            }
+        }
+
+        routing {
+            post("/") {
+                coroutineScope {
+                    val firstReceive = async { call.receiveText() }
+                    firstReceiveEntered.await()
+                    try {
+                        assertReceiveInProgressFailure { call.receive<ByteArray>() }
+                    } finally {
+                        releaseFirstReceive.complete(Unit)
+                    }
+                    call.respondText(firstReceive.await())
+                }
+            }
+        }
+
+        val response = client.post("/") {
+            setBody("bodyContent")
+        }
+        assertEquals("bodyContent", response.bodyAsText())
+        assertEquals(1, interceptions)
+    }
+
+    @Test
     fun testDoubleReceiveAfterTransformationFailed() = testApplication {
         install(DoubleReceive)
 
@@ -269,3 +336,9 @@ data class IntList(val values: List<Int>) {
 }
 
 private class MySpecialException : Exception("Expected exception")
+
+private suspend fun assertReceiveInProgressFailure(block: suspend () -> Unit) {
+    val cause = assertFailsWith<IllegalStateException> { block() }
+    assertIsNot<RequestAlreadyConsumedException>(cause)
+    assertTrue(cause.message!!.startsWith("The request body is already being received for this call."))
+}
