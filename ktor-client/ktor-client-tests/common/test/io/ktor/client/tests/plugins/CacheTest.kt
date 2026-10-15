@@ -210,7 +210,6 @@ class CacheTest : ClientLoader() {
                 client,
                 Url("$TEST_SERVER/cache/expires"),
                 expiresOffset = 2000.milliseconds,
-                expireDelay = 2500.milliseconds,
             )
         }
     }
