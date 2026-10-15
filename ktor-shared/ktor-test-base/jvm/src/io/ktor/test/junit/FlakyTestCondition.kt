@@ -27,10 +27,6 @@ import org.junit.platform.commons.support.AnnotationSupport
  */
 class FlakyTestCondition : ExecutionCondition {
 
-    /**
-     * Read once: the property is fixed for the lifetime of the test JVM, and the condition is
-     * evaluated for every test in the module.
-     */
     private val mode = FlakyTestsMode.of(System.getProperty(FLAKY_MODE_PROPERTY))
 
     override fun evaluateExecutionCondition(context: ExtensionContext): ConditionEvaluationResult {
@@ -55,15 +51,15 @@ class FlakyTestCondition : ExecutionCondition {
         }
     }
 
-    /**
-     * Finds [Flaky] on the current test method, or on its class or any of its base classes.
-     *
-     * The superclass lookup works because [Flaky] is meta-annotated `@JvmInherited`, which expands
-     * to `java.lang.annotation.Inherited` here: JUnit walks the superclass chain only for
-     * annotations carrying it. Without that, a test inheriting from an annotated base class — the
-     * shared test suite pattern used across Ktor — would silently keep running.
-     */
-    private fun ExtensionContext.findFlaky(): Flaky? =
-        AnnotationSupport.findAnnotation(element, Flaky::class.java).orElse(null)
-            ?: testClass.orElse(null)?.let { AnnotationSupport.findAnnotation(it, Flaky::class.java).orElse(null) }
+    private fun ExtensionContext.findFlaky(): Flaky? {
+        AnnotationSupport.findAnnotation(element, Flaky::class.java).orElse(null)?.let { return it }
+
+        var enclosing = testClass.orElse(null)
+        while (enclosing != null) {
+            AnnotationSupport.findAnnotation(enclosing, Flaky::class.java).orElse(null)?.let { return it }
+            enclosing = enclosing.enclosingClass
+        }
+
+        return null
+    }
 }

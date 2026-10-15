@@ -4,6 +4,7 @@
 
 package io.ktor.test
 
+import io.ktor.utils.io.InternalAPI
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -67,12 +68,11 @@ class EventuallyTest {
             assertEventually("never", timeout = 100.milliseconds, interval = 5.seconds) { false }
         }
 
-        // Without clamping the poll to the time remaining, the first delay would run the full 5s
-        // interval and blow through the 100ms upper bound this helper documents.
         val elapsed = start.elapsedNow()
         assertTrue(elapsed < 1.seconds, "Expected the wait to stop near the timeout, but $elapsed elapsed")
     }
 
+    @OptIn(InternalAPI::class)
     @Test
     fun `timing out stays retryable rather than being classified deterministic`() = runTest {
         val guard = DeterministicFailureGuard()
@@ -82,8 +82,6 @@ class EventuallyTest {
         }
         guard.record(error)
 
-        // Waiting for a condition and running out of time is load-dependent, so the retry loop must
-        // get another attempt. An AssertionError here would make the guard replay it immediately.
         assertFalse(guard.hasFailure, "An assertEventually timeout should not stop the retry loop")
     }
 
@@ -95,8 +93,6 @@ class EventuallyTest {
             assertEventually("never", timeout = 100.milliseconds, interval = 20.milliseconds) { false }
         }
 
-        // Inside `runTest` a virtual `delay` would return instantly, making this a busy loop that
-        // still eventually fails. Asserting real elapsed time is what distinguishes the two.
         val elapsed = start.elapsedNow()
         assertContains(error.message.orEmpty(), "never")
         assertTrue(elapsed >= 100.milliseconds, "Expected a real wait, but only $elapsed elapsed")

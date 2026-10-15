@@ -37,9 +37,6 @@ suspend fun assertEventually(
     condition: () -> Boolean,
 ) {
     if (condition()) return
-    // Real dispatcher for both the timeout's own timer and the poll delay below: otherwise, under
-    // `runTest`, both would run against the virtual clock, which the test dispatcher can advance
-    // instantly instead of actually waiting.
     withContext(Dispatchers.Default + CoroutineName(description)) {
         withTimeout(timeout) {
             while (!condition()) {
