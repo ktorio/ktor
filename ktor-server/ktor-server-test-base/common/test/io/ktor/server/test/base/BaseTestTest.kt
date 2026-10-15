@@ -15,7 +15,7 @@ class BaseTestTest : BaseTest() {
     fun `runTest - retry test by default on non-JVM platform`(): TestResult {
         var retryCount = 0
         return runTest {
-            if (!PlatformUtils.IS_JVM && retryCount++ < 1) fail("This test should be retried")
+            if (!PlatformUtils.IS_JVM && retryCount++ < 1) transientFailure("This test should be retried")
         }
     }
 
@@ -31,7 +31,7 @@ class BaseTestTest : BaseTest() {
     fun `runTest - more than one retry`(): TestResult {
         var retryCount = 0
         return runTest(retries = 3) {
-            if (retryCount++ < 3) fail("This test should be retried")
+            if (retryCount++ < 3) transientFailure("This test should be retried")
         }
     }
 
@@ -43,3 +43,6 @@ class BaseTestTest : BaseTest() {
         }
     }
 }
+
+/** Simulates a transient (retryable) failure, as opposed to a deterministic assertion failure. */
+private fun transientFailure(message: String): Nothing = throw IllegalStateException(message)

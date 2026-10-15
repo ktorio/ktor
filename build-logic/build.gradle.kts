@@ -22,6 +22,12 @@ dependencies {
     implementation(files(libs.javaClass.superclass.protectionDomain.codeSource.location))
 }
 
+// We want to share test constants logic between tests and build-logic.
+// Adding that module as a project dependency would be circular as it uses plugins from build-logic.
+sourceSets.main {
+    kotlin.srcDir("../ktor-shared/ktor-test-constants/common/src")
+}
+
 // Should be synced with gradle/gradle-daemon-jvm.properties
 kotlin {
     jvmToolchain(21)
