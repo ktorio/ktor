@@ -86,6 +86,10 @@ public val HttpRedirect: ClientPlugin<HttpRedirectConfig> = createClientPlugin(
                 takeFromWithExecutionContext(requestBuilder)
                 url.parameters.clear()
                 url.takeFrom(location)
+                // A reference without a path keeps the request path as is (RFC 3986, section 5.2.2).
+                if (location.substringBefore('#').substringBefore('?').isNotEmpty()) {
+                    url.encodedPathSegments = url.encodedPathSegments.removeDotSegments()
+                }
 
                 // Disallow redirect with a security downgrade.
                 if (!allowHttpsDowngrade && previousProtocol.isSecure() && !url.protocol.isSecure()) {
@@ -124,4 +128,29 @@ private fun HttpStatusCode.isRedirect(): Boolean = when (value) {
     HttpStatusCode.SeeOther.value -> true
 
     else -> false
+}
+
+/**
+ * Removes `.` and `..` segments from the path of a resolved redirect target (RFC 3986, section 5.2.4).
+ * The path is absolute even when it was built without a leading empty segment, so one is added for the root.
+ * The root is kept, so `..` cannot go above it.
+ */
+private fun List<String>.removeDotSegments(): List<String> {
+    if (none { it == "." || it == ".." }) return this
+    val segments = if (firstOrNull() == "") this else listOf("") + this
+    val output = ArrayList<String>(segments.size)
+    segments.forEachIndexed { index, segment ->
+        val isLast = index == segments.lastIndex
+        when (segment) {
+            "." -> if (isLast) output.add("")
+
+            ".." -> {
+                if (output.size > 1) output.removeAt(output.lastIndex)
+                if (isLast) output.add("")
+            }
+
+            else -> output.add(segment)
+        }
+    }
+    return output
 }
