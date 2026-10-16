@@ -53,4 +53,41 @@ class DefaultWebSocketTestJvm {
         server2client.cancel()
         parent.cancel()
     }
+
+    @OptIn(InternalAPI::class)
+    @Test
+    fun testMaxFrameSizeCheckDisabled(): Unit = runTest {
+        val parent = Job()
+        val client2server = ByteChannel()
+        val server2client = ByteChannel()
+
+        val server = DefaultWebSocketSession(
+            session = object : WebSocketSession by RawWebSocket(
+                input = client2server,
+                output = server2client,
+                coroutineContext = parent
+            ) {
+                // this should disable max frame size check in DefaultWebSocketSession
+                override fun checksMaxMessageSize(): Boolean = true
+            },
+            pingIntervalMillis = PINGER_DISABLED,
+            timeoutMillis = 1_000L,
+            channelsConfig = WebSocketChannelsConfig.UNLIMITED,
+        )
+        server.maxFrameSize = 10
+        server.start()
+
+        val client = RawWebSocket(input = server2client, output = client2server, coroutineContext = parent)
+        // Each frame fits into the limit, only the reassembled message exceeds it
+        client.send(Frame.Binary(fin = false, ByteArray(6)))
+        client.send(Frame.Binary(fin = true, ByteArray(6)))
+
+        assertEquals(12, server.incoming.receive().data.size)
+
+        server.cancel()
+        client.cancel()
+        client2server.cancel()
+        server2client.cancel()
+        parent.cancel()
+    }
 }

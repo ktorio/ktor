@@ -4,6 +4,7 @@
 
 package io.ktor.websocket
 
+import io.ktor.utils.io.InternalAPI
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.ReceiveChannel
@@ -36,6 +37,17 @@ public interface WebSocketSession : CoroutineScope {
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.WebSocketSession.maxFrameSize)
      */
     public var maxFrameSize: Long
+
+    /**
+     *  If this method returns `true`, the session checks that total max message size is below [maxFrameSize].
+     *
+     *  Wrapping the session into [DefaultWebSocketSession] will add additional checks on the message size
+     *  only if this method returns `false`.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.WebSocketSession.checksMaxMessageSize)
+     */
+    @InternalAPI
+    public fun checksMaxMessageSize(): Boolean = false
 
     /**
      * An incoming frames channel.

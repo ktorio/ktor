@@ -95,6 +95,7 @@ abstract interface io.ktor.websocket/WebSocketSession : kotlinx.coroutines/Corou
 
     abstract fun terminate() // io.ktor.websocket/WebSocketSession.terminate|terminate(){}[0]
     abstract suspend fun flush() // io.ktor.websocket/WebSocketSession.flush|flush(){}[0]
+    open fun checksMaxMessageSize(): kotlin/Boolean // io.ktor.websocket/WebSocketSession.checksMaxMessageSize|checksMaxMessageSize(){}[0]
     open suspend fun send(io.ktor.websocket/Frame) // io.ktor.websocket/WebSocketSession.send|send(io.ktor.websocket.Frame){}[0]
 }
 

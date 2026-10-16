@@ -1041,11 +1041,13 @@ public abstract interface class io/ktor/client/plugins/websocket/ClientWebSocket
 }
 
 public final class io/ktor/client/plugins/websocket/ClientWebSocketSession$DefaultImpls {
+	public static fun checksMaxMessageSize (Lio/ktor/client/plugins/websocket/ClientWebSocketSession;)Z
 	public static fun send (Lio/ktor/client/plugins/websocket/ClientWebSocketSession;Lio/ktor/websocket/Frame;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/client/plugins/websocket/DefaultClientWebSocketSession : io/ktor/client/plugins/websocket/ClientWebSocketSession, io/ktor/websocket/DefaultWebSocketSession {
 	public fun <init> (Lio/ktor/client/call/HttpClientCall;Lio/ktor/websocket/DefaultWebSocketSession;)V
+	public fun checksMaxMessageSize ()Z
 	public fun flush (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getCall ()Lio/ktor/client/call/HttpClientCall;
 	public fun getCloseReason ()Lkotlinx/coroutines/Deferred;

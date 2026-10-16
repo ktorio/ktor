@@ -57,6 +57,8 @@ internal class DarwinWebsocketSession(
             task.setMaximumMessageSize(value.convert())
         }
 
+    override fun checksMaxMessageSize(): Boolean = true
+
     override val incoming: ReceiveChannel<Frame>
         get() = _incoming
 

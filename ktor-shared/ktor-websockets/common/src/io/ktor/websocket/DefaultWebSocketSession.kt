@@ -93,7 +93,7 @@ public fun DefaultWebSocketSession(
         pingIntervalMillis,
         timeoutMillis,
         incomingFramesConfig = ChannelConfig.UNLIMITED,
-        outgoingFramesConfig = OUTGOING_CHANNEL_CONFIG ?: ChannelConfig.UNLIMITED
+        outgoingFramesConfig = OUTGOING_CHANNEL_CONFIG ?: ChannelConfig.UNLIMITED,
     )
 }
 
@@ -178,6 +178,8 @@ internal class DefaultWebSocketSessionImpl(
         set(value) {
             raw.maxFrameSize = value
         }
+
+    override fun checksMaxMessageSize(): Boolean = true
 
     override var pingIntervalMillis: Long = pingIntervalMillis
         set(newValue) {
@@ -264,7 +266,8 @@ internal class DefaultWebSocketSessionImpl(
                     is Frame.Ping -> ponger.send(frame)
 
                     else -> {
-                        checkMaxFrameSize(frameBody, frame)
+                        // check max message size only if the raw session is not checking it
+                        if (!raw.checksMaxMessageSize()) checkMaxFrameSize(frameBody, frame)
 
                         if (!frame.fin) {
                             if (firstFrame == null) {
