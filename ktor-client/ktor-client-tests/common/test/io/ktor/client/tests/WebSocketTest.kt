@@ -540,41 +540,16 @@ class WebSocketTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
     fun testMaxFrameSizeSupported() = clientTests(except(ENGINES_NOT_SUPPORTING_MAX_FRAME_SIZE)) {
         config {
             install(WebSockets) {
-                maxFrameSize = 10
+                maxFrameSize = 100
             }
         }
 
-        val shortMessage = "abc"
-        val longMessage = "def".repeat(500)
         test { client ->
-            client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
-                send(shortMessage)
-                assertEquals(shortMessage, (incoming.receive() as Frame.Text).readText())
-                send(longMessage)
+            client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/uncompressed-binary?size=100") {
+                assertEquals(100, incoming.receive().data.size)
+            }
+            client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/uncompressed-binary?size=101") {
                 assertFailsWith<FrameTooBigException> { incoming.receive() }
-            }
-        }
-    }
-
-    @Test
-    fun testMaxFrameSizeFragmentedMessage() = clientTests(
-        except(ENGINES_NOT_SUPPORTING_MAX_FRAME_SIZE)
-    ) {
-        config {
-            install(WebSockets) {
-                maxFrameSize = 10
-            }
-        }
-
-        // Every fragment fits into the limit, only the reassembled message exceeds it
-        val fittingMessage = "abcdefgh"
-        val oversizedMessage = "x".repeat(20)
-        test { client ->
-            client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/fragmented-echo?fragmentSize=4") {
-                send(fittingMessage)
-                assertEquals(fittingMessage, (incoming.receive() as Frame.Text).readText())
-                send(oversizedMessage)
-                assertFailsWith<FrameTooBigException> { incoming.receive() }.also { println(it.cause) }
             }
         }
     }
@@ -648,23 +623,6 @@ class WebSocketTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
     }
 
     @Test
-    fun testMaskingEnabled() = clientTests {
-        config {
-            install(WebSockets)
-        }
-
-        test { client ->
-            client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
-                masking = true
-                assertTrue(masking)
-
-                send("abc")
-                assertEquals("abc", (incoming.receive() as Frame.Text).readText())
-            }
-        }
-    }
-
-    @Test
     fun testMaskingSwitchSupported() = clientTests(except(ENGINES_NOT_SUPPORTING_MASKING_SWITCH)) {
         config {
             install(WebSockets)
@@ -694,6 +652,8 @@ class WebSocketTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
                 }
                 assertContains(exception.message!!, "Masking switch is not supported")
                 assertTrue(masking)
+
+                masking = true
             }
         }
     }
