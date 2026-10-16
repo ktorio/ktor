@@ -22,7 +22,7 @@ public actual fun GMTDate(timestamp: Long?): GMTDate = memScoped {
         timeHolder.value = (millis / 1000).convert()
         millis
     } else {
-        timeHolder.value = (timestamp / 1000).convert()
+        timeHolder.value = timestamp.floorDiv(1000L).convert()
         timestamp
     }
 
