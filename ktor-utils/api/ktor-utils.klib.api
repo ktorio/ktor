@@ -999,7 +999,6 @@ final fun <#A: kotlin/Any?> (io.ktor.util.collections/SerializedMapValue<#A>).io
 final fun <#A: kotlin/Any?> (kotlin.collections/Set<#A>).io.ktor.util/unmodifiable(): kotlin.collections/Set<#A> // io.ktor.util/unmodifiable|unmodifiable@kotlin.collections.Set<0:0>(){0§<kotlin.Any?>}[0]
 final fun <#A: kotlin/Any?> io.ktor.util.collections/sharedList(): kotlin.collections/MutableList<#A> // io.ktor.util.collections/sharedList|sharedList(){0§<kotlin.Any?>}[0]
 final fun <#A: kotlin/Any?> io.ktor.util.collections/sharedListOf(kotlin/Array<out #A>...): kotlin.collections/MutableList<#A> // io.ktor.util.collections/sharedListOf|sharedListOf(kotlin.Array<out|0:0>...){0§<kotlin.Any?>}[0]
-final fun io.ktor.util.date/GMTDate(kotlin.time/Instant): io.ktor.util.date/GMTDate // io.ktor.util.date/GMTDate|GMTDate(kotlin.time.Instant){}[0]
 final fun io.ktor.util.date/GMTDate(kotlin/Int, kotlin/Int, kotlin/Int, kotlin/Int, io.ktor.util.date/Month, kotlin/Int): io.ktor.util.date/GMTDate // io.ktor.util.date/GMTDate|GMTDate(kotlin.Int;kotlin.Int;kotlin.Int;kotlin.Int;io.ktor.util.date.Month;kotlin.Int){}[0]
 final fun io.ktor.util.date/GMTDate(kotlin/Long? = ...): io.ktor.util.date/GMTDate // io.ktor.util.date/GMTDate|GMTDate(kotlin.Long?){}[0]
 final fun io.ktor.util.date/getTimeMillis(): kotlin/Long // io.ktor.util.date/getTimeMillis|getTimeMillis(){}[0]

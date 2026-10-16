@@ -138,24 +138,13 @@ public data class GMTDate(
 public expect fun GMTDate(timestamp: Long? = null): GMTDate
 
 /**
- * Create new gmt date from the [instant].
- * Sub-millisecond precision is discarded.
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.date.GMTDate)
- *
- * @param instant the point in time to convert.
- */
-@OptIn(ExperimentalTime::class)
-public fun GMTDate(instant: Instant): GMTDate = GMTDate(instant.toEpochMilliseconds())
-
-/**
  * Converts this instant to a [GMTDate].
  * Sub-millisecond precision is discarded.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.date.toGMTDate)
  */
 @OptIn(ExperimentalTime::class)
-public fun Instant.toGMTDate(): GMTDate = GMTDate(this)
+public fun Instant.toGMTDate(): GMTDate = GMTDate(toEpochMilliseconds())
 
 /**
  * Converts this date to an [Instant] with millisecond precision.
