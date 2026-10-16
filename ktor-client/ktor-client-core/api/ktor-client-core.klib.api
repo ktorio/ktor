@@ -641,6 +641,7 @@ final class io.ktor.client.plugins.websocket/DefaultClientWebSocketSession : io.
         final fun <get-timeoutMillis>(): kotlin/Long // io.ktor.client.plugins.websocket/DefaultClientWebSocketSession.timeoutMillis.<get-timeoutMillis>|<get-timeoutMillis>(){}[0]
         final fun <set-timeoutMillis>(kotlin/Long) // io.ktor.client.plugins.websocket/DefaultClientWebSocketSession.timeoutMillis.<set-timeoutMillis>|<set-timeoutMillis>(kotlin.Long){}[0]
 
+    final fun checksMaxMessageSize(): kotlin/Boolean // io.ktor.client.plugins.websocket/DefaultClientWebSocketSession.checksMaxMessageSize|checksMaxMessageSize(){}[0]
     final fun start(kotlin.collections/List<io.ktor.websocket/WebSocketExtension<*>>) // io.ktor.client.plugins.websocket/DefaultClientWebSocketSession.start|start(kotlin.collections.List<io.ktor.websocket.WebSocketExtension<*>>){}[0]
     final fun terminate() // io.ktor.client.plugins.websocket/DefaultClientWebSocketSession.terminate|terminate(){}[0]
     final suspend fun flush() // io.ktor.client.plugins.websocket/DefaultClientWebSocketSession.flush|flush(){}[0]
