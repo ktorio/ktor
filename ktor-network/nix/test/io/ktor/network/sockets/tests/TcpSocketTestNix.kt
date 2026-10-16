@@ -41,7 +41,8 @@ class TcpSocketTestNix {
                                 size.ptr
                             )
                         )
-                        assertEquals(1, value.value)
+                        // Darwin returns a flag mask rather than 1 for an enabled option.
+                        assertNotEquals(0, value.value)
                     }
                 }
             }
