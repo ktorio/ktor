@@ -117,6 +117,10 @@ internal fun Application.webSockets() {
                 val payload = "x".repeat(size)
                 send(Frame.Text(payload))
             }
+            webSocket("random-binary") {
+                val size = call.request.queryParameters["size"]?.toIntOrNull() ?: error("No size provided")
+                send(Frame.Binary(fin = true, Random(seed = 0).nextBytes(size)))
+            }
             // Raw sessions bypass extensions, so the frame is never compressed
             webSocketRaw("uncompressed-binary") {
                 val size = call.request.queryParameters["size"]?.toIntOrNull() ?: error("No size provided")
