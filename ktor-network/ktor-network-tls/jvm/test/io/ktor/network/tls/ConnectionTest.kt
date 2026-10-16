@@ -9,6 +9,7 @@ import io.ktor.network.sockets.*
 import io.ktor.network.tls.certificates.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
+import io.ktor.utils.io.core.*
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.ChannelInitializer
 import io.netty.channel.EventLoopGroup
@@ -18,19 +19,30 @@ import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.handler.ssl.SslContextBuilder
 import io.netty.handler.ssl.SslHandler
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
 import kotlinx.coroutines.debug.junit5.CoroutinesTimeout
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import kotlinx.io.Sink
+import kotlinx.io.readByteArray
 import java.io.File
 import java.io.IOException
 import java.net.ServerSocket
 import java.security.KeyStore
 import java.security.PrivateKey
 import java.security.cert.X509Certificate
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 import javax.net.ssl.TrustManagerFactory
 import javax.net.ssl.X509TrustManager
 import kotlin.test.Ignore
 import kotlin.test.Test
+import kotlin.test.assertContentEquals
+import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.fail
+import kotlin.time.Duration.Companion.milliseconds
 
 @Suppress("UNCHECKED_CAST")
 @CoroutinesTimeout(20_000)
@@ -54,7 +66,50 @@ class ConnectionTest {
         }
 
         socket.openReadChannel().readBuffer()
-        Unit
+    }
+
+    @Test
+    fun `close notify is not written concurrently with the last record`() = runBlocking {
+        val payload = ByteArray(16 * 1024) { it.toByte() }
+        val rawInput = ByteChannel()
+        val delegate = ByteChannel()
+        val rawOutput = SlowSingleWriterChannel(delegate)
+        val job = Job()
+        val handshake = TLSClientHandshake(
+            rawInput,
+            rawOutput,
+            TLSConfigBuilder().build(),
+            Dispatchers.Default + job
+        )
+
+        try {
+            val reader = async(Dispatchers.Default) {
+                val first = delegate.readTLSRecord()
+                val second = delegate.readTLSRecord()
+                Triple(first, second, delegate.awaitContent())
+            }
+
+            handshake.output.send(
+                TLSRecord(TLSRecordType.ApplicationData, packet = buildPacket { writeFully(payload) })
+            )
+            handshake.close().join()
+
+            assertFalse(rawOutput.concurrentAccess.get(), "rawOutput was accessed by two writers concurrently")
+
+            val (data, alert, hasMore) = reader.await()
+            assertEquals(TLSRecordType.ApplicationData, data.type)
+            assertContentEquals(payload, data.packet.readByteArray())
+
+            assertEquals(TLSRecordType.Alert, alert.type)
+            assertContentEquals(
+                byteArrayOf(TLSAlertLevel.WARNING.code.toByte(), TLSAlertType.CloseNotify.code.toByte()),
+                alert.packet.readByteArray()
+            )
+            assertFalse(hasMore, "Unexpected data after close_notify")
+        } finally {
+            rawInput.cancel()
+            job.cancel()
+        }
     }
 
     @Test
@@ -96,7 +151,7 @@ class ConnectionTest {
             try {
                 tryToConnect(port, trustManagerFactory)
                 fail("TLSException was expected because client has no certificate to authenticate")
-            } catch (expected: TLSException) {
+            } catch (_: TLSException) {
             }
         } finally {
             workerGroup.shutdownGracefully()
@@ -133,8 +188,51 @@ class ConnectionTest {
                 val port = socket.localPort
                 socket.close()
                 return port
-            } catch (ignore: IOException) {
+            } catch (_: IOException) {
             }
+        }
+    }
+
+    /**
+     * Simulates a slow socket: every flush suspends for a while, and any access to the channel
+     * from another writer during that time is recorded.
+     */
+    private class SlowSingleWriterChannel(private val delegate: ByteChannel) : ByteWriteChannel {
+        private val flushing = AtomicInteger(0)
+        val concurrentAccess = AtomicBoolean(false)
+
+        override val isClosedForWrite: Boolean get() = delegate.isClosedForWrite
+        override val closedCause: Throwable? get() = delegate.closedCause
+
+        @InternalAPI
+        override val writeBuffer: Sink
+            get() {
+                checkNoFlushInProgress()
+                return delegate.writeBuffer
+            }
+
+        override suspend fun flush() {
+            checkNoFlushInProgress()
+            flushing.incrementAndGet()
+            try {
+                delay(200.milliseconds)
+                delegate.flush()
+            } finally {
+                flushing.decrementAndGet()
+            }
+        }
+
+        override suspend fun flushAndClose() {
+            checkNoFlushInProgress()
+            delegate.flushAndClose()
+        }
+
+        override fun cancel(cause: Throwable?) {
+            delegate.cancel(cause)
+        }
+
+        private fun checkNoFlushInProgress() {
+            if (flushing.get() > 0) concurrentAccess.set(true)
         }
     }
 }
