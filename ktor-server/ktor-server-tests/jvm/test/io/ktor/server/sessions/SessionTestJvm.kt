@@ -60,7 +60,7 @@ class SessionTestJvm {
             assertEquals(
                 "00112233445566778899aabbccddeeff/" +
                     "9b8cf9900ff0f63849cb7a2ad71ed8a1ac9f0e2735492d2a5129cf278d70ab27:" +
-                    "40af9f393a00034b53d2267251047259005bdf5ff104eede599149e80e6fee13",
+                    "4db119af57e5fc564d281794d3b98e13b896e14f01cdc3e967cb862883339a89",
                 sessionCookie!!.value
             )
         }
@@ -115,7 +115,7 @@ class SessionTestJvm {
             assertEquals(
                 "00112233445566778899aabbccddeeff/" +
                     "c3850fc1ddc62f71ec5eaad6d393b91fa809fe32a1cf0cb4730788c5a489daef:" +
-                    "65f0bd15bfa7e96b8bd9e134e23a24860b324e361c606e6800af050f5d104b68",
+                    "4588a3f54dc52c17f25e77b90fb17ca48a933e1c054d69c127b13d579951b361",
                 sessionCookie!!.value
             )
         }
@@ -168,7 +168,7 @@ class SessionTestJvm {
             assertEquals(
                 "00112233445566778899aabbccddeeff/" +
                     "c3850fc1ddc62f71ec5eaad6d393b91fa809fe32a1cf0cb4730788c5a489daef:" +
-                    "65f0bd15bfa7e96b8bd9e134e23a24860b324e361c606e6800af050f5d104b68",
+                    "4588a3f54dc52c17f25e77b90fb17ca48a933e1c054d69c127b13d579951b361",
                 sessionCookie!!.value
             )
         }
