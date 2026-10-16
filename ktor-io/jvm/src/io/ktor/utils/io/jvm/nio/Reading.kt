@@ -7,6 +7,7 @@ package io.ktor.utils.io.jvm.nio
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.io.Buffer
 import kotlinx.io.RawSource
 import kotlinx.io.UnsafeIoApi
@@ -16,12 +17,25 @@ import java.nio.channels.ReadableByteChannel
 import kotlin.coroutines.CoroutineContext
 
 /**
- * Converts a [ReadableByteChannel] to a [ByteReadChannel], enabling asynchronous reading of bytes.
+ * Creates a [ByteReadChannel] that reads from this channel on demand in the given [context].
+ * Reads **block** the executing thread. Use a dispatcher suitable for blocking I/O
+ * in [context], such as [Dispatchers.IO] used by default.
+ *
+ * The channel closes the stream at EOF or on cancellation.
+ * The [ByteReadChannel.cancel] call returns without waiting for stream closure.
+ *
+ * The stream must support closure during an active read.
+ * Cancellation and closure do not guarantee that a blocking read stops.
+ *
+ * ### Structured concurrency
+ *
+ * If [context] contains a [Job], it closes the stream on cancellation.
+ * If that job is active when the channel is created, it also waits for stream closure before completing.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.jvm.nio.toByteReadChannel)
  *
  * @param context the [CoroutineContext] to execute the read operation. Defaults to [Dispatchers.IO].
- * @return a [ByteReadChannel] for reading bytes asynchronously from the given [ReadableByteChannel].
+ * @return a [ByteReadChannel] that reads from the given [ReadableByteChannel] on demand.
  */
 public fun ReadableByteChannel.toByteReadChannel(
     context: CoroutineContext = Dispatchers.IO,
