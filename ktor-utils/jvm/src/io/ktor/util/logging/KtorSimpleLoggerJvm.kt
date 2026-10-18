@@ -5,6 +5,7 @@
 package io.ktor.util.logging
 
 import org.slf4j.*
+import java.util.concurrent.atomic.AtomicBoolean
 
 private val isAndroid = try {
     Class.forName("android.os.Build")
@@ -13,10 +14,24 @@ private val isAndroid = try {
     false
 }
 
+private val initStarted = AtomicBoolean(false)
+
 @Suppress("FunctionName")
 public actual fun KtorSimpleLogger(name: String): Logger = if (!isAndroid) {
     LoggerFactory.getLogger(name)
 } else {
+    if (initStarted.compareAndSet(false, true)) {
+        // Start SLF4J's one-time initialization on a background thread
+        // so later getLogger() calls should resolve without reading disk on the caller's thread.
+        // The StrictMode may still report a DiskReadViolation if logger is used before the initialization.
+        Thread(
+            {
+                LoggerFactory.getILoggerFactory()
+            },
+            "ktor-slf4j-init"
+        ).apply { isDaemon = true }.start()
+    }
+
     object : org.slf4j.Logger {
         private val logger by lazy {
             LoggerFactory.getLogger(name)
