@@ -370,6 +370,15 @@ final class io.ktor.http.content/EntityTagVersion : io.ktor.http.content/Version
     }
 }
 
+final class io.ktor.http.content/FormFieldLimitExceededException : kotlinx.io/IOException { // io.ktor.http.content/FormFieldLimitExceededException|null[0]
+    constructor <init>(io.ktor.http/Headers, kotlin/String = ..., kotlin/Throwable? = ...) // io.ktor.http.content/FormFieldLimitExceededException.<init>|<init>(io.ktor.http.Headers;kotlin.String;kotlin.Throwable?){}[0]
+
+    final val fieldName // io.ktor.http.content/FormFieldLimitExceededException.fieldName|{}fieldName[0]
+        final fun <get-fieldName>(): kotlin/String? // io.ktor.http.content/FormFieldLimitExceededException.fieldName.<get-fieldName>|<get-fieldName>(){}[0]
+    final val headers // io.ktor.http.content/FormFieldLimitExceededException.headers|{}headers[0]
+        final fun <get-headers>(): io.ktor.http/Headers // io.ktor.http.content/FormFieldLimitExceededException.headers.<get-headers>|<get-headers>(){}[0]
+}
+
 final class io.ktor.http.content/LastModifiedVersion : io.ktor.http.content/Version { // io.ktor.http.content/LastModifiedVersion|null[0]
     constructor <init>(io.ktor.util.date/GMTDate) // io.ktor.http.content/LastModifiedVersion.<init>|<init>(io.ktor.util.date.GMTDate){}[0]
 
