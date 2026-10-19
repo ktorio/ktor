@@ -7,6 +7,7 @@ package io.ktor.server.test.base
 import io.ktor.test.*
 import io.ktor.test.dispatcher.*
 import io.ktor.test.junit.*
+import io.ktor.utils.io.InternalAPI
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.debug.junit5.CoroutinesTimeout
@@ -45,19 +46,14 @@ actual abstract class BaseTest actual constructor() {
         errorCollector += error
     }
 
+    @OptIn(InternalAPI::class)
     actual fun runTest(
         timeout: Duration,
         retries: Int,
         block: suspend CoroutineScope.() -> Unit
-    ): TestResult = retryTest(retries) { retry ->
-        runTestWithRealTime(CoroutineName("test-$testName"), timeout) {
-            if (retry > 0) println("[Retry $retry/$retries]")
-            beforeTest()
-            try {
-                block()
-            } finally {
-                afterTest()
-            }
-        }
-    }
+    ): TestResult = runTestAttempts(
+        retries,
+        runAttempt = { attempt -> runTestWithRealTime(CoroutineName("test-$testName"), timeout, attempt) },
+        block = block,
+    )
 }
