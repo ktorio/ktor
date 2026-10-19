@@ -4,9 +4,12 @@
 
 package io.ktor.server.plugins.di
 
+import io.ktor.server.application.ParallelModuleTracker
 import io.ktor.server.config.*
+import io.ktor.utils.io.InternalAPI
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.currentCoroutineContext
 import kotlin.reflect.KProperty
 
 /**
@@ -147,7 +150,18 @@ public interface DependencyResolver : MutableDependencyMap, CoroutineScope {
      * @throws MissingDependencyException if no dependency is associated with the given key
      */
     public suspend fun <T> get(key: DependencyKey): T =
-        getDeferred<T>(key).await()
+        awaitInitializer(getInitializer(key))
+}
+
+@Suppress("UNCHECKED_CAST")
+@OptIn(InternalAPI::class)
+private suspend fun <T> DependencyResolver.awaitInitializer(initializer: DependencyInitializer): T {
+    val deferred = initializer.resolve(this)
+    if (initializer is DependencyInitializer.Missing && !deferred.isCompleted) {
+        val tracker = currentCoroutineContext()[ParallelModuleTracker]
+        if (tracker != null) return initializer.awaitTracked(tracker) as T
+    }
+    return deferred.await() as T
 }
 
 @Suppress("UNCHECKED_CAST")
@@ -185,13 +199,12 @@ public class MapDependencyResolver(
             ?: onMissing(key)
 
     override suspend fun <T> getOrPut(key: DependencyKey, defaultValue: suspend () -> T): T {
-        val deferred = map.getOrPut(key) {
+        val initializer = map.getOrPut(key) {
             DependencyInitializer.Explicit(key) {
                 defaultValue()
             }
-        }.resolve(this)
-
-        return deferred.await() as T
+        }
+        return awaitInitializer(initializer)
     }
 
     private fun tryExternal(key: DependencyKey): DependencyInitializer? =

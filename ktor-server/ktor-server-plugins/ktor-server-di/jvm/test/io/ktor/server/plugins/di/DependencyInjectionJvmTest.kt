@@ -687,6 +687,97 @@ class DependencyInjectionJvmTest {
         assertTrue(started, "expected the covariant-Missing initializer to have been started")
     }
 
+    @Test
+    fun `concurrent startup handles chained dependent modules`() = runTestWithRealTime {
+        lateinit var resolvedBankService: BankService
+        lateinit var resolvedGreetingService: GreetingService
+        testApplication {
+            environment {
+                config = MapApplicationConfig().apply {
+                    put("ktor.application.startup", "concurrent")
+                }
+            }
+            application {
+                resolvedBankService = dependencies.resolve<BankService>()
+            }
+            application {
+                resolvedGreetingService = dependencies.resolve<GreetingService>()
+                dependencies.provide<BankService> { BankServiceImpl() }
+            }
+            application {
+                dependencies.provide<GreetingService> { GreetingServiceImpl() }
+            }
+        }
+        assertEquals(HELLO, resolvedGreetingService.hello())
+        resolvedBankService.deposit(10)
+        assertEquals(10, resolvedBankService.balance())
+    }
+
+    @Test
+    fun `concurrent startup handles multiple modules waiting on the same dependency`() = runTestWithRealTime {
+        lateinit var firstBankService: BankService
+        lateinit var secondBankService: BankService
+        lateinit var resolvedGreetingService: GreetingService
+        testApplication {
+            environment {
+                config = MapApplicationConfig().apply {
+                    put("ktor.application.startup", "concurrent")
+                }
+            }
+            application {
+                firstBankService = dependencies.resolve<BankService>()
+                resolvedGreetingService = dependencies.resolve<GreetingService>()
+            }
+            application {
+                secondBankService = dependencies.resolve<BankService>()
+                dependencies.provide<GreetingService> { GreetingServiceImpl() }
+            }
+            application {
+                dependencies.provide<BankService> { BankServiceImpl() }
+            }
+        }
+        assertSame(firstBankService, secondBankService)
+        assertEquals(HELLO, resolvedGreetingService.hello())
+    }
+
+    @Test
+    fun `concurrent startup does not hang when a module throws`() = runTestWithRealTime {
+        assertFailsWith<IllegalStateException> {
+            testApplication {
+                environment {
+                    config = MapApplicationConfig().apply {
+                        put("ktor.application.startup", "concurrent")
+                    }
+                }
+                application {
+                    dependencies.resolve<BankService>()
+                }
+                application {
+                    error("module failed")
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `concurrent startup does not hang when a module is cancelled`() = runTestWithRealTime {
+        assertFailsWith<CancellationException> {
+            testApplication {
+                environment {
+                    config = MapApplicationConfig().apply {
+                        put("ktor.application.startup", "concurrent")
+                    }
+                }
+                application {
+                    dependencies.resolve<BankService>()
+                }
+                application {
+                    throw CancellationException("module cancelled")
+                }
+            }
+        }
+    }
+
     private fun runTestDI(
         pluginInstall: DependencyInjectionConfig.() -> Unit = {},
         block: suspend Application.() -> Unit
