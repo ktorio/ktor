@@ -194,14 +194,17 @@ public val ContentEncoding: ClientPlugin<ContentEncodingConfig> = createClientPl
     on(ReceiveStateHook) { response ->
         if (!mode.response) return@on null
 
-        val method = response.request.method
-        val contentLength = response.contentLength()
-
-        if (contentLength == 0L) return@on null
-        if (contentLength == null && method == HttpMethod.Head) return@on null
+        if (!response.mayHaveBody()) return@on null
+        if (response.contentLength() == 0L) return@on null
 
         return@on decode(response)
     }
+}
+
+private fun HttpResponse.mayHaveBody(): Boolean {
+    if (request.method == HttpMethod.Head) return false
+    val code = status.value
+    return code !in 100..199 && code != HttpStatusCode.NoContent.value && code != HttpStatusCode.NotModified.value
 }
 
 internal object AfterRenderHook : ClientHook<suspend (HttpRequestBuilder, OutgoingContent) -> OutgoingContent?> {
