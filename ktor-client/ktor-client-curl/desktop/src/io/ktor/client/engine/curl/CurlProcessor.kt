@@ -97,6 +97,8 @@ internal class CurlProcessor(coroutineContext: CoroutineContext) {
 
                 is CancelWebSocket ->
                     api.cancelWebSocket(task.websocket, CancellationException("WebSocket session closed"))
+
+                is CancelRequest -> api.cancelRequest(task.easyHandle, task.completionHandler, task.cause)
             }
         }
     }
@@ -107,7 +109,7 @@ internal class CurlProcessor(coroutineContext: CoroutineContext) {
 
         val requestCleaner = requestData.callContext.invokeOnCompletion { cause ->
             if (cause == null) return@invokeOnCompletion
-            cancelRequest(requestHandler, cause)
+            cancelRequest(requestHandler, completionHandler, cause)
         }
 
         completionHandler.invokeOnCompletion {
@@ -130,9 +132,14 @@ internal class CurlProcessor(coroutineContext: CoroutineContext) {
         }
     }
 
-    private fun cancelRequest(easyHandle: EasyHandle, cause: Throwable) {
-        curlScope.launch {
-            curlApi!!.cancelRequest(easyHandle, cause)
+    private fun cancelRequest(
+        easyHandle: EasyHandle,
+        completionHandler: CompletableDeferred<CurlSuccess>,
+        cause: Throwable,
+    ) {
+        val sent = taskQueue.trySend(CancelRequest(easyHandle, completionHandler, cause))
+        if (sent.isSuccess) {
+            curlApi!!.wakeup()
         }
     }
 }
@@ -153,5 +160,12 @@ private sealed interface CurlTask {
 
     class CancelWebSocket(
         val websocket: CurlWebSocketResponseBody,
+    ) : CurlTask
+
+    @OptIn(ExperimentalForeignApi::class)
+    class CancelRequest(
+        val easyHandle: EasyHandle,
+        val completionHandler: CompletableDeferred<CurlSuccess>,
+        val cause: Throwable,
     ) : CurlTask
 }

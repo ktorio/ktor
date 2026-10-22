@@ -19,6 +19,7 @@ import kotlin.native.ref.WeakReference
 import kotlin.native.runtime.GC
 import kotlin.native.runtime.NativeRuntimeApi
 import kotlin.test.Test
+import kotlin.test.assertNotSame
 import kotlin.test.assertNull
 import kotlin.test.assertSame
 
@@ -42,25 +43,31 @@ internal class CurlMultiApiHandlerTest {
         }
     }
 
+    @OptIn(ExperimentalForeignApi::class)
+    @Test
+    fun `cancellation for a previous request with the same handle is ignored`() {
+        val handler = CurlMultiApiHandler()
+        try {
+            val response = CompletableDeferred<CurlSuccess>()
+            val easyHandle = handler.scheduleRequest(testRequest(), response)
+            val staleCause = CancellationException("Stale cancellation")
+            var completionCause: Throwable? = null
+            response.invokeOnCompletion { completionCause = it }
+
+            handler.cancelRequest(easyHandle, CompletableDeferred(), staleCause)
+            memScoped {
+                handler.perform(alloc<IntVar>())
+            }
+
+            assertNotSame(staleCause, completionCause)
+        } finally {
+            handler.close()
+        }
+    }
+
     @OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
     private fun scheduleAndCancel(handler: CurlMultiApiHandler): WeakReference<CurlRequestData> {
-        val request = CurlRequestData(
-            protocol = "http",
-            url = "http://127.0.0.1:1/",
-            method = "GET",
-            headers = checkNotNull(curl_slist_append(null, "Expect:")),
-            proxy = null,
-            content = ByteReadChannel.Empty,
-            contentLength = 0,
-            connectTimeout = null,
-            callContext = Job(),
-            isUpgradeRequest = false,
-            forceProxyTunneling = false,
-            sslVerify = true,
-            caInfo = null,
-            caPath = null,
-            attributes = Attributes(),
-        )
+        val request = testRequest()
         val requestReference = WeakReference(request)
         val response = CompletableDeferred<CurlSuccess>()
         val easyHandle = handler.scheduleRequest(request, response)
@@ -68,7 +75,7 @@ internal class CurlMultiApiHandlerTest {
         var completionCause: Throwable? = null
         response.invokeOnCompletion { completionCause = it }
 
-        handler.cancelRequest(easyHandle, cancellationCause)
+        handler.cancelRequest(easyHandle, response, cancellationCause)
         memScoped {
             handler.perform(alloc<IntVar>())
         }
@@ -76,4 +83,23 @@ internal class CurlMultiApiHandlerTest {
         assertSame(cancellationCause, completionCause)
         return requestReference
     }
+
+    @OptIn(ExperimentalForeignApi::class)
+    private fun testRequest() = CurlRequestData(
+        protocol = "http",
+        url = "http://127.0.0.1:1/",
+        method = "GET",
+        headers = checkNotNull(curl_slist_append(null, "Expect:")),
+        proxy = null,
+        content = ByteReadChannel.Empty,
+        contentLength = 0,
+        connectTimeout = null,
+        callContext = Job(),
+        isUpgradeRequest = false,
+        forceProxyTunneling = false,
+        sslVerify = true,
+        caInfo = null,
+        caPath = null,
+        attributes = Attributes(),
+    )
 }
