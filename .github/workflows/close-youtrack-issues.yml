@@ -14,6 +14,7 @@ concurrency:
 
 jobs:
   close:
+    if: github.repository == 'ktorio/ktor'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
