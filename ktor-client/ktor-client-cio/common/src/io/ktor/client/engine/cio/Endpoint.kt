@@ -220,23 +220,9 @@ internal class Endpoint(
                     else -> InetSocketAddress(host, port)
                 }
 
-                val connect: suspend CoroutineScope.() -> Socket = {
-                    connectionFactory.connect(address) {
-                        this.socketTimeout = socketTimeout
-                    }
-                }
-
-                val socket = when (connectTimeout) {
-                    HttpTimeoutConfig.INFINITE_TIMEOUT_MS -> connect()
-
-                    else -> {
-                        val connection = withTimeoutOrNull(connectTimeout, connect)
-                        if (connection == null) {
-                            timeoutFails++
-                            return@repeat
-                        }
-                        connection
-                    }
+                val socket = connectWithTimeout(address, connectTimeout, socketTimeout) ?: run {
+                    timeoutFails++
+                    return@repeat
                 }
 
                 try {
@@ -266,12 +252,7 @@ internal class Endpoint(
                     }
                     return address to tlsSocket.connection()
                 } catch (cause: Throwable) {
-                    try {
-                        socket.close()
-                    } catch (_: Throwable) {
-                    }
-
-                    connectionFactory.release(address)
+                    closeAndRelease(socket, address)
                     throw cause
                 }
             }
@@ -309,6 +290,50 @@ internal class Endpoint(
         val socketTimeout = timeoutAttributes.socketTimeoutMillis ?: config.endpoint.socketTimeout
         val connectTimeout = timeoutAttributes.connectTimeoutMillis ?: config.endpoint.connectTimeout
         return connectTimeout to socketTimeout
+    }
+
+    /**
+     * Connects to [address], or returns `null` when [connectTimeout] expires first.
+     *
+     * The socket is assigned inside the timeout block rather than returned from it: `withTimeout` drops the
+     * block's result when it is cancelled right as the connect completes, and the connected socket would leak
+     * together with its connection permits. A socket that connected but can't be handed back is closed and
+     * released.
+     */
+    private suspend fun connectWithTimeout(
+        address: SocketAddress,
+        connectTimeout: Long,
+        socketTimeout: Long,
+    ): Socket? {
+        var socket: Socket? = null
+        val open: suspend () -> Socket = {
+            connectionFactory.connect(address) {
+                this.socketTimeout = socketTimeout
+            }
+        }
+
+        try {
+            when (connectTimeout) {
+                HttpTimeoutConfig.INFINITE_TIMEOUT_MS -> socket = open()
+                else -> withTimeout(connectTimeout) { socket = open() }
+            }
+            return socket
+        } catch (cause: Throwable) {
+            socket?.let { closeAndRelease(it, address) }
+            // An enclosing scope's timeout arrives as the same exception type; only swallow this one's.
+            if (cause is TimeoutCancellationException && currentCoroutineContext().isActive) return null
+            throw cause
+        }
+    }
+
+    private fun closeAndRelease(socket: Socket, address: SocketAddress) {
+        try {
+            socket.close()
+        } catch (cause: Throwable) {
+            LOGGER.debug("An error occurred while closing socket", cause)
+        }
+
+        connectionFactory.release(address)
     }
 
     private fun releaseConnection(address: SocketAddress) {
