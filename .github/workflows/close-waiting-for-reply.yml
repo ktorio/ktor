@@ -10,6 +10,7 @@ permissions:
 
 jobs:
   close:
+    if: github.repository == 'ktorio/ktor'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/stale@v11
