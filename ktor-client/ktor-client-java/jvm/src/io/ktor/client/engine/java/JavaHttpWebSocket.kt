@@ -171,7 +171,7 @@ internal class JavaHttpWebSocket(
         var status = HttpStatusCode.SwitchingProtocols
         var headers: Headers
         try {
-            webSocket = builder.buildAsync(requestData.url.toURI(), this).await()
+            webSocket = builder.buildAsync(requestData.url.toURI(), this).awaitInterruptible()
             val protocol = webSocket.subprotocol?.takeIf { it.isNotEmpty() }
             headers = if (protocol != null) headersOf(HttpHeaders.SecWebSocketProtocol, protocol) else Headers.Empty
         } catch (cause: WebSocketHandshakeException) {
