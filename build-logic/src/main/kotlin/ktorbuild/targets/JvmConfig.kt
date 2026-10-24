@@ -11,12 +11,15 @@ import ktorbuild.internal.kotlin
 import ktorbuild.internal.ktorBuild
 import ktorbuild.internal.libs
 import org.gradle.api.Project
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.provider.Provider
+import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.testing.Test
 import org.gradle.jvm.tasks.Jar
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JavaToolchainService
 import org.gradle.kotlin.dsl.*
+import org.gradle.process.CommandLineArgumentProvider
 import org.jetbrains.kotlin.gradle.targets.jvm.tasks.KotlinJvmTest
 
 internal fun Project.configureJvm() {
@@ -60,6 +63,30 @@ private fun Project.configureTests() {
         useJUnitPlatform()
         configureJavaToolchain(java.toolchain.languageVersion, ktorBuild.jvmTestToolchain)
     }
+
+    val coroutinesDebugAgentProvider = createCoroutinesDebugAgentProvider()
+    tasks.withType<Test>().configureEach {
+        jvmArgumentProviders.add(coroutinesDebugAgentProvider)
+    }
+}
+
+private fun Project.createCoroutinesDebugAgentProvider(): JavaAgentArgumentProvider {
+    @Suppress("UnstableApiUsage")
+    val coroutinesDebugAgent = configurations.resolvable("coroutinesDebugAgent") {
+        isTransitive = false
+    }
+    dependencies.add(coroutinesDebugAgent.name, libs.kotlinx.coroutines.debug)
+
+    return objects.newInstance<JavaAgentArgumentProvider>().apply {
+        classpath.from(coroutinesDebugAgent)
+    }
+}
+
+private abstract class JavaAgentArgumentProvider : CommandLineArgumentProvider {
+    @get:Classpath
+    abstract val classpath: ConfigurableFileCollection
+
+    override fun asArguments(): Iterable<String> = listOf("-javaagent:${classpath.singleFile.absolutePath}")
 }
 
 private fun Project.configureJarManifest() {
