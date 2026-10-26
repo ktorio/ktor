@@ -7,6 +7,7 @@ package io.ktor.server.routing
 import io.ktor.events.EventDefinition
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.plugins.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.util.*
@@ -80,7 +81,11 @@ public class RoutingRoot(
         // Fast path, if we can resolve the route entirely from the path and there are no tracers
         if (tracers.isEmpty()) {
             val call = context.call
-            val fast = pathTree.tryResolve(call.request.path(), call.request.httpMethod)
+            val fast = try {
+                pathTree.tryResolve(call.request.path(), call.request.httpMethod)
+            } catch (cause: URLDecodeException) {
+                throw BadRequestException("Url decode failed for ${call.request.uri}", cause)
+            }
             if (fast != null) {
                 executeResult(context, fast.route, fast.parameters)
                 return

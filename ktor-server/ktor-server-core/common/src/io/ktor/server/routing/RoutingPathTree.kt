@@ -87,9 +87,13 @@ internal class RoutingPathTree private constructor(private val root: Node) {
      * Returns a cached [RoutingResolveResult.Success] when every segment matches a child
      * unambiguously and a terminal exists for [method]. Bails out (returns `null`) for
      * any ambiguous nodes.
+     *
+     * @throws URLDecodeException when [path] contains malformed percent-encoding, matching the
+     * eager validation performed by [RoutingResolveContext] so both resolvers reject the same requests.
      */
     fun tryResolve(path: String, method: HttpMethod): Success? {
         if (root !is ElementNode) return null
+        if (path.indexOf('%') >= 0) path.decodeURLPart()
         val length = path.length
 
         // Empty or root-only path — resolve directly at the root node.
@@ -186,17 +190,9 @@ internal class RoutingPathTree private constructor(private val root: Node) {
         return end
     }
 
-    /**
-     * URL-decodes [segment] when it contains a `%`, falling back to the raw value if decoding fails.
-     */
-    private fun decodeSegment(segment: String): String {
-        if (segment.indexOf('%') < 0) return segment
-        return try {
-            segment.decodeURLPart()
-        } catch (_: Exception) {
-            segment
-        }
-    }
+    /** URL-decodes [segment] when it contains a `%`. The whole path is validated up front in [tryResolve]. */
+    private fun decodeSegment(segment: String): String =
+        if (segment.indexOf('%') < 0) segment else segment.decodeURLPart()
 
     companion object {
         /**
