@@ -245,4 +245,11 @@ fun IrExpression.inlineVariables(lookup: (IrValueSymbol) -> IrExpression?): IrEx
         null
     }
 
-class MissingVariableException(val symbol: IrValueSymbol) : Exception("Missing variable: $symbol")
+/**
+ * Thrown when a referenced value cannot be resolved during variable inlining.
+ *
+ * The message intentionally avoids rendering the symbol itself, because rendering may traverse
+ * declaration parents that are not initialized in deep-copied IR (e.g., anonymous objects).
+ */
+class MissingVariableException(val symbol: IrValueSymbol) :
+    Exception("Missing variable: ${symbol.owner.name}")
