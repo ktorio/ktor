@@ -125,6 +125,7 @@ public fun Route.swaggerUI(
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.swagger.swaggerUI)
  *
  * @param path The root path where the Swagger UI will be available.
+ * @param prefix Optional route prefix used solely in HTML codegen
  * @param block Configuration block for customizing the Swagger UI, such as defining the OpenAPI specification source.
  */
 public fun Route.swaggerUI(
