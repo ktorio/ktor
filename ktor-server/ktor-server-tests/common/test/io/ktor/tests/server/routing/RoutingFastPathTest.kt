@@ -8,6 +8,7 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.plugins.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
@@ -360,6 +361,51 @@ class RoutingFastPathTest {
         assertEquals(HttpStatusCode.OK, client.get("/files/a/b/").status)
     }
 
+    @Test
+    fun `malformed percent encoding in parameter is a bad request`() =
+        assertMalformedPathRejected("/%hudson%2etasks%2eWasmTableDebug%2exml", "/%zz") {
+            get("/{name}") { call.respondText("name=${call.parameters["name"]}") }
+        }
+
+    @Test
+    fun `malformed percent encoding in nested parameter is a bad request`() =
+        assertMalformedPathRejected("/users/%zz/posts") {
+            get("/users/{id}/posts") { call.respondText("id=${call.parameters["id"]}") }
+        }
+
+    @Test
+    fun `malformed percent encoding in tailcard is a bad request`() =
+        assertMalformedPathRejected("/files/a/%zz/b") {
+            get("/files/{path...}") { call.respondText("path=${call.parameters.getAll("path")}") }
+        }
+
+    @Test
+    fun `malformed percent encoding in anonymous tailcard is a bad request`() =
+        assertMalformedPathRejected("/a/%zz") {
+            get("/{...}") { call.respondText("anon") }
+        }
+
+    @Test
+    fun `malformed percent encoding in wildcard is a bad request`() =
+        assertMalformedPathRejected("/%zz/x") {
+            get("/*/x") { call.respondText("wild") }
+        }
+
+    @Test
+    fun `malformed percent encoding in constant path is a bad request`() =
+        assertMalformedPathRejected("/%zz", "/hello/%zz") {
+            get("/hello") { call.respondText("hello") }
+        }
+
+    @Test
+    fun `valid percent encoding in parameter is decoded`() = testApplication {
+        routing {
+            get("/{name}") { call.respondText("name=${call.parameters["name"]}") }
+        }
+        assertEquals("name=a b", client.get("/a%20b").bodyAsText())
+        assertEquals("name=x.y", client.get("/x%2ey").bodyAsText())
+    }
+
     private fun Route.transparent(build: Route.() -> Unit): Route {
         val route = createChild(
             object : RouteSelector() {
@@ -439,4 +485,25 @@ private class TransparentBlock : TransparentRouteSelector()
 
 private fun Route.transparentBlock(block: Route.() -> Unit) {
     createChild(TransparentBlock()).apply(block)
+}
+
+/**
+ * Runs each of [paths] through the application pipeline with a raw, undecoded URI.
+ * The test client can't be used here because it rejects malformed percent-encoding before sending.
+ */
+private fun assertMalformedPathRejected(vararg paths: String, configure: Routing.() -> Unit) = testApplication {
+    lateinit var app: Application
+    application {
+        app = this
+        routing(configure)
+    }
+    startApplication()
+    for (path in paths) {
+        val call = TestApplicationCall(app, coroutineContext = app.coroutineContext).apply {
+            request.method = HttpMethod.Get
+            request.uri = path
+        }
+        val cause = assertFailsWith<BadRequestException>("Expected 400 for $path") { app.execute(call, Unit) }
+        assertIs<URLDecodeException>(cause.cause)
+    }
 }
