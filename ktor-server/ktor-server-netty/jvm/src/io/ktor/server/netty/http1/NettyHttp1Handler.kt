@@ -239,50 +239,56 @@ internal class NettyHttp1Handler(
                 val newContext = application.coroutineContext +
                     userContext +
                     CurrentContext(context, callExecutor) +
-                    CallHandlerCoroutineName
+                    CallHandlerCoroutineName +
+                    handlerJob
                 channelApplication = application
                 channelCoroutineContext = newContext
                 newContext
             }
         }
-        val callJob = Job(parent = handlerJob)
-
-        // Only the per-call [Job] is combined per request; the rest of the context is cached on the
-        // handler instance and reused across all calls on this connection.
-        val callContext = baseContext + callJob
-        val call = prepareCallFromRequest(context, message, callContext = callContext)
+        // The request coroutine is both the call's Job and the coroutine running the pipeline (one object per
+        // call). It is attached to handlerJob right away, so it must be completed on every exit path below.
+        val callCoroutine = NettyRequestCoroutine(baseContext)
+        val call = try {
+            prepareCallFromRequest(context, message, callContext = callCoroutine.context)
+        } catch (cause: Throwable) {
+            callCoroutine.resumeWith(Result.failure(cause))
+            throw cause
+        }
         activeCalls.add(call)
 
-        // Fire channel read for custom handlers added to the pipeline
-        context.fireChannelRead(call)
+        try {
+            // Fire channel read for custom handlers added to the pipeline
+            context.fireChannelRead(call)
 
-        // Reserve response slot synchronously on the I/O thread for proper ordering
-        responseWriter.processResponse(call)
+            // Reserve response slot synchronously on the I/O thread for proper ordering
+            responseWriter.processResponse(call)
 
-        // Defer coroutine start to the next event loop tick so that channelReadComplete() fires first.
-        // This allows the response pipeline to detect that the request body is still being received and flush headers
-        // early instead of buffering them, which is required when the client waits for response headers
-        // before sending the request body.
-        // Dispatching to the call executor also ensures user handler code does not run on the I/O worker
-        // event loop. When resolveCallExecutor is pinned directly to context.executor() (shareWorkGroup),
-        // calls that never suspend skip that hop entirely and run on the I/O thread instead; calls that do
-        // suspend still resume on that same thread via NettyDispatcher.
-        callExecutor.execute {
-            val callScope = CoroutineScope(context = callContext)
-            callScope.launch(start = CoroutineStart.UNDISPATCHED) {
+            // Defer coroutine start to the next event loop tick so that channelReadComplete() fires first.
+            // This allows the response pipeline to detect that the request body is still being received and flush headers
+            // early instead of buffering them, which is required when the client waits for response headers
+            // before sending the request body.
+            // Dispatching to the call executor also ensures user handler code does not run on the I/O worker
+            // event loop. When resolveCallExecutor is pinned directly to context.executor() (shareWorkGroup),
+            // calls that never suspend skip that hop entirely and run on the I/O thread instead; calls that do
+            // suspend still resume on that same thread via NettyDispatcher.
+            callCoroutine.launchOn(callExecutor) {
                 try {
                     if (!call.request.isValid()) {
                         call.respondError400BadRequest()
-                        return@launch
+                        return@launchOn
                     }
                     enginePipeline.execute(call)
                 } catch (error: Throwable) {
                     handleFailure(call, error)
                 } finally {
                     activeCalls.remove(call)
-                    callJob.complete()
                 }
             }
+        } catch (cause: Throwable) {
+            activeCalls.remove(call)
+            callCoroutine.resumeWith(Result.failure(cause.asCallCompletion()))
+            throw cause
         }
     }
 

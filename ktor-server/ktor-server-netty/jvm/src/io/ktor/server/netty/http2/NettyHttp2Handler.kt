@@ -41,7 +41,7 @@ internal class NettyHttp2Handler(
 
     // Connection-stable portion of the per-call coroutine context. Cached at construction so each
     // request only needs to combine it with the per-stream dispatcher and the per-call [Job].
-    private val staticCallContext: CoroutineContext = userCoroutineContext + CallHandlerCoroutineName
+    private val staticCallContext: CoroutineContext = userCoroutineContext + CallHandlerCoroutineName + handlerJob
 
     // Engine context exposed on the [NettyHttp2ApplicationCall]. Constant per handler instance.
     private val callEngineContext: CoroutineContext = handlerJob + Dispatchers.Unconfined
@@ -131,46 +131,51 @@ internal class NettyHttp2Handler(
     }
 
     private fun startHttp2(context: ChannelHandlerContext, headers: Http2Headers) {
-        val callJob = Job(parent = handlerJob)
         val callExecutor = resolveCallExecutor(context)
-        // Combine the cached static context with the per-stream dispatcher and per-call [Job] only.
-        val callContext = staticCallContext +
-            NettyDispatcher.CurrentContext(context, callExecutor) +
-            callJob
-        val call = NettyHttp2ApplicationCall(
-            application = application,
-            context = context,
-            headers = headers,
-            handler = this@NettyHttp2Handler,
-            engineContext = callEngineContext,
-            coroutineContext = callContext
+        // The request coroutine is both the call's Job and the coroutine running the pipeline (one object per
+        // call). It is attached to handlerJob right away, so it must be completed on every exit path below.
+        val callCoroutine = NettyRequestCoroutine(
+            staticCallContext + NettyDispatcher.CurrentContext(context, callExecutor)
         )
+        val call = try {
+            NettyHttp2ApplicationCall(
+                application = application,
+                context = context,
+                headers = headers,
+                handler = this@NettyHttp2Handler,
+                engineContext = callEngineContext,
+                coroutineContext = callCoroutine.context
+            )
+        } catch (cause: Throwable) {
+            callCoroutine.resumeWith(Result.failure(cause))
+            throw cause
+        }
         context.applicationCall = call
 
-        // Fire channel read for custom handlers added to the pipeline
-        context.fireChannelRead(call)
+        try {
+            // Fire channel read for custom handlers added to the pipeline
+            context.fireChannelRead(call)
 
-        // Reserve response slot synchronously on the I/O thread for proper ordering
-        responseWriter.processResponse(call)
+            // Reserve response slot synchronously on the I/O thread for proper ordering
+            responseWriter.processResponse(call)
 
-        // Defer coroutine start to the next event loop tick so that channelRead returns and Netty can
-        // deliver subsequent Http2DataFrame messages. Without this, the coroutine runs on the event loop,
-        // blocking data frame delivery and causing EOFException.
-        // Dispatching to the call executor also ensures user handler code does not run on the I/O worker
-        // event loop. When resolveCallExecutor is pinned directly to context.executor() (shareWorkGroup),
-        // calls that never suspend skip that hop entirely and run on the I/O thread instead; calls that do
-        // suspend still resume on that same thread via NettyDispatcher.
-        callExecutor.execute {
-            val callScope = CoroutineScope(context = callContext)
-            callScope.launch(start = CoroutineStart.UNDISPATCHED) {
+            // Defer coroutine start to the next event loop tick so that channelRead returns and Netty can
+            // deliver subsequent Http2DataFrame messages. Without this, the coroutine runs on the event loop,
+            // blocking data frame delivery and causing EOFException.
+            // Dispatching to the call executor also ensures user handler code does not run on the I/O worker
+            // event loop. When resolveCallExecutor is pinned directly to context.executor() (shareWorkGroup),
+            // calls that never suspend skip that hop entirely and run on the I/O thread instead; calls that do
+            // suspend still resume on that same thread via NettyDispatcher.
+            callCoroutine.launchOn(callExecutor) {
                 try {
                     enginePipeline.execute(call)
                 } catch (error: Throwable) {
                     handleFailure(call, error)
-                } finally {
-                    callJob.complete()
                 }
             }
+        } catch (cause: Throwable) {
+            callCoroutine.resumeWith(Result.failure(cause.asCallCompletion()))
+            throw cause
         }
     }
 
