@@ -72,7 +72,7 @@ class CallDescribeTransformer(
     override val irFile: IrFile? get() = currentFile
 
     override fun copyAndResolve(expression: IrExpression): IrExpression? {
-        val copied = expression.deepCopyWithSymbols()
+        val copied = expression.deepCopyWithSymbols(initialParent = functionStack.lastOrNull())
         return copied.inlineVariables { symbol ->
             variableScopeStack.firstNotNullOfOrNull { it[symbol] }
         }
