@@ -271,7 +271,11 @@ private suspend fun pipelineWriterLoop(
             if (child is ByteWriteChannel) {
                 child.close(cause)
             }
+            break
         }
+        // A response that failed may have written nothing, so the client would wait for it forever.
+        // Stopping closes the output cleanly, which still delivers the earlier responses.
+        if (child.closedCause != null) break
     }
 }
 
