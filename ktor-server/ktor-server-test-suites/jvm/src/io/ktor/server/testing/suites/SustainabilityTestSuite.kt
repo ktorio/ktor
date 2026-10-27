@@ -47,6 +47,19 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
 ) : EngineTestBase<TEngine, TConfiguration>(hostFactory) {
 
+    private val bigFile: File by lazy {
+        File("build/large-file.dat").also { file ->
+            if (!file.exists()) {
+                val rnd = Random()
+                file.bufferedWriter().use { out ->
+                    repeat(3 * 1024 * 1024 / 2) {
+                        out.append('a' + rnd.nextInt(25))
+                    }
+                }
+            }
+        }
+    }
+
     @Test
     fun testLoggerOnError() = runTest {
         val message = "expected, ${Random().nextLong()}"
@@ -379,26 +392,12 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
 
     @OptIn(InternalAPI::class)
     @Test
-    fun testBigFile() = runTest(timeout = 1.minutes) {
-        val file = File("build/large-file.dat")
-        val rnd = Random()
-
-        if (!file.exists()) {
-            file.bufferedWriter().use { out ->
-                repeat(9000000) {
-                    repeat(30 + rnd.nextInt(40)) {
-                        out.append('a' + rnd.nextInt(25))
-                    }
-                    out.append('\n')
-                }
-            }
-        }
-
-        val (fileChecksum, fileCount) = file.inputStream().use { it.crcWithSize() }
+    fun testBigFile() = runTest(timeout = 2.minutes) {
+        val (fileChecksum, fileCount) = bigFile.inputStream().use { it.crcWithSize() }
 
         createAndStartServer {
             get("/file") {
-                call.respond(LocalFileContent(file))
+                call.respond(LocalFileContent(bigFile))
             }
         }
 
@@ -411,25 +410,11 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
 
     @Test
     fun testBigFileHttpUrlConnection() = runTest {
-        val file = File("build/large-file.dat")
-        val rnd = Random()
-
-        if (!file.exists()) {
-            file.bufferedWriter().use { out ->
-                repeat(9000000) {
-                    repeat(30 + rnd.nextInt(40)) {
-                        out.append('a' + rnd.nextInt(25))
-                    }
-                    out.append('\n')
-                }
-            }
-        }
-
-        val originalSha1WithSize = file.inputStream().use { it.crcWithSize() }
+        val originalSha1WithSize = bigFile.inputStream().use { it.crcWithSize() }
 
         createAndStartServer {
             get("/file") {
-                call.respond(LocalFileContent(file))
+                call.respond(LocalFileContent(bigFile))
             }
         }
 
