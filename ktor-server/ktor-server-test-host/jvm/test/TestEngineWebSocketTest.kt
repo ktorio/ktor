@@ -7,10 +7,13 @@ package io.ktor.tests.server.testing
 import io.ktor.client.plugins.websocket.cio.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import io.ktor.server.testing.client.*
 import io.ktor.server.websocket.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
+import kotlinx.io.IOException
+import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.test.*
 import kotlin.time.Duration.Companion.seconds
 import io.ktor.client.plugins.websocket.WebSockets as ClientWebSockets
@@ -65,5 +68,19 @@ class TestEngineWebSocketTest {
         val echo = withTimeout(5.seconds) { session.incoming.receive() }
         assertEquals("hello", assertIs<Frame.Text>(echo).readText())
         session.close()
+    }
+
+    @Test
+    fun `forwarding failure closes outgoing with its cause`(): Unit = runBlocking {
+        val connection = Channel<Frame>()
+        connection.close(IOException("Connection closed"))
+        val session = TestEngineWebsocketSession(EmptyCoroutineContext, Channel(), connection)
+        val closeCause = CompletableDeferred<Throwable?>()
+        session.outgoing.invokeOnClose { closeCause.complete(it) }
+
+        launch { runCatching { session.run() } }
+        session.outgoing.send(Frame.Text("hello"))
+
+        assertIs<IOException>(withTimeout(5.seconds) { closeCause.await() })
     }
 }
