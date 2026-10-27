@@ -11,19 +11,29 @@ import io.ktor.http.content.*
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
 import io.ktor.server.cio.*
+import io.ktor.server.cio.backend.httpServer
+import io.ktor.server.cio.internal.IOBridge
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.suites.*
+import io.ktor.test.dispatcher.runTestWithRealTime
+import io.ktor.util.PlatformUtils
 import io.ktor.utils.io.*
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 class CIOHttpServerTest : HttpServerCommonTestSuite<CIOApplicationEngine, CIOApplicationEngine.Configuration>(CIO) {
 
@@ -54,6 +64,29 @@ class CIOHttpServerTest : HttpServerCommonTestSuite<CIOApplicationEngine, CIOApp
             )
         }
         assertEquals("OK", body.await())
+    }
+
+    @Test
+    fun `closing server socket stops server without failing parent scope`() = runTestWithRealTime {
+        if (!PlatformUtils.IS_JVM && !PlatformUtils.IS_NATIVE) return@runTestWithRealTime
+
+        // A plain Job is cancelled when any child fails, so it exposes an exceptional completion
+        val parent = Job()
+        val scope = CoroutineScope(Dispatchers.IOBridge + parent)
+
+        try {
+            val server = scope.httpServer(HttpServerSettings(host = "127.0.0.1", port = 0)) {}
+            server.serverSocket.await().close()
+
+            assertNotNull(
+                withTimeoutOrNull(2.seconds) { server.rootServerJob.join() },
+                "Server did not stop after the server socket was closed"
+            )
+            assertTrue(server.acceptJob.isCancelled, "Accept loop should stop when the server socket is closed")
+            assertTrue(parent.isActive, "Closing the server socket should not fail the parent scope")
+        } finally {
+            parent.cancel()
+        }
     }
 
     @Test

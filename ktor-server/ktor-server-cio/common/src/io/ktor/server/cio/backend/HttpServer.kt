@@ -67,8 +67,11 @@ public fun CoroutineScope.httpServer(
                     val client: Socket = try {
                         server.accept()
                     } catch (cause: IOException) {
+                        // Platforms report a closed server socket differently (e.g. "Selectable closed" on Native)
                         if (server.isClosed) {
-                            throw cause
+                            LOGGER.trace("Server socket closed", cause)
+                            coroutineContext.cancel()
+                            break
                         }
                         LOGGER.trace(cause) { "Failed to accept connection; retry in $ACCEPT_DELAY_RETRY ms" }
                         delay(ACCEPT_DELAY_RETRY.milliseconds)
