@@ -13,9 +13,11 @@ import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlinx.io.IOException
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 private val LOGGER = KtorSimpleLogger("io.ktor.server.cio.HttpServer")
+private const val ACCEPT_DELAY_RETRY = 100
 
 /**
  * Start an http server with [settings] invoking [handler] for every request
@@ -37,12 +39,12 @@ public fun CoroutineScope.httpServer(
     ) {
         serverLatch.join()
     }
-
+    val serverScope = CoroutineScope(coroutineContext + serverJob)
     val selector = SelectorManager(coroutineContext)
     val timeout = settings.connectionIdleTimeoutSeconds.seconds
     val rootConnectionJob = SupervisorJob(serverJob)
 
-    val acceptJob = launch(serverJob + CoroutineName("accept-$settings")) {
+    val acceptJob = serverScope.launch(CoroutineName("accept-$settings")) {
         val serverSocket = aSocket(selector).tcp().bind(settings.host, settings.port) {
             reuseAddress = settings.reuseAddress
         }
@@ -65,7 +67,11 @@ public fun CoroutineScope.httpServer(
                     val client: Socket = try {
                         server.accept()
                     } catch (cause: IOException) {
-                        LOGGER.trace("Failed to accept connection", cause)
+                        if (server.isClosed) {
+                            throw cause
+                        }
+                        LOGGER.trace(cause) { "Failed to accept connection; retry in $ACCEPT_DELAY_RETRY ms" }
+                        delay(ACCEPT_DELAY_RETRY.milliseconds)
                         continue
                     }
 
