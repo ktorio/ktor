@@ -15,9 +15,11 @@ import kotlinx.coroutines.*
 import kotlinx.io.IOException
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 private val LOGGER = KtorSimpleLogger("io.ktor.server.cio.backend.UnixSocketServer")
+private const val ACCEPT_DELAY_RETRY = 100
 
 /**
  * Start an http server with [settings] invoking [handler] for every request
@@ -39,11 +41,12 @@ public fun CoroutineScope.unixSocketServer(
     ) {
         serverLatch.join()
     }
+    val serverScope = CoroutineScope(coroutineContext + serverJob)
 
     val selector = SelectorManager(coroutineContext)
     val timeout = settings.connectionIdleTimeoutSeconds.seconds
 
-    val acceptJob = launch(serverJob + CoroutineName("accept-$settings")) {
+    val acceptJob = serverScope.launch(CoroutineName("accept-$settings")) {
         val socketFile = Path(settings.socketPath)
         if (SystemFileSystem.exists(socketFile)) {
             SystemFileSystem.delete(socketFile)
@@ -69,7 +72,13 @@ public fun CoroutineScope.unixSocketServer(
                     val client: Socket = try {
                         server.accept()
                     } catch (cause: IOException) {
-                        LOGGER.trace("Failed to accept connection", cause)
+                        if (server.isClosed) {
+                            LOGGER.trace("Server socket closed", cause)
+                            coroutineContext.cancel()
+                            break
+                        }
+                        LOGGER.trace(cause) { "Failed to accept connection; retry in $ACCEPT_DELAY_RETRY ms" }
+                        delay(ACCEPT_DELAY_RETRY.milliseconds)
                         continue
                     }
 
