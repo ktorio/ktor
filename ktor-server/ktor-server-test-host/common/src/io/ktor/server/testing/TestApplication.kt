@@ -75,6 +75,7 @@ public class TestApplication internal constructor(
         Created,
         Starting,
         Started,
+        Stopping,
         Stopped,
     }
 
@@ -102,7 +103,7 @@ public class TestApplication internal constructor(
                 server.startSuspend()
                 externalServices.externalApplications.values.forEach { it.start() }
             } finally {
-                state.value = State.Started
+                state.compareAndSet(State.Starting, State.Started)
                 applicationStarting.complete()
             }
         }
@@ -117,10 +118,19 @@ public class TestApplication internal constructor(
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplication.stop)
      */
     public suspend fun stop() {
-        state.value = State.Stopped
-        server.stopSuspend()
-        externalServices.externalApplications.values.forEach { it.stop() }
-        client.close()
+        while (true) {
+            val currentState = state.value
+            if (currentState == State.Stopping || currentState == State.Stopped) return
+            if (state.compareAndSet(currentState, State.Stopping)) break
+        }
+
+        try {
+            server.stopSuspend()
+            externalServices.externalApplications.values.forEach { it.stop() }
+            client.close()
+        } finally {
+            state.value = State.Stopped
+        }
     }
 }
 
@@ -509,15 +519,18 @@ public suspend fun runTestApplication(
     block: suspend ApplicationTestBuilder.() -> Unit
 ) {
     val builder = ApplicationTestBuilder()
-    with(builder) {
-        if (parentCoroutineContext != EmptyCoroutineContext) {
-            serverConfig {
-                this.parentCoroutineContext = parentCoroutineContext
-            }
-        }
-        withContext(parentCoroutineContext) { block() }
-    }
     val testApplication = builder.testApplication
-    testApplication.start()
-    testApplication.stop()
+    try {
+        with(builder) {
+            if (parentCoroutineContext != EmptyCoroutineContext) {
+                serverConfig {
+                    this.parentCoroutineContext = parentCoroutineContext
+                }
+            }
+            withContext(parentCoroutineContext) { block() }
+        }
+        testApplication.start()
+    } finally {
+        testApplication.stop()
+    }
 }

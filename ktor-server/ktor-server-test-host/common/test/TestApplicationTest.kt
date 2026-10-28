@@ -244,6 +244,22 @@ class TestApplicationTest {
     }
 
     @Test
+    fun `stop emits ApplicationStopping once`() = testApplication {
+        var stoppingEvents = 0
+        application {
+            monitor.subscribe(ApplicationStopping) {
+                stoppingEvents++
+            }
+        }
+
+        startApplication()
+        testApplication.stop()
+        testApplication.stop()
+
+        assertEquals(1, stoppingEvents)
+    }
+
+    @Test
     fun testManualStartAndClientCallAfter() = testApplication {
         externalServices {
             hosts("https://test.com") {
