@@ -43,7 +43,7 @@ internal class JsWebSocketSession(
     override val extensions: List<WebSocketExtension<*>>
         get() = emptyList()
 
-    override val closeReason: Deferred<CloseReason?> = _closeReason
+    override val closeReason: Deferred<CloseReason> = _closeReason
 
     override var pingIntervalMillis: Long
         get() = throw WebSocketException("Websocket ping-pong is not supported in JS engine.")

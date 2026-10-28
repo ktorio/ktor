@@ -56,7 +56,7 @@ internal class OkHttpWebsocketSession(
         Channel.from<Frame>(channelsConfig.incoming)
     }
     private val _outgoing = Channel.from<Frame>(channelsConfig.outgoing)
-    private val _closeReason = CompletableDeferred<CloseReason?>()
+    private val _closeReason = CompletableDeferred<CloseReason>()
 
     override val incoming: ReceiveChannel<Frame>
         get() = _incoming
@@ -64,7 +64,7 @@ internal class OkHttpWebsocketSession(
     override val outgoing: SendChannel<Frame>
         get() = _outgoing
 
-    override val closeReason: Deferred<CloseReason?>
+    override val closeReason: Deferred<CloseReason>
         get() = _closeReason
 
     @OptIn(InternalAPI::class)
@@ -148,6 +148,8 @@ internal class OkHttpWebsocketSession(
 
         if (statusCode == HttpStatusCode.Unauthorized.value) {
             originResponse.complete(response)
+            // this branch means a failed handshake
+            // we don't care about _closeReason, as `this` session object won't be available to the user
             _incoming.close()
             outgoing.close()
         } else {
