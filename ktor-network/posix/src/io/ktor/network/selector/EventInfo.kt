@@ -4,6 +4,7 @@
 
 package io.ktor.network.selector
 
+import kotlinx.coroutines.CancellableContinuation
 import kotlin.coroutines.*
 
 internal data class EventInfo(
@@ -11,6 +12,8 @@ internal data class EventInfo(
     val interest: SelectInterest,
     private val continuation: Continuation<Unit>
 ) {
+    val isActive: Boolean
+        get() = (continuation as? CancellableContinuation<*>)?.isActive ?: true
 
     fun complete() {
         continuation.resume(Unit)
