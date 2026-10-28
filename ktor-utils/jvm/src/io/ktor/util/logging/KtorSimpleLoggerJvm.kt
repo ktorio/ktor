@@ -7,7 +7,7 @@ package io.ktor.util.logging
 import org.slf4j.*
 
 private val isAndroid = try {
-    Class.forName("android.os.Build")
+    Class.forName("android.os.Build", false, Logger::class.java.classLoader)
     true
 } catch (_: ClassNotFoundException) {
     false
