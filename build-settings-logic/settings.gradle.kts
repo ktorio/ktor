@@ -45,7 +45,7 @@ rootProject.name = "build-settings-logic"
 // region Build Cache Settings
 develocity {
     // Should be in sync with ktorbuild.develocity.settings.gradle.kts
-    server = "https://ge.jetbrains.com"
+    server = "https://develocity.jetbrains.com"
 }
 
 val isCIRun = providers.environmentVariable("TEAMCITY_VERSION").isPresent
