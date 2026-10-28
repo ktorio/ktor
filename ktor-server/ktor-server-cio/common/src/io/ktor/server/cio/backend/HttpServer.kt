@@ -13,6 +13,7 @@ import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import kotlinx.io.IOException
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
@@ -24,32 +25,42 @@ private const val ACCEPT_DELAY_RETRY = 100
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.cio.backend.httpServer)
  */
-@OptIn(InternalAPI::class)
 public fun CoroutineScope.httpServer(
     settings: HttpServerSettings,
     handler: HttpRequestHandler
+): HttpServer = launchServer(
+    settings.host,
+    settings.connectionIdleTimeoutSeconds.seconds,
+    handler,
+) { selector: SelectorManager ->
+    aSocket(selector).tcp().bind(settings.host, settings.port) {
+        reuseAddress = settings.reuseAddress
+    }
+}
+
+@OptIn(InternalAPI::class)
+internal fun CoroutineScope.launchServer(
+    serverName: String,
+    connectionIdleTimeout: Duration,
+    handler: HttpRequestHandler,
+    createServerSocket: suspend (SelectorManager) -> ServerSocket
 ): HttpServer {
     val socket = CompletableDeferred<ServerSocket>()
 
     val serverLatch: CompletableJob = Job()
 
     val serverJob = launch(
-        context = CoroutineName("server-root-$settings"),
+        context = CoroutineName("server-root-$serverName"),
         start = CoroutineStart.UNDISPATCHED
     ) {
         serverLatch.join()
     }
     val serverScope = CoroutineScope(coroutineContext + serverJob)
     val selector = SelectorManager(coroutineContext)
-    val timeout = settings.connectionIdleTimeoutSeconds.seconds
     val rootConnectionJob = SupervisorJob(serverJob)
 
-    val acceptJob = serverScope.launch(CoroutineName("accept-$settings")) {
-        val serverSocket = aSocket(selector).tcp().bind(settings.host, settings.port) {
-            reuseAddress = settings.reuseAddress
-        }
-
-        serverSocket.use { server ->
+    val acceptJob = serverScope.launch(CoroutineName("accept-$serverName")) {
+        createServerSocket(selector).use { server ->
             socket.complete(server)
 
             val exceptionHandler = coroutineContext[CoroutineExceptionHandler]
@@ -87,7 +98,7 @@ public fun CoroutineScope.httpServer(
 
                     val clientJob = connectionScope.startServerConnectionPipeline(
                         connection,
-                        timeout,
+                        connectionIdleTimeout,
                         handler
                     )
 
