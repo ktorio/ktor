@@ -12,6 +12,7 @@ import io.ktor.server.servlet.jakarta.*
 import jakarta.servlet.MultipartConfigElement
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CompletableJob
+import org.apache.catalina.LifecycleException
 import org.apache.catalina.connector.Connector
 import org.apache.catalina.startup.Tomcat
 import org.apache.coyote.http2.Http2Protocol
@@ -23,6 +24,7 @@ import org.apache.tomcat.util.net.SSLImplementation
 import org.apache.tomcat.util.net.jsse.JSSEImplementation
 import org.apache.tomcat.util.net.openssl.OpenSSLImplementation
 import org.slf4j.Logger
+import java.net.BindException
 import java.nio.file.Files
 import kotlin.coroutines.CoroutineContext
 
@@ -163,8 +165,26 @@ public class TomcatApplicationEngine(
     }
 
     private val stopped = atomic(false)
+    private val released = atomic(false)
 
     override fun start(wait: Boolean): TomcatApplicationEngine {
+        // Tomcat only logs a connector that fails to initialize (for example, a port in use) and starts without it.
+        // Connectors bind during init, so make only init fail and leave start and stop as Tomcat handles them.
+        val tomcatConnectors = server.server.findServices().flatMap { it.findConnectors().asList() }
+        val throwOnFailure = tomcatConnectors.map { it.throwOnFailure }
+        tomcatConnectors.forEach { it.throwOnFailure = true }
+        val initFailure = try {
+            server.init()
+            null
+        } catch (cause: LifecycleException) {
+            cause
+        }
+        tomcatConnectors.zip(throwOnFailure).forEach { (connector, previous) -> connector.throwOnFailure = previous }
+        if (initFailure != null) {
+            releaseResources()
+            throw initFailure.findBindException() ?: initFailure
+        }
+
         server.start()
 
         val connectors = server.service.findConnectors().zip(configuration.connectors)
@@ -189,10 +209,29 @@ public class TomcatApplicationEngine(
 
         cancellationJob?.complete()
         monitor.raise(ApplicationStopPreparing, environment)
+        // A failed start has already released Tomcat.
+        if (!released.compareAndSet(expect = false, update = true)) return
+
         server.stop()
         server.destroy()
         tempDirectory.toFile().deleteRecursively()
     }
+
+    private fun releaseResources() {
+        if (!released.compareAndSet(expect = false, update = true)) return
+
+        try {
+            server.stop()
+            server.destroy()
+        } catch (cause: LifecycleException) {
+            environment.log.debug("Failed to release Tomcat after a failed start", cause)
+        } finally {
+            tempDirectory.toFile().deleteRecursively()
+        }
+    }
+
+    private fun Throwable.findBindException(): BindException? =
+        generateSequence(this) { it.cause }.filterIsInstance<BindException>().firstOrNull()
 
     public companion object {
         private val nativeNames = listOf(
