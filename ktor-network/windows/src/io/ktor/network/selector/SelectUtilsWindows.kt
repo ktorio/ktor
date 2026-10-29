@@ -94,18 +94,19 @@ internal actual class SelectorHelper {
             for (descriptor in closeSet) {
                 closeDescriptor(descriptor)
             }
-        }
 
-        val exception = IOException("Selector closed")
-        for (event in watchSet) {
-            if (event.descriptor in closeSet) {
-                if (event.interest == SelectInterest.CLOSE) {
-                    event.complete()
+            watchSet.removeAll(completed)
+            val exception = IOException("Selector closed")
+            for (event in watchSet) {
+                if (event.descriptor in closeSet) {
+                    if (event.interest == SelectInterest.CLOSE) {
+                        event.complete()
+                    } else {
+                        event.fail(IOException("Selectable closed"))
+                    }
                 } else {
-                    event.fail(IOException("Selectable closed"))
+                    event.fail(exception)
                 }
-            } else {
-                event.fail(exception)
             }
         }
     }
@@ -124,6 +125,8 @@ internal actual class SelectorHelper {
             val event = interestQueue.removeFirstOrNull() ?: break
             watchSet.add(event)
         }
+
+        watchSet.removeAll { !it.isActive }
 
         for (descriptor in closeSet) {
             closeDescriptor(descriptor)
