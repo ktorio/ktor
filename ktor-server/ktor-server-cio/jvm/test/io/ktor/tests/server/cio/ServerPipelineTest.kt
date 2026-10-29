@@ -10,6 +10,7 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
+import kotlinx.io.IOException
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.TestInfo
@@ -346,6 +347,65 @@ class ServerPipelineTest : CoroutineScope {
 
         delay(1)
         root.cancelAndJoin()
+    }
+
+    @Test
+    fun `connection closes when a pipelined response fails before writing`(): Unit = runBlocking(coroutineContext) {
+        val input = ByteChannel()
+        val output = ByteChannel()
+        val failedResponseDone = CompletableDeferred<Unit>()
+
+        val connection = ServerIncomingConnection(input, output, null, null)
+        startServerConnectionPipeline(connection, timeout = Duration.INFINITE) { request ->
+            val path = request.uri.toString()
+            request.release()
+            when (path) {
+                "/first" -> {
+                    // The writer is still on this response while the next one fails.
+                    failedResponseDone.await()
+                    this.output.writeStringUtf8("HTTP/1.1 200 OK\r\nContent-Length: 2\r\n\r\nOK")
+                }
+
+                else -> {
+                    coroutineContext.job.invokeOnCompletion { failedResponseDone.complete(Unit) }
+                    this.output.writeStringUtf8("HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n")
+                    this.output.flush()
+                    throw IOException("Response failed")
+                }
+            }
+        }
+
+        input.writeStringUtf8(
+            "GET /first HTTP/1.1\r\nHost: localhost\r\n\r\nGET /fail HTTP/1.1\r\nHost: localhost\r\n\r\n"
+        )
+        input.flush()
+
+        assertEquals("HTTP/1.1 200 OK", output.readLineStrict())
+        assertEquals("Content-Length: 2", output.readLineStrict())
+        assertEquals("", output.readLineStrict())
+        assertEquals("OK", output.readPacket(2).readText())
+
+        val closed = withTimeoutOrNull(5.seconds) { output.discard() }
+        assertNotNull(closed, "The connection stayed open after a response failed before writing any bytes")
+        input.close()
+    }
+
+    @Test
+    fun `writer ends when a response is cancelled`(): Unit = runBlocking(coroutineContext) {
+        val output = ByteChannel()
+        val responses = Channel<ByteReadChannel>(capacity = 1)
+        val response = ByteChannel()
+        response.cancel(IOException("Response failed"))
+        responses.send(response)
+
+        val writer = startServerPipelineWriter(
+            responses,
+            Duration.INFINITE,
+            ServerIncomingConnection(ByteChannel(), output, null, null)
+        )
+
+        assertNotNull(withTimeoutOrNull(1.seconds) { writer.join() }, "The writer kept waiting for responses")
+        assertTrue(output.isClosedForWrite)
     }
 }
 
