@@ -161,7 +161,7 @@ public fun Route.swaggerUI(
 
         get {
             val fullPath =
-                if (pathPrefix.isNotEmpty()) {
+                if (pathPrefix.isNotBlank()) {
                     "/${pathPrefix.trim('/')}${call.request.path()}"
                 } else {
                     call.request.path()
