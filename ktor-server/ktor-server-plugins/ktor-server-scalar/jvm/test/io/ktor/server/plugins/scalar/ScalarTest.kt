@@ -58,6 +58,42 @@ class ScalarTest {
     }
 
     @Test
+    fun testScalarWithPathPrefixFromResources() = testApplication {
+        val prefix = "prefix"
+        routing {
+            scalarUI("scalar") {
+                pathPrefix = prefix
+            }
+        }
+
+        val response = client.get("/scalar").bodyAsText()
+        assertEquals(
+            """
+            <!DOCTYPE html>
+            <html>
+              <head>
+                <title>Scalar API Reference</title>
+                <meta charset="utf-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1">
+              </head>
+              <body>
+                <div id="app"></div>
+                <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
+                <script>Scalar.createApiReference('#app', {
+                spec: { url: '/$prefix/scalar/documentation.yaml' },
+                theme: 'purple',
+                layout: 'modern',
+                showSidebar: true
+            });</script>
+              </body>
+            </html>
+
+            """.trimIndent(),
+            response
+        )
+    }
+
+    @Test
     fun testScalarCustomConfiguration() = testApplication {
         routing {
             scalarUI("scalar") {

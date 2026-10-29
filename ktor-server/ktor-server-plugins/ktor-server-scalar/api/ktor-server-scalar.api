@@ -9,6 +9,7 @@ public final class io/ktor/server/plugins/scalar/ScalarConfig : io/ktor/openapi/
 	public fun getInfo ()Lio/ktor/openapi/OpenApiInfo;
 	public final fun getLayout ()Ljava/lang/String;
 	public fun getOpenapiVersion ()Ljava/lang/String;
+	public final fun getPathPrefix ()Ljava/lang/String;
 	public final fun getRemotePath ()Ljava/lang/String;
 	public final fun getShowSidebar ()Z
 	public final fun getSource ()Lio/ktor/server/routing/openapi/OpenApiDocSource;
@@ -22,6 +23,7 @@ public final class io/ktor/server/plugins/scalar/ScalarConfig : io/ktor/openapi/
 	public fun setInfo (Lio/ktor/openapi/OpenApiInfo;)V
 	public final fun setLayout (Ljava/lang/String;)V
 	public fun setOpenapiVersion (Ljava/lang/String;)V
+	public final fun setPathPrefix (Ljava/lang/String;)V
 	public final fun setRemotePath (Ljava/lang/String;)V
 	public final fun setShowSidebar (Z)V
 	public final fun setSource (Lio/ktor/server/routing/openapi/OpenApiDocSource;)V

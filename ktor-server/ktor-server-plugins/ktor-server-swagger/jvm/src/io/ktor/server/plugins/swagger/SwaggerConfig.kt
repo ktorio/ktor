@@ -31,6 +31,13 @@ public class SwaggerConfig private constructor(
     )
 
     /**
+     * Path prefix used when generating HTML.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.swagger.SwaggerConfig.pathPrefix)
+     */
+    public var pathPrefix: String = ""
+
+    /**
      * Relative path from the swagger URL root to the specification file.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.swagger.SwaggerConfig.remotePath)

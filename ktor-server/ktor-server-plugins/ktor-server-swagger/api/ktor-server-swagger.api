@@ -10,6 +10,7 @@ public final class io/ktor/server/plugins/swagger/SwaggerConfig : io/ktor/openap
 	public final fun getOauth2RedirectUrl ()Ljava/lang/String;
 	public fun getOpenapiVersion ()Ljava/lang/String;
 	public final fun getPackageLocation ()Ljava/lang/String;
+	public final fun getPathPrefix ()Ljava/lang/String;
 	public final fun getRemotePath ()Ljava/lang/String;
 	public final fun getSource ()Lio/ktor/server/routing/openapi/OpenApiDocSource;
 	public final fun getVersion ()Ljava/lang/String;
@@ -23,6 +24,7 @@ public final class io/ktor/server/plugins/swagger/SwaggerConfig : io/ktor/openap
 	public final fun setOauth2RedirectUrl (Ljava/lang/String;)V
 	public fun setOpenapiVersion (Ljava/lang/String;)V
 	public final fun setPackageLocation (Ljava/lang/String;)V
+	public final fun setPathPrefix (Ljava/lang/String;)V
 	public final fun setRemotePath (Ljava/lang/String;)V
 	public final fun setSource (Lio/ktor/server/routing/openapi/OpenApiDocSource;)V
 	public final fun setVersion (Ljava/lang/String;)V
