@@ -161,8 +161,11 @@ public fun Route.swaggerUI(
 
         get {
             val fullPath =
-                if (pathPrefix.isNotEmpty()) "/${pathPrefix.trim('/')}${call.request.path()}"
-                else call.request.path()
+                if (pathPrefix.isNotEmpty()) {
+                    "/${pathPrefix.trim('/')}${call.request.path()}"
+                } else {
+                    call.request.path()
+                }
             val oauth2RedirectUrlJs = config.oauth2RedirectUrl?.let { "'$it'" }
                 ?: "window.location.origin + '$fullPath/oauth2-redirect.html'"
             val docExpansion = runCatching {
