@@ -125,16 +125,15 @@ public fun Route.swaggerUI(
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.swagger.swaggerUI)
  *
  * @param path The root path where the Swagger UI will be available.
- * @param prefix Optional route prefix used solely in HTML codegen
  * @param block Configuration block for customizing the Swagger UI, such as defining the OpenAPI specification source.
  */
 public fun Route.swaggerUI(
     path: String,
-    prefix: String? = null,
     block: SwaggerConfig.() -> Unit = {}
 ): Route {
     val config = SwaggerConfig().apply(block)
     val source = config.source
+    val pathPrefix = config.pathPrefix
     val apiUrl = config.remotePath
     val log = application.log
     val openApiDoc = with(application) {
@@ -161,9 +160,9 @@ public fun Route.swaggerUI(
         }.hide()
 
         get {
-            val fullPath = prefix?.apply {
-                "/" + trim('/') + call.request.path()
-            } ?: call.request.path()
+            val fullPath =
+                if (pathPrefix.isNotEmpty()) "/${pathPrefix.trim('/')}${call.request.path()}"
+                else call.request.path()
             val oauth2RedirectUrlJs = config.oauth2RedirectUrl?.let { "'$it'" }
                 ?: "window.location.origin + '$fullPath/oauth2-redirect.html'"
             val docExpansion = runCatching {
