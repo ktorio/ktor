@@ -32,7 +32,7 @@ internal class DatagramSendChannel(
                 return@readFromHead 0
             }
 
-            val bytesWritten = sendto(element, bytes, startIndex, length)
+            val bytesWritten = socket.useDescriptor { sendto(element, bytes, startIndex, length) }
 
             when (bytesWritten) {
                 0 -> throw IOException("Failed writing to closed socket")
@@ -54,7 +54,7 @@ internal class DatagramSendChannel(
                 val length = element.packet.remaining.toInt()
                 element.packet.peek().readTo(buffer, endIndex = length)
 
-                val bytesWritten = sendto(element, buffer, 0, length)
+                val bytesWritten = socket.useDescriptor { sendto(element, buffer, 0, length) }
 
                 when (bytesWritten) {
                     0 -> throw IOException("Failed writing to closed socket")
@@ -138,7 +138,7 @@ internal class DatagramSendChannel(
         offset: Int,
         length: Int
     ) {
-        val bytesWritten: Int = sendto(datagram, buffer, offset, length)
+        val bytesWritten: Int = socket.useDescriptor { sendto(datagram, buffer, offset, length) }
 
         when (bytesWritten) {
             0 -> throw IOException("Failed writing to closed socket")

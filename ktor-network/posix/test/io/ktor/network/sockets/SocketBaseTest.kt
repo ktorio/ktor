@@ -95,6 +95,35 @@ class SocketBaseTest {
         }
     }
 
+    @Test
+    fun `close waits for a descriptor call to return`() = runTest {
+        val socket = TestSocket { error("No channel in this test") }
+
+        val closesDuringCall = socket.useDescriptor {
+            socket.close()
+            socket.closeCount
+        }
+
+        assertEquals(0, closesDuringCall, "The descriptor call still owns the descriptor")
+        socket.awaitClosed()
+        assertEquals(1, socket.closeCount)
+    }
+
+    @Test
+    fun `descriptor calls fail once the descriptor is closed`() = runTest {
+        val socket = TestSocket { error("No channel in this test") }
+        socket.close()
+        socket.awaitClosed()
+
+        assertFailsWith<IOException> {
+            socket.useDescriptor { fail("The descriptor is already closed") }
+        }
+        assertFailsWith<IOException> {
+            socket.attachForReading(ByteChannel())
+        }
+        assertEquals(1, socket.closeCount)
+    }
+
     private class TestSocket(
         private val attach: TestSocket.(ByteChannel) -> WriterJob
     ) : SocketBase(EmptyCoroutineContext) {
