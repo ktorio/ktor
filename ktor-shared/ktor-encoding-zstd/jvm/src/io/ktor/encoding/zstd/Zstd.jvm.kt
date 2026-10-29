@@ -50,13 +50,13 @@ public class Zstd(private val compressionLevel: Int) : Encoder {
             channel.encodeTo(source, KtorDefaultDirectPool, compressionLevel)
         }.channel
 
-    @OptIn(DelicateCoroutinesApi::class)
+    @OptIn(DelicateCoroutinesApi::class, InternalAPI::class)
     override fun decode(
         source: ByteReadChannel,
         coroutineContext: CoroutineContext
     ): ByteReadChannel = GlobalScope.writer(coroutineContext) {
         source.decodeTo(channel, KtorDefaultDirectPool)
-    }.channel
+    }.also { source.attachWriterJob(it) }.channel
 
     internal suspend fun ByteReadChannel.decodeTo(
         destination: ByteWriteChannel,
