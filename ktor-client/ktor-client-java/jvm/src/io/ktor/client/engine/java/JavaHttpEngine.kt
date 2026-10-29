@@ -9,6 +9,7 @@ import io.ktor.client.plugins.*
 import io.ktor.client.plugins.sse.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
+import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.asExecutor
@@ -29,17 +30,23 @@ public class JavaHttpEngine(override val config: JavaHttpConfig) : HttpClientEng
     public override val supportedCapabilities: Set<HttpClientEngineCapability<*>> =
         setOf(HttpTimeoutCapability, WebSocketCapability, SSECapability)
 
-    private var httpClient: HttpClient? = null
+    @OptIn(InternalAPI::class)
+    @Volatile
+    private var clientCache: Map<Long?, HttpClient>? =
+        createLRUCache(::createJavaHttpClient, {}, config.clientCacheSize)
 
     init {
+        // HttpClient can't be closed before JDK 21, but releasing it stops its threads and connections
         coroutineContext.job.invokeOnCompletion {
-            httpClient = null
+            clientCache = null
         }
     }
 
     @OptIn(InternalAPI::class)
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
-        val engine = getJavaHttpClient(data)
+        val connectTimeout = data.getCapabilityOrNull(HttpTimeoutCapability)?.connectTimeoutMillis
+        val cache = clientCache ?: throw ClientEngineClosedException()
+        val engine = cache.getValue(connectTimeout)
         val callContext = callContext()
 
         return try {
@@ -54,26 +61,18 @@ public class JavaHttpEngine(override val config: JavaHttpConfig) : HttpClientEng
         }
     }
 
-    private fun getJavaHttpClient(data: HttpRequestData): HttpClient {
-        return httpClient ?: synchronized(this) {
-            httpClient ?: HttpClient.newBuilder().apply {
-                version(protocolVersion)
-                executor(dispatcher.asExecutor())
+    private fun createJavaHttpClient(connectTimeoutMillis: Long?): HttpClient = HttpClient.newBuilder().apply {
+        version(protocolVersion)
+        executor(dispatcher.asExecutor())
 
-                apply(config.config)
+        apply(config.config)
 
-                setupProxy()
+        setupProxy()
 
-                data.getCapabilityOrNull(HttpTimeoutCapability)?.let { timeoutAttribute ->
-                    timeoutAttribute.connectTimeoutMillis?.let {
-                        if (!isTimeoutInfinite(it)) connectTimeout(Duration.ofMillis(it))
-                    }
-                }
-            }.build().also {
-                httpClient = it
-            }
+        connectTimeoutMillis?.let {
+            if (!isTimeoutInfinite(it)) connectTimeout(Duration.ofMillis(it))
         }
-    }
+    }.build()
 
     private fun HttpClient.Builder.setupProxy() {
         val proxy = config.proxy ?: return
