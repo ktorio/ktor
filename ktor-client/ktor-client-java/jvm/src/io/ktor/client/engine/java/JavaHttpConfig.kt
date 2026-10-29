@@ -21,6 +21,13 @@ public class JavaHttpConfig : HttpClientEngineConfig() {
      */
     public var protocolVersion: HttpClient.Version = HttpClient.Version.HTTP_2
 
+    /**
+     * Specifies the size of cache that keeps recently used [HttpClient] instances.
+     * A separate instance is created for each distinct connect timeout set by the `HttpTimeout` plugin.
+     * Set this property to `0` to disable caching.
+     */
+    internal var clientCacheSize: Int = 10
+
     internal var config: HttpClient.Builder.() -> Unit = {
         followRedirects(HttpClient.Redirect.NEVER)
     }
