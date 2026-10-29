@@ -36,6 +36,7 @@
 * [KTOR-10035](https://youtrack.jetbrains.com/issue/KTOR-10035) WebSocket drops the queued Close frame when the server session fails
 * [KTOR-10036](https://youtrack.jetbrains.com/issue/KTOR-10036) testApplication: WebSocket client stops reading before the servers Close reply arrives
 
+
 # 3.6.0
 > Published 16 September 2026
 
