@@ -44,6 +44,7 @@ import kotlinx.coroutines.*
 import org.junit.jupiter.api.Test
 import org.slf4j.LoggerFactory
 import java.io.IOException
+import java.lang.management.ManagementFactory
 import java.net.BindException
 import java.net.ServerSocket
 import java.util.concurrent.ExecutorService
@@ -62,6 +63,80 @@ class NettySpecificTest {
         repeat(100000) {
             embeddedServer(Netty, serverConfig { })
         }
+    }
+
+    @Test
+    fun `stop without start does not start event loops`() {
+        val server = embeddedServer(Netty) {}
+        val groupThreads = with(server.engineConfig) { connectionGroupSize + workerGroupSize + callGroupSize }
+        val threads = ManagementFactory.getThreadMXBean()
+
+        val startedBefore = threads.totalStartedThreadCount
+        server.stop(0, 100, TimeUnit.SECONDS)
+        val started = threads.totalStartedThreadCount - startedBefore
+
+        assertTrue(started < groupThreads, "Stopping a server that never started started $started threads")
+    }
+
+    @Test
+    fun `start after stop does not start the server`() {
+        val server = embeddedServer(Netty, port = 0) {}
+        server.stop(0, 100, TimeUnit.SECONDS)
+
+        try {
+            assertFails { server.start(wait = false) }
+        } finally {
+            server.stop(0, 100, TimeUnit.SECONDS)
+        }
+    }
+
+    @Test
+    fun `stop without start shuts down groups passed to configureBootstrap`() {
+        val connectionGroup = MultiThreadIoEventLoopGroup(1, NioIoHandler.newFactory())
+        val workerGroup = MultiThreadIoEventLoopGroup(1, NioIoHandler.newFactory())
+        val server = embeddedServer(Netty, configure = {
+            configureBootstrap = { group(connectionGroup, workerGroup) }
+        }) {}
+
+        try {
+            server.stop(0, 100, TimeUnit.SECONDS)
+
+            assertTrue(connectionGroup.isShuttingDown, "Connection group passed to configureBootstrap is still running")
+            assertTrue(workerGroup.isShuttingDown, "Worker group passed to configureBootstrap is still running")
+        } finally {
+            connectionGroup.shutdownGracefully(0, 0, TimeUnit.SECONDS)
+            workerGroup.shutdownGracefully(0, 0, TimeUnit.SECONDS)
+        }
+    }
+
+    @Test
+    fun `failed start shuts down the connection group passed to configureBootstrap`() {
+        val socket = ServerSocket(0)
+        val connectionGroup = MultiThreadIoEventLoopGroup(1, NioIoHandler.newFactory())
+        val workerGroup = MultiThreadIoEventLoopGroup(1, NioIoHandler.newFactory())
+        val server = embeddedServer(Netty, configure = {
+            connector { port = socket.localPort }
+            configureBootstrap = { group(connectionGroup, workerGroup) }
+        }) {}
+
+        try {
+            assertFailsWith<BindException> { server.start(wait = false) }
+
+            assertTrue(connectionGroup.isShuttingDown, "Connection group passed to configureBootstrap is still running")
+        } finally {
+            socket.close()
+            connectionGroup.shutdownGracefully(0, 0, TimeUnit.SECONDS)
+            workerGroup.shutdownGracefully(0, 0, TimeUnit.SECONDS)
+        }
+    }
+
+    @Test
+    fun `stop without start does not throw when configureBootstrap fails`() {
+        val server = embeddedServer(Netty, configure = {
+            configureBootstrap = { error("Bootstrap configuration failed") }
+        }) {}
+
+        server.engine.stop(0, 100)
     }
 
     // Doesn't work with real time
