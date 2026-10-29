@@ -5,6 +5,7 @@
 package io.ktor.server.plugins.ratelimit
 
 import io.ktor.util.date.*
+import kotlinx.coroutines.awaitCancellation
 import kotlin.time.*
 
 /**
@@ -79,7 +80,7 @@ public interface RateLimiter {
             refillRate: Duration,
             clock: () -> Long = ::getTimeMillis
         ): RateLimiter {
-            return IncrementalRateLimiter(limit, refillRate, clock)
+            return RateLimiterIncrementalBucket(limit, refillRate, clock)
         }
     }
 }
