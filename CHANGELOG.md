@@ -33,7 +33,8 @@
 * [KTOR-9790](https://youtrack.jetbrains.com/issue/KTOR-9790) testApplication: `sseSession()` never returns when the SSE route installs a `heartbeat`
 * [KTOR-9884](https://youtrack.jetbrains.com/issue/KTOR-9884) Directories are returned as empty binaries when using nested jars
 * [KTOR-4245](https://youtrack.jetbrains.com/issue/KTOR-4245) Code snippet in Kdoc for DefaultRequest doesn't compile
-
+* [KTOR-10035](https://youtrack.jetbrains.com/issue/KTOR-10035) WebSocket drops the queued Close frame when the server session fails
+* [KTOR-10036](https://youtrack.jetbrains.com/issue/KTOR-10036) testApplication: WebSocket client stops reading before the servers Close reply arrives
 
 # 3.6.0
 > Published 16 September 2026
