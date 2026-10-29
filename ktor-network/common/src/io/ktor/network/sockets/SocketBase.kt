@@ -21,9 +21,14 @@ internal abstract class SocketBase(
 
     private val readerJob = atomic<ReaderJob?>(null)
     private val writerJob = atomic<WriterJob?>(null)
+    private val activeChannels = atomic(0)
 
-    // Declare the lambda as a class field because of KTOR-8525
-    private val channelCompletionHandler: (Throwable?) -> Unit = { checkChannels() }
+    // Declare the lambdas as class fields because of KTOR-8525
+    private val channelCompletionHandler: (Throwable?) -> Unit = {
+        activeChannels.decrementAndGet()
+        checkChannels()
+    }
+    private val closeCompletionHandler: (Throwable?) -> Unit = { checkChannels() }
 
     override val socketContext: CompletableJob = Job(parent[Job])
 
@@ -39,10 +44,12 @@ internal abstract class SocketBase(
         if (!closeFlag.compareAndSet(expect = false, update = true)) return
 
         launch(CoroutineName("socket-close")) {
-            readerJob.value?.flushAndClose()
-            writerJob.value?.cancel()
-            checkChannels()
-        }
+            try {
+                readerJob.value?.flushAndClose()
+            } finally {
+                writerJob.value?.cancel()
+            }
+        }.invokeOnCompletion(closeCompletionHandler) // Also runs when the socket context is already cancelled
     }
 
     final override fun attachForReading(channel: ByteChannel): WriterJob {
@@ -62,13 +69,23 @@ internal abstract class SocketBase(
         ref: AtomicRef<J?>,
         producer: (ByteChannel) -> J,
     ): J {
-        if (closeFlag.value) {
-            val e = IOException("Socket closed")
-            channel.close(e)
-            throw e
+        // Closing must wait for I/O even before its job is published or if the attachment is rejected.
+        activeChannels.incrementAndGet()
+        val j = try {
+            if (closeFlag.value) {
+                val e = IOException("Socket closed")
+                channel.close(e)
+                throw e
+            }
+
+            producer(channel)
+        } catch (cause: Throwable) {
+            activeChannels.decrementAndGet()
+            checkChannels()
+            throw cause
         }
 
-        val j = producer(channel)
+        j.invokeOnCompletion(channelCompletionHandler)
 
         if (!ref.compareAndSet(null, j)) {
             val e = IllegalStateException("$name channel has already been set")
@@ -84,15 +101,13 @@ internal abstract class SocketBase(
 
         channel.attachJob(j)
 
-        j.invokeOnCompletion(channelCompletionHandler)
-
         return j
     }
 
     internal abstract fun actualClose(): Throwable?
 
     private fun checkChannels() {
-        if (closeFlag.value && readerJob.completedOrNotStarted && writerJob.completedOrNotStarted) {
+        if (closeFlag.value && activeChannels.value == 0) {
             if (!actualCloseFlag.compareAndSet(expect = false, update = true)) return
 
             val e1 = readerJob.exception
@@ -117,9 +132,6 @@ internal abstract class SocketBase(
             e1
         }
     }
-
-    private inline val AtomicRef<out ChannelJob?>.completedOrNotStarted: Boolean
-        get() = value.let { it == null || it.isCompleted }
 
     private inline val AtomicRef<out ChannelJob?>.exception: Throwable?
         get() = value?.takeIf { it.isCancelled }
