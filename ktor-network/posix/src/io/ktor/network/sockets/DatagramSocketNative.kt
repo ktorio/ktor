@@ -76,22 +76,25 @@ internal class DatagramSocketNative(
         clientAddressLength.value = sizeOf<sockaddr_storage>().convert()
 
         DefaultDatagramByteArrayPool.useInstance { buffer ->
-            val bytesRead = buffer.usePinned { pinned ->
-                ktor_recvfrom(
-                    descriptor,
-                    pinned.addressOf(0),
-                    buffer.size.convert(),
-                    0,
-                    clientAddress.ptr.reinterpret(),
-                    clientAddressLength.ptr
-                ).toLong()
-            }
-
-            if (bytesRead == -1L) {
-                val error = getSocketError()
-                if (isWouldBlockError(error)) return null
-                if (error == 0) return null
-                throw PosixException.forSocketError(error)
+            // The socket error is read before the descriptor is released, because closing the socket can overwrite it.
+            val bytesRead = useDescriptor {
+                val result = buffer.usePinned { pinned ->
+                    ktor_recvfrom(
+                        descriptor,
+                        pinned.addressOf(0),
+                        buffer.size.convert(),
+                        0,
+                        clientAddress.ptr.reinterpret(),
+                        clientAddressLength.ptr
+                    ).toLong()
+                }
+                if (result == -1L) {
+                    val error = getSocketError()
+                    if (isWouldBlockError(error)) return null
+                    if (error == 0) return null
+                    throw PosixException.forSocketError(error)
+                }
+                result
             }
             val address = clientAddress.reinterpret<sockaddr>().toNativeSocketAddress()
 
