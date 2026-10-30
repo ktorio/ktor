@@ -25,6 +25,7 @@ import io.ktor.server.response.ResponseHeaders
 import io.ktor.utils.io.ByteReadChannel
 import io.ktor.utils.io.ByteWriteChannel
 import io.ktor.utils.io.InternalAPI
+import io.ktor.utils.io.writeFully
 import kotlinx.coroutines.CoroutineScope
 import kron.TcpConnection
 import kotlin.coroutines.CoroutineContext
@@ -253,10 +254,10 @@ internal class KronApplicationResponse(
     }
 
     override suspend fun respondFromBytes(bytes: ByteArray) {
-        headers[HttpHeaders.ContentLength]?.toLong()?.let { length ->
-            if (length != bytes.size.toLong()) {
-                throw IllegalStateException("Content-Length $length, body ${bytes.size} bytes")
-            }
+        // Without a length Ktor has declared the body chunked, and the response channel frames it
+        val length = headers[HttpHeaders.ContentLength]?.toLong() ?: return respondThroughChannel(bytes)
+        if (length != bytes.size.toLong()) {
+            throw IllegalStateException("Content-Length $length, body ${bytes.size} bytes")
         }
 
         // The lock is almost always free: then this stages without suspending, and makes no coroutine frame, as the
@@ -273,6 +274,12 @@ internal class KronApplicationResponse(
     }
 
     private suspend fun stageWhenFree(bytes: ByteArray) = session.sending { stage(bytes) }
+
+    private suspend fun respondThroughChannel(bytes: ByteArray) {
+        val channel = responseChannel()
+        channel.writeFully(bytes)
+        channel.flushAndClose()
+    }
 
     private fun stage(bytes: ByteArray) {
         session.writeHead(statusCode, fields)
