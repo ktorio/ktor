@@ -28,34 +28,7 @@ import kotlin.test.*
 
 abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
-) : EngineTestBase<TEngine, TConfiguration>(hostFactory) {
-    @Test
-    fun testTextContent() = runTest {
-        createAndStartServer {
-            handle {
-                call.respondText("test")
-            }
-        }
-
-        withUrl("/") {
-            assertEquals(200, status.value)
-
-            val fields = HeadersBuilder()
-            fields.appendAll(headers)
-
-            fields.remove(HttpHeaders.Date) // Do not check for Date field since it's unstable
-
-            // Check content type manually because spacing and case can be different per engine
-            val contentType = fields.getAll(HttpHeaders.ContentType)?.single()
-            fields.remove(HttpHeaders.ContentType)
-            assertNotNull(contentType) // Content-Type should be present
-            val parsedContentType = ContentType.parse(contentType) // It should parse
-            assertEquals(ContentType.Text.Plain.withCharset(Charsets.UTF_8), parsedContentType)
-
-            assertEquals("4", headers[HttpHeaders.ContentLength])
-            assertEquals("test", bodyAsText())
-        }
-    }
+) : ContentCommonTestSuite<TEngine, TConfiguration>(hostFactory) {
 
     @Test
     fun testStream() = runTest {
@@ -84,25 +57,6 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
                     write(25)
                     write(37)
                     write(42)
-                }
-            }
-        }
-
-        withUrl("/") {
-            assertEquals(200, status.value)
-            assertEquals(ContentType.Application.OctetStream, contentType())
-            assertTrue(byteArrayOf(25, 37, 42).contentEquals(readRawBytes()))
-        }
-    }
-
-    @Test
-    fun testBinaryUsingChannel() = runTest {
-        createAndStartServer {
-            handle {
-                call.respondBytesWriter {
-                    writeByte(25)
-                    writeByte(37)
-                    writeByte(42)
                 }
             }
         }
@@ -257,192 +211,6 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     }
 
     @Test
-    fun testRequestContentFormData() = runTest {
-        createAndStartServer {
-            handle {
-                val parameters = runCatching { call.receive<Parameters?>() }.getOrNull()
-                if (parameters != null) {
-                    call.respond(parameters.formUrlEncode())
-                } else {
-                    call.respond(HttpStatusCode.UnsupportedMediaType)
-                }
-            }
-        }
-
-        withUrl(
-            "/",
-            {
-                method = HttpMethod.Post
-                setBody(TextContent(parametersOf("a", "1").formUrlEncode(), ContentType.Application.FormUrlEncoded))
-            }
-        ) {
-            assertEquals(200, status.value)
-            assertEquals("a=1", bodyAsText())
-        }
-
-        withUrl("/") {
-            assertEquals(HttpStatusCode.UnsupportedMediaType.value, status.value)
-        }
-    }
-
-    @Test
-    @Http1Only
-    open fun testChunked() = runTest {
-        val data = ByteArray(16 * 1024) { it.toByte() }
-        val size = data.size.toLong()
-
-        createAndStartServer {
-            get("/chunked") {
-                call.respond(
-                    object : OutgoingContent.WriteChannelContent() {
-                        override suspend fun writeTo(channel: ByteWriteChannel) {
-                            channel.writeFully(data)
-                            channel.flushAndClose()
-                        }
-                    }
-                )
-            }
-            get("/pseudo-chunked") {
-                call.respond(
-                    object : OutgoingContent.WriteChannelContent() {
-                        override val contentLength: Long get() = size
-
-                        override suspend fun writeTo(channel: ByteWriteChannel) {
-                            channel.writeFully(data)
-                            channel.flushAndClose()
-                        }
-                    }
-                )
-            }
-            get("/array") {
-                call.respond(
-                    object : OutgoingContent.ByteArrayContent() {
-                        override val contentLength: Long get() = size
-
-                        override fun bytes(): ByteArray = data
-                    }
-                )
-            }
-            get("/array-chunked") {
-                call.respond(
-                    object : OutgoingContent.ByteArrayContent() {
-                        override fun bytes(): ByteArray = data
-                    }
-                )
-            }
-            get("/read-channel") {
-                call.respond(
-                    object : OutgoingContent.ReadChannelContent() {
-                        override fun readFrom(): ByteReadChannel = ByteReadChannel(data)
-                    }
-                )
-            }
-            get("/fixed-read-channel") {
-                call.respond(
-                    object : OutgoingContent.ReadChannelContent() {
-                        override val contentLength: Long get() = size
-
-                        override fun readFrom(): ByteReadChannel = ByteReadChannel(data)
-                    }
-                )
-            }
-        }
-
-        withUrl("/array") {
-            assertEquals(size, headers[HttpHeaders.ContentLength]?.toLong())
-            assertNotEquals("chunked", headers[HttpHeaders.TransferEncoding])
-            assertContentEquals(data, call.response.readRawBytes())
-        }
-
-        withUrl("/array-chunked") {
-            assertEquals("chunked", headers[HttpHeaders.TransferEncoding])
-            assertEquals(1, headers.getAll(HttpHeaders.TransferEncoding)!!.size)
-            assertContentEquals(data, call.response.readRawBytes())
-            assertNull(headers[HttpHeaders.ContentLength])
-        }
-
-        withUrl("/chunked") {
-            assertEquals("chunked", headers[HttpHeaders.TransferEncoding])
-            assertEquals(1, headers.getAll(HttpHeaders.TransferEncoding)!!.size)
-            assertContentEquals(data, call.response.readRawBytes())
-            assertNull(headers[HttpHeaders.ContentLength])
-        }
-
-        withUrl("/fixed-read-channel") {
-            assertNotEquals("chunked", headers[HttpHeaders.TransferEncoding])
-            assertEquals(size, headers[HttpHeaders.ContentLength]?.toLong())
-            assertContentEquals(data, call.response.readRawBytes())
-        }
-
-        withUrl("/pseudo-chunked") {
-            assertNotEquals("chunked", headers[HttpHeaders.TransferEncoding])
-            assertEquals(size, headers[HttpHeaders.ContentLength]?.toLong())
-            assertContentEquals(data, call.response.readRawBytes())
-        }
-
-        withUrl("/read-channel") {
-            assertNull(headers[HttpHeaders.ContentLength])
-            assertEquals("chunked", headers[HttpHeaders.TransferEncoding])
-            assertEquals(1, headers.getAll(HttpHeaders.TransferEncoding)!!.size)
-            assertContentEquals(data, call.response.readRawBytes())
-        }
-    }
-
-    @Test
-    open fun funkyChunked() = runTest {
-        // echo the request body
-        createAndStartServer {
-            handle {
-                val content = call.receiveText()
-                call.respondText(content)
-            }
-        }
-
-        socket {
-            val out = getOutputStream().bufferedWriter()
-            val input = getInputStream().bufferedReader()
-            try {
-                out.write(
-                    buildString {
-                        append("POST / HTTP/1.1\r\n")
-                        append("Host: localhost\r\n")
-                        append("Transfer-Encoding: chunked\r\n")
-                        append("\r\n")
-                        append("5;ext=\"pwned\r\nlol\"\r\n")
-                        append("hello\r\n")
-                        append("0\r\n\r\n")
-                    }
-                )
-                out.flush()
-
-                val firstLine = input.readLine()
-                assertEquals("HTTP/1.1 200 OK", firstLine)
-                val sb = StringBuilder()
-                var line = input.readLine()
-                var contentLength = 0
-                while (true) {
-                    sb.appendLine(line)
-                    if (':' in line) {
-                        if (line.startsWith("Content-Length:")) {
-                            contentLength = line.substringAfter(":").trim().toInt()
-                        }
-                        line = input.readLine()
-                    } else if (line.isEmpty()) {
-                        val actual = CharArray(contentLength)
-                            .also { input.read(it) }
-                            .let { String(it) }
-                        assertEquals("hello", actual, "Expected echoed content; Response:\n:$sb\n$actual")
-                        break
-                    }
-                }
-            } finally {
-                out.close()
-                input.close()
-            }
-        }
-    }
-
-    @Test
     fun testStreamNoFlush() = runTest {
         createAndStartServer {
             handle {
@@ -460,24 +228,6 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
     }
 
     @Test
-    fun testSendTextWithContentType() = runTest {
-        createAndStartServer {
-            handle {
-                call.respondText("Hello")
-            }
-        }
-
-        withUrl("/") {
-            assertEquals(200, status.value)
-            assertEquals("Hello", bodyAsText())
-
-            val contentType = ContentType.parse(headers[HttpHeaders.ContentType]!!)
-            val pattern = ContentType.Text.Plain
-            assertTrue(contentType.match(pattern))
-        }
-    }
-
-    @Test
     fun testStaticServe() = runTest {
         createAndStartServer {
             staticResources("/files/", "io/ktor/server/testing/suites")
@@ -485,7 +235,7 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
 
         withUrl("/files/${ContentTestSuite::class.simpleName}.class") {
             assertEquals(200, status.value)
-            val bytes = readBytes(8192)
+            val bytes = readRawBytes()
             assertNotEquals(0, bytes.size)
 
             // class file signature
@@ -595,26 +345,6 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
         ) {
             assertEquals(200, status.value)
             assertEquals("POST content", bodyAsText())
-        }
-    }
-
-    @Test
-    fun testRequestContentString() = runTest {
-        createAndStartServer {
-            post("/") {
-                call.respond(call.receiveText())
-            }
-        }
-
-        withUrl(
-            "/",
-            {
-                method = HttpMethod.Post
-                setBody("Hello")
-            }
-        ) {
-            assertEquals(200, status.value)
-            assertEquals("Hello", bodyAsText())
         }
     }
 
@@ -801,42 +531,6 @@ abstract class ContentTestSuite<TEngine : ApplicationEngine, TConfiguration : Ap
         ) {
             assertEquals(200, status.value)
             assertEquals("Hello", bodyAsText())
-        }
-    }
-
-    @Test
-    fun testReceivingBodyWithContentLengthMoreThanMaxInt() = runTest {
-        createAndStartServer {
-            post("/") {
-                call.receiveChannel()
-                call.respondText { "OK" }
-            }
-        }
-
-        withUrl(
-            "/",
-            {
-                method = HttpMethod.Post
-                headers.append("Content-Length", (Int.MAX_VALUE.toLong() + 1).toString())
-                setBody(ByteArray(1))
-            }
-        ) {
-            assertEquals(200, status.value)
-            assertEquals("OK", bodyAsText())
-        }
-    }
-
-    @Test
-    fun testAccessingQueryParameterWithoutValue() = runTest {
-        createAndStartServer {
-            get("/") {
-                call.respondText(call.request.queryParameters["auto"].toString())
-            }
-        }
-
-        withUrl("/?auto") {
-            assertEquals(200, status.value)
-            assertEquals("", bodyAsText())
         }
     }
 
