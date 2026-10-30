@@ -20,7 +20,9 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.routing
 import io.ktor.utils.io.discard
 import io.ktor.utils.io.writeStringUtf8
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.test.AfterTest
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -28,6 +30,7 @@ import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import kotlin.time.TimeSource
 
 class KronEngineTest {
     private lateinit var server: TestServer
@@ -57,6 +60,19 @@ class KronEngineTest {
             }
             get("/big") { call.respondBytes(ByteArray(BIG) { (it % 251).toByte() }) }
             get("/fail") { throw IllegalStateException("boom") }
+            get("/delay/{ms}") {
+                val ms = call.parameters["ms"]!!.toLong()
+                delay(ms)
+                call.respondText(ms.toString())
+            }
+            get("/timeout") {
+                call.respondText(
+                    withTimeoutOrNull(20) {
+                        delay(10_000)
+                        "late"
+                    } ?: "timed out"
+                )
+            }
             get("/launch") {
                 call.launch { throw IllegalStateException("a coroutine the route left failing") }
                 call.respondText("launched")
@@ -276,6 +292,40 @@ class KronEngineTest {
         platform.posix.usleep(50_000u)
         client.write("GET / HTTP/1.1\r\nHost: x\r\n\r\n")
         assertEquals("hello", client.readResponse().text)
+    }
+
+    @Test
+    fun `a delay waits its time on the reactor and the call goes on`() {
+        server.connect().use { client ->
+            val mark = TimeSource.Monotonic.markNow()
+            client.write("GET /delay/40 HTTP/1.1\r\nHost: x\r\n\r\n")
+            assertEquals("40", client.readResponse().text)
+            assertTrue(mark.elapsedNow().inWholeMilliseconds >= 40)
+        }
+    }
+
+    @Test
+    fun `concurrent delays each wait their own time`() {
+        val clients = List(50) { server.connect() }
+        try {
+            val mark = TimeSource.Monotonic.markNow()
+            clients.forEachIndexed { i, client -> client.write("GET /delay/${10 + i * 3} HTTP/1.1\r\nHost: x\r\n\r\n") }
+            clients.forEachIndexed { i, client -> assertEquals("${10 + i * 3}", client.readResponse().text) }
+            // all on one reactor at once: the longest wait, not the sum of them
+            assertTrue(mark.elapsedNow().inWholeMilliseconds < 2_000)
+        } finally {
+            clients.forEach { it.close() }
+        }
+    }
+
+    @Test
+    fun `a delay cut short by a timeout leaves the call to answer`() {
+        server.connect().use { client ->
+            client.write("GET /timeout HTTP/1.1\r\nHost: x\r\n\r\n")
+            assertEquals("timed out", client.readResponse().text)
+            client.write("GET / HTTP/1.1\r\nHost: x\r\n\r\n")
+            assertEquals("hello", client.readResponse().text)
+        }
     }
 
     @Test
