@@ -17,14 +17,6 @@ import io.ktor.server.engine.ConnectorType
 import io.ktor.server.engine.DefaultUncaughtExceptionHandler
 import io.ktor.server.engine.EngineConnectorConfig
 import io.ktor.server.engine.withPort
-import kotlinx.cinterop.IntVar
-import kotlinx.cinterop.alloc
-import kotlinx.cinterop.convert
-import kotlinx.cinterop.memScoped
-import kotlinx.cinterop.ptr
-import kotlinx.cinterop.reinterpret
-import kotlinx.cinterop.sizeOf
-import kotlinx.cinterop.value
 import kotlinx.coroutines.CompletableJob
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Job
@@ -36,19 +28,6 @@ import kron.ServerConfig
 import kron.TcpOptions
 import kron.tls.TlsOptions
 import kron.tls.TlsService
-import platform.posix.AF_INET
-import platform.posix.SOCK_STREAM
-import platform.posix.SOL_SOCKET
-import platform.posix.SO_REUSEADDR
-import platform.posix.SO_REUSEPORT
-import platform.posix.bind
-import platform.posix.errno
-import platform.posix.getsockname
-import platform.posix.setsockopt
-import platform.posix.sockaddr_in
-import platform.posix.socket
-import platform.posix.socklen_tVar
-import platform.posix.usleep
 import kotlin.concurrent.Volatile
 import kotlin.concurrent.atomics.AtomicInt
 import kotlin.concurrent.atomics.AtomicReference
@@ -195,7 +174,7 @@ public class KronApplicationEngine(
                     throw cause
                 }
 
-                usleep(1_000u)
+                sleepMillis(1)
             }
 
             resolvedConnectorsDeferred.complete(connectors.mapIndexed { i, connector -> connector.withPort(ports[i]) })
@@ -214,7 +193,7 @@ public class KronApplicationEngine(
                     throw cause
                 }
 
-                usleep(50_000u)
+                sleepMillis(50)
             }
 
             server.join()
@@ -252,7 +231,7 @@ public class KronApplicationEngine(
     private fun awaitConnections(timeoutMs: Long) {
         val start = TimeSource.Monotonic.markNow()
         while (rootJob.children.any() && start.elapsedNow().inWholeMilliseconds < timeoutMs) {
-            usleep(1_000u)
+            sleepMillis(1)
         }
     }
 
@@ -271,41 +250,4 @@ public class KronApplicationEngine(
 public class KronTlsConnector(override val port: Int, public val options: TlsOptions) : EngineConnectorConfig {
     override val type: ConnectorType get() = ConnectorType.HTTPS
     override val host: String get() = "0.0.0.0"
-}
-
-/**
- * A port the kernel picks, held by a socket that binds it with SO_REUSEPORT and never listens: every reactor's
- * listener can bind it too, nothing else can take it until [close], and no connection is ever queued on it.
- */
-private class ReservedPort : AutoCloseable {
-    private val fd = socket(AF_INET, SOCK_STREAM, 0)
-    val port: Int
-
-    init {
-        check(fd >= 0) { "socket failed with errno $errno" }
-        port = memScoped {
-            val on = alloc<IntVar>().apply { value = 1 }
-            setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, on.ptr, sizeOf<IntVar>().convert())
-            setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, on.ptr, sizeOf<IntVar>().convert())
-
-            val address = alloc<sockaddr_in>()
-            address.sin_family = AF_INET.convert()
-            val length = alloc<socklen_tVar>().apply { value = sizeOf<sockaddr_in>().convert() }
-            if (bind(fd, address.ptr.reinterpret(), length.value) != 0 ||
-                getsockname(fd, address.ptr.reinterpret(), length.ptr) != 0
-            ) {
-                val e = errno
-                platform.posix.close(fd)
-                throw IllegalStateException("Could not reserve a port: errno $e")
-            }
-
-            // sin_port is in network order
-            val p = address.sin_port.toInt()
-            ((p and 0xFF) shl 8) or ((p ushr 8) and 0xFF)
-        }
-    }
-
-    override fun close() {
-        platform.posix.close(fd)
-    }
 }
