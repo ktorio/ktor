@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.tests.server.netty
 
@@ -30,7 +30,6 @@ import io.netty.channel.ChannelInboundHandlerAdapter
 import io.netty.channel.MultiThreadIoEventLoopGroup
 import io.netty.channel.epoll.Epoll
 import io.netty.channel.kqueue.KQueue
-import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.nio.NioIoHandler
 import io.netty.channel.socket.nio.NioDatagramChannel
 import io.netty.handler.codec.http.HttpResponseStatus
@@ -39,13 +38,8 @@ import io.netty.handler.codec.http2.Http2CodecUtil.readUnsignedInt
 import io.netty.handler.codec.http3.*
 import io.netty.handler.codec.quic.QuicChannel
 import io.netty.handler.codec.quic.QuicSslContextBuilder
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.consumeAsFlow
-import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeout
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import java.net.InetSocketAddress
 import java.net.StandardSocketOptions
@@ -84,6 +78,12 @@ class NettyHttpServerCommonTest :
     init {
         enableSsl = true
         enableHttp2 = true
+    }
+
+    @Test
+    @Http1Only // KTOR-10111: HTTP/2 responses still include Content-Length: 0 for 204.
+    override fun `204 response has no content length or body`() {
+        super.`204 response has no content length or body`()
     }
 }
 
