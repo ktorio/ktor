@@ -27,7 +27,6 @@ import io.ktor.utils.io.ByteWriteChannel
 import io.ktor.utils.io.InternalAPI
 import kotlinx.coroutines.CoroutineScope
 import kron.TcpConnection
-import kron.glyph11.RequestHead
 import kotlin.coroutines.CoroutineContext
 
 internal class KronApplicationCall(
@@ -40,36 +39,32 @@ internal class KronApplicationCall(
     override val coroutineContext: CoroutineContext,
 ) : BaseApplicationCall(application), CoroutineScope {
     override val request = KronApplicationRequest(this, session, connection, body, version10)
-    override val response =
-        KronApplicationResponse(this, session, request.local.method == HttpMethod.Head, upgradeRequested)
+    override val response = KronApplicationResponse(this, session, request.method == HttpMethod.Head, upgradeRequested)
 
     init {
         putResponseAttribute()
     }
 }
 
-/** A request read from the session's head: its strings are made when Ktor asks for them, but the target's. */
+/**
+ * A request read from the session's head: its strings are made when Ktor asks for them, but the target's. It is its
+ * own headers, looked up in the head's bytes, and its own connection point: two objects fewer a request.
+ */
 internal class KronApplicationRequest(
     call: PipelineCall,
     private val session: Http1Session,
-    connection: TcpConnection,
+    private val connection: TcpConnection,
     body: RequestBody?,
     version10: Boolean,
-) : BaseApplicationRequest(call) {
+) : BaseApplicationRequest(call), Headers, RequestConnectionPoint {
     private val bytes = session.headBytes
     private val head = session.head
 
-    override val engineHeaders: Headers = KronHeaders(bytes, head)
+    override val engineHeaders: Headers get() = this
 
     override val engineReceiveChannel: ByteReadChannel = body ?: ByteReadChannel.Empty
 
-    override val local: RequestConnectionPoint = KronConnectionPoint(
-        connection,
-        if (version10) "HTTP/1.0" else "HTTP/1.1",
-        bytes.decodeToString(head.pathStart, head.queryStart + head.queryLength),
-        methodOf(bytes, head.methodStart, head.methodLength),
-        engineHeaders,
-    )
+    override val local: RequestConnectionPoint get() = this
 
     private var cookieJar: RequestCookies? = null
     override val cookies: RequestCookies
@@ -88,141 +83,58 @@ internal class KronApplicationRequest(
 
     @OptIn(InternalAPI::class)
     override val queryParameters: Parameters
-        get() = decoded ?: encodeParameters(rawQueryParameters).withEmptyStringForValuelessKeys().also { decoded = it }
-
-    private val query: String get() = local.uri.substring(head.queryStart - head.pathStart)
-}
-
-/** The response, written into the connection's write slab by the session. */
-internal class KronApplicationResponse(
-    call: KronApplicationCall,
-    private val session: Http1Session,
-    private val isHead: Boolean,
-    private val upgradeRequested: Boolean,
-) : BaseApplicationResponse(call) {
-    private var statusCode = HttpStatusCode.OK
-    private val names = ArrayList<String>(8)
-    private val values = ArrayList<String>(8)
-    private var body: ResponseBody? = null
-    private var sent = false
-
-    override val headers: ResponseHeaders = object : ResponseHeaders() {
-        override fun engineAppendHeader(name: String, value: String) {
-            names.add(name)
-            values.add(value)
-        }
-
-        override fun get(name: String): String? {
-            for (i in names.indices) {
-                if (names[i].equals(name, ignoreCase = true)) {
-                    return values[i]
-                }
+        get() {
+            decoded?.let { return it }
+            val parsed = if (head.queryLength == 0) {
+                Parameters.Empty
+            } else {
+                encodeParameters(rawQueryParameters).withEmptyStringForValuelessKeys()
             }
-
-            return null
+            decoded = parsed
+            return parsed
         }
 
-        override fun getEngineHeaderNames(): List<String> = names.distinctBy { it.lowercase() }
+    private val query: String get() = uri.substring(head.queryStart - head.pathStart)
 
-        override fun getEngineHeaderValues(name: String): List<String> =
-            names.indices.filter { names[it].equals(name, ignoreCase = true) }.map { values[it] }
-    }
+    // ---- RequestConnectionPoint ---------------------------------------------------------------------------
 
-    override fun setStatus(statusCode: HttpStatusCode) {
-        this.statusCode = statusCode
-    }
+    override val version: String = if (version10) "HTTP/1.0" else "HTTP/1.1"
 
-    override suspend fun respondFromBytes(bytes: ByteArray) {
-        headers[HttpHeaders.ContentLength]?.toLong()?.let { length ->
-            if (length != bytes.size.toLong()) {
-                throw IllegalStateException("Content-Length $length, body ${bytes.size} bytes")
-            }
-        }
+    override val uri: String = bytes.decodeToString(head.pathStart, head.queryStart + head.queryLength)
 
-        session.sending {
-            session.writeHead(statusCode, names, values)
-            if (!isHead) {
-                session.write(bytes)
-            }
-        }
+    override val method: HttpMethod = methodOf(bytes, head.methodStart, head.methodLength)
 
-        sent = true
-    }
+    override val scheme: String get() = "http"
 
-    override suspend fun respondNoContent(content: OutgoingContent.NoContent) {
-        session.sending { session.writeHead(statusCode, names, values) }
-        sent = true
-    }
+    private val hostHeader: String? get() = get(HttpHeaders.Host)
 
-    // The head goes out at once, as CIO sends it: a body that is slow to come, or comes only once the request body
-    // has, must not keep the client waiting for the status.
-    override suspend fun responseChannel(): ByteWriteChannel {
-        session.sending {
-            session.writeHead(statusCode, names, values)
-            session.flush()
-        }
+    @Deprecated("Use localPort or serverPort instead", level = DeprecationLevel.ERROR)
+    override val port: Int get() = localPort
 
-        val channel = ResponseBody(
-            session,
-            chunked = headers[HttpHeaders.TransferEncoding] == "chunked",
-            contentLength = headers[HttpHeaders.ContentLength]?.toLong() ?: -1,
-            discard = isHead,
-        )
-        body = channel
-        return channel
-    }
+    @Deprecated("Use localHost or serverHost instead", level = DeprecationLevel.ERROR)
+    override val host: String get() = localHost
 
-    // Ktor's own sends this through Dispatchers.IO; here the writer runs on the reactor, as the rest of the call.
-    override suspend fun respondWriteChannelContent(content: OutgoingContent.WriteChannelContent) {
-        val channel = responseChannel()
-        try {
-            content.writeTo(channel)
-        } catch (e: Throwable) {
-            channel.cancel(e)
-            throw e
-        }
+    override val localPort: Int get() = connection.localAddress?.port ?: URLProtocol.HTTP.defaultPort
 
-        channel.flushAndClose()
-    }
+    override val serverPort: Int
+        get() = hostHeader?.substringAfterLast(":", "")?.toIntOrNull() ?: localPort
 
-    override suspend fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
-        check(upgradeRequested) {
-            "Unable to perform upgrade as it is not requested by the client: " +
-                "request should have Upgrade and Connection headers filled properly"
-        }
+    override val localHost: String get() = connection.localAddress?.host ?: "localhost"
 
-        session.sending {
-            session.writeHead(statusCode, names, values)
-            session.flush()
-        }
-        session.mustClose = true
+    override val serverHost: String get() = hostHeader?.substringBeforeLast(":") ?: localHost
 
-        // The connection is the protocol's now: its bytes in and out, until the upgraded job ends.
-        val input = RequestBody(session, chunked = false, remaining = 0, expectContinue = false, raw = true)
-        val output = ResponseBody(session, chunked = false, contentLength = -1, discard = false)
-        val context = (call as KronApplicationCall).coroutineContext
-        try {
-            upgrade.upgrade(input, output, context, context).join()
-        } finally {
-            output.flushAndClose()
-            input.cancel(null)
-            sent = true
-        }
-    }
+    override val localAddress: String get() = connection.localAddress?.host ?: "localhost"
 
-    /** Ends the response once its call has returned: false if it was not sent whole. */
-    internal fun finish(): Boolean {
-        val body = body ?: return sent
-        if (!body.isClosedForWrite) {
-            body.cancel(IllegalStateException("The response body was left open"))
-        }
+    override val remoteHost: String get() = connection.remoteAddress?.host ?: "unknown"
 
-        return body.isComplete
-    }
-}
+    override val remotePort: Int get() = connection.remoteAddress?.port ?: 0
 
-/** The request's headers, looked up in the head's bytes; a value becomes a string when it is asked for. */
-internal class KronHeaders(private val bytes: ByteArray, private val head: RequestHead) : Headers {
+    override val remoteAddress: String get() = connection.remoteAddress?.host ?: "unknown"
+
+    override fun toString(): String = "KronApplicationRequest(uri=$uri, method=$method, version=$version)"
+
+    // ---- Headers: as the engine read them; Ktor's headers are a view of these that a plugin can change ----
+
     override val caseInsensitiveName: Boolean get() = true
 
     override fun get(name: String): String? {
@@ -236,7 +148,12 @@ internal class KronHeaders(private val bytes: ByteArray, private val head: Reque
             return null
         }
 
-        val all = ArrayList<String>(1)
+        val next = indexOf(name, i + 1)
+        if (next < 0) {
+            return listOf(value(i))
+        }
+
+        val all = ArrayList<String>(2)
         while (i >= 0) {
             all.add(value(i))
             i = indexOf(name, i + 1)
@@ -292,41 +209,148 @@ internal class KronHeaders(private val bytes: ByteArray, private val head: Reque
     }
 }
 
-internal class KronConnectionPoint(
-    private val connection: TcpConnection,
-    override val version: String,
-    override val uri: String,
-    override val method: HttpMethod,
-    private val headers: Headers,
-) : RequestConnectionPoint {
-    override val scheme: String get() = "http"
+/** The response, written into the connection's write slab by the session. */
+internal class KronApplicationResponse(
+    call: KronApplicationCall,
+    private val session: Http1Session,
+    private val isHead: Boolean,
+    private val upgradeRequested: Boolean,
+) : BaseApplicationResponse(call) {
+    private var statusCode = HttpStatusCode.OK
 
-    private val hostHeader: String? get() = headers[HttpHeaders.Host]
+    // The headers as name, value, name, value...: one list a response
+    private val fields = ArrayList<String>(16)
+    private var body: ResponseBody? = null
+    private var sent = false
 
-    @Deprecated("Use localPort or serverPort instead", level = DeprecationLevel.ERROR)
-    override val port: Int get() = localPort
+    override val headers: ResponseHeaders = object : ResponseHeaders() {
+        override fun engineAppendHeader(name: String, value: String) {
+            fields.add(name)
+            fields.add(value)
+        }
 
-    @Deprecated("Use localHost or serverHost instead", level = DeprecationLevel.ERROR)
-    override val host: String get() = localHost
+        override fun get(name: String): String? {
+            for (i in 0 until fields.size / 2) {
+                if (sameName(fields[2 * i], name)) {
+                    return fields[2 * i + 1]
+                }
+            }
 
-    override val localPort: Int get() = connection.localAddress?.port ?: URLProtocol.HTTP.defaultPort
+            return null
+        }
 
-    override val serverPort: Int
-        get() = hostHeader?.substringAfterLast(":", "")?.toIntOrNull() ?: localPort
+        override fun getEngineHeaderNames(): List<String> =
+            (0 until fields.size / 2).map { fields[2 * it] }.distinctBy { it.lowercase() }
 
-    override val localHost: String get() = connection.localAddress?.host ?: "localhost"
+        override fun getEngineHeaderValues(name: String): List<String> =
+            (0 until fields.size / 2).filter { sameName(fields[2 * it], name) }.map { fields[2 * it + 1] }
+    }
 
-    override val serverHost: String get() = hostHeader?.substringBeforeLast(":") ?: localHost
+    override fun setStatus(statusCode: HttpStatusCode) {
+        this.statusCode = statusCode
+    }
 
-    override val localAddress: String get() = connection.localAddress?.host ?: "localhost"
+    override suspend fun respondFromBytes(bytes: ByteArray) {
+        headers[HttpHeaders.ContentLength]?.toLong()?.let { length ->
+            if (length != bytes.size.toLong()) {
+                throw IllegalStateException("Content-Length $length, body ${bytes.size} bytes")
+            }
+        }
 
-    override val remoteHost: String get() = connection.remoteAddress?.host ?: "unknown"
+        // The lock is almost always free: then this stages without suspending, and makes no coroutine frame, as the
+        // only suspension left is a tail call.
+        if (!session.sendLock.tryLock()) {
+            return stageWhenFree(bytes)
+        }
 
-    override val remotePort: Int get() = connection.remoteAddress?.port ?: 0
+        try {
+            stage(bytes)
+        } finally {
+            session.sendLock.unlock()
+        }
+    }
 
-    override val remoteAddress: String get() = connection.remoteAddress?.host ?: "unknown"
+    private suspend fun stageWhenFree(bytes: ByteArray) = session.sending { stage(bytes) }
 
-    override fun toString(): String = "KronConnectionPoint(uri=$uri, method=$method, version=$version)"
+    private fun stage(bytes: ByteArray) {
+        session.writeHead(statusCode, fields)
+        if (!isHead) {
+            session.write(bytes)
+        }
+
+        sent = true
+    }
+
+    override suspend fun respondNoContent(content: OutgoingContent.NoContent) {
+        session.sending { session.writeHead(statusCode, fields) }
+        sent = true
+    }
+
+    // The head goes out at once, as CIO sends it: a body that is slow to come, or comes only once the request body
+    // has, must not keep the client waiting for the status.
+    override suspend fun responseChannel(): ByteWriteChannel {
+        session.sending {
+            session.writeHead(statusCode, fields)
+            session.flush()
+        }
+
+        val channel = ResponseBody(
+            session,
+            chunked = headers[HttpHeaders.TransferEncoding] == "chunked",
+            contentLength = headers[HttpHeaders.ContentLength]?.toLong() ?: -1,
+            discard = isHead,
+        )
+        body = channel
+        return channel
+    }
+
+    // Ktor's own sends this through Dispatchers.IO; here the writer runs on the reactor, as the rest of the call.
+    override suspend fun respondWriteChannelContent(content: OutgoingContent.WriteChannelContent) {
+        val channel = responseChannel()
+        try {
+            content.writeTo(channel)
+        } catch (e: Throwable) {
+            channel.cancel(e)
+            throw e
+        }
+
+        channel.flushAndClose()
+    }
+
+    override suspend fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
+        check(upgradeRequested) {
+            "Unable to perform upgrade as it is not requested by the client: " +
+                "request should have Upgrade and Connection headers filled properly"
+        }
+
+        session.sending {
+            session.writeHead(statusCode, fields)
+            session.flush()
+        }
+        session.mustClose = true
+
+        // The connection is the protocol's now: its bytes in and out, until the upgraded job ends.
+        val input = RequestBody(session, chunked = false, remaining = 0, expectContinue = false, raw = true)
+        val output = ResponseBody(session, chunked = false, contentLength = -1, discard = false)
+        val context = (call as KronApplicationCall).coroutineContext
+        try {
+            upgrade.upgrade(input, output, context, context).join()
+        } finally {
+            output.flushAndClose()
+            input.cancel(null)
+            sent = true
+        }
+    }
+
+    /** Ends the response once its call has returned: false if it was not sent whole. */
+    internal fun finish(): Boolean {
+        val body = body ?: return sent
+        if (!body.isClosedForWrite) {
+            body.cancel(IllegalStateException("The response body was left open"))
+        }
+
+        return body.isComplete
+    }
 }
 
 // The standard methods without a string made for them.

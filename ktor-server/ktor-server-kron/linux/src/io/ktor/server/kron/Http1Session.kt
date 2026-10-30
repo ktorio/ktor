@@ -79,7 +79,9 @@ internal class Http1Session(private val conn: TcpConnection, private val engine:
     // Waits for the next request's head and copies it to headBytes; false when the peer left first or the request
     // was refused. Glyph11 runs only once a CRLFCRLF has arrived, which ends every head it accepts: a head that
     // trickles in is scanned once rather than parsed again on every recv.
-    private suspend fun awaitHead(): Boolean {
+    // Inline, as serve: a suspend function makes its frame on every call, and run's is made once a connection.
+    @Suppress("NOTHING_TO_INLINE")
+    private suspend inline fun awaitHead(): Boolean {
         val limits = ParserLimits.Default
         var scanned = 0
         while (true) {
@@ -116,7 +118,8 @@ internal class Http1Session(private val conn: TcpConnection, private val engine:
         }
     }
 
-    private suspend fun serve() {
+    @Suppress("NOTHING_TO_INLINE")
+    private suspend inline fun serve() {
         headWritten = false
         val bytes = headBytes
         val version10 = bytes[head.versionStart + 7] == '0'.code.toByte()
@@ -252,8 +255,10 @@ internal class Http1Session(private val conn: TcpConnection, private val engine:
     /** Runs [block], which stages and may flush, as the only sender. */
     internal suspend inline fun <T> sending(block: () -> T): T = sendLock.withLock { block() }
 
-    // Sends what earlier responses staged, unless a sender is at work: that one sends what it stages itself.
-    private suspend fun flushIfIdle() {
+    // Sends what earlier responses staged, unless a sender is at work: that one sends what it stages itself. Inline,
+    // as it runs before every recv.
+    @Suppress("NOTHING_TO_INLINE")
+    private suspend inline fun flushIfIdle() {
         if (conn.writtenBytes == 0 || conn.isClosed || !sendLock.tryLock()) {
             return
         }
@@ -267,16 +272,19 @@ internal class Http1Session(private val conn: TcpConnection, private val engine:
 
     private var out = ByteArray(INITIAL_OUT)
 
-    /** Stages the status line and the headers; a connection that must close says so, unless the response did. */
-    internal fun writeHead(status: HttpStatusCode, names: List<String>, values: List<String>) {
+    /**
+     * Stages the status line and the headers, [fields] being name, value, name, value...; a connection that must close
+     * says so, unless the response did.
+     */
+    internal fun writeHead(status: HttpStatusCode, fields: List<String>) {
         val line = statusLine(status)
         var out = out
         line.copyInto(out)
         var p = line.size
         var hasConnection = false
-        for (i in names.indices) {
-            val name = names[i]
-            val value = values[i]
+        for (i in 0 until fields.size / 2) {
+            val name = fields[2 * i]
+            val value = fields[2 * i + 1]
             val need = p + name.length + value.length + 4
             if (need > out.size) {
                 out = out.copyOf(maxOf(out.size * 2, need + 64))
@@ -290,7 +298,7 @@ internal class Http1Session(private val conn: TcpConnection, private val engine:
             out[p++] = '\r'.code.toByte()
             out[p++] = '\n'.code.toByte()
 
-            if (name.equals("Connection", ignoreCase = true)) {
+            if (sameName(name, "Connection")) {
                 hasConnection = true
                 if (value.contains("close", ignoreCase = true)) {
                     mustClose = true
@@ -448,6 +456,31 @@ internal fun RequestHead.hasToken(bytes: ByteArray, i: Int, lower: ByteArray): B
     }
 
     return false
+}
+
+/** Header names [a] and [b] are the same: tokens, so ASCII, compared without Unicode case folding. */
+internal fun sameName(a: String, b: String): Boolean {
+    if (a.length != b.length) {
+        return false
+    }
+
+    for (i in a.indices) {
+        var x = a[i].code
+        var y = b[i].code
+        if (x in 'A'.code..'Z'.code) {
+            x += 32
+        }
+
+        if (y in 'A'.code..'Z'.code) {
+            y += 32
+        }
+
+        if (x != y) {
+            return false
+        }
+    }
+
+    return true
 }
 
 internal fun asciiEqualsIgnoreCase(bytes: ByteArray, at: Int, lower: ByteArray): Boolean {
