@@ -131,7 +131,6 @@ public class KronApplicationEngine(
 
     override fun start(wait: Boolean): ApplicationEngine {
         val connectors = configuration.connectors.toList()
-        require(connectors.isNotEmpty()) { "kron needs a connector to listen on" }
         for (connector in connectors) {
             require(connector.type != ConnectorType.HTTPS || connector is KronTlsConnector) {
                 "An HTTPS connector on kron is the engine's own: add it with tlsConnector(port, TlsOptions)"
@@ -147,12 +146,15 @@ public class KronApplicationEngine(
                 reactorCount = configuration.reactorCount,
                 pinReactors = configuration.pinReactors,
                 incremental = configuration.incremental,
-                tcp = TcpOptions(
-                    port = ports[0],
-                    extraPorts = ports.drop(1).toIntArray(),
-                    readTimeoutMs = configuration.readTimeoutMs,
-                    sendTimeoutMs = configuration.sendTimeoutMs,
-                ),
+                // No connector, which Ktor's other engines take as well, is reactors with nothing to listen on.
+                tcp = ports.firstOrNull()?.let { port ->
+                    TcpOptions(
+                        port = port,
+                        extraPorts = ports.drop(1).toIntArray(),
+                        readTimeoutMs = configuration.readTimeoutMs,
+                        sendTimeoutMs = configuration.sendTimeoutMs,
+                    )
+                },
             )
 
             val parent = applicationProvider().parentCoroutineContext
