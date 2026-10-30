@@ -364,8 +364,8 @@ abstract class io.ktor.server.engine/BaseApplicationRequest : io.ktor.server.req
         final fun <get-call>(): io.ktor.server.application/PipelineCall // io.ktor.server.engine/BaseApplicationRequest.call.<get-call>|<get-call>(){}[0]
     final val headers // io.ktor.server.engine/BaseApplicationRequest.headers|{}headers[0]
         final fun <get-headers>(): io.ktor.http/Headers // io.ktor.server.engine/BaseApplicationRequest.headers.<get-headers>|<get-headers>(){}[0]
-    open val pipeline // io.ktor.server.engine/BaseApplicationRequest.pipeline|{}pipeline[0]
-        open fun <get-pipeline>(): io.ktor.server.request/ApplicationReceivePipeline // io.ktor.server.engine/BaseApplicationRequest.pipeline.<get-pipeline>|<get-pipeline>(){}[0]
+    final val pipeline // io.ktor.server.engine/BaseApplicationRequest.pipeline|{}pipeline[0]
+        final fun <get-pipeline>(): io.ktor.server.request/ApplicationReceivePipeline // io.ktor.server.engine/BaseApplicationRequest.pipeline.<get-pipeline>|<get-pipeline>(){}[0]
 
     final fun receiveChannel(): io.ktor.utils.io/ByteReadChannel // io.ktor.server.engine/BaseApplicationRequest.receiveChannel|receiveChannel(){}[0]
     final fun setHeader(kotlin/String, kotlin.collections/List<kotlin/String>?) // io.ktor.server.engine/BaseApplicationRequest.setHeader|setHeader(kotlin.String;kotlin.collections.List<kotlin.String>?){}[0]

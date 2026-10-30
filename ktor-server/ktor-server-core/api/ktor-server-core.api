@@ -503,7 +503,7 @@ public abstract class io/ktor/server/engine/BaseApplicationRequest : io/ktor/ser
 	protected abstract fun getEngineHeaders ()Lio/ktor/http/Headers;
 	protected abstract fun getEngineReceiveChannel ()Lio/ktor/utils/io/ByteReadChannel;
 	public final fun getHeaders ()Lio/ktor/http/Headers;
-	public fun getPipeline ()Lio/ktor/server/request/ApplicationReceivePipeline;
+	public final fun getPipeline ()Lio/ktor/server/request/ApplicationReceivePipeline;
 	public final fun receiveChannel ()Lio/ktor/utils/io/ByteReadChannel;
 	public final fun setHeader (Ljava/lang/String;Ljava/util/List;)V
 	public final fun setReceiveChannel (Lio/ktor/utils/io/ByteReadChannel;)V
