@@ -54,6 +54,28 @@ public class ContentNegotiationConfig : Configuration {
     }
 
     /**
+     * Registers a [contentType] to a specified [converter], replacing any converter previously registered
+     * for the same content type with an optional converter [configuration].
+     *
+     * Content types are compared ignoring parameters, so `replace(ContentType.Text.Plain, ...)` also removes
+     * a converter registered for `text/plain; charset=UTF-8`.
+     *
+     * Note that a converter registered with [register] is only used when all converters registered before it
+     * for the same content type returned `null`; use this function to override an already registered converter
+     * instead of registering another one.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.contentnegotiation.ContentNegotiationConfig.replace)
+     */
+    public fun <T : ContentConverter> replace(
+        contentType: ContentType,
+        converter: T,
+        configuration: T.() -> Unit = {}
+    ) {
+        registrations.removeAll { it.contentType.withoutParameters() == contentType.withoutParameters() }
+        register(contentType, converter, configuration)
+    }
+
+    /**
      * Registers a custom accepted content types [contributor].
      * A [contributor] function takes [io.ktor.server.application.ApplicationCall] and
      * a list of content types accepted according to the [HttpHeaders.Accept] header or provided by the previous

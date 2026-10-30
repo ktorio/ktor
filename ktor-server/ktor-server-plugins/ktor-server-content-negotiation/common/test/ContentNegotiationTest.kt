@@ -136,6 +136,75 @@ class ContentNegotiationTest {
         assertTrue(okDeserialized)
     }
 
+    @Test
+    fun testReplaceConverterForRequest() = testApplication {
+        application {
+            routing {
+                install(ContentNegotiation) {
+                    register(ContentType.Application.Json, alwaysFailingConverter)
+                    replace(ContentType.Application.Json, wrapperConverter("REPLACED"))
+                }
+
+                post("/") {
+                    val wrapper = call.receive<Wrapper>()
+                    call.respond(wrapper.value)
+                }
+            }
+        }
+
+        val response = client.post("/") {
+            contentType(ContentType.Application.Json)
+            setBody("""{"value" : "ignored"}""")
+        }
+
+        assertEquals("REPLACED", response.bodyAsText())
+    }
+
+    @Test
+    fun testReplaceConverterForResponse() = testApplication {
+        application {
+            routing {
+                install(ContentNegotiation) {
+                    register(ContentType.Application.Json, alwaysFailingConverter)
+                    replace(ContentType.Application.Json, textConverter("REPLACED"))
+                }
+
+                get("/") {
+                    call.respond(Wrapper("hello"))
+                }
+            }
+        }
+
+        val response = client.get("/") {
+            accept(ContentType.Application.Json)
+        }
+
+        assertEquals("REPLACED", response.bodyAsText())
+    }
+
+    private fun textConverter(text: String) = object : ContentConverter {
+        override suspend fun serialize(
+            contentType: ContentType,
+            charset: Charset,
+            typeInfo: TypeInfo,
+            value: Any?
+        ): OutgoingContent = TextContent(text, contentType)
+
+        override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any? = null
+    }
+
+    private fun wrapperConverter(value: String) = object : ContentConverter {
+        override suspend fun serialize(
+            contentType: ContentType,
+            charset: Charset,
+            typeInfo: TypeInfo,
+            value: Any?
+        ): OutgoingContent? = null
+
+        override suspend fun deserialize(charset: Charset, typeInfo: TypeInfo, content: ByteReadChannel): Any =
+            Wrapper(value)
+    }
+
     private val customContentType = ContentType.parse("application/ktor")
 
     private val customContentConverter = object : ContentConverter {
