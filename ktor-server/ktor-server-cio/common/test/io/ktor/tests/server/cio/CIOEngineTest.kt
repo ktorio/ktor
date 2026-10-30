@@ -11,27 +11,17 @@ import io.ktor.http.content.*
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
 import io.ktor.server.cio.*
-import io.ktor.server.cio.backend.httpServer
-import io.ktor.server.cio.internal.IOBridge
+import io.ktor.server.cio.backend.*
+import io.ktor.server.cio.internal.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.suites.*
-import io.ktor.test.dispatcher.runTestWithRealTime
-import io.ktor.util.PlatformUtils
+import io.ktor.test.dispatcher.*
+import io.ktor.util.*
 import io.ktor.utils.io.*
-import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeoutOrNull
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
+import kotlinx.coroutines.*
+import kotlin.test.*
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
@@ -41,6 +31,11 @@ class CIOHttpServerTest : HttpServerCommonTestSuite<CIOApplicationEngine, CIOApp
         enableHttp2 = false
         enableSsl = false
     }
+
+    @Test
+    @Ignore // KTOR-10111: CIO sends Content-Length: 0 for 204 responses
+    override fun `204 response has no content length or body`() =
+        super.`204 response has no content length or body`()
 
     @Test
     fun testGracefulShutdown() = runTest {
