@@ -210,19 +210,17 @@ class HttpTimeoutTest : ClientLoader(timeout = 30.seconds) {
     }
 
     @Test
-    fun testGetRequestTimeoutWithSeparateReceive() = clientTests(except("Js"), retries = 5) {
+    fun testGetRequestTimeoutWithSeparateReceive() = clientTests(except("Js")) {
         config {
-            install(HttpTimeout) { requestTimeoutMillis = 3000 }
+            install(HttpTimeout) { requestTimeoutMillis = 1000 }
         }
 
         test { client ->
-            val response = client.prepareRequest("$TEST_URL/with-stream") {
-                method = HttpMethod.Get
-                parameter("delay", 1500)
-            }.body<ByteReadChannel>()
-
-            assertFailsWith<CancellationException> {
-                response.readLine()
+            assertRequestTimedOut {
+                client.prepareRequest("$TEST_URL/with-stream") {
+                    method = HttpMethod.Get
+                    parameter("delay", 5000)
+                }.body<ByteReadChannel>().readLine()
             }
         }
     }
@@ -230,21 +228,19 @@ class HttpTimeoutTest : ClientLoader(timeout = 30.seconds) {
     @Test
     fun testGetRequestTimeoutWithSeparateReceivePerRequestAttributes() = clientTests(
         except(ENGINES_WITHOUT_REQUEST_TIMEOUT, "Js", "Darwin", "DarwinLegacy"),
-        retries = 3,
     ) {
         config {
             install(HttpTimeout)
         }
 
         test { client ->
-            val response = client.prepareRequest("$TEST_URL/with-stream") {
-                method = HttpMethod.Get
-                parameter("delay", 10000)
+            assertRequestTimedOut {
+                client.prepareRequest("$TEST_URL/with-stream") {
+                    method = HttpMethod.Get
+                    parameter("delay", 5000)
 
-                timeout { requestTimeoutMillis = 1000 }
-            }.body<ByteReadChannel>()
-            assertFailsWith<CancellationException> {
-                response.readLine()
+                    timeout { requestTimeoutMillis = 1000 }
+                }.body<ByteReadChannel>().readLine()
             }
         }
     }
@@ -427,16 +423,17 @@ class HttpTimeoutTest : ClientLoader(timeout = 30.seconds) {
     @Test
     fun testConnectionRefusedException() = clientTests(except("Js", "native:*", "jvm/win:*")) {
         config {
-            install(HttpTimeout) { connectTimeoutMillis = 1000 }
+            install(HttpTimeout) { connectTimeoutMillis = 5000 }
         }
 
         test { client ->
-            assertFails {
-                try {
-                    client.get("http://localhost:11").body<String>()
-                } catch (_: ConnectTimeoutException) {
-                }
+            val cause = assertFailsWith<IOException> {
+                client.get("http://localhost:11").body<String>()
             }
+            assertFalse(
+                cause is ConnectTimeoutException,
+                "Expected a connection refused error, but the connect attempt timed out: $cause",
+            )
         }
     }
 
@@ -543,4 +540,26 @@ class HttpTimeoutTest : ClientLoader(timeout = 30.seconds) {
             )
         }
     }
+}
+
+/**
+ * Asserts that [block] fails because the request timeout expired.
+ *
+ * `/timeout/with-stream` sends the head and the first byte immediately and applies its delay
+ * *between* bytes, so a must-timeout test that receives the body separately has two suspension points
+ * the timeout can hit: the call that produces the channel, and the read that follows. Which one wins
+ * depends on how long the head takes to arrive, which on a loaded agent is not bounded by the
+ * timeout under test. On top of that, the timeout cancels the request's execution context with an
+ * [HttpRequestTimeoutException] as the cause, so the caller sees either the cancellation or the
+ * cause depending on where it lands.
+ *
+ * All four combinations mean the same thing — the timeout fired — so [block] should cover the whole
+ * call and accept any of them.
+ */
+private suspend fun assertRequestTimedOut(block: suspend () -> Unit) {
+    val cause = assertFails { block() }
+    assertTrue(
+        cause is CancellationException || cause is HttpRequestTimeoutException,
+        "Expected the request timeout to surface, but got: $cause",
+    )
 }
