@@ -69,4 +69,61 @@ class ByteChannelConcurrentTest {
             assertContentEquals(content, result.readByteArray(2))
         }
     }
+
+    /**
+     * KTOR-7729: a third coroutine only *queries* `availableForRead` from another thread.
+     *
+     * Before the fix, `availableForRead` went through the `readBuffer` getter, which calls `moveFlushToReadBuffer()`
+     * and appends to the channel's internal read buffer while the reader is consuming it on another thread.
+     */
+    @Test
+    fun testConcurrentAvailableForRead() = runBlocking {
+        repeat(200) {
+            val channel = ByteChannel()
+            raceReadSide(channel) {
+                while (isActive && !channel.isClosedForRead) {
+                    channel.availableForRead
+                }
+            }
+        }
+    }
+
+    /**
+     * Runs a writer, a verifying reader and [intruder] on different threads against the same [channel].
+     *
+     * Corrupted buffers show up as exceptions from `Segment.compact` / `Buffer.write` (like the
+     * `Check failed.` in the report), lost bytes (`EOFException`), wrong bytes, or a reader that never completes.
+     */
+    private suspend fun raceReadSide(channel: ByteChannel, intruder: suspend CoroutineScope.() -> Unit) {
+        val size = 256 * 1024
+        withTimeout(10_000) {
+            coroutineScope {
+                launch(Dispatchers.Default) {
+                    var written = 0
+                    var chunk = 1
+                    while (written < size) {
+                        val count = minOf(chunk, size - written)
+                        channel.writeByteArray(ByteArray(count) { patternByte(written + it) })
+                        channel.flush()
+                        written += count
+                        chunk = chunk % 1000 + 7 // varying sizes -> partially filled segments
+                    }
+                    channel.flushAndClose()
+                }
+
+                launch(Dispatchers.Default, block = intruder)
+
+                launch(Dispatchers.Default) {
+                    for (index in 0 until size) {
+                        val byte = channel.readByte()
+                        if (byte != patternByte(index)) {
+                            fail("Wrong byte at $index: expected ${patternByte(index)}, actual $byte")
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun patternByte(index: Int): Byte = (index % 251).toByte()
 }

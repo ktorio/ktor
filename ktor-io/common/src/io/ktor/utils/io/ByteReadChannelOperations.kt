@@ -859,9 +859,28 @@ public suspend inline fun ByteReadChannel.read(crossinline block: suspend (ByteA
     return result
 }
 
+/**
+ * Number of bytes that can be read from this channel without suspension.
+ *
+ * For [ByteChannel], and for [CountedByteReadChannel] whose delegate is one of these channels,
+ * this property doesn't consume bytes or move them between the channel's internal buffers,
+ * so it can be queried from a coroutine other than the channel's reader.
+ * In that case, the value can be outdated by the time it's used because the reader and the writer keep changing it.
+ *
+ * Throws an exception if the channel was closed with an error.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.availableForRead)
+ */
 @OptIn(InternalAPI::class, InternalIoApi::class)
 public val ByteReadChannel.availableForRead: Int
-    get() = readBuffer.buffer.size.toInt()
+    get() {
+        // The readBuffer getters of these channels move bytes into the buffer the reader consumes (KTOR-7729)
+        return when (this) {
+            is ByteChannel -> peekAvailableForRead()
+            is CountedByteReadChannel -> peekAvailableForRead()
+            else -> readBuffer.buffer.size.toInt()
+        }
+    }
 
 /**
  * Reads bytes from [start] to [end] into the provided [out] buffer, or fails

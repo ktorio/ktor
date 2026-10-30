@@ -40,6 +40,12 @@ public class CountedByteReadChannel(public val delegate: ByteReadChannel) : Byte
             return buffer
         }
 
+    /**
+     * Implements [availableForRead] without transferring bytes from the [delegate] like the [readBuffer] getter does,
+     * so a coroutine other than the reader can call it without racing with the reader.
+     */
+    internal fun peekAvailableForRead(): Int = (buffer.size + delegate.availableForRead).toInt()
+
     @OptIn(InternalAPI::class)
     override suspend fun awaitContent(min: Int): Boolean {
         if (readBuffer.size >= min) {
