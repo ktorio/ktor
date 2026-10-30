@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.testing.suites
@@ -119,6 +119,39 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
             assertEquals(200, status.value)
             assertNull(headers[HttpHeaders.TransferEncoding])
             assertEquals("5", headers[HttpHeaders.ContentLength])
+        }
+    }
+
+    @Test
+    open fun `204 response has no content length or body`() = runTest {
+        createAndStartServer {
+            get("/") {
+                call.respond(HttpStatusCode.NoContent)
+            }
+        }
+
+        withUrl("/") {
+            assertEquals(HttpStatusCode.NoContent, status)
+            assertNull(headers[HttpHeaders.ContentLength])
+            assertContentEquals(byteArrayOf(), bodyAsChannel().toByteArray())
+        }
+    }
+
+    @Test
+    open fun `304 response preserves representation content length`() = runTest {
+        createAndStartServer {
+            get("/") {
+                call.respond(object : OutgoingContent.NoContent() {
+                    override val status = HttpStatusCode.NotModified
+                    override val contentLength: Long = 150
+                })
+            }
+        }
+
+        withUrl("/") {
+            assertEquals(HttpStatusCode.NotModified, status)
+            assertEquals("150", headers[HttpHeaders.ContentLength])
+            assertContentEquals(byteArrayOf(), bodyAsChannel().toByteArray())
         }
     }
 

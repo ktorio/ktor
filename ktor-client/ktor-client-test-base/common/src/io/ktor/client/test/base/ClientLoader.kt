@@ -23,6 +23,7 @@ private typealias ClientTestFailure = TestFailure<HttpClientEngineFactory<*>>
  */
 abstract class ClientLoader(
     rule: EngineSelectionRule = EngineSelectionRule { true },
+    private val retries: Int = DEFAULT_RETRIES,
     private val timeout: Duration = DEFAULT_TEST_TIMEOUT,
 ) {
 
@@ -33,7 +34,7 @@ abstract class ClientLoader(
      */
     fun clientTests(
         rule: EngineSelectionRule = EngineSelectionRule { true },
-        retries: Int = DEFAULT_RETRIES,
+        retries: Int = this.retries,
         timeout: Duration = this.timeout,
         block: suspend TestClientBuilder<HttpClientEngineConfig>.() -> Unit
     ): TestResult {
@@ -190,6 +191,9 @@ internal val HttpClientEngineFactory<*>.engineName: String
 
 /**
  * Decides whether an engine should be tested or not.
+ *
+ * Patterns use `PLATFORM:ENGINE` or `ENGINE`, with `*` matching all engines or platforms.
+ * Platforms are matched by prefix: `web:*` includes both `web.browser:*` and `web.node:*`.
  *
  * @see ClientLoader.except
  * @see ClientLoader.only
