@@ -11,6 +11,8 @@ public final class io/ktor/client/plugins/contentnegotiation/ContentNegotiationC
 	public final fun register (Lio/ktor/http/ContentType;Lio/ktor/serialization/ContentConverter;Lio/ktor/http/ContentTypeMatcher;Lkotlin/jvm/functions/Function1;)V
 	public fun register (Lio/ktor/http/ContentType;Lio/ktor/serialization/ContentConverter;Lkotlin/jvm/functions/Function1;)V
 	public final fun removeIgnoredType (Lkotlin/reflect/KClass;)V
+	public final fun replace (Lio/ktor/http/ContentType;Lio/ktor/serialization/ContentConverter;Lkotlin/jvm/functions/Function1;)V
+	public static synthetic fun replace$default (Lio/ktor/client/plugins/contentnegotiation/ContentNegotiationConfig;Lio/ktor/http/ContentType;Lio/ktor/serialization/ContentConverter;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
 	public final fun setAcceptHeaderMergeStrategy (Lio/ktor/client/plugins/contentnegotiation/ContentTypeMergeStrategy;)V
 	public final fun setDefaultAcceptHeaderQValue (Ljava/lang/Double;)V
 }

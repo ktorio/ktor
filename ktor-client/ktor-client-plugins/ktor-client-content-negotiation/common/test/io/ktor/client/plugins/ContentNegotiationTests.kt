@@ -697,6 +697,76 @@ class ContentNegotiationTests {
     }
 
     @Test
+    fun replaceConverterInRequestPipeline() = testWithEngine(MockEngine) {
+        val contentTypeToSend = ContentType("testing", "client-replace-send")
+        val replacedContent = TextContent("REPLACED CONVERTER", contentTypeToSend)
+
+        setupWithContentNegotiation {
+            register(contentTypeToSend, TestContentConverter()) {
+                serializeFn = { _, _, _, _ -> TextContent("FIRST CONVERTER", contentTypeToSend) }
+            }
+            replace(contentTypeToSend, TestContentConverter()) {
+                serializeFn = { _, _, _, _ -> replacedContent }
+            }
+        }
+
+        test { client ->
+            client.post("https://test.com/") {
+                setBody(Thing)
+                contentType(contentTypeToSend)
+            }.apply {
+                assertEquals(replacedContent, call.request.content)
+            }
+        }
+    }
+
+    @Test
+    fun replaceConverterInResponsePipeline() = testWithEngine(MockEngine) {
+        val contentTypeToReceive = ContentType("testing", "client-replace-receive")
+        val replacedValue = StringWrapper("REPLACED CONVERTER")
+
+        setupWithContentNegotiation {
+            register(contentTypeToReceive, TestContentConverter()) {
+                deserializeFn = { _, _, _ -> StringWrapper("FIRST CONVERTER") }
+            }
+            replace(contentTypeToReceive, TestContentConverter()) {
+                deserializeFn = { _, _, _ -> replacedValue }
+            }
+        }
+
+        test { client ->
+            client.get("https://test.com/") {
+                header(XReturnAs, contentTypeToReceive)
+            }.apply {
+                assertEquals(replacedValue, body())
+            }
+        }
+    }
+
+    @Test
+    fun replaceConverterRegisteredWithParameters() = testWithEngine(MockEngine) {
+        val contentTypeToReceive = ContentType("testing", "client-replace-parameters")
+        val replacedValue = StringWrapper("REPLACED CONVERTER")
+
+        setupWithContentNegotiation {
+            register(contentTypeToReceive.withCharset(Charsets.UTF_8), TestContentConverter()) {
+                deserializeFn = { _, _, _ -> StringWrapper("FIRST CONVERTER") }
+            }
+            replace(contentTypeToReceive, TestContentConverter()) {
+                deserializeFn = { _, _, _ -> replacedValue }
+            }
+        }
+
+        test { client ->
+            client.get("https://test.com/") {
+                header(XReturnAs, contentTypeToReceive)
+            }.apply {
+                assertEquals(replacedValue, body())
+            }
+        }
+    }
+
+    @Test
     fun selectFirstNonNullConverterOutputInRequestPipeline() {
         testWithEngine(MockEngine) {
             val contentTypeToSend = ContentType("testing", "client-send")
