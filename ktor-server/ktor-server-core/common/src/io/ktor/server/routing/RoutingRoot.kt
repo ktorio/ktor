@@ -103,13 +103,14 @@ public class RoutingRoot(
         parameters: Parameters
     ) {
         val routingCallPipeline = route.buildPipeline()
+        // The pipelines the call runs, not its own copies: asking for those would make them
         val receivePipeline = merge(
-            context.call.request.pipeline,
+            context.call.request.pipelineToRun(),
             routingCallPipeline.receivePipeline
         ) { ApplicationReceivePipeline(developmentMode) }
 
         val responsePipeline = merge(
-            context.call.response.pipeline,
+            context.call.response.pipelineToRun(),
             routingCallPipeline.sendPipeline
         ) { ApplicationSendPipeline(developmentMode) }
 
@@ -121,7 +122,7 @@ public class RoutingRoot(
             responsePipeline,
             parameters
         )
-        val routingCall = RoutingCall(routingApplicationCall)
+        val routingCall = routingApplicationCall.routingCall
         application.monitor.raise(RoutingCallStarted, routingCall)
         try {
             routingCallPipeline.execute(routingApplicationCall)

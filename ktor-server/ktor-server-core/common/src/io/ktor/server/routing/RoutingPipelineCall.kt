@@ -53,12 +53,19 @@ public class RoutingPipelineCall(
     override val response: RoutingPipelineResponse =
         RoutingPipelineResponse(this, responsePipeline, engineCall.response)
 
-    override val parameters: Parameters by lazy(LazyThreadSafetyMode.NONE) {
-        Parameters.build {
+    private var allParameters: Parameters? = null
+
+    override val parameters: Parameters
+        get() = allParameters ?: Parameters.build {
             appendAll(engineCall.parameters)
             appendMissing(pathParameters)
-        }
-    }
+        }.also { allParameters = it }
+
+    private var handlerCall: RoutingCall? = null
+
+    // The call as its handlers see it, made once for routing and every handler of the route
+    internal val routingCall: RoutingCall
+        get() = handlerCall ?: RoutingCall(this).also { handlerCall = it }
 
     override fun toString(): String = "RoutingApplicationCall(route=$route)"
 }
@@ -70,9 +77,19 @@ public class RoutingPipelineCall(
  */
 public class RoutingPipelineRequest(
     override val call: RoutingPipelineCall,
-    override val pipeline: ApplicationReceivePipeline,
+    pipeline: ApplicationReceivePipeline,
     public val engineRequest: PipelineRequest
-) : PipelineRequest by engineRequest
+) : PipelineRequest by engineRequest {
+    // Routing passes the application's own pipeline when the route adds nothing to it and the engine call made no copy
+    // of it: this call's pipeline is then the engine call's, made the first time someone asks for it.
+    private val routePipeline = pipeline.takeUnless { it === call.application.receivePipeline }
+
+    override val pipeline: ApplicationReceivePipeline
+        get() = routePipeline ?: engineRequest.pipeline
+
+    internal val pipelineToRun: ApplicationReceivePipeline
+        get() = routePipeline ?: engineRequest.pipelineToRun()
+}
 
 /**
  * An application response handled by [RoutingRoot].
@@ -81,6 +98,15 @@ public class RoutingPipelineRequest(
  */
 public class RoutingPipelineResponse(
     override val call: RoutingPipelineCall,
-    override val pipeline: ApplicationSendPipeline,
+    pipeline: ApplicationSendPipeline,
     public val engineResponse: PipelineResponse
-) : PipelineResponse by engineResponse
+) : PipelineResponse by engineResponse {
+    // As RoutingPipelineRequest's: the engine call's pipeline unless the route adds to the application's
+    private val routePipeline = pipeline.takeUnless { it === call.application.sendPipeline }
+
+    override val pipeline: ApplicationSendPipeline
+        get() = routePipeline ?: engineResponse.pipeline
+
+    internal val pipelineToRun: ApplicationSendPipeline
+        get() = routePipeline ?: engineResponse.pipelineToRun()
+}
