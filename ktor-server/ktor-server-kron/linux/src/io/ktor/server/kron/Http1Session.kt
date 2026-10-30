@@ -13,12 +13,16 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kron.IOException
+import kron.Memory
 import kron.RecvItem
 import kron.TcpConnection
 import kron.glyph11.Glyph11
 import kron.glyph11.HttpParseException
 import kron.glyph11.ParserLimits
 import kron.glyph11.RequestHead
+import kron.tls.TlsService
+import kron.tls.TlsSession
 
 /**
  * One connection's HTTP/1.1, on its reactor's thread: requests parsed by Glyph11 one after another, each run
@@ -27,8 +31,15 @@ import kron.glyph11.RequestHead
  *
  * The bytes received and not yet consumed are [carry]'s `[start, end)`. A request's head is copied out of it before
  * its call runs, so a call can read its head however long it runs while its body moves on through the carry.
+ *
+ * On a TLS connector the connection starts with [tlsService]'s handshake; from then on the carry holds plaintext,
+ * decrypted as it arrives, and everything written goes through the [TlsSession], to BoringSSL or the kernel.
  */
-internal class Http1Session(private val conn: TcpConnection, private val engine: KronApplicationEngine) {
+internal class Http1Session(
+    private val conn: TcpConnection,
+    private val engine: KronApplicationEngine,
+    private val tlsService: TlsService? = null,
+) {
     internal var carry = ByteArray(INITIAL_CARRY)
     internal var start = 0
     internal var end = 0
@@ -53,8 +64,20 @@ internal class Http1Session(private val conn: TcpConnection, private val engine:
     private val job = Job(engine.rootJob)
     private val context = conn.reactor.handlerContext + job
 
+    private var tls: TlsSession? = null
+
+    /** The connection came in on a TLS connector. */
+    internal val secure: Boolean get() = tlsService != null
+
     suspend fun run() {
         try {
+            if (tlsService != null) {
+                val session = tlsService.accept(conn)
+                tls = session
+                // A request can ride in with the handshake's last flight
+                appendPlaintext(session, session.drainPlaintext())
+            }
+
             while (true) {
                 if (!awaitHead()) {
                     return
@@ -67,9 +90,13 @@ internal class Http1Session(private val conn: TcpConnection, private val engine:
             }
         } catch (_: CancellationException) {
             // the engine is stopping
+        } catch (_: IOException) {
+            // A failed handshake, or a record that does not decrypt: the connection ends, as when the peer leaves.
         } finally {
-            // What the last requests staged goes out before the handler lets go and kron sends its FIN.
+            // What the last requests staged goes out before the handler lets go and kron sends its FIN, and after it
+            // TLS's close_notify.
             flushIfIdle()
+            tls?.close()
             job.complete()
         }
     }
@@ -172,8 +199,8 @@ internal class Http1Session(private val conn: TcpConnection, private val engine:
     private suspend fun refuse(status: Int) {
         val code = HttpStatusCode.fromValue(status)
         val line = statusLine(code)
-        conn.write(line)
-        conn.write(REFUSAL_HEADERS)
+        put(line, 0, line.size)
+        put(REFUSAL_HEADERS, 0, REFUSAL_HEADERS.size)
         conn.flush()
         mustClose = true
     }
@@ -188,14 +215,14 @@ internal class Http1Session(private val conn: TcpConnection, private val engine:
         while (!peerGone) {
             flushIfIdle()
             val snapshot = conn.read()
-            // Counted, not read off end: taking an item can move the carry's bytes to its front.
+            // Counted, not read off end: taking an item can move the carry's bytes to its front. Under TLS a recv
+            // can complete no record, and then brings nothing.
             var received = 0
             while (conn.tryGetItem(snapshot, item)) {
-                received += item.length
-                take(item)
+                received += take(item)
             }
 
-            if (snapshot.isClosed) {
+            if (snapshot.isClosed || tls?.closed == true) {
                 peerGone = true
             }
 
@@ -207,8 +234,14 @@ internal class Http1Session(private val conn: TcpConnection, private val engine:
         return false
     }
 
-    private fun take(item: RecvItem) {
+    // Appends what item brought to the carry, decrypted on a TLS connection; returns how many bytes that was.
+    private fun take(item: RecvItem): Int {
         try {
+            val tls = tls
+            if (tls != null) {
+                return if (item.hasBuffer) appendPlaintext(tls, tls.decrypt(item.address, item.length)) else 0
+            }
+
             val length = item.length
             if (carry.size - end < length) {
                 makeRoom(length)
@@ -216,9 +249,24 @@ internal class Http1Session(private val conn: TcpConnection, private val engine:
 
             item.copyTo(carry, end, 0, length)
             end += length
+            return length
         } finally {
             conn.returnBuffer(item)
         }
+    }
+
+    // Appends the length bytes the session's last decrypt left at its plaintext.
+    private fun appendPlaintext(session: TlsSession, length: Int): Int {
+        if (length > 0) {
+            if (carry.size - end < length) {
+                makeRoom(length)
+            }
+
+            Memory.copy(session.plaintext, carry, end, length)
+            end += length
+        }
+
+        return length
     }
 
     // Moves the unconsumed bytes to the front, and grows the carry when that still leaves no room.
@@ -240,7 +288,7 @@ internal class Http1Session(private val conn: TcpConnection, private val engine:
     internal suspend fun sendContinue() {
         sending {
             if (!headWritten) {
-                conn.write(CONTINUE)
+                put(CONTINUE, 0, CONTINUE.size)
                 flush()
             }
         }
@@ -318,12 +366,22 @@ internal class Http1Session(private val conn: TcpConnection, private val engine:
 
         out[p++] = '\r'.code.toByte()
         out[p++] = '\n'.code.toByte()
-        conn.write(out, 0, p)
+        put(out, 0, p)
         headWritten = true
     }
 
     internal fun write(bytes: ByteArray, offset: Int = 0, length: Int = bytes.size - offset) {
-        conn.write(bytes, offset, length)
+        put(bytes, offset, length)
+    }
+
+    // Stages bytes for the peer; on a TLS connection the session encrypts them, or leaves that to the kernel.
+    private fun put(bytes: ByteArray, offset: Int, length: Int) {
+        val tls = tls
+        if (tls == null) {
+            conn.write(bytes, offset, length)
+        } else {
+            tls.write(conn, bytes, offset, length)
+        }
     }
 
     /** Sends what is staged; throws once the peer is gone, so a streaming writer stops. */

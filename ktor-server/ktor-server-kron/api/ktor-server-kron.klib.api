@@ -33,7 +33,22 @@ final class io.ktor.server.kron/KronApplicationEngine : io.ktor.server.engine/Ba
         final var sendTimeoutMs // io.ktor.server.kron/KronApplicationEngine.Configuration.sendTimeoutMs|{}sendTimeoutMs[0]
             final fun <get-sendTimeoutMs>(): kotlin/Long // io.ktor.server.kron/KronApplicationEngine.Configuration.sendTimeoutMs.<get-sendTimeoutMs>|<get-sendTimeoutMs>(){}[0]
             final fun <set-sendTimeoutMs>(kotlin/Long) // io.ktor.server.kron/KronApplicationEngine.Configuration.sendTimeoutMs.<set-sendTimeoutMs>|<set-sendTimeoutMs>(kotlin.Long){}[0]
+
+        final fun tlsConnector(kotlin/Int, kron.tls/TlsOptions) // io.ktor.server.kron/KronApplicationEngine.Configuration.tlsConnector|tlsConnector(kotlin.Int;kron.tls.TlsOptions){}[0]
     }
+}
+
+final class io.ktor.server.kron/KronTlsConnector : io.ktor.server.engine/EngineConnectorConfig { // io.ktor.server.kron/KronTlsConnector|null[0]
+    constructor <init>(kotlin/Int, kron.tls/TlsOptions) // io.ktor.server.kron/KronTlsConnector.<init>|<init>(kotlin.Int;kron.tls.TlsOptions){}[0]
+
+    final val host // io.ktor.server.kron/KronTlsConnector.host|{}host[0]
+        final fun <get-host>(): kotlin/String // io.ktor.server.kron/KronTlsConnector.host.<get-host>|<get-host>(){}[0]
+    final val options // io.ktor.server.kron/KronTlsConnector.options|{}options[0]
+        final fun <get-options>(): kron.tls/TlsOptions // io.ktor.server.kron/KronTlsConnector.options.<get-options>|<get-options>(){}[0]
+    final val port // io.ktor.server.kron/KronTlsConnector.port|{}port[0]
+        final fun <get-port>(): kotlin/Int // io.ktor.server.kron/KronTlsConnector.port.<get-port>|<get-port>(){}[0]
+    final val type // io.ktor.server.kron/KronTlsConnector.type|{}type[0]
+        final fun <get-type>(): io.ktor.server.engine/ConnectorType // io.ktor.server.kron/KronTlsConnector.type.<get-type>|<get-type>(){}[0]
 }
 
 final object io.ktor.server.kron/Kron : io.ktor.server.engine/ApplicationEngineFactory<io.ktor.server.kron/KronApplicationEngine, io.ktor.server.kron/KronApplicationEngine.Configuration> { // io.ktor.server.kron/Kron|null[0]
