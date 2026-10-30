@@ -44,6 +44,7 @@ kotlin {
 val targets = ktorBuild.targets
 
 configureCommon()
+configureFlakyTests()
 if (targets.hasJvm) configureJvm()
 if (targets.hasJs) configureJs()
 if (targets.hasWasmJs) configureWasmJs()
