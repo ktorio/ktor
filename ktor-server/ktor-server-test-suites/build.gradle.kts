@@ -17,6 +17,7 @@ kotlin {
             implementation(projects.ktorServerHsts)
             implementation(projects.ktorServerWebsockets)
             implementation(projects.ktorServerSse)
+            implementation(projects.ktorNetwork)
             api(projects.ktorServerTestBase)
         }
 
