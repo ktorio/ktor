@@ -192,6 +192,10 @@ internal val HttpClientEngineFactory<*>.engineName: String
 /**
  * Decides whether an engine should be tested or not.
  *
+ * Patterns use `PLATFORM:ENGINE` or `ENGINE`, with `*` matching all engines or platforms.
+ * Platforms are matched by prefix: `web:*` includes both `web.browser:*` and `web.node:*`.
+ * Native platforms use `native/linux`, `native/windows`, and `native/darwin`; `native:*` includes all of them.
+ *
  * @see ClientLoader.except
  * @see ClientLoader.only
  */
