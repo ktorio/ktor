@@ -65,7 +65,6 @@ public class ByteChannel(public override val autoFlush: Boolean = false) : ByteR
     override val readBuffer: Source
         get() {
             _closedCause.value?.throwOrNull(::ClosedReadChannelException)
-            if (_readBuffer.exhausted()) moveFlushToReadBuffer()
             return _readBuffer
         }
 
