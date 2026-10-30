@@ -1,0 +1,42 @@
+// Klib ABI Dump
+// Targets: [linuxArm64, linuxX64]
+// Rendering settings:
+// - Signature version: 2
+// - Show manifest properties: true
+// - Show declarations: true
+
+// Library unique name: <io.ktor:ktor-server-kron>
+final class io.ktor.server.kron/KronApplicationEngine : io.ktor.server.engine/BaseApplicationEngine { // io.ktor.server.kron/KronApplicationEngine|null[0]
+    constructor <init>(io.ktor.server.application/ApplicationEnvironment, io.ktor.events/Events, kotlin/Boolean, io.ktor.server.kron/KronApplicationEngine.Configuration, kotlin/Function0<io.ktor.server.application/Application>) // io.ktor.server.kron/KronApplicationEngine.<init>|<init>(io.ktor.server.application.ApplicationEnvironment;io.ktor.events.Events;kotlin.Boolean;io.ktor.server.kron.KronApplicationEngine.Configuration;kotlin.Function0<io.ktor.server.application.Application>){}[0]
+
+    final val configuration // io.ktor.server.kron/KronApplicationEngine.configuration|{}configuration[0]
+        final fun <get-configuration>(): io.ktor.server.kron/KronApplicationEngine.Configuration // io.ktor.server.kron/KronApplicationEngine.configuration.<get-configuration>|<get-configuration>(){}[0]
+
+    final fun start(kotlin/Boolean): io.ktor.server.engine/ApplicationEngine // io.ktor.server.kron/KronApplicationEngine.start|start(kotlin.Boolean){}[0]
+    final fun stop(kotlin/Long, kotlin/Long) // io.ktor.server.kron/KronApplicationEngine.stop|stop(kotlin.Long;kotlin.Long){}[0]
+
+    final class Configuration : io.ktor.server.engine/BaseApplicationEngine.Configuration { // io.ktor.server.kron/KronApplicationEngine.Configuration|null[0]
+        constructor <init>() // io.ktor.server.kron/KronApplicationEngine.Configuration.<init>|<init>(){}[0]
+
+        final var incremental // io.ktor.server.kron/KronApplicationEngine.Configuration.incremental|{}incremental[0]
+            final fun <get-incremental>(): kron/IncrementalOptions? // io.ktor.server.kron/KronApplicationEngine.Configuration.incremental.<get-incremental>|<get-incremental>(){}[0]
+            final fun <set-incremental>(kron/IncrementalOptions?) // io.ktor.server.kron/KronApplicationEngine.Configuration.incremental.<set-incremental>|<set-incremental>(kron.IncrementalOptions?){}[0]
+        final var pinReactors // io.ktor.server.kron/KronApplicationEngine.Configuration.pinReactors|{}pinReactors[0]
+            final fun <get-pinReactors>(): kotlin/Boolean // io.ktor.server.kron/KronApplicationEngine.Configuration.pinReactors.<get-pinReactors>|<get-pinReactors>(){}[0]
+            final fun <set-pinReactors>(kotlin/Boolean) // io.ktor.server.kron/KronApplicationEngine.Configuration.pinReactors.<set-pinReactors>|<set-pinReactors>(kotlin.Boolean){}[0]
+        final var reactorCount // io.ktor.server.kron/KronApplicationEngine.Configuration.reactorCount|{}reactorCount[0]
+            final fun <get-reactorCount>(): kotlin/Int // io.ktor.server.kron/KronApplicationEngine.Configuration.reactorCount.<get-reactorCount>|<get-reactorCount>(){}[0]
+            final fun <set-reactorCount>(kotlin/Int) // io.ktor.server.kron/KronApplicationEngine.Configuration.reactorCount.<set-reactorCount>|<set-reactorCount>(kotlin.Int){}[0]
+        final var readTimeoutMs // io.ktor.server.kron/KronApplicationEngine.Configuration.readTimeoutMs|{}readTimeoutMs[0]
+            final fun <get-readTimeoutMs>(): kotlin/Long // io.ktor.server.kron/KronApplicationEngine.Configuration.readTimeoutMs.<get-readTimeoutMs>|<get-readTimeoutMs>(){}[0]
+            final fun <set-readTimeoutMs>(kotlin/Long) // io.ktor.server.kron/KronApplicationEngine.Configuration.readTimeoutMs.<set-readTimeoutMs>|<set-readTimeoutMs>(kotlin.Long){}[0]
+        final var sendTimeoutMs // io.ktor.server.kron/KronApplicationEngine.Configuration.sendTimeoutMs|{}sendTimeoutMs[0]
+            final fun <get-sendTimeoutMs>(): kotlin/Long // io.ktor.server.kron/KronApplicationEngine.Configuration.sendTimeoutMs.<get-sendTimeoutMs>|<get-sendTimeoutMs>(){}[0]
+            final fun <set-sendTimeoutMs>(kotlin/Long) // io.ktor.server.kron/KronApplicationEngine.Configuration.sendTimeoutMs.<set-sendTimeoutMs>|<set-sendTimeoutMs>(kotlin.Long){}[0]
+    }
+}
+
+final object io.ktor.server.kron/Kron : io.ktor.server.engine/ApplicationEngineFactory<io.ktor.server.kron/KronApplicationEngine, io.ktor.server.kron/KronApplicationEngine.Configuration> { // io.ktor.server.kron/Kron|null[0]
+    final fun configuration(kotlin/Function1<io.ktor.server.kron/KronApplicationEngine.Configuration, kotlin/Unit>): io.ktor.server.kron/KronApplicationEngine.Configuration // io.ktor.server.kron/Kron.configuration|configuration(kotlin.Function1<io.ktor.server.kron.KronApplicationEngine.Configuration,kotlin.Unit>){}[0]
+    final fun create(io.ktor.server.application/ApplicationEnvironment, io.ktor.events/Events, kotlin/Boolean, io.ktor.server.kron/KronApplicationEngine.Configuration, kotlin/Function0<io.ktor.server.application/Application>): io.ktor.server.kron/KronApplicationEngine // io.ktor.server.kron/Kron.create|create(io.ktor.server.application.ApplicationEnvironment;io.ktor.events.Events;kotlin.Boolean;io.ktor.server.kron.KronApplicationEngine.Configuration;kotlin.Function0<io.ktor.server.application.Application>){}[0]
+}
