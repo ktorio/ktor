@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.tests.server.tomcat
 
@@ -70,6 +70,12 @@ class TomcatHttpServerCommonTest :
         listOf("org.apache.coyote", "org.apache.tomcat", "org.apache.catalina").map {
             Logger.getLogger(it).apply { level = Level.WARNING }
         }
+    }
+
+    @Test
+    @Ignore // KTOR-10112: Tomcat removes explicitly set Content-Length from 304 responses
+    override fun `304 response preserves representation content length`() {
+        super.`304 response preserves representation content length`()
     }
 
     @Ignore // KTOR-6480
