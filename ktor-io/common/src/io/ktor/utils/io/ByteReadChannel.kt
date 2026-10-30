@@ -12,7 +12,9 @@ import kotlinx.io.Source
  * Channel for asynchronous reading of sequences of bytes.
  * This is a **single-reader channel**.
  *
- * Operations on this channel cannot be invoked concurrently.
+ * Operations on this channel cannot be invoked concurrently, and that includes [awaitContent].
+ * For [ByteChannel], and for [CountedByteReadChannel] whose delegate is one of these channels,
+ * [availableForRead] is an exception: it can be queried from any coroutine.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.ByteReadChannel)
  */
@@ -28,6 +30,9 @@ public interface ByteReadChannel {
     /**
      * Suspend the channel until it has [min] bytes or gets closed. Throws exception if the channel was closed with an
      * error. If there are bytes available in the channel, this function returns immediately.
+     *
+     * This is a read operation: it can move bytes into the buffer the reader consumes,
+     * so it must not be called concurrently with other read operations.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.ByteReadChannel.awaitContent)
      *

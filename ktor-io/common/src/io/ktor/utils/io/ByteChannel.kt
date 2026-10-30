@@ -89,6 +89,18 @@ public class ByteChannel(public override val autoFlush: Boolean = false) : ByteR
         get() = (_closedCause.value?.hasCause == true) ||
             (isClosedForWrite && flushBufferSize == 0 && _readBuffer.exhausted())
 
+    /**
+     * Implements [availableForRead] without moving flushed bytes to the read buffer like the [readBuffer] getter does,
+     * so a coroutine other than the reader can call it without racing with the reader.
+     */
+    internal fun peekAvailableForRead(): Int {
+        _closedCause.value?.throwOrNull(::ClosedReadChannelException)
+        // Read flushBufferSize first: once a move resets it, the moved bytes are visible in _readBuffer
+        val flushed = flushBufferSize
+        val readBufferSize = _readBuffer.size
+        return if (readBufferSize > 0) readBufferSize.toInt() else flushed
+    }
+
     override suspend fun awaitContent(min: Int): Boolean {
         rethrowCloseCauseIfNeeded()
         if (_readBuffer.size >= min) return true

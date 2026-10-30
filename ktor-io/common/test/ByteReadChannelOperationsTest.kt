@@ -357,6 +357,90 @@ class ByteReadChannelOperationsTest {
     }
 
     @OptIn(InternalAPI::class)
+    @Test
+    fun testAvailableForReadDoesNotMoveBytes() = runTest {
+        val channel = ByteChannel()
+        val readBuffer = channel.readBuffer
+        channel.writeFully(byteArrayOf(1, 2, 3))
+        channel.flush()
+
+        assertEquals(3, channel.availableForRead)
+        assertTrue(readBuffer.exhausted())
+
+        assertEquals(1, channel.readByte())
+        assertEquals(2, channel.availableForRead)
+    }
+
+    @Test
+    fun testAvailableForReadAfterPartialRead() = runTest {
+        val channel = ByteChannel()
+        channel.writeFully(byteArrayOf(1, 2, 3))
+        channel.flush()
+        assertEquals(1, channel.readByte())
+
+        channel.writeFully(byteArrayOf(4, 5))
+        channel.flush()
+        assertEquals(2, channel.availableForRead)
+
+        channel.discard(2)
+        assertEquals(2, channel.availableForRead)
+    }
+
+    @Test
+    fun testAvailableForReadAfterClose() = runTest {
+        val channel = ByteChannel()
+        channel.writeFully(byteArrayOf(1, 2, 3))
+        channel.close()
+        assertEquals(3, channel.availableForRead)
+
+        channel.discard()
+        assertEquals(0, channel.availableForRead)
+    }
+
+    @Test
+    fun testAvailableForReadFromCancelled() = runTest {
+        val channel = ByteChannel()
+        channel.writeFully(byteArrayOf(1, 2, 3))
+        channel.flush()
+        channel.cancel(IOException("Cancelled"))
+
+        assertFailsWith<ClosedReadChannelException> {
+            channel.availableForRead
+        }
+    }
+
+    @OptIn(InternalAPI::class)
+    @Test
+    fun testCountedAvailableForReadDoesNotMoveBytes() = runTest {
+        val delegate = ByteChannel()
+        val counted = CountedByteReadChannel(delegate)
+        val readBuffer = counted.readBuffer
+        delegate.writeFully(byteArrayOf(1, 2, 3))
+        delegate.flush()
+
+        assertEquals(3, counted.availableForRead)
+        assertTrue(readBuffer.exhausted())
+
+        assertEquals(1, counted.readByte())
+        delegate.writeFully(byteArrayOf(4, 5))
+        delegate.flush()
+        assertEquals(4, counted.availableForRead)
+        assertEquals(2, readBuffer.remaining)
+        assertEquals(1, counted.totalBytesRead)
+    }
+
+    @Test
+    fun testCountedAvailableForReadFromCancelled() = runTest {
+        val delegate = ByteChannel()
+        val counted = CountedByteReadChannel(delegate)
+        delegate.cancel(IOException("Cancelled"))
+
+        assertFailsWith<ClosedReadChannelException> {
+            counted.availableForRead
+        }
+    }
+
+    @OptIn(InternalAPI::class)
     private suspend fun String.toByteChannel() = ByteChannel().also {
         it.writeBuffer.writeString(this)
         it.flushAndClose()
