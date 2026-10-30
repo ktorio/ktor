@@ -96,6 +96,7 @@ projects {
             +"ktor-server-partial-content"
             +"ktor-server-pebble"
             +"ktor-server-rate-limit"
+            +"ktor-server-rate-limit-micrometer"
             +"ktor-server-request-validation"
             +"ktor-server-resources"
 	        +"ktor-server-scalar"

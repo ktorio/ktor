@@ -1,0 +1,6 @@
+public final class io/ktor/server/plugins/ratelimit/micrometer/RateLimitMetrics : io/micrometer/core/instrument/binder/MeterBinder {
+	public fun <init> (Lio/ktor/events/Events;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)V
+	public synthetic fun <init> (Lio/ktor/events/Events;Ljava/lang/String;Lkotlin/jvm/functions/Function1;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun bindTo (Lio/micrometer/core/instrument/MeterRegistry;)V
+}
+

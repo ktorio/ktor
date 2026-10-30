@@ -43,28 +43,47 @@ internal val RateLimitApplicationInterceptors = createApplicationPlugin(
     rateLimiterPluginBuilder(PluginsPhase)
 }
 
-public data class LimiterKey(
-    val providerName: String,
-    val key: Any,
-    val route: Route?
-)
+/**
+ * Identifies a [RateLimiter] instance: a rate limiter is shared by all routes
+ * that use the same provider and produce the same request key.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.RateLimiterKey)
+ *
+ * @property providerName the name of the rate limit provider, or `Global` for the global rate limiter.
+ * @property key the request key produced by the provider's `requestKey` function.
+ */
+public class RateLimiterKey(
+    public val providerName: String,
+    public val key: Any,
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is RateLimiterKey) return false
+        return providerName == other.providerName && key == other.key
+    }
+
+    override fun hashCode(): Int = 31 * providerName.hashCode() + key.hashCode()
+}
 
 public sealed class RateLimitEvent(
-    public val key: LimiterKey,
+    public val limiter: RateLimiterKey,
+    public val route: Route?,
 )
 
 // TODO: Rename the event names
 public class AvailableEvent(
-    key: LimiterKey,
+    limiter: RateLimiterKey,
+    route: Route?,
     public val tokensLeft: Int,
     public val tokensTotal: Int,
     public val nextRefillTs: Long,
-): RateLimitEvent(key)
+): RateLimitEvent(limiter, route)
 
 public class ExhaustedEvent(
-    key: LimiterKey,
+    limiter: RateLimiterKey,
+    route: Route?,
     public val toWait: Duration,
-): RateLimitEvent(key)
+): RateLimitEvent(limiter, route)
 
 public val rateLimitEvent: EventDefinition<RateLimitEvent> = EventDefinition()
 
@@ -103,15 +122,16 @@ private fun PluginBuilder<RateLimitInterceptorsConfig>.rateLimiterPluginBuilder(
             val state = rateLimiterForCall.tryConsume(weight)
             provider.modifyResponse(call, state)
 
-            val limiterKey = LimiterKey(
+            val limiterKey = RateLimiterKey(
                 providerName = if (provider.name == LIMITER_NAME_GLOBAL) "Global" else provider.name.name,
                 key = key,
-                route = if (call is RoutingPipelineCall) call.route else null
             )
+            val route = if (call is RoutingPipelineCall) call.route else null
             val event = when(state) {
                 is RateLimiter.State.Available -> {
                     AvailableEvent(
-                        key = limiterKey,
+                        limiter = limiterKey,
+                        route = route,
                         tokensTotal = state.limit,
                         tokensLeft = state.remainingTokens,
                         nextRefillTs = state.refillAtTimeMillis
@@ -119,7 +139,8 @@ private fun PluginBuilder<RateLimitInterceptorsConfig>.rateLimiterPluginBuilder(
                 }
                 is RateLimiter.State.Exhausted ->  {
                     ExhaustedEvent(
-                        key = limiterKey,
+                        limiter = limiterKey,
+                        route = route,
                         toWait = state.toWait
                     )
                 }
