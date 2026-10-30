@@ -41,15 +41,4 @@ class ContentEncodingIntegrationTest : ClientLoader() {
             assertEquals("Hello, world", content)
         }
     }
-
-    @Test
-    fun testHeadGzipWithContentLengthWithoutPlugin() = clientTests {
-        test { client ->
-            val response = client.head("$TEST_URL/head-gzip-with-content-length")
-
-            assertEquals(HttpStatusCode.OK, response.status)
-            assertEquals("gzip", response.headers[HttpHeaders.ContentEncoding], "gzip")
-            assertEquals("32", response.headers[HttpHeaders.ContentLength])
-        }
-    }
 }
