@@ -50,17 +50,11 @@ actual abstract class BaseTest actual constructor() {
         timeout: Duration,
         retries: Int,
         block: suspend CoroutineScope.() -> Unit
-    ): TestResult = retryTest(retries) { retry ->
-        runTestWithRealTime(timeout = timeout) {
-            if (retry > 0) println("[Retry $retry/$retries]")
-            beforeTest()
-            try {
-                block()
-            } finally {
-                afterTest()
-            }
-        }
-    }
+    ): TestResult = runTestAttempts(
+        retries,
+        runAttempt = { attempt -> runTestWithRealTime(timeout = timeout, testBody = attempt) },
+        block = block,
+    )
 }
 
 private class UnhandledErrorsException(override val message: String) : Exception()
