@@ -15,6 +15,7 @@ import io.ktor.server.engine.ApplicationEngineFactory
 import io.ktor.server.engine.BaseApplicationEngine
 import io.ktor.server.engine.ConnectorType
 import io.ktor.server.engine.DefaultUncaughtExceptionHandler
+import io.ktor.server.engine.EngineConnectorConfig
 import io.ktor.server.engine.withPort
 import kotlinx.cinterop.IntVar
 import kotlinx.cinterop.alloc
@@ -33,6 +34,8 @@ import kron.KronServer
 import kron.Reactor
 import kron.ServerConfig
 import kron.TcpOptions
+import kron.tls.TlsOptions
+import kron.tls.TlsService
 import platform.posix.AF_INET
 import platform.posix.SOCK_STREAM
 import platform.posix.SOL_SOCKET
@@ -78,7 +81,8 @@ public object Kron : ApplicationEngineFactory<KronApplicationEngine, KronApplica
  * the parse through the application's pipeline to the send: nothing is handed between threads, and a handler that
  * blocks holds its reactor, as on any kron server.
  *
- * Every connector listens on all IPv4 addresses, whatever its host; HTTPS connectors are refused.
+ * Every connector listens on all IPv4 addresses, whatever its host. HTTPS is served on the engine's own connectors,
+ * through kron's BoringSSL and, where asked for, kernel TLS: see [Configuration.tlsConnector].
  */
 public class KronApplicationEngine(
     environment: ApplicationEnvironment,
@@ -101,7 +105,18 @@ public class KronApplicationEngine(
         public var incremental: IncrementalOptions? = null
         public var readTimeoutMs: Long = 60_000
         public var sendTimeoutMs: Long = 60_000
+
+        /**
+         * Serves HTTP/1.1 over TLS on [port] with [options]: the certificate and key, the ALPN protocols (only
+         * `http/1.1` is served), the lowest TLS version and kernel TLS. Each reactor makes its own TLS context.
+         */
+        public fun tlsConnector(port: Int, options: TlsOptions) {
+            connectors.add(KronTlsConnector(port, options))
+        }
     }
+
+    // Each reactor's TLS services by the port they serve, made on the reactor's own thread, as BoringSSL wants.
+    private var tlsServices = emptyArray<Map<Int, TlsService>?>()
 
     private var server: KronServer? = null
 
@@ -118,8 +133,8 @@ public class KronApplicationEngine(
         val connectors = configuration.connectors.toList()
         require(connectors.isNotEmpty()) { "kron needs a connector to listen on" }
         for (connector in connectors) {
-            if (connector.type == ConnectorType.HTTPS) {
-                throw UnsupportedOperationException("The kron engine does not support HTTPS connectors yet")
+            require(connector.type != ConnectorType.HTTPS || connector is KronTlsConnector) {
+                "An HTTPS connector on kron is the engine's own: add it with tlsConnector(port, TlsOptions)"
             }
         }
 
@@ -148,9 +163,21 @@ public class KronApplicationEngine(
             val uncaught = parent[CoroutineExceptionHandler] ?: DefaultUncaughtExceptionHandler(environment.log)
 
             // Each reactor reports in from its own thread once it listens, or why it could not start.
+            val tlsOptions = connectors.indices
+                .filter { connectors[it] is KronTlsConnector }
+                .associate { ports[it] to (connectors[it] as KronTlsConnector).options }
+            tlsServices = arrayOfNulls(configuration.reactorCount)
+
             val listening = AtomicInt(0)
-            server = KronServer(config, onStart = { listening.addAndFetch(1) }) { connection ->
-                Http1Session(connection, this).run()
+            val onStart: (Reactor) -> Unit = { reactor ->
+                if (tlsOptions.isNotEmpty()) {
+                    tlsServices[reactor.id] = tlsOptions.mapValues { TlsService.start(reactor, it.value) }
+                }
+                listening.addAndFetch(1)
+            }
+            server = KronServer(config, onStart) { connection ->
+                val tls = tlsServices[connection.reactor.id]?.get(connection.listenerPort)
+                Http1Session(connection, this, tls).run()
             }
 
             for (reactor in server.reactors) {
@@ -232,6 +259,16 @@ public class KronApplicationEngine(
         // must outlive it.
         const val CANCEL_WAIT_MS = 1_000L
     }
+}
+
+/**
+ * An HTTPS connector of the kron engine, on all IPv4 addresses: see [KronApplicationEngine.Configuration.tlsConnector].
+ *
+ * @property options the TLS port's settings, kron's own.
+ */
+public class KronTlsConnector(override val port: Int, public val options: TlsOptions) : EngineConnectorConfig {
+    override val type: ConnectorType get() = ConnectorType.HTTPS
+    override val host: String get() = "0.0.0.0"
 }
 
 /**

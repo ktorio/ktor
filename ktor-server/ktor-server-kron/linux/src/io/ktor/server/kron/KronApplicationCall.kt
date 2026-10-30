@@ -104,7 +104,7 @@ internal class KronApplicationRequest(
 
     override val method: HttpMethod = methodOf(bytes, head.methodStart, head.methodLength)
 
-    override val scheme: String get() = "http"
+    override val scheme: String get() = if (session.secure) "https" else "http"
 
     private val hostHeader: String? get() = get(HttpHeaders.Host)
 
@@ -114,7 +114,9 @@ internal class KronApplicationRequest(
     @Deprecated("Use localHost or serverHost instead", level = DeprecationLevel.ERROR)
     override val host: String get() = localHost
 
-    override val localPort: Int get() = connection.localAddress?.port ?: URLProtocol.HTTP.defaultPort
+    override val localPort: Int
+        get() = connection.localAddress?.port
+            ?: if (session.secure) URLProtocol.HTTPS.defaultPort else URLProtocol.HTTP.defaultPort
 
     override val serverPort: Int
         get() = hostHeader?.substringAfterLast(":", "")?.toIntOrNull() ?: localPort
