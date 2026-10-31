@@ -6,10 +6,14 @@ package io.ktor.server.application
 
 import io.ktor.http.*
 import io.ktor.http.content.*
+import io.ktor.server.engine.BaseApplicationRequest
+import io.ktor.server.engine.BaseApplicationResponse
 import io.ktor.server.plugins.*
 import io.ktor.server.plugins.ContentTransformationException
 import io.ktor.server.request.*
 import io.ktor.server.response.*
+import io.ktor.server.routing.RoutingPipelineRequest
+import io.ktor.server.routing.RoutingPipelineResponse
 import io.ktor.util.*
 import io.ktor.util.pipeline.*
 import io.ktor.util.reflect.*
@@ -137,7 +141,7 @@ public interface PipelineCall : ApplicationCall {
 
         receiveType = typeInfo
         val incomingContent = token ?: request.receiveChannel()
-        val transformed = request.pipeline.execute(this, incomingContent)
+        val transformed = request.pipelineToRun().execute(this, incomingContent)
         when {
             transformed == NullBody -> return null
             transformed === DoubleReceivePreventionToken -> throw RequestAlreadyConsumedException()
@@ -151,7 +155,7 @@ public interface PipelineCall : ApplicationCall {
     @OptIn(InternalAPI::class)
     override suspend fun respond(message: Any?, typeInfo: TypeInfo?) {
         response.responseType = typeInfo
-        response.pipeline.execute(this, message ?: NullBody)
+        response.pipelineToRun().execute(this, message ?: NullBody)
     }
 }
 
@@ -179,3 +183,17 @@ public var ApplicationCall.receiveType: TypeInfo
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.call)
  */
 public val <C : ApplicationCall> PipelineContext<*, C>.call: C get() = context
+
+// The pipelines a call's receive and send run: its own copies, if something asked for them to intercept this call
+// alone, or else the application's.
+internal fun PipelineRequest.pipelineToRun(): ApplicationReceivePipeline = when (this) {
+    is BaseApplicationRequest -> pipelineToRun
+    is RoutingPipelineRequest -> pipelineToRun
+    else -> pipeline
+}
+
+internal fun PipelineResponse.pipelineToRun(): ApplicationSendPipeline = when (this) {
+    is BaseApplicationResponse -> pipelineToRun
+    is RoutingPipelineResponse -> pipelineToRun
+    else -> pipeline
+}

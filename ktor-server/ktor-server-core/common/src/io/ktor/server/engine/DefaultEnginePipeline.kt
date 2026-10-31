@@ -51,7 +51,11 @@ public fun defaultEnginePipeline(config: ApplicationConfig, developmentMode: Boo
                 if (version.major == 1) {
                     // In HTTP/1.1, we should read the entire request body to reuse the persistent connection
                     // HTTP/2 and higher don't require draining the input to reuse it
-                    call.request.receiveChannel().discard()
+                    // Drained only if anything is left: discard() makes a coroutine even for an empty body
+                    val body = call.request.receiveChannel()
+                    if (!body.isClosedForRead) {
+                        body.discard()
+                    }
                 }
             } catch (_: Throwable) {
             }
