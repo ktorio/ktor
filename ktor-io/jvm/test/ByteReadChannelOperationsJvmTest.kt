@@ -35,6 +35,7 @@ class ByteReadChannelOperationsJvmTest {
         assertEquals(-1, channel.readAvailable { buffer -> buffer.remaining() })
         channel.writeFully(byteArrayOf(1, 2, 3))
         channel.flush()
+        channel.awaitContent()
         assertEquals(3, channel.readAvailable { buffer -> buffer.remaining() })
         assertEquals(-1, channel.readAvailable { buffer -> buffer.remaining() })
 

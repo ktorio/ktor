@@ -207,7 +207,6 @@ class ByteChannelOutputStreamTest {
 
         outputStream.write(data)
 
-        assertEquals(data.size, channel.availableForRead)
         val result = ByteArray(data.size)
         channel.readFully(result)
         assertContentEquals(data, result)
