@@ -61,7 +61,8 @@ internal class Http1Session(
     private var headWritten = false
 
     // What this connection's calls start is a child of its job, so the engine's stop can wait for it, and cancel it.
-    private val job = Job(engine.rootJob)
+    // Under its reactor's job, which no other thread adds to.
+    private val job = Job(conn.reactor.handlerContext[Job])
     private val context = conn.reactor.handlerContext + job
 
     private var tls: TlsSession? = null
@@ -168,7 +169,7 @@ internal class Http1Session(
         }
 
         val call = KronApplicationCall(
-            engine.applicationProvider(),
+            engine.application(),
             this,
             conn,
             body,
