@@ -188,6 +188,9 @@ public class ContentNegotiationConfig : Configuration {
      * Content types are compared ignoring parameters, so `replace(ContentType.Text.Plain, ...)` also removes
      * a converter registered for `text/plain; charset=UTF-8`.
      *
+     * The new converter takes the position of the replaced registration, so its precedence relative to
+     * converters registered for other content types is preserved.
+     *
      * Note that a converter registered with [register] is only used when all converters registered before it
      * for the same content type returned `null`; use this function to override an already registered converter
      * instead of registering another one.
@@ -199,8 +202,22 @@ public class ContentNegotiationConfig : Configuration {
         converter: T,
         configuration: T.() -> Unit = {}
     ) {
-        registrations.removeAll { it.contentTypeToSend.withoutParameters() == contentType.withoutParameters() }
-        register(contentType, converter, configuration)
+        val replacement = ConverterRegistration(
+            converter.apply(configuration),
+            contentType,
+            defaultMatcher(contentType)
+        )
+
+        fun ConverterRegistration.hasSameContentType(): Boolean =
+            contentTypeToSend.withoutParameters() == contentType.withoutParameters()
+
+        val firstReplaced = registrations.indexOfFirst { it.hasSameContentType() }
+        if (firstReplaced < 0) {
+            registrations.add(replacement)
+        } else {
+            registrations.removeAll { it.hasSameContentType() }
+            registrations.add(firstReplaced, replacement)
+        }
     }
 
     /**

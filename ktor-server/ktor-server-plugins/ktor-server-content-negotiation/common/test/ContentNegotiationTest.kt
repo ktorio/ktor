@@ -182,6 +182,32 @@ class ContentNegotiationTest {
         assertEquals("REPLACED", response.bodyAsText())
     }
 
+    @Test
+    fun testReplaceConverterPreservesPrecedence() = testApplication {
+        application {
+            routing {
+                install(ContentNegotiation) {
+                    register(ContentType.Application.Json, alwaysFailingConverter)
+
+                    // A converter for another content type registered after the replaced one
+                    // should not take precedence over the replacement
+                    register(ContentType.Application.Xml, textConverter("OTHER"))
+                    replace(ContentType.Application.Json, textConverter("REPLACED"))
+                }
+
+                get("/") {
+                    call.respond(Wrapper("hello"))
+                }
+            }
+        }
+
+        val response = client.get("/") {
+            accept(ContentType.Any)
+        }
+
+        assertEquals("REPLACED", response.bodyAsText())
+    }
+
     private fun textConverter(text: String) = object : ContentConverter {
         override suspend fun serialize(
             contentType: ContentType,

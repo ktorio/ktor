@@ -767,6 +767,38 @@ class ContentNegotiationTests {
     }
 
     @Test
+    fun replaceConverterPreservesPrecedence() = testWithEngine(MockEngine) {
+        val contentTypeToSend = ContentType("testing", "client-replace-precedence")
+        val otherContentType = ContentType("testing", "client-replace-other")
+        val replacedContent = TextContent("REPLACED CONVERTER", contentTypeToSend)
+
+        setupWithContentNegotiation {
+            register(contentTypeToSend, TestContentConverter()) {
+                serializeFn = { _, _, _, _ -> TextContent("FIRST CONVERTER", contentTypeToSend) }
+            }
+
+            // A converter for another content type registered after the replaced one
+            // should not take precedence over the replacement
+            register(otherContentType, TestContentConverter()) {
+                serializeFn = { _, _, _, _ -> TextContent("OTHER CONVERTER", otherContentType) }
+            }
+
+            replace(contentTypeToSend, TestContentConverter()) {
+                serializeFn = { _, _, _, _ -> replacedContent }
+            }
+        }
+
+        test { client ->
+            client.post("https://test.com/") {
+                setBody(Thing)
+                contentType(contentTypeToSend)
+            }.apply {
+                assertEquals(replacedContent, call.request.content)
+            }
+        }
+    }
+
+    @Test
     fun selectFirstNonNullConverterOutputInRequestPipeline() {
         testWithEngine(MockEngine) {
             val contentTypeToSend = ContentType("testing", "client-send")
