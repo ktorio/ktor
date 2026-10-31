@@ -21,6 +21,7 @@ import kotlinx.coroutines.CompletableJob
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.io.Buffer
 import kron.IncrementalOptions
 import kron.KronServer
 import kron.Reactor
@@ -99,9 +100,18 @@ public class KronApplicationEngine(
 
     private var server: KronServer? = null
 
-    /** Every connection's job, and through it what each call starts: what [stop] waits for, and then cancels. */
+    /**
+     * A job per reactor, and under each its connections' jobs and through them what each call starts: what [stop]
+     * waits for, and then cancels.
+     */
     internal lateinit var rootJob: CompletableJob
         private set
+
+    // Resolved once a start outside development mode, where it never changes: on the JVM, EmbeddedServer hands it out
+    // under a read lock, and that lock, taken by every reactor on every request, is one cache line all of them write.
+    private var application: Application? = null
+
+    internal fun application(): Application = application ?: applicationProvider()
 
     // Why a reactor could not start or went down, from its thread; and whether stop() has finished.
     private val fault = AtomicReference<Throwable?>(null)
@@ -136,7 +146,9 @@ public class KronApplicationEngine(
                 },
             )
 
-            val parent = applicationProvider().parentCoroutineContext
+            val app = applicationProvider()
+            application = app.takeUnless { it.developmentMode }
+            val parent = app.parentCoroutineContext
             val job = SupervisorJob(parent[Job])
             rootJob = job
 
@@ -161,9 +173,19 @@ public class KronApplicationEngine(
                 Http1Session(connection, this, tls).run()
             }
 
+            // The job a handler runs under takes every cancellable wait of its calls - a delay() each - and each of its
+            // connections' jobs: one job shared by all the reactors is one list they all add to and remove from.
             for (reactor in server.reactors) {
-                reactor.handlerContext = parent + job + uncaught + ReactorDispatcher(reactor)
+                reactor.handlerContext = parent + SupervisorJob(job) + uncaught + ReactorDispatcher(reactor)
                 reactor.onFault = { _, e -> fault.compareAndSet(null, e) }
+            }
+
+            // On the JVM, kotlinx-io sizes its segment pool the first time it is used, by availableProcessors() - which
+            // counts the calling thread's CPUs: first used on a pinned reactor, it would have one slot, every reactor
+            // spinning on it.
+            Buffer().run {
+                writeByte(0)
+                clear()
             }
 
             this.server = server.start()
@@ -230,7 +252,7 @@ public class KronApplicationEngine(
     // started, has ended, or timeoutMs has passed.
     private fun awaitConnections(timeoutMs: Long) {
         val start = TimeSource.Monotonic.markNow()
-        while (rootJob.children.any() && start.elapsedNow().inWholeMilliseconds < timeoutMs) {
+        while (rootJob.children.any { it.children.any() } && start.elapsedNow().inWholeMilliseconds < timeoutMs) {
             sleepMillis(1)
         }
     }
