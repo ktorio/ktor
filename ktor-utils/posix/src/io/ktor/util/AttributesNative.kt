@@ -4,12 +4,9 @@
 
 package io.ktor.util
 
-import io.ktor.util.collections.*
 import io.ktor.utils.io.InternalAPI
 import io.ktor.utils.io.locks.*
 import kotlin.concurrent.Volatile
-
-private const val ATTRIBUTES_INITIAL_CAPACITY = 32
 
 /**
  * Create native specific attributes instance.
@@ -53,18 +50,16 @@ private class HashMapAttributesNative : Attributes {
         get() = map?.keys?.toList() ?: emptyList()
 }
 
-// Guards only the making of a map, once per attributes that are ever written to
+// Guards the writes of every concurrent attributes, which are a pipeline's or a route's as it is set up
 @OptIn(InternalAPI::class)
-private val mapCreation = SynchronizedObject()
+private val writes = SynchronizedObject()
 
+// Copy on write: a read is a volatile load and a lookup in a map no thread changes, so the route-scoped plugin lookup
+// every call makes takes no lock - under ConcurrentMap's, every core's calls took turns.
 @OptIn(InternalAPI::class)
 private class ConcurrentAttributesNative : Attributes {
     @Volatile
-    private var map: ConcurrentMap<AttributeKey<*>, Any>? = null
-
-    private fun map(): ConcurrentMap<AttributeKey<*>, Any> = map ?: synchronized(mapCreation) {
-        map ?: ConcurrentMap<AttributeKey<*>, Any>(ATTRIBUTES_INITIAL_CAPACITY).also { map = it }
-    }
+    private var map: Map<AttributeKey<*>, Any>? = null
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : Any> getOrNull(key: AttributeKey<T>): T? = map?.get(key) as T?
@@ -72,17 +67,23 @@ private class ConcurrentAttributesNative : Attributes {
     override operator fun contains(key: AttributeKey<*>): Boolean = map?.containsKey(key) == true
 
     override fun <T : Any> put(key: AttributeKey<T>, value: T) {
-        map()[key] = value
+        synchronized(writes) {
+            map = copy().apply { put(key, value) }
+        }
     }
 
     override fun <T : Any> remove(key: AttributeKey<T>) {
-        map?.remove(key)
+        synchronized(writes) {
+            if (map?.containsKey(key) == true) map = copy().apply { remove(key) }
+        }
     }
 
-    @Suppress("UNCHECKED_CAST")
-    override fun <T : Any> computeIfAbsent(key: AttributeKey<T>, block: () -> T): T {
-        return map().computeIfAbsent(key, block) as T
-    }
+    override fun <T : Any> computeIfAbsent(key: AttributeKey<T>, block: () -> T): T =
+        getOrNull(key) ?: synchronized(writes) {
+            getOrNull(key) ?: block().also { value -> map = copy().apply { put(key, value) } }
+        }
+
+    private fun copy(): HashMap<AttributeKey<*>, Any> = map?.let { HashMap(it) } ?: HashMap()
 
     override val allKeys: List<AttributeKey<*>>
         get() = map?.keys?.toList() ?: emptyList()
