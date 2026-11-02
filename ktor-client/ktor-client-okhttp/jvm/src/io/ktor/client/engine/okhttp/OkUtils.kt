@@ -16,7 +16,6 @@ import okhttp3.*
 import java.io.IOException
 import java.net.SocketTimeoutException
 import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import okhttp3.Headers as OkHttpHeaders
 
@@ -49,9 +48,14 @@ private class OkHttpCallback(
     }
 
     override fun onResponse(call: Call, response: Response) {
-        if (!call.isCanceled()) {
-            continuation.resume(response)
+        // Nobody reads the response of a cancelled call, so close it to release the connection.
+        if (call.isCanceled()) {
+            response.close()
+            return
         }
+
+        // Close the response if the coroutine is cancelled before it receives it.
+        continuation.resume(response) { _, value, _ -> value.close() }
     }
 }
 
