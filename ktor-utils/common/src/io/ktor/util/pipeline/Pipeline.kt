@@ -6,6 +6,7 @@ package io.ktor.util.pipeline
 
 import io.ktor.util.*
 import io.ktor.util.debug.*
+import io.ktor.utils.io.InternalAPI
 import kotlinx.coroutines.currentCoroutineContext
 import kotlin.concurrent.Volatile
 import kotlin.coroutines.Continuation
@@ -40,7 +41,8 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.pipeline.Pipeline.attributes)
      */
-    public val attributes: Attributes = Attributes(concurrent = true)
+    @OptIn(InternalAPI::class)
+    public val attributes: Attributes = ReadMostlyAttributes()
 
     /**
      * Indicated if debug mode is enabled. In debug mode users will get more details in the stacktrace.

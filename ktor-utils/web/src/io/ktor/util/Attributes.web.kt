@@ -4,6 +4,7 @@
 
 package io.ktor.util
 
+import io.ktor.utils.io.InternalAPI
 import kotlin.js.*
 
 /**
@@ -13,6 +14,14 @@ import kotlin.js.*
  */
 @JsName("AttributesJsFn")
 public actual fun Attributes(concurrent: Boolean): Attributes = AttributesJs()
+
+/**
+ * Create ES specific read-mostly [Attributes] instance.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.ReadMostlyAttributes)
+ */
+@InternalAPI
+public actual fun ReadMostlyAttributes(): Attributes = AttributesJs()
 
 public class AttributesJs : Attributes {
     private val map = mutableMapOf<AttributeKey<*>, Any?>()

@@ -8,6 +8,7 @@ import io.ktor.server.routing.*
 import io.ktor.util.*
 import io.ktor.util.internal.*
 import io.ktor.util.pipeline.*
+import io.ktor.utils.io.InternalAPI
 import kotlinx.coroutines.CopyableThrowable
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 
@@ -73,8 +74,9 @@ internal val pluginRegistryKey = AttributeKey<Attributes>("ApplicationPluginRegi
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.application.pluginRegistry)
  */
+@OptIn(InternalAPI::class)
 public val <A : Pipeline<*, PipelineCall>> A.pluginRegistry: Attributes
-    get() = attributes.computeIfAbsent(pluginRegistryKey) { Attributes(true) }
+    get() = attributes.computeIfAbsent(pluginRegistryKey) { ReadMostlyAttributes() }
 
 /**
  * Gets a plugin instance for this pipeline, or fails with [MissingApplicationPluginException]

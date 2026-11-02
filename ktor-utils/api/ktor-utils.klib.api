@@ -1006,6 +1006,7 @@ final fun io.ktor.util.logging/KtorSimpleLogger(kotlin/String): io.ktor.util.log
 final fun io.ktor.util.network/NetworkAddress(kotlin/String, kotlin/Int): io.ktor.util.network/NetworkAddress // io.ktor.util.network/NetworkAddress|NetworkAddress(kotlin.String;kotlin.Int){}[0]
 final fun io.ktor.util/Attributes(kotlin/Boolean = ...): io.ktor.util/Attributes // io.ktor.util/Attributes|Attributes(kotlin.Boolean){}[0]
 final fun io.ktor.util/Digest(kotlin/String): io.ktor.util/Digest // io.ktor.util/Digest|Digest(kotlin.String){}[0]
+final fun io.ktor.util/ReadMostlyAttributes(): io.ktor.util/Attributes // io.ktor.util/ReadMostlyAttributes|ReadMostlyAttributes(){}[0]
 final fun io.ktor.util/SilentSupervisor(kotlinx.coroutines/Job? = ...): kotlin.coroutines/CoroutineContext // io.ktor.util/SilentSupervisor|SilentSupervisor(kotlinx.coroutines.Job?){}[0]
 final fun io.ktor.util/generateNonce(): kotlin/String // io.ktor.util/generateNonce|generateNonce(){}[0]
 final fun io.ktor.util/generateNonce(kotlin/Int): kotlin/ByteArray // io.ktor.util/generateNonce|generateNonce(kotlin.Int){}[0]

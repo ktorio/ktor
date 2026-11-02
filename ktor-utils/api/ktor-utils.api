@@ -34,6 +34,7 @@ public final class io/ktor/util/Attributes$DefaultImpls {
 public final class io/ktor/util/AttributesJvmKt {
 	public static final fun Attributes (Z)Lio/ktor/util/Attributes;
 	public static synthetic fun Attributes$default (ZILjava/lang/Object;)Lio/ktor/util/Attributes;
+	public static final fun ReadMostlyAttributes ()Lio/ktor/util/Attributes;
 }
 
 public final class io/ktor/util/AttributesKt {
