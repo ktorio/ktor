@@ -34,7 +34,7 @@ public abstract class BaseApplicationRequest(final override val call: PipelineCa
 
     // This call's own copy of the application's receive pipeline, to intercept this call alone: made the first time
     // someone asks for it, as most calls never do. Until then a receive runs the application's, which is the same.
-    final override val pipeline: ApplicationReceivePipeline
+    override val pipeline: ApplicationReceivePipeline
         get() = callPipeline ?: ApplicationReceivePipeline(call.application.developmentMode).apply {
             resetFrom(call.application.receivePipeline)
         }.also { callPipeline = it }
