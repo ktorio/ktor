@@ -50,12 +50,12 @@ private class OkHttpCallback(
     override fun onResponse(call: Call, response: Response) {
         // Nobody reads the response of a cancelled call, so close it to release the connection.
         if (call.isCanceled()) {
-            response.close()
+            runCatching { response.close() }
             return
         }
 
         // Close the response if the coroutine is cancelled before it receives it.
-        continuation.resume(response) { _, value, _ -> value.close() }
+        continuation.resume(response) { _, value, _ -> runCatching { value.close() } }
     }
 }
 
