@@ -4,7 +4,6 @@
 
 package io.ktor.tests.auth.ldap
 
-import org.apache.directory.api.ldap.codec.api.LdapApiService
 import org.apache.directory.api.util.FileUtils
 import org.apache.directory.server.annotations.CreateLdapServer
 import org.apache.directory.server.annotations.CreateTransport
@@ -63,14 +62,12 @@ class LDAPServerExtension : BeforeAllCallback, AfterAllCallback, ParameterResolv
 
     override fun supportsParameter(parameterContext: ParameterContext?, extensionContext: ExtensionContext?): Boolean {
         val param = parameterContext?.parameter ?: return false
-        return param.type == Int::class.java ||
-            param.type == LdapApiService::class.java
+        return param.type == Int::class.java
     }
 
     override fun resolveParameter(parameterContext: ParameterContext?, extensionContext: ExtensionContext?): Any =
         when (parameterContext?.parameter?.type) {
             Int::class.java -> ldapServer!!.port
-            LdapApiService::class.java -> directoryService!!.ldapCodecService
             else -> throw IllegalArgumentException("Unexpected parameter: ${parameterContext?.parameter}")
         }
 }

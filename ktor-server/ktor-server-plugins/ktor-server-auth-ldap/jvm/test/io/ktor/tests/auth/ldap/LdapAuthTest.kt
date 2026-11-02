@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.tests.auth.ldap
@@ -13,8 +13,6 @@ import io.ktor.server.auth.ldap.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import org.apache.directory.api.ldap.codec.api.*
-import org.apache.directory.api.ldap.util.*
 import java.net.*
 import java.util.*
 import javax.naming.Context
@@ -22,9 +20,7 @@ import javax.naming.directory.*
 import javax.naming.ldap.*
 import kotlin.test.*
 
-// TODO unauthorized
 @LDAPServerExtensionTest
-@Ignore("LdapAuthTest is ignored because it is very slow. Run it explicitly when you need.")
 class LdapAuthTest {
 
     @Test
@@ -93,6 +89,36 @@ class LdapAuthTest {
         }.let { response ->
             assertEquals(HttpStatusCode.Unauthorized, response.status)
             assertTrue(response.bodyAsText().isEmpty())
+        }
+    }
+
+    @Test
+    fun testUnreachableServerRespondsUnauthorized() = testApplication {
+        val closedPort = ServerSocket(0, 1, InetAddress.getByName(localhost)).use { it.localPort }
+
+        install(Authentication) {
+            basic {
+                validate { credential ->
+                    ldapAuthenticate(credential, "ldap://$localhost:$closedPort", "uid=%s,ou=system")
+                }
+            }
+        }
+
+        routing {
+            authenticate {
+                get("/") {
+                    call.respondText("authenticated")
+                }
+            }
+        }
+
+        client.get("/") {
+            header(
+                HttpHeaders.Authorization,
+                "Basic " + Base64.getEncoder().encodeToString("admin:secret".toByteArray())
+            )
+        }.let { response ->
+            assertEquals(HttpStatusCode.Unauthorized, response.status)
         }
     }
 
@@ -278,7 +304,7 @@ class LdapAuthTest {
     }
 
     @Test
-    fun testEnsureUser(port: Int, ldapCodecService: LdapApiService) {
+    fun testEnsureUser(port: Int) {
         val env = Hashtable<String, String>()
         env["java.naming.factory.initial"] = "com.sun.jndi.ldap.LdapCtxFactory"
         env["java.naming.provider.url"] = "ldap://$localhost:$port"
@@ -286,28 +312,19 @@ class LdapAuthTest {
         env["java.naming.security.credentials"] = "secret"
         env["java.naming.security.authentication"] = "simple"
 
-        val ctx = (
-            InitialLdapContext(
-                env,
-                JndiUtils.toJndiControls(ldapCodecService)
-            ).lookup("ou=system") as LdapContext
-            ).lookup("ou=users") as LdapContext
+        val rootContext = InitialLdapContext(env, null)
+        val systemContext = rootContext.lookup("ou=system") as LdapContext
+        val usersContext = systemContext.lookup("ou=users") as LdapContext
 
         val controls = SearchControls()
         controls.searchScope = SearchControls.ONELEVEL_SCOPE
         controls.returningAttributes = arrayOf("+", "*")
-        val res = ctx.search("", "(ObjectClass=*)", controls).toList()
+        val res = usersContext.search("", "(ObjectClass=*)", controls).toList()
 
         assertEquals(listOf("user-test"), res.map { it.attributes.get("uid").get().toString() })
     }
 
-    private val localhost: String
-        get() =
-            try {
-                InetAddress.getLocalHost().hostAddress
-            } catch (any: Throwable) {
-                "127.0.0.1"
-            }
+    private val localhost = "127.0.0.1"
 }
 
 private data class LdapUserPrincipal(
