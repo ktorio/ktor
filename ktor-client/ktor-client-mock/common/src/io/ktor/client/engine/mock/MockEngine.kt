@@ -8,6 +8,7 @@ import io.ktor.client.engine.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
+import io.ktor.http.*
 import io.ktor.utils.io.*
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
@@ -15,8 +16,14 @@ import kotlinx.coroutines.CompletableJob
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.withContext
 
+// A URL scheme according to RFC 3986: ALPHA *( ALPHA / DIGIT / "+" / "-" / "." ).
+private val SCHEME_PATTERN = Regex("[a-zA-Z][a-zA-Z0-9+.-]*")
+
 /**
  * [HttpClientEngine] for writing tests without network.
+ *
+ * Requests with a malformed URL (for example, with an invalid scheme produced by the URL builder) are rejected
+ * with an error, mirroring the behavior of real HTTP engines.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.mock.MockEngine)
  */
@@ -64,6 +71,8 @@ public open class MockEngine internal constructor(
 
     @OptIn(InternalAPI::class)
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
+        checkUrlScheme(data.url)
+
         val callContext = callContext()
 
         val handler = synchronized(mutex) {
@@ -88,6 +97,15 @@ public open class MockEngine internal constructor(
         }
 
         return response
+    }
+
+    private fun checkUrlScheme(url: Url) {
+        val scheme = url.protocol.name
+        check(scheme.matches(SCHEME_PATTERN)) {
+            "MockEngine received a request with a malformed URL \"$url\": the URL scheme \"$scheme\" is invalid. " +
+                "A real HTTP engine would refuse such a request, " +
+                "so check the request URL and the 'defaultRequest' configuration."
+        }
     }
 
     override fun close() {
