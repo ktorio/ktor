@@ -42,7 +42,7 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.pipeline.Pipeline.attributes)
      */
     @OptIn(InternalAPI::class)
-    public val attributes: Attributes = ReadMostlyAttributes()
+    public val attributes: Attributes = readMostlyAttributes()
 
     /**
      * Indicated if debug mode is enabled. In debug mode users will get more details in the stacktrace.
@@ -73,7 +73,6 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
     public val isEmpty: Boolean
         get() = interceptorsQuantity == 0
 
-    // Volatile rather than an atomicfu box, which on Native is two objects for every pipeline
     @Volatile
     private var interceptors: List<PipelineInterceptor<TSubject, TContext>>? = null
 
@@ -423,8 +422,7 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
             cacheInterceptors()
         }
 
-        // Read first: this runs on every execute of a pipeline every thread shares, and a store, even of the same
-        // value, takes the cache line from all of them.
+        // Runs on every execute, on every thread: a redundant store would contend for the cache line
         if (!interceptorsListShared) {
             interceptorsListShared = true
         }

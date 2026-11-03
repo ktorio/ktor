@@ -25,10 +25,10 @@ public actual fun Attributes(concurrent: Boolean): Attributes =
 /**
  * Create native read-mostly attributes: copy on write, so a read takes no lock.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.ReadMostlyAttributes)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.readMostlyAttributes)
  */
 @InternalAPI
-public actual fun ReadMostlyAttributes(): Attributes = ReadMostlyAttributesNative()
+public actual fun readMostlyAttributes(): Attributes = ReadMostlyAttributesNative()
 
 private class HashMapAttributesNative : Attributes {
     private var map: HashMap<AttributeKey<*>, Any>? = null
@@ -48,7 +48,6 @@ private class HashMapAttributesNative : Attributes {
         map?.remove(key)
     }
 
-    // As the JVM's: block could run twice for one key
     @Suppress("UNCHECKED_CAST")
     override fun <T : Any> computeIfAbsent(key: AttributeKey<T>, block: () -> T): T {
         val map = map()
@@ -86,13 +85,11 @@ private class ConcurrentAttributesNative : Attributes {
         get() = map.keys.toList()
 }
 
-// Writes to read-mostly attributes are rare, made while pipelines and routes are set up: each instance takes one of
-// these, by its identity, rather than a lock of its own or one every instance shares.
+// Writes are rare, during setup: instances share these by identity, rather than one lock each or one for all
 @OptIn(InternalAPI::class)
 private val readMostlyWriteLocks = Array(16) { SynchronizedObject() }
 
-// Copy on write: a read is a volatile load and a lookup in a map no thread changes. A route-scoped plugin looks itself
-// up on every call, and under ConcurrentMap's lock, which locks reads too, every thread's calls took turns.
+// Copy on write, so reads take no lock: ConcurrentMap locks reads too, and every call looks up its plugins
 @OptIn(InternalAPI::class)
 private class ReadMostlyAttributesNative : Attributes {
     @Volatile
@@ -121,7 +118,7 @@ private class ReadMostlyAttributesNative : Attributes {
         }
     }
 
-    // As the JVM's: block runs outside the lock, so it could run twice for one key, and the first value stored wins
+    // As on the JVM, block runs outside the lock: it may run twice, and the first value stored wins
     @Suppress("UNCHECKED_CAST")
     override fun <T : Any> computeIfAbsent(key: AttributeKey<T>, block: () -> T): T {
         getOrNull(key)?.let { return it }

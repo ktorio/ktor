@@ -37,7 +37,7 @@ public data class AttributeKey<T : Any> @JvmOverloads constructor(
         require(name.isNotBlank()) { "Name can't be blank" }
     }
 
-    // Hashed once: every attribute lookup hashes its key, and hashing a type walks its type arguments
+    // Cached: every lookup hashes its key, and hashing a type walks its type arguments
     private val hash: Int = 31 * name.hashCode() + type.hashCode()
 
     override fun hashCode(): Int = hash
@@ -72,10 +72,10 @@ public expect fun Attributes(concurrent: Boolean = false): Attributes
  * such as a pipeline's: on Native, a read takes no lock and a write copies the map. Elsewhere they are the same as
  * `Attributes(concurrent = true)`.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.ReadMostlyAttributes)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.readMostlyAttributes)
  */
 @InternalAPI
-public expect fun ReadMostlyAttributes(): Attributes
+public expect fun readMostlyAttributes(): Attributes
 
 /**
  * Map of attributes accessible by [AttributeKey] in a typed manner

@@ -76,7 +76,7 @@ internal val pluginRegistryKey = AttributeKey<Attributes>("ApplicationPluginRegi
  */
 @OptIn(InternalAPI::class)
 public val <A : Pipeline<*, PipelineCall>> A.pluginRegistry: Attributes
-    get() = attributes.computeIfAbsent(pluginRegistryKey) { ReadMostlyAttributes() }
+    get() = attributes.computeIfAbsent(pluginRegistryKey) { readMostlyAttributes() }
 
 /**
  * Gets a plugin instance for this pipeline, or fails with [MissingApplicationPluginException]

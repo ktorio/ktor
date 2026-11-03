@@ -18,10 +18,10 @@ public actual fun Attributes(concurrent: Boolean): Attributes =
 /**
  * Create JVM specific read-mostly attributes: concurrent ones, whose reads take no lock on the JVM.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.ReadMostlyAttributes)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.readMostlyAttributes)
  */
 @InternalAPI
-public actual fun ReadMostlyAttributes(): Attributes = ConcurrentSafeAttributes()
+public actual fun readMostlyAttributes(): Attributes = ConcurrentSafeAttributes()
 
 private abstract class AttributesJvmBase : Attributes {
     protected abstract val map: MutableMap<AttributeKey<*>, Any?>

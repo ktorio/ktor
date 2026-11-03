@@ -60,7 +60,7 @@ internal class PhaseContent<TSubject : Any, Call : Any>(
     }
 
     fun sharedInterceptors(): MutableList<PipelineInterceptor<TSubject, Call>> {
-        // Read first, as in Pipeline.sharedInterceptorsList: every call's pipeline copy comes through here
+        // As in Pipeline.sharedInterceptorsList: no redundant store
         if (!shared) {
             shared = true
         }
