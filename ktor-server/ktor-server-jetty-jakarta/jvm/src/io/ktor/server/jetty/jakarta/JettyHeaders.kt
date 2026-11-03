@@ -25,7 +25,7 @@ internal class JettyHeaders(
         it.isNotEmpty()
     }
 
-    override fun get(name: String): String? = jettyRequest.headers.get(name).takeIf { it.isNotEmpty() }
+    override fun get(name: String): String? = jettyRequest.headers.get(name)?.takeIf { it.isNotEmpty() }
 
     override fun isEmpty(): Boolean = jettyRequest.headers.size() == 0
 
