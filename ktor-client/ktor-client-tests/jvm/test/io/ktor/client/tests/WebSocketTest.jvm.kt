@@ -8,6 +8,6 @@ package io.ktor.client.tests
 internal actual val PLATFORM_ENGINES_WITHOUT_HANDSHAKE_RESPONSE_BODY: List<String> =
     if (javaFeatureVersion() < 15) listOf("Java") else emptyList()
 
-// "1.8" for JDK 8, "11" for JDK 11, and so on.
+// `java.specification.version` is "1.8" on JDK 8 and "11" on JDK 11.
 private fun javaFeatureVersion(): Int =
     System.getProperty("java.specification.version").removePrefix("1.").toInt()

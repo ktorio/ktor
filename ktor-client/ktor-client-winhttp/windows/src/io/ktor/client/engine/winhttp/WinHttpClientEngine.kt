@@ -53,12 +53,16 @@ internal class WinHttpClientEngine(
 
         val rawResponse = request.getResponse()
         val isSwitchingProtocols = rawResponse.statusCode == HttpStatusCode.SwitchingProtocols.value
-        val responseBody: Any = if (data.isUpgradeRequest() && isSwitchingProtocols) {
-            request.createWebSocket(callContext)
+        val responseBody: Any = if (data.isUpgradeRequest()) {
+            if (isSwitchingProtocols) {
+                request.createWebSocket(callContext)
+            } else {
+                // Server rejected the upgrade.
+                // We proceed, so that the response is available in WebSocketHandshakeException.response
+                // when it's thrown in WebSockets plugin.
+                request.readBody(callContext)
+            }
         } else {
-            // The server rejected the upgrade (e.g., 403 Forbidden). WinHTTP treats this as an ordinary
-            // HTTP response until the upgrade is explicitly completed, so the status, headers, and body are
-            // all still readable normally.
             request.readBody(callContext)
         }
 

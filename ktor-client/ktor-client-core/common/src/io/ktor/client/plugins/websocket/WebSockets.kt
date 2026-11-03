@@ -233,16 +233,15 @@ public class WebSockets internal constructor(
                     return@intercept
                 }
                 if (context.attributes.contains(FAILED_HANDSHAKE_RESPONSE_KEY)) {
-                    // Reading the body of an already-captured failed handshake (WebSocketHandshakeException.response);
-                    // let the default transformers produce the body instead of handling the handshake again.
+                    // The user reads the body of a saved failed handshake. Let the default transformers handle it.
                     return@intercept
                 }
                 if (status != HttpStatusCode.SwitchingProtocols) {
                     var saveFailure: Exception? = null
                     val failedResponse = try {
-                        // Engines that let their platform WebSocket client perform the handshake may not be able
-                        // to read the body of a rejected one, and report an empty body next to the `Content-Length`
-                        // the server declared. Accept it so the status and headers aren't lost as well.
+                        // Some engines use platform WebSocket clients that can't read rejected handshake body.
+                        // The response then has an empty body but the Content-Length from the server.
+                        // `allowMissingBody = true` skips Content-Length validation for this case.
                         context.save(allowMissingBody = true)
                             .also { it.attributes.put(FAILED_HANDSHAKE_RESPONSE_KEY, Unit) }
                             .response
@@ -257,7 +256,6 @@ public class WebSockets internal constructor(
                             "but was ${status.value}",
                         response = failedResponse,
                     )
-                    // The rejected handshake stays the primary error; keep the reason the response is missing.
                     saveFailure?.let { exception.addSuppressed(it) }
                     throw exception
                 }
@@ -311,12 +309,13 @@ public open class WebSocketException(message: String, cause: Throwable?) : Illeg
 }
 
 /**
- * This exception is thrown when a WebSocket handshake fails, that is, before a session is established.
+ * This exception is thrown when a WebSocket handshake fails, before session starts.
  *
- * @property response the HTTP response of the failed handshake, exposing the status, headers, and body returned
- * by the server. It is `null` when the engine doesn't expose the rejected handshake response.
- * Availability varies by engine. On some, the response data is available except of the body; in these cases,
- * [HttpResponse.body] will be empty.
+ * @property response the HTTP response of the failed handshake: the status, the headers, and the body from the server.
+ * What is available depends on the engine:
+ * - Some engines give the full response.
+ * - Some engines give the status and the headers only. On these engines, the [HttpResponse.body] is empty.
+ * - Some engines don't give the response. On these engines, [response] is `null`.
  */
 public class WebSocketHandshakeException(
     message: String,

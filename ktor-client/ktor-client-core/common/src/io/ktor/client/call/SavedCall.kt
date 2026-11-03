@@ -34,11 +34,13 @@ import kotlin.coroutines.CoroutineContext
 public suspend fun HttpClientCall.save(): HttpClientCall = save(allowMissingBody = false)
 
 /**
- * Same as [HttpClientCall.save], but if [allowMissingBody] is set to true, an empty body is accepted
- * even if the server declared a non-zero `Content-Length`. A non-empty body is still checked.
+ * Saves the call like [HttpClientCall.save].
  *
- * Intended for engines that can't read the body of a response they still need to expose, such as a
- * WebSocket handshake rejected by the platform WebSocket client, and report an empty body instead.
+ * If [allowMissingBody] is `true`, an empty body passes the `Content-Length` check, also when `Content-Length`
+ * isn't zero. A body that isn't empty must still match `Content-Length`.
+ *
+ * Set [allowMissingBody] for engines that report an empty body because they can't read it. An example is
+ * a WebSocket handshake that the platform WebSocket client rejects.
  */
 @OptIn(InternalAPI::class)
 internal suspend fun HttpClientCall.save(allowMissingBody: Boolean): HttpClientCall {

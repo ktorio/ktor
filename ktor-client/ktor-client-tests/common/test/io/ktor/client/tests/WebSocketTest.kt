@@ -32,15 +32,15 @@ internal val ENGINES_NOT_SUPPORTING_MAX_FRAME_SIZE = listOf("OkHttp", "Js", "Jav
 // TODO: KTOR-9328 Options `maxFrameSize` and `masking` are silently ignored on some engines
 internal val ENGINES_NOT_SUPPORTING_MAX_FRAME_SIZE_SILENTLY = listOf("Java", "WinHttp")
 
-// Engines not exposing the response of a rejected WebSocket handshake.
+// Engines that don't expose the response of a rejected WebSocket handshake.
 private val ENGINES_WITHOUT_HANDSHAKE_RESPONSE = listOf("Js")
 
-// Engines not exposing the response body of a rejected WebSocket handshake.
+// Engines that don't expose the response body of a rejected WebSocket handshake.
 private val ENGINES_WITHOUT_HANDSHAKE_RESPONSE_BODY = listOf("Curl", "Darwin") +
     ENGINES_WITHOUT_HANDSHAKE_RESPONSE +
     PLATFORM_ENGINES_WITHOUT_HANDSHAKE_RESPONSE_BODY
 
-// Engines not exposing the response body of a rejected WebSocket handshake on the current runtime only.
+// Engines that don't expose the response body of a rejected WebSocket handshake on the current platform and runtime.
 internal expect val PLATFORM_ENGINES_WITHOUT_HANDSHAKE_RESPONSE_BODY: List<String>
 
 private const val TEST_SIZE: Int = 100
