@@ -643,6 +643,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
     }
 
     @Test
+    @Suppress("DEPRECATION")
     fun testErrorInApplicationReceivePipelineInterceptor() = runTest {
         val exceptions = mutableListOf<Throwable>()
         val loggerDelegate = LoggerFactory.getLogger("io.ktor.test")
@@ -686,6 +687,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
     }
 
     @Test
+    @Suppress("DEPRECATION")
     fun testErrorInApplicationSendPipelineInterceptor() = runTest {
         val exceptions = mutableListOf<Throwable>()
         val loggerDelegate = LoggerFactory.getLogger("ktor.test")

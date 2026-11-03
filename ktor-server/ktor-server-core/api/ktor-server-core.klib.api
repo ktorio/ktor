@@ -212,6 +212,7 @@ abstract interface io.ktor.server.request/PipelineRequest : io.ktor.server.reque
 
     abstract fun setHeader(kotlin/String, kotlin.collections/List<kotlin/String>?) // io.ktor.server.request/PipelineRequest.setHeader|setHeader(kotlin.String;kotlin.collections.List<kotlin.String>?){}[0]
     abstract fun setReceiveChannel(io.ktor.utils.io/ByteReadChannel) // io.ktor.server.request/PipelineRequest.setReceiveChannel|setReceiveChannel(io.ktor.utils.io.ByteReadChannel){}[0]
+    open suspend fun execute(io.ktor.server.application/PipelineCall, kotlin/Any): kotlin/Any // io.ktor.server.request/PipelineRequest.execute|execute(io.ktor.server.application.PipelineCall;kotlin.Any){}[0]
 }
 
 abstract interface io.ktor.server.response/ApplicationResponse { // io.ktor.server.response/ApplicationResponse|null[0]
@@ -236,6 +237,8 @@ abstract interface io.ktor.server.response/PipelineResponse : io.ktor.server.res
         abstract fun <get-call>(): io.ktor.server.application/PipelineCall // io.ktor.server.response/PipelineResponse.call.<get-call>|<get-call>(){}[0]
     abstract val pipeline // io.ktor.server.response/PipelineResponse.pipeline|{}pipeline[0]
         abstract fun <get-pipeline>(): io.ktor.server.response/ApplicationSendPipeline // io.ktor.server.response/PipelineResponse.pipeline.<get-pipeline>|<get-pipeline>(){}[0]
+
+    open suspend fun execute(io.ktor.server.application/PipelineCall, kotlin/Any): kotlin/Any // io.ktor.server.response/PipelineResponse.execute|execute(io.ktor.server.application.PipelineCall;kotlin.Any){}[0]
 }
 
 abstract interface io.ktor.server.response/ResponsePushBuilder { // io.ktor.server.response/ResponsePushBuilder|null[0]
@@ -370,6 +373,7 @@ abstract class io.ktor.server.engine/BaseApplicationRequest : io.ktor.server.req
     final fun receiveChannel(): io.ktor.utils.io/ByteReadChannel // io.ktor.server.engine/BaseApplicationRequest.receiveChannel|receiveChannel(){}[0]
     final fun setHeader(kotlin/String, kotlin.collections/List<kotlin/String>?) // io.ktor.server.engine/BaseApplicationRequest.setHeader|setHeader(kotlin.String;kotlin.collections.List<kotlin.String>?){}[0]
     final fun setReceiveChannel(io.ktor.utils.io/ByteReadChannel) // io.ktor.server.engine/BaseApplicationRequest.setReceiveChannel|setReceiveChannel(io.ktor.utils.io.ByteReadChannel){}[0]
+    open suspend fun execute(io.ktor.server.application/PipelineCall, kotlin/Any): kotlin/Any // io.ktor.server.engine/BaseApplicationRequest.execute|execute(io.ktor.server.application.PipelineCall;kotlin.Any){}[0]
 }
 
 abstract class io.ktor.server.engine/BaseApplicationResponse : io.ktor.server.response/PipelineResponse { // io.ktor.server.engine/BaseApplicationResponse|null[0]
@@ -395,6 +399,7 @@ abstract class io.ktor.server.engine/BaseApplicationResponse : io.ktor.server.re
     open fun push(io.ktor.server.response/ResponsePushBuilder) // io.ktor.server.engine/BaseApplicationResponse.push|push(io.ktor.server.response.ResponsePushBuilder){}[0]
     open fun status(): io.ktor.http/HttpStatusCode? // io.ktor.server.engine/BaseApplicationResponse.status|status(){}[0]
     open fun status(io.ktor.http/HttpStatusCode) // io.ktor.server.engine/BaseApplicationResponse.status|status(io.ktor.http.HttpStatusCode){}[0]
+    open suspend fun execute(io.ktor.server.application/PipelineCall, kotlin/Any): kotlin/Any // io.ktor.server.engine/BaseApplicationResponse.execute|execute(io.ktor.server.application.PipelineCall;kotlin.Any){}[0]
     open suspend fun respondFromBytes(kotlin/ByteArray) // io.ktor.server.engine/BaseApplicationResponse.respondFromBytes|respondFromBytes(kotlin.ByteArray){}[0]
     open suspend fun respondFromChannel(io.ktor.utils.io/ByteReadChannel) // io.ktor.server.engine/BaseApplicationResponse.respondFromChannel|respondFromChannel(io.ktor.utils.io.ByteReadChannel){}[0]
     open suspend fun respondNoContent(io.ktor.http.content/OutgoingContent.NoContent) // io.ktor.server.engine/BaseApplicationResponse.respondNoContent|respondNoContent(io.ktor.http.content.OutgoingContent.NoContent){}[0]
@@ -1201,6 +1206,7 @@ final class io.ktor.server.routing/RoutingPipelineRequest : io.ktor.server.reque
     final fun receiveChannel(): io.ktor.utils.io/ByteReadChannel // io.ktor.server.routing/RoutingPipelineRequest.receiveChannel|receiveChannel(){}[0]
     final fun setHeader(kotlin/String, kotlin.collections/List<kotlin/String>?) // io.ktor.server.routing/RoutingPipelineRequest.setHeader|setHeader(kotlin.String;kotlin.collections.List<kotlin.String>?){}[0]
     final fun setReceiveChannel(io.ktor.utils.io/ByteReadChannel) // io.ktor.server.routing/RoutingPipelineRequest.setReceiveChannel|setReceiveChannel(io.ktor.utils.io.ByteReadChannel){}[0]
+    final suspend fun execute(io.ktor.server.application/PipelineCall, kotlin/Any): kotlin/Any // io.ktor.server.routing/RoutingPipelineRequest.execute|execute(io.ktor.server.application.PipelineCall;kotlin.Any){}[0]
 }
 
 final class io.ktor.server.routing/RoutingPipelineResponse : io.ktor.server.response/PipelineResponse { // io.ktor.server.routing/RoutingPipelineResponse|null[0]
@@ -1224,6 +1230,7 @@ final class io.ktor.server.routing/RoutingPipelineResponse : io.ktor.server.resp
     final fun push(io.ktor.server.response/ResponsePushBuilder) // io.ktor.server.routing/RoutingPipelineResponse.push|push(io.ktor.server.response.ResponsePushBuilder){}[0]
     final fun status(): io.ktor.http/HttpStatusCode? // io.ktor.server.routing/RoutingPipelineResponse.status|status(){}[0]
     final fun status(io.ktor.http/HttpStatusCode) // io.ktor.server.routing/RoutingPipelineResponse.status|status(io.ktor.http.HttpStatusCode){}[0]
+    final suspend fun execute(io.ktor.server.application/PipelineCall, kotlin/Any): kotlin/Any // io.ktor.server.routing/RoutingPipelineResponse.execute|execute(io.ktor.server.application.PipelineCall;kotlin.Any){}[0]
 }
 
 final class io.ktor.server.routing/RoutingRequest : io.ktor.server.request/ApplicationRequest { // io.ktor.server.routing/RoutingRequest|null[0]

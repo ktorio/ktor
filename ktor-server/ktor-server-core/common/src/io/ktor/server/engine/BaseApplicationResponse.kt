@@ -51,14 +51,18 @@ public abstract class BaseApplicationResponse(
 
     private var callPipeline: ApplicationSendPipeline? = null
 
-    // This call's own copy of the application's send pipeline, to intercept this call alone: made the first time
-    // someone asks for it, as most calls never do. Until then a send runs the application's, which is the same.
+    @Deprecated(
+        "A call's own send pipeline will be removed. Intercept the application's or a route's instead, " +
+            "for example with onCallRespond in a plugin, and use execute() to run it."
+    )
     public final override val pipeline: ApplicationSendPipeline
         get() = callPipeline ?: ApplicationSendPipeline(call.application.developmentMode).apply {
             resetFrom(call.application.sendPipeline)
         }.also { callPipeline = it }
 
-    /** The pipeline a send runs: this call's own, once it was made, or else the application's. */
+    override suspend fun execute(call: PipelineCall, subject: Any): Any = pipelineToRun.execute(call, subject)
+
+    // Routing merges a route's interceptors into this, so it must not make the copy
     internal val pipelineToRun: ApplicationSendPipeline
         get() = callPipeline ?: call.application.sendPipeline
 

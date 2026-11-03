@@ -7,6 +7,8 @@ package io.ktor.server.routing
 import io.ktor.events.EventDefinition
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.engine.BaseApplicationRequest
+import io.ktor.server.engine.BaseApplicationResponse
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.util.*
@@ -103,14 +105,13 @@ public class RoutingRoot(
         parameters: Parameters
     ) {
         val routingCallPipeline = route.buildPipeline()
-        // The pipelines the call runs, not its own copies: asking for those would make them
         val receivePipeline = merge(
-            context.call.request.pipelineToRun(),
+            context.call.request.pipelineToMerge(),
             routingCallPipeline.receivePipeline
         ) { ApplicationReceivePipeline(developmentMode) }
 
         val responsePipeline = merge(
-            context.call.response.pipelineToRun(),
+            context.call.response.pipelineToMerge(),
             routingCallPipeline.sendPipeline
         ) { ApplicationSendPipeline(developmentMode) }
 
@@ -211,3 +212,12 @@ public fun Application.routing(configuration: Routing.() -> Unit): RoutingRoot =
     pluginOrNull(RoutingRoot)?.apply(configuration) ?: install(RoutingRoot, configuration)
 
 internal val routingCallKey = AttributeKey<RoutingCall>("RoutingHandler")
+
+// The pipeline the engine call runs: the application's, unless the call made its own, which merging must not make
+@Suppress("DEPRECATION")
+private fun PipelineRequest.pipelineToMerge(): ApplicationReceivePipeline =
+    (this as? BaseApplicationRequest)?.pipelineToRun ?: pipeline
+
+@Suppress("DEPRECATION")
+private fun PipelineResponse.pipelineToMerge(): ApplicationSendPipeline =
+    (this as? BaseApplicationResponse)?.pipelineToRun ?: pipeline

@@ -63,7 +63,6 @@ public class RoutingPipelineCall(
 
     private var handlerCall: RoutingCall? = null
 
-    // The call as its handlers see it, made once for routing and every handler of the route
     internal val routingCall: RoutingCall
         get() = handlerCall ?: RoutingCall(this).also { handlerCall = it }
 
@@ -80,15 +79,19 @@ public class RoutingPipelineRequest(
     pipeline: ApplicationReceivePipeline,
     public val engineRequest: PipelineRequest
 ) : PipelineRequest by engineRequest {
-    // Routing passes the application's own pipeline when the route adds nothing to it and the engine call made no copy
-    // of it: this call's pipeline is then the engine call's, made the first time someone asks for it.
+    // The application's pipeline stands for a route that adds nothing: the engine request's runs instead
     private val routePipeline = pipeline.takeUnless { it === call.application.receivePipeline }
 
+    @Deprecated(
+        "A call's own receive pipeline will be removed. Intercept the application's or a route's instead, " +
+            "for example with onCallReceive in a plugin, and use execute() to run it."
+    )
+    @Suppress("DEPRECATION")
     override val pipeline: ApplicationReceivePipeline
         get() = routePipeline ?: engineRequest.pipeline
 
-    internal val pipelineToRun: ApplicationReceivePipeline
-        get() = routePipeline ?: engineRequest.pipelineToRun()
+    override suspend fun execute(call: PipelineCall, subject: Any): Any =
+        if (routePipeline != null) routePipeline.execute(call, subject) else engineRequest.execute(call, subject)
 }
 
 /**
@@ -101,12 +104,17 @@ public class RoutingPipelineResponse(
     pipeline: ApplicationSendPipeline,
     public val engineResponse: PipelineResponse
 ) : PipelineResponse by engineResponse {
-    // As RoutingPipelineRequest's: the engine call's pipeline unless the route adds to the application's
+    // The application's pipeline stands for a route that adds nothing: the engine response's runs instead
     private val routePipeline = pipeline.takeUnless { it === call.application.sendPipeline }
 
+    @Deprecated(
+        "A call's own send pipeline will be removed. Intercept the application's or a route's instead, " +
+            "for example with onCallRespond in a plugin, and use execute() to run it."
+    )
+    @Suppress("DEPRECATION")
     override val pipeline: ApplicationSendPipeline
         get() = routePipeline ?: engineResponse.pipeline
 
-    internal val pipelineToRun: ApplicationSendPipeline
-        get() = routePipeline ?: engineResponse.pipelineToRun()
+    override suspend fun execute(call: PipelineCall, subject: Any): Any =
+        if (routePipeline != null) routePipeline.execute(call, subject) else engineResponse.execute(call, subject)
 }

@@ -2,6 +2,8 @@
  * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+@file:Suppress("DEPRECATION")
+
 package io.ktor.tests.server.routing
 
 import io.ktor.client.request.*
@@ -13,8 +15,7 @@ import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import kotlin.test.*
 
-// A call's own receive and send pipelines are made only when someone asks for them; until then it runs the
-// application's. What one call adds to its own must still reach that call, wherever it sends from, and no other.
+// What a call adds to its own pipelines reaches that call, wherever it sends from, and no other
 class CallPipelineCopyTest {
 
     @Test
@@ -55,27 +56,6 @@ class CallPipelineCopyTest {
 
         assertEquals("ABC", client.post("/?upper") { setBody("abc") }.bodyAsText())
         assertEquals("abc", client.post("/") { setBody("abc") }.bodyAsText())
-    }
-
-    @Test
-    fun aHandlerSeesTheEngineCallsOwnPipelineNeverTheApplications() = testApplication {
-        routing {
-            get("/") {
-                val pipeline = call.pipelineCall.response.pipeline
-                assertNotSame(application.sendPipeline, pipeline)
-                assertSame(pipeline, call.pipelineCall.response.pipeline)
-                assertSame(call.pipelineCall.engineCall.response.pipeline, pipeline)
-                if (call.request.queryParameters["mark"] != null) {
-                    pipeline.intercept(ApplicationSendPipeline.After) {
-                        call.response.headers.append("X-Marked", "yes")
-                    }
-                }
-                call.respondText("ok")
-            }
-        }
-
-        assertEquals("yes", client.get("/?mark").headers["X-Marked"])
-        assertNull(client.get("/").headers["X-Marked"])
     }
 
     @Test

@@ -163,7 +163,6 @@ public class RoutingRequest internal constructor(
     public override val call: RoutingCall
 ) : ApplicationRequest {
 
-    // Read through rather than copied: an engine makes these when they are first asked for, and most routes never ask
     public override val queryParameters: Parameters get() = request.queryParameters
     public override val rawQueryParameters: Parameters get() = request.rawQueryParameters
     public override val headers: Headers get() = request.headers
@@ -223,8 +222,7 @@ public class RoutingCall internal constructor(
 ) : ApplicationCall {
 
     init {
-        // A query is decoded the first time it is read, which a handler may never do. One that cannot be decoded still
-        // fails the call here, before its handler runs, as when every call decoded its query: only a '%' escape can.
+        // The query is decoded lazily, but a bad '%' escape must still fail the call before its handler runs
         val uri = pipelineCall.request.uri
         val query = uri.indexOf('?')
         if (query >= 0 && uri.indexOf('%', query) >= 0) {
@@ -254,7 +252,6 @@ public class RoutingCall internal constructor(
     public override val attributes: Attributes = pipelineCall.attributes
     public override val application: Application = pipelineCall.application
 
-    // Read through rather than copied: the query is parsed only for a route that reads it
     public override val parameters: Parameters get() = pipelineCall.parameters
     public val pathParameters: Parameters = pipelineCall.pathParameters
     public val queryParameters: Parameters get() = pipelineCall.engineCall.parameters

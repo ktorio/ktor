@@ -20,11 +20,10 @@ public abstract class BaseApplicationRequest(final override val call: PipelineCa
     protected abstract val engineHeaders: Headers
     protected abstract val engineReceiveChannel: ByteReadChannel
 
-    // Volatile rather than an atomicfu box, which on Native is two objects for every request
     @Volatile
     private var receiveChannel: ByteReadChannel? = null
 
-    // Made when first read, as engineHeaders is set by the engine's constructor, after this one
+    // Not made in the constructor: engineHeaders is set after it, by the engine's
     private var delegateHeaders: DelegateHeaders? = null
 
     final override val headers: Headers
@@ -32,14 +31,18 @@ public abstract class BaseApplicationRequest(final override val call: PipelineCa
 
     private var callPipeline: ApplicationReceivePipeline? = null
 
-    // This call's own copy of the application's receive pipeline, to intercept this call alone: made the first time
-    // someone asks for it, as most calls never do. Until then a receive runs the application's, which is the same.
+    @Deprecated(
+        "A call's own receive pipeline will be removed. Intercept the application's or a route's instead, " +
+            "for example with onCallReceive in a plugin, and use execute() to run it."
+    )
     override val pipeline: ApplicationReceivePipeline
         get() = callPipeline ?: ApplicationReceivePipeline(call.application.developmentMode).apply {
             resetFrom(call.application.receivePipeline)
         }.also { callPipeline = it }
 
-    /** The pipeline a receive runs: this call's own, once it was made, or else the application's. */
+    override suspend fun execute(call: PipelineCall, subject: Any): Any = pipelineToRun.execute(call, subject)
+
+    // Routing merges a route's interceptors into this, so it must not make the copy
     internal val pipelineToRun: ApplicationReceivePipeline
         get() = callPipeline ?: call.application.receivePipeline
 
@@ -59,7 +62,6 @@ public abstract class BaseApplicationRequest(final override val call: PipelineCa
 }
 
 private class DelegateHeaders(private val original: Headers) : Headers {
-    // Made by the first setHeader: most requests never change their headers, but every request reads them
     private var overridden: HeadersBuilder? = null
     private var removed: MutableSet<String>? = null
 
