@@ -62,7 +62,6 @@ public abstract class BaseApplicationResponse(
 
     override suspend fun execute(call: PipelineCall, subject: Any): Any = pipelineToRun.execute(call, subject)
 
-    // Routing merges a route's interceptors into this, so it must not make the copy
     internal val pipelineToRun: ApplicationSendPipeline
         get() = callPipeline ?: call.application.sendPipeline
 

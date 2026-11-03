@@ -60,7 +60,6 @@ internal class PhaseContent<TSubject : Any, Call : Any>(
     }
 
     fun sharedInterceptors(): MutableList<PipelineInterceptor<TSubject, Call>> {
-        // As in Pipeline.sharedInterceptorsList: no redundant store
         if (!shared) {
             shared = true
         }

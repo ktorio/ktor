@@ -104,7 +104,6 @@ public class RoutingPipelineResponse(
     pipeline: ApplicationSendPipeline,
     public val engineResponse: PipelineResponse
 ) : PipelineResponse by engineResponse {
-    // The application's pipeline stands for a route that adds nothing: the engine response's runs instead
     private val routePipeline = pipeline.takeUnless { it === call.application.sendPipeline }
 
     @Deprecated(

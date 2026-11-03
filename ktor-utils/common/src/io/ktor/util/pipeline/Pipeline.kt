@@ -422,7 +422,6 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
             cacheInterceptors()
         }
 
-        // Runs on every execute, on every thread: a redundant store would contend for the cache line
         if (!interceptorsListShared) {
             interceptorsListShared = true
         }

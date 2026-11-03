@@ -14,9 +14,6 @@ private const val ATTRIBUTES_INITIAL_CAPACITY = 32
 /**
  * Create native specific attributes instance.
  *
- * As on the JVM, only [concurrent] attributes are safe to use from several threads at once. Non-concurrent ones make
- * their map on the first write: most attributes, such as a call's, are never written to.
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.Attributes)
  */
 public actual fun Attributes(concurrent: Boolean): Attributes =
@@ -85,11 +82,9 @@ private class ConcurrentAttributesNative : Attributes {
         get() = map.keys.toList()
 }
 
-// Writes are rare, during setup: instances share these by identity, rather than one lock each or one for all
 @OptIn(InternalAPI::class)
 private val readMostlyWriteLocks = Array(16) { SynchronizedObject() }
 
-// Copy on write, so reads take no lock: ConcurrentMap locks reads too, and every call looks up its plugins
 @OptIn(InternalAPI::class)
 private class ReadMostlyAttributesNative : Attributes {
     @Volatile
@@ -118,7 +113,6 @@ private class ReadMostlyAttributesNative : Attributes {
         }
     }
 
-    // As on the JVM, block runs outside the lock: it may run twice, and the first value stored wins
     @Suppress("UNCHECKED_CAST")
     override fun <T : Any> computeIfAbsent(key: AttributeKey<T>, block: () -> T): T {
         getOrNull(key)?.let { return it }

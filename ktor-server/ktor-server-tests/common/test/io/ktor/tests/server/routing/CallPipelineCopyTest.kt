@@ -15,7 +15,6 @@ import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import kotlin.test.*
 
-// What a call adds to its own pipelines reaches that call, wherever it sends from, and no other
 class CallPipelineCopyTest {
 
     @Test
@@ -50,7 +49,6 @@ class CallPipelineCopyTest {
             }
         }
         routing {
-            // receive, not receiveText, which reads the channel without the pipeline
             post("/") { call.respondText(call.receive<String>()) }
         }
 
@@ -62,7 +60,6 @@ class CallPipelineCopyTest {
     fun aRoutePluginsInterceptorReachesAResponseTheEngineCallSendsAfterTheHandlerFailed() = testApplication {
         val marker = createRouteScopedPlugin("marker") {
             onCall { routeCall ->
-                // call, in the interceptor, is the call being sent: a leak would mark every later call
                 routeCall.response.pipeline.intercept(ApplicationSendPipeline.After) {
                     call.response.headers.append("X-Marked", "yes")
                 }

@@ -37,7 +37,6 @@ public data class AttributeKey<T : Any> @JvmOverloads constructor(
         require(name.isNotBlank()) { "Name can't be blank" }
     }
 
-    // Cached: every lookup hashes its key, and hashing a type walks its type arguments
     private val hash: Int = 31 * name.hashCode() + type.hashCode()
 
     override fun hashCode(): Int = hash
