@@ -12,25 +12,6 @@ import kotlinx.coroutines.test.runTest
 import kotlin.test.*
 
 class WebSocketFailedHandshakeTest {
-    private fun clientRespondingWith(body: String, @Suppress("SameParameterValue") contentLength: Int) =
-        HttpClient(MockEngine) {
-            install(WebSockets)
-            engine {
-                addHandler {
-                    respond(
-                        ByteReadChannel(body),
-                        HttpStatusCode.Forbidden,
-                        headersOf(HttpHeaders.ContentLength, contentLength.toString())
-                    )
-                }
-            }
-        }
-
-    private suspend fun HttpClient.failedHandshake(): WebSocketHandshakeException =
-        assertFailsWith<WebSocketHandshakeException> {
-            webSocket("ws://localhost/ws") { fail("Unreachable") }
-        }
-
     @Test
     fun `exposes body of failed handshake`() = runTest {
         val exception = clientRespondingWith("forbidden", contentLength = 9).failedHandshake()
@@ -49,13 +30,23 @@ class WebSocketFailedHandshakeTest {
         assertEquals(HttpStatusCode.Forbidden, response.status)
         assertEquals("", response.bodyAsText())
     }
-
-    @Test
-    fun `does not expose truncated body of failed handshake`() = runTest {
-        val exception = clientRespondingWith("forb", contentLength = 9).failedHandshake()
-
-        assertNull(exception.response)
-        val saveFailure = assertIs<IllegalStateException>(exception.suppressedExceptions.single())
-        assertContains(saveFailure.message.orEmpty(), "Content-Length mismatch")
-    }
 }
+
+internal fun clientRespondingWith(body: String, @Suppress("SameParameterValue") contentLength: Int) =
+    HttpClient(MockEngine) {
+        install(WebSockets)
+        engine {
+            addHandler {
+                respond(
+                    ByteReadChannel(body),
+                    HttpStatusCode.Forbidden,
+                    headersOf(HttpHeaders.ContentLength, contentLength.toString())
+                )
+            }
+        }
+    }
+
+internal suspend fun HttpClient.failedHandshake(): WebSocketHandshakeException =
+    assertFailsWith<WebSocketHandshakeException> {
+        webSocket("ws://localhost/ws") { fail("Unreachable") }
+    }
