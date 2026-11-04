@@ -6,7 +6,6 @@ package io.ktor.server.plugins.ratelimit
 
 import io.ktor.util.date.*
 import kotlinx.atomicfu.*
-import kotlinx.coroutines.delay
 import kotlin.time.*
 
 @OptIn(ExperimentalTime::class)
@@ -34,6 +33,12 @@ internal class DefaultRateLimiter @OptIn(ExperimentalTime::class) constructor(
                 clock: () -> Long = ::getTimeMillis) : this(limit, refillPeriod, clock.asClock(), clock.asTimeSource())
 
     private val state = atomic(LimiterState(limit, timeSource.markNow()))
+
+    override suspend fun state(): RateLimiterSnapshot {
+        val current = state.value
+        val tokens = if (timeSource.markNow() - current.lastRefillMark >= refillPeriod) limit else current.tokens
+        return RateLimiterSnapshot(tokens, limit)
+    }
 
     @OptIn(ExperimentalTime::class)
     override suspend fun tryConsume(tokens: Int): RateLimiter.State {
@@ -69,6 +74,11 @@ internal class RateLimiterIncrementalBucket @OptIn(ExperimentalTime::class) cons
 //    private var lastRefillMark = timeSource.markNow()
 
     private val state = atomic(LimiterState(limit, timeSource.markNow()))
+
+    override suspend fun state(): RateLimiterSnapshot {
+        val current = state.value
+        return RateLimiterSnapshot(refilled(current, timeSource.markNow()).tokens, limit)
+    }
 
     @OptIn(ExperimentalTime::class)
     override suspend fun tryConsume(tokens: Int): RateLimiter.State {

@@ -5,7 +5,6 @@
 package io.ktor.server.plugins.ratelimit
 
 import io.ktor.util.date.*
-import kotlinx.coroutines.awaitCancellation
 import kotlin.time.*
 
 /**
@@ -21,6 +20,21 @@ public interface RateLimiter {
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.RateLimiter.tryConsume)
      */
     public suspend fun tryConsume(tokens: Int = 1): State
+
+    /**
+     * Returns the current quota, accounting for elapsed refills without consuming tokens.
+     *
+     * Concurrent requests can change the quota immediately after the snapshot is taken.
+     * Implementations that support quota inspection should override this method.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.RateLimiter.state)
+     *
+     * @return a snapshot of the remaining tokens and current limit.
+     * @throws UnsupportedOperationException if this limiter does not support quota inspection.
+     */
+    public suspend fun state(): RateLimiterSnapshot {
+        throw UnsupportedOperationException("This rate limiter does not support quota inspection")
+    }
 
     /**
      * State of the rate limiter.
@@ -54,6 +68,8 @@ public interface RateLimiter {
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.RateLimiter.Companion.Unlimited)
          */
         public val Unlimited: RateLimiter = object : RateLimiter {
+            override suspend fun state(): RateLimiterSnapshot = RateLimiterSnapshot(Int.MAX_VALUE, Int.MAX_VALUE)
+
             override suspend fun tryConsume(tokens: Int): State =
                 State.Available(Int.MAX_VALUE, Int.MAX_VALUE, Long.MAX_VALUE)
         }
@@ -84,3 +100,16 @@ public interface RateLimiter {
         }
     }
 }
+
+/**
+ * A snapshot of a rate limiter's quota.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.RateLimiterSnapshot)
+ *
+ * @property remainingTokens the number of tokens currently available for consumption.
+ * @property limit the maximum number of tokens the limiter can hold at the time of the snapshot.
+ */
+public class RateLimiterSnapshot(
+    public val remainingTokens: Int,
+    public val limit: Int
+)

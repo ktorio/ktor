@@ -89,15 +89,43 @@ public class RateLimitProviderConfig(internal val name: RateLimitName) {
         }
     }
 
+    @Deprecated("Use rateLimiterFactory. Retained for compatibility with call-dependent factories.")
     internal var rateLimiterProvider: ((call: ApplicationCall, key: Any) -> RateLimiter)? = null
+    internal var rateLimiterFactory: ((key: Any) -> RateLimiter)? = null
 
     /**
      * Sets [RateLimit] for this provider based on [ApplicationCall] and `key` of this request.
      *
+     * To migrate, include any identity needed to configure the limiter in [requestKey], and use
+     * [rateLimiterFactory] to create the limiter from that key.
+     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.RateLimitProviderConfig.rateLimiter)
      */
+    @Deprecated(
+        "Use rateLimiterFactory. Include the identity needed to configure the limiter in the request key."
+    )
     public fun rateLimiter(provider: (call: ApplicationCall, key: Any) -> RateLimiter) {
         rateLimiterProvider = provider
+        rateLimiterFactory = null
+    }
+
+    /**
+     * Sets a [factory] that creates a [RateLimiter] from the request key, independently of an [ApplicationCall].
+     *
+     * A limiter is shared by requests with equal keys using this provider, including requests to different routes.
+     * The factory is called when no limiter exists for the provider and key, including after a fully refilled
+     * limiter has been evicted. The key must contain all identity needed to configure the limiter.
+     *
+     * Calling this function replaces any previously configured limiter factory for this provider.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.RateLimitProviderConfig.rateLimiterFactory)
+     *
+     * @param factory creates a limiter for the key produced by [requestKey].
+     */
+    @Suppress("DEPRECATION")
+    public fun rateLimiterFactory(factory: (key: Any) -> RateLimiter) {
+        rateLimiterFactory = factory
+        rateLimiterProvider = null
     }
 
     /**
@@ -111,7 +139,7 @@ public class RateLimitProviderConfig(internal val name: RateLimitName) {
         initialSize: Int = limit,
         clock: () -> Long = { getTimeMillis() }
     ) {
-        rateLimiter { _: ApplicationCall, _: Any ->
+        rateLimiterFactory {
             RateLimiter.default(limit = limit, refillPeriod = refillPeriod, initialSize = initialSize, clock = clock)
         }
     }
@@ -122,7 +150,7 @@ public class RateLimitProviderConfig(internal val name: RateLimitName) {
         refillRate: Duration,
         clock: () -> Long = { getTimeMillis() }
     ) {
-        rateLimiter { _: ApplicationCall, _: Any ->
+        rateLimiterFactory {
             RateLimiter.incremental(limit = limit, refillRate = refillRate, clock = clock)
         }
     }

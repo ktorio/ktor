@@ -62,9 +62,9 @@ public class RateLimitMetricsConfig {
  *
  * The following meters are registered:
  * - `<metricName>.requests`: a counter of requests checked by a rate limiter,
- *   tagged with `limiter`, `route` and `result` (`allowed` or `rejected`).
+ *   tagged with `limiter`, `route`, `method` and `result` (`allowed` or `rejected`).
  * - `<metricName>.retry.after`: a timer of the wait duration returned to rejected requests,
- *   tagged with `limiter` and `route`.
+ *   tagged with `limiter`, `route` and `method`.
  *
  * The `route` tag is `n/a` for the global rate limiter because it runs before routing.
  *
@@ -102,6 +102,7 @@ public class RateLimitMetrics(
             val commonTags = Tags.of(
                 Tag.of("limiter", event.limiter.providerName),
                 Tag.of("route", event.route?.path() ?: "n/a"),
+                Tag.of("method", event.method.value),
             ).and(additionalTags.map { (key, value) -> Tag.of(key, value(event)) })
 
             fun requests(result: String) = Counter.builder(requestsName)

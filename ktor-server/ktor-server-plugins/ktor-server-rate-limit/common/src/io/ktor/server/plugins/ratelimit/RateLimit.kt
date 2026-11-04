@@ -9,6 +9,7 @@ import io.ktor.util.*
 import io.ktor.util.collections.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.*
+import kotlin.jvm.JvmName
 
 internal val LOGGER = KtorSimpleLogger("io.ktor.server.plugins.ratelimit.RateLimit")
 internal val LIMITER_NAME_GLOBAL = RateLimitName("KTOR_GLOBAL_RATE_LIMITER")
@@ -51,11 +52,55 @@ public val RateLimit: ApplicationPlugin<RateLimitConfig> = createApplicationPlug
     }
 }
 
+/**
+ * Returns the [RateLimiter] associated with [providerName] and [key], creating it if necessary.
+ *
+ * The limiter is shared with requests that use the same provider and an equal request key.
+ * Creating a limiter uses [RateLimitProviderConfig.rateLimiterFactory] and does not consume tokens.
+ * An existing limiter can also be returned for providers configured with the deprecated call-dependent factory.
+ *
+ * Resolve the limiter again when querying its state, as fully refilled limiters can be evicted and replaced.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.getRateLimiter)
+ *
+ * @param providerName the name of the registered rate limit provider.
+ * @param key the same key that the provider's [RateLimitProviderConfig.requestKey] returns for limited requests.
+ * @return the limiter registered for this provider and key.
+ * @throws IllegalArgumentException if [providerName] is not registered.
+ * @throws IllegalStateException if [RateLimit] is not installed, or creating a missing limiter requires a call.
+ */
+@JvmName("getRateLimiter")
+public fun Application.getRateLimiter(providerName: RateLimitName, key: Any): RateLimiter {
+    val providers = checkNotNull(attributes.getOrNull(RateLimiterConfigsRegistryKey)) {
+        "Install RateLimit before resolving a rate limiter"
+    }
+    val provider = requireNotNull(providers[providerName]) {
+        "Rate limit provider '$providerName' is not registered"
+    }
+    val registry = attributes.computeIfAbsent(RateLimiterInstancesRegistryKey) { ConcurrentMap() }
+
+    return registry.computeIfAbsent(ProviderKey(providerName, key)) {
+        val factory = checkNotNull(provider.rateLimiterFactory) {
+            "Provider '$providerName' uses a call-dependent factory. " +
+                "Configure rateLimiterFactory to create limiters without a call."
+        }
+        factory(key)
+    }
+}
+
 internal class RateLimitProvider(config: RateLimitProviderConfig) {
     val name = config.name
     val requestKey = config.requestKey
     val requestWeight = config.requestWeight
     val modifyResponse = config.modifyResponse
+    val rateLimiterFactory = config.rateLimiterFactory
+
+    @Suppress("DEPRECATION")
     val rateLimiter = config.rateLimiterProvider
-        ?: throw IllegalStateException("Please set rateLimiter in the plugin install block")
+
+    init {
+        check(rateLimiterFactory != null || rateLimiter != null) {
+            "Please set rateLimiter or rateLimiterFactory in the plugin install block"
+        }
+    }
 }

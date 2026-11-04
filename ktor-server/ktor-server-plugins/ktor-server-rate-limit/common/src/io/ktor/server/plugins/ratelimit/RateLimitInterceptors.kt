@@ -65,26 +65,65 @@ public class RateLimiterKey(
     override fun hashCode(): Int = 31 * providerName.hashCode() + key.hashCode()
 }
 
+/**
+ * A rate limiter's decision for a request.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.RateLimitEvent)
+ *
+ * @property limiter identifies the limiter that checked the request.
+ * @property route the selected route, or `null` when the request is checked before routing.
+ * @property method the HTTP method of the request.
+ */
 public sealed class RateLimitEvent(
     public val limiter: RateLimiterKey,
     public val route: Route?,
+    public val method: HttpMethod,
 )
 
 // TODO: Rename the event names
+/**
+ * A request accepted by a rate limiter.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.AvailableEvent)
+ *
+ * @param limiter identifies the limiter that checked the request.
+ * @param route the selected route, or `null` when checked before routing.
+ * @param method the HTTP method of the request.
+ * @property tokensLeft the tokens remaining after consumption.
+ * @property tokensTotal the limiter's capacity.
+ * @property nextRefillTs the epoch time in milliseconds when the bucket will be full without further consumption.
+ */
 public class AvailableEvent(
     limiter: RateLimiterKey,
     route: Route?,
+    method: HttpMethod,
     public val tokensLeft: Int,
     public val tokensTotal: Int,
     public val nextRefillTs: Long,
-): RateLimitEvent(limiter, route)
+): RateLimitEvent(limiter, route, method)
 
+/**
+ * A request rejected by a rate limiter.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.ExhaustedEvent)
+ *
+ * @param limiter identifies the limiter that checked the request.
+ * @param route the selected route, or `null` when checked before routing.
+ * @param method the HTTP method of the request.
+ * @property toWait the duration to wait before retrying the request.
+ */
 public class ExhaustedEvent(
     limiter: RateLimiterKey,
     route: Route?,
+    method: HttpMethod,
     public val toWait: Duration,
-): RateLimitEvent(limiter, route)
+): RateLimitEvent(limiter, route, method)
 
+/**
+ * Raised after a rate limiter checks a request.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.rateLimitEvent)
+ */
 public val rateLimitEvent: EventDefinition<RateLimitEvent> = EventDefinition()
 
 private fun PluginBuilder<RateLimitInterceptorsConfig>.rateLimiterPluginBuilder(
@@ -112,7 +151,13 @@ private fun PluginBuilder<RateLimitInterceptorsConfig>.rateLimiterPluginBuilder(
 
             val providerKey = ProviderKey(provider.name, key)
             val rateLimiterForCall = registry.computeIfAbsent(providerKey) {
-                provider.rateLimiter(call, key)
+                val factory = provider.rateLimiterFactory
+
+                if (factory != null) {
+                    factory(key)
+                } else {
+                    checkNotNull(provider.rateLimiter)(call, key)
+                }
             }
             call.attributes.put(
                 RateLimitersForCallKey,
@@ -132,6 +177,7 @@ private fun PluginBuilder<RateLimitInterceptorsConfig>.rateLimiterPluginBuilder(
                     AvailableEvent(
                         limiter = limiterKey,
                         route = route,
+                        method = call.request.httpMethod,
                         tokensTotal = state.limit,
                         tokensLeft = state.remainingTokens,
                         nextRefillTs = state.refillAtTimeMillis
@@ -141,6 +187,7 @@ private fun PluginBuilder<RateLimitInterceptorsConfig>.rateLimiterPluginBuilder(
                     ExhaustedEvent(
                         limiter = limiterKey,
                         route = route,
+                        method = call.request.httpMethod,
                         toWait = state.toWait
                     )
                 }
