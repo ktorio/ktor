@@ -46,12 +46,8 @@ internal fun Project.configureJvm() {
 }
 
 private fun Project.configureTests() {
-    val flakyTestsMode = flakyTestsMode()
-
     tasks.withType<Test>().matching { it.name in ANNOTATION_DRIVEN_TEST_TASKS }.configureEach {
         maxHeapSize = "2g"
-        systemProperty("junit.jupiter.extensions.autodetection.enabled", "true")
-        systemProperty(FLAKY_MODE_PROPERTY, flakyTestsMode.propertyValue)
         useJUnitPlatform()
         configureJavaToolchain(java.toolchain.languageVersion, ktorBuild.jvmTestToolchain)
     }

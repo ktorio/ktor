@@ -9,6 +9,7 @@ import io.ktor.test.constants.FLAKY_NAME_TOKEN
 import io.ktor.test.constants.FlakyTestsMode
 import org.gradle.api.Project
 import org.gradle.api.tasks.testing.AbstractTestTask
+import org.gradle.api.tasks.testing.Test
 import org.gradle.kotlin.dsl.withType
 
 /** Matches the token anywhere in the test name, which also covers the `[target]` name suffixes. */
@@ -23,15 +24,22 @@ internal fun Project.flakyTestsMode(): FlakyTestsMode =
 internal val ANNOTATION_DRIVEN_TEST_TASKS = setOf("jvmTest", "stressTest", FLAKY_TEST_TASK)
 
 /**
- * Applies the [FLAKY_MODE_PROPERTY] mode to every test task that cannot select `@Flaky` by
- * annotation — every target without a JUnit Platform, plus JVM tasks outside
- * [ANNOTATION_DRIVEN_TEST_TASKS]. The name token exists only for those.
+ * Applies the [FLAKY_MODE_PROPERTY] mode to every test task, by whichever selector it understands:
+ * [ANNOTATION_DRIVEN_TEST_TASKS] select `@Flaky` by annotation, via JUnit extension autodetection
+ * and the system property `FlakyTestCondition` reads; every other test task — targets without a
+ * JUnit Platform, plus JVM tasks outside that set — has no such condition, so it gets the name-token
+ * filter instead.
  */
 internal fun Project.configureFlakyTests() {
     val mode = flakyTestsMode()
 
     tasks.withType<AbstractTestTask>().configureEach {
-        if (name !in ANNOTATION_DRIVEN_TEST_TASKS) selectFlakyTests(mode)
+        if (this is Test && name in ANNOTATION_DRIVEN_TEST_TASKS) {
+            systemProperty("junit.jupiter.extensions.autodetection.enabled", "true")
+            systemProperty(FLAKY_MODE_PROPERTY, mode.propertyValue)
+        } else {
+            selectFlakyTests(mode)
+        }
     }
 }
 

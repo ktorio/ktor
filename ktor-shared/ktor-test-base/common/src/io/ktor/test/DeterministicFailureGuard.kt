@@ -4,8 +4,6 @@
 
 package io.ktor.test
 
-import io.ktor.utils.io.InternalAPI
-
 /**
  * Keeps a retry loop from retrying deterministic failures.
  *
@@ -19,7 +17,6 @@ import io.ktor.utils.io.InternalAPI
  * stays retryable because it is thrown around the body rather than by it.
  * Used by [runTestWithData] and by `BaseTest.runTest`.
  */
-@InternalAPI
 class DeterministicFailureGuard {
     private var failure: Throwable? = null
 

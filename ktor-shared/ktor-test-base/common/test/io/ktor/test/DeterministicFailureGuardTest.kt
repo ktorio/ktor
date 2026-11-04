@@ -4,12 +4,10 @@
 
 package io.ktor.test
 
-import io.ktor.utils.io.InternalAPI
 import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-@OptIn(InternalAPI::class)
 class DeterministicFailureGuardTest {
 
     @Test

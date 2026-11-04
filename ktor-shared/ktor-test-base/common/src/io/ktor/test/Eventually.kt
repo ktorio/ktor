@@ -4,7 +4,6 @@
 
 package io.ktor.test
 
-import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.delay
@@ -17,8 +16,6 @@ import kotlin.time.Duration.Companion.milliseconds
  * Waits until [condition] holds, polling it every [interval], and fails if it doesn't hold within
  * [timeout].
  *
- * @param description What is being waited for; attached as the coroutine name so it reads inside the
- *  resulting [TimeoutCancellationException]'s message (e.g. `Coroutine "description" timed out...`).
  * @param timeout Upper bound on the total wait, honored even if [interval] is larger — but only if
  *  [condition] returns promptly. A coroutine's cancellation, which is what enforces this bound, can
  *  only be delivered at a suspension point; neither Kotlin nor this function can preempt a
@@ -36,13 +33,12 @@ import kotlin.time.Duration.Companion.milliseconds
  *  discarded child coroutine completing — fails the enclosing test instead of being swallowed.
  */
 suspend fun assertEventually(
-    description: String,
     timeout: Duration = DEFAULT_EVENTUALLY_TIMEOUT,
     interval: Duration = (timeout / 20).coerceIn(1.milliseconds, 100.milliseconds),
     condition: () -> Boolean,
 ) {
     if (condition()) return
-    withContext(Dispatchers.Default + CoroutineName(description)) {
+    withContext(Dispatchers.Default) {
         withTimeout(timeout) {
             while (!condition()) {
                 delay(interval)

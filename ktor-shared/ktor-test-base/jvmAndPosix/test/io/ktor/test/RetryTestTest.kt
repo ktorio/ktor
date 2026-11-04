@@ -4,7 +4,6 @@
 
 package io.ktor.test
 
-import io.ktor.utils.io.InternalAPI
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
@@ -12,7 +11,6 @@ import kotlin.test.assertSame
 
 class RetryTestTest {
 
-    @OptIn(InternalAPI::class)
     @Test
     fun `stops on the attempt that recorded a deterministic failure`() {
         val guard = DeterministicFailureGuard()

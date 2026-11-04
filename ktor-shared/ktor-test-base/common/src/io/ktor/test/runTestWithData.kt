@@ -4,7 +4,6 @@
 
 package io.ktor.test
 
-import io.ktor.utils.io.InternalAPI
 import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.test.TestScope
 import kotlin.coroutines.CoroutineContext
@@ -61,6 +60,23 @@ sealed interface TestExecutionResult<T> {
  * Executes multiple test cases with retry capabilities and timeout control.
  * Timeout is independent for each attempt in each test case.
  *
+ * Example usage:
+ * ```
+ * @Test
+ * fun dataDrivenTest() = runTestWithData(
+ *     testCases = listOf("test1", "test2"),
+ *     timeout = 10.seconds,
+ *     retries = 2,
+ *     afterEach = { result -> println("Test case ${result.testCase.data}: $result") },
+ *     afterAll = { println("All tests completed") },
+ *     handleFailures = { failures ->
+ *         failures.forEach { (testCase, cause) -> println("Test ${testCase.data} failed: $cause") }
+ *     },
+ * ) { testCase ->
+ *     // test implementation
+ * }
+ * ```
+ *
  * @param testCases Data to be used in tests. Each element represents a separate test case.
  * @param context Optional coroutine context for test execution. Defaults to [EmptyCoroutineContext].
  * @param timeout Maximum duration allowed for each test attempt. Defaults to 1 minute.
@@ -77,7 +93,6 @@ sealed interface TestExecutionResult<T> {
  *
  * @return [TestResult] representing the completion of all test cases.
  */
-@OptIn(InternalAPI::class)
 fun <T> runTestWithData(
     testCases: Iterable<T>,
     context: CoroutineContext = EmptyCoroutineContext,
@@ -102,6 +117,7 @@ fun <T> runTestWithData(
                 recover = { cause ->
                     val failure = TestFailure(testCase, cause, start?.elapsedNow() ?: Duration.ZERO)
                     afterEach(failure)
+                    // Don't rethrow the exception on the last retry, save it instead to pass in handleFailures later
                     if (retry == retries || guard.hasFailure) failures += failure else throw cause
                 }
             ) {
