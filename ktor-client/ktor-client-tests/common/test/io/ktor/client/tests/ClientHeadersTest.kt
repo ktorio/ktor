@@ -160,9 +160,11 @@ class ClientHeadersTest : ClientLoader(timeout = 30.seconds) {
         }
     }
 
-    // The Js engine can't stream a request body, so it buffers the source and always knows its size
+    // The Js and DarwinLegacy engines can't stream a request body, so they buffer the source and always know its size
     @Test
-    fun `raw source body of unknown size is sent without Content-Length`() = clientTests(except("web:Js")) {
+    fun `raw source body of unknown size is sent without Content-Length`() = clientTests(
+        except("web:Js", "DarwinLegacy")
+    ) {
         test { client ->
             val response = client.post("$TEST_SERVER/echo/headers") {
                 setBody(rawSourceOf("Hello"))
