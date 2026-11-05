@@ -294,7 +294,11 @@ public class OidcJwtConfig internal constructor() {
      * Accepted JWT signing algorithms.
      *
      * When `null`, ID tokens use the provider discovery `id_token_signing_alg_values_supported` value when present.
-     * JWT access tokens keep the default RSA/EC verification behavior unless this set is configured explicitly.
+     * JWT access tokens accept any supported algorithm unless this set is configured explicitly.
+     *
+     * Supported algorithms are RSA (`RS256`, `RS384`, `RS512`), RSASSA-PSS (`PS256`, `PS384`, `PS512`),
+     * ECDSA (`ES256`, `ES384`, `ES512`), and EdDSA with the Ed25519 curve (`EdDSA`, `Ed25519`).
+     * RSASSA-PSS requires JDK 11+ and Ed25519 requires JDK 15+, unless a JCA provider supporting them is installed.
      *
      * `none` and HMAC algorithms are never accepted.
      *
@@ -390,8 +394,9 @@ public class OidcJwtConfig internal constructor() {
         }
         allowedAlgorithms?.forEach { algorithm ->
             require(algorithm.jwaName != null) {
-                "jwt { allowedAlgorithms = ... } supports only RSA and EC JWA signature algorithms"
+                "jwt { allowedAlgorithms = ... } supports only JWA signature algorithms, got ${algorithm.name}"
             }
+            require(algorithm.isAvailableInJvm()) { algorithm.unavailableMessage() }
         }
     }
 }

@@ -20,6 +20,7 @@ import kotlinx.serialization.json.jsonPrimitive
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 class OidcJwtKeyAndAlgorithmTest {
 
@@ -308,6 +309,251 @@ class OidcJwtKeyAndAlgorithmTest {
         val response = client.get("/verify")
         assertEquals(HttpStatusCode.OK, response.status)
         assertContains(response.bodyAsText(), "allowed algorithms")
+    }
+
+    @Test
+    fun `bearer authentication accepts EdDSA access token`() = testApplication {
+        val keys = testEdDsaKeys
+        installJwtBearer(keys = keys)
+
+        val response = client.get("/protected") {
+            header(HttpHeaders.Authorization, "Bearer ${keys.accessToken { subject = "eddsa-user" }}")
+        }
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals("eddsa-user", response.bodyAsText())
+    }
+
+    @Test
+    fun `bearer authentication accepts Ed25519 access token`() = testApplication {
+        val keys = testEd25519Keys
+        installJwtBearer(keys = keys)
+
+        val response = client.get("/protected") {
+            header(HttpHeaders.Authorization, "Bearer ${keys.accessToken { subject = "ed25519-user" }}")
+        }
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals("ed25519-user", response.bodyAsText())
+    }
+
+    @Test
+    fun `bearer authentication accepts RSASSA-PSS access tokens`() = testApplication {
+        val keysByAlgorithm = testRsaPssKeysByAlgorithm
+        installJwtBearer(jwkProviderFactory = { jwkProviderWithMultipleKeys(*keysByAlgorithm.values.toTypedArray()) })
+
+        for ((algorithm, keys) in keysByAlgorithm) {
+            val response = client.get("/protected") {
+                header(HttpHeaders.Authorization, "Bearer ${keys.accessToken { subject = algorithm.testJwaName }}")
+            }
+            assertEquals(HttpStatusCode.OK, response.status, "${algorithm.name} token should be accepted")
+            assertEquals(algorithm.testJwaName, response.bodyAsText())
+        }
+    }
+
+    @Test
+    fun `bearer authentication rejects EdDSA token when OKP JWK curve is wrong or missing`() {
+        for (curve in listOf("Ed448", null)) {
+            testApplication {
+                val keys = testEdDsaKeys
+                installJwtBearer(jwkProviderFactory = { jwkProviderWithModifiedJwk(keys) { this["crv"] = curve } })
+
+                val response = client.get("/protected") {
+                    header(HttpHeaders.Authorization, "Bearer ${keys.accessToken { subject = "eddsa-user" }}")
+                }
+                assertEquals(HttpStatusCode.Unauthorized, response.status, "crv=$curve should be rejected")
+            }
+        }
+    }
+
+    @Test
+    fun `bearer authentication rejects EdDSA token when OKP JWK key has wrong length`() = testApplication {
+        val keys = testEdDsaKeys
+        installJwtBearer(jwkProviderFactory = { jwkProviderWithModifiedJwk(keys) { this["x"] = "AAAA" } })
+
+        val response = client.get("/protected") {
+            header(HttpHeaders.Authorization, "Bearer ${keys.accessToken { subject = "eddsa-user" }}")
+        }
+        assertEquals(HttpStatusCode.Unauthorized, response.status)
+    }
+
+    @Test
+    fun `bearer authentication rejects EdDSA token signed by a different key`() = testApplication {
+        val keys = testEdDsaKeys
+        val otherKeys = OpenIdTestKeys.ed25519(issuer = ISSUER_URL, audience = "api")
+        installJwtBearer(keys = keys)
+
+        val response = client.get("/protected") {
+            header(HttpHeaders.Authorization, "Bearer ${otherKeys.accessToken { subject = "eddsa-user" }}")
+        }
+        assertEquals(HttpStatusCode.Unauthorized, response.status)
+    }
+
+    @Test
+    fun `bearer authentication rejects EdDSA token verified with RSA JWK`() = testApplication {
+        val keys = testEdDsaKeys
+        installJwtBearer(
+            jwkProviderFactory = {
+                jwkProviderWithModifiedJwk(testRsaKeys) { this["alg"] = SignatureAlgorithm.EDDSA.testJwaName }
+            },
+        )
+
+        val response = client.get("/protected") {
+            header(HttpHeaders.Authorization, "Bearer ${keys.accessToken { subject = "eddsa-user" }}")
+        }
+        assertEquals(HttpStatusCode.Unauthorized, response.status)
+    }
+
+    @Test
+    fun `bearer authentication rejects Ed25519 token when JWK algorithm is EdDSA`() = testApplication {
+        val keys = testEd25519Keys
+        installJwtBearer(
+            jwkProviderFactory = {
+                jwkProviderWithModifiedJwk(keys) { this["alg"] = SignatureAlgorithm.EDDSA.testJwaName }
+            },
+        )
+
+        val response = client.get("/protected") {
+            header(HttpHeaders.Authorization, "Bearer ${keys.accessToken { subject = "ed25519-user" }}")
+        }
+        assertEquals(HttpStatusCode.Unauthorized, response.status)
+    }
+
+    @Test
+    fun `access token algorithms allow list accepts EdDSA and rejects others`() = testApplication {
+        val edKeys = testEdDsaKeys
+        installJwtBearer(
+            jwkProviderFactory = { jwkProviderWithMultipleKeys(edKeys, testOtherRsaKeys) },
+            configureJwt = { allowedAlgorithms = setOf(SignatureAlgorithm.EDDSA) },
+        )
+
+        val edDsa = client.get("/protected") {
+            header(HttpHeaders.Authorization, "Bearer ${edKeys.accessToken { subject = "eddsa-user" }}")
+        }
+        assertEquals(HttpStatusCode.OK, edDsa.status)
+
+        val rsa = client.get("/protected") {
+            header(HttpHeaders.Authorization, "Bearer ${testOtherRsaKeys.accessToken { subject = "rsa-user" }}")
+        }
+        assertEquals(HttpStatusCode.Unauthorized, rsa.status)
+    }
+
+    @Test
+    fun `id token verification accepts EdDSA with access token hash`() = testApplication {
+        val keys = testEdDsaKeys
+        val accessToken = "access-token"
+        installIdTokenVerification(
+            jwtConfig = { jwt(keys) },
+            idToken = {
+                keys.idToken(subject = "eddsa-user") {
+                    audience = "client-id"
+                    atHash = keys.algorithm.hashAccessToken(accessToken)
+                }
+            },
+            accessToken = accessToken,
+        )
+
+        assertEquals("eddsa-user", client.get("/verify").bodyAsText())
+    }
+
+    @Test
+    fun `id token verification rejects EdDSA access token hash mismatch`() = testApplication {
+        val keys = testEdDsaKeys
+        installIdTokenVerification(
+            jwtConfig = { jwt(keys) },
+            idToken = {
+                keys.idToken(subject = "eddsa-user") {
+                    audience = "client-id"
+                    atHash = keys.algorithm.hashAccessToken("other-access-token")
+                }
+            },
+            accessToken = "access-token",
+        )
+
+        assertContains(client.get("/verify").bodyAsText(), "at_hash")
+    }
+
+    @Test
+    fun `id token verification rejects EdDSA when discovery metadata does not advertise it`() = testApplication {
+        val keys = testEdDsaKeys
+        installIdTokenVerification(
+            metadata = OpenIdProviderMetadata(
+                issuer = ISSUER_URL,
+                authorizationEndpoint = "$ISSUER_URL/authorize",
+                tokenEndpoint = "$ISSUER_URL/token",
+                jwksUri = "$ISSUER_URL/jwks",
+                idTokenSigningAlgValuesSupported = listOf(SignatureAlgorithm.RSA_SHA_256.testJwaName),
+            ),
+            jwtConfig = { jwt { jwkProviderFactory = { keys.jwkProvider } } },
+            idToken = { keys.idToken(subject = "eddsa-user") { audience = "client-id" } },
+        )
+
+        assertContains(client.get("/verify").bodyAsText(), "allowed algorithms")
+    }
+
+    @Test
+    fun `allowed algorithms must be available in the JVM`() {
+        val unavailable = SignatureAlgorithm(
+            name = "Unavailable",
+            jcaAlgorithm = "NoSuchSignatureAlgorithm",
+            digestAlgorithm = DigestAlgorithm.SHA_256,
+            keyAlgorithm = KeyAlgorithm.OKP,
+            jwaName = "Unavailable",
+        )
+        val failure = assertFailsWith<IllegalArgumentException> {
+            testApplication {
+                application {
+                    install(Oidc).identityProvider("auth0") {
+                        testIssuer()
+                        jwt { allowedAlgorithms = setOf(unavailable) }
+                    }
+                }
+                startApplication()
+            }
+        }
+        assertContains(failure.message.orEmpty(), "Unavailable")
+        assertContains(failure.message.orEmpty(), "not available")
+    }
+
+    @Test
+    fun `openId test keys reject non EdDSA algorithms for Ed25519 keys`() {
+        assertFailsWith<IllegalArgumentException> {
+            OpenIdTestKeys.ed25519(algorithm = SignatureAlgorithm.RSA_SHA_256)
+        }
+    }
+
+    private fun ApplicationTestBuilder.installIdTokenVerification(
+        metadata: OpenIdProviderMetadata = testOpenIdProviderMetadata(ISSUER_URL),
+        jwtConfig: OidcProviderConfig.() -> Unit,
+        idToken: () -> String,
+        accessToken: String = "",
+    ) {
+        lateinit var provider: OidcProvider
+        application {
+            val oidc = install(Oidc) { }
+            provider = oidc.identityProvider("auth0") {
+                testIssuer(metadata = metadata)
+                jwtConfig()
+                oauth {
+                    clientId = "client-id"
+                    clientSecret = "client-secret"
+                }
+            }
+
+            routing {
+                get("/verify") {
+                    val result = runCatching {
+                        provider.withCapturedState {
+                            provider.buildIdToken(
+                                idToken = idToken(),
+                                accessToken = accessToken,
+                                refreshToken = null,
+                                expectedAudience = "client-id",
+                            ).userInfo.subject
+                        }
+                    }
+                    call.respondText(result.getOrElse { it.message.orEmpty() })
+                }
+            }
+        }
     }
 
     private fun ApplicationTestBuilder.installJwtBearer(

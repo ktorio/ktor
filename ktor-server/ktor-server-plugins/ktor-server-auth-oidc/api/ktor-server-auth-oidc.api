@@ -457,6 +457,8 @@ public final class io/ktor/server/auth/oidc/OpenIdTestKeys {
 public final class io/ktor/server/auth/oidc/OpenIdTestKeys$Companion {
 	public final fun ec (Ljava/lang/String;Lio/ktor/http/auth/SignatureAlgorithm;Ljava/lang/String;Ljava/lang/String;)Lio/ktor/server/auth/oidc/OpenIdTestKeys;
 	public static synthetic fun ec$default (Lio/ktor/server/auth/oidc/OpenIdTestKeys$Companion;Ljava/lang/String;Lio/ktor/http/auth/SignatureAlgorithm;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lio/ktor/server/auth/oidc/OpenIdTestKeys;
+	public final fun ed25519 (Ljava/lang/String;Lio/ktor/http/auth/SignatureAlgorithm;Ljava/lang/String;Ljava/lang/String;)Lio/ktor/server/auth/oidc/OpenIdTestKeys;
+	public static synthetic fun ed25519$default (Lio/ktor/server/auth/oidc/OpenIdTestKeys$Companion;Ljava/lang/String;Lio/ktor/http/auth/SignatureAlgorithm;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lio/ktor/server/auth/oidc/OpenIdTestKeys;
 	public final fun rsa (Ljava/lang/String;Lio/ktor/http/auth/SignatureAlgorithm;Ljava/lang/String;Ljava/lang/String;)Lio/ktor/server/auth/oidc/OpenIdTestKeys;
 	public static synthetic fun rsa$default (Lio/ktor/server/auth/oidc/OpenIdTestKeys$Companion;Ljava/lang/String;Lio/ktor/http/auth/SignatureAlgorithm;Ljava/lang/String;Ljava/lang/String;ILjava/lang/Object;)Lio/ktor/server/auth/oidc/OpenIdTestKeys;
 }

@@ -121,6 +121,77 @@ public class SignatureAlgorithm(
         )
 
         /**
+         * RSASSA-PSS with SHA-256 and MGF1 with SHA-256 signature algorithm
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.auth.SignatureAlgorithm.Companion.RSA_PSS_SHA_256)
+         */
+        public val RSA_PSS_SHA_256: SignatureAlgorithm = SignatureAlgorithm(
+            name = "RSA-PSS-SHA-256",
+            jcaAlgorithm = "RSASSA-PSS",
+            digestAlgorithm = DigestAlgorithm.SHA_256,
+            keyAlgorithm = KeyAlgorithm.RSA,
+            xmlUri = "http://www.w3.org/2007/05/xmldsig-more#sha256-rsa-MGF1",
+            jwaName = "PS256"
+        )
+
+        /**
+         * RSASSA-PSS with SHA-384 and MGF1 with SHA-384 signature algorithm
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.auth.SignatureAlgorithm.Companion.RSA_PSS_SHA_384)
+         */
+        public val RSA_PSS_SHA_384: SignatureAlgorithm = SignatureAlgorithm(
+            name = "RSA-PSS-SHA-384",
+            jcaAlgorithm = "RSASSA-PSS",
+            digestAlgorithm = DigestAlgorithm.SHA_384,
+            keyAlgorithm = KeyAlgorithm.RSA,
+            xmlUri = "http://www.w3.org/2007/05/xmldsig-more#sha384-rsa-MGF1",
+            jwaName = "PS384"
+        )
+
+        /**
+         * RSASSA-PSS with SHA-512 and MGF1 with SHA-512 signature algorithm
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.auth.SignatureAlgorithm.Companion.RSA_PSS_SHA_512)
+         */
+        public val RSA_PSS_SHA_512: SignatureAlgorithm = SignatureAlgorithm(
+            name = "RSA-PSS-SHA-512",
+            jcaAlgorithm = "RSASSA-PSS",
+            digestAlgorithm = DigestAlgorithm.SHA_512,
+            keyAlgorithm = KeyAlgorithm.RSA,
+            xmlUri = "http://www.w3.org/2007/05/xmldsig-more#sha512-rsa-MGF1",
+            jwaName = "PS512"
+        )
+
+        /**
+         * EdDSA signature algorithm identified by the polymorphic JWS `EdDSA` name.
+         *
+         * Only the Ed25519 curve is supported. Use [ED25519] for the fully-specified JWS `Ed25519` name.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.auth.SignatureAlgorithm.Companion.EDDSA)
+         */
+        public val EDDSA: SignatureAlgorithm = SignatureAlgorithm(
+            name = "EdDSA",
+            jcaAlgorithm = "Ed25519",
+            digestAlgorithm = DigestAlgorithm.SHA_512,
+            keyAlgorithm = KeyAlgorithm.OKP,
+            jwaName = "EdDSA"
+        )
+
+        /**
+         * EdDSA signature algorithm using the Ed25519 curve
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.auth.SignatureAlgorithm.Companion.ED25519)
+         */
+        public val ED25519: SignatureAlgorithm = SignatureAlgorithm(
+            name = "Ed25519",
+            jcaAlgorithm = "Ed25519",
+            digestAlgorithm = DigestAlgorithm.SHA_512,
+            keyAlgorithm = KeyAlgorithm.OKP,
+            xmlUri = "http://www.w3.org/2021/04/xmldsig-more#eddsa-ed25519",
+            jwaName = "Ed25519"
+        )
+
+        /**
          * Parses an XML Signature algorithm URI into a [SignatureAlgorithm].
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.auth.SignatureAlgorithm.Companion.fromXmlUri)
@@ -151,6 +222,11 @@ public class SignatureAlgorithm(
             ECDSA_SHA_256,
             ECDSA_SHA_384,
             ECDSA_SHA_512,
+            RSA_PSS_SHA_256,
+            RSA_PSS_SHA_384,
+            RSA_PSS_SHA_512,
+            EDDSA,
+            ED25519,
         )
     }
 }

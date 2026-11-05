@@ -60,7 +60,7 @@ import java.time.Instant as JavaInstant
  *
  * The generated [jwkProvider] exposes only the public key. Token helpers sign with the matching private key.
  *
- * HMAC algorithms are intentionally unsupported.
+ * RSA, RSASSA-PSS, ECDSA, and Ed25519 keys are supported. HMAC algorithms are intentionally unsupported.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OpenIdTestKeys)
  *
@@ -94,6 +94,18 @@ public class OpenIdTestKeys internal constructor(
                 "crv" to algorithm.ecJwaCurve,
                 "x" to publicKey.w.affineX.toUnsignedBase64Url(algorithm.ecCoordinateSize),
                 "y" to publicKey.w.affineY.toUnsignedBase64Url(algorithm.ecCoordinateSize),
+            )
+
+            else if algorithm.okpJwaCurve != null -> mapOf(
+                "kid" to keyId,
+                "kty" to "OKP",
+                "use" to "sig",
+                "alg" to checkNotNull(algorithm.jwaName),
+                "crv" to algorithm.okpJwaCurve,
+                "x" to
+                    Base64.getUrlEncoder().withoutPadding().encodeToString(
+                        publicKey.encoded.takeLast(32).toByteArray()
+                    ),
             )
 
             else -> error("Unsupported test public key type: ${publicKey::class.simpleName}")
@@ -163,7 +175,7 @@ public class OpenIdTestKeys internal constructor(
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OpenIdTestKeys.Companion.rsa)
          *
          * @param keyId key ID written to token headers and exposed by the generated JWK.
-         * @param algorithm RSA signature algorithm used by [OpenIdTestKeys.accessToken] and [OpenIdTestKeys.idToken].
+         * @param algorithm RSA or RSASSA-PSS signature algorithm used by [OpenIdTestKeys.accessToken] and [OpenIdTestKeys.idToken].
          * @param issuer default token issuer for [OpenIdTestKeys.accessToken] and [OpenIdTestKeys.idToken].
          * @param audience default token audience for [OpenIdTestKeys.accessToken] and [OpenIdTestKeys.idToken].
          * @return generated test keys.
@@ -204,6 +216,35 @@ public class OpenIdTestKeys internal constructor(
                 "EC test keys require an ECDSA signature algorithm"
             }
             val keyPair = algorithm.generateEcKeyPair()
+            return OpenIdTestKeys(keyId, algorithm, keyPair, issuer, audience)
+        }
+
+        /**
+         * Generates an Ed25519 key pair for OIDC tests.
+         *
+         * Requires JDK 15+ or a JCA provider supporting Ed25519.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OpenIdTestKeys.Companion.ed25519)
+         *
+         * @param keyId key ID written to token headers and exposed by the generated JWK.
+         * @param algorithm [SignatureAlgorithm.EDDSA] or [SignatureAlgorithm.ED25519], used by
+         * [OpenIdTestKeys.accessToken] and [OpenIdTestKeys.idToken].
+         * @param issuer default token issuer for [OpenIdTestKeys.accessToken] and [OpenIdTestKeys.idToken].
+         * @param audience default token audience for [OpenIdTestKeys.accessToken] and [OpenIdTestKeys.idToken].
+         * @return generated test keys.
+         * @throws IllegalArgumentException if [algorithm] is not an Ed25519 signature algorithm.
+         * @throws java.security.NoSuchAlgorithmException if Ed25519 is not available in this JVM.
+         */
+        public fun ed25519(
+            keyId: String = "kid-1",
+            algorithm: SignatureAlgorithm = SignatureAlgorithm.EDDSA,
+            issuer: String? = null,
+            audience: String? = null,
+        ): OpenIdTestKeys {
+            require(algorithm.okpJwaCurve == ED25519_CURVE) {
+                "Ed25519 test keys require the EdDSA or Ed25519 signature algorithm, got ${algorithm.name}"
+            }
+            val keyPair = KeyPairGenerator.getInstance(ED25519_CURVE).generateKeyPair()
             return OpenIdTestKeys(keyId, algorithm, keyPair, issuer, audience)
         }
     }
@@ -396,8 +437,15 @@ internal fun SignatureAlgorithm.toJwtAlgorithm(publicKey: PublicKey, privateKey:
     when (val publicKey = publicKey) {
         is RSAPublicKey -> when (this) {
             SignatureAlgorithm.RSA_SHA_256 -> Algorithm.RSA256(publicKey, privateKey as RSAPrivateKey?)
+
             SignatureAlgorithm.RSA_SHA_384 -> Algorithm.RSA384(publicKey, privateKey as RSAPrivateKey?)
+
             SignatureAlgorithm.RSA_SHA_512 -> Algorithm.RSA512(publicKey, privateKey as RSAPrivateKey?)
+
+            SignatureAlgorithm.RSA_PSS_SHA_256,
+            SignatureAlgorithm.RSA_PSS_SHA_384,
+            SignatureAlgorithm.RSA_PSS_SHA_512 -> JcaJwtAlgorithm(this, publicKey, privateKey)
+
             else -> error("Unsupported RSA JWT signing algorithm: $name")
         }
 
@@ -408,14 +456,26 @@ internal fun SignatureAlgorithm.toJwtAlgorithm(publicKey: PublicKey, privateKey:
             else -> error("Unsupported EC JWT signing algorithm: $name")
         }
 
+        else if okpJwaCurve != null && publicKey.algorithm in Ed25519KeyAlgorithms ->
+            JcaJwtAlgorithm(signatureAlgorithm = this, publicKey, privateKey)
+
         else -> error("Unsupported JWK key type: ${publicKey::class.simpleName}")
     }
+
+// JDK reports "EdDSA" for Ed25519 keys; third-party providers may report the curve name.
+private val Ed25519KeyAlgorithms = setOf("EdDSA", ED25519_CURVE)
 
 private val SignatureAlgorithm.ecParameterName: String?
     get() = when (this) {
         SignatureAlgorithm.ECDSA_SHA_256 -> "secp256r1"
         SignatureAlgorithm.ECDSA_SHA_384 -> "secp384r1"
         SignatureAlgorithm.ECDSA_SHA_512 -> "secp521r1"
+        else -> null
+    }
+
+internal val SignatureAlgorithm.okpJwaCurve: String?
+    get() = when (this) {
+        SignatureAlgorithm.EDDSA, SignatureAlgorithm.ED25519 -> ED25519_CURVE
         else -> null
     }
 
