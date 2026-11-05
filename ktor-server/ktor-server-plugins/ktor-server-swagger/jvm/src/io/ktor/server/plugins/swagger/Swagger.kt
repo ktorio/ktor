@@ -133,6 +133,7 @@ public fun Route.swaggerUI(
 ): Route {
     val config = SwaggerConfig().apply(block)
     val source = config.source
+    val pathPrefix = config.pathPrefix
     val apiUrl = config.remotePath
     val log = application.log
     val openApiDoc = with(application) {
@@ -159,7 +160,12 @@ public fun Route.swaggerUI(
         }.hide()
 
         get {
-            val fullPath = call.request.path()
+            val fullPath =
+                if (pathPrefix.isNotBlank()) {
+                    "/${pathPrefix.trim('/')}${call.request.path()}"
+                } else {
+                    call.request.path()
+                }
             val oauth2RedirectUrlJs = config.oauth2RedirectUrl?.let { "'$it'" }
                 ?: "window.location.origin + '$fullPath/oauth2-redirect.html'"
             val docExpansion = runCatching {
