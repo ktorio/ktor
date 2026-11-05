@@ -31,7 +31,7 @@ val KotlinSourceSets.optional: OptionalSourceSets get() = OptionalSourceSets(thi
 @JvmInline
 value class OptionalSourceSets(private val sourceSets: KotlinSourceSets) {
     val androidMain: OptionalKotlinSourceSetProvider get() = optional("androidMain")
-    val androidTest: OptionalKotlinSourceSetProvider get() = optional("androidTest")
+    val androidHostTest: OptionalKotlinSourceSetProvider get() = optional("androidHostTest")
     val androidDeviceTest: OptionalKotlinSourceSetProvider get() = optional("androidDeviceTest")
 
     private fun optional(name: String): OptionalKotlinSourceSetProvider = sourceSets.named { it == name }
