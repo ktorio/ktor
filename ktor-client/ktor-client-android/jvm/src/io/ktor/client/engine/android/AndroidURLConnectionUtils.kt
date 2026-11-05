@@ -4,6 +4,8 @@
 
 package io.ktor.client.engine.android
 
+import android.os.*
+import android.os.ext.SdkExtensions
 import io.ktor.client.network.sockets.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
@@ -95,3 +97,24 @@ internal fun HttpURLConnection.content(status: Int, callContext: CoroutineContex
  */
 private fun Throwable.isTimeoutException(): Boolean =
     this is java.net.SocketTimeoutException || (this is ConnectException && message?.contains("timed out") ?: false)
+
+internal fun isAndroid(): Boolean = "Dalvik" == System.getProperty("java.vm.name")
+
+internal fun isHttpEngineAvailable(): Boolean = isAndroid() &&
+    Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
+    SdkExtensions.getExtensionVersion(Build.VERSION_CODES.S) >= 7
+
+internal fun isHttpEngineProxyAvailable(): Boolean = isAndroid() &&
+    Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
+    SdkExtensions.getExtensionVersion(Build.VERSION_CODES.S) >= 22
+
+internal fun isHttpEngineAvailable(config: AndroidEngineConfig): Boolean {
+    if (!config.httpEngineEnabled || config.context == null || !isHttpEngineAvailable()) {
+        return false
+    }
+
+    val proxy = config.proxy ?: return true
+    return proxy.type() == Proxy.Type.HTTP &&
+        proxy.address() is InetSocketAddress &&
+        isHttpEngineProxyAvailable()
+}

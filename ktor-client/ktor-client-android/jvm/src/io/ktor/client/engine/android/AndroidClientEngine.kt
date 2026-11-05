@@ -17,10 +17,9 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.job
 import java.io.OutputStream
 import java.net.HttpURLConnection
-import java.net.URL
-import java.net.URLConnection
 import java.util.*
 import javax.net.ssl.HttpsURLConnection
 import kotlin.coroutines.CoroutineContext
@@ -32,11 +31,20 @@ import kotlin.coroutines.CoroutineContext
  */
 @OptIn(InternalAPI::class)
 public class AndroidClientEngine(override val config: AndroidEngineConfig) : HttpClientEngineBase("ktor-android") {
-    init {
-        configurePlatform()
+    override val supportedCapabilities: Set<HttpClientEngineCapability<*>> = setOf(HttpTimeoutCapability, SSECapability)
+
+    private val urlFactory: URLConnectionFactory = if (isHttpEngineAvailable(config)) {
+        AndroidNetHttpEngineFactory(config)
+    } else {
+        URLConnectionFactory.StandardURLConnectionFactory(config)
     }
 
-    override val supportedCapabilities: Set<HttpClientEngineCapability<*>> = setOf(HttpTimeoutCapability, SSECapability)
+    init {
+        configurePlatform()
+        coroutineContext.job.invokeOnCompletion {
+            urlFactory.close()
+        }
+    }
 
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = callContext()
@@ -48,7 +56,7 @@ public class AndroidClientEngine(override val config: AndroidEngineConfig) : Htt
         val contentLength: Long? = data.headers[HttpHeaders.ContentLength]?.toLong()
             ?: outgoingContent.contentLength
 
-        val connection: HttpURLConnection = getProxyAwareConnection(url).apply {
+        val connection: HttpURLConnection = urlFactory(url).apply {
             disconnectOnCancellation(callContext)
 
             connectTimeout = config.connectTimeout
@@ -106,12 +114,6 @@ public class AndroidClientEngine(override val config: AndroidEngineConfig) : Htt
 
             HttpResponseData(statusCode, requestTime, responseHeaders, version, responseBody, callContext)
         }
-    }
-
-    private fun getProxyAwareConnection(urlString: String): HttpURLConnection {
-        val url = URL(urlString)
-        val connection: URLConnection = config.proxy?.let { url.openConnection(it) } ?: url.openConnection()
-        return connection as HttpURLConnection
     }
 }
 
