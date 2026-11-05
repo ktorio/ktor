@@ -5,10 +5,15 @@
 package io.ktor.client.engine.mock
 
 import io.ktor.client.*
+import io.ktor.client.call.*
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
+import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 class MockEngineTest {
 
@@ -28,5 +33,33 @@ class MockEngineTest {
             .count()
 
         assertEquals(0, count)
+    }
+
+    @Test
+    fun testRejectsRequestWithMalformedUrl() = runTest {
+        val client = HttpClient(MockEngine) {
+            defaultRequest {
+                url("http://localhost") {
+                    appendPathSegments("numbers/")
+                }
+            }
+            engine {
+                addHandler { respond("OK") }
+            }
+        }
+
+        val failure = assertFailsWith<IllegalStateException> { client.get("123") }
+        assertTrue(failure.message.orEmpty().contains("scheme"))
+    }
+
+    @Test
+    fun testRelativeUrlWithoutDefaultRequestIsAccepted() = runTest {
+        val client = HttpClient(MockEngine) {
+            engine {
+                addHandler { respond("OK") }
+            }
+        }
+
+        assertEquals("OK", client.get("123").body<String>())
     }
 }
