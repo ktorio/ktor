@@ -12,14 +12,15 @@ import io.ktor.utils.io.*
 import kotlin.jvm.JvmName
 
 internal val LOGGER = KtorSimpleLogger("io.ktor.server.plugins.ratelimit.RateLimit")
-internal val LIMITER_NAME_GLOBAL = RateLimitName("KTOR_GLOBAL_RATE_LIMITER")
-internal val LIMITER_NAME_EMPTY = RateLimitName("KTOR_NO_NAME_RATE_LIMITER")
+public val LIMITER_NAME_GLOBAL: RateLimitName = RateLimitName("KTOR_GLOBAL_RATE_LIMITER")
+public val LIMITER_NAME_EMPTY: RateLimitName = RateLimitName("KTOR_NO_NAME_RATE_LIMITER")
 
 internal data class ProviderKey(
     private val name: RateLimitName,
     private val key: Any,
 )
 
+// TODO: Design safe eviction of unused limiters to bound memory use without resetting consumed quota.
 internal val RateLimiterInstancesRegistryKey =
     AttributeKey<ConcurrentMap<ProviderKey, RateLimiter>>("RateLimiterInstancesRegistryKey")
 
@@ -59,7 +60,7 @@ public val RateLimit: ApplicationPlugin<RateLimitConfig> = createApplicationPlug
  * Creating a limiter uses [RateLimitProviderConfig.rateLimiterFactory] and does not consume tokens.
  * An existing limiter can also be returned for providers configured with the deprecated call-dependent factory.
  *
- * Resolve the limiter again when querying its state, as fully refilled limiters can be evicted and replaced.
+ * Limiters remain registered for the lifetime of the application.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.getRateLimiter)
  *
@@ -86,6 +87,10 @@ public fun Application.getRateLimiter(providerName: RateLimitName, key: Any): Ra
         }
         factory(key)
     }
+}
+
+public fun Application.getRateLimiter(providerName: RateLimitName): RateLimiter {
+    return getRateLimiter(providerName, Unit)
 }
 
 internal class RateLimitProvider(config: RateLimitProviderConfig) {

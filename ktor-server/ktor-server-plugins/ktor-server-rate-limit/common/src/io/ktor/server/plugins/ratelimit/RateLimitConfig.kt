@@ -105,6 +105,7 @@ public class RateLimitProviderConfig(internal val name: RateLimitName) {
         "Use rateLimiterFactory. Include the identity needed to configure the limiter in the request key."
     )
     public fun rateLimiter(provider: (call: ApplicationCall, key: Any) -> RateLimiter) {
+        @Suppress("DEPRECATION")
         rateLimiterProvider = provider
         rateLimiterFactory = null
     }
@@ -113,8 +114,8 @@ public class RateLimitProviderConfig(internal val name: RateLimitName) {
      * Sets a [factory] that creates a [RateLimiter] from the request key, independently of an [ApplicationCall].
      *
      * A limiter is shared by requests with equal keys using this provider, including requests to different routes.
-     * The factory is called when no limiter exists for the provider and key, including after a fully refilled
-     * limiter has been evicted. The key must contain all identity needed to configure the limiter.
+     * The factory is called when no limiter exists for the provider and key. Created limiters remain registered
+     * for the lifetime of the application. The key must contain all identity needed to configure the limiter.
      *
      * Calling this function replaces any previously configured limiter factory for this provider.
      *

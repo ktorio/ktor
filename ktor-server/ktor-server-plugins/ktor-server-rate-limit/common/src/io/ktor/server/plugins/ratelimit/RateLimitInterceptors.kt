@@ -12,11 +12,8 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.RoutingPipelineCall
 import io.ktor.util.collections.*
-import io.ktor.util.date.*
 import io.ktor.util.logging.*
-import kotlinx.coroutines.*
 import kotlin.time.Duration
-import kotlin.time.Duration.Companion.milliseconds
 
 private object ValidatorsPhase : Hook<suspend (ApplicationCall) -> Unit> {
     override fun install(pipeline: ApplicationCallPipeline, handler: suspend (ApplicationCall) -> Unit) {
@@ -137,7 +134,6 @@ private fun PluginBuilder<RateLimitInterceptorsConfig>.rateLimiterPluginBuilder(
         )
     }
     val registry = application.attributes.computeIfAbsent(RateLimiterInstancesRegistryKey) { ConcurrentMap() }
-    val clearOnRefillJobs = ConcurrentMap<ProviderKey, Job>()
     val monitor = application.monitor
 
     on(hook) { call ->
@@ -201,15 +197,6 @@ private fun PluginBuilder<RateLimitInterceptorsConfig>.rateLimiterPluginBuilder(
                 }
 
                 is RateLimiter.State.Available -> {
-                    if (rateLimiterForCall != RateLimiter.Unlimited) {
-                        clearOnRefillJobs[providerKey]?.cancel()
-                        clearOnRefillJobs[providerKey] = application.launch {
-                            val duration = state.refillAtTimeMillis - getTimeMillis()
-                            delay(duration.milliseconds)
-                            registry.remove(providerKey, rateLimiterForCall)
-                            clearOnRefillJobs.remove(providerKey)
-                        }
-                    }
                     LOGGER.trace { "Allowing ${call.request.uri}" }
                 }
             }
