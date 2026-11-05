@@ -123,11 +123,10 @@ class ContentEncodingTest : ClientLoader() {
         }
     }
 
-    // KTOR-9934: JVM ContentEncoding tries to decode the empty body as gzip.
     // KTOR-10116: Non-Darwin Native strips representation headers from bodiless responses.
     @Test
     fun `HEAD response with content encoding does not decode a body`() = clientTests(
-        except("jvm:*", "native/linux:*", "native/windows:*")
+        except("native/linux:*", "native/windows:*")
     ) {
         config {
             ContentEncoding { gzip() }
