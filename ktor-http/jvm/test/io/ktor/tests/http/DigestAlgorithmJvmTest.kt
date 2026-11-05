@@ -5,6 +5,8 @@
 package io.ktor.tests.http
 
 import io.ktor.http.auth.*
+import org.junit.jupiter.api.condition.EnabledForJreRange
+import org.junit.jupiter.api.condition.JRE
 import java.security.KeyPair
 import java.security.KeyPairGenerator
 import java.security.spec.PSSParameterSpec
@@ -25,6 +27,7 @@ class DigestAlgorithmJvmTest {
     }
 
     @Test
+    @EnabledForJreRange(min = JRE.JAVA_11, disabledReason = "RSASSA-PSS is available since JDK 11")
     fun `toJcaSignature configures RSASSA-PSS parameters`() {
         val algorithms = mapOf(
             SignatureAlgorithm.RSA_PSS_SHA_256 to ("SHA-256" to 32),
@@ -41,6 +44,7 @@ class DigestAlgorithmJvmTest {
     }
 
     @Test
+    @EnabledForJreRange(min = JRE.JAVA_15, disabledReason = "Ed25519 is available since JDK 15")
     fun `toJcaSignature supports Ed25519`() {
         val keyPair = KeyPairGenerator.getInstance("Ed25519").generateKeyPair()
         assertTrue(SignatureAlgorithm.EDDSA.signAndVerify(keyPair))

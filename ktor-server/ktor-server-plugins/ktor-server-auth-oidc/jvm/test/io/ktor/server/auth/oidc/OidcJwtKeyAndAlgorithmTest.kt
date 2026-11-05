@@ -17,6 +17,8 @@ import io.ktor.server.testing.*
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import org.junit.jupiter.api.condition.EnabledForJreRange
+import org.junit.jupiter.api.condition.JRE
 import kotlin.test.Test
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
@@ -312,6 +314,7 @@ class OidcJwtKeyAndAlgorithmTest {
     }
 
     @Test
+    @EnabledForJreRange(min = JRE.JAVA_15, disabledReason = "Ed25519 is available since JDK 15")
     fun `bearer authentication accepts EdDSA access token`() = testApplication {
         val keys = testEdDsaKeys
         installJwtBearer(keys = keys)
@@ -324,6 +327,7 @@ class OidcJwtKeyAndAlgorithmTest {
     }
 
     @Test
+    @EnabledForJreRange(min = JRE.JAVA_15, disabledReason = "Ed25519 is available since JDK 15")
     fun `bearer authentication accepts Ed25519 access token`() = testApplication {
         val keys = testEd25519Keys
         installJwtBearer(keys = keys)
@@ -336,6 +340,7 @@ class OidcJwtKeyAndAlgorithmTest {
     }
 
     @Test
+    @EnabledForJreRange(min = JRE.JAVA_11, disabledReason = "RSASSA-PSS is available since JDK 11")
     fun `bearer authentication accepts RSASSA-PSS access tokens`() = testApplication {
         val keysByAlgorithm = testRsaPssKeysByAlgorithm
         installJwtBearer(jwkProviderFactory = { jwkProviderWithMultipleKeys(*keysByAlgorithm.values.toTypedArray()) })
@@ -350,6 +355,7 @@ class OidcJwtKeyAndAlgorithmTest {
     }
 
     @Test
+    @EnabledForJreRange(min = JRE.JAVA_15, disabledReason = "Ed25519 is available since JDK 15")
     fun `bearer authentication rejects EdDSA token when OKP JWK curve is wrong or missing`() {
         for (curve in listOf("Ed448", null)) {
             testApplication {
@@ -365,6 +371,7 @@ class OidcJwtKeyAndAlgorithmTest {
     }
 
     @Test
+    @EnabledForJreRange(min = JRE.JAVA_15, disabledReason = "Ed25519 is available since JDK 15")
     fun `bearer authentication rejects EdDSA token when OKP JWK key has wrong length`() = testApplication {
         val keys = testEdDsaKeys
         installJwtBearer(jwkProviderFactory = { jwkProviderWithModifiedJwk(keys) { this["x"] = "AAAA" } })
@@ -376,6 +383,7 @@ class OidcJwtKeyAndAlgorithmTest {
     }
 
     @Test
+    @EnabledForJreRange(min = JRE.JAVA_15, disabledReason = "Ed25519 is available since JDK 15")
     fun `bearer authentication rejects EdDSA token signed by a different key`() = testApplication {
         val keys = testEdDsaKeys
         val otherKeys = OpenIdTestKeys.ed25519(issuer = ISSUER_URL, audience = "api")
@@ -388,6 +396,7 @@ class OidcJwtKeyAndAlgorithmTest {
     }
 
     @Test
+    @EnabledForJreRange(min = JRE.JAVA_15, disabledReason = "Ed25519 is available since JDK 15")
     fun `bearer authentication rejects EdDSA token verified with RSA JWK`() = testApplication {
         val keys = testEdDsaKeys
         installJwtBearer(
@@ -403,6 +412,7 @@ class OidcJwtKeyAndAlgorithmTest {
     }
 
     @Test
+    @EnabledForJreRange(min = JRE.JAVA_15, disabledReason = "Ed25519 is available since JDK 15")
     fun `bearer authentication rejects Ed25519 token when JWK algorithm is EdDSA`() = testApplication {
         val keys = testEd25519Keys
         installJwtBearer(
@@ -418,6 +428,7 @@ class OidcJwtKeyAndAlgorithmTest {
     }
 
     @Test
+    @EnabledForJreRange(min = JRE.JAVA_15, disabledReason = "Ed25519 is available since JDK 15")
     fun `access token algorithms allow list accepts EdDSA and rejects others`() = testApplication {
         val edKeys = testEdDsaKeys
         installJwtBearer(
@@ -437,6 +448,7 @@ class OidcJwtKeyAndAlgorithmTest {
     }
 
     @Test
+    @EnabledForJreRange(min = JRE.JAVA_15, disabledReason = "Ed25519 is available since JDK 15")
     fun `id token verification accepts EdDSA with access token hash`() = testApplication {
         val keys = testEdDsaKeys
         val accessToken = "access-token"
@@ -455,6 +467,7 @@ class OidcJwtKeyAndAlgorithmTest {
     }
 
     @Test
+    @EnabledForJreRange(min = JRE.JAVA_15, disabledReason = "Ed25519 is available since JDK 15")
     fun `id token verification rejects EdDSA access token hash mismatch`() = testApplication {
         val keys = testEdDsaKeys
         installIdTokenVerification(
@@ -472,6 +485,7 @@ class OidcJwtKeyAndAlgorithmTest {
     }
 
     @Test
+    @EnabledForJreRange(min = JRE.JAVA_15, disabledReason = "Ed25519 is available since JDK 15")
     fun `id token verification rejects EdDSA when discovery metadata does not advertise it`() = testApplication {
         val keys = testEdDsaKeys
         installIdTokenVerification(

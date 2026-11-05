@@ -10,6 +10,8 @@ import com.auth0.jwt.JWT
 import com.auth0.jwt.exceptions.SignatureVerificationException
 import io.ktor.http.auth.*
 import io.ktor.server.auth.oidc.utils.*
+import org.junit.jupiter.api.condition.EnabledForJreRange
+import org.junit.jupiter.api.condition.JRE
 import java.security.KeyPairGenerator
 import java.security.NoSuchAlgorithmException
 import kotlin.test.*
@@ -17,6 +19,7 @@ import kotlin.test.*
 class OidcJcaAlgorithmsTest {
 
     @Test
+    @EnabledForJreRange(min = JRE.JAVA_15, disabledReason = "Ed25519 is available since JDK 15")
     fun `verification rejects malformed signature as token error`() {
         val keys = testEdDsaKeys
         val token = keys.accessToken { subject = "user" }
@@ -27,6 +30,7 @@ class OidcJcaAlgorithmsTest {
     }
 
     @Test
+    @EnabledForJreRange(min = JRE.JAVA_15, disabledReason = "Ed25519 is available since JDK 15")
     fun `verification rejects key of the wrong type as token error`() {
         val token = testEdDsaKeys.accessToken { subject = "user" }
         val rsaKey = KeyPairGenerator.getInstance("RSA").apply { initialize(2048) }.generateKeyPair().public
@@ -36,6 +40,7 @@ class OidcJcaAlgorithmsTest {
     }
 
     @Test
+    @EnabledForJreRange(min = JRE.JAVA_15, disabledReason = "Ed25519 is available since JDK 15")
     fun `verification propagates JVM configuration errors`() {
         val keys = testEdDsaKeys
         val token = keys.accessToken { subject = "user" }
@@ -52,6 +57,7 @@ class OidcJcaAlgorithmsTest {
     }
 
     @Test
+    @EnabledForJreRange(min = JRE.JAVA_15, disabledReason = "Ed25519 is available since JDK 15")
     fun `OKP JWK accepts padded x parameter`() {
         val source = testEdDsaKeys.jwk
         val x = source.additionalAttributes["x"] as String
