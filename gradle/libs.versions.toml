@@ -98,6 +98,9 @@ yarn = "1.22.22"
 ws = "8.20.1"
 puppeteer = "25.0.4"
 
+robolectric-android = "17-robolectric-15733970"
+robolectric-sandbox = "4.16.1"
+
 [libraries]
 
 android-gradlePlugin = { module = "com.android.tools.build:gradle", version.ref = "android-gradlePlugin" }
@@ -254,6 +257,9 @@ gradleDoctor = { module = "com.osacky.doctor:doctor-plugin", version.ref = "grad
 mavenPublishing = { module = "com.vanniktech:gradle-maven-publish-plugin", version.ref = "mavenPublishing" }
 
 zstd-jni = { module = "com.github.luben:zstd-jni", version.ref = "zstd-jni" }
+
+robolectric-android = { module = "org.robolectric:android-all", version.ref = "robolectric-android" }
+robolectric-sandbox = { module = "org.robolectric:sandbox", version.ref = "robolectric-sandbox" }
 
 [plugins]
 
