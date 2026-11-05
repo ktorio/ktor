@@ -8,10 +8,9 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import kotlin.jvm.JvmInline
-import kotlin.time.Duration
+import kotlin.time.*
 
 /**
  * A config for the [RateLimit] plugin.
@@ -134,11 +133,31 @@ public class RateLimitProviderConfig(internal val name: RateLimitName) {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.RateLimitProviderConfig.rateLimiter)
      */
+    @Deprecated("Use the overload accepting kotlin.time.Clock.")
+    @Suppress("DEPRECATION")
     public fun rateLimiter(
         limit: Int,
         refillPeriod: Duration,
         initialSize: Int = limit,
-        clock: () -> Long = { getTimeMillis() }
+        clock: () -> Long
+    ) {
+        rateLimiterFactory {
+            RateLimiter.default(limit = limit, refillPeriod = refillPeriod, initialSize = initialSize, clock = clock)
+        }
+    }
+
+    /**
+     * Configures a rate limiter with [limit] tokens that is fully refilled every [refillPeriod].
+     *
+     * Refill timing uses monotonic time. The [clock] supplies epoch timestamps for reset headers.
+     * The [initialSize] parameter is ignored.
+     */
+    @OptIn(ExperimentalTime::class)
+    public fun rateLimiter(
+        limit: Int,
+        refillPeriod: Duration,
+        initialSize: Int = limit,
+        clock: Clock = Clock.System
     ) {
         rateLimiterFactory {
             RateLimiter.default(limit = limit, refillPeriod = refillPeriod, initialSize = initialSize, clock = clock)
@@ -146,10 +165,28 @@ public class RateLimitProviderConfig(internal val name: RateLimitName) {
     }
 
     // TODO: Think about better name
+    @Deprecated("Use the overload accepting kotlin.time.Clock.")
+    @Suppress("DEPRECATION")
     public fun rateLimiterIncremental(
         limit: Int,
         refillRate: Duration,
-        clock: () -> Long = { getTimeMillis() }
+        clock: () -> Long
+    ) {
+        rateLimiterFactory {
+            RateLimiter.incremental(limit = limit, refillRate = refillRate, clock = clock)
+        }
+    }
+
+    /**
+     * Configures a rate limiter with [limit] tokens that replenishes one token every [refillRate].
+     *
+     * Refill timing uses monotonic time. The [clock] supplies epoch timestamps for reset headers.
+     */
+    @OptIn(ExperimentalTime::class)
+    public fun rateLimiterIncremental(
+        limit: Int,
+        refillRate: Duration,
+        clock: Clock = Clock.System
     ) {
         rateLimiterFactory {
             RateLimiter.incremental(limit = limit, refillRate = refillRate, clock = clock)

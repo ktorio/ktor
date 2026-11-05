@@ -4,7 +4,6 @@
 
 package io.ktor.server.plugins.ratelimit
 
-import io.ktor.util.date.*
 import kotlin.time.*
 
 /**
@@ -82,19 +81,51 @@ public interface RateLimiter {
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.RateLimiter.Companion.default)
          */
+        @Deprecated("Use the overload accepting kotlin.time.Clock.")
         public fun default(
             limit: Int,
             refillPeriod: Duration,
             @Suppress("UNUSED_PARAMETER") initialSize: Int = limit,
-            clock: () -> Long = ::getTimeMillis
+            clock: () -> Long
         ): RateLimiter {
             return DefaultRateLimiter(limit, refillPeriod, clock)
         }
 
+        /**
+         * Creates a rate limiter with [limit] tokens that is fully refilled every [refillPeriod].
+         *
+         * Refill timing uses monotonic time. The [clock] supplies epoch timestamps for reset headers.
+         * The [initialSize] parameter is ignored.
+         */
+        @OptIn(ExperimentalTime::class)
+        public fun default(
+            limit: Int,
+            refillPeriod: Duration,
+            @Suppress("UNUSED_PARAMETER") initialSize: Int = limit,
+            clock: Clock = Clock.System
+        ): RateLimiter {
+            return DefaultRateLimiter(limit, refillPeriod, clock)
+        }
+
+        @Deprecated("Use the overload accepting kotlin.time.Clock.")
         public fun incremental(
             limit: Int,
             refillRate: Duration,
-            clock: () -> Long = ::getTimeMillis
+            clock: () -> Long
+        ): RateLimiter {
+            return RateLimiterIncrementalBucket(limit, refillRate, clock)
+        }
+
+        /**
+         * Creates a rate limiter with [limit] tokens that replenishes one token every [refillRate].
+         *
+         * Refill timing uses monotonic time. The [clock] supplies epoch timestamps for reset headers.
+         */
+        @OptIn(ExperimentalTime::class)
+        public fun incremental(
+            limit: Int,
+            refillRate: Duration,
+            clock: Clock = Clock.System
         ): RateLimiter {
             return RateLimiterIncrementalBucket(limit, refillRate, clock)
         }
