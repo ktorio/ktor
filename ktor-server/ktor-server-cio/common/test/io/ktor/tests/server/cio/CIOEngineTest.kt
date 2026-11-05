@@ -33,11 +33,6 @@ class CIOHttpServerTest : HttpServerCommonTestSuite<CIOApplicationEngine, CIOApp
     }
 
     @Test
-    @Ignore // KTOR-10111: CIO sends Content-Length: 0 for 204 responses
-    override fun `204 response has no content length or body`() =
-        super.`204 response has no content length or body`()
-
-    @Test
     fun testGracefulShutdown() = runTest {
         val server = createAndStartServer {
             get("/") {

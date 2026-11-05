@@ -124,6 +124,24 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     }
 
     @Test
+    open fun `auto HEAD response for unknown length has no content length`() = runTest {
+        createAndStartServer {
+            application.install(AutoHeadResponse)
+            get("/") {
+                call.respondBytesWriter {
+                    writeStringUtf8("Hello")
+                }
+            }
+        }
+
+        withUrl("/", { method = HttpMethod.Head }) {
+            assertEquals(HttpStatusCode.OK, status)
+            assertNull(headers[HttpHeaders.ContentLength])
+            assertContentEquals(byteArrayOf(), bodyAsChannel().toByteArray())
+        }
+    }
+
+    @Test
     open fun `204 response has no content length or body`() = runTest {
         createAndStartServer {
             get("/") {
@@ -153,6 +171,101 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
             assertEquals(HttpStatusCode.NotModified, status)
             assertEquals("150", headers[HttpHeaders.ContentLength])
             assertContentEquals(byteArrayOf(), bodyAsChannel().toByteArray())
+        }
+    }
+
+    @Test
+    open fun `204 response with body skips body`() = runTest {
+        val bodyProduced = CompletableDeferred<Unit>()
+        createAndStartServer {
+            get("/bytes") {
+                call.respondText("hello", status = HttpStatusCode.NoContent)
+            }
+            get("/writer") {
+                call.respondBytesWriter(status = HttpStatusCode.NoContent) {
+                    bodyProduced.complete(Unit)
+                    writeStringUtf8("hello")
+                }
+            }
+            get("/channel") {
+                call.respond(object : OutgoingContent.ReadChannelContent() {
+                    override val status = HttpStatusCode.NoContent
+                    override fun readFrom(): ByteReadChannel {
+                        bodyProduced.complete(Unit)
+                        return ByteReadChannel("hello")
+                    }
+                })
+            }
+            get("/explicit-length") {
+                call.respond(object : OutgoingContent.NoContent() {
+                    override val status = HttpStatusCode.NoContent
+                    override val contentLength = 0L
+                })
+            }
+            get("/header-length") {
+                call.respond(object : OutgoingContent.NoContent() {
+                    override val status = HttpStatusCode.NoContent
+                    override val headers = headersOf(HttpHeaders.ContentLength, "5")
+                })
+            }
+        }
+
+        // Repeat the first request to make sure no body bytes were left on the connection
+        for (path in listOf("/bytes", "/writer", "/channel", "/explicit-length", "/header-length", "/bytes")) {
+            withUrl(path) {
+                assertEquals(HttpStatusCode.NoContent, status)
+                assertNull(headers[HttpHeaders.ContentLength])
+                assertNull(headers[HttpHeaders.TransferEncoding])
+                assertContentEquals(byteArrayOf(), bodyAsChannel().toByteArray())
+            }
+        }
+        assertFalse(bodyProduced.isCompleted, "Body should not be produced for 204 response")
+    }
+
+    @Test
+    open fun `205 response has zero content length and no body`() = runTest {
+        createAndStartServer {
+            get("/") {
+                call.respondText("hello", status = HttpStatusCode.ResetContent)
+            }
+        }
+
+        withUrl("/") {
+            assertEquals(HttpStatusCode.ResetContent, status)
+            assertEquals("0", headers[HttpHeaders.ContentLength])
+            assertNull(headers[HttpHeaders.TransferEncoding])
+            assertContentEquals(byteArrayOf(), bodyAsChannel().toByteArray())
+        }
+    }
+
+    @Test
+    open fun `304 response without length has no content length`() = runTest {
+        createAndStartServer {
+            get("/") {
+                call.respond(HttpStatusCode.NotModified)
+            }
+        }
+
+        withUrl("/") {
+            assertEquals(HttpStatusCode.NotModified, status)
+            assertNull(headers[HttpHeaders.ContentLength])
+            assertNull(headers[HttpHeaders.TransferEncoding])
+            assertContentEquals(byteArrayOf(), bodyAsChannel().toByteArray())
+        }
+    }
+
+    @Test
+    open fun `HEAD response with unknown length has no content length`() = runTest {
+        createAndStartServer {
+            head("/") {
+                call.respond(HttpStatusCode.OK)
+            }
+        }
+
+        // Transfer-Encoding is allowed here (RFC 9112 §6.1), and some engines add it
+        withUrl("/", { method = HttpMethod.Head }) {
+            assertEquals(HttpStatusCode.OK, status)
+            assertNull(headers[HttpHeaders.ContentLength])
         }
     }
 
