@@ -35,10 +35,10 @@ public class RateLimitMetricsConfig {
      */
     public var metricName: String = "ktor.rate.limit"
 
-    internal val tags = mutableListOf<Pair<String, (RateLimitEvent) -> String>>()
+    internal val tags = mutableListOf<Pair<String, (RateLimitEventData) -> String>>()
 
     /**
-     * Adds a tag with the [key] to the meters recorded for each [RateLimitEvent].
+     * Adds a tag with the [key] to the meters recorded for each [RateLimitEventData].
      * The tag value is computed by [value] for each event.
      * Avoid high-cardinality values, such as the request key, because each distinct tag value creates a new time series.
      *
@@ -51,14 +51,14 @@ public class RateLimitMetricsConfig {
      * @param key the tag key.
      * @param value a function that computes the tag value for the event.
      */
-    public fun addTag(key: String, value: (RateLimitEvent) -> String) {
+    public fun addTag(key: String, value: (RateLimitEventData) -> String) {
         require(key.isNotBlank()) { "Tag key should not be blank" }
         tags.add(key to value)
     }
 }
 
 /**
- * A [MeterBinder] that records metrics for the RateLimit plugin by subscribing to [rateLimitEvent].
+ * A [MeterBinder] that records metrics for the RateLimit plugin by subscribing to [RateLimitEvent].
  *
  * The following meters are registered:
  * - `<metricName>.requests`: a counter of requests checked by a rate limiter,
@@ -98,7 +98,7 @@ public class RateLimitMetrics(
         val retryAfterName = "${config.metricName}.retry.after"
         val additionalTags = config.tags.toList()
 
-        val handle = monitor.subscribe(rateLimitEvent) { event ->
+        val handle = monitor.subscribe(RateLimitEvent) { event ->
             val commonTags = Tags.of(
                 Tag.of("limiter", event.limiter.providerName),
                 Tag.of("route", event.route?.path() ?: "n/a"),
@@ -111,9 +111,9 @@ public class RateLimitMetrics(
                 .register(registry)
 
             when (event) {
-                is AvailableEvent -> requests("allowed").increment()
+                is RateLimitEventData.Allowed -> requests("allowed").increment()
 
-                is ExhaustedEvent -> {
+                is RateLimitEventData.Rejected -> {
                     requests("rejected").increment()
                     Timer.builder(retryAfterName)
                         .description("Time that rejected clients are told to wait before retrying")

@@ -65,63 +65,62 @@ public class RateLimiterKey(
 /**
  * A rate limiter's decision for a request.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.RateLimitEvent)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.RateLimitEventData)
  *
  * @property limiter identifies the limiter that checked the request.
  * @property route the selected route, or `null` when the request is checked before routing.
  * @property method the HTTP method of the request.
  */
-public sealed class RateLimitEvent(
+public sealed class RateLimitEventData(
     public val limiter: RateLimiterKey,
     public val route: Route?,
     public val method: HttpMethod,
-)
+) {
+    /**
+     * A request accepted by a rate limiter.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.RateLimitEventData.Allowed)
+     *
+     * @param limiter identifies the limiter that checked the request.
+     * @param route the selected route, or `null` when checked before routing.
+     * @param method the HTTP method of the request.
+     * @property tokensLeft the tokens remaining after consumption.
+     * @property tokensTotal the limiter's capacity.
+     * @property nextRefillTs the epoch time in milliseconds when the bucket will be full without further consumption.
+     */
+    public class Allowed(
+        limiter: RateLimiterKey,
+        route: Route?,
+        method: HttpMethod,
+        public val tokensLeft: Int,
+        public val tokensTotal: Int,
+        public val nextRefillTs: Long,
+    ) : RateLimitEventData(limiter, route, method)
 
-// TODO: Rename the event names
-/**
- * A request accepted by a rate limiter.
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.AvailableEvent)
- *
- * @param limiter identifies the limiter that checked the request.
- * @param route the selected route, or `null` when checked before routing.
- * @param method the HTTP method of the request.
- * @property tokensLeft the tokens remaining after consumption.
- * @property tokensTotal the limiter's capacity.
- * @property nextRefillTs the epoch time in milliseconds when the bucket will be full without further consumption.
- */
-public class AvailableEvent(
-    limiter: RateLimiterKey,
-    route: Route?,
-    method: HttpMethod,
-    public val tokensLeft: Int,
-    public val tokensTotal: Int,
-    public val nextRefillTs: Long,
-): RateLimitEvent(limiter, route, method)
-
-/**
- * A request rejected by a rate limiter.
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.ExhaustedEvent)
- *
- * @param limiter identifies the limiter that checked the request.
- * @param route the selected route, or `null` when checked before routing.
- * @param method the HTTP method of the request.
- * @property toWait the duration to wait before retrying the request.
- */
-public class ExhaustedEvent(
-    limiter: RateLimiterKey,
-    route: Route?,
-    method: HttpMethod,
-    public val toWait: Duration,
-): RateLimitEvent(limiter, route, method)
+    /**
+     * A request rejected by a rate limiter.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.RateLimitEventData.Rejected)
+     *
+     * @param limiter identifies the limiter that checked the request.
+     * @param route the selected route, or `null` when checked before routing.
+     * @param method the HTTP method of the request.
+     * @property toWait the duration to wait before retrying the request.
+     */
+    public class Rejected(
+        limiter: RateLimiterKey,
+        route: Route?,
+        method: HttpMethod,
+        public val toWait: Duration,
+    ) : RateLimitEventData(limiter, route, method)
+}
 
 /**
  * Raised after a rate limiter checks a request.
  *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.rateLimitEvent)
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.RateLimitEvent)
  */
-public val rateLimitEvent: EventDefinition<RateLimitEvent> = EventDefinition()
+public val RateLimitEvent: EventDefinition<RateLimitEventData> = EventDefinition()
 
 private fun PluginBuilder<RateLimitInterceptorsConfig>.rateLimiterPluginBuilder(
     hook: Hook<suspend (ApplicationCall) -> Unit>,
@@ -170,7 +169,7 @@ private fun PluginBuilder<RateLimitInterceptorsConfig>.rateLimiterPluginBuilder(
             val route = if (call is RoutingPipelineCall) call.route else null
             val event = when(state) {
                 is RateLimiter.State.Available -> {
-                    AvailableEvent(
+                    RateLimitEventData.Allowed(
                         limiter = limiterKey,
                         route = route,
                         method = call.request.httpMethod,
@@ -180,7 +179,7 @@ private fun PluginBuilder<RateLimitInterceptorsConfig>.rateLimiterPluginBuilder(
                     )
                 }
                 is RateLimiter.State.Exhausted ->  {
-                    ExhaustedEvent(
+                    RateLimitEventData.Rejected(
                         limiter = limiterKey,
                         route = route,
                         method = call.request.httpMethod,
@@ -189,7 +188,7 @@ private fun PluginBuilder<RateLimitInterceptorsConfig>.rateLimiterPluginBuilder(
                 }
             }
 
-            monitor.raise(rateLimitEvent, event)
+            monitor.raise(RateLimitEvent, event)
             when (state) {
                 is RateLimiter.State.Exhausted -> {
                     LOGGER.trace { "Declining ${call.request.uri} because of too many requests" }
