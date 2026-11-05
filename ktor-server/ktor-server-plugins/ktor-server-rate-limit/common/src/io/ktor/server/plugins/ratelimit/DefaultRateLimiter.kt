@@ -58,17 +58,17 @@ internal class DefaultRateLimiter @OptIn(ExperimentalTime::class) constructor(
     }
 }
 
-internal class RateLimiterIncrementalBucket @OptIn(ExperimentalTime::class) constructor(
+internal class IncrementalRefillRateLimiter @OptIn(ExperimentalTime::class) constructor(
     private val limit: Int,
-    private val refillRate: Duration,
+    private val refillInterval: Duration,
     private val clock: Clock,
     private val timeSource: TimeSource.WithComparableMarks = TimeSource.Monotonic,
 ): RateLimiter {
 
     @OptIn(ExperimentalTime::class)
     constructor(limit: Int,
-                refillRate: Duration,
-                clock: () -> Long = ::getTimeMillis) : this(limit, refillRate, clock.asClock(), clock.asTimeSource())
+                refillInterval: Duration,
+                clock: () -> Long = ::getTimeMillis) : this(limit, refillInterval, clock.asClock(), clock.asTimeSource())
 
 //    private val currentTokens = atomic(limit)
 //    private var lastRefillMark = timeSource.markNow()
@@ -90,12 +90,12 @@ internal class RateLimiterIncrementalBucket @OptIn(ExperimentalTime::class) cons
             val newTokens = base.tokens - tokens
 
             if (newTokens < 0) {
-                val wait = refillRate * (-newTokens) - sinceLastToken
+                val wait = refillInterval * (-newTokens) - sinceLastToken
                 return RateLimiter.State.Exhausted(wait.coerceAtLeast(Duration.ZERO))
             }
 
             if (state.compareAndSet(current, LimiterState(newTokens, base.lastRefillMark))) {
-                val untilFull = (refillRate * (limit - newTokens) - sinceLastToken).coerceAtLeast(Duration.ZERO)
+                val untilFull = (refillInterval * (limit - newTokens) - sinceLastToken).coerceAtLeast(Duration.ZERO)
                 val fullAt = clock.now() + untilFull
                 return RateLimiter.State.Available(newTokens, limit, fullAt.toEpochMilliseconds())
             }
@@ -105,7 +105,7 @@ internal class RateLimiterIncrementalBucket @OptIn(ExperimentalTime::class) cons
     private fun refilled(s: LimiterState, now: ComparableTimeMark): LimiterState {
         if (s.tokens >= limit) return LimiterState(limit, now)   // a full bucket doesn't accumulate progress
 
-        val added = (now - s.lastRefillMark).inWholeNanoseconds / refillRate.inWholeNanoseconds
+        val added = (now - s.lastRefillMark).inWholeNanoseconds / refillInterval.inWholeNanoseconds
         if (added <= 0) return s
 
         val tokens = s.tokens + added
@@ -113,7 +113,7 @@ internal class RateLimiterIncrementalBucket @OptIn(ExperimentalTime::class) cons
             LimiterState(limit, now)
         } else {
             // advance by whole periods only, so partial progress toward the next token is kept
-            LimiterState(tokens.toInt(), s.lastRefillMark + refillRate * added.toInt())
+            LimiterState(tokens.toInt(), s.lastRefillMark + refillInterval * added.toInt())
         }
     }
 }

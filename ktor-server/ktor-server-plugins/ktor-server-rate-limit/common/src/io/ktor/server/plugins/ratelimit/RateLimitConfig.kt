@@ -164,32 +164,31 @@ public class RateLimitProviderConfig(internal val name: RateLimitName) {
         }
     }
 
-    // TODO: Think about better name
     @Deprecated("Use the overload accepting kotlin.time.Clock.")
     @Suppress("DEPRECATION")
-    public fun rateLimiterIncremental(
+    public fun incrementalRefillRateLimiter(
         limit: Int,
-        refillRate: Duration,
+        refillInterval: Duration,
         clock: () -> Long
     ) {
         rateLimiterFactory {
-            RateLimiter.incremental(limit = limit, refillRate = refillRate, clock = clock)
+            RateLimiter.incrementalRefill(limit = limit, refillInterval = refillInterval, clock = clock)
         }
     }
 
     /**
-     * Configures a rate limiter with [limit] tokens that replenishes one token every [refillRate].
+     * Configures a rate limiter with [limit] tokens that replenishes one token every [refillInterval].
      *
      * Refill timing uses monotonic time. The [clock] supplies epoch timestamps for reset headers.
      */
     @OptIn(ExperimentalTime::class)
-    public fun rateLimiterIncremental(
+    public fun incrementalRefillRateLimiter(
         limit: Int,
-        refillRate: Duration,
+        refillInterval: Duration,
         clock: Clock = Clock.System
     ) {
         rateLimiterFactory {
-            RateLimiter.incremental(limit = limit, refillRate = refillRate, clock = clock)
+            RateLimiter.incrementalRefill(limit = limit, refillInterval = refillInterval, clock = clock)
         }
     }
 
