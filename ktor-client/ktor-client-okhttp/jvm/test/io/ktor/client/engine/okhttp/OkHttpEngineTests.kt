@@ -17,6 +17,7 @@ import okio.Buffer
 import okio.BufferedSource
 import okio.Pipe
 import okio.buffer
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import kotlin.test.*
@@ -157,6 +158,75 @@ class OkHttpEngineTests {
     }
 
     @Test
+    fun testResponseBodyIsClosedWhenRequestIsCancelledBeforeOnResponse() = runTest(timeout = 5.seconds) {
+        val responseBody = CloseTrackingResponseBody()
+        lateinit var request: Job
+
+        val client = HttpClient(OkHttp) {
+            engine {
+                preconfigured = OkHttpClient.Builder()
+                    .addResponseInterceptor(responseBody)
+                    // Without a network exchange, callEnd fires after OkHttp's own cancellation check
+                    // and before Callback.onResponse.
+                    .eventListener(
+                        object : EventListener() {
+                            override fun callEnd(call: Call) = request.cancel()
+                        }
+                    )
+                    .build()
+            }
+        }
+
+        client.use {
+            request = launch(Dispatchers.Default, start = CoroutineStart.LAZY) {
+                client.get("http://localhost/")
+            }
+            request.start()
+            request.join()
+
+            responseBody.closed.await()
+        }
+    }
+
+    @Test
+    fun testResponseBodyIsClosedWhenRequestIsCancelledBeforeResume() = runTest(timeout = 5.seconds) {
+        val responseBody = CloseTrackingResponseBody()
+        val engineReleased = CountDownLatch(1)
+        val onResponseReturned = CompletableDeferred<Unit>()
+        // OkHttp's dispatcher becomes idle once Callback.onResponse has returned.
+        val okHttpDispatcher = Dispatcher().apply { idleCallback = Runnable { onResponseReturned.complete(Unit) } }
+
+        Executors.newSingleThreadExecutor().asCoroutineDispatcher().use { engineDispatcher ->
+            val client = HttpClient(OkHttp) {
+                engine {
+                    preconfigured = OkHttpClient.Builder()
+                        .dispatcher(okHttpDispatcher)
+                        // Blocks the engine dispatcher, so the response passed to the continuation waits there.
+                        .addInterceptor { chain ->
+                            engineDispatcher.executor.execute { engineReleased.await() }
+                            chain.proceed(chain.request())
+                        }
+                        .addResponseInterceptor(responseBody)
+                        .build()
+                    dispatcher = engineDispatcher
+                }
+            }
+
+            client.use {
+                val request = launch(Dispatchers.Default) {
+                    client.get("http://localhost/")
+                }
+                onResponseReturned.await()
+                request.cancel()
+                engineReleased.countDown()
+                request.join()
+
+                responseBody.closed.await()
+            }
+        }
+    }
+
+    @Test
     fun testRequestAfterRecreate() {
         runBlocking {
             HttpClient(OkHttp)
@@ -167,6 +237,22 @@ class OkHttpEngineTests {
                 assertNotNull(response)
             }
         }
+    }
+}
+
+private class CloseTrackingResponseBody : ResponseBody() {
+    val closed = CompletableDeferred<Unit>()
+    private val source = Buffer()
+
+    override fun contentType(): MediaType? = null
+
+    override fun contentLength(): Long = 0
+
+    override fun source(): BufferedSource = source
+
+    override fun close() {
+        super.close()
+        closed.complete(Unit)
     }
 }
 
