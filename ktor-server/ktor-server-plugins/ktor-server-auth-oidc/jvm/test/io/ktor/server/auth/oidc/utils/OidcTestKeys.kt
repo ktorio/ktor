@@ -104,3 +104,41 @@ internal fun jwkProviderWithoutVerifyOperation(keys: OpenIdTestKeys): JwkProvide
         }
     }
 }
+
+internal val testEdDsaKeys: OpenIdTestKeys by lazy {
+    OpenIdTestKeys.ed25519(issuer = ISSUER_URL, audience = "api")
+}
+
+internal val testEd25519Keys: OpenIdTestKeys by lazy {
+    OpenIdTestKeys.ed25519(algorithm = SignatureAlgorithm.ED25519, issuer = ISSUER_URL, audience = "api")
+}
+
+internal val testRsaPssKeysByAlgorithm: Map<SignatureAlgorithm, OpenIdTestKeys> by lazy {
+    listOf(
+        SignatureAlgorithm.RSA_PSS_SHA_256,
+        SignatureAlgorithm.RSA_PSS_SHA_384,
+        SignatureAlgorithm.RSA_PSS_SHA_512,
+    ).associateWith { algorithm ->
+        OpenIdTestKeys.rsa(
+            keyId = algorithm.testJwaName,
+            algorithm = algorithm,
+            issuer = ISSUER_URL,
+            audience = "api",
+        )
+    }
+}
+
+internal fun jwkProviderWithModifiedJwk(
+    keys: OpenIdTestKeys,
+    modify: MutableMap<String, Any?>.() -> Unit,
+): JwkProvider {
+    val sourceJwk = keys.jwkProvider.get(keys.keyId)
+    val values = sourceJwk.additionalAttributes.toMutableMap()
+    values["kid"] = sourceJwk.id
+    values["kty"] = sourceJwk.type
+    values["alg"] = sourceJwk.algorithm
+    values["use"] = sourceJwk.usage
+    values.modify()
+    val jwk = Jwk.fromValues(buildMap { values.forEach { (name, value) -> if (value != null) put(name, value) } })
+    return JwkProvider { jwk }
+}

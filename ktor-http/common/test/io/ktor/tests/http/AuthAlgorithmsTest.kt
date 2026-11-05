@@ -58,6 +58,18 @@ class AuthAlgorithmsTest {
         assertEquals("SHA512withECDSA", SignatureAlgorithm.ECDSA_SHA_512.jcaAlgorithm)
         assertEquals(DigestAlgorithm.SHA_512, SignatureAlgorithm.ECDSA_SHA_512.digestAlgorithm)
         assertEquals(KeyAlgorithm.EC, SignatureAlgorithm.ECDSA_SHA_512.keyAlgorithm)
+
+        assertEquals("PS384", SignatureAlgorithm.RSA_PSS_SHA_384.jwaName)
+        assertEquals("RSASSA-PSS", SignatureAlgorithm.RSA_PSS_SHA_384.jcaAlgorithm)
+        assertEquals(DigestAlgorithm.SHA_384, SignatureAlgorithm.RSA_PSS_SHA_384.digestAlgorithm)
+        assertEquals(KeyAlgorithm.RSA, SignatureAlgorithm.RSA_PSS_SHA_384.keyAlgorithm)
+
+        assertEquals("Ed25519", SignatureAlgorithm.EDDSA.jcaAlgorithm)
+        assertEquals(DigestAlgorithm.SHA_512, SignatureAlgorithm.EDDSA.digestAlgorithm)
+        assertEquals(KeyAlgorithm.OKP, SignatureAlgorithm.EDDSA.keyAlgorithm)
+        assertNull(SignatureAlgorithm.EDDSA.xmlUri)
+        assertEquals(KeyAlgorithm.OKP, SignatureAlgorithm.ED25519.keyAlgorithm)
+        assertNotEquals(SignatureAlgorithm.EDDSA, SignatureAlgorithm.ED25519)
     }
 
     @Test
@@ -70,6 +82,14 @@ class AuthAlgorithmsTest {
             SignatureAlgorithm.ECDSA_SHA_256,
             SignatureAlgorithm.fromXmlUri("http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha256")
         )
+        assertEquals(
+            SignatureAlgorithm.RSA_PSS_SHA_256,
+            SignatureAlgorithm.fromXmlUri("http://www.w3.org/2007/05/xmldsig-more#sha256-rsa-MGF1")
+        )
+        assertEquals(
+            SignatureAlgorithm.ED25519,
+            SignatureAlgorithm.fromXmlUri("http://www.w3.org/2021/04/xmldsig-more#eddsa-ed25519")
+        )
         assertNull(SignatureAlgorithm.fromXmlUri("http://www.example.com/unknown"))
     }
 
@@ -77,6 +97,12 @@ class AuthAlgorithmsTest {
     fun `signature algorithms can be resolved by JWA name`() {
         assertEquals(SignatureAlgorithm.RSA_SHA_256, SignatureAlgorithm.fromJwaName("RS256"))
         assertEquals(SignatureAlgorithm.ECDSA_SHA_384, SignatureAlgorithm.fromJwaName("ES384"))
+        assertEquals(SignatureAlgorithm.RSA_PSS_SHA_256, SignatureAlgorithm.fromJwaName("PS256"))
+        assertEquals(SignatureAlgorithm.RSA_PSS_SHA_384, SignatureAlgorithm.fromJwaName("PS384"))
+        assertEquals(SignatureAlgorithm.RSA_PSS_SHA_512, SignatureAlgorithm.fromJwaName("PS512"))
+        assertEquals(SignatureAlgorithm.EDDSA, SignatureAlgorithm.fromJwaName("EdDSA"))
+        assertEquals(SignatureAlgorithm.ED25519, SignatureAlgorithm.fromJwaName("Ed25519"))
+        assertNull(SignatureAlgorithm.fromJwaName("Ed448"))
         assertNull(SignatureAlgorithm.fromJwaName("HS256"))
         assertNull(SignatureAlgorithm.fromJwaName("none"))
     }
