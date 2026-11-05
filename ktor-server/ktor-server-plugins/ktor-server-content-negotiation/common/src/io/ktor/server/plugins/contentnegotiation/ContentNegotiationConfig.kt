@@ -54,6 +54,41 @@ public class ContentNegotiationConfig : Configuration {
     }
 
     /**
+     * Registers a [contentType] to a specified [converter], replacing any converter previously registered
+     * for the same content type with an optional converter [configuration].
+     *
+     * Content types are compared ignoring parameters, so `replace(ContentType.Text.Plain, ...)` also removes
+     * a converter registered for `text/plain; charset=UTF-8`.
+     *
+     * The new converter takes the position of the replaced registration, so its precedence relative to
+     * converters registered for other content types is preserved.
+     *
+     * Note that a converter registered with [register] is only used when all converters registered before it
+     * for the same content type returned `null`; use this function to override an already registered converter
+     * instead of registering another one.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.contentnegotiation.ContentNegotiationConfig.replace)
+     */
+    public fun <T : ContentConverter> replace(
+        contentType: ContentType,
+        converter: T,
+        configuration: T.() -> Unit = {}
+    ) {
+        val replacement = ConverterRegistration(contentType, converter.apply(configuration))
+
+        fun ConverterRegistration.hasSameContentType(): Boolean =
+            this.contentType.withoutParameters() == contentType.withoutParameters()
+
+        val firstReplaced = registrations.indexOfFirst { it.hasSameContentType() }
+        if (firstReplaced < 0) {
+            registrations.add(replacement)
+        } else {
+            registrations.removeAll { it.hasSameContentType() }
+            registrations.add(firstReplaced, replacement)
+        }
+    }
+
+    /**
      * Registers a custom accepted content types [contributor].
      * A [contributor] function takes [io.ktor.server.application.ApplicationCall] and
      * a list of content types accepted according to the [HttpHeaders.Accept] header or provided by the previous
