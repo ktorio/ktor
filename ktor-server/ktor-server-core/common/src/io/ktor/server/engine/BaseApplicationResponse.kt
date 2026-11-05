@@ -152,16 +152,11 @@ public abstract class BaseApplicationResponse(
      * Process response outgoing [content]
      */
     protected open suspend fun respondOutgoingContent(content: OutgoingContent) {
-        if (content !is OutgoingContent.ProtocolUpgrade && content !is OutgoingContent.ContentWrapper) {
-            val status = content.status ?: status() ?: HttpStatusCode.OK
-            if (status.forbidsBody) {
-                // Don't call user code to produce a body that must not be sent
-                commitHeaders(content)
-                respondNoContent(content as? OutgoingContent.NoContent ?: EMPTY_CONTENT)
-                @OptIn(InternalAPI::class)
-                isSent = true
-                return
-            }
+        if (isBodyForbidden(content)) {
+            respondWithoutBody(content)
+            @OptIn(InternalAPI::class)
+            isSent = true
+            return
         }
 
         when (content) {
@@ -210,6 +205,19 @@ public abstract class BaseApplicationResponse(
         }
         @OptIn(InternalAPI::class)
         isSent = true
+    }
+
+    private fun isBodyForbidden(content: OutgoingContent): Boolean {
+        if (content is OutgoingContent.ProtocolUpgrade || content is OutgoingContent.ContentWrapper) return false
+        val status = content.status ?: status() ?: HttpStatusCode.OK
+        return status.forbidsBody
+    }
+
+    private suspend fun respondWithoutBody(content: OutgoingContent) {
+        // Don't produce a body that must not be sent, but release an already opened one
+        if (content is OutgoingContent.ReadChannelContent) content.readFrom().cancel()
+        commitHeaders(content)
+        respondNoContent(content as? OutgoingContent.NoContent ?: EMPTY_CONTENT)
     }
 
     /**

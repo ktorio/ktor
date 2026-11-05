@@ -176,25 +176,20 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
 
     @Test
     open fun `204 response with body skips body`() = runTest {
-        val bodyProduced = CompletableDeferred<Unit>()
+        val writerCalled = CompletableDeferred<Unit>()
+        val channel = ByteChannel()
         createAndStartServer {
             get("/bytes") {
                 call.respondText("hello", status = HttpStatusCode.NoContent)
             }
             get("/writer") {
                 call.respondBytesWriter(status = HttpStatusCode.NoContent) {
-                    bodyProduced.complete(Unit)
+                    writerCalled.complete(Unit)
                     writeStringUtf8("hello")
                 }
             }
             get("/channel") {
-                call.respond(object : OutgoingContent.ReadChannelContent() {
-                    override val status = HttpStatusCode.NoContent
-                    override fun readFrom(): ByteReadChannel {
-                        bodyProduced.complete(Unit)
-                        return ByteReadChannel("hello")
-                    }
-                })
+                call.respond(HttpStatusCode.NoContent, channel)
             }
             get("/explicit-length") {
                 call.respond(object : OutgoingContent.NoContent() {
@@ -219,7 +214,8 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
                 assertContentEquals(byteArrayOf(), bodyAsChannel().toByteArray())
             }
         }
-        assertFalse(bodyProduced.isCompleted, "Body should not be produced for 204 response")
+        assertFalse(writerCalled.isCompleted, "Body writer should not be called for 204 response")
+        assertTrue(channel.isClosedForWrite, "Body channel should be released for 204 response")
     }
 
     @Test
