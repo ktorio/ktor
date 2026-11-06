@@ -6,6 +6,7 @@ package io.ktor.client.engine.apache5
 
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.content.*
@@ -19,6 +20,7 @@ import org.apache.hc.core5.http.nio.AsyncEntityProducer
 import org.apache.hc.core5.http.nio.AsyncRequestProducer
 import org.apache.hc.core5.http.nio.DataStreamChannel
 import org.apache.hc.core5.http.nio.support.BasicRequestProducer
+import org.apache.hc.core5.util.Timeout
 import java.nio.ByteBuffer
 import java.util.concurrent.TimeUnit
 import kotlin.coroutines.CoroutineContext
@@ -72,6 +74,7 @@ private fun setupRequest(requestData: HttpRequestData, config: Apache5EngineConf
         request.config = RequestConfig.custom()
             .setRedirectsEnabled(followRedirects)
             .setConnectionRequestTimeout(connectionRequestTimeout, TimeUnit.MILLISECONDS)
+            .setupTimeouts(requestData)
             .customRequest()
             .setContentCompressionEnabled(false)
             .build()
@@ -79,6 +82,23 @@ private fun setupRequest(requestData: HttpRequestData, config: Apache5EngineConf
 
     return request
 }
+
+/**
+ * Note: Apache ignores the response timeout for HTTP/2 connections,
+ * so [HttpTimeoutConfig.socketTimeoutMillis] isn't enforced there.
+ */
+private fun RequestConfig.Builder.setupTimeouts(requestData: HttpRequestData): RequestConfig.Builder = apply {
+    val timeout = requestData.getCapabilityOrNull(HttpTimeoutCapability) ?: return@apply
+    @Suppress("DEPRECATION")
+    timeout.connectTimeoutMillis?.let { setConnectTimeout(it.toTimeout()) }
+    timeout.socketTimeoutMillis?.let { setResponseTimeout(it.toTimeout()) }
+}
+
+internal fun Long.toTimeout(): Timeout =
+    when (this) {
+        HttpTimeoutConfig.INFINITE_TIMEOUT_MS -> Timeout.INFINITE
+        else -> Timeout.ofMilliseconds(this)
+    }
 
 internal class ApacheRequestEntityProducer(
     private val requestData: HttpRequestData,

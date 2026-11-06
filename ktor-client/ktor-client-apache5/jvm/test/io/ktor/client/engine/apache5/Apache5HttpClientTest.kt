@@ -15,7 +15,6 @@ import io.ktor.http.*
 import io.ktor.test.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
-import org.apache.hc.client5.http.config.ConnectionConfig
 import org.apache.hc.core5.util.Timeout
 import java.net.SocketTimeoutException
 import java.util.zip.GZIPInputStream
@@ -89,15 +88,20 @@ class Apache5HttpClientTest : HttpClientTest(Apache5) {
     }
 
     @Test
+    fun `infinite engine connect timeout`() = runTest {
+        HttpClient(Apache5) {
+            engine { connectTimeout = HttpTimeoutConfig.INFINITE_TIMEOUT_MS }
+        }.use { client ->
+            assertEquals("hello", client.get("$TEST_SERVER/content/hello").bodyAsText())
+        }
+    }
+
+    @Test
     fun testCustomTimeoutOverridesHttpTimeout() = runTest {
         val client = HttpClient(Apache5) {
             engine {
-                configureConnectionManager {
-                    setDefaultConnectionConfig(
-                        ConnectionConfig.custom()
-                            .setSocketTimeout(Timeout.ofMilliseconds(10000))
-                            .build()
-                    )
+                customizeRequest {
+                    setResponseTimeout(Timeout.ofMilliseconds(10000))
                 }
             }
             install(HttpTimeout) {

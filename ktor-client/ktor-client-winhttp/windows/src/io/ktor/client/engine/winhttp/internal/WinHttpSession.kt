@@ -18,7 +18,6 @@ internal class WinHttpSession(private val config: WinHttpClientEngineConfig) : C
 
     private var hSession: COpaquePointer
     private val closed = atomic(false)
-    private val timeoutConfigured = atomic(false)
 
     init {
         hSession = WinHttpOpen(
@@ -30,38 +29,14 @@ internal class WinHttpSession(private val config: WinHttpClientEngineConfig) : C
         ) ?: throw getWinHttpException("Unable to create session")
 
         setSecurityProtocols(config.securityProtocols)
+        hSession.setTimeouts(DEFAULT_CONNECT_TIMEOUT, DEFAULT_SOCKET_TIMEOUT)
 
         config.proxy?.let { proxy ->
             setProxy(proxy)
         }
     }
 
-    fun createRequest(data: HttpRequestData): WinHttpRequest {
-        configureTimeouts(data)
-
-        return WinHttpRequest(hSession, data, config)
-    }
-
-    private fun configureTimeouts(data: HttpRequestData) {
-        if (!timeoutConfigured.compareAndSet(expect = false, update = true)) return
-
-        val resolveTimeout = 10_000
-        var connectTimeout = 60_000
-        var sendTimeout = 30_000
-        var receiveTimeout = 30_000
-
-        data.getCapabilityOrNull(HttpTimeoutCapability)?.let { timeoutExtension ->
-            timeoutExtension.connectTimeoutMillis?.let { value ->
-                connectTimeout = value.toInt()
-            }
-            timeoutExtension.socketTimeoutMillis?.let { value ->
-                sendTimeout = value.toInt()
-                receiveTimeout = value.toInt()
-            }
-        }
-
-        setTimeouts(resolveTimeout, connectTimeout, sendTimeout, receiveTimeout)
-    }
+    fun createRequest(data: HttpRequestData): WinHttpRequest = WinHttpRequest(hSession, data, config)
 
     private fun setSecurityProtocols(protocol: WinHttpSecurityProtocol) = memScoped {
         val options = alloc<UIntVar> {
@@ -69,12 +44,6 @@ internal class WinHttpSession(private val config: WinHttpClientEngineConfig) : C
         }
         val dwSize = sizeOf<UIntVar>().convert<UInt>()
         WinHttpSetOption(hSession, WINHTTP_OPTION_SECURE_PROTOCOLS.convert(), options.ptr, dwSize)
-    }
-
-    private fun setTimeouts(resolveTimeout: Int, connectTimeout: Int, sendTimeout: Int, receiveTimeout: Int) {
-        if (WinHttpSetTimeouts(hSession, resolveTimeout, connectTimeout, sendTimeout, receiveTimeout) == 0) {
-            throw getWinHttpException("Unable to set session timeouts")
-        }
     }
 
     private fun setProxy(proxy: ProxyConfig) = memScoped {
@@ -110,5 +79,19 @@ internal class WinHttpSession(private val config: WinHttpClientEngineConfig) : C
         private val WINHTTP_NO_PROXY_NAME = null
         private val WINHTTP_NO_PROXY_BYPASS = null
         private val WINHTTP_NO_USER_AGENT = null
+    }
+}
+
+internal const val DEFAULT_CONNECT_TIMEOUT = 60_000
+internal const val DEFAULT_SOCKET_TIMEOUT = 30_000
+private const val DEFAULT_RESOLVE_TIMEOUT = 10_000
+
+/**
+ * Sets timeouts on a session or request handle. Timeouts set on a request handle override the session ones.
+ */
+@OptIn(ExperimentalForeignApi::class)
+internal fun COpaquePointer.setTimeouts(connectTimeout: Int, socketTimeout: Int) {
+    if (WinHttpSetTimeouts(this, DEFAULT_RESOLVE_TIMEOUT, connectTimeout, socketTimeout, socketTimeout) == 0) {
+        throw getWinHttpException("Unable to set timeouts")
     }
 }
