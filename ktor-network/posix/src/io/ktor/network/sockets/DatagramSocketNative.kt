@@ -76,15 +76,17 @@ internal class DatagramSocketNative(
         clientAddressLength.value = sizeOf<sockaddr_storage>().convert()
 
         DefaultDatagramByteArrayPool.useInstance { buffer ->
-            val bytesRead = buffer.usePinned { pinned ->
-                ktor_recvfrom(
-                    descriptor,
-                    pinned.addressOf(0),
-                    buffer.size.convert(),
-                    0,
-                    clientAddress.ptr.reinterpret(),
-                    clientAddressLength.ptr
-                ).toLong()
+            val bytesRead = useDescriptor {
+                buffer.usePinned { pinned ->
+                    ktor_recvfrom(
+                        descriptor,
+                        pinned.addressOf(0),
+                        buffer.size.convert(),
+                        0,
+                        clientAddress.ptr.reinterpret(),
+                        clientAddressLength.ptr
+                    ).toLong()
+                }
             }
 
             when (bytesRead) {
