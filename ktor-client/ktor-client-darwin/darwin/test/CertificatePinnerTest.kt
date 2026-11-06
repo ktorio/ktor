@@ -10,36 +10,32 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.test.base.*
 import io.ktor.network.tls.*
-import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFails
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
-class CertificatePinnerTest {
+class CertificatePinnerTest : ClientEngineTest<DarwinClientEngineConfig>(Darwin) {
 
     @Test
-    fun testCertificatePinnerSelfSignedWithValidateTrustDisabled() = runBlocking {
+    fun `pinning accepts self-signed certificate without trust validation`() = testClient {
         val pin = discoverSelfSignedCertificatePin()
 
-        val client = HttpClient(Darwin) {
+        config {
             engine {
                 certificatePinner("127.0.0.1", pin, validateTrust = false)
             }
         }
 
-        try {
+        test { client ->
             val response = client.get(TEST_SERVER_TLS)
             assertEquals("Hello, TLS!", response.bodyAsText())
-        } finally {
-            client.close()
         }
     }
 
     @Test
-    fun testCertificatePinnerFailsWhenPinDoesNotMatch() = runBlocking {
-        val client = HttpClient(Darwin) {
+    fun `pinning rejects certificate when hash does not match`() = testClient {
+        config {
             engine {
                 certificatePinner(
                     "127.0.0.1",
@@ -49,7 +45,7 @@ class CertificatePinnerTest {
             }
         }
 
-        try {
+        test { client ->
             val failure = assertFailsWith<TlsPeerUnverifiedException> {
                 client.get(TEST_SERVER_TLS)
             }
@@ -57,34 +53,30 @@ class CertificatePinnerTest {
                 failure.message!!.contains("Certificate pinning failure!"),
                 "Expected pinning failure message, got: ${failure.message}",
             )
-        } finally {
-            client.close()
         }
     }
 
     @Test
-    fun testCertificatePinnerFailsWhenValidateTrustEnabledForSelfSigned() = runBlocking {
+    fun `pinning rejects self-signed certificate when trust validation is enabled`() = testClient {
         val pin = discoverSelfSignedCertificatePin()
 
-        val client = HttpClient(Darwin) {
+        config {
             engine {
                 certificatePinner("127.0.0.1", pin, validateTrust = true)
             }
         }
 
-        try {
+        test { client ->
             val failure = assertFailsWith<TlsPeerUnverifiedException> {
                 client.get(TEST_SERVER_TLS)
             }
             assertEquals("Server trust is invalid", failure.message)
-        } finally {
-            client.close()
         }
     }
 
     @Test
-    fun testCertificatePinnerDoesNotPinUnmatchedHost() = runBlocking {
-        val client = HttpClient(Darwin) {
+    fun `pinner does not enforce pins for other hosts`() = testClient {
+        config {
             engine {
                 certificatePinner(
                     "unpinned-host.example",
@@ -94,39 +86,44 @@ class CertificatePinnerTest {
             }
         }
 
-        try {
-            val failure = assertFails { client.get(TEST_SERVER_TLS) }
-            val pinningFailure = failure as? TlsPeerUnverifiedException
-            if (pinningFailure != null) {
+        test { client ->
+            val failure = assertFailsWith<Throwable> {
+                client.get(TEST_SERVER_TLS)
+            }
+            if (failure is TlsPeerUnverifiedException) {
                 assertTrue(
-                    !pinningFailure.message!!.contains("Certificate pinning failure!"),
+                    !failure.message!!.contains("Certificate pinning failure!"),
                     "Pinner should not reject certificate when host is not pinned",
                 )
             }
-        } finally {
-            client.close()
         }
     }
 
-    private suspend fun discoverSelfSignedCertificatePin(): String {
-        val discoveryClient = HttpClient(Darwin) {
-            engine {
-                certificatePinner(
-                    "127.0.0.1",
-                    "sha256/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
-                    validateTrust = false,
-                )
+    private fun discoverSelfSignedCertificatePin(): String {
+        var pin: String? = null
+
+        testClient {
+            config {
+                engine {
+                    certificatePinner(
+                        "127.0.0.1",
+                        "sha256/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+                        validateTrust = false,
+                    )
+                }
+            }
+
+            test { client ->
+                val pinningFailure = assertFailsWith<TlsPeerUnverifiedException> {
+                    client.get(TEST_SERVER_TLS)
+                }
+                pin = PIN_PATTERN.find(pinningFailure.message ?: "")
+                    ?.value
+                    ?: error("Expected peer certificate pin in pinning failure message")
             }
         }
 
-        val pinningFailure = assertFailsWith<TlsPeerUnverifiedException> {
-            discoveryClient.get(TEST_SERVER_TLS)
-        }
-        discoveryClient.close()
-
-        return PIN_PATTERN.find(pinningFailure.message ?: "")
-            ?.value
-            ?: error("Expected peer certificate pin in pinning failure message")
+        return pin ?: error("Expected peer certificate pin in pinning failure message")
     }
 
     private fun DarwinClientEngineConfig.certificatePinner(
