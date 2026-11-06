@@ -542,6 +542,17 @@ final class io.ktor.server.application/MissingApplicationPluginException : kotli
     final fun createCopy(): io.ktor.server.application/MissingApplicationPluginException // io.ktor.server.application/MissingApplicationPluginException.createCopy|createCopy(){}[0]
 }
 
+final class io.ktor.server.application/ParallelModuleTracker : kotlin.coroutines/AbstractCoroutineContextElement { // io.ktor.server.application/ParallelModuleTracker|null[0]
+    constructor <init>() // io.ktor.server.application/ParallelModuleTracker.<init>|<init>(){}[0]
+
+    final fun abort(kotlin/Throwable) // io.ktor.server.application/ParallelModuleTracker.abort|abort(kotlin.Throwable){}[0]
+    final fun decrement() // io.ktor.server.application/ParallelModuleTracker.decrement|decrement(){}[0]
+    final fun increment() // io.ktor.server.application/ParallelModuleTracker.increment|increment(){}[0]
+    final suspend fun awaitIdle() // io.ktor.server.application/ParallelModuleTracker.awaitIdle|awaitIdle(){}[0]
+
+    final object Key : kotlin.coroutines/CoroutineContext.Key<io.ktor.server.application/ParallelModuleTracker> // io.ktor.server.application/ParallelModuleTracker.Key|null[0]
+}
+
 final class io.ktor.server.application/PluginInstance // io.ktor.server.application/PluginInstance|null[0]
 
 final class io.ktor.server.application/ServerConfig { // io.ktor.server.application/ServerConfig|null[0]
