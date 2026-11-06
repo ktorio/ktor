@@ -47,12 +47,10 @@ internal class CurlMultiApiHandler : Closeable {
 
     override fun close() {
         if (activeHandles.isNotEmpty() || cancelledHandles.isNotEmpty()) handleCompleted()
-        for ((handle, holder) in activeHandles) {
-            cleanupEasyHandle(handle)
-            holder.dispose()
+        for (handle in activeHandles.keys.toList()) {
+            removeEasyHandle(handle, ClientEngineClosedException())
         }
 
-        activeHandles.clear()
         curl_multi_cleanup(multiHandle).verify()
     }
 
