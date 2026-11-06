@@ -211,26 +211,37 @@ public class NettyApplicationEngine(
         )
     }
 
+    // stop() shuts down only the groups that were created. The groups share one lock so that stop() can mark them
+    // stopped, and a start() still running on another thread cannot create one after stop() has looked.
+    private val eventGroupsLock = Any()
+    private var eventGroupsStopped = false
+
+    private fun eventGroupLazy(create: () -> EventLoopGroup): Lazy<EventLoopGroup> = lazy(eventGroupsLock) {
+        check(!eventGroupsStopped) { "Netty engine has been stopped and cannot be started" }
+        create()
+    }
+
     /**
      * [EventLoopGroupProxy] for accepting connections
      */
-    private val connectionEventGroup: EventLoopGroup by lazy {
+    private val connectionEventGroupLazy = eventGroupLazy {
         customBootstrap.config().group() ?: EventLoopGroupProxy.create(configuration.connectionGroupSize)
     }
+    private val connectionEventGroup: EventLoopGroup by connectionEventGroupLazy
 
     /**
      * [EventLoopGroupProxy] for processing incoming requests and doing engine's internal work
      */
-    private val workerEventGroup: EventLoopGroup by lazy {
-        customBootstrap.config().childGroup()?.let {
-            return@lazy it
-        }
-        if (configuration.shareWorkGroup) {
-            EventLoopGroupProxy.create(configuration.workerGroupSize + configuration.callGroupSize)
-        } else {
-            EventLoopGroupProxy.create(configuration.workerGroupSize)
-        }
+    private val workerEventGroupLazy = eventGroupLazy {
+        customBootstrap.config().childGroup() ?: EventLoopGroupProxy.create(
+            if (configuration.shareWorkGroup) {
+                configuration.workerGroupSize + configuration.callGroupSize
+            } else {
+                configuration.workerGroupSize
+            }
+        )
     }
+    private val workerEventGroup: EventLoopGroup by workerEventGroupLazy
 
     private val customBootstrap: ServerBootstrap by lazy {
         ServerBootstrap().apply(configuration.configureBootstrap)
@@ -239,13 +250,14 @@ public class NettyApplicationEngine(
     /**
      * [EventLoopGroupProxy] for processing [PipelineCall] instances
      */
-    private val callEventGroup: EventLoopGroup by lazy {
+    private val callEventGroupLazy = eventGroupLazy {
         if (configuration.shareWorkGroup) {
             workerEventGroup
         } else {
             EventLoopGroupProxy.create(configuration.callGroupSize)
         }
     }
+    private val callEventGroup: EventLoopGroup by callEventGroupLazy
 
     private val workerDispatcher by lazy {
         workerEventGroup.asCoroutineDispatcher()
@@ -498,19 +510,25 @@ public class NettyApplicationEngine(
     }
 
     private fun terminate() {
-        withStopException {
-            connectionEventGroup.shutdownGracefully().sync()
+        val bootstrapConfig = withStopException { customBootstrap.config() }
+        connectionEventGroupLazy.valueIfCreated(bootstrapConfig?.group())?.let { group ->
+            withStopException { group.shutdownGracefully().sync() }
         }
-        withStopException {
-            callEventGroup.shutdownGracefully().sync()
+        callEventGroupLazy.valueIfCreated()?.let { group ->
+            withStopException { group.shutdownGracefully().sync() }
         }
     }
 
-    private inline fun <R> withStopException(crossinline block: () -> R) {
+    /**
+     * Returns the group if it was created, otherwise [bootstrapGroup], without creating the group.
+     */
+    private fun Lazy<EventLoopGroup>.valueIfCreated(bootstrapGroup: EventLoopGroup? = null): EventLoopGroup? =
+        if (isInitialized()) value else bootstrapGroup
+
+    private inline fun <R> withStopException(crossinline block: () -> R): R? =
         runCatching(block).onFailure {
             environment.log.error("Exception thrown during engine stop", it)
-        }
-    }
+        }.getOrNull()
 
     override fun stop(gracePeriodMillis: Long, timeoutMillis: Long) {
         cancellationJob?.complete()
@@ -532,33 +550,37 @@ public class NettyApplicationEngine(
 
         var remainingTimeoutMillis = (timeoutMillis - channelsCloseTime).coerceAtLeast(100L)
 
+        // Creating a group here would start its threads only to stop them. The engine owns the groups passed to
+        // configureBootstrap, so those are stopped even if the engine never used them.
+        synchronized(eventGroupsLock) { eventGroupsStopped = true }
+        val bootstrapConfig = withStopException { customBootstrap.config() }
         val connectionsShutdownTime = measureTimeMillis {
-            withStopException {
-                connectionEventGroup.shutdownGracefully(
-                    noQuietPeriod,
-                    remainingTimeoutMillis,
-                    TimeUnit.MILLISECONDS
-                ).sync()
+            connectionEventGroupLazy.valueIfCreated(bootstrapConfig?.group())?.let { group ->
+                withStopException {
+                    group.shutdownGracefully(noQuietPeriod, remainingTimeoutMillis, TimeUnit.MILLISECONDS).sync()
+                }
             }
         }
 
         remainingTimeoutMillis = (remainingTimeoutMillis - connectionsShutdownTime).coerceAtLeast(100L)
 
         val workersShutdownTime = measureTimeMillis {
-            withStopException {
-                workerEventGroup.shutdownGracefully(
-                    gracePeriodMillis.coerceAtMost(remainingTimeoutMillis),
-                    remainingTimeoutMillis,
-                    TimeUnit.MILLISECONDS
-                ).sync()
+            workerEventGroupLazy.valueIfCreated(bootstrapConfig?.childGroup())?.let { group ->
+                withStopException {
+                    group.shutdownGracefully(
+                        gracePeriodMillis.coerceAtMost(remainingTimeoutMillis),
+                        remainingTimeoutMillis,
+                        TimeUnit.MILLISECONDS
+                    ).sync()
+                }
             }
         }
 
-        if (!configuration.shareWorkGroup) {
+        callEventGroupLazy.valueIfCreated()?.takeUnless { configuration.shareWorkGroup }?.let { group ->
             withStopException {
                 // There should be no new tasks to be scheduled at this point; no quiet period is needed.
                 remainingTimeoutMillis = (remainingTimeoutMillis - workersShutdownTime).coerceAtLeast(100L)
-                callEventGroup.shutdownGracefully(noQuietPeriod, remainingTimeoutMillis, TimeUnit.MILLISECONDS).sync()
+                group.shutdownGracefully(noQuietPeriod, remainingTimeoutMillis, TimeUnit.MILLISECONDS).sync()
             }
         }
     }
