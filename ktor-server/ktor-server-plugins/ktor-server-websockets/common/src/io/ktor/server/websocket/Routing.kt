@@ -236,26 +236,41 @@ private suspend fun WebSocketServerSession.proceedWebSocket(handler: suspend Def
     //
     // The handler's outcome is delivered through [handlerResult] instead of letting the child
     // job fail, so a failing handler is still propagated to the caller as an exception and is
-    // not reported as an unhandled coroutine failure.
+    // not reported as an unhandled coroutine failure. The result is completed from the job
+    // completion handler (and not only from the coroutine body), so it is delivered even when
+    // the job is cancelled before the coroutine starts: a dispatcher that does not run the
+    // dispatched handler within the grace period (e.g. a saturated engine event loop) never
+    // enters the try/catch below, and only [Job.invokeOnCompletion] is guaranteed to run.
     val handlerResult = CompletableDeferred<Unit>()
     val handlerJob = launch {
         try {
             session.handleServerSession(call, handler)
-            handlerResult.complete(Unit)
-        } catch (cause: CancellationException) {
-            // The watcher cancels the handler job only after the close sequence of the session has
-            // been performed, so while the session is still open a CancellationException can only
-            // come from the handler itself (e.g. an uncaught `withTimeout`) or from application
-            // shutdown. It must not be swallowed: deliver it to the caller, which cancels the
-            // upgraded request and the socket as it did before the handler ran in a child job.
-            if (session.closeReason.isCompleted) {
-                handlerResult.complete(Unit)
-            } else {
-                handlerResult.completeExceptionally(cause)
-                throw cause
-            }
+        } catch (cancelled: CancellationException) {
+            // Rethrow so the job completes as cancelled and the completion handler below decides
+            // whether the cancellation ends the session normally or must reach the caller.
+            throw cancelled
         } catch (cause: Throwable) {
+            // A failing handler is not a failure of the routing coroutine: deliver the exception
+            // through [handlerResult] and let the job finish normally instead of failing its
+            // parent, which would cancel the whole upgraded request outside of [handlerResult].
             handlerResult.completeExceptionally(cause)
+        }
+    }
+
+    handlerJob.invokeOnCompletion { cause ->
+        when {
+            cause == null -> handlerResult.complete(Unit)
+
+            // The watcher cancels the handler job only after the close sequence of the session has
+            // been performed, so that cancellation (as well as a normal handler completion) is a
+            // normal session end. While the session is still open, a CancellationException can
+            // only come from the handler itself (e.g. an uncaught `withTimeout`) or from
+            // application shutdown. It must not be swallowed: deliver it to the caller, which
+            // cancels the upgraded request and the socket as it did before the handler ran in a
+            // child job.
+            cause is CancellationException && session.closeReason.isCompleted -> handlerResult.complete(Unit)
+
+            else -> handlerResult.completeExceptionally(cause)
         }
     }
 

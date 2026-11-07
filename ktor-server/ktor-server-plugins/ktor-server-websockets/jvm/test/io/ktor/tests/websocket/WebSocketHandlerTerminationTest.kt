@@ -13,7 +13,10 @@ import io.ktor.server.websocket.*
 import io.ktor.server.websocket.WebSockets
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
+import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
+import kotlin.coroutines.CoroutineContext
 import kotlin.test.*
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -215,5 +218,114 @@ class WebSocketHandlerTerminationTest {
         }
 
         handlerCancelled.await()
+    }
+
+    @Test
+    fun testHandlerCancelledBeforeItStartsStillEndsTheConnection() {
+        val eventLoop = HandlerStarvingDispatcher()
+
+        testApplication(parentCoroutineContext = eventLoop) {
+            val handlerBodyStarted = AtomicBoolean(false)
+            val clientFinished = CompletableDeferred<Unit>()
+
+            install(WebSockets)
+
+            routing {
+                webSocket("/ws") {
+                    // If this line ever executes, the handler started before the cancellation of
+                    // its job reached it, and the scenario under test did not happen.
+                    handlerBodyStarted.set(true)
+                    awaitCancellation()
+                }
+            }
+
+            coroutineScope {
+                launch {
+                    createWebSocketsClient().webSocket("/ws") {
+                        close(CloseReason(CloseReason.Codes.NORMAL, "bye"))
+                    }
+                    clientFinished.complete(Unit)
+                }
+
+                // The close watcher cancels the still undispatched handler task after the grace
+                // period: its job is no longer active while its coroutine has not started.
+                withTimeout(15.seconds) {
+                    while (!eventLoop.handlerTaskCancelled) delay(50)
+                }
+
+                // Running the starved task delivers the cancellation to the never-started
+                // coroutine and completes the handler result through the job completion handler,
+                // so the suspended request resumes. Without it, the request would hang forever
+                // on `handlerResult.await()`.
+                eventLoop.release()
+                withTimeout(15.seconds) {
+                    while (!eventLoop.requestResumed) delay(50)
+                }
+
+                withTimeout(15.seconds) { clientFinished.await() }
+            }
+
+            assertFalse(
+                handlerBodyStarted.get(),
+                "The handler body must not run when the job is cancelled before the coroutine starts"
+            )
+        }
+    }
+}
+
+/**
+ * A dispatcher that simulates a saturated engine event loop for the WebSocket handler: the
+ * coroutine that runs the WebSocket plugin machinery (`raw-ws-handler`, see `WebSocketUpgrade`)
+ * executes normally, but the user handler coroutine it launches (`raw-ws`, the dispatch happens
+ * while the upgrade coroutine is running, which is detected via a thread-local mark) is kept
+ * undispatched until [release] is called. Every other coroutine (session reader/writer,
+ * processors, the close watcher on the plugin scope) runs normally, so the close sequence is
+ * performed while the user handler coroutine has not started yet.
+ */
+private class HandlerStarvingDispatcher(
+    private val delegate: CoroutineDispatcher = Dispatchers.Default
+) : CoroutineDispatcher() {
+    private val queue = ConcurrentLinkedQueue<Pair<CoroutineContext, Runnable>>()
+    private val upgradeTaskDispatchCount = AtomicInteger(0)
+    private val runningUpgradeTask = ThreadLocal.withInitial { false }
+
+    /** Whether the watcher cancelled the undispatched user handler task. */
+    val handlerTaskCancelled: Boolean
+        get() = queue.any { it.first[Job]?.isActive == false }
+
+    /** Whether the suspended request resumed after the undispatched handler was cancelled. */
+    val requestResumed: Boolean
+        get() = upgradeTaskDispatchCount.get() >= 2
+
+    override fun dispatch(context: CoroutineContext, block: Runnable) {
+        val name = context[CoroutineName]?.name
+        if (name == "raw-ws" && runningUpgradeTask.get()) {
+            // The user handler coroutine launched by the WebSocket upgrade coroutine.
+            queue.add(context to block)
+            return
+        }
+        val wrapped = if (name == "raw-ws-handler") {
+            // Mark the thread while the WebSocket upgrade coroutine runs: the user handler
+            // coroutine is launched from it, which is how [dispatch] recognizes its task.
+            upgradeTaskDispatchCount.incrementAndGet()
+            Runnable {
+                runningUpgradeTask.set(true)
+                try {
+                    block.run()
+                } finally {
+                    runningUpgradeTask.set(false)
+                }
+            }
+        } else {
+            block
+        }
+        delegate.dispatch(context, wrapped)
+    }
+
+    fun release() {
+        while (true) {
+            val (context, block) = queue.poll() ?: break
+            delegate.dispatch(context, block)
+        }
     }
 }
