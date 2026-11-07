@@ -5,6 +5,7 @@
 package io.ktor.utils.io.files
 
 import io.ktor.utils.io.ByteReadChannel
+import io.ktor.utils.io.ExperimentalKtorApi
 import io.ktor.utils.io.RawSourceChannel
 import io.ktor.utils.io.ioDispatcher
 import kotlinx.io.files.FileSystem
@@ -16,6 +17,7 @@ import kotlinx.io.files.Path
  * @param path the file to read.
  * @return a channel that provides the file contents.
  */
+@ExperimentalKtorApi
 public fun FileSystem.byteReadChannel(path: Path): ByteReadChannel =
     if (supportsAsyncFileIo()) {
         byteReadChannelNative(path)

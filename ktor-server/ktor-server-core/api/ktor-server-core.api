@@ -1005,6 +1005,10 @@ public final class io/ktor/server/http/content/StaticContentResolutionKt {
 	public static final fun resourceClasspathResource (Ljava/net/URL;Ljava/lang/String;Lkotlin/jvm/functions/Function1;)Lio/ktor/http/content/OutgoingContent$ReadChannelContent;
 }
 
+public final class io/ktor/server/http/content/StaticFilesKt {
+	public static final fun staticFiles (Lio/ktor/server/routing/Route;Ljava/lang/String;Lkotlinx/io/files/Path;)Lio/ktor/server/routing/Route;
+}
+
 public final class io/ktor/server/http/content/SuppressionAttributeKt {
 	public static final fun getSuppressionAttribute ()Lio/ktor/util/AttributeKey;
 	public static final fun isCompressionSuppressed (Lio/ktor/server/application/ApplicationCall;)Z
