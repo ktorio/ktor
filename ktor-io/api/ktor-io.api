@@ -581,6 +581,10 @@ public final class io/ktor/utils/io/core/internal/NumbersKt {
 	public static final fun toIntOrFail (JLjava/lang/String;)I
 }
 
+public final class io/ktor/utils/io/files/AsyncFilesKt {
+	public static final fun byteReadChannel (Lkotlinx/io/files/FileSystem;Lkotlinx/io/files/Path;)Lio/ktor/utils/io/ByteReadChannel;
+}
+
 public final class io/ktor/utils/io/jvm/javaio/BlockingKt {
 	public static final fun asInputStream (Lio/ktor/utils/io/ByteReadChannel;Lkotlinx/coroutines/Job;)Ljava/io/InputStream;
 	public static final fun asOutputStream (Lio/ktor/utils/io/ByteWriteChannel;Lkotlinx/coroutines/Job;)Ljava/io/OutputStream;

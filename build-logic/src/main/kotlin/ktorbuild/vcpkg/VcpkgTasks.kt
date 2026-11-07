@@ -16,6 +16,7 @@ import java.io.File
 fun Project.registerVcpkgInstallTask(
     library: String,
     target: KonanTarget,
+    manifestDirectory: String = library,
     configure: VcpkgInstall.() -> Unit = {}
 ): TaskProvider<VcpkgInstall> {
     val downloadKotlinNative = tasks.maybeNamed<KotlinNativeDownloadTask>("downloadKotlinNativeDistribution")
@@ -24,7 +25,7 @@ fun Project.registerVcpkgInstallTask(
         onlyIf("Kotlin distribution should be available") { kotlinNativeDistributionAvailable }
         if (!kotlinNativeDistributionAvailable) return@register
 
-        install(library, target)
+        install(manifestDirectory, target)
         // Do not configure Toolchain on macOS as Konan uses native tools there
         if (!target.family.isAppleFamily) {
             nativeDirectoryLocation.set(downloadKotlinNative.flatMap { it.nativeDirectoryLocation })
@@ -38,9 +39,17 @@ fun Project.registerSyncHeadersTask(
     from: TaskProvider<VcpkgInstall>,
     into: File,
     library: String,
+    topLevelHeaders: List<String> = emptyList(),
 ): TaskProvider<Sync> = tasks.register<Sync>(taskName) {
-    from(from.map { it.outputDir.get().dir("include/$library") })
-    into(into.resolve(library))
+    from(from.map { it.outputDir.get().dir("include/$library") }) {
+        into(library)
+    }
+    if (topLevelHeaders.isNotEmpty()) {
+        from(from.map { it.outputDir.get().dir("include") }) {
+            include(*topLevelHeaders.toTypedArray())
+        }
+    }
+    into(into)
 }
 
 fun Project.registerSyncBinariesTask(

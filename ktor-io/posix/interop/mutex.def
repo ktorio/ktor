@@ -44,3 +44,12 @@ void ktor_unlock(ktor_lock_support_t* ls) {
     pthread_cond_broadcast(&ls->cond);
     pthread_mutex_unlock(&ls->mutex);
 }
+
+typedef void *(*ktor_pthread_start_t)(void *);
+
+int ktor_pthread_create_detached(ktor_pthread_start_t start_routine, void *arg) {
+    pthread_t thread;
+    int result = pthread_create(&thread, NULL, start_routine, arg);
+    if (result == 0) pthread_detach(thread);
+    return result;
+}
