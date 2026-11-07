@@ -137,7 +137,7 @@ public interface PipelineCall : ApplicationCall {
 
         receiveType = typeInfo
         val incomingContent = token ?: request.receiveChannel()
-        val transformed = request.pipeline.execute(this, incomingContent)
+        val transformed = request.execute(this, incomingContent)
         when {
             transformed == NullBody -> return null
             transformed === DoubleReceivePreventionToken -> throw RequestAlreadyConsumedException()
@@ -151,7 +151,7 @@ public interface PipelineCall : ApplicationCall {
     @OptIn(InternalAPI::class)
     override suspend fun respond(message: Any?, typeInfo: TypeInfo?) {
         response.responseType = typeInfo
-        response.pipeline.execute(this, message ?: NullBody)
+        response.execute(this, message ?: NullBody)
     }
 }
 

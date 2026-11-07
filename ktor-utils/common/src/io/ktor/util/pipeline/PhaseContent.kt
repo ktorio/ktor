@@ -60,7 +60,9 @@ internal class PhaseContent<TSubject : Any, Call : Any>(
     }
 
     fun sharedInterceptors(): MutableList<PipelineInterceptor<TSubject, Call>> {
-        shared = true
+        if (!shared) {
+            shared = true
+        }
         return interceptors
     }
 

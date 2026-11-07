@@ -127,6 +127,7 @@ class StatusPagesTest {
     }
 
     @Test
+    @Suppress("DEPRECATION")
     fun testStatus404WithInterceptor() = testApplication {
         class O
         application {
@@ -186,6 +187,7 @@ class StatusPagesTest {
     }
 
     @Test
+    @Suppress("DEPRECATION")
     fun testFailPageDuringInterceptor() = testApplication {
         class O
 

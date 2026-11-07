@@ -36,9 +36,10 @@ public abstract class BaseApplicationResponse(
         @InternalAPI
         protected set
 
-    override val cookies: ResponseCookies by lazy(LazyThreadSafetyMode.NONE) {
-        ResponseCookies(this)
-    }
+    private var responseCookies: ResponseCookies? = null
+
+    override val cookies: ResponseCookies
+        get() = responseCookies ?: ResponseCookies(this).also { responseCookies = it }
 
     override fun status(): HttpStatusCode? = status
     override fun status(value: HttpStatusCode) {
@@ -48,11 +49,21 @@ public abstract class BaseApplicationResponse(
 
     private var responded = false
 
-    public final override val pipeline: ApplicationSendPipeline = ApplicationSendPipeline(
-        call.application.developmentMode
-    ).apply {
-        resetFrom(call.application.sendPipeline)
-    }
+    private var callPipeline: ApplicationSendPipeline? = null
+
+    @Deprecated(
+        "A call's own send pipeline will be removed. Intercept the application's or a route's instead, " +
+            "for example with onCallRespond in a plugin, and use execute() to run it."
+    )
+    public final override val pipeline: ApplicationSendPipeline
+        get() = callPipeline ?: ApplicationSendPipeline(call.application.developmentMode).apply {
+            resetFrom(call.application.sendPipeline)
+        }.also { callPipeline = it }
+
+    override suspend fun execute(call: PipelineCall, subject: Any): Any = pipelineToRun.execute(call, subject)
+
+    internal val pipelineToRun: ApplicationSendPipeline
+        get() = callPipeline ?: call.application.sendPipeline
 
     /**
      * Commit header values and status and pass them to the underlying engine

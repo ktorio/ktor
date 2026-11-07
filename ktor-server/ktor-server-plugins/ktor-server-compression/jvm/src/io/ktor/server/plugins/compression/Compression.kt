@@ -273,7 +273,7 @@ private fun ContentEncoding.Context.encode(call: PipelineCall, options: Compress
 
         LOGGER.trace { "Encoding body for ${call.request.uri} using ${encoderOptions.encoder.name}." }
 
-        return@transformBody message.compressed(encoderOptions.encoder)
+        return@transformBody message.compressed(encoderOptions.encoder, call.coroutineContext)
     }
 }
 

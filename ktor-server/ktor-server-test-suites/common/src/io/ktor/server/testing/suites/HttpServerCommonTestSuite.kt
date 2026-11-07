@@ -499,6 +499,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
             get("/") {
                 assertEquals("foo", call.request.headers["X-Single-Value"])
                 assertEquals("foo,bar", call.request.headers["X-Double-Value"])
+                assertEquals("", call.request.headers["X-Empty-Value"])
 
                 assertNull(call.request.headers["X-Nonexistent-Header"])
                 assertNull(call.request.headers.getAll("X-Nonexistent-Header"))
@@ -514,6 +515,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
                     append("X-Single-Value", "foo")
                     append("X-Double-Value", "foo")
                     append("X-Double-Value", "bar")
+                    append("X-Empty-Value", "")
                 }
             }
         ) {

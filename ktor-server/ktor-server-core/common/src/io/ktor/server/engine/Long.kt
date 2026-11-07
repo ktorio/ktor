@@ -8,4 +8,4 @@ private val longStrings = Array(1024) {
     it.toString()
 }
 
-internal fun Long.toStringFast() = if (this in 0..1023) longStrings[toInt()] else toString()
+internal fun Long.toStringFast() = if (this in 0L..1023L) longStrings[toInt()] else toString()

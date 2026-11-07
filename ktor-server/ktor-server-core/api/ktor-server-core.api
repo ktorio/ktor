@@ -498,6 +498,7 @@ public class io/ktor/server/engine/BaseApplicationEngine$Configuration : io/ktor
 
 public abstract class io/ktor/server/engine/BaseApplicationRequest : io/ktor/server/request/PipelineRequest {
 	public fun <init> (Lio/ktor/server/application/PipelineCall;)V
+	public fun execute (Lio/ktor/server/application/PipelineCall;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public synthetic fun getCall ()Lio/ktor/server/application/ApplicationCall;
 	public final fun getCall ()Lio/ktor/server/application/PipelineCall;
 	protected abstract fun getEngineHeaders ()Lio/ktor/http/Headers;
@@ -513,6 +514,7 @@ public abstract class io/ktor/server/engine/BaseApplicationResponse : io/ktor/se
 	public static final field Companion Lio/ktor/server/engine/BaseApplicationResponse$Companion;
 	public fun <init> (Lio/ktor/server/application/PipelineCall;)V
 	protected final fun commitHeaders (Lio/ktor/http/content/OutgoingContent;)V
+	public fun execute (Lio/ktor/server/application/PipelineCall;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public synthetic fun getCall ()Lio/ktor/server/application/ApplicationCall;
 	public final fun getCall ()Lio/ktor/server/application/PipelineCall;
 	public fun getCookies ()Lio/ktor/server/response/ResponseCookies;
@@ -1183,10 +1185,15 @@ public final class io/ktor/server/request/ApplicationRequestPropertiesKt {
 }
 
 public abstract interface class io/ktor/server/request/PipelineRequest : io/ktor/server/request/ApplicationRequest {
+	public fun execute (Lio/ktor/server/application/PipelineCall;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getCall ()Lio/ktor/server/application/PipelineCall;
 	public abstract fun getPipeline ()Lio/ktor/server/request/ApplicationReceivePipeline;
 	public abstract fun setHeader (Ljava/lang/String;Ljava/util/List;)V
 	public abstract fun setReceiveChannel (Lio/ktor/utils/io/ByteReadChannel;)V
+}
+
+public final class io/ktor/server/request/PipelineRequest$DefaultImpls {
+	public static fun execute (Lio/ktor/server/request/PipelineRequest;Lio/ktor/server/application/PipelineCall;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/server/request/PipelineRequestKt {
@@ -1328,8 +1335,13 @@ public final class io/ktor/server/response/DefaultResponsePushBuilder : io/ktor/
 }
 
 public abstract interface class io/ktor/server/response/PipelineResponse : io/ktor/server/response/ApplicationResponse {
+	public fun execute (Lio/ktor/server/application/PipelineCall;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getCall ()Lio/ktor/server/application/PipelineCall;
 	public abstract fun getPipeline ()Lio/ktor/server/response/ApplicationSendPipeline;
+}
+
+public final class io/ktor/server/response/PipelineResponse$DefaultImpls {
+	public static fun execute (Lio/ktor/server/response/PipelineResponse;Lio/ktor/server/application/PipelineCall;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/server/response/ResponseCookies {
@@ -1936,6 +1948,7 @@ public final class io/ktor/server/routing/RoutingPipelineCall : io/ktor/server/a
 
 public final class io/ktor/server/routing/RoutingPipelineRequest : io/ktor/server/request/PipelineRequest {
 	public fun <init> (Lio/ktor/server/routing/RoutingPipelineCall;Lio/ktor/server/request/ApplicationReceivePipeline;Lio/ktor/server/request/PipelineRequest;)V
+	public fun execute (Lio/ktor/server/application/PipelineCall;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public synthetic fun getCall ()Lio/ktor/server/application/ApplicationCall;
 	public synthetic fun getCall ()Lio/ktor/server/application/PipelineCall;
 	public fun getCall ()Lio/ktor/server/routing/RoutingPipelineCall;
@@ -1953,6 +1966,7 @@ public final class io/ktor/server/routing/RoutingPipelineRequest : io/ktor/serve
 
 public final class io/ktor/server/routing/RoutingPipelineResponse : io/ktor/server/response/PipelineResponse {
 	public fun <init> (Lio/ktor/server/routing/RoutingPipelineCall;Lio/ktor/server/response/ApplicationSendPipeline;Lio/ktor/server/response/PipelineResponse;)V
+	public fun execute (Lio/ktor/server/application/PipelineCall;Ljava/lang/Object;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public synthetic fun getCall ()Lio/ktor/server/application/ApplicationCall;
 	public synthetic fun getCall ()Lio/ktor/server/application/PipelineCall;
 	public fun getCall ()Lio/ktor/server/routing/RoutingPipelineCall;
