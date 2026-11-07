@@ -1,0 +1,36 @@
+# Custom toolchain using Konan configuration
+if(DEFINED ENV{TOOLCHAIN_LLVM_HOME} AND NOT _KONAN_LINUX_TOOLCHAIN)
+    set(_KONAN_LINUX_TOOLCHAIN 1)
+
+    set(CMAKE_C_COMPILER "$ENV{TOOLCHAIN_LLVM_HOME}/bin/clang")
+    set(CMAKE_CXX_COMPILER "$ENV{TOOLCHAIN_LLVM_HOME}/bin/clang++")
+    set(CMAKE_AR "$ENV{TOOLCHAIN_LLVM_HOME}/bin/llvm-ar")
+    set(CMAKE_RANLIB ":")
+
+    if(DEFINED ENV{TOOLCHAIN_SYSROOT})
+        set(CMAKE_SYSROOT "$ENV{TOOLCHAIN_SYSROOT}")
+    endif()
+
+    if(DEFINED ENV{TOOLCHAIN_TRIPLE})
+        string(APPEND CMAKE_C_FLAGS_INIT " -target $ENV{TOOLCHAIN_TRIPLE}")
+        string(APPEND CMAKE_CXX_FLAGS_INIT " -target $ENV{TOOLCHAIN_TRIPLE}")
+    endif()
+
+    if(DEFINED ENV{TOOLCHAIN_GCC_TOOLCHAIN})
+        string(APPEND CMAKE_C_FLAGS_INIT " --gcc-toolchain=$ENV{TOOLCHAIN_GCC_TOOLCHAIN}")
+        string(APPEND CMAKE_CXX_FLAGS_INIT " --gcc-toolchain=$ENV{TOOLCHAIN_GCC_TOOLCHAIN}")
+    endif()
+
+    if(DEFINED ENV{TOOLCHAIN_LINKER})
+        set(CMAKE_LINKER "$ENV{TOOLCHAIN_LINKER}")
+        string(APPEND CMAKE_EXE_LINKER_FLAGS_INIT " -fuse-ld=$ENV{TOOLCHAIN_LINKER}")
+        string(APPEND CMAKE_SHARED_LINKER_FLAGS_INIT " -fuse-ld=$ENV{TOOLCHAIN_LINKER}")
+    endif()
+
+    if(DEFINED ENV{TOOLCHAIN_LIBGCC})
+        string(APPEND CMAKE_EXE_LINKER_FLAGS_INIT " -L$ENV{TOOLCHAIN_LIBGCC}")
+        string(APPEND CMAKE_SHARED_LINKER_FLAGS_INIT " -L$ENV{TOOLCHAIN_LIBGCC}")
+    endif()
+endif()
+
+include("$ENV{VCPKG_ROOT}/scripts/toolchains/linux.cmake")

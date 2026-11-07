@@ -1,0 +1,12 @@
+{
+  "name": "ktor-io-uring-jni",
+  "version-string": "1.0.0",
+  "license": "Apache-2.0",
+  "dependencies": [
+    "liburing",
+    {
+      "name": "vcpkg-cmake",
+      "host": true
+    }
+  ]
+}
