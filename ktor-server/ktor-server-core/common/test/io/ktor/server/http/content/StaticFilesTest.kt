@@ -5,6 +5,7 @@
 package io.ktor.server.http.content
 
 import io.ktor.client.request.get
+import io.ktor.client.request.header
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
@@ -52,6 +53,92 @@ class StaticFilesTest {
 
             assertEquals(HttpStatusCode.OK, response.status)
             assertEquals("nested contents", response.bodyAsText())
+        }
+    }
+
+    @Test
+    fun `serves smallest accepted pre-compressed file`() = testApplication {
+        withTemporaryDirectory { root ->
+            writeFile(Path(root, "file.txt"), "original contents")
+            writeFile(Path(root, "file.txt.gz"), "gzip")
+            writeFile(Path(root, "file.txt.br"), "br")
+            routing { staticFiles("/static", root) }
+
+            val response = client.get("/static/file.txt") {
+                header(HttpHeaders.AcceptEncoding, "gzip, br")
+            }
+
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("br", response.bodyAsText())
+            assertEquals("br", response.headers[HttpHeaders.ContentEncoding])
+            assertEquals(HttpHeaders.AcceptEncoding, response.headers[HttpHeaders.Vary])
+        }
+    }
+
+    @Test
+    fun `serves next accepted pre-compressed file`() = testApplication {
+        withTemporaryDirectory { root ->
+            writeFile(Path(root, "file.txt"), "original contents")
+            writeFile(Path(root, "file.txt.gz"), "gzip")
+            writeFile(Path(root, "file.txt.br"), "br")
+            routing { staticFiles("/static", root) }
+
+            val response = client.get("/static/file.txt") {
+                header(HttpHeaders.AcceptEncoding, "gzip")
+            }
+
+            assertEquals("gzip", response.bodyAsText())
+            assertEquals("gzip", response.headers[HttpHeaders.ContentEncoding])
+        }
+    }
+
+    @Test
+    fun `serves original when no pre-compressed encoding is accepted`() = testApplication {
+        withTemporaryDirectory { root ->
+            writeFile(Path(root, "file.txt"), "original contents")
+            writeFile(Path(root, "file.txt.gz"), "gzip")
+            routing { staticFiles("/static", root) }
+
+            val response = client.get("/static/file.txt") {
+                header(HttpHeaders.AcceptEncoding, "identity")
+            }
+
+            assertEquals("original contents", response.bodyAsText())
+            assertEquals(null, response.headers[HttpHeaders.ContentEncoding])
+            assertEquals(HttpHeaders.AcceptEncoding, response.headers[HttpHeaders.Vary])
+        }
+    }
+
+    @Test
+    fun `serves original when accepted variant is missing for the requested file`() = testApplication {
+        withTemporaryDirectory { root ->
+            writeFile(Path(root, "file.txt"), "original contents")
+            writeFile(Path(root, "other.txt.br"), "br")
+            routing { staticFiles("/static", root) }
+
+            val response = client.get("/static/file.txt") {
+                header(HttpHeaders.AcceptEncoding, "br")
+            }
+
+            assertEquals("original contents", response.bodyAsText())
+            assertEquals(null, response.headers[HttpHeaders.ContentEncoding])
+        }
+    }
+
+    @Test
+    fun `does not serve pre-compressed files added after route declaration`() = testApplication {
+        withTemporaryDirectory { root ->
+            writeFile(Path(root, "file.txt"), "original contents")
+            routing { staticFiles("/static", root) }
+            startApplication()
+            writeFile(Path(root, "file.txt.gz"), "gzip")
+
+            val response = client.get("/static/file.txt") {
+                header(HttpHeaders.AcceptEncoding, "gzip")
+            }
+
+            assertEquals("original contents", response.bodyAsText())
+            assertEquals(null, response.headers[HttpHeaders.ContentEncoding])
         }
     }
 
