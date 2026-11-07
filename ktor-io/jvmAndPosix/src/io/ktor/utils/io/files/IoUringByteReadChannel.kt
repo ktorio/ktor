@@ -266,6 +266,6 @@ internal class IoUringByteReadChannel(
     }
 
     private companion object {
-        const val READ_BUFFER_SIZE = 64 * 1024
+        const val READ_BUFFER_SIZE = 1024 * 1024
     }
 }

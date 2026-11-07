@@ -12,6 +12,7 @@ import io.ktor.io.interop.liburing.ktor_io_uring_submit_open
 import io.ktor.io.interop.liburing.ktor_io_uring_submit_read
 import io.ktor.io.interop.liburing.ktor_io_uring_submit_wake
 import io.ktor.io.interop.liburing.ktor_io_uring_wait
+import io.ktor.utils.io.core.writeFully
 import kotlinx.cinterop.*
 import kotlinx.io.Buffer
 import kotlinx.io.IOException
@@ -62,7 +63,6 @@ internal object CInteropIoUringDriver : IoUringDriver {
     }
 
     override fun copyToBuffer(address: Long, length: Int, sink: Buffer) {
-        val source = address.toCPointer<ByteVar>()!!
-        sink.write(ByteArray(length) { index -> source[index] })
+        sink.writeFully(address.toCPointer<ByteVar>()!!, 0L, length.toLong())
     }
 }
