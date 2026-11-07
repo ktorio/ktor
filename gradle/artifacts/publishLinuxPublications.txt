@@ -133,10 +133,12 @@ io.ktor:ktor-http-linuxx64/.klib
 io.ktor:ktor-http-linuxx64/javadoc.jar
 io.ktor:ktor-http-linuxx64/sources.jar
 io.ktor:ktor-io-linuxarm64/.klib
+io.ktor:ktor-io-linuxarm64/cinterop-liburing.klib
 io.ktor:ktor-io-linuxarm64/cinterop-mutex.klib
 io.ktor:ktor-io-linuxarm64/javadoc.jar
 io.ktor:ktor-io-linuxarm64/sources.jar
 io.ktor:ktor-io-linuxx64/.klib
+io.ktor:ktor-io-linuxx64/cinterop-liburing.klib
 io.ktor:ktor-io-linuxx64/cinterop-mutex.klib
 io.ktor:ktor-io-linuxx64/javadoc.jar
 io.ktor:ktor-io-linuxx64/sources.jar
@@ -384,6 +386,12 @@ io.ktor:ktor-server-routing-openapi-linuxarm64/sources.jar
 io.ktor:ktor-server-routing-openapi-linuxx64/.klib
 io.ktor:ktor-server-routing-openapi-linuxx64/javadoc.jar
 io.ktor:ktor-server-routing-openapi-linuxx64/sources.jar
+io.ktor:ktor-server-scalar-linuxarm64/.klib
+io.ktor:ktor-server-scalar-linuxarm64/javadoc.jar
+io.ktor:ktor-server-scalar-linuxarm64/sources.jar
+io.ktor:ktor-server-scalar-linuxx64/.klib
+io.ktor:ktor-server-scalar-linuxx64/javadoc.jar
+io.ktor:ktor-server-scalar-linuxx64/sources.jar
 io.ktor:ktor-server-sessions-linuxarm64/.klib
 io.ktor:ktor-server-sessions-linuxarm64/javadoc.jar
 io.ktor:ktor-server-sessions-linuxarm64/sources.jar
