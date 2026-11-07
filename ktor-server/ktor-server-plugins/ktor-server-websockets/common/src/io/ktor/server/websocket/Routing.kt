@@ -243,9 +243,17 @@ private suspend fun WebSocketServerSession.proceedWebSocket(handler: suspend Def
             session.handleServerSession(call, handler)
             handlerResult.complete(Unit)
         } catch (cause: CancellationException) {
-            // Cancellation means the session closed (or the application is shutting down),
-            // it is not a handler failure, so it is not propagated as an error.
-            handlerResult.complete(Unit)
+            // The watcher cancels the handler job only after the close sequence of the session has
+            // been performed, so while the session is still open a CancellationException can only
+            // come from the handler itself (e.g. an uncaught `withTimeout`) or from application
+            // shutdown. It must not be swallowed: deliver it to the caller, which cancels the
+            // upgraded request and the socket as it did before the handler ran in a child job.
+            if (session.closeReason.isCompleted) {
+                handlerResult.complete(Unit)
+            } else {
+                handlerResult.completeExceptionally(cause)
+                throw cause
+            }
         } catch (cause: Throwable) {
             handlerResult.completeExceptionally(cause)
         }
