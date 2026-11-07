@@ -15,6 +15,7 @@ import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.test.*
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import io.ktor.client.plugins.websocket.WebSockets as ClientWebSockets
 
@@ -181,5 +182,38 @@ class WebSocketHandlerTerminationTest {
         }
 
         assertEquals("still alive", withTimeout(10.seconds) { secondClientReceived.await() })
+    }
+
+    @Test
+    fun testHandlerOriginatedCancellationIsNotSwallowed() = testApplication {
+        val handlerCancelled = CompletableDeferred<Unit>()
+
+        install(WebSockets)
+
+        routing {
+            webSocket("/ws") {
+                // A cancellation raised by the handler itself (here: an uncaught `withTimeout`)
+                // must propagate to the caller and end the connection; swallowing it would leave
+                // the upgraded socket open until the peer closes it on its own.
+                try {
+                    withTimeout(100.milliseconds) { awaitCancellation() }
+                } catch (cause: CancellationException) {
+                    handlerCancelled.complete(Unit)
+                    throw cause
+                }
+            }
+        }
+
+        createWebSocketsClient().webSocket("/ws") {
+            // If the server handler's cancellation is swallowed, this loop never sees the session
+            // end and the whole call hangs; propagating the cancellation closes the connection.
+            withTimeout(10.seconds) {
+                for (frame in incoming) {
+                    // Drain frames until the server ends the connection.
+                }
+            }
+        }
+
+        handlerCancelled.await()
     }
 }
