@@ -12,33 +12,33 @@ import kotlinx.io.IOException
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.content.FormFieldLimitExceededException)
  *
- * @param headers The headers of the part that exceeded the limit.
- * @param message The exception message.
- * @param cause The I/O failure that caused this exception, if available.
+ * @property headers The headers of the part that exceeded the limit.
+ * @property fieldName The field name extracted from `Content-Disposition` header, if available.
  */
-public class FormFieldLimitExceededException(
+public class FormFieldLimitExceededException private constructor(
     public val headers: Headers,
-    message: String = defaultFormFieldLimitMessage(headers),
-    cause: Throwable? = null
+    public val fieldName: String?,
+    message: String,
+    cause: Throwable? = null,
 ) : IOException(message, cause) {
 
-    private companion object {
-        private fun defaultFormFieldLimitMessage(headers: Headers): String {
-            val name = headers[HttpHeaders.ContentDisposition]?.let {
+    public companion object {
+        /**
+         * Creates a [FormFieldLimitExceededException] from the part's [headers] and optional [cause].
+         *
+         * @param headers The headers of the part that exceeded the limit.
+         * @param cause The underlying cause, if available.
+         */
+        public fun from(headers: Headers, cause: Throwable? = null): FormFieldLimitExceededException {
+            val fieldName = headers[HttpHeaders.ContentDisposition]?.let {
                 runCatching { ContentDisposition.parse(it) }.getOrNull()
             }?.name
-            return if (name != null) {
-                "Form field limit exceeded for field '$name'"
+            val message = if (fieldName != null) {
+                "Form field limit exceeded for field '$fieldName'"
             } else {
-                "Form field limit exceeded for part with headers: $headers"
+                "Form field limit exceeded for an unknown field"
             }
+            return FormFieldLimitExceededException(headers, fieldName, message, cause)
         }
     }
-
-    /**
-     * The field name extracted from `Content-Disposition` header, if available.
-     */
-    public val fieldName: String? get() = headers[HttpHeaders.ContentDisposition]?.let {
-        runCatching { ContentDisposition.parse(it) }.getOrNull()
-    }?.name
 }

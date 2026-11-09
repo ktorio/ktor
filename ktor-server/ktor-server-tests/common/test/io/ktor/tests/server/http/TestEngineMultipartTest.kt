@@ -255,9 +255,9 @@ class TestEngineMultipartTest {
         val headers = Headers.build {
             append(HttpHeaders.ContentType, "text/plain")
         }
-        val exception = FormFieldLimitExceededException(headers)
+        val exception = FormFieldLimitExceededException.from(headers)
         assertNull(exception.fieldName)
-        assertEquals("Form field limit exceeded for part with headers: $headers", exception.message)
+        assertEquals("Form field limit exceeded for an unknown field", exception.message)
     }
 
     private fun testMultiParts(

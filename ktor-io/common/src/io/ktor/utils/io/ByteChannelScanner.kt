@@ -160,7 +160,7 @@ internal class ByteChannelScanner(
      */
     private fun checkBounds(extra: Long) {
         if (bytesRead + extra > limit) {
-            throw IOException(
+            throw LimitExceededException(
                 "Limit of $limit bytes exceeded " +
                     "while searching for \"${matchString.toSingleLineString()}\""
             )
