@@ -9,7 +9,11 @@ import io.ktor.client.plugins.websocket.*
 import io.ktor.client.test.base.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.channels.ClosedSendChannelException
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import okhttp3.OkHttpClient
@@ -17,10 +21,15 @@ import okhttp3.Request
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 import okio.ByteString
+import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.seconds
 
 class OkHttpWebsocketSessionTest {
 
@@ -104,6 +113,51 @@ class OkHttpWebsocketSessionTest {
     }
 
     @Test
+    fun `suspended send fails when the session is closed`() = runBlocking {
+        val socket = FakeWebSocket(blockSends = true)
+        val session = sessionWithRendezvousOutgoing(socket)
+
+        session.outgoing.send(Frame.Text("first"))
+        socket.sendStarted.await()
+        val late = async(start = CoroutineStart.UNDISPATCHED) {
+            runCatching { session.outgoing.send(Frame.Text("late")) }
+        }
+        session.onClosed(socket, 1000, "bye")
+        socket.releaseSends.countDown()
+
+        val result = withTimeout(5.seconds) { late.await() }
+        assertTrue(result.isFailure, "send() accepted a frame after the writer stopped")
+        assertFalse(result.exceptionOrNull() is CancellationException, "send() threw ${result.exceptionOrNull()}")
+    }
+
+    @Test
+    fun `server close is answered when the outgoing channel is full`() = runBlocking {
+        val socket = FakeWebSocket(blockSends = true)
+        val session = sessionWithRendezvousOutgoing(socket)
+
+        launch { session.outgoing.send(Frame.Text("first")) }
+        socket.sendStarted.await()
+        session.onClosing(socket, 1000, "bye")
+        socket.releaseSends.countDown()
+
+        assertEquals(1000 to "bye", withTimeout(5.seconds) { socket.closed.await() })
+    }
+
+    @Test
+    fun `send after onClosed fails with ClosedSendChannelException`() = runBlocking<Unit> {
+        val socket = FakeWebSocket()
+        val session = sessionWithRendezvousOutgoing(socket)
+
+        session.onClosed(socket, 1000, "bye")
+
+        withTimeout(5.seconds) {
+            assertFailsWith<ClosedSendChannelException> {
+                session.outgoing.send(Frame.Text("late"))
+            }
+        }
+    }
+
+    @Test
     fun testWebSocketFactory() {
         val client = HttpClient(OkHttp) {
             install(WebSockets)
@@ -124,6 +178,32 @@ class OkHttpWebsocketSessionTest {
 
 private class FactoryUsedException : Exception()
 
+private class FakeWebSocket(private val blockSends: Boolean = false) : WebSocket {
+    val closed = CompletableDeferred<Pair<Int, String?>>()
+    val sendStarted = CompletableDeferred<Unit>()
+    val releaseSends = CountDownLatch(1)
+
+    override fun cancel() = Unit
+    override fun close(code: Int, reason: String?): Boolean = closed.complete(code to reason)
+    override fun queueSize(): Long = 0
+    override fun request(): Request = Request.Builder().url("ws://localhost").build()
+    override fun send(text: String): Boolean = onSend()
+    override fun send(bytes: ByteString): Boolean = onSend()
+
+    private fun onSend(): Boolean {
+        sendStarted.complete(Unit)
+        if (blockSends) releaseSends.await(5, TimeUnit.SECONDS)
+        return true
+    }
+}
+
+private fun sessionWithRendezvousOutgoing(socket: WebSocket): OkHttpWebsocketSession {
+    val client = OkHttpClient()
+    val request = Request.Builder().url("ws://localhost").build()
+    val wsConfig = WebSockets.prepare { channels { outgoing = bounded(0) } }
+    return OkHttpWebsocketSession(client, { _, _ -> socket }, request, Job(), wsConfig).apply { start() }
+}
+
 private suspend fun captureCloseFor(reason: CloseReason): Pair<Int, String?> {
     val captured = CompletableDeferred<Pair<Int, String?>>()
     val socket = object : WebSocket {
@@ -143,5 +223,5 @@ private suspend fun captureCloseFor(reason: CloseReason): Pair<Int, String?> {
     val session = OkHttpWebsocketSession(client, factory, request, Job())
     session.start()
     session.outgoing.send(Frame.Close(reason))
-    return withTimeout(5_000) { captured.await() }
+    return withTimeout(5.seconds) { captured.await() }
 }
