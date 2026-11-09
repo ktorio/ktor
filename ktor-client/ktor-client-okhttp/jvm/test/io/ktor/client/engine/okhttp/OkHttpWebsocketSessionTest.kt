@@ -8,19 +8,28 @@ import io.ktor.client.HttpClient
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.test.base.*
 import io.ktor.websocket.*
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.channels.SendChannel
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.withTimeoutOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 import okio.ByteString
+import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.TimeUnit
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertIs
+import kotlin.test.assertNotNull
 
 class OkHttpWebsocketSessionTest {
 
@@ -120,6 +129,129 @@ class OkHttpWebsocketSessionTest {
             }
         }
     }
+
+    @Test
+    fun `send after server close fails with rendezvous outgoing channel`() = runBlocking {
+        assertSendAfterServerCloseFails(frames = 1) { outgoing = bounded(0) }
+    }
+
+    @Test
+    fun `send after server close fails with bounded outgoing channel`() = runBlocking {
+        assertSendAfterServerCloseFails(frames = 3) { outgoing = bounded(2) }
+    }
+
+    @Test
+    fun `send after server close fails with default outgoing channel`() = runBlocking {
+        assertSendAfterServerCloseFails(frames = 1) {}
+    }
+
+    @Test
+    fun `server close is answered when writer is busy with rendezvous outgoing channel`() = runBlocking {
+        withSession({ outgoing = bounded(0) }) { session, socket ->
+            socket.onSend = { text ->
+                if (text == "in flight") session.onClosing(socket, 1000, "End")
+            }
+            session.outgoing.send(Frame.Text("in flight"))
+
+            socket.assertClosedWith(1000, "End")
+            session.outgoing.assertSendFails(frames = 1)
+        }
+    }
+
+    @Test
+    fun `server close is answered when bounded outgoing channel is full`() = runBlocking {
+        withSession({ outgoing = bounded(1) }) { session, socket ->
+            socket.onSend = { text ->
+                if (text == "in flight") {
+                    session.outgoing.trySend(Frame.Text("queued"))
+                    session.onClosing(socket, 1000, "End")
+                }
+            }
+            session.outgoing.send(Frame.Text("in flight"))
+
+            socket.assertClosedWith(1000, "End")
+            assertEquals(listOf("in flight", "queued"), socket.sentTexts)
+            session.outgoing.assertSendFails(frames = 1)
+        }
+    }
+}
+
+private const val TIMEOUT_MILLIS = 5_000L
+
+private suspend fun assertSendAfterServerCloseFails(
+    frames: Int,
+    configureChannels: WebSocketChannelsConfig.() -> Unit,
+) {
+    withSession(configureChannels) { session, socket ->
+        session.onClosing(socket, 1000, "End")
+
+        socket.assertClosedWith(1000, "End")
+        session.outgoing.assertSendFails(frames)
+    }
+}
+
+private suspend fun FakeWebSocket.assertClosedWith(code: Int, reason: String) {
+    val closed = withTimeoutOrNull(TIMEOUT_MILLIS) { closed.await() }
+    assertEquals(code to reason, closed, "The client must answer the server's close")
+}
+
+private suspend fun SendChannel<Frame>.assertSendFails(frames: Int) = coroutineScope {
+    var returned = 0
+    val sending = async {
+        runCatching {
+            repeat(frames) {
+                send(Frame.Text("after close $it"))
+                returned++
+            }
+        }
+    }
+    val result = withTimeoutOrNull(TIMEOUT_MILLIS) { sending.await() }
+    sending.cancel()
+
+    assertNotNull(result, "A send after the writer has finished is still suspended")
+    assertIs<CancellationException>(result.exceptionOrNull(), "A send after the writer has finished must fail")
+    assertEquals(0, returned, "A frame sent after the writer has finished must not be queued")
+}
+
+private suspend fun withSession(
+    configureChannels: WebSocketChannelsConfig.() -> Unit,
+    block: suspend (OkHttpWebsocketSession, FakeWebSocket) -> Unit,
+) {
+    val job = Job()
+    try {
+        val socket = FakeWebSocket()
+        val client = OkHttpClient()
+        val request = Request.Builder().url("ws://localhost").build()
+        val wsConfig = WebSockets.prepare { channels(configureChannels) }
+        val session = OkHttpWebsocketSession(
+            client,
+            WebSocket.Factory { _, _ -> socket },
+            request,
+            job + Dispatchers.Unconfined,
+            wsConfig
+        )
+        session.start()
+        block(session, socket)
+    } finally {
+        job.cancel()
+    }
+}
+
+private class FakeWebSocket : WebSocket {
+    val sentTexts = CopyOnWriteArrayList<String>()
+    val closed = CompletableDeferred<Pair<Int, String?>>()
+    var onSend: (String) -> Unit = {}
+
+    override fun cancel() = Unit
+    override fun close(code: Int, reason: String?): Boolean = closed.complete(code to reason)
+    override fun queueSize(): Long = 0
+    override fun request(): Request = Request.Builder().url("ws://localhost").build()
+    override fun send(text: String): Boolean {
+        sentTexts.add(text)
+        onSend(text)
+        return true
+    }
+    override fun send(bytes: ByteString): Boolean = true
 }
 
 private class FactoryUsedException : Exception()

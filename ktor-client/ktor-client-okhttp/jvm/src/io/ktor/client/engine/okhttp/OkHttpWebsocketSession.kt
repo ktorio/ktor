@@ -102,6 +102,12 @@ internal class OkHttpWebsocketSession(
                 throw cause
             }
         }
+    }.apply {
+        invokeOnCompletion { cause ->
+            _outgoing.cancel(
+                cause as? CancellationException ?: CancellationException("WebSocket session is closed", cause)
+            )
+        }
     }
 
     override val extensions: List<WebSocketExtension<*>>
@@ -138,7 +144,9 @@ internal class OkHttpWebsocketSession(
         super.onClosing(webSocket, code, reason)
 
         _closeReason.complete(CloseReason(code.toShort(), reason))
-        outgoing.trySend(Frame.Close(CloseReason(code.toShort(), reason)))
+        launch(start = CoroutineStart.UNDISPATCHED) {
+            runCatching { _outgoing.send(Frame.Close(CloseReason(code.toShort(), reason))) }
+        }
         _incoming.close()
     }
 
