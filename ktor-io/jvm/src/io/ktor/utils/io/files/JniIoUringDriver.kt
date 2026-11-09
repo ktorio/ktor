@@ -65,9 +65,9 @@ internal object JniIoUringDriver : IoUringDriver {
         var remaining = length
         while (remaining > 0) {
             @OptIn(UnsafeIoApi::class)
-            UnsafeBufferOperations.writeToTail(sink, length) { bytes, startIndexInclusive, endIndexExclusive ->
+            UnsafeBufferOperations.writeToTail(sink, 1) { bytes, startIndexInclusive, endIndexExclusive ->
                 val count = minOf(endIndexExclusive - startIndexInclusive, remaining)
-                source.get(bytes, startIndexInclusive, endIndexExclusive - startIndexInclusive)
+                source.get(bytes, startIndexInclusive, count)
                 remaining -= count
                 count
             }
