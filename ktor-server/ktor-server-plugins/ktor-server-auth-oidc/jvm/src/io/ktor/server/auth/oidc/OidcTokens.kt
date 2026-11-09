@@ -362,7 +362,7 @@ private suspend fun OidcProvider.verifyJwtToken(
 
     return try {
         JWT
-            .require(tokenAlgorithm.toJwtAlgorithm(jwk.publicKey))
+            .require(tokenAlgorithm.toJwtAlgorithm(jwk.toPublicKey()))
             .withIssuer(state.metadata.issuer)
             .withAnyOfAudience(*audience.toTypedArray())
             .acceptLeeway(jwtConfig.clockSkew.inWholeSeconds)
@@ -402,15 +402,21 @@ private fun OidcProvider.requireAllowedAlgorithm(
     val algorithm = SignatureAlgorithm.fromJwaName(algorithmName)
         ?: rejectToken("JWT algorithm $algorithmName is not accepted")
 
-    val allowedAlgorithms = jwtConfig.allowedAlgorithms
-        ?.map { algorithm -> checkNotNull(algorithm.jwaName) }
-        ?: when (tokenType) {
-            JwtTokenType.IdToken -> state.metadata.idTokenSigningAlgValuesSupported
-            JwtTokenType.UserInfo -> state.metadata.userinfoSigningAlgValuesSupported
-            JwtTokenType.AccessToken -> null
+    val configuredAlgorithms = jwtConfig.allowedAlgorithms
+    if (configuredAlgorithms != null) {
+        requireToken(algorithm in configuredAlgorithms) {
+            "JWT algorithm $algorithmName is not in the allowed algorithms"
         }
-    requireToken(allowedAlgorithms == null || algorithmName in allowedAlgorithms) {
-        "JWT algorithm $algorithmName is not in the allowed algorithms: ${allowedAlgorithms!!.joinToString()}"
+        return algorithm
+    }
+
+    val advertisedAlgorithms = when (tokenType) {
+        JwtTokenType.IdToken -> state.metadata.idTokenSigningAlgValuesSupported
+        JwtTokenType.UserInfo -> state.metadata.userinfoSigningAlgValuesSupported
+        JwtTokenType.AccessToken -> null
+    }
+    requireToken(advertisedAlgorithms == null || algorithmName in advertisedAlgorithms) {
+        "JWT algorithm $algorithmName is not in the allowed algorithms: ${advertisedAlgorithms!!.joinToString()}"
     }
     return algorithm
 }
@@ -433,10 +439,14 @@ private val KeyAlgorithm.jwkType: String?
     get() = when (this) {
         KeyAlgorithm.RSA -> "RSA"
         KeyAlgorithm.EC -> "EC"
+        KeyAlgorithm.OKP -> "OKP"
         else -> null
     }
 
 private fun Jwk.curveSupportsAlgorithm(algorithm: SignatureAlgorithm): Boolean {
+    algorithm.okpJwaCurve?.let { expectedCurve ->
+        return additionalAttributes["crv"] == expectedCurve
+    }
     val expectedCurve = algorithm.ecJwaCurve ?: return true
     val curve = additionalAttributes["crv"] as? String ?: return true
     return curve == expectedCurve
