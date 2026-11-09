@@ -22,12 +22,6 @@ class JettyEngineHttp2ContentTest :
 
 class JettyEngineHttp2HttpServerCommonTest :
     HttpServerCommonTestSuite<JettyApplicationEngine, JettyApplicationEngineBase.Configuration>(Jetty) {
-    @Test
-    @Http1Only // KTOR-10111: HTTP/2 responses still include Content-Length: 0 for 204.
-    override fun `204 response has no content length or body`() {
-        super.`204 response has no content length or body`()
-    }
-
     override fun testFlushingHeaders() {
         // no op
     }
