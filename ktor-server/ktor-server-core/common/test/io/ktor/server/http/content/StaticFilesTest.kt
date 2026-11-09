@@ -93,6 +93,24 @@ class StaticFilesTest {
     }
 
     @Test
+    fun `serves original when accepted encoding variant is missing`() = testApplication {
+        withTemporaryDirectory { root ->
+            writeFile(Path(root, "file.txt"), "original contents")
+            writeFile(Path(root, "other.txt"), "other contents")
+            writeFile(Path(root, "other.txt.gz"), "other compressed contents")
+            routing { staticFiles("/static", root) }
+
+            val response = client.get("/static/file.txt") {
+                header(HttpHeaders.AcceptEncoding, "gzip")
+            }
+
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("original contents", response.bodyAsText())
+            assertEquals(null, response.headers[HttpHeaders.ContentEncoding])
+        }
+    }
+
+    @Test
     fun `serves original when no pre-compressed encoding is accepted`() = testApplication {
         withTemporaryDirectory { root ->
             writeFile(Path(root, "file.txt"), "original contents")

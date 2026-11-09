@@ -292,6 +292,7 @@ public class NettyApplicationEngine(
 
     private var channels: List<Channel>? = null
     private var http3Channels: List<Channel>? = null
+    private var ioUringFileRings: NettyIoUringFileRings? = null
     internal val bootstraps: List<ServerBootstrap> by lazy {
         configuration.connectors.map(::createBootstrap)
     }
@@ -483,6 +484,7 @@ public class NettyApplicationEngine(
 
     override fun start(wait: Boolean): NettyApplicationEngine {
         try {
+            ioUringFileRings = NettyIoUringFileRings.install(workerEventGroup, callEventGroup)
             channels = bootstraps.zip(configuration.connectors)
                 .map { it.first.bind(it.second.host, it.second.port) }
                 .map { it.sync().channel() }
@@ -529,6 +531,8 @@ public class NettyApplicationEngine(
     }
 
     private fun terminate() {
+        ioUringFileRings?.close()
+        ioUringFileRings = null
         withStopException {
             connectionEventGroup.shutdownGracefully().sync()
         }
@@ -554,6 +558,9 @@ public class NettyApplicationEngine(
                 withStopException { future.sync() }
             }
         }
+
+        ioUringFileRings?.close()
+        ioUringFileRings = null
 
         // Quiet period in Ktor Server and Netty EventLoopGroup are different.
         // Ktor Server waits for all requests to finish without accepting new ones.

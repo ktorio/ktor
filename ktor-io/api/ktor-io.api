@@ -585,6 +585,15 @@ public final class io/ktor/utils/io/files/AsyncFilesKt {
 	public static final fun byteReadChannel (Lkotlinx/io/files/FileSystem;Lkotlinx/io/files/Path;)Lio/ktor/utils/io/ByteReadChannel;
 }
 
+public final class io/ktor/utils/io/files/IoUringEventLoopRing {
+	public static final field INSTANCE Lio/ktor/utils/io/files/IoUringEventLoopRing;
+	public final fun close ()V
+	public final fun createForCurrentThread ()I
+	public final fun getEventFd ()I
+	public final fun isAvailable ()Z
+	public final fun processCompletions ()Z
+}
+
 public final class io/ktor/utils/io/jvm/javaio/BlockingKt {
 	public static final fun asInputStream (Lio/ktor/utils/io/ByteReadChannel;Lkotlinx/coroutines/Job;)Ljava/io/InputStream;
 	public static final fun asOutputStream (Lio/ktor/utils/io/ByteWriteChannel;Lkotlinx/coroutines/Job;)Ljava/io/OutputStream;

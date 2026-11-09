@@ -9,29 +9,34 @@ import io.ktor.utils.io.locks.SynchronizedObject
 import io.ktor.utils.io.locks.synchronized
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.InternalCoroutinesApi
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
-@OptIn(InternalAPI::class, InternalCoroutinesApi::class)
+@OptIn(InternalAPI::class)
 internal class IoUringRing(
     internal val driver: IoUringDriver,
     private val handle: Long,
     entryCount: Int,
+    private val pollerThread: Boolean = true,
+    internal val eventFd: Int = -1,
 ) {
     private val lock = SynchronizedObject()
     private val slots = arrayOfNulls<PendingRequest>(entryCount)
     private val completionSlots = IntArray(entryCount)
     private val completionResults = IntArray(entryCount)
+    private val readBufferPool = ArrayDeque<Long>()
     private var stopped = false
+    private var closed = false
 
     init {
-        try {
-            startPollerThread("ktor-io-uring-$handle", ::pollCompletions)
-        } catch (cause: Throwable) {
-            driver.destroyRing(handle)
-            throw cause
+        if (pollerThread) {
+            try {
+                startPollerThread("ktor-io-uring-$handle", ::pollCompletions)
+            } catch (cause: Throwable) {
+                driver.destroyRing(handle)
+                throw cause
+            }
         }
     }
 
@@ -94,6 +99,61 @@ internal class IoUringRing(
         if (shouldWake) driver.submitWake(handle)
     }
 
+    fun processCompletions(): Boolean {
+        if (synchronized(lock) { closed }) return false
+        while (true) {
+            val count = try {
+                driver.drainCompletions(handle, completionSlots, completionResults)
+            } catch (_: Throwable) {
+                -5
+            }
+            if (count < 0) {
+                failPending(count)
+                return false
+            }
+            if (count == 0) return true
+            if (processCompletions(count)) return false
+        }
+    }
+
+    fun close() {
+        val shouldClose = synchronized(lock) {
+            if (closed) {
+                false
+            } else {
+                closed = true
+                stopped = true
+                true
+            }
+        }
+        if (!shouldClose) return
+
+        failPending(-125)
+        val buffers = synchronized(lock) { readBufferPool.toList().also { readBufferPool.clear() } }
+        buffers.forEach(driver::free)
+        driver.destroyRing(handle)
+    }
+
+    fun acquireReadBuffer(size: Int): Long {
+        val pooled = synchronized(lock) {
+            check(!closed) { "The io_uring ring has been closed" }
+            readBufferPool.removeFirstOrNull()
+        }
+        return pooled ?: driver.allocate(size)
+    }
+
+    fun releaseReadBuffer(address: Long) {
+        val shouldFree = synchronized(lock) {
+            if (closed || readBufferPool.size >= MAX_IDLE_READ_BUFFERS) {
+                true
+            } else {
+                readBufferPool.addLast(address)
+                false
+            }
+        }
+        if (shouldFree) driver.free(address)
+    }
+
     private suspend fun submit(
         onSlot: (Int) -> Unit,
         onCompletion: (Int, Boolean) -> Unit,
@@ -107,16 +167,20 @@ internal class IoUringRing(
 
     private fun startRequest(request: PendingRequest, operation: (Int) -> Int) {
         val slot = synchronized(lock) {
-            val available = slots.indexOfFirst { it == null }
-            if (available >= 0) {
-                request.slot = available
-                slots[available] = request
+            if (stopped || closed) {
+                -125
+            } else {
+                val available = slots.indexOfFirst { it == null }
+                if (available >= 0) {
+                    request.slot = available
+                    slots[available] = request
+                }
+                if (available < 0) -11 else available
             }
-            available
         }
 
         if (slot < 0) {
-            finishRequest(request, -11)
+            finishRequest(request, slot)
             return
         }
 
@@ -162,20 +226,24 @@ internal class IoUringRing(
                     failPending(count)
                     return
                 }
-
-                for (index in 0 until count.coerceAtMost(completionSlots.size)) {
-                    when (val slot = completionSlots[index]) {
-                        CANCEL_SLOT -> Unit
-                        WAKE_SLOT -> return
-                        else -> finishSlot(slot, completionResults[index])
-                    }
-                }
+                if (processCompletions(count)) return
             }
         } catch (_: Throwable) {
             failPending(-5)
         } finally {
-            driver.destroyRing(handle)
+            close()
         }
+    }
+
+    private fun processCompletions(count: Int): Boolean {
+        for (index in 0 until count.coerceAtMost(completionSlots.size)) {
+            when (val slot = completionSlots[index]) {
+                CANCEL_SLOT -> Unit
+                WAKE_SLOT -> return true
+                else -> finishSlot(slot, completionResults[index])
+            }
+        }
+        return false
     }
 
     private fun finishSlot(slot: Int, result: Int) {
@@ -242,5 +310,6 @@ internal class IoUringRing(
     private companion object {
         const val CANCEL_SLOT: Int = -1
         const val WAKE_SLOT: Int = -2
+        const val MAX_IDLE_READ_BUFFERS: Int = 8
     }
 }

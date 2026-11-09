@@ -202,7 +202,7 @@ public abstract class BaseApplicationResponse(
                     commitHeaders(content)
                     respondFromChannel(readChannel)
                 } finally {
-                    readChannel.cancel()
+                    readChannel.cancel(null)
                 }
             }
 

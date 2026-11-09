@@ -15,6 +15,8 @@ internal interface IoUringDriver {
     fun submitCancel(ring: Long, slot: Int): Int
     fun submitWake(ring: Long): Int
     fun waitCompletions(ring: Long, slots: IntArray, results: IntArray): Int
+    fun registerEventFd(ring: Long): Int = -38
+    fun drainCompletions(ring: Long, slots: IntArray, results: IntArray): Int = -38
     fun allocate(size: Int): Long
     fun free(address: Long)
     fun copyToBuffer(address: Long, length: Int, sink: Buffer)

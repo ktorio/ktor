@@ -8,6 +8,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/eventfd.h>
+#include <unistd.h>
 
 #include <liburing.h>
 
@@ -15,6 +17,7 @@ struct ktor_io_uring_ring {
     struct io_uring ring;
     char **open_paths;
     unsigned entries;
+    int event_fd;
 };
 
 static struct ktor_io_uring_ring *get_ring(jlong value) {
@@ -89,6 +92,7 @@ JNIEXPORT jlong JNICALL Java_io_ktor_utils_io_files_IoUringNative_ringCreate(
         free(handle);
         return 0;
     }
+    handle->event_fd = -1;
 
     int result = io_uring_queue_init((unsigned) entries, &handle->ring, 0);
     if (result < 0) {
@@ -109,6 +113,10 @@ JNIEXPORT void JNICALL Java_io_ktor_utils_io_files_IoUringNative_ringDestroy(
     struct ktor_io_uring_ring *handle = get_ring(value);
     if (handle == NULL) return;
 
+    if (handle->event_fd >= 0) {
+        io_uring_unregister_eventfd(&handle->ring);
+        close(handle->event_fd);
+    }
     io_uring_queue_exit(&handle->ring);
     for (unsigned index = 0; index < handle->entries; index++) free(handle->open_paths[index]);
     free(handle->open_paths);
@@ -228,22 +236,108 @@ JNIEXPORT jint JNICALL Java_io_ktor_utils_io_files_IoUringNative_waitCompletions
     struct ktor_io_uring_ring *handle = get_ring(value);
     if (handle == NULL || slots == NULL || results == NULL) return -EINVAL;
 
-    struct io_uring_cqe *cqe = NULL;
-    int result = io_uring_wait_cqe(&handle->ring, &cqe);
+    struct io_uring_cqe *first = NULL;
+    int result = io_uring_wait_cqe(&handle->ring, &first);
     if (result < 0) return result;
 
-    uint64_t user_data = io_uring_cqe_get_data64(cqe);
-    jint slot_value = (jint) (int32_t) (uint32_t) user_data;
-    jint result_value = cqe->res;
-    if (user_data < handle->entries) {
-        free(handle->open_paths[user_data]);
-        handle->open_paths[user_data] = NULL;
-    }
-    io_uring_cqe_seen(&handle->ring, cqe);
+    jsize slots_length = (*env)->GetArrayLength(env, slots);
+    jsize results_length = (*env)->GetArrayLength(env, results);
+    unsigned capacity = (unsigned) slots_length;
+    if (capacity > (unsigned) results_length) capacity = (unsigned) results_length;
+    if (capacity > handle->entries) capacity = handle->entries;
+    if (capacity == 0) return -EINVAL;
 
-    (*env)->SetIntArrayRegion(env, slots, 0, 1, &slot_value);
-    (*env)->SetIntArrayRegion(env, results, 0, 1, &result_value);
-    return (*env)->ExceptionCheck(env) ? -EFAULT : 1;
+    struct io_uring_cqe *cqes[capacity];
+    unsigned count = io_uring_peek_batch_cqe(&handle->ring, cqes, capacity);
+    if (count == 0) {
+        cqes[0] = first;
+        count = 1;
+    }
+
+    jint slot_values[count];
+    jint result_values[count];
+    for (unsigned index = 0; index < count; index++) {
+        uint64_t user_data = io_uring_cqe_get_data64(cqes[index]);
+        slot_values[index] = (jint) (int32_t) (uint32_t) user_data;
+        result_values[index] = cqes[index]->res;
+        if (user_data < handle->entries) {
+            free(handle->open_paths[user_data]);
+            handle->open_paths[user_data] = NULL;
+        }
+    }
+    io_uring_cq_advance(&handle->ring, count);
+
+    (*env)->SetIntArrayRegion(env, slots, 0, (jsize) count, slot_values);
+    (*env)->SetIntArrayRegion(env, results, 0, (jsize) count, result_values);
+    return (*env)->ExceptionCheck(env) ? -EFAULT : (jint) count;
+}
+
+JNIEXPORT jint JNICALL Java_io_ktor_utils_io_files_IoUringNative_registerEventFd(
+    JNIEnv *env,
+    jobject receiver,
+    jlong value
+) {
+    struct ktor_io_uring_ring *handle = get_ring(value);
+    if (handle == NULL) return -EINVAL;
+    if (handle->event_fd >= 0) return -EALREADY;
+
+    int event_fd = eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC);
+    if (event_fd < 0) return -errno;
+
+    int result = io_uring_register_eventfd(&handle->ring, event_fd);
+    if (result < 0) {
+        close(event_fd);
+        return result;
+    }
+    handle->event_fd = event_fd;
+    return event_fd;
+}
+
+JNIEXPORT jint JNICALL Java_io_ktor_utils_io_files_IoUringNative_drainCompletions(
+    JNIEnv *env,
+    jobject receiver,
+    jlong value,
+    jintArray slots,
+    jintArray results
+) {
+    struct ktor_io_uring_ring *handle = get_ring(value);
+    if (handle == NULL || slots == NULL || results == NULL) return -EINVAL;
+    if (handle->event_fd < 0) return -ENOSYS;
+
+    uint64_t event_count;
+    while (read(handle->event_fd, &event_count, sizeof(event_count)) < 0) {
+        if (errno == EINTR) continue;
+        if (errno == EAGAIN || errno == EWOULDBLOCK) break;
+        return -errno;
+    }
+
+    jsize slots_length = (*env)->GetArrayLength(env, slots);
+    jsize results_length = (*env)->GetArrayLength(env, results);
+    unsigned capacity = (unsigned) slots_length;
+    if (capacity > (unsigned) results_length) capacity = (unsigned) results_length;
+    if (capacity > handle->entries) capacity = handle->entries;
+    if (capacity == 0) return -EINVAL;
+
+    struct io_uring_cqe *cqes[capacity];
+    unsigned count = io_uring_peek_batch_cqe(&handle->ring, cqes, capacity);
+    if (count == 0) return 0;
+
+    jint slot_values[count];
+    jint result_values[count];
+    for (unsigned index = 0; index < count; index++) {
+        uint64_t user_data = io_uring_cqe_get_data64(cqes[index]);
+        slot_values[index] = (jint) (int32_t) (uint32_t) user_data;
+        result_values[index] = cqes[index]->res;
+        if (user_data < handle->entries) {
+            free(handle->open_paths[user_data]);
+            handle->open_paths[user_data] = NULL;
+        }
+    }
+    io_uring_cq_advance(&handle->ring, count);
+
+    (*env)->SetIntArrayRegion(env, slots, 0, (jsize) count, slot_values);
+    (*env)->SetIntArrayRegion(env, results, 0, (jsize) count, result_values);
+    return (*env)->ExceptionCheck(env) ? -EFAULT : (jint) count;
 }
 
 JNIEXPORT jobject JNICALL Java_io_ktor_utils_io_files_IoUringNative_allocateBuffer(
@@ -252,7 +346,7 @@ JNIEXPORT jobject JNICALL Java_io_ktor_utils_io_files_IoUringNative_allocateBuff
     jint size
 ) {
     if (size <= 0) return NULL;
-    void *memory = calloc(1, (size_t) size);
+    void *memory = malloc((size_t) size);
     if (memory == NULL) return NULL;
 
     jobject buffer = (*env)->NewDirectByteBuffer(env, memory, size);

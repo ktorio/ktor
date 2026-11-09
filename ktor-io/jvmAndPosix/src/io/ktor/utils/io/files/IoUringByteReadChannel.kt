@@ -57,7 +57,7 @@ internal class IoUringByteReadChannel(
                 val state = synchronized(stateLock) { Triple(stopped, eofReached, fileDescriptor) }
                 if (state.first) break
                 if (state.second) {
-                    closeFile()
+                    closeFileAtEof()
                     break
                 }
 
@@ -73,7 +73,7 @@ internal class IoUringByteReadChannel(
 
                 if (result < 0) throw ioException("read", result)
                 if (result == 0) {
-                    closeFile()
+                    closeFileAtEof()
                     break
                 }
             }
@@ -167,18 +167,17 @@ internal class IoUringByteReadChannel(
         if (closeDescriptor >= 0) closeFileAsync(closeDescriptor)
     }
 
-    private suspend fun closeFile() {
+    private fun closeFileAtEof() {
         val descriptor = synchronized(stateLock) {
-            if (fileDescriptor < 0 || closing) return
-            closing = true
-            fileDescriptor
+            if (closeToken == null) closeToken = CLOSED
+            if (fileDescriptor < 0 || closing) {
+                -1
+            } else {
+                closing = true
+                fileDescriptor
+            }
         }
-        val result = ring.submitClose(
-            fd = descriptor,
-            onSlot = { setActiveOperation(it, Operation.CLOSE) },
-            onCompletion = { result, _ -> closeCompleted(descriptor, result) },
-        )
-        if (result < 0) throw ioException("close", result)
+        if (descriptor >= 0) closeFileAsync(descriptor)
     }
 
     private fun closeFileAsync(descriptor: Int) {
@@ -238,12 +237,12 @@ internal class IoUringByteReadChannel(
     private fun releaseBuffer() {
         if (bufferReleased) return
         bufferReleased = true
-        if (nativeBufferAddress != 0L) driver.free(nativeBufferAddress)
+        if (nativeBufferAddress != 0L) ring.releaseReadBuffer(nativeBufferAddress)
     }
 
     private fun readBufferAddress(): Long = synchronized(stateLock) {
         check(!bufferReleased) { "The io_uring read buffer has already been released" }
-        if (nativeBufferAddress == 0L) nativeBufferAddress = driver.allocate(READ_BUFFER_SIZE)
+        if (nativeBufferAddress == 0L) nativeBufferAddress = ring.acquireReadBuffer(READ_BUFFER_SIZE)
         nativeBufferAddress
     }
 
@@ -266,6 +265,6 @@ internal class IoUringByteReadChannel(
     }
 
     private companion object {
-        const val READ_BUFFER_SIZE = 1024 * 1024
+        const val READ_BUFFER_SIZE = 128 * 1024
     }
 }

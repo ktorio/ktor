@@ -11,19 +11,25 @@ internal object IoUringWorkerPool {
     private const val MAX_WORKERS = 4
 
     private val nextWorker = atomic(0)
+    private val driver: IoUringDriver? by lazy(::ioUringDriverOrNull)
     private val rings: List<IoUringRing>? by lazy(::createRings)
 
     val isAvailable: Boolean
-        get() = rings != null
+        get() = driver != null
 
     fun next(): IoUringRing {
-        val workers = checkNotNull(rings) { "io_uring is not available" }
+        return checkNotNull(nextOrNull()) { "io_uring is not available" }
+    }
+
+    fun nextOrNull(): IoUringRing? {
+        val workers = rings ?: return null
+        if (workers.isEmpty()) return null
         val index = (nextWorker.getAndIncrement() and Int.MAX_VALUE) % workers.size
         return workers[index]
     }
 
     private fun createRings(): List<IoUringRing>? {
-        val driver = ioUringDriverOrNull() ?: return null
+        val driver = driver ?: return null
         val workerCount = ioUringAvailableProcessors().coerceAtLeast(1).coerceAtMost(MAX_WORKERS)
         val created = ArrayList<IoUringRing>(workerCount)
 

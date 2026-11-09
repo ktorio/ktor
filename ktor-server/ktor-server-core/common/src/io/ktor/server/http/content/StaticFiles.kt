@@ -56,6 +56,13 @@ public fun Route.staticFiles(remotePath: String, localPath: Path): Route {
                 }
 
                 val encodedPath = Path("$path.${encoding.extension}")
+                val encodedFileExists = try {
+                    SystemFileSystem.metadataOrNull(encodedPath)?.isRegularFile == true
+                } catch (_: IOException) {
+                    false
+                }
+                if (!encodedFileExists) continue
+
                 channel = openFileChannel(SystemFileSystem, encodedPath)
                 if (channel != null) {
                     selectedEncoding = encoding

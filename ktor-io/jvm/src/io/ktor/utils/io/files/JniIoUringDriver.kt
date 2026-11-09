@@ -40,6 +40,11 @@ internal object JniIoUringDriver : IoUringDriver {
     override fun waitCompletions(ring: Long, slots: IntArray, results: IntArray): Int =
         IoUringNative.waitCompletions(ring, slots, results)
 
+    override fun registerEventFd(ring: Long): Int = IoUringNative.registerEventFd(ring)
+
+    override fun drainCompletions(ring: Long, slots: IntArray, results: IntArray): Int =
+        IoUringNative.drainCompletions(ring, slots, results)
+
     override fun allocate(size: Int): Long {
         val buffer =
             IoUringNative.allocateBuffer(size) ?: throw OutOfMemoryError("Failed to allocate io_uring read buffer")

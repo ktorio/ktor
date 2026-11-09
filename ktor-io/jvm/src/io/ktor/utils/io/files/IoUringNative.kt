@@ -19,6 +19,8 @@ internal object IoUringNative {
     external fun submitCancel(ring: Long, slot: Int): Int
     external fun submitWake(ring: Long): Int
     external fun waitCompletions(ring: Long, slots: IntArray, results: IntArray): Int
+    external fun registerEventFd(ring: Long): Int
+    external fun drainCompletions(ring: Long, slots: IntArray, results: IntArray): Int
     external fun allocateBuffer(size: Int): ByteBuffer?
     external fun bufferAddress(buffer: ByteBuffer): Long
     external fun freeBuffer(buffer: ByteBuffer)

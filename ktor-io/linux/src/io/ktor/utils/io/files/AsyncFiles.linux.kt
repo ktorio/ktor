@@ -5,6 +5,9 @@
 package io.ktor.utils.io.files
 
 import io.ktor.utils.io.ByteReadChannel
+import io.ktor.utils.io.InternalAPI
+import io.ktor.utils.io.RawSourceChannel
+import io.ktor.utils.io.ioDispatcher
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.toKString
 import kotlinx.io.files.FileSystem
@@ -30,8 +33,12 @@ internal actual fun ioUringDriverOrNull(): IoUringDriver? = driverOrNull
 internal actual fun FileSystem.supportsAsyncFileIo(): Boolean =
     this === SystemFileSystem && IoUringWorkerPool.isAvailable
 
-internal actual fun FileSystem.byteReadChannelNative(path: Path): ByteReadChannel =
-    IoUringByteReadChannel(path, IoUringWorkerPool.next())
+@OptIn(InternalAPI::class)
+internal actual fun FileSystem.byteReadChannelNative(path: Path): ByteReadChannel {
+    val ring = IoUringWorkerPool.nextOrNull()
+    return ring?.let { IoUringByteReadChannel(path, it) }
+        ?: RawSourceChannel(source(path), ioDispatcher())
+}
 
 @OptIn(ExperimentalForeignApi::class)
 private fun ioUringEnabled(): Boolean {
