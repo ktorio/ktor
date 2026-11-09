@@ -69,6 +69,7 @@ plugins.withId("ktorbuild.kmp") {
     }
 
     registerTargetsPublishTasks(ktorBuild.targets)
+    if (ktorBuild.targets.hasJvm) registerMavenDependencyConvergenceCheck()
 }
 
 private fun Project.configureSigning(mavenPublishing: MavenPublishBaseExtension) {
