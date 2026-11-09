@@ -6,6 +6,8 @@ package io.ktor.utils.io.files
 
 import kotlinx.io.Buffer
 import kotlinx.io.IOException
+import kotlinx.io.UnsafeIoApi
+import kotlinx.io.unsafe.UnsafeBufferOperations
 import java.nio.ByteBuffer
 import java.util.concurrent.ConcurrentHashMap
 
@@ -60,8 +62,15 @@ internal object JniIoUringDriver : IoUringDriver {
     override fun copyToBuffer(address: Long, length: Int, sink: Buffer) {
         val source = checkNotNull(buffers[address]) { "Unknown io_uring read buffer address" }.duplicate()
         source.clear()
-        val bytes = ByteArray(length)
-        source.get(bytes)
-        sink.write(bytes)
+        var remaining = length
+        while (remaining > 0) {
+            @OptIn(UnsafeIoApi::class)
+            UnsafeBufferOperations.writeToTail(sink, length) { bytes, startIndexInclusive, endIndexExclusive ->
+                val count = minOf(endIndexExclusive - startIndexInclusive, remaining)
+                source.get(bytes, startIndexInclusive, endIndexExclusive - startIndexInclusive)
+                remaining -= count
+                count
+            }
+        }
     }
 }
