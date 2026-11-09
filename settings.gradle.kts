@@ -159,6 +159,7 @@ projects {
                 +"ktor-client-serialization"
             }
             +"ktor-client-logging"
+            +"ktor-client-rate-limit"
             +"ktor-client-resources"
             +"ktor-client-websockets"
         }
@@ -167,6 +168,7 @@ projects {
     shared {
         +"ktor-call-id"
         +"ktor-events"
+        +"ktor-rate-limit"
         +"ktor-resources"
         +"ktor-serialization" including {
             +"ktor-serialization-kotlinx" including {

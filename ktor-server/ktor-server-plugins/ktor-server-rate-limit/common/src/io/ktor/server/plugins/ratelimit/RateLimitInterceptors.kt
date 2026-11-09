@@ -167,7 +167,7 @@ private fun PluginBuilder<RateLimitInterceptorsConfig>.rateLimiterPluginBuilder(
                 key = key,
             )
             val route = if (call is RoutingPipelineCall) call.route else null
-            val event = when(state) {
+            val event = when (state) {
                 is RateLimiter.State.Available -> {
                     RateLimitEventData.Allowed(
                         limiter = limiterKey,
@@ -178,7 +178,8 @@ private fun PluginBuilder<RateLimitInterceptorsConfig>.rateLimiterPluginBuilder(
                         nextRefillTs = state.refillAtTimeMillis
                     )
                 }
-                is RateLimiter.State.Exhausted ->  {
+
+                is RateLimiter.State.Exhausted -> {
                     RateLimitEventData.Rejected(
                         limiter = limiterKey,
                         route = route,

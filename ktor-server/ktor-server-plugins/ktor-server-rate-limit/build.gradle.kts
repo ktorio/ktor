@@ -10,6 +10,9 @@ plugins {
 
 kotlin {
     sourceSets {
+        commonMain.dependencies {
+            api(projects.ktorRateLimit)
+        }
         commonTest.dependencies {
             implementation(projects.ktorServerAuth)
         }

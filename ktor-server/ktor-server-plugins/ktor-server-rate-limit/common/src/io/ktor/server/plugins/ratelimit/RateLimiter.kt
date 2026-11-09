@@ -66,12 +66,7 @@ public interface RateLimiter {
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.RateLimiter.Companion.Unlimited)
          */
-        public val Unlimited: RateLimiter = object : RateLimiter {
-            override suspend fun state(): RateLimiterSnapshot = RateLimiterSnapshot(Int.MAX_VALUE, Int.MAX_VALUE)
-
-            override suspend fun tryConsume(tokens: Int): State =
-                State.Available(Int.MAX_VALUE, Int.MAX_VALUE, Long.MAX_VALUE)
-        }
+        public val Unlimited: RateLimiter = io.ktor.ratelimit.RateLimiter.Unlimited.asServerRateLimiter()
 
         /**
          * An implementation of [RateLimiter] that starts with [limit] tokens,
@@ -82,13 +77,14 @@ public interface RateLimiter {
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.RateLimiter.Companion.default)
          */
         @Deprecated("Use the overload accepting kotlin.time.Clock.")
+        @Suppress("DEPRECATION")
         public fun default(
             limit: Int,
             refillPeriod: Duration,
             @Suppress("UNUSED_PARAMETER") initialSize: Int = limit,
             clock: () -> Long
         ): RateLimiter {
-            return DefaultRateLimiter(limit, refillPeriod, clock)
+            return io.ktor.ratelimit.RateLimiter.default(limit, refillPeriod, initialSize, clock).asServerRateLimiter()
         }
 
         /**
@@ -104,16 +100,17 @@ public interface RateLimiter {
             @Suppress("UNUSED_PARAMETER") initialSize: Int = limit,
             clock: Clock = Clock.System
         ): RateLimiter {
-            return DefaultRateLimiter(limit, refillPeriod, clock)
+            return io.ktor.ratelimit.RateLimiter.default(limit, refillPeriod, initialSize, clock).asServerRateLimiter()
         }
 
         @Deprecated("Use the overload accepting kotlin.time.Clock.")
+        @Suppress("DEPRECATION")
         public fun incrementalRefill(
             limit: Int,
             refillInterval: Duration,
             clock: () -> Long
         ): RateLimiter {
-            return IncrementalRefillRateLimiter(limit, refillInterval, clock)
+            return io.ktor.ratelimit.RateLimiter.incrementalRefill(limit, refillInterval, clock).asServerRateLimiter()
         }
 
         /**
@@ -127,7 +124,7 @@ public interface RateLimiter {
             refillInterval: Duration,
             clock: Clock = Clock.System
         ): RateLimiter {
-            return IncrementalRefillRateLimiter(limit, refillInterval, clock)
+            return io.ktor.ratelimit.RateLimiter.incrementalRefill(limit, refillInterval, clock).asServerRateLimiter()
         }
     }
 }
