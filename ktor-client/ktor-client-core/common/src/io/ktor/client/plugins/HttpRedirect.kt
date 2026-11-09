@@ -16,6 +16,9 @@ import io.ktor.utils.io.*
 
 private val ALLOWED_FOR_REDIRECT: Set<HttpMethod> = setOf(HttpMethod.Get, HttpMethod.Head)
 
+private val CROSS_AUTHORITY_REDIRECT_STRIPPED_HEADERS: Set<String> =
+    setOf(HttpHeaders.Authorization, HttpHeaders.Cookie)
+
 private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.HttpRedirect")
 
 /**
@@ -25,6 +28,11 @@ private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.HttpRedirect")
  */
 public val HttpResponseRedirectEvent: EventDefinition<HttpResponse> = EventDefinition()
 
+/**
+ * A configuration for the [HttpRedirect] plugin.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.HttpRedirectConfig)
+ */
 @KtorDsl
 public class HttpRedirectConfig {
 
@@ -98,9 +106,9 @@ public val HttpRedirect: ClientPlugin<HttpRedirectConfig> = createClientPlugin(
                 }
 
                 if (previousAuthority != url.authority) {
-                    headers.remove(HttpHeaders.Authorization)
+                    CROSS_AUTHORITY_REDIRECT_STRIPPED_HEADERS.forEach { headers.remove(it) }
                     LOGGER.trace {
-                        "Removing Authorization header for cross-authority redirect: " +
+                        "Removing credential headers for cross-authority redirect: " +
                             "$previousAuthority -> ${url.buildString()}"
                     }
                 }
