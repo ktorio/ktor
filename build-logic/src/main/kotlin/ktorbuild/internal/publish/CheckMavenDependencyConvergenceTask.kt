@@ -8,6 +8,7 @@ import ktorbuild.internal.kotlin
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.Project
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.artifacts.result.ResolvedComponentResult
 import org.gradle.api.artifacts.result.ResolvedDependencyResult
@@ -16,17 +17,19 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.kotlin.dsl.assign
 import org.gradle.kotlin.dsl.register
+import org.gradle.kotlin.dsl.withType
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.gradle.work.DisableCachingByDefault
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
+import org.jetbrains.kotlin.gradle.targets.jvm.KotlinJvmTarget
 
 /**
- * Checks that direct dependencies are not upgraded transitively.
+ * Checks that direct dependencies are resolved to the declared versions.
  *
  * Gradle resolves version conflicts by picking the highest version, while Maven picks the "nearest" one.
  * If a module declares `C:1.0`, but one of its dependencies requires `C:1.1`, Gradle builds and tests
  * against `1.1`, but Maven consumers get the declared `1.0`, because a direct dependency is always the nearest.
- * The fix is to bump the declared version to the resolved one.
+ * The fix is to update the declared version to the resolved one.
  *
  * Only direct dependencies are checked, the same way as `maven-sympathy` does. Only the JVM runtime classpath
  * is checked because it contains all dependencies that end up in the published JVM POM.
@@ -46,29 +49,32 @@ internal abstract class CheckMavenDependencyConvergenceTask : DefaultTask() {
 
     init {
         group = LifecycleBasePlugin.VERIFICATION_GROUP
-        description = "Checks that declared dependencies are not upgraded transitively, " +
+        description = "Checks that declared dependencies are resolved to the declared versions, " +
             "so Maven consumers resolve the same versions as Gradle"
     }
 
     @TaskAction
     fun check() {
-        val upgrades = rootComponent.get().dependencies
+        val mismatches = rootComponent.get().dependencies
             .filterIsInstance<ResolvedDependencyResult>()
+            // Constraints end up in <dependencyManagement>, which Maven ignores in dependency POMs
+            .filterNot { it.isConstraint }
             .mapNotNull { dependency ->
                 val requested = dependency.requested as? ModuleComponentSelector ?: return@mapNotNull null
-                val selectedVersion = dependency.selected.moduleVersion?.version
-                if (requested.version.isEmpty() || requested.version == selectedVersion) return@mapNotNull null
-                "${requested.moduleIdentifier}:${requested.version} -> $selectedVersion"
+                // Skip dependencies substituted with a project or a non-module component
+                val selected = dependency.selected.id as? ModuleComponentIdentifier ?: return@mapNotNull null
+                if (requested.version.isEmpty() || requested.version == selected.version) return@mapNotNull null
+                "${requested.moduleIdentifier}:${requested.version} -> ${selected.version}"
             }
             .distinct()
             .sorted()
 
-        if (upgrades.isNotEmpty()) {
+        if (mismatches.isNotEmpty()) {
             throw GradleException(
                 buildString {
-                    appendLine("Declared dependencies of '${configurationName.get()}' were upgraded transitively.")
-                    appendLine("Maven consumers will get the declared (older) versions. Bump them to the resolved ones:")
-                    upgrades.forEach { appendLine("  - $it") }
+                    appendLine("Declared dependencies of '${configurationName.get()}' resolved to different versions.")
+                    appendLine("Maven consumers will get the declared versions. Update them to the resolved ones:")
+                    mismatches.forEach { appendLine("  - $it") }
                 }
             )
         }
@@ -81,8 +87,8 @@ internal abstract class CheckMavenDependencyConvergenceTask : DefaultTask() {
  */
 internal fun Project.registerMavenDependencyConvergenceCheck() {
     val checkTask = tasks.register<CheckMavenDependencyConvergenceTask>("checkMavenDependencyConvergence") {
-
-        val runtimeClasspath = kotlin.jvm().compilations
+        // Look the target up instead of calling `kotlin.jvm()`, which would create it if it's missing
+        val runtimeClasspath = kotlin.targets.withType<KotlinJvmTarget>().single().compilations
             .getByName(KotlinCompilation.MAIN_COMPILATION_NAME)
             .runtimeDependencyConfigurationName
 
