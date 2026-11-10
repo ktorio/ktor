@@ -9,12 +9,16 @@ import io.ktor.http.content.*
 import io.ktor.http.websocket.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
+import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import io.ktor.websocket.*
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
+import kotlinx.io.IOException
 import kotlin.coroutines.CoroutineContext
 
 /**
@@ -104,6 +108,15 @@ public class WebSocketUpgrade(
                 webSocket.handle()
                 webSocket.flush()
             } catch (cause: Throwable) {
+                // Deliver a frame the session already queued, such as Close(TOO_BIG), while the connection is still
+                // usable, without waiting forever for a peer that stopped reading.
+                if (cause !is CancellationException && cause !is IOException) {
+                    try {
+                        withTimeoutOrNull(plugin.timeoutMillis) { webSocket.flush() }
+                    } catch (flushCause: Exception) {
+                        call.application.log.debug(flushCause) { "WebSocket flush failed after $cause; ignoring" }
+                    }
+                }
                 webSocket.cancel("WebSocket is cancelled", cause)
             } finally {
                 webSocket.cancel()

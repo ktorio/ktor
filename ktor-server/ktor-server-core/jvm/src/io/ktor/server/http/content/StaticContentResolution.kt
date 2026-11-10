@@ -11,6 +11,8 @@ import io.ktor.server.plugins.*
 import io.ktor.server.util.*
 import io.ktor.utils.io.*
 import java.io.File
+import java.io.IOException
+import java.net.JarURLConnection
 import java.net.URL
 import java.util.concurrent.ConcurrentHashMap
 
@@ -101,12 +103,13 @@ public fun resourceClasspathResource(
         }
 
         "jar" -> {
-            if (path.endsWith("/")) {
-                null
-            } else {
-                val zipFile = findContainingJarFile(url.toString()) ?: return URIFileContent(url, mimeResolve(url))
-                JarFileContent(zipFile, path, mimeResolve(url)).takeIf { it.isFile }
+            if (path.endsWith("/")) return null
+            findContainingJarFile(url.toString())?.let { zipFile ->
+                return JarFileContent(zipFile, path, mimeResolve(url))
+                    .takeIf { it.isFile }
             }
+            if (url.isJarDirectory()) return null
+            URIFileContent(url, mimeResolve(url))
         }
 
         "jrt", "resource" -> {
@@ -115,6 +118,23 @@ public fun resourceClasspathResource(
 
         else -> null
     }
+}
+
+/**
+ * Checks whether a JAR URL that can't be opened as a local [java.util.jar.JarFile]
+ * (e.g. Spring Boot `jar:nested:`) points to a directory entry.
+ */
+private fun URL.isJarDirectory(): Boolean {
+    val connection = openConnection() as? JarURLConnection ?: return false
+    // Open a private jar file instead of the shared cached one.
+    connection.useCaches = false
+    val jarFile = try {
+        connection.jarFile
+    } catch (_: IOException) {
+        // Nothing to close: the connection closes the jar itself when connect() fails.
+        return false
+    }
+    return jarFile.use { connection.jarEntry?.isDirectory == true }
 }
 
 /**

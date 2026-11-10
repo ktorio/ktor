@@ -138,11 +138,15 @@ internal class ApacheResponseConsumer(
     }
 
     override fun consume(src: ByteBuffer) {
-        // Silently discard when the channel is closed (e.g. caller scope was cancelled).
+        // Discard when the channel is closed (e.g. caller scope was cancelled) and abort the exchange through
+        // attachFuture: discarded bytes never return capacity, so Apache would otherwise wait forever.
         // Throwing here (even IOException per the interface contract) causes Apache to invoke its
         // error-recovery path mid-body-stream, which either corrupts the connection pool state or
         // triggers a retry on an already-shutdown scheduler (RejectedExecutionException).
-        if (channel.isClosedForWrite) return
+        if (channel.isClosedForWrite) {
+            consumerJob.cancel()
+            return
+        }
         messagesQueue.trySend(src.copy())
     }
 

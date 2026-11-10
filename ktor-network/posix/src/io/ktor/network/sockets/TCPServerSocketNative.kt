@@ -61,6 +61,16 @@ internal class TCPServerSocketNative(
         }
         buildOrCloseSocket(clientDescriptor) {
             nonBlocking(clientDescriptor).check()
+            if (localAddress is InetSocketAddress) {
+                val noDelay = alloc<IntVar> { value = 1 }
+                ktor_setsockopt(
+                    clientDescriptor,
+                    IPPROTO_TCP,
+                    TCP_NODELAY,
+                    noDelay.ptr,
+                    sizeOf<IntVar>().convert()
+                ).check()
+            }
 
             val remoteAddress = clientAddress.reinterpret<sockaddr>().toNativeSocketAddress()
 

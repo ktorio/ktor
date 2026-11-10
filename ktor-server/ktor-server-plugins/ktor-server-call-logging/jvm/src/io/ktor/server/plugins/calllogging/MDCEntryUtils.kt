@@ -36,9 +36,13 @@ internal fun List<MDCEntry>.setup(call: ApplicationCall): Map<String, String> {
             result[entry.name] = savedValue
             continue
         }
-        val value = runCatching { entry.provider(call) }.getOrNull() ?: continue
-        result[entry.name] = value
-        savedEntries[entry.name] = value
+        val value = runCatching { entry.provider(call) }.getOrNull()
+        if (value != null) {
+            result[entry.name] = value
+            savedEntries[entry.name] = value
+        } else {
+            result.remove(entry.name)
+        }
     }
 
     return result

@@ -95,17 +95,23 @@ public data class LastModifiedVersion(val lastModified: GMTDate) : Version {
      *
      *  @return [VersionCheckResult.OK] if all headers pass or there are no headers in the request,
      *  [VersionCheckResult.NOT_MODIFIED] for `If-Modified-Since`,
-     *  [VersionCheckResult.PRECONDITION_FAILED] for `If-Unmodified-Since`
+     *  [VersionCheckResult.PRECONDITION_FAILED] for `If-Unmodified-Since`.
+     *  `If-Modified-Since` is ignored when `If-None-Match` is present, and `If-Unmodified-Since`
+     *  is ignored when `If-Match` is present (RFC 9110, section 13.2.2).
      */
     override fun check(requestHeaders: Headers): VersionCheckResult {
-        val modifiedSince = requestHeaders.getAll(HttpHeaders.IfModifiedSince)?.parseDates()
-        if (modifiedSince != null && !ifModifiedSince(modifiedSince)) {
-            return VersionCheckResult.NOT_MODIFIED
+        if (!requestHeaders.contains(HttpHeaders.IfNoneMatch)) {
+            val modifiedSince = requestHeaders.getAll(HttpHeaders.IfModifiedSince)?.parseDates()
+            if (modifiedSince != null && !ifModifiedSince(modifiedSince)) {
+                return VersionCheckResult.NOT_MODIFIED
+            }
         }
 
-        val unmodifiedSince = requestHeaders.getAll(HttpHeaders.IfUnmodifiedSince)?.parseDates()
-        if (unmodifiedSince != null && !ifUnmodifiedSince(unmodifiedSince)) {
-            return VersionCheckResult.PRECONDITION_FAILED
+        if (!requestHeaders.contains(HttpHeaders.IfMatch)) {
+            val unmodifiedSince = requestHeaders.getAll(HttpHeaders.IfUnmodifiedSince)?.parseDates()
+            if (unmodifiedSince != null && !ifUnmodifiedSince(unmodifiedSince)) {
+                return VersionCheckResult.PRECONDITION_FAILED
+            }
         }
 
         return VersionCheckResult.OK

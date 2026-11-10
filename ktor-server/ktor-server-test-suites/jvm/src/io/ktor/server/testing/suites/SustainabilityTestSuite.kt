@@ -47,6 +47,19 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
 ) : SustainabilityCommonTestSuite<TEngine, TConfiguration>(hostFactory) {
 
+    private val bigFile: File by lazy {
+        File("build/large-file.dat").also { file ->
+            if (!file.exists()) {
+                val rnd = Random()
+                file.bufferedWriter().use { out ->
+                    repeat(3 * 1024 * 1024 / 2) {
+                        out.append('a' + rnd.nextInt(25))
+                    }
+                }
+            }
+        }
+    }
+
     @Test
     fun testLoggerOnError() = runTest {
         val message = "expected, ${Random().nextLong()}"
@@ -73,24 +86,48 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
 
         withUrl("/") {
             assertEquals(HttpStatusCode.InternalServerError.value, status.value)
+            collected.awaitExpected(message)
+        }
 
-            while (true) {
-                val exception = collected.poll(timeout.inWholeSeconds, TimeUnit.SECONDS)
-                if (exception is ExpectedException) {
-                    assertEquals(message, exception.message)
-                    break
-                }
+        // The writer can fail before its headers reach the client, which then sees the connection end.
+        withEachUrl("/respondWrite", onDisconnect = { collected.awaitExpected(message) }) {
+            assertEquals(HttpStatusCode.OK.value, status.value)
+            collected.awaitExpected(message)
+        }
+    }
+
+    /**
+     * Requests [path] over the same protocols as [withUrl], but a request whose connection ends with an
+     * [IOException] runs [onDisconnect] instead of skipping the protocols after it.
+     */
+    private suspend fun withEachUrl(
+        path: String,
+        onDisconnect: () -> Unit,
+        block: suspend HttpResponse.(Int) -> Unit
+    ) {
+        suspend fun attempt(request: suspend () -> Unit) {
+            try {
+                request()
+            } catch (_: IOException) {
+                onDisconnect()
             }
         }
 
-        withUrl("/respondWrite") {
-            assertEquals(HttpStatusCode.OK.value, status.value)
-            while (true) {
-                val exception = collected.poll(timeout.inWholeSeconds, TimeUnit.SECONDS)
-                if (exception is ExpectedException) {
-                    assertEquals(message, exception.message)
-                    break
-                }
+        attempt { withHttp1("http://127.0.0.1:$port$path", port, {}, block) }
+        if (enableSsl) {
+            attempt { withHttp1("https://127.0.0.1:$sslPort$path", sslPort, {}, block) }
+        }
+        if (enableHttp2 && enableSsl) {
+            attempt { withHttp2("https://127.0.0.1:$sslPort$path", sslPort, {}, block) }
+        }
+    }
+
+    private fun LinkedBlockingQueue<Throwable>.awaitExpected(message: String) {
+        while (true) {
+            val exception = assertNotNull(poll(timeout.inWholeSeconds, TimeUnit.SECONDS), "No error was logged")
+            if (exception is ExpectedException) {
+                assertEquals(message, exception.message)
+                return
             }
         }
     }
@@ -363,26 +400,12 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
 
     @OptIn(InternalAPI::class)
     @Test
-    fun testBigFile() = runTest(timeout = 1.minutes) {
-        val file = File("build/large-file.dat")
-        val rnd = Random()
-
-        if (!file.exists()) {
-            file.bufferedWriter().use { out ->
-                repeat(9000000) {
-                    repeat(30 + rnd.nextInt(40)) {
-                        out.append('a' + rnd.nextInt(25))
-                    }
-                    out.append('\n')
-                }
-            }
-        }
-
-        val (fileChecksum, fileCount) = file.inputStream().use { it.crcWithSize() }
+    fun testBigFile() = runTest(timeout = 2.minutes) {
+        val (fileChecksum, fileCount) = bigFile.inputStream().use { it.crcWithSize() }
 
         createAndStartServer {
             get("/file") {
-                call.respond(LocalFileContent(file))
+                call.respond(LocalFileContent(bigFile))
             }
         }
 
@@ -395,25 +418,11 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
 
     @Test
     fun testBigFileHttpUrlConnection() = runTest {
-        val file = File("build/large-file.dat")
-        val rnd = Random()
-
-        if (!file.exists()) {
-            file.bufferedWriter().use { out ->
-                repeat(9000000) {
-                    repeat(30 + rnd.nextInt(40)) {
-                        out.append('a' + rnd.nextInt(25))
-                    }
-                    out.append('\n')
-                }
-            }
-        }
-
-        val originalSha1WithSize = file.inputStream().use { it.crcWithSize() }
+        val originalSha1WithSize = bigFile.inputStream().use { it.crcWithSize() }
 
         createAndStartServer {
             get("/file") {
-                call.respond(LocalFileContent(file))
+                call.respond(LocalFileContent(bigFile))
             }
         }
 

@@ -203,8 +203,10 @@ class HttpStatementTest : ClientLoader(timeout = 5.seconds) {
         }
     }
 
+    // KTOR-9951: The body transform reads the channel in the background, and Android's blocking
+    // InputStream.close() can wait for the next chunk before cleanup finishes.
     @Test
-    fun `body block propagates failure without waiting for the body`() = clientTests {
+    fun `body block propagates failure without waiting for the body`() = clientTests(except("Android")) {
         test { client ->
             val exception = assertFailsWith<IllegalStateException> {
                 client.prepareStream(delay = 1.minutes).body<ByteReadChannel, Unit> {
@@ -314,12 +316,11 @@ class HttpStatementTest : ClientLoader(timeout = 5.seconds) {
         }
     }
 
-    // KTOR-9938: Apache5 doesn't close the consumer job.
     // KTOR-9952: CIO doesn't abort the exchange when rawContent is canceled inside execute.
     // KTOR-9955: WinHttp doesn't abort the exchange when rawContent is canceled inside execute.
     @OptIn(InternalAPI::class)
     @Test
-    fun `cancelling rawContent stops the underlying stream`() = clientTests(except("Apache5", "CIO", "WinHttp")) {
+    fun `cancelling rawContent stops the underlying stream`() = clientTests(except("CIO", "WinHttp")) {
         test { client ->
             val id = Random.nextInt()
 

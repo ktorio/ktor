@@ -61,6 +61,7 @@ class RawSourceChannelTest {
         val channel = RawSourceChannel(source, EmptyCoroutineContext)
 
         channel.cancel(IOException("test cancellation"))
+        channel.job.join()
 
         assertTrue(source.isClosed, "the source should be closed when the channel is cancelled")
     }
@@ -91,6 +92,7 @@ class RawSourceChannelTest {
 
         ByteReadChannel(source, parent)
         parent.cancel()
+        parent.join()
 
         assertTrue(source.isClosed, "the source should be closed when the parent job is cancelled")
     }

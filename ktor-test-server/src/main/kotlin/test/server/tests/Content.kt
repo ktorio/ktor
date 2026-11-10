@@ -37,12 +37,17 @@ internal fun Application.contentTestServer() {
                     text.chunked(255).forEach { write(it) }
                 }
             }
-            head("/emptyHead") {
-                call.respond(
-                    object : OutgoingContent.NoContent() {
-                        override val contentLength: Long = 150
-                    }
-                )
+            route("/no-body") {
+                handle {
+                    val parameters = call.request.queryParameters
+                    call.respond(object : OutgoingContent.NoContent() {
+                        override val status = HttpStatusCode.fromValue(parameters["status"]?.toInt() ?: 200)
+                        override val contentLength = parameters["length"]?.toLong()
+                        override val headers = parameters["encoding"]?.let {
+                            headersOf(HttpHeaders.ContentEncoding, it)
+                        } ?: Headers.Empty
+                    })
+                }
             }
             get("/hello") {
                 call.respond("hello")

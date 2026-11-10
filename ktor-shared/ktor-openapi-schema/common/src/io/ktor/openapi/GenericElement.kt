@@ -550,6 +550,11 @@ internal class JsonGenericElement(
     override fun isArray(): Boolean = element is JsonArray
     override fun isString(): Boolean = element is JsonPrimitive && element.isString
 
+    override fun equals(other: Any?): Boolean =
+        other is JsonGenericElement && element == other.element
+
+    override fun hashCode(): Int = element.hashCode()
+
     override fun <T> deserialize(serializer: DeserializationStrategy<T>): T =
         json.decodeFromJsonElement(serializer, element)
 

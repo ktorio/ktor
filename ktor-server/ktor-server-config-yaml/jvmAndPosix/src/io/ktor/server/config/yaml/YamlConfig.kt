@@ -147,7 +147,9 @@ public class YamlConfig private constructor(yamlMap: YamlMap) : ApplicationConfi
         @Suppress("UNCHECKED_CAST")
         override fun getMap(): Map<String, Any?> =
             toPrimitive(node) as? Map<String, Any?>
-                ?: error("Expected map at $key but found ${type.name}")
+                ?: throw ApplicationConfigurationException(
+                    "Failed to read property value for key as Map: \"$key\", found ${type.name}"
+                )
 
         @OptIn(InternalAPI::class)
         override fun getAs(type: TypeInfo): Any? {

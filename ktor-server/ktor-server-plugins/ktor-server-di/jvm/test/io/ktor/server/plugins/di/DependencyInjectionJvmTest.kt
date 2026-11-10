@@ -12,8 +12,9 @@ import io.ktor.server.application.*
 import io.ktor.server.config.*
 import io.ktor.server.testing.*
 import io.ktor.test.dispatcher.*
-import io.ktor.util.reflect.TypeInfo
-import kotlinx.coroutines.*
+import io.ktor.util.reflect.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.SendChannel
 import kotlinx.coroutines.test.TestResult

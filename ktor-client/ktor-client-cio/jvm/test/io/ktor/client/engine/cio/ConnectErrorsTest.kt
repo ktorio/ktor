@@ -195,8 +195,11 @@ class ConnectErrorsTest {
 
             ServerSocket(serverSocket.localPort).use { server ->
                 val thread = thread {
-                    server.accept().use {
-                        // emulate connection closed before sending status line
+                    server.accept().use { socket ->
+                        // Emulate connection closed before sending status line.
+                        // Half-close and drain the request: close() with unread input sends RST instead of FIN
+                        socket.shutdownOutput()
+                        socket.getInputStream().readBytes()
                     }
                 }
 

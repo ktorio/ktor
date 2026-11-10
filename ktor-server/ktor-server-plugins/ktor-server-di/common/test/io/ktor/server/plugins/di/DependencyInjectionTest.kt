@@ -11,7 +11,6 @@ import io.ktor.server.plugins.di.utils.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import io.ktor.test.*
 import io.ktor.test.dispatcher.*
 import io.ktor.util.logging.*
 import io.ktor.util.reflect.*
@@ -689,6 +688,33 @@ class DependencyInjectionTest {
             ambiguousWarnings.isEmpty(),
             "Expected no AmbiguousDependencyException during shutdown, but got: $ambiguousWarnings"
         )
+    }
+
+    @Test
+    fun `cleanup should run on test server`() = runTestWithRealTime {
+        var balance = 1
+
+        runTestApplication {
+            application {
+                dependencies {
+                    provide<Int> {
+                        balance
+                    }.cleanup {
+                        balance--
+                    }
+                }
+            }
+            routing {
+                get("/balance") {
+                    val money: Int = dependencies.resolve()
+                    call.respondText("You have $money dollars")
+                }
+            }
+            val response = client.get("/balance")
+            assertEquals("You have 1 dollars", response.bodyAsText())
+        }
+
+        assertEquals(0, balance, "Cleanup should have ran")
     }
 
     @Suppress("UNCHECKED_CAST")

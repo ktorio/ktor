@@ -1,3 +1,42 @@
+# 3.6.1
+> Published 29 October 2026
+
+### Improvements
+* [KTOR-10005](https://youtrack.jetbrains.com/issue/KTOR-10005) Native accepted TCP sockets do not enable TCP_NODELAY, unlike JVM
+* [KTOR-9966](https://youtrack.jetbrains.com/issue/KTOR-9966) Netty poor performance on delay calls
+* [KTOR-4206](https://youtrack.jetbrains.com/issue/KTOR-4206) The "com.typesafe.config.ConfigException$Missing" exception leaks from the typesafe config library when configuration is merged
+
+### Bugfixes
+* [KTOR-10037](https://youtrack.jetbrains.com/issue/KTOR-10037) CIO: keep-alive connection hangs when a response fails before writing any bytes
+* [KTOR-9969](https://youtrack.jetbrains.com/issue/KTOR-9969) Kotlin/Native CIO server occasionally closes an accepted connection with zero response bytes under CPU load
+* [KTOR-9974](https://youtrack.jetbrains.com/issue/KTOR-9974) CIO: close_notify is written concurrently with the last record, corrupting the TLS output and the kotlinx-io segment pool
+* [KTOR-9925](https://youtrack.jetbrains.com/issue/KTOR-9925) Resources: Constant sibling route loses to parameterized one when routes are split across separate authenticate blocks
+* [KTOR-9938](https://youtrack.jetbrains.com/issue/KTOR-9938) Apache5: streaming response hangs when the block returns before the body arrives
+* [KTOR-10023](https://youtrack.jetbrains.com/issue/KTOR-10023) Ktor 3.6.0 no longer throws BadRequestException for malformed paths
+* [KTOR-9986](https://youtrack.jetbrains.com/issue/KTOR-9986) HttpRedirect: a relative Location with dot segments is not normalized, so most engines send `..` in the request path
+* [KTOR-10085](https://youtrack.jetbrains.com/issue/KTOR-10085) ETags: Ignore If-Modified-Since when If-None-Match is present
+* [KTOR-9430](https://youtrack.jetbrains.com/issue/KTOR-9430) DI: resources are not cleaned up during testing with testApplication
+* [KTOR-7175](https://youtrack.jetbrains.com/issue/KTOR-7175) Ktor-client, connections leak
+* [KTOR-9848](https://youtrack.jetbrains.com/issue/KTOR-9848) Android: The Android engine crashes with Unbalanced enter/exit on response read cancellation
+* [KTOR-9994](https://youtrack.jetbrains.com/issue/KTOR-9994) Android engine closes RawSourceChannel on the main thread and crashes with NetworkOnMainThreadException
+* [KTOR-9959](https://youtrack.jetbrains.com/issue/KTOR-9959) Sockets: CIO writer busy-loops when a nonblocking write returns zero
+* [KTOR-9970](https://youtrack.jetbrains.com/issue/KTOR-9970) Java: Cancelling a request before response headers does not abort the HTTP exchange
+* [KTOR-10006](https://youtrack.jetbrains.com/issue/KTOR-10006) OpenAPI: Compiler crash on local variable using object expression
+* [KTOR-9972](https://youtrack.jetbrains.com/issue/KTOR-9972) Android: DiskReadViolation when KtorSimpleLogger is initialized during plugin execution
+* [KTOR-9985](https://youtrack.jetbrains.com/issue/KTOR-9985) OpenAPI compiler plugin duplicates unrelated schemas (FooDTO -> FooDTO2) after adding new routes
+* [KTOR-2348](https://youtrack.jetbrains.com/issue/KTOR-2348) DoubleReceive: recursive receive pipeline re-entry when receiving content in a receivePipeline interceptor
+* [KTOR-9968](https://youtrack.jetbrains.com/issue/KTOR-9968) Test engine streaming responses hang when over 1MB
+* [KTOR-9894](https://youtrack.jetbrains.com/issue/KTOR-9894) Netty + Compression: response leaked when the client disconnects before the body is written
+* [KTOR-9987](https://youtrack.jetbrains.com/issue/KTOR-9987) WebSockets: Netty sometimes closes socket before sending close frame
+* [KTOR-9943](https://youtrack.jetbrains.com/issue/KTOR-9943) HttpStatement.execute can hang when its block abandons a response body
+* [KTOR-9980](https://youtrack.jetbrains.com/issue/KTOR-9980) CallLogging: MDC entries leak stale thread-local values when provider returns null
+* [KTOR-9790](https://youtrack.jetbrains.com/issue/KTOR-9790) testApplication: `sseSession()` never returns when the SSE route installs a `heartbeat`
+* [KTOR-9884](https://youtrack.jetbrains.com/issue/KTOR-9884) Directories are returned as empty binaries when using nested jars
+* [KTOR-4245](https://youtrack.jetbrains.com/issue/KTOR-4245) Code snippet in Kdoc for DefaultRequest doesn't compile
+* [KTOR-10035](https://youtrack.jetbrains.com/issue/KTOR-10035) WebSocket drops the queued Close frame when the server session fails
+* [KTOR-10036](https://youtrack.jetbrains.com/issue/KTOR-10036) testApplication: WebSocket client stops reading before the servers Close reply arrives
+
+
 # 3.6.0
 > Published 16 September 2026
 
