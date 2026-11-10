@@ -2,15 +2,14 @@
 * Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
 */
 
-package io.ktor.tests.routing
+package io.ktor.server.routing
 
-import io.ktor.server.routing.*
 import kotlin.test.*
 
 internal class RouteSelectorTest {
 
     @Test
-    fun testEvaluateWithPrefixAndSuffixMatched() {
+    fun `evaluate with prefix and suffix matched`() {
         val evaluation = evaluatePathSegmentParameter(
             segments = listOf("prefixPARAMsuffix"),
             segmentIndex = 0,
@@ -21,13 +20,13 @@ internal class RouteSelectorTest {
         )
 
         assertTrue(evaluation is RouteSelectorEvaluation.Success)
-        assertEquals(evaluation.quality, RouteSelectorEvaluation.qualityParameterWithPrefixOrSuffix)
-        assertEquals(evaluation.succeeded, true)
-        assertEquals(evaluation.parameters["param"], "PARAM")
+        assertEquals(RouteSelectorEvaluation.qualityParameterWithPrefixOrSuffix, evaluation.quality)
+        assertTrue(evaluation.succeeded)
+        assertEquals("PARAM", evaluation.parameters["param"])
     }
 
     @Test
-    fun testEvaluateWithPrefixNotMatched() {
+    fun `evaluate with prefix not matched`() {
         val evaluation = evaluatePathSegmentParameter(
             segments = listOf("1prefixPARAMsuffix"),
             segmentIndex = 0,
@@ -41,7 +40,7 @@ internal class RouteSelectorTest {
     }
 
     @Test
-    fun testEvaluateWithSuffixNotMatched() {
+    fun `evaluate with suffix not matched`() {
         val evaluation = evaluatePathSegmentParameter(
             segments = listOf("prefixPARAMsuffix1"),
             segmentIndex = 0,
@@ -55,7 +54,7 @@ internal class RouteSelectorTest {
     }
 
     @Test
-    fun testEvaluateWithoutPrefixOrSuffix() {
+    fun `evaluate without prefix or suffix`() {
         val evaluation = evaluatePathSegmentParameter(
             segments = listOf("PARAM"),
             segmentIndex = 0,
@@ -64,12 +63,12 @@ internal class RouteSelectorTest {
         )
 
         assertTrue(evaluation is RouteSelectorEvaluation.Success)
-        assertEquals(evaluation.succeeded, true)
-        assertEquals(evaluation.quality, RouteSelectorEvaluation.qualityParameter)
+        assertTrue(evaluation.succeeded)
+        assertEquals(RouteSelectorEvaluation.qualityParameter, evaluation.quality)
     }
 
     @Test
-    fun testEvaluateWithSegmentIndexOutsideOfSegments() {
+    fun `evaluate with segment index outside of segments`() {
         val evaluation = evaluatePathSegmentParameter(
             segments = listOf("prefixPARAMsuffix"),
             segmentIndex = 1,
@@ -83,7 +82,7 @@ internal class RouteSelectorTest {
     }
 
     @Test
-    fun testEvaluateWithPrefixNotMatchedOptional() {
+    fun `evaluate with prefix not matched optional`() {
         val evaluation = evaluatePathSegmentParameter(
             segments = listOf("1prefixPARAMsuffix"),
             segmentIndex = 0,
@@ -97,7 +96,7 @@ internal class RouteSelectorTest {
     }
 
     @Test
-    fun testEvaluateWithSuffixNotMatchedOptional() {
+    fun `evaluate with suffix not matched optional`() {
         val evaluation = evaluatePathSegmentParameter(
             segments = listOf("prefixPARAMsuffix1"),
             segmentIndex = 0,
@@ -111,7 +110,7 @@ internal class RouteSelectorTest {
     }
 
     @Test
-    fun testEvaluateWithSegmentIndexOutsideOfSegmentsOptional() {
+    fun `evaluate with segment index outside of segments optional`() {
         val evaluation = evaluatePathSegmentParameter(
             segments = listOf("prefixPARAMsuffix"),
             segmentIndex = 1,
@@ -125,7 +124,7 @@ internal class RouteSelectorTest {
     }
 
     @Test
-    fun testEvaluateWithTrailingSlashAndOptional() {
+    fun `evaluate with trailing slash and optional`() {
         val evaluation = evaluatePathSegmentParameter(
             segments = listOf("foo", ""),
             segmentIndex = 1,
@@ -134,14 +133,14 @@ internal class RouteSelectorTest {
         )
 
         assertEquals(
-            evaluation,
             RouteSelectorEvaluation
-                .Success(RouteSelectorEvaluation.qualityMissing, segmentIncrement = 1)
+                .Success(RouteSelectorEvaluation.qualityMissing, segmentIncrement = 1),
+            evaluation
         )
     }
 
     @Test
-    fun testEvaluateWithoutTrailingSlashAndOptional() {
+    fun `evaluate without trailing slash and optional`() {
         val evaluation = evaluatePathSegmentParameter(
             segments = listOf("foo"),
             segmentIndex = 1,
@@ -153,7 +152,7 @@ internal class RouteSelectorTest {
     }
 
     @Test
-    fun testEvaluateWithTrailingSlashAndNonOptional() {
+    fun `evaluate with trailing slash and non-optional`() {
         val evaluation = evaluatePathSegmentParameter(
             segments = listOf("foo", ""),
             segmentIndex = 1,

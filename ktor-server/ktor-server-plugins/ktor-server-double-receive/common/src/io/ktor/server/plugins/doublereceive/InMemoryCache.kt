@@ -135,8 +135,8 @@ internal class InMemoryCache : DoubleReceiveCache {
                     try {
                         current.channel.writeFully(buffer, startIndex = 0, endIndex = size)
                     } catch (cause: Exception) {
-                        if (!current.channel.isClosedForWrite) throw cause
                         ensureActive()
+                        if (!current.channel.isClosedForWrite) throw cause
                         isForwarding = false
                     }
                 }
