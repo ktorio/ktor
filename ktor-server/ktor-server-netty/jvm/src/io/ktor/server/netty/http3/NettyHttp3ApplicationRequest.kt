@@ -18,7 +18,7 @@ import java.net.*
 import kotlin.coroutines.*
 
 /**
- * Completes the trailer headers deferred with the given [Http3Headers], closing the content actor
+ * Completes the trailer headers deferred with the given [Http3Headers], closing the content stream
  * to signal that no more data frames are expected after trailers.
  */
 internal fun NettyHttp3ApplicationRequest.receiveTrailers(trailerHeaders: Http3Headers) {
@@ -31,7 +31,7 @@ internal fun NettyHttp3ApplicationRequest.receiveTrailers(trailerHeaders: Http3H
         }
     }
     requestTrailers.complete(headers)
-    contentActor.close()
+    closeContent()
 }
 
 internal class NettyHttp3ApplicationRequest(
@@ -62,13 +62,29 @@ internal class NettyHttp3ApplicationRequest(
         }
     }
 
+    private var contentActor: SendChannel<Http3DataFrame>? = null
+    private var contentClosed: Boolean = false
+
+    fun offerContent(frame: Http3DataFrame): Boolean = !contentClosed && dataFrameActor().trySend(frame).isSuccess
+
+    fun closeContent(cause: Throwable? = null) {
+        if (contentClosed) return
+        contentClosed = true
+        val actor = contentActor
+        if (actor == null) {
+            if (cause == null) contentByteChannel.close() else contentByteChannel.cancel(cause)
+        } else {
+            actor.close(cause)
+        }
+    }
+
     @OptIn(ObsoleteCoroutinesApi::class)
-    val contentActor = actor(
+    private fun dataFrameActor(): SendChannel<Http3DataFrame> = contentActor ?: actor(
         Dispatchers.Unconfined,
         kotlinx.coroutines.channels.Channel.UNLIMITED
     ) {
         http3frameLoop(contentByteChannel)
-    }
+    }.also { contentActor = it }
 
     override val local = HttpMultiplexedConnectionPoint(
         pseudoMethod = nettyHeaders.method(),

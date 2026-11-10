@@ -32,7 +32,8 @@ import kotlinx.io.files.SystemFileSystem
  */
 @ExperimentalKtorApi
 public fun Route.staticFiles(remotePath: String, localPath: Path): Route {
-    val compressedEncodings = findCompressedEncodings(SystemFileSystem, localPath)
+    val compressedFiles = findCompressedEncodings(SystemFileSystem, localPath)
+    val compressedEncodings = compressedFiles.encodings
 
     return route(remotePath) {
         get("{$staticFilesPathParameter...}") {
@@ -56,12 +57,7 @@ public fun Route.staticFiles(remotePath: String, localPath: Path): Route {
                 }
 
                 val encodedPath = Path("$path.${encoding.extension}")
-                val encodedFileExists = try {
-                    SystemFileSystem.metadataOrNull(encodedPath)?.isRegularFile == true
-                } catch (_: IOException) {
-                    false
-                }
-                if (!encodedFileExists) continue
+                if (encodedPath !in compressedFiles.paths) continue
 
                 channel = openFileChannel(SystemFileSystem, encodedPath)
                 if (channel != null) {
@@ -95,6 +91,8 @@ private data class CompressedFileEncoding(val extension: String, val encoding: S
 
 private data class CompressedFileSizes(var compressed: Long = 0L, var original: Long = 0L)
 
+private data class CompressedFiles(val encodings: List<CompressedFileEncoding>, val paths: Set<Path>)
+
 private val supportedCompressedEncodings = listOf(
     CompressedFileEncoding("zst", "zstd"),
     CompressedFileEncoding("br", "br"),
@@ -102,8 +100,9 @@ private val supportedCompressedEncodings = listOf(
     CompressedFileEncoding("deflate", "deflate")
 )
 
-private fun findCompressedEncodings(fileSystem: FileSystem, localPath: Path): List<CompressedFileEncoding> {
+private fun findCompressedEncodings(fileSystem: FileSystem, localPath: Path): CompressedFiles {
     val sizes = mutableMapOf<CompressedFileEncoding, CompressedFileSizes>()
+    val paths = mutableSetOf<Path>()
 
     fun scan(directory: Path) {
         val entries = try {
@@ -129,6 +128,7 @@ private fun findCompressedEncodings(fileSystem: FileSystem, localPath: Path): Li
             for (encoding in supportedCompressedEncodings) {
                 val suffix = ".${encoding.extension}"
                 if (!entryName.endsWith(suffix)) continue
+                paths += entry
 
                 val originalPath = Path(entryName.removeSuffix(suffix))
                 val originalMetadata = try {
@@ -149,16 +149,19 @@ private fun findCompressedEncodings(fileSystem: FileSystem, localPath: Path): Li
 
     scan(localPath)
 
-    return supportedCompressedEncodings
-        .filter { it in sizes }
-        .sortedBy { encoding ->
-            val encodingSizes = sizes.getValue(encoding)
-            if (encodingSizes.original == 0L) {
-                encodingSizes.compressed.toDouble()
-            } else {
-                encodingSizes.compressed.toDouble() / encodingSizes.original
-            }
-        }
+    return CompressedFiles(
+        encodings = supportedCompressedEncodings
+            .filter { it in sizes }
+            .sortedBy { encoding ->
+                val encodingSizes = sizes.getValue(encoding)
+                if (encodingSizes.original == 0L) {
+                    encodingSizes.compressed.toDouble()
+                } else {
+                    encodingSizes.compressed.toDouble() / encodingSizes.original
+                }
+            },
+        paths = paths
+    )
 }
 
 @OptIn(ExperimentalKtorApi::class)

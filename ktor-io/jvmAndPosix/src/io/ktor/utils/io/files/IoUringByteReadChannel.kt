@@ -69,6 +69,7 @@ internal class IoUringByteReadChannel(
                     offset = synchronized(stateLock) { offset },
                     onSlot = { setActiveOperation(it, Operation.READ) },
                     onCompletion = ::readCompleted,
+                    owner = this,
                 )
 
                 if (result < 0) throw ioException("read", result)
@@ -90,7 +91,6 @@ internal class IoUringByteReadChannel(
     }
 
     override fun cancel(cause: Throwable?) {
-        var slot = -1
         var operation = Operation.NONE
         var closeDescriptor = -1
 
@@ -98,7 +98,6 @@ internal class IoUringByteReadChannel(
             if (closeToken != null) return
             stopped = true
             closeToken = CloseToken(cause)
-            slot = activeSlot
             operation = activeOperation
 
             if (operation != Operation.READ) releaseBuffer()
@@ -108,8 +107,8 @@ internal class IoUringByteReadChannel(
             }
         }
 
-        if (slot >= 0 && operation != Operation.CLOSE) {
-            ring.cancel(slot, cause.asCancellationException())
+        if (operation != Operation.CLOSE) {
+            ring.cancel(this, cause.asCancellationException())
         }
         if (closeDescriptor >= 0) closeFileAsync(closeDescriptor)
     }
@@ -122,6 +121,7 @@ internal class IoUringByteReadChannel(
             path = path.toString(),
             onSlot = { setActiveOperation(it, Operation.OPEN) },
             onCompletion = ::openCompleted,
+            owner = this,
         )
         if (result < 0) throw ioException("open", result)
     }

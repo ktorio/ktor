@@ -23,9 +23,12 @@ internal class IoUringRing(
 ) {
     private val lock = SynchronizedObject()
     private val slots = arrayOfNulls<PendingRequest>(entryCount)
+    private val freeSlots = IntArray(entryCount) { it }
     private val completionSlots = IntArray(entryCount)
     private val completionResults = IntArray(entryCount)
     private val readBufferPool = ArrayDeque<Long>()
+    private val pendingRequests = ArrayDeque<PendingRequest>()
+    private var freeSlotCount = entryCount
     private var stopped = false
     private var closed = false
 
@@ -44,7 +47,8 @@ internal class IoUringRing(
         path: String,
         onSlot: (Int) -> Unit,
         onCompletion: (Int, Boolean) -> Unit,
-    ): Int = submit(onSlot, onCompletion) { slot ->
+        owner: Any? = null,
+    ): Int = submit(onSlot, onCompletion, owner = owner) { slot ->
         driver.submitOpen(handle, path, slot)
     }
 
@@ -55,7 +59,8 @@ internal class IoUringRing(
         offset: Long,
         onSlot: (Int) -> Unit,
         onCompletion: (Int, Boolean) -> Unit,
-    ): Int = submit(onSlot, onCompletion) { slot ->
+        owner: Any? = null,
+    ): Int = submit(onSlot, onCompletion, owner = owner) { slot ->
         driver.submitRead(handle, fd, address, length, offset, slot)
     }
 
@@ -78,12 +83,22 @@ internal class IoUringRing(
                 onSlot = onSlot,
                 onCompletion = onCompletion,
                 cancellable = false,
-            ),
-        ) { slot -> driver.submitClose(handle, fd, slot) }
+                owner = null,
+                operation = { slot -> driver.submitClose(handle, fd, slot) },
+            )
+        )
     }
 
     fun cancel(slot: Int, cause: CancellationException?) {
         val request = synchronized(lock) { slots.getOrNull(slot) } ?: return
+        if (request.cancellable) request.continuation?.cancel(cause)
+    }
+
+    fun cancel(owner: Any, cause: CancellationException?) {
+        val request = synchronized(lock) {
+            pendingRequests.firstOrNull { it.owner === owner }
+                ?: slots.firstOrNull { it?.owner === owner }
+        } ?: return
         if (request.cancellable) request.continuation?.cancel(cause)
     }
 
@@ -158,62 +173,137 @@ internal class IoUringRing(
         onSlot: (Int) -> Unit,
         onCompletion: (Int, Boolean) -> Unit,
         cancellable: Boolean = true,
+        owner: Any? = null,
         operation: (Int) -> Int,
     ): Int = suspendCancellableCoroutine { continuation ->
-        val request = PendingRequest(continuation, onSlot, onCompletion, cancellable)
+        val request = PendingRequest(continuation, onSlot, onCompletion, cancellable, owner, operation)
         if (cancellable) continuation.invokeOnCancellation { cancelRequest(request) }
-        startRequest(request, operation)
+        startRequest(request)
     }
 
-    private fun startRequest(request: PendingRequest, operation: (Int) -> Int) {
+    private fun startRequest(request: PendingRequest) {
         val slot = synchronized(lock) {
-            if (stopped || closed) {
-                -125
+            if (stopped || closed || request.cancelled) {
+                STOPPED_SLOT
+            } else if (freeSlotCount == 0 || pendingRequests.isNotEmpty()) {
+                request.queued = true
+                pendingRequests.addLast(request)
+                QUEUED_SLOT
             } else {
-                val available = slots.indexOfFirst { it == null }
-                if (available >= 0) {
-                    request.slot = available
-                    slots[available] = request
-                }
-                if (available < 0) -11 else available
+                reserveSlotLocked(request)
             }
         }
 
-        if (slot < 0) {
-            finishRequest(request, slot)
-            return
-        }
+        when (slot) {
+            STOPPED_SLOT -> finishRequest(request, -125)
 
+            QUEUED_SLOT -> return
+
+            else -> {
+                if (submitRequest(request, slot, prioritizePending = true)) startPendingRequests()
+            }
+        }
+    }
+
+    private fun submitRequest(request: PendingRequest, slot: Int, prioritizePending: Boolean): Boolean {
         request.onSlot(slot)
 
         val submissionResult = synchronized(lock) {
-            if (request.cancelled) {
-                slots[slot] = null
+            if (request.cancelled || stopped || closed) {
+                releaseSlotLocked(request, slot)
                 null
             } else {
-                val result = operation(slot)
-                if (result < 0) {
-                    slots[slot] = null
-                } else {
+                val result = request.operation(slot)
+                if (result >= 0) {
                     request.submitted = true
+                } else if (result != EAGAIN) {
+                    releaseSlotLocked(request, slot)
                 }
                 result
             }
         }
 
         when {
-            submissionResult == null -> finishRequest(request, -125)
-            submissionResult < 0 -> finishRequest(request, submissionResult)
+            submissionResult == null -> {
+                finishRequest(request, -125, prioritizePending)
+                return true
+            }
+
+            submissionResult == EAGAIN -> {
+                request.onSlot(NO_SLOT)
+                val queued = synchronized(lock) {
+                    releaseSlotLocked(request, slot)
+                    if (request.cancelled || stopped || closed) {
+                        false
+                    } else {
+                        request.slot = NO_SLOT
+                        request.submitted = false
+                        request.queued = true
+                        pendingRequests.addLast(request)
+                        true
+                    }
+                }
+                if (!queued) finishRequest(request, -125)
+                return false
+            }
+
+            submissionResult < 0 -> finishRequest(request, submissionResult, prioritizePending)
+        }
+        return true
+    }
+
+    private fun startPendingRequests() {
+        while (true) {
+            val requestAndSlot = synchronized(lock) {
+                if (stopped || closed || freeSlotCount == 0 || pendingRequests.isEmpty()) return
+
+                val request = pendingRequests.removeFirst()
+                request.queued = false
+                if (request.cancelled) {
+                    request to STOPPED_SLOT
+                } else {
+                    request to reserveSlotLocked(request)
+                }
+            }
+
+            val (request, slot) = requestAndSlot
+            if (slot == STOPPED_SLOT) {
+                finishRequest(request, -125)
+            } else if (!submitRequest(request, slot, prioritizePending = false)) {
+                return
+            }
+        }
+    }
+
+    private fun reserveSlotLocked(request: PendingRequest): Int {
+        val slot = freeSlots[--freeSlotCount]
+        request.slot = slot
+        slots[slot] = request
+        return slot
+    }
+
+    private fun releaseSlotLocked(request: PendingRequest, slot: Int) {
+        if (slots.getOrNull(slot) === request) {
+            slots[slot] = null
+            freeSlots[freeSlotCount++] = slot
         }
     }
 
     private fun cancelRequest(request: PendingRequest) {
+        var wasQueued = false
         synchronized(lock) {
             if (request.completed || request.cancelled) return
             request.cancelled = true
-            if (request.submitted && request.cancellable) {
+            if (request.queued) {
+                pendingRequests.remove(request)
+                request.queued = false
+                wasQueued = true
+            } else if (request.submitted && request.cancellable) {
                 driver.submitCancel(handle, request.slot)
             }
+        }
+        if (wasQueued) {
+            finishRequest(request, -125, prioritizePending = true)
         }
     }
 
@@ -248,21 +338,23 @@ internal class IoUringRing(
 
     private fun finishSlot(slot: Int, result: Int) {
         val request = synchronized(lock) {
-            slots.getOrNull(slot)?.also { slots[slot] = null }
+            slots.getOrNull(slot)
         } ?: return
-        finishRequest(request, result)
+        finishRequest(request, result, prioritizePending = true)
     }
 
     private fun failPending(result: Int) {
         val pending = synchronized(lock) {
-            slots.mapNotNull { request ->
-                if (request == null) {
-                    null
-                } else {
-                    request.completed = true
-                    request
-                }
-            }.also { slots.fill(null) }
+            stopped = true
+            val requests = slots.mapNotNull { it } + pendingRequests.toList()
+            requests.forEach {
+                it.completed = true
+                it.queued = false
+            }
+            slots.fill(null)
+            pendingRequests.clear()
+            freeSlotCount = freeSlots.size
+            requests
         }
 
         pending.forEach { request ->
@@ -270,15 +362,15 @@ internal class IoUringRing(
         }
     }
 
-    private fun finishRequest(request: PendingRequest, result: Int) {
+    private fun finishRequest(request: PendingRequest, result: Int, prioritizePending: Boolean = false) {
         val cancelled = synchronized(lock) {
             if (request.completed) return
             request.completed = true
-            if (request.slot >= 0 && slots.getOrNull(request.slot) === request) {
-                slots[request.slot] = null
-            }
+            request.queued = false
+            if (request.slot >= 0) releaseSlotLocked(request, request.slot)
             request.cancelled
         }
+        if (prioritizePending) startPendingRequests()
         completeRequest(request, result, cancelled)
     }
 
@@ -300,16 +392,23 @@ internal class IoUringRing(
         val onSlot: (Int) -> Unit,
         val onCompletion: (Int, Boolean) -> Unit,
         val cancellable: Boolean,
+        val owner: Any?,
+        val operation: (Int) -> Int,
     ) {
-        var slot: Int = -1
+        var slot: Int = NO_SLOT
         var submitted: Boolean = false
         var cancelled: Boolean = false
         var completed: Boolean = false
+        var queued: Boolean = false
     }
 
     private companion object {
         const val CANCEL_SLOT: Int = -1
         const val WAKE_SLOT: Int = -2
+        const val NO_SLOT: Int = -1
+        const val QUEUED_SLOT: Int = -126
+        const val STOPPED_SLOT: Int = -125
+        const val EAGAIN: Int = -11
         const val MAX_IDLE_READ_BUFFERS: Int = 8
     }
 }
