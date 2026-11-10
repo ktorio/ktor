@@ -6,7 +6,9 @@ package io.ktor.client
 
 import io.ktor.client.engine.*
 import io.ktor.client.plugins.*
+import io.ktor.client.utils.*
 import io.ktor.util.*
+import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 
 /**
@@ -93,6 +95,13 @@ public class HttpClientConfig<T : HttpClientEngineConfig> {
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.HttpClientConfig.followRedirects)
      */
     public var followRedirects: Boolean = true
+
+    /**
+     * Enables pipeline recording with the supplied recorder, or disables it when `null` (the default).
+     * Each request gets a separate track, including subsequent response body transformations.
+     */
+    @InternalAPI
+    public var pipelineRecorder: PipelineRecorder? = null
 
     /**
      * Enables body transformations for many common types like [String], [ByteArray], [ByteReadChannel], etc.
@@ -206,7 +215,9 @@ public class HttpClientConfig<T : HttpClientEngineConfig> {
             val config = scope.config.pluginConfigurations[plugin.key]!!
             val pluginData = plugin.prepare(config)
 
-            plugin.install(pluginData, scope)
+            scope.withInterceptorTraceName(plugin.key.name) {
+                plugin.install(pluginData, scope)
+            }
             attributes.put(plugin.key, pluginData)
         }
     }
@@ -220,7 +231,9 @@ public class HttpClientConfig<T : HttpClientEngineConfig> {
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.HttpClientConfig.install)
      */
     public fun install(key: String, block: HttpClient.() -> Unit) {
-        customInterceptors[key] = block
+        customInterceptors[key] = { client ->
+            client.withInterceptorTraceName(key) { client.block() }
+        }
     }
 
     /**
@@ -250,10 +263,12 @@ public class HttpClientConfig<T : HttpClientEngineConfig> {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.HttpClientConfig.plusAssign)
      */
+    @OptIn(InternalAPI::class)
     public operator fun plusAssign(other: HttpClientConfig<out T>) {
         followRedirects = other.followRedirects
         useDefaultTransformers = other.useDefaultTransformers
         expectSuccess = other.expectSuccess
+        pipelineRecorder = other.pipelineRecorder
 
         plugins += other.plugins
         pluginConfigurations += other.pluginConfigurations

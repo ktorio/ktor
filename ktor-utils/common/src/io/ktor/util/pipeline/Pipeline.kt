@@ -6,6 +6,7 @@ package io.ktor.util.pipeline
 
 import io.ktor.util.*
 import io.ktor.util.debug.*
+import io.ktor.utils.io.InternalAPI
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.currentCoroutineContext
 import kotlin.coroutines.Continuation
@@ -77,6 +78,8 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
 
     private var interceptorsListSharedPhase: PipelinePhase? = null
 
+    private var interceptorTraceName: InterceptorTraceName? = null
+
     public constructor(
         phase: PipelinePhase,
         interceptors: List<PipelineInterceptor<TSubject, TContext>>
@@ -89,8 +92,66 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.pipeline.Pipeline.execute)
      */
-    public suspend fun execute(context: TContext, subject: TSubject): TSubject =
-        createContext(context, subject, currentCoroutineContext()).execute(subject)
+    @OptIn(InternalAPI::class)
+    public suspend fun execute(context: TContext, subject: TSubject): TSubject {
+        val coroutineContext = currentCoroutineContext()
+        val trace = coroutineContext[PipelineTrace]
+            ?: return createContext(context, subject, coroutineContext).execute(subject)
+
+        val formatValue = attributes.getOrNull(PipelineTraceValueKey)
+        fun snapshot(prefix: String, value: Any): Map<String, String> =
+            trace.snapshot(prefix, value).toMutableMap().apply {
+                formatValue?.invoke(value)?.let { put("$prefix.value", it) }
+            }
+
+        val pipelineName = this::class.simpleName ?: "Pipeline"
+        val pipelineMetadata = snapshot("context", context).toMutableMap()
+        pipelineMetadata.putAll(snapshot("subject.before", subject))
+        return trace.span(pipelineName, "pipeline", pipelineMetadata) {
+            val tracedInterceptors = items.flatMap { phase ->
+                interceptorsForPhase(phase).mapIndexed { index, interceptor ->
+                    val traceName = (interceptor as? NamedPipelineInterceptor<*, *>)?.traceName
+                    val name = traceName?.let { "${it.plugin} · ${it.hook ?: phase.name}" }
+                        ?: "${phase.name} · interceptor #${index + 1}"
+                    val metadata = buildMap {
+                        put("pipeline", pipelineName)
+                        put("phase", phase.name)
+                        put("index", (index + 1).toString())
+                        traceName?.let {
+                            put("plugin", it.plugin)
+                            it.hook?.let { hook -> put("hook", hook) }
+                        }
+                    }
+                    val wrapped: PipelineInterceptor<TSubject, TContext> = { value ->
+                        val execution = this
+                        val activeTrace = currentCoroutineContext()[PipelineTrace]!!
+                        val spanMetadata = metadata.toMutableMap()
+                        spanMetadata.putAll(snapshot("subject.before", value))
+                        activeTrace.span(
+                            name,
+                            "interceptor",
+                            spanMetadata
+                        ) {
+                            try {
+                                interceptor.invoke(execution, value)
+                            } finally {
+                                spanMetadata.putAll(snapshot("subject.after", execution.subject))
+                            }
+                        }
+                    }
+                    wrapped
+                }
+            }
+            val execution = pipelineContextFor(
+                context, tracedInterceptors, subject, currentCoroutineContext(), developmentMode
+            )
+            try {
+                execution.execute(subject)
+            } finally {
+                pipelineMetadata.putAll(snapshot("subject.after", execution.subject))
+            }
+        }
+    }
 
     /**
      * Adds [phase] to the end of this pipeline
@@ -171,16 +232,33 @@ public open class Pipeline<TSubject : Any, TContext : Any>(
         val phaseContent = findPhase(phase)
             ?: throw InvalidPhaseException("Phase $phase was not registered for this pipeline")
 
-        if (tryAddToPhaseFastPath(phase, block)) {
+        val registered: PipelineInterceptor<TSubject, TContext> =
+            interceptorTraceName?.let { NamedPipelineInterceptor(it, block) } ?: block
+        if (tryAddToPhaseFastPath(phase, registered)) {
             interceptorsQuantity++
             return
         }
 
-        phaseContent.addInterceptor(block)
+        phaseContent.addInterceptor(registered)
         interceptorsQuantity++
         resetInterceptorsList()
 
         afterIntercepted()
+    }
+
+    /**
+     * Attributes interceptors registered by [block] to [plugin] and its optional [hook].
+     * Registration is synchronous; the previous attribution is restored when [block] returns or throws.
+     */
+    @InternalAPI
+    public fun withInterceptorTraceName(plugin: String, hook: String? = null, block: () -> Unit) {
+        val previous = interceptorTraceName
+        interceptorTraceName = InterceptorTraceName(plugin, hook)
+        try {
+            block()
+        } finally {
+            interceptorTraceName = previous
+        }
     }
 
     /**

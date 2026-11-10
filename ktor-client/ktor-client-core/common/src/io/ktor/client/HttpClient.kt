@@ -20,6 +20,7 @@ import kotlinx.coroutines.CompletableJob
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.withContext
 import kotlin.coroutines.CoroutineContext
 
 /**
@@ -1401,6 +1402,8 @@ public class HttpClient(
             config.install(this@HttpClient)
         }
 
+        installPipelineTraceValues()
+
         responsePipeline.intercept(HttpResponsePipeline.Receive) {
             try {
                 proceed()
@@ -1414,10 +1417,20 @@ public class HttpClient(
     /**
      * Creates a new [HttpClientCall] from a request [builder].
      */
+    @OptIn(InternalAPI::class)
     internal suspend fun execute(builder: HttpRequestBuilder): HttpClientCall {
-        monitor.raise(HttpRequestCreated, builder)
+        val recorder = config.pipelineRecorder
+        if (recorder == null) {
+            monitor.raise(HttpRequestCreated, builder)
+            return requestPipeline.execute(builder, builder.body) as HttpClientCall
+        }
 
-        return requestPipeline.execute(builder, builder.body) as HttpClientCall
+        val recording = recorder.requestContext("${builder.method.value} ${builder.url.buildString()}")
+        builder.attributes.put(PipelineRecordingKey, recording)
+        return withContext(recording) {
+            monitor.raise(HttpRequestCreated, builder)
+            requestPipeline.execute(builder, builder.body) as HttpClientCall
+        }
     }
 
     /**

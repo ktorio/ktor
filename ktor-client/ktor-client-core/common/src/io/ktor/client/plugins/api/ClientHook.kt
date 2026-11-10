@@ -5,6 +5,7 @@
 package io.ktor.client.plugins.api
 
 import io.ktor.client.*
+import io.ktor.client.utils.*
 import io.ktor.utils.io.*
 
 /**
@@ -23,8 +24,21 @@ public interface ClientHook<HookHandler> {
     public fun install(client: HttpClient, handler: HookHandler)
 }
 
-internal class HookHandler<T>(private val hook: ClientHook<T>, private val handler: T) {
+internal class HookHandler<T>(
+    private val pluginName: String,
+    private val hook: ClientHook<T>,
+    private val handler: T
+) {
     fun install(client: HttpClient) {
-        hook.install(client, handler)
+        val hookName = when (val name = hook::class.simpleName) {
+            "RequestHook" -> "onRequest"
+            "ResponseHook" -> "onResponse"
+            "TransformRequestBodyHook" -> "transformRequestBody"
+            "TransformResponseBodyHook" -> "transformResponseBody"
+            else -> name ?: "hook"
+        }
+        client.withInterceptorTraceName(pluginName, hookName) {
+            hook.install(client, handler)
+        }
     }
 }

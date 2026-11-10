@@ -8,6 +8,7 @@ import io.ktor.client.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import io.ktor.client.utils.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.util.*
@@ -17,6 +18,7 @@ import kotlinx.atomicfu.AtomicBoolean
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.withContext
 import kotlin.coroutines.CoroutineContext
 import kotlin.reflect.KClass
 
@@ -96,7 +98,13 @@ public open class HttpClientCall(
             val responseData = attributes.getOrNull(CustomResponse) ?: getResponseContent()
 
             val subject = HttpResponseContainer(info, responseData)
-            val result = client.responsePipeline.execute(this, subject).response.takeIf { it != NullBody }
+            val recording = attributes.getOrNull(PipelineRecordingKey)
+            val transformed = if (recording == null) {
+                client.responsePipeline.execute(this, subject)
+            } else {
+                withContext(recording) { client.responsePipeline.execute(this@HttpClientCall, subject) }
+            }
+            val result = transformed.response.takeIf { it != NullBody }
 
             if (result != null && !result.instanceOf(info.type)) {
                 val from = result::class

@@ -137,6 +137,6 @@ public class ClientPluginBuilder<PluginConfig : Any> internal constructor(
         hook: ClientHook<HookHandler>,
         handler: HookHandler
     ) {
-        hooks.add(HookHandler(hook, handler))
+        hooks.add(HookHandler(key.name, hook, handler))
     }
 }
