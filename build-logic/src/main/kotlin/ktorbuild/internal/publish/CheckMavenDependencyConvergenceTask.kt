@@ -4,7 +4,6 @@
 
 package ktorbuild.internal.publish
 
-import ktorbuild.internal.kotlin
 import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.Project
@@ -17,11 +16,8 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.kotlin.dsl.assign
 import org.gradle.kotlin.dsl.register
-import org.gradle.kotlin.dsl.withType
 import org.gradle.language.base.plugins.LifecycleBasePlugin
 import org.gradle.work.DisableCachingByDefault
-import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
-import org.jetbrains.kotlin.gradle.targets.jvm.KotlinJvmTarget
 
 /**
  * Checks that direct dependencies are resolved to the declared versions.
@@ -82,18 +78,13 @@ internal abstract class CheckMavenDependencyConvergenceTask : DefaultTask() {
 }
 
 /**
- * Registers [CheckMavenDependencyConvergenceTask] for the runtime classpath of the JVM `main` compilation
+ * Registers [CheckMavenDependencyConvergenceTask] for the given [runtimeClasspath] configuration
  * and attaches it to the `check` lifecycle task.
  */
-internal fun Project.registerMavenDependencyConvergenceCheck() {
+internal fun Project.registerMavenDependencyConvergenceCheck(runtimeClasspath: String) {
     val checkTask = tasks.register<CheckMavenDependencyConvergenceTask>("checkMavenDependencyConvergence") {
-        // Look the target up instead of calling `kotlin.jvm()`, which would create it if it's missing
-        val runtimeClasspath = kotlin.targets.withType<KotlinJvmTarget>().single().compilations
-            .getByName(KotlinCompilation.MAIN_COMPILATION_NAME)
-            .runtimeDependencyConfigurationName
-
         configurationName = runtimeClasspath
-        rootComponent = project.configurations.named(runtimeClasspath)
+        rootComponent = configurations.named(runtimeClasspath)
             .flatMap { it.incoming.resolutionResult.rootComponent }
     }
     tasks.named(LifecycleBasePlugin.CHECK_TASK_NAME) { dependsOn(checkTask) }
