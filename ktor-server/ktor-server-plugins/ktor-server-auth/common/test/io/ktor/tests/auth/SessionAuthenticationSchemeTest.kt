@@ -264,7 +264,7 @@ class SessionAuthenticationSchemeTest {
             validate { session -> session }
         }.withRoles { setOf(TestRole.User) }
         routing {
-            authenticateWith(sessionScheme, roles = setOf(TestRole.User)) {}
+            authenticateWith(sessionScheme, roles = allOf(TestRole.User)) {}
         }
         val failure = assertFailsWith<IllegalStateException> {
             startApplication()

@@ -37,14 +37,15 @@ public interface AuthenticationRole {
 /**
  * Handles authorization failure for a role-protected typed route.
  *
- * The handler receives the current [RoutingContext] and the roles required by the route.
+ * The handler receives the current [RoutingContext]. Inside it, `principal.roles` returns the roles resolved for the
+ * principal and `call.requiredRoles` returns the [RoleRequirement] that was not satisfied.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.ForbiddenHandler)
  */
 @ExperimentalKtorApi
 public fun interface ForbiddenHandler<P : Any, C, R : AuthenticationRole> {
     /**
-     * Invoked when authentication succeeds, but the principal lacks any roles required by the route.
+     * Invoked when authentication succeeds, but the principal does not satisfy the route's [RoleRequirement].
      *
      * The default handler responds with [HttpStatusCode.Forbidden].
      *
@@ -65,6 +66,64 @@ public fun interface ForbiddenHandler<P : Any, C, R : AuthenticationRole> {
 }
 
 /**
+ * Roles a principal must hold to enter a role-protected typed route.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.RoleRequirement)
+ */
+@ExperimentalKtorApi
+public sealed interface RoleRequirement<R : AuthenticationRole> {
+    /**
+     * Roles referenced by this requirement.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.RoleRequirement.roles)
+     */
+    public val roles: Set<R>
+
+    /**
+     * Returns `true` if a principal holding [resolvedRoles] satisfies this requirement.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.RoleRequirement.isSatisfiedBy)
+     */
+    public fun isSatisfiedBy(resolvedRoles: Set<R>): Boolean
+}
+
+@OptIn(ExperimentalKtorApi::class)
+internal class AllOfRoles<R : AuthenticationRole>(override val roles: Set<R>) : RoleRequirement<R> {
+    override fun isSatisfiedBy(resolvedRoles: Set<R>): Boolean = resolvedRoles.containsAll(roles)
+}
+
+@OptIn(ExperimentalKtorApi::class)
+internal class AnyOfRoles<R : AuthenticationRole>(override val roles: Set<R>) : RoleRequirement<R> {
+    override fun isSatisfiedBy(resolvedRoles: Set<R>): Boolean = roles.any { it in resolvedRoles }
+}
+
+/**
+ * Requires the principal to hold every role in [roles].
+ *
+ * An empty requirement is satisfied by any authenticated principal.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.allOf)
+ *
+ * @param roles roles that must all be held.
+ */
+@ExperimentalKtorApi
+public fun <R : AuthenticationRole> allOf(vararg roles: R): RoleRequirement<R> = AllOfRoles(roles.toSet())
+
+/**
+ * Requires the principal to hold at least one role in [roles].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.anyOf)
+ *
+ * @param roles roles of which at least one must be held.
+ * @throws IllegalArgumentException if [roles] is empty, since such a requirement can never be satisfied.
+ */
+@ExperimentalKtorApi
+public fun <R : AuthenticationRole> anyOf(vararg roles: R): RoleRequirement<R> {
+    require(roles.isNotEmpty()) { "anyOf() requires at least one role; an empty requirement can never be satisfied" }
+    return AnyOfRoles(roles.toSet())
+}
+
+/**
  * Creates a role-based scheme from this typed authentication scheme.
  *
  * Use this extension to add authorization on top of an existing typed authentication scheme.
@@ -73,7 +132,8 @@ public fun interface ForbiddenHandler<P : Any, C, R : AuthenticationRole> {
  *
  * Authentication and authorization fail separately:
  * - The base scheme handles missing or invalid credentials.
- * - Authenticated principals that lack any required role invoke [onForbidden] (HTTP 403 by default).
+ * - Authenticated principals that do not satisfy the route's [RoleRequirement] invoke [onForbidden]
+ *   (HTTP 403 by default).
  *
  * Inside role-protected routes, use `principal` and roles on the principal.
  *
@@ -91,7 +151,7 @@ public fun interface ForbiddenHandler<P : Any, C, R : AuthenticationRole> {
  * }
  *
  * routing {
- *     authenticateWith(roleAuth, roles = setOf(Role.Admin)) {
+ *     authenticateWith(roleAuth, roles = anyOf(Role.Admin, Role.User)) {
  *         get("/admin") {
  *             val user = call.principal
  *             call.respondText("${user.name}:${user.roles.joinToString { it.name }}")
@@ -104,8 +164,8 @@ public fun interface ForbiddenHandler<P : Any, C, R : AuthenticationRole> {
  *
  * @param P the principal type produced by the base scheme.
  * @param R the role type used for authorization checks.
- * @param onForbidden handler invoked when authentication succeeds, but the principal does not have every role
- * required by the route. Receives the set of roles that the route demanded. Defaults to responding with
+ * @param onForbidden handler invoked when authentication succeeds, but the principal does not satisfy the
+ * [RoleRequirement] of the route, which is available as `call.requiredRoles`. Defaults to responding with
  * [HttpStatusCode.Forbidden]. A route-level [ForbiddenHandler] passed to [authenticateWith] overrides this
  * handler for that route.
  * @param resolveRoles function that maps the authenticated principal to the roles available for
@@ -141,24 +201,29 @@ public class AuthenticationSchemeWithRoles<P, R, C, B> internal constructor(
     public val forbiddenHandler: ForbiddenHandler<P, C, R>,
     private val resolveRoles: suspend RoutingContext.(P) -> Set<R>,
 ) where P : Any,
-          R : AuthenticationRole,
-          B : AuthenticationScheme<P, C> {
+        R : AuthenticationRole,
+        B : AuthenticationScheme<P, C> {
     private val rolesKey: AttributeKey<Set<R>> = AttributeKey("TypesafeAuth:${base.name}:Roles")
+    private val requiredRolesKey: AttributeKey<RoleRequirement<R>> =
+        AttributeKey("TypesafeAuth:${base.name}:RequiredRoles")
 
-    internal val rolesContext = RolesContext<P, R>(rolesKey)
+    private val noRoleRequirement: RoleRequirement<R> = AllOfRoles(emptySet())
+
+    internal val rolesContext = RolesContext<P, R>(rolesKey, requiredRolesKey)
 
     context(routingContext: RoutingContext)
     internal suspend fun validateRoles(
         principal: P,
-        requiredRoles: Set<R>?,
+        requiredRoles: RoleRequirement<R>?,
         forbiddenHandler: ForbiddenHandler<P, C, R>?
     ) {
         val resolvedRoles = resolveRoles(routingContext, principal)
-        routingContext.call.attributes.put(rolesKey, resolvedRoles)
+        val requirement = requiredRoles ?: noRoleRequirement
+        val attributes = routingContext.call.attributes
+        attributes.put(rolesKey, resolvedRoles)
+        attributes.put(requiredRolesKey, requirement)
 
-        if (requiredRoles == null || resolvedRoles.containsAll(requiredRoles)) {
-            return
-        }
+        if (requirement.isSatisfiedBy(resolvedRoles)) return
 
         base.provideContext {
             context(rolesContext) {
