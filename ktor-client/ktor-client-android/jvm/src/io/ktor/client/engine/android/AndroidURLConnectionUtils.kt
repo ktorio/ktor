@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.android
@@ -12,12 +12,15 @@ import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
 import kotlinx.coroutines.*
-import java.io.*
+import kotlinx.coroutines.CancellationException
+import java.io.FilterInputStream
+import java.io.IOException
+import java.io.InputStream
 import java.net.*
-import kotlin.coroutines.*
+import kotlin.coroutines.CoroutineContext
 
 /**
- * Setup [HttpURLConnection] timeout configuration using [HttpTimeout.HttpTimeoutCapabilityConfiguration] as a source.
+ * Setup [HttpURLConnection] timeout configuration using [HttpTimeoutConfig] as a source.
  */
 @OptIn(InternalAPI::class)
 internal fun HttpURLConnection.setupTimeoutAttributes(requestData: HttpRequestData) {
@@ -72,22 +75,59 @@ internal fun HttpURLConnection.disconnectOnCancellation(callContext: CoroutineCo
     }
 }
 
-/**
- * Establish connection and return correspondent [ByteReadChannel].
- */
+/** Adapts the response stream, preventing physical closure during an active read. */
 internal fun HttpURLConnection.content(status: Int, callContext: CoroutineContext): ByteReadChannel {
     if (status in listOf(HttpStatusCode.NotModified.value, HttpStatusCode.NoContent.value)) {
         return ByteReadChannel.Empty
     }
 
-    return try {
+    val stream = try {
         inputStream?.buffered()
     } catch (_: IOException) {
         errorStream?.buffered()
-    }?.toByteReadChannel(
-        context = callContext,
-        pool = KtorDefaultPool
-    ) ?: ByteReadChannel.Empty
+    } ?: return ByteReadChannel.Empty
+
+    val responseStream = AndroidResponseInputStream(stream, callContext.job)
+    return responseStream.toByteReadChannel(context = callContext, pool = KtorDefaultPool).also {
+        responseStream.channel = it
+    }
+}
+
+/**
+ * Prevents closure from overlapping a read of an Android response stream.
+ * Closing such a stream may drain unread data and must not overlap an active read.
+ */
+internal class AndroidResponseInputStream(
+    stream: InputStream,
+    private val callJob: Job
+) : FilterInputStream(stream) {
+    private val readLock = Any()
+
+    // Parent cancellation may trigger close before the channel is assigned.
+    @Volatile
+    var channel: ByteReadChannel? = null
+
+    override fun read(): Int = synchronized(readLock) {
+        super.read()
+    }
+
+    override fun read(bytes: ByteArray, offset: Int, length: Int): Int = synchronized(readLock) {
+        super.read(bytes, offset, length)
+    }
+
+    override fun close() {
+        val cause = channel?.closedCause
+        if (cause != null) {
+            val cancellation = cause as? CancellationException
+                ?: CancellationException("Response body was cancelled", cause)
+            // Request connection abort before taking the lock held by an active read.
+            callJob.cancel(cancellation)
+        }
+
+        synchronized(readLock) {
+            runCatching { super.close() }
+        }
+    }
 }
 
 /**

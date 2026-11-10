@@ -11,9 +11,70 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
+import io.ktor.util.pipeline.*
+import kotlinx.coroutines.*
 import kotlin.test.*
 
 class ApplicationCallReceiveTest {
+
+    @Test
+    fun testReceiveFromReceivePipelineFailsWithoutRecursion() = testApplication {
+        var interceptions = 0
+        application {
+            receivePipeline.intercept(ApplicationReceivePipeline.Before) {
+                interceptions++
+                assertReceiveInProgressFailure { call.receiveText() }
+            }
+
+            routing {
+                post("/") {
+                    call.respondText(call.receiveText())
+                }
+            }
+        }
+
+        val response = client.post("/") {
+            setBody("bodyContent")
+        }
+        assertEquals("bodyContent", response.bodyAsText())
+        assertEquals(1, interceptions)
+    }
+
+    @Test
+    fun testConcurrentReceiveFailsWithoutEnteringPipeline() = testApplication {
+        val firstReceiveEntered = CompletableDeferred<Unit>()
+        val releaseFirstReceive = CompletableDeferred<Unit>()
+        var interceptions = 0
+
+        application {
+            receivePipeline.intercept(ApplicationReceivePipeline.Before) {
+                interceptions++
+                firstReceiveEntered.complete(Unit)
+                releaseFirstReceive.await()
+            }
+
+            routing {
+                post("/") {
+                    coroutineScope {
+                        val firstReceive = async { call.receiveText() }
+                        firstReceiveEntered.await()
+                        try {
+                            assertReceiveInProgressFailure { call.receiveText() }
+                        } finally {
+                            releaseFirstReceive.complete(Unit)
+                        }
+                        call.respondText(firstReceive.await())
+                    }
+                }
+            }
+        }
+
+        val response = client.post("/") {
+            setBody("bodyContent")
+        }
+        assertEquals("bodyContent", response.bodyAsText())
+        assertEquals(1, interceptions)
+    }
 
     @Test
     fun testReceiveNonNullable() = testApplication {
@@ -47,4 +108,14 @@ class ApplicationCallReceiveTest {
             assertEquals("Cannot transform this request's content to String", response)
         }
     }
+}
+
+private suspend fun assertReceiveInProgressFailure(block: suspend () -> Unit) {
+    val cause = assertFailsWith<IllegalStateException> { block() }
+    assertIsNot<RequestAlreadyConsumedException>(cause)
+    assertEquals(
+        "The request body is already being received for this call. Receive operations must be sequential " +
+            "and must not be started from an ApplicationReceivePipeline interceptor.",
+        cause.message
+    )
 }

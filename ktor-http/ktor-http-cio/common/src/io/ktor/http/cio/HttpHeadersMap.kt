@@ -5,6 +5,7 @@
 package io.ktor.http.cio
 
 import io.ktor.http.cio.internals.*
+import io.ktor.utils.io.InternalAPI
 import io.ktor.utils.io.pool.*
 import kotlin.math.absoluteValue
 
@@ -96,6 +97,32 @@ public class HttpHeadersMap internal constructor(private val builder: CharArrayB
             }
             headerIndex = (headerIndex + 1) % headerCapacity
         }
+    }
+
+    /**
+     * Returns the single value of the [name] header or `null` if absent.
+     *
+     * @throws ParserException if the header appears more than once
+     */
+    @InternalAPI
+    public fun singleOrNull(name: String): CharSequence? {
+        if (size == 0) return null
+
+        val hash = name.hashCodeLowerCase().absoluteValue
+        var headerIndex = hash % headerCapacity
+
+        while (headersData.at(headerIndex * HEADER_SIZE + OFFSET_NAME_HASH) != EMPTY_INDEX) {
+            if (headerHasName(name, headerIndex * HEADER_SIZE)) {
+                val nextHeaderIndex = headersData.at(headerIndex * HEADER_SIZE + OFFSET_NEXT_HEADER)
+                if (nextHeaderIndex != EMPTY_INDEX) {
+                    throw ParserException("Duplicate $name header")
+                }
+                return valueAtOffset(headerIndex * HEADER_SIZE)
+            }
+            headerIndex = (headerIndex + 1) % headerCapacity
+        }
+
+        return null
     }
 
     public fun offsets(): Sequence<Int> = headersData.headersStarts()

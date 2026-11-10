@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.utils.io.jvm.javaio
@@ -13,9 +13,20 @@ import java.nio.ByteBuffer
 import kotlin.coroutines.CoroutineContext
 
 /**
- * Open a channel and launch a coroutine to copy bytes from the input stream to the channel.
- * Please note that it may block your async code when started on [Dispatchers.Unconfined]
- * since [InputStream] is blocking on it's nature
+ * Creates a [ByteReadChannel] that reads from this stream on demand in the given [context].
+ * Reads **block** the executing thread. Use a dispatcher suitable for blocking I/O
+ * in [context], such as [Dispatchers.IO] used by default.
+ *
+ * The channel closes the stream at EOF or on cancellation.
+ * The [ByteReadChannel.cancel] call returns without waiting for stream closure.
+ *
+ * The stream must support closure during an active read.
+ * Cancellation and closure do not guarantee that a blocking read stops.
+ *
+ * ### Structured concurrency
+ *
+ * If [context] contains a [Job], it closes the stream on cancellation.
+ * If that job is active when the channel is created, it also waits for stream closure before completing.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.jvm.javaio.toByteReadChannel)
  */
@@ -26,9 +37,20 @@ public fun InputStream.toByteReadChannel(
 ): ByteReadChannel = RawSourceChannel(asSource(), context)
 
 /**
- * Open a channel and launch a coroutine to copy bytes from the input stream to the channel.
- * Please note that it may block your async code when started on [Dispatchers.Unconfined]
- * since [InputStream] is blocking on it's nature
+ * Creates a [ByteReadChannel] that reads from this stream on demand in the given [context].
+ * Reads **block** the executing thread. Use a dispatcher suitable for blocking I/O
+ * in [context], such as [Dispatchers.IO] used by default.
+ *
+ * The channel closes the stream at EOF or on cancellation.
+ * The [ByteReadChannel.cancel] call returns without waiting for stream closure.
+ *
+ * The stream must support closure during an active read.
+ * Cancellation and closure do not guarantee that a blocking read stops.
+ *
+ * ### Structured concurrency
+ *
+ * If [context] contains a [Job], it closes the stream on cancellation.
+ * If that job is active when the channel is created, it also waits for stream closure before completing.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.jvm.javaio.toByteReadChannel)
  */

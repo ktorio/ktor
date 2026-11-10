@@ -12,8 +12,12 @@ import kotlin.coroutines.*
 internal class TestEngineWebsocketSession(
     callContext: CoroutineContext,
     override val incoming: ReceiveChannel<Frame>,
-    override val outgoing: SendChannel<Frame>
+    private val connection: SendChannel<Frame>
 ) : WebSocketSession {
+    // Our own channel, so a caller may register its own invokeOnClose handler on outgoing.
+    private val frames = Channel<Frame>(Channel.UNLIMITED)
+    override val outgoing: SendChannel<Frame> get() = frames
+
     override val coroutineContext: CoroutineContext = callContext + CoroutineName("test-ws")
 
     override var masking: Boolean
@@ -29,14 +33,16 @@ internal class TestEngineWebsocketSession(
     override suspend fun flush() {}
 
     suspend fun run() {
-        suspendCancellableCoroutine { cont ->
-            outgoing.invokeOnClose { ex ->
-                when {
-                    !cont.isActive -> return@invokeOnClose
-                    ex == null -> cont.resume(Unit)
-                    else -> cont.resumeWithException(ex)
-                }
+        try {
+            for (frame in frames) {
+                connection.send(frame)
+                if (frame is Frame.Close) break
             }
+        } catch (cause: Throwable) {
+            frames.close(cause)
+            throw cause
+        } finally {
+            frames.close()
         }
     }
 

@@ -9,10 +9,27 @@ import io.ktor.network.sockets.*
 import io.ktor.util.collections.*
 import kotlinx.coroutines.sync.*
 
+/**
+ * Opens client sockets while limiting how many are open at once.
+ *
+ * [connectionsLimit] caps the total number of open sockets and [addressConnectionsLimit] the number of sockets
+ * open to the same address. A socket returned from [connect] holds one permit of each limit until [release] is
+ * called with its address.
+ *
+ * [openSocket] opens a socket on [selector]. The default connects a TCP socket; the parameter exists only so
+ * tests can intercept a socket right after it has connected.
+ */
 internal class ConnectionFactory(
     private val selector: SelectorManager,
     connectionsLimit: Int,
-    private val addressConnectionsLimit: Int
+    private val addressConnectionsLimit: Int,
+    private val openSocket: suspend (
+        selector: SelectorManager,
+        address: SocketAddress,
+        configuration: SocketOptions.TCPClientSocketOptions.() -> Unit
+    ) -> Socket = { selectorManager, address, configuration ->
+        aSocket(selectorManager).tcp().connect(address, configuration)
+    },
 ) {
     private val limit = Semaphore(connectionsLimit)
     private val addressLimit = ConcurrentMap<SocketAddress, Semaphore>()
@@ -27,7 +44,7 @@ internal class ConnectionFactory(
             addressSemaphore.acquire()
 
             try {
-                aSocket(selector).tcp().connect(address, configuration)
+                openSocket(selector, address, configuration)
             } catch (cause: Throwable) {
                 // a failure or cancellation
                 addressSemaphore.release()

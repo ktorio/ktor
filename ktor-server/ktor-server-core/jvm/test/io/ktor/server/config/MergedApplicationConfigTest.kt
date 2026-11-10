@@ -4,10 +4,13 @@
 
 package io.ktor.server.config
 
+import com.typesafe.config.ConfigException
 import com.typesafe.config.ConfigFactory
 import kotlinx.serialization.Serializable
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertIs
 
 class MergedApplicationConfigJvmTest {
 
@@ -67,6 +70,17 @@ class MergedApplicationConfigJvmTest {
             listOf(SimpleObject(3, "third")),
             configObject.list
         )
+    }
+
+    @Test
+    fun mergedConfigThrowsOnMissingPath() {
+        val hocon = HoconApplicationConfig(ConfigFactory.parseString("ktor { deployment { port = 8080 } }"))
+        // Map config has no "nonexistent.*" keys, so the lookup is delegated to the HOCON fallback.
+        val merged = MapApplicationConfig("app.name" to "test").withFallback(hocon)
+
+        val exception = assertFailsWith<ApplicationConfigurationException> { merged.config("nonexistent") }
+        assertEquals("Path nonexistent not found.", exception.message)
+        assertIs<ConfigException.Missing>(exception.cause)
     }
 
     @Serializable

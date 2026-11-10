@@ -23,6 +23,7 @@ import io.ktor.util.cio.ChannelWriteException
 import io.ktor.utils.io.*
 import io.ktor.utils.io.pool.ByteBufferPool
 import kotlinx.coroutines.suspendCancellableCoroutine
+import org.eclipse.jetty.http.HttpHeader
 import org.eclipse.jetty.io.Content
 import org.eclipse.jetty.io.EndPoint
 import org.eclipse.jetty.server.Request
@@ -180,8 +181,12 @@ public class JettyApplicationCall(
         }
 
         override suspend fun respondNoContent(content: OutgoingContent.NoContent) {
+            // Jetty sets `Content-Length` to the written size if the first write is the last one,
+            // so don't mark it as last when the length is intentionally omitted (204, 304, HEAD).
+            // The response is completed by the handler callback then.
+            val last = response.headers.contains(HttpHeader.CONTENT_LENGTH)
             suspendCancellableCoroutine { continuation ->
-                response.write(true, emptyBuffer, continuation.asCallback())
+                response.write(last, emptyBuffer, continuation.asCallback())
             }
         }
 

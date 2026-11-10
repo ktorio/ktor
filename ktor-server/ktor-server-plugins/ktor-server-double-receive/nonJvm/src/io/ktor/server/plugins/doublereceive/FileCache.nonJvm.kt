@@ -5,22 +5,25 @@
 package io.ktor.server.plugins.doublereceive
 
 import io.ktor.utils.io.*
-import kotlin.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 
 internal actual class FileCache actual constructor(
-    body: ByteReadChannel,
-    bufferSize: Int,
-    context: CoroutineContext
+    bufferSize: Int
 ) : DoubleReceiveCache {
     init {
         error("File cache is not supported on nix")
     }
 
-    actual override suspend fun read(): ByteReadChannel {
+    actual override suspend fun reader(): ByteReadChannel {
         error("File cache is not supported on nix")
     }
 
     actual override fun dispose() {
+        error("File cache is not supported on nix")
+    }
+
+    actual override fun CoroutineScope.launchPump(channel: ByteReadChannel): Job {
         error("File cache is not supported on nix")
     }
 }

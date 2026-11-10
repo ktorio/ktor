@@ -24,52 +24,53 @@ internal fun CoroutineScope.attachForWritingImpl(
     var sockedClosed = false
     var needSelect = false
     var total = 0
-    while (!sockedClosed && !source.isClosedForRead) {
-        val count = source.read { memory, start, stop ->
-            val written = memory.usePinned { pinned ->
-                val bufferStart = pinned.addressOf(start).reinterpret<ByteVar>()
-                val remaining = stop - start
-                val bytesWritten = if (remaining > 0) {
-                    ktor_send(descriptor, bufferStart, remaining.convert(), 0)
-                } else {
-                    0
-                }
 
-                when (bytesWritten) {
-                    0 -> sockedClosed = true
+    try {
+        while (!sockedClosed && !source.isClosedForRead) {
+            val count = source.read { memory, start, stop ->
+                val written = memory.usePinned { pinned ->
+                    val bufferStart = pinned.addressOf(start).reinterpret<ByteVar>()
+                    val remaining = stop - start
+                    val bytesWritten = if (remaining > 0) {
+                        ktor_send(descriptor, bufferStart, remaining.convert(), 0)
+                    } else {
+                        0
+                    }
 
-                    -1 -> {
-                        val error = getSocketError()
-                        if (isWouldBlockError(error)) {
-                            needSelect = true
-                        } else {
-                            throw PosixException.forSocketError(error)
+                    when (bytesWritten) {
+                        0 -> sockedClosed = true
+
+                        -1 -> {
+                            val error = getSocketError()
+                            if (isWouldBlockError(error)) {
+                                needSelect = true
+                            } else {
+                                throw PosixException.forSocketError(error)
+                            }
                         }
                     }
+
+                    bytesWritten
                 }
 
-                bytesWritten
+                max(0, written)
             }
+            total += count
 
-            max(0, written)
+            if (!sockedClosed && needSelect) {
+                selector.select(selectable, SelectInterest.WRITE)
+                needSelect = false
+            }
         }
 
-        total += count
-        if (!sockedClosed && needSelect) {
-            selector.select(selectable, SelectInterest.WRITE)
-            needSelect = false
+        if (!source.isClosedForRead) {
+            val availableForRead = source.availableForRead
+            val cause = IOException("Failed writing to closed socket. Some bytes remaining: $availableForRead")
+            source.cancel(cause)
+        } else {
+            source.closedCause?.let { throw it }
         }
-    }
-
-    if (!source.isClosedForRead) {
-        val availableForRead = source.availableForRead
-        val cause = IOException("Failed writing to closed socket. Some bytes remaining: $availableForRead")
-        source.cancel(cause)
-    } else {
-        source.closedCause?.let { throw it }
-    }
-}.apply {
-    invokeOnCompletion {
+    } finally {
         ktor_shutdown(descriptor, ShutdownCommands.Send)
     }
 }
