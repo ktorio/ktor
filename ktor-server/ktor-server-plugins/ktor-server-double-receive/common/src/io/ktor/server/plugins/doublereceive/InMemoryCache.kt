@@ -11,6 +11,7 @@ import kotlinx.atomicfu.*
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import kotlinx.io.Buffer
 import kotlinx.io.IOException
@@ -133,7 +134,9 @@ internal class InMemoryCache : DoubleReceiveCache {
                     if (!isForwarding) continue
                     try {
                         current.channel.writeFully(buffer, startIndex = 0, endIndex = size)
-                    } catch (_: ClosedWriteChannelException) {
+                    } catch (cause: Exception) {
+                        if (!current.channel.isClosedForWrite) throw cause
+                        ensureActive()
                         isForwarding = false
                     }
                 }
