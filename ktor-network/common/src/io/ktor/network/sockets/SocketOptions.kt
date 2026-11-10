@@ -12,7 +12,8 @@ private const val INFINITE_TIMEOUT_MS = Long.MAX_VALUE
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.SocketOptions)
  */
 public sealed class SocketOptions(
-    protected val customOptions: MutableMap<Any, Any?>
+    protected val customOptions: MutableMap<Any, Any?>,
+
 ) {
     /**
      * Copy options
@@ -137,6 +138,10 @@ public sealed class SocketOptions(
         }
 
         internal fun udp(): UDPSocketOptions {
+            if (this is UDPSocketOptions) {
+                return copy()
+            }
+
             return UDPSocketOptions(HashMap(customOptions)).apply {
                 copyCommon(this@PeerSocketOptions)
             }
@@ -149,8 +154,9 @@ public sealed class SocketOptions(
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.network.sockets.SocketOptions.UDPSocketOptions)
      */
     public class UDPSocketOptions internal constructor(
-        customOptions: MutableMap<Any, Any?>
+        customOptions: MutableMap<Any, Any?>,
     ) : PeerSocketOptions(customOptions) {
+        internal var receiveMode: DatagramReceiveMode = DatagramReceiveMode.CHANNEL
 
         /**
          * SO_BROADCAST socket option
@@ -163,6 +169,7 @@ public sealed class SocketOptions(
             super.copyCommon(from)
             if (from is UDPSocketOptions) {
                 broadcast = from.broadcast
+                copyReceiveMode(from)
             }
         }
 
@@ -170,6 +177,10 @@ public sealed class SocketOptions(
             return UDPSocketOptions(HashMap(customOptions)).apply {
                 copyCommon(this@UDPSocketOptions)
             }
+        }
+
+        private fun copyReceiveMode(from: UDPSocketOptions) {
+            receiveMode = from.receiveMode
         }
     }
 
