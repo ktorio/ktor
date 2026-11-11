@@ -24,6 +24,103 @@ import kotlin.time.Duration.Companion.milliseconds
 class AuthBuildersTest {
 
     @Test
+    fun `route scoped plugin between nested authenticate blocks sees outer principal`() = testApplication {
+        class BearerUser(val name: String)
+        class FormUser(val name: String)
+
+        val seenByPlugin = mutableListOf<String?>()
+        val principalRecorder = createRouteScopedPlugin("PrincipalRecorder") {
+            onCallValidators { call -> if (!call.isHandled) seenByPlugin.add(call.principal<BearerUser>()?.name) }
+        }
+
+        install(Authentication) {
+            bearer("bearer") {
+                authenticate { credential -> BearerUser(credential.token).takeIf { credential.token == "token" } }
+            }
+            form("form") { validate { c -> FormUser(c.name).takeIf { c.name == "user" } } }
+        }
+
+        routing {
+            authenticate("bearer", strategy = AuthenticationStrategy.Required) {
+                route("/") {
+                    install(principalRecorder)
+                    authenticate("form", strategy = AuthenticationStrategy.Required) {
+                        post("/both") {
+                            call.respondText(
+                                "${call.principal<BearerUser>()?.name}:${call.principal<FormUser>()?.name}"
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        val both = client.post("/both") {
+            bearerAuth("token")
+            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+            setBody("user=user&password=p")
+        }
+        assertEquals(HttpStatusCode.OK, both.status)
+        assertEquals("token:user", both.bodyAsText())
+        assertEquals(listOf<String?>("token"), seenByPlugin)
+
+        val missingForm = client.post("/both") { bearerAuth("token") }
+        assertEquals(HttpStatusCode.Unauthorized, missingForm.status)
+        assertEquals(listOf<String?>("token", "token"), seenByPlugin)
+
+        val missingBearer = client.post("/both") {
+            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+            setBody("user=user&password=p")
+        }
+        assertEquals(HttpStatusCode.Unauthorized, missingBearer.status)
+        assertEquals(listOf<String?>("token", "token"), seenByPlugin, "Plugin must not run when outer auth fails")
+    }
+
+    @Test
+    fun `nested optional authenticate is deferred until inner required authenticate runs`() = testApplication {
+        class OuterUser(val name: String)
+        class InnerUser(val name: String)
+
+        val seenByPlugin = mutableListOf<String?>()
+        val principalRecorder = createRouteScopedPlugin("PrincipalRecorder") {
+            onCallValidators { call -> if (!call.isHandled) seenByPlugin.add(call.principal<OuterUser>()?.name) }
+        }
+
+        install(Authentication) {
+            form("outer") { validate { c -> OuterUser(c.name).takeIf { c.name == "outer" } } }
+            basic("inner") { validate { c -> InnerUser(c.name).takeIf { c.name == "inner" } } }
+        }
+
+        routing {
+            authenticate("outer", strategy = AuthenticationStrategy.Optional) {
+                route("/") {
+                    install(principalRecorder)
+                    authenticate("inner", strategy = AuthenticationStrategy.Required) {
+                        post("/both") {
+                            call.respondText(
+                                "${call.principal<OuterUser>()?.name} ${call.principal<InnerUser>()?.name}"
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        // The inner required provider runs first, so the outer optional one is never tried.
+        val response = client.post("/both") {
+            header(
+                HttpHeaders.Authorization,
+                HttpAuthHeader.Single("basic", Base64.encode("inner:".encodeToByteArray())).render()
+            )
+            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+            setBody("user=outer&password=p")
+        }
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals("null inner", response.bodyAsText())
+        assertEquals(listOf<String?>(null), seenByPlugin)
+    }
+
+    @Test
     fun testPrincipalsAccess() = testApplication {
         val username = "testuser"
 
