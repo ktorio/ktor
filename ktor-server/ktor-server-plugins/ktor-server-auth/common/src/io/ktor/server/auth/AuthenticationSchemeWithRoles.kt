@@ -201,29 +201,28 @@ public class AuthenticationSchemeWithRoles<P, R, C, B> internal constructor(
     public val forbiddenHandler: ForbiddenHandler<P, C, R>,
     private val resolveRoles: suspend RoutingContext.(P) -> Set<R>,
 ) where P : Any,
-        R : AuthenticationRole,
-        B : AuthenticationScheme<P, C> {
+          R : AuthenticationRole,
+          B : AuthenticationScheme<P, C> {
     private val rolesKey: AttributeKey<Set<R>> = AttributeKey("TypesafeAuth:${base.name}:Roles")
     private val requiredRolesKey: AttributeKey<RoleRequirement<R>> =
         AttributeKey("TypesafeAuth:${base.name}:RequiredRoles")
 
-    private val noRoleRequirement: RoleRequirement<R> = AllOfRoles(emptySet())
-
     internal val rolesContext = RolesContext<P, R>(rolesKey, requiredRolesKey)
+
+    internal fun putRequiredRoles(call: ApplicationCall, requiredRoles: RoleRequirement<R>) {
+        call.attributes.put(requiredRolesKey, requiredRoles)
+    }
 
     context(routingContext: RoutingContext)
     internal suspend fun validateRoles(
         principal: P,
-        requiredRoles: RoleRequirement<R>?,
+        requiredRoles: RoleRequirement<R>,
         forbiddenHandler: ForbiddenHandler<P, C, R>?
     ) {
         val resolvedRoles = resolveRoles(routingContext, principal)
-        val requirement = requiredRoles ?: noRoleRequirement
-        val attributes = routingContext.call.attributes
-        attributes.put(rolesKey, resolvedRoles)
-        attributes.put(requiredRolesKey, requirement)
+        routingContext.call.attributes.put(rolesKey, resolvedRoles)
 
-        if (requirement.isSatisfiedBy(resolvedRoles)) return
+        if (requiredRoles.isSatisfiedBy(resolvedRoles)) return
 
         base.provideContext {
             context(rolesContext) {
