@@ -9,7 +9,17 @@ package io.ktor.network.util
 import kotlinx.cinterop.*
 import platform.posix.*
 
-internal actual fun initSocketsIfNeeded() {}
+@OptIn(ExperimentalForeignApi::class)
+private val initSocketsIfNeeded by lazy {
+    // Writing to a broken socket raises SIGPIPE, which kills the process.
+    // Ignore it so the write fails with an exception instead.
+    signal(SIGPIPE, SIG_IGN)
+}
+
+@OptIn(ExperimentalForeignApi::class)
+internal actual fun initSocketsIfNeeded() {
+    initSocketsIfNeeded
+}
 
 @OptIn(ExperimentalForeignApi::class)
 internal actual fun getAddressInfo(
@@ -89,11 +99,6 @@ internal actual fun ktor_shutdown(fd: Int, how: Int): Int {
 
 internal actual fun nonBlocking(descriptor: Int): Int {
     return fcntl(descriptor, F_SETFL, O_NONBLOCK)
-}
-
-@OptIn(ExperimentalForeignApi::class)
-internal actual fun signalIgnoreSigpipe() {
-    signal(SIGPIPE, SIG_IGN)
 }
 
 @OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
