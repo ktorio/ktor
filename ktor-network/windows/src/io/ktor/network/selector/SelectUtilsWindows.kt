@@ -124,6 +124,7 @@ internal actual class SelectorHelper {
             val event = interestQueue.removeFirstOrNull() ?: break
             watchSet.add(event)
         }
+        watchSet.removeAll { it.isCancelled }
 
         for (descriptor in closeSet) {
             closeDescriptor(descriptor)
@@ -178,6 +179,7 @@ internal actual class SelectorHelper {
         wsaIndex: Int,
         wsaEvents: Map<Int, COpaquePointer?>
     ) {
+        watchSet.removeAll { it.isCancelled }
         watchSet
             .filter { it.interest != SelectInterest.CLOSE }
             .groupBy { it.descriptor }

@@ -7,7 +7,7 @@ package io.ktor.network.sockets.tests
 
 import io.ktor.network.selector.*
 import io.ktor.network.sockets.*
-import io.ktor.network.util.address
+import io.ktor.network.util.*
 import io.ktor.utils.io.core.buildPacket
 import io.ktor.utils.io.core.writeFully
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -16,8 +16,23 @@ import kotlinx.cinterop.convert
 import kotlinx.cinterop.usePinned
 import kotlinx.coroutines.*
 import platform.posix.sendto
+import kotlin.ByteArray
+import kotlin.IllegalArgumentException
+import kotlin.IllegalStateException
+import kotlin.Int
+import kotlin.OptIn
+import kotlin.Unit
+import kotlin.byteArrayOf
+import kotlin.experimental.ExperimentalNativeApi
+import kotlin.native.ref.WeakReference
+import kotlin.native.runtime.GC
+import kotlin.native.runtime.NativeRuntimeApi
+import kotlin.repeat
+import kotlin.runCatching
 import kotlin.test.*
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.to
+import kotlin.use
 
 class DatagramSocketNativeRawReceiveTest {
 
@@ -446,6 +461,51 @@ class DatagramSocketNativeRawReceiveTest {
             assertEquals(sender.localAddress, nextResult.senderAddress)
             assertEquals(42.toByte(), buffer[0])
         }
+    }
+
+    @OptIn(ExperimentalNativeApi::class, NativeRuntimeApi::class)
+    @Test
+    fun testCancelledReceivesReleaseBuffersWithoutTraffic() = testSockets { selector ->
+        withCallerBufferSockets(selector) { receiver, _ ->
+            val references = mutableListOf<WeakReference<ByteArray>>()
+
+            repeat(20) {
+                references += cancelReceiveAndTrackBuffer(receiver)
+            }
+
+            var retained = references.size
+
+            withTimeoutOrNull(5_000.milliseconds) {
+                do {
+                    // Allow the selector to process cancellation notifications.
+                    delay(10.milliseconds)
+
+                    GC.collect()
+                    retained = references.count { it.value != null }
+                } while (retained != 0)
+            }
+
+            assertEquals(
+                0,
+                retained,
+                "Cancelled receives retained $retained buffers without traffic"
+            )
+        }
+    }
+
+    @OptIn(ExperimentalNativeApi::class)
+    private suspend fun cancelReceiveAndTrackBuffer(
+        receiver: DatagramSocketNative
+    ): WeakReference<ByteArray> = coroutineScope {
+        val buffer = ByteArray(1024)
+        val reference = WeakReference(buffer)
+
+        val pending = launch(start = CoroutineStart.UNDISPATCHED) {
+            receiver.receiveInto(buffer, 0, buffer.size)
+        }
+
+        pending.cancelAndJoin()
+        reference
     }
 
     private suspend fun withCallerBufferSockets(

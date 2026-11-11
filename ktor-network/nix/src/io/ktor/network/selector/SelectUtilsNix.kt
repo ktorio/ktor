@@ -9,12 +9,17 @@ import io.ktor.network.util.*
 import io.ktor.util.collections.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.errors.*
-import kotlinx.cinterop.*
-import kotlinx.coroutines.*
+import kotlinx.cinterop.CValue
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.yield
 import kotlinx.io.IOException
 import platform.posix.*
-import kotlin.coroutines.*
-import kotlin.math.*
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.math.max
 
 @OptIn(InternalAPI::class)
 internal actual class SelectorHelper {
@@ -160,6 +165,7 @@ internal actual class SelectorHelper {
             val event = interestQueue.removeFirstOrNull() ?: break
             watchSet.add(event)
         }
+        watchSet.removeAll { it.isCancelled }
 
         for (descriptor in closeSet) {
             closeDescriptor(descriptor)
@@ -217,6 +223,7 @@ internal actual class SelectorHelper {
         writeSet: CValue<selection_set>,
         errorSet: CValue<selection_set>
     ) {
+        watchSet.removeAll { it.isCancelled }
         for (event in watchSet) {
             if (event.interest == SelectInterest.CLOSE) continue
 
