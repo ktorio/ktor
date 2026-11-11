@@ -19,6 +19,7 @@ import io.ktor.utils.io.*
 import kotlinx.serialization.Serializable
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 class AuthenticationSchemeWithRolesTest {
 
@@ -35,7 +36,7 @@ class AuthenticationSchemeWithRolesTest {
     @Test
     fun `test role-based authentication flow`() = testApplication {
         routing {
-            authenticateWith(roleScheme(), roles = setOf(TestRole.Admin)) {
+            authenticateWith(roleScheme(), roles = allOf(TestRole.Admin)) {
                 get("/admin") {
                     val user = call.principal
                     call.respondText("${user.name}:${user.roles.joinToString(",") { it.name }}")
@@ -74,15 +75,16 @@ class AuthenticationSchemeWithRolesTest {
             )
 
         routing {
-            authenticateWith(scheme, roles = setOf(TestRole.Admin)) {
+            authenticateWith(scheme, roles = allOf(TestRole.Admin)) {
                 get("/default") { call.respondText("ok") }
             }
             authenticateWith(
                 scheme,
-                roles = setOf(TestRole.Admin),
+                roles = allOf(TestRole.Admin),
                 onForbidden = {
                     val rolesStr = call.principal.roles.joinToString(separator = ",")
-                    val message = "Route: requires Admin, but got $rolesStr"
+                    val requiredStr = call.requiredRoles.roles.joinToString(separator = ",")
+                    val message = "Route: requires $requiredStr, but got $rolesStr"
                     call.respondText(message, status = HttpStatusCode.Forbidden)
                 }
             ) {
@@ -120,12 +122,12 @@ class AuthenticationSchemeWithRolesTest {
         }
 
         routing {
-            authenticateWith(scheme, roles = setOf(TestRole.Admin)) {
+            authenticateWith(scheme, roles = allOf(TestRole.Admin)) {
                 get("/default") { call.respondText("ok") }
             }
             authenticateWith(
                 scheme,
-                roles = setOf(TestRole.Admin),
+                roles = allOf(TestRole.Admin),
                 onUnauthorized = { cause ->
                     call.respondText(
                         "Route unauthorized:${cause::class.simpleName}",
@@ -169,7 +171,7 @@ class AuthenticationSchemeWithRolesTest {
                 sessionScheme.setSession(UserSession(call.requirePathParameter("name")))
                 call.respondText("ok")
             }
-            authenticateWith(scheme, roles = setOf(TestRole.Admin)) {
+            authenticateWith(scheme, roles = allOf(TestRole.Admin)) {
                 get("/admin") {
                     val user = call.principal
                     call.respondText("${user.name}:${user.roles.joinToString(",") { it.name }}")
@@ -206,7 +208,7 @@ class AuthenticationSchemeWithRolesTest {
     @Test
     fun `test optional role-based authentication flow`() = testApplication {
         routing {
-            authenticateWithOptional(roleScheme(), roles = setOf(TestRole.Admin)) {
+            authenticateWithOptional(roleScheme(), roles = allOf(TestRole.Admin)) {
                 get("/admin") {
                     val user = call.principalOrNull
                     if (user == null) {
@@ -248,7 +250,7 @@ class AuthenticationSchemeWithRolesTest {
             )
 
         routing {
-            authenticateWith(scheme, roles = setOf(TestRole.Admin)) {
+            authenticateWith(scheme, roles = allOf(TestRole.Admin)) {
                 get("/admin") {
                     call.respondText("route reached")
                 }
@@ -262,13 +264,18 @@ class AuthenticationSchemeWithRolesTest {
     }
 
     @Test
-    fun `roles null skips forbidden but resolves roles`() = testApplication {
+    fun `default roles skip forbidden but resolve roles`() = testApplication {
+        val scheme = roleScheme()
         routing {
-            authenticateWith(roleScheme(), roles = null) {
+            authenticateWith(scheme) {
                 get("/any-authenticated") {
                     val user = call.principal
-                    call.respondText("${user.name}:${user.roles.joinToString(",") { it.name }}")
+                    val roles = user.roles.joinToString(",") { it.name }
+                    call.respondText("${user.name}:$roles:${call.requiredRoles.roles}")
                 }
+            }
+            authenticateWithOptional(scheme) {
+                get("/optional") { call.respondText("${call.requiredRoles.roles}") }
             }
         }
 
@@ -276,6 +283,93 @@ class AuthenticationSchemeWithRolesTest {
             header(HttpHeaders.Authorization, basicAuthHeader("user"))
         }
         assertEquals(HttpStatusCode.OK, userResp.status)
-        assertEquals("user:User", userResp.bodyAsText())
+        assertEquals("user:User:[]", userResp.bodyAsText())
+        assertEquals("[]", client.get("/optional").bodyAsText())
+    }
+
+    @Test
+    fun `anyOf allows principal with at least one required role`() = testApplication {
+        routing {
+            authenticateWith(roleScheme(), roles = anyOf(TestRole.Admin, TestRole.Moderator)) {
+                get("/moderation") {
+                    call.respondText("${call.principal.name}:${call.requiredRoles.roles.joinToString(",") { it.name }}")
+                }
+            }
+        }
+
+        for (name in listOf("admin", "mod")) {
+            val response = client.get("/moderation") {
+                header(HttpHeaders.Authorization, basicAuthHeader(name))
+            }
+            assertEquals(HttpStatusCode.OK, response.status)
+            assertEquals("$name:Admin,Moderator", response.bodyAsText())
+        }
+
+        val userResp = client.get("/moderation") {
+            header(HttpHeaders.Authorization, basicAuthHeader("user"))
+        }
+        assertEquals(HttpStatusCode.Forbidden, userResp.status)
+    }
+
+    @Test
+    fun `empty anyOf is rejected when route is built`() {
+        assertFailsWith<IllegalArgumentException> {
+            testApplication {
+                routing {
+                    authenticateWith(roleScheme(), roles = anyOf()) {
+                        get("/never") { call.respondText("unreachable") }
+                    }
+                }
+                startApplication()
+            }
+        }
+    }
+
+    @Test
+    fun `optional route enforces anyOf for authenticated callers`() = testApplication {
+        routing {
+            authenticateWithOptional(roleScheme(), roles = anyOf(TestRole.Admin, TestRole.Moderator)) {
+                get("/optional") {
+                    val name = call.principalOrNull?.name ?: "anonymous"
+                    call.respondText("$name:${call.requiredRoles.roles.joinToString(",") { it.name }}")
+                }
+            }
+        }
+
+        assertEquals("anonymous:Admin,Moderator", client.get("/optional").bodyAsText())
+        val modResp = client.get("/optional") {
+            header(HttpHeaders.Authorization, basicAuthHeader("mod"))
+        }
+        assertEquals("mod:Admin,Moderator", modResp.bodyAsText())
+        val userResp = client.get("/optional") {
+            header(HttpHeaders.Authorization, basicAuthHeader("user"))
+        }
+        assertEquals(HttpStatusCode.Forbidden, userResp.status)
+    }
+
+    @Suppress("DEPRECATION")
+    @Test
+    fun `deprecated set overload requires every role`() = testApplication {
+        routing {
+            authenticateWith(roleScheme(), roles = setOf(TestRole.Moderator, TestRole.User)) {
+                get("/both") { call.respondText("ok") }
+            }
+            authenticateWithOptional(roleScheme("optional-set"), roles = setOf(TestRole.Admin)) {
+                get("/optional") { call.respondText("ok") }
+            }
+        }
+
+        val modResp = client.get("/both") {
+            header(HttpHeaders.Authorization, basicAuthHeader("mod"))
+        }
+        assertEquals(HttpStatusCode.OK, modResp.status)
+        val adminResp = client.get("/both") {
+            header(HttpHeaders.Authorization, basicAuthHeader("admin"))
+        }
+        assertEquals(HttpStatusCode.Forbidden, adminResp.status)
+        val userResp = client.get("/optional") {
+            header(HttpHeaders.Authorization, basicAuthHeader("user"))
+        }
+        assertEquals(HttpStatusCode.Forbidden, userResp.status)
     }
 }
