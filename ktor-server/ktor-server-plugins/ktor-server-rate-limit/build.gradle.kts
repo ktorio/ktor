@@ -12,6 +12,13 @@ kotlin {
     sourceSets {
         commonTest.dependencies {
             implementation(projects.ktorServerAuth)
+            implementation(projects.ktorServerAuthApiKey)
+        }
+    }
+
+    sourceSets.matching { it.name.contains("Test", ignoreCase = true) }.configureEach {
+        compilerOptions {
+            freeCompilerArgs.add("-Xcontext-parameters")
         }
     }
 }
