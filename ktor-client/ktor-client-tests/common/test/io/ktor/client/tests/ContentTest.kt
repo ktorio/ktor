@@ -423,7 +423,7 @@ class ContentTest : ClientLoader(timeout = 1.minutes) {
                 val cause = CancellationException("Test exception")
                 job.cancel(cause)
 
-                assertEventually("body to be closed", timeout = 2.seconds) { body.closedCause != null }
+                assertEventually(timeout = 2.seconds) { body.closedCause != null }
                 assertEquals(cause.message, body.closedCause!!.message)
             }
         }
