@@ -90,8 +90,8 @@ private fun AuthenticateProvidersRegistration.toPlugin(): RouteScopedPlugin<Rout
         name = AuthPluginNameGenerator.next(),
         createConfiguration = ::RouteAuthenticationConfig
     ) {
-        val authConfig = application.plugin(Authentication).config
-        names.forEach { authConfig.findProvider(it) }
+        val authentication = application.plugin(Authentication)
+        names.forEach { authentication.config.findProvider(it) }
 
         // To cache the request body which can be consumed by the OAuth2 callback handler
         installOAuthBodyCache()
@@ -108,7 +108,7 @@ private fun AuthenticateProvidersRegistration.toPlugin(): RouteScopedPlugin<Rout
             val run = call.attributes.computeIfAbsent(AuthenticationRunKey) {
                 val plan = route.attributes.computeIfAbsent(AuthenticationPlanKey) {
                     val registrations = route.authenticateRegistrations()
-                    authConfig.buildPlan(registrations)
+                    authentication.config.buildPlan(registrations)
                 }
                 AuthenticationRun(plan, context)
             }
@@ -123,7 +123,6 @@ private fun AuthenticateProvidersRegistration.toPlugin(): RouteScopedPlugin<Rout
 
 @OptIn(InternalAPI::class)
 private fun AuthenticationConfig.buildPlan(registrations: List<AuthenticateProvidersRegistration>): AuthenticationPlan {
-
     fun phaseOf(strategy: PhaseStrategy, filter: (AuthenticationStrategy) -> Boolean): Phase {
         val owners = buildMap {
             registrations.forEachIndexed { index, registration ->
@@ -132,7 +131,7 @@ private fun AuthenticationConfig.buildPlan(registrations: List<AuthenticateProvi
                 }
                 for (name in registration.names) {
                     val provider = findProvider(name)
-                    put(provider, index)
+                    if (provider !in this) put(provider, index)
                 }
             }
         }

@@ -6,6 +6,8 @@
 
 package io.ktor.tests.auth
 
+import io.ktor.client.request.*
+import io.ktor.http.*
 import io.ktor.server.auth.*
 import io.ktor.utils.io.*
 import kotlin.io.encoding.Base64
@@ -22,6 +24,11 @@ fun basicAuthHeader(user: String, password: String = "pass"): String =
     "Basic ${Base64.encode("$user:$password".encodeToByteArray())}"
 
 fun bearerAuthHeader(token: String): String = "Bearer $token"
+
+fun HttpRequestBuilder.formCredentials(user: String, password: String = "pass") {
+    header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+    setBody("user=$user&password=$password")
+}
 
 fun testBasicScheme(name: String = "test-basic") = basic<TestUser>(name) {
     realm = "test"

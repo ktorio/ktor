@@ -35,13 +35,7 @@ class UnauthorizedAndChallengesTest {
     fun `default challenge sends WWW-Authenticate header`() = testApplication {
         val scheme = basic<TestUser>("challenge-test") {
             realm = "test-realm"
-            validate { credentials ->
-                if (credentials.name == "user" && credentials.password == "pass") {
-                    TestUser(credentials.name, "user@test.com")
-                } else {
-                    null
-                }
-            }
+            validate { null }
         }
 
         routing {
@@ -63,13 +57,7 @@ class UnauthorizedAndChallengesTest {
             onUnauthorized = { _ ->
                 call.respondText("Custom 401", status = HttpStatusCode.Unauthorized)
             }
-            validate { credentials ->
-                if (credentials.name == "user" && credentials.password == "pass") {
-                    TestUser(credentials.name, "user@test.com")
-                } else {
-                    null
-                }
-            }
+            validate { null }
         }
 
         routing {
@@ -89,13 +77,7 @@ class UnauthorizedAndChallengesTest {
             onUnauthorized = { _ ->
                 call.respondText("Scheme default", status = HttpStatusCode.Unauthorized)
             }
-            validate { credentials ->
-                if (credentials.name == "user" && credentials.password == "pass") {
-                    TestUser(credentials.name, "user@test.com")
-                } else {
-                    null
-                }
-            }
+            validate { null }
         }
 
         routing {

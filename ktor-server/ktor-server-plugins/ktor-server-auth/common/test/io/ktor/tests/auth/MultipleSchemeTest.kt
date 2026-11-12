@@ -65,7 +65,7 @@ class MultipleSchemeTest {
     }
 
     @Test
-    fun `anyOf with custom onUnauthorized handler`() = testApplication {
+    fun `anyOf tries the next scheme when the first rejects the credentials`() = testApplication {
         val adminScheme = basic<TestUser>("admin-basic-scheme") {
             validate {
                 if (it.name == "superadmin") TestUser("superadmin", "superadmin@admin.com") else null
@@ -78,21 +78,17 @@ class MultipleSchemeTest {
         }
 
         routing {
-            authenticateWithAnyOf(
-                adminScheme,
-                userScheme,
-                onUnauthorized = { call.respondText("Unauthorized") }
-            ) {
+            authenticateWithAnyOf(adminScheme, userScheme) {
                 get("/any") {
-                    // call.session is not available here
                     call.respondText("Any Scheme: ${call.principal.name}")
                 }
             }
         }
 
-        val unauthorizedResponse = client.get("/any")
-        assertEquals(HttpStatusCode.OK, unauthorizedResponse.status)
-        assertEquals("Unauthorized", unauthorizedResponse.bodyAsText())
+        val unknownUser = client.get("/any") {
+            header(HttpHeaders.Authorization, basicAuthHeader("unknown"))
+        }
+        assertEquals(HttpStatusCode.Unauthorized, unknownUser.status)
 
         val successResponse = client.get("/any") {
             header(HttpHeaders.Authorization, basicAuthHeader("ordinaryuser"))
