@@ -16,7 +16,6 @@ import kotlinx.coroutines.CompletableJob
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.withContext
 
-// A URL scheme according to RFC 3986: ALPHA *( ALPHA / DIGIT / "+" / "-" / "." ).
 private val SCHEME_PATTERN = Regex("[a-zA-Z][a-zA-Z0-9+.-]*")
 
 /**
@@ -71,7 +70,7 @@ public open class MockEngine internal constructor(
 
     @OptIn(InternalAPI::class)
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
-        checkUrlScheme(data.url)
+        requireValidUrlScheme(data.url)
 
         val callContext = callContext()
 
@@ -99,9 +98,9 @@ public open class MockEngine internal constructor(
         return response
     }
 
-    private fun checkUrlScheme(url: Url) {
+    private fun requireValidUrlScheme(url: Url) {
         val scheme = url.protocol.name
-        check(scheme.matches(SCHEME_PATTERN)) {
+        require(scheme.matches(SCHEME_PATTERN)) {
             "MockEngine received a request with a malformed URL \"$url\": the URL scheme \"$scheme\" is invalid. " +
                 "A real HTTP engine would refuse such a request, " +
                 "so check the request URL and the 'defaultRequest' configuration."

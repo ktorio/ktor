@@ -48,12 +48,12 @@ class MockEngineTest {
             }
         }
 
-        val failure = assertFailsWith<IllegalStateException> { client.get("123") }
+        val failure = assertFailsWith<IllegalArgumentException> { client.get("123") }
         assertTrue(failure.message.orEmpty().contains("scheme"))
     }
 
     @Test
-    fun testRelativeUrlWithoutDefaultRequestIsAccepted() = runTest {
+    fun testRelativeUrlIsAccepted() = runTest {
         val client = HttpClient(MockEngine) {
             engine {
                 addHandler { respond("OK") }
