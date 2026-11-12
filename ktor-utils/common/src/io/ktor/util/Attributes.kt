@@ -5,6 +5,7 @@
 package io.ktor.util
 
 import io.ktor.util.reflect.*
+import io.ktor.utils.io.InternalAPI
 import kotlin.jvm.*
 
 /**
@@ -36,6 +37,10 @@ public data class AttributeKey<T : Any> @JvmOverloads constructor(
         require(name.isNotBlank()) { "Name can't be blank" }
     }
 
+    private val hash: Int = 31 * name.hashCode() + type.hashCode()
+
+    override fun hashCode(): Int = hash
+
     override fun toString(): String = "AttributeKey: $name"
 }
 
@@ -60,6 +65,16 @@ public typealias EquatableAttributeKey<T> = AttributeKey<T>
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.Attributes)
  */
 public expect fun Attributes(concurrent: Boolean = false): Attributes
+
+/**
+ * Creates concurrent [Attributes] for a map that is written while its owner is set up and read on every call after,
+ * such as a pipeline's: on Native, a read takes no lock and a write copies the map. Elsewhere they are the same as
+ * `Attributes(concurrent = true)`.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.readMostlyAttributes)
+ */
+@InternalAPI
+public expect fun readMostlyAttributes(): Attributes
 
 /**
  * Map of attributes accessible by [AttributeKey] in a typed manner

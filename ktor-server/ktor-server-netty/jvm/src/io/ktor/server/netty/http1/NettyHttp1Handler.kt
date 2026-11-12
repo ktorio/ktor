@@ -18,6 +18,7 @@ import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelInboundHandlerAdapter
 import io.netty.handler.codec.http.*
 import io.netty.handler.timeout.ReadTimeoutException
+import io.netty.handler.timeout.WriteTimeoutException
 import io.netty.util.ReferenceCountUtil
 import io.netty.util.concurrent.EventExecutor
 import kotlinx.coroutines.*
@@ -51,6 +52,11 @@ internal class NettyHttp1Handler(
     private val pendingMessages = ArrayDeque<Any>()
 
     private val activeCalls = ConcurrentLinkedQueue<NettyHttp1ApplicationCall>()
+
+    /**
+     * True while a request on this connection is being handled or its response is being sent.
+     */
+    internal fun hasActiveCalls(): Boolean = state.activeRequests.value > 0
 
     private var activated = false
 
@@ -204,6 +210,17 @@ internal class NettyHttp1Handler(
                 activeCalls.forEach { call ->
                     call.coroutineContext.cancel(CancellationException(cause))
                 }
+            }
+
+            is WriteTimeoutException -> {
+                environment.log.debug(
+                    "Response write timed out, closing connection to ${context.channel().remoteAddress()}"
+                )
+                // Handled like ReadTimeoutException, except that no 408 can be sent once the response has started
+                activeCalls.forEach { call ->
+                    call.coroutineContext.cancel(CancellationException(cause))
+                }
+                context.close()
             }
 
             else -> {

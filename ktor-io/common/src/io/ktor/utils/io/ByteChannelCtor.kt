@@ -8,6 +8,7 @@ import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
 import kotlinx.io.*
 import kotlinx.io.Buffer
+import kotlin.coroutines.CoroutineContext
 
 /**
  * Creates a channel for reading from the specified byte array. Please note that it could use [content] directly
@@ -27,3 +28,16 @@ public fun ByteReadChannel(text: String, charset: Charset = Charsets.UTF_8): Byt
     ByteReadChannel(text.toByteArray(charset))
 
 public fun ByteReadChannel(source: Source): ByteReadChannel = SourceByteReadChannel(source)
+
+/**
+ * Creates a channel reading from the specified [source].
+ *
+ * Reads are performed in [context], so a blocking [source] doesn't block the caller's dispatcher,
+ * and [source] is closed once it's exhausted or the job of [context] is canceled.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.ByteReadChannel)
+ */
+public fun ByteReadChannel(
+    source: RawSource,
+    context: CoroutineContext = ioDispatcher()
+): ByteReadChannel = RawSourceChannel(source, context)

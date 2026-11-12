@@ -19,14 +19,13 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.server.testing.client.*
-import io.ktor.test.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.test.runTest
 import kotlin.coroutines.CoroutineContext
-import kotlin.coroutines.coroutineContext
 import kotlin.test.*
 import kotlin.time.Duration.Companion.seconds
 
@@ -242,6 +241,22 @@ class TestApplicationTest {
         assertEquals(true, applicationCalled)
         assertEquals(true, applicationStarted)
         assertEquals(true, externalServicesRoutingCalled)
+    }
+
+    @Test
+    fun `stop emits ApplicationStopping once`() = testApplication {
+        var stoppingEvents = 0
+        application {
+            monitor.subscribe(ApplicationStopping) {
+                stoppingEvents++
+            }
+        }
+
+        startApplication()
+        testApplication.stop()
+        testApplication.stop()
+
+        assertEquals(1, stoppingEvents)
     }
 
     @Test
@@ -469,7 +484,7 @@ class TestApplicationTest {
         assertEquals("test", client.get("/").bodyAsText())
     }
 
-    private fun testSocketTimeoutRead(timeout: Long, expectException: Boolean) = testApplication {
+    private fun testSocketTimeoutRead(timeout: Long, idleMillis: Long, expectException: Boolean) = testApplication {
         routing {
             get {
                 call.respond(
@@ -478,7 +493,7 @@ class TestApplicationTest {
                         override suspend fun writeTo(channel: ByteWriteChannel) {
                             channel.writeByteArray("Hello".toByteArray())
                             channel.flush()
-                            delay(300)
+                            delay(idleMillis)
                         }
                     }
                 )
@@ -503,11 +518,16 @@ class TestApplicationTest {
         }
     }
 
+    // The timeout is detected by polling, so it needs an idle period well above the timeout to fire reliably
     @Test
-    fun testSocketTimeoutReadElapsed() = testSocketTimeoutRead(100, true)
+    fun testSocketTimeoutReadElapsed() = testSocketTimeoutRead(timeout = 100, idleMillis = 1000, expectException = true)
 
     @Test
-    fun testSocketTimeoutReadNotElapsed() = testSocketTimeoutRead(1000, false)
+    fun testSocketTimeoutReadNotElapsed() = testSocketTimeoutRead(
+        timeout = 1000,
+        idleMillis = 300,
+        expectException = false
+    )
 
     @Test
     fun configuration_file_is_not_loaded_automatically() = testApplication {
@@ -551,6 +571,29 @@ class TestApplicationTest {
         val clientMessages = collected.filter { it.startsWith("[Client]") }.toSet()
         assertEquals(setOf("Test 0", "Test 1", "Test 2"), serverMessages)
         assertEquals(setOf("[Client] Test 0", "[Client] Test 1", "[Client] Test 2"), clientMessages)
+    }
+
+    @Test
+    fun testValidHandlerContextWhenStreaming() = testApplication {
+        routing {
+            get("/stream") {
+                withContext(MyElement("stream")) {
+                    call.respondBytesWriter {
+                        assertEquals("request", currentCoroutineContext()[CoroutineName]?.name)
+                        assertEquals("stream", currentCoroutineContext()[MyElement]?.data)
+                        writeStringUtf8("ready\n")
+                        flush()
+                        awaitCancellation()
+                    }
+                }
+            }
+        }
+
+        withTimeout(5.seconds) {
+            client.prepareGet("/stream").execute { response ->
+                assertEquals("ready", response.bodyAsChannel().readLineStrict())
+            }
+        }
     }
 
     class MyElement(val data: String) : CoroutineContext.Element {

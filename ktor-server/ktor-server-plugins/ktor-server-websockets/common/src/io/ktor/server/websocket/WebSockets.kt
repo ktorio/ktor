@@ -35,7 +35,7 @@ internal val LOGGER = KtorSimpleLogger("io.ktor.server.websocket.WebSockets")
  *
  * @param pingIntervalMillis duration between pings or [PINGER_DISABLED] to disable pings.
  * @param timeoutMillis write/ping timeout after that a connection will be closed.
- * @param maxFrameSize maximum frame that could be received or sent.
+ * @param maxFrameSize maximum frame that could be received.
  * @param masking whether masking need to be enabled (useful for security).
  * @param extensionsConfig is configuration for WebSocket extensions.
  * @param channelsConfig configuration for the I/O channels.
@@ -98,7 +98,9 @@ public class WebSockets private constructor(
         public var timeoutMillis: Long = 15_000L
 
         /**
-         * Maximum frame that could be received or sent
+         * Maximum frame that could be received.
+         *
+         * The limit applies to the incoming data before any possible decompression.
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.websocket.WebSockets.WebSocketOptions.maxFrameSize)
          */

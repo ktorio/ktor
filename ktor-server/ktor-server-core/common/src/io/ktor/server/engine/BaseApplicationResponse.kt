@@ -24,6 +24,16 @@ private val ERROR_CONTENT = object : OutgoingContent.NoContent() {
     override val status: HttpStatusCode = HttpStatusCode.InternalServerError
 }
 
+private val EMPTY_CONTENT = object : OutgoingContent.NoContent() {}
+
+// RFC 9110 §8.6
+private val HttpStatusCode.forbidsContentLength: Boolean
+    get() = value in 100..199 || this == HttpStatusCode.NoContent
+
+// RFC 9110 §6.4.1, §15.3.6
+private val HttpStatusCode.forbidsBody: Boolean
+    get() = forbidsContentLength || this == HttpStatusCode.ResetContent || this == HttpStatusCode.NotModified
+
 public abstract class BaseApplicationResponse(
     final override val call: PipelineCall
 ) : PipelineResponse {
@@ -36,9 +46,10 @@ public abstract class BaseApplicationResponse(
         @InternalAPI
         protected set
 
-    override val cookies: ResponseCookies by lazy(LazyThreadSafetyMode.NONE) {
-        ResponseCookies(this)
-    }
+    private var responseCookies: ResponseCookies? = null
+
+    override val cookies: ResponseCookies
+        get() = responseCookies ?: ResponseCookies(this).also { responseCookies = it }
 
     override fun status(): HttpStatusCode? = status
     override fun status(value: HttpStatusCode) {
@@ -48,11 +59,21 @@ public abstract class BaseApplicationResponse(
 
     private var responded = false
 
-    public final override val pipeline: ApplicationSendPipeline = ApplicationSendPipeline(
-        call.application.developmentMode
-    ).apply {
-        resetFrom(call.application.sendPipeline)
-    }
+    private var callPipeline: ApplicationSendPipeline? = null
+
+    @Deprecated(
+        "A call's own send pipeline will be removed. Intercept the application's or a route's instead, " +
+            "for example with onCallRespond in a plugin, and use execute() to run it."
+    )
+    public final override val pipeline: ApplicationSendPipeline
+        get() = callPipeline ?: ApplicationSendPipeline(call.application.developmentMode).apply {
+            resetFrom(call.application.sendPipeline)
+        }.also { callPipeline = it }
+
+    override suspend fun execute(call: PipelineCall, subject: Any): Any = pipelineToRun.execute(call, subject)
+
+    internal val pipelineToRun: ApplicationSendPipeline
+        get() = callPipeline ?: call.application.sendPipeline
 
     /**
      * Commit header values and status and pass them to the underlying engine
@@ -64,7 +85,13 @@ public abstract class BaseApplicationResponse(
         var transferEncodingSet = false
 
         content.status?.let { status(it) } ?: status() ?: status(HttpStatusCode.OK)
+        val status = status() ?: HttpStatusCode.OK
+        val dropContentLength = status.forbidsContentLength || status == HttpStatusCode.ResetContent
+
         content.headers.forEach { name, values ->
+            if (dropContentLength && name.equals(HttpHeaders.ContentLength, ignoreCase = true)) {
+                return@forEach
+            }
             when (name) {
                 HttpHeaders.TransferEncoding -> transferEncodingSet = true
 
@@ -86,17 +113,31 @@ public abstract class BaseApplicationResponse(
 
         val contentLength = content.contentLength
         when {
+            status.forbidsContentLength -> {}
+
+            status == HttpStatusCode.ResetContent -> {
+                headers.append(HttpHeaders.ContentLength, "0", safeOnly = false)
+            }
+
             contentLength != null -> {
                 // TODO: What should we do if TransferEncoding was set and length is present?
                 headers.append(HttpHeaders.ContentLength, contentLength.toStringFast(), safeOnly = false)
             }
+
+            // Unknown representation length, the body is never sent
+            status == HttpStatusCode.NotModified -> {}
 
             !transferEncodingSet -> {
                 when (content) {
                     is OutgoingContent.ProtocolUpgrade -> {
                     }
 
-                    is OutgoingContent.NoContent -> headers.append(HttpHeaders.ContentLength, "0", safeOnly = false)
+                    is OutgoingContent.NoContent -> {
+                        // Unknown representation length, so HEAD responses shouldn't claim zero
+                        if (call.request.local.method != HttpMethod.Head) {
+                            headers.append(HttpHeaders.ContentLength, "0", safeOnly = false)
+                        }
+                    }
 
                     else -> headers.append(HttpHeaders.TransferEncoding, "chunked", safeOnly = false)
                 }
@@ -122,6 +163,13 @@ public abstract class BaseApplicationResponse(
      * Process response outgoing [content]
      */
     protected open suspend fun respondOutgoingContent(content: OutgoingContent) {
+        if (isBodyForbidden(content)) {
+            respondWithoutBody(content)
+            @OptIn(InternalAPI::class)
+            isSent = true
+            return
+        }
+
         when (content) {
             is OutgoingContent.ProtocolUpgrade -> {
                 commitHeaders(content)
@@ -168,6 +216,19 @@ public abstract class BaseApplicationResponse(
         }
         @OptIn(InternalAPI::class)
         isSent = true
+    }
+
+    private fun isBodyForbidden(content: OutgoingContent): Boolean {
+        if (content is OutgoingContent.ProtocolUpgrade || content is OutgoingContent.ContentWrapper) return false
+        val status = content.status ?: status() ?: HttpStatusCode.OK
+        return status.forbidsBody
+    }
+
+    private suspend fun respondWithoutBody(content: OutgoingContent) {
+        // Don't produce a body that must not be sent, but release an already opened one
+        if (content is OutgoingContent.ReadChannelContent) content.readFrom().cancel()
+        commitHeaders(content)
+        respondNoContent(content as? OutgoingContent.NoContent ?: EMPTY_CONTENT)
     }
 
     /**

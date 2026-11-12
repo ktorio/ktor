@@ -4,6 +4,7 @@
 
 package io.ktor.websocket
 
+import io.ktor.utils.io.InternalAPI
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.channels.ReceiveChannel
@@ -28,11 +29,25 @@ public interface WebSocketSession : CoroutineScope {
     public var masking: Boolean
 
     /**
-     * Specifies the frame size limit. A connection will be closed if violated.
+     * Specifies the frame size limit in bytes. A connection will be closed if violated.
+     *
+     * In case a message is fragmented, the limit applies to the total size of the frames of a fragmented message.
+     * The limit applies to the incoming data before any possible decompression.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.WebSocketSession.maxFrameSize)
      */
     public var maxFrameSize: Long
+
+    /**
+     *  If this method returns `true`, the session checks that total max message size is below [maxFrameSize].
+     *
+     *  Wrapping the session into [DefaultWebSocketSession] will add additional checks on the message size
+     *  only if this method returns `false`.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.websocket.WebSocketSession.checksMaxMessageSize)
+     */
+    @InternalAPI
+    public fun checksMaxMessageSize(): Boolean = false
 
     /**
      * An incoming frames channel.

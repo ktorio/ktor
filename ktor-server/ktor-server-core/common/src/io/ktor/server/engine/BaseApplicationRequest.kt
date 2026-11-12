@@ -8,7 +8,7 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.utils.io.*
-import kotlinx.atomicfu.*
+import kotlin.concurrent.Volatile
 
 /**
  * Base class for implementing [PipelineRequest]
@@ -19,18 +19,34 @@ public abstract class BaseApplicationRequest(final override val call: PipelineCa
 
     protected abstract val engineHeaders: Headers
     protected abstract val engineReceiveChannel: ByteReadChannel
-    private val receiveChannel: AtomicRef<ByteReadChannel?> = atomic(null)
 
-    final override val headers: Headers by lazy(LazyThreadSafetyMode.NONE) { DelegateHeaders(engineHeaders) }
+    @Volatile
+    private var receiveChannel: ByteReadChannel? = null
 
-    override val pipeline: ApplicationReceivePipeline = ApplicationReceivePipeline(
-        call.application.developmentMode
-    ).apply {
-        resetFrom(call.application.receivePipeline)
-    }
+    // Not made in the constructor: engineHeaders is set after it, by the engine's
+    private var delegateHeaders: DelegateHeaders? = null
+
+    final override val headers: Headers
+        get() = delegateHeaders ?: DelegateHeaders(engineHeaders).also { delegateHeaders = it }
+
+    private var callPipeline: ApplicationReceivePipeline? = null
+
+    @Deprecated(
+        "A call's own receive pipeline will be removed. Intercept the application's or a route's instead, " +
+            "for example with onCallReceive in a plugin, and use execute() to run it."
+    )
+    override val pipeline: ApplicationReceivePipeline
+        get() = callPipeline ?: ApplicationReceivePipeline(call.application.developmentMode).apply {
+            resetFrom(call.application.receivePipeline)
+        }.also { callPipeline = it }
+
+    override suspend fun execute(call: PipelineCall, subject: Any): Any = pipelineToRun.execute(call, subject)
+
+    internal val pipelineToRun: ApplicationReceivePipeline
+        get() = callPipeline ?: call.application.receivePipeline
 
     final override fun receiveChannel(): ByteReadChannel {
-        return receiveChannel.value ?: engineReceiveChannel
+        return receiveChannel ?: engineReceiveChannel
     }
 
     @InternalAPI
@@ -40,33 +56,55 @@ public abstract class BaseApplicationRequest(final override val call: PipelineCa
 
     @InternalAPI
     final override fun setReceiveChannel(channel: ByteReadChannel) {
-        receiveChannel.value = channel
+        receiveChannel = channel
     }
 }
 
 private class DelegateHeaders(private val original: Headers) : Headers {
-    private val overridden = HeadersBuilder()
-    private val removed = mutableSetOf<String>()
+    private var overridden: HeadersBuilder? = null
+    private var removed: MutableSet<String>? = null
 
     override val caseInsensitiveName: Boolean = original.caseInsensitiveName
 
     fun setHeader(name: String, values: List<String>?) {
         if (values == null) {
-            removed.add(name)
-            overridden.remove(name)
+            (removed ?: mutableSetOf<String>().also { removed = it }).add(name)
+            overridden?.remove(name)
             return
         }
 
-        overridden.appendAll(name, values)
-        removed.remove(name)
+        (overridden ?: HeadersBuilder().also { overridden = it }).appendAll(name, values)
+        removed?.remove(name)
     }
 
-    override fun getAll(name: String): List<String>? {
-        if (removed.contains(name)) {
+    override fun get(name: String): String? {
+        if (removed?.contains(name) == true) {
             return null
         }
 
-        if (overridden.contains(name)) {
+        val overridden = overridden
+        if (overridden != null && overridden.contains(name)) {
+            return overridden[name]
+        }
+
+        return original[name]
+    }
+
+    override fun contains(name: String): Boolean {
+        if (removed?.contains(name) == true) {
+            return false
+        }
+
+        return overridden?.contains(name) == true || original.contains(name)
+    }
+
+    override fun getAll(name: String): List<String>? {
+        if (removed?.contains(name) == true) {
+            return null
+        }
+
+        val overridden = overridden
+        if (overridden != null && overridden.contains(name)) {
             return overridden.getAll(name)
         }
 
@@ -74,11 +112,24 @@ private class DelegateHeaders(private val original: Headers) : Headers {
     }
 
     override fun names(): Set<String> {
-        return original.names() + overridden.names() - removed
+        val overridden = overridden
+        val removed = removed
+        if (overridden == null && removed == null) {
+            return original.names()
+        }
+
+        return original.names() + (overridden?.names() ?: emptySet()) - (removed ?: emptySet())
     }
 
     override fun entries(): Set<Map.Entry<String, List<String>>> {
-        return (original.entries() + overridden.build().entries()).filterNot { it.key in removed }.toSet()
+        val overridden = overridden
+        val removed = removed
+        if (overridden == null && removed == null) {
+            return original.entries()
+        }
+
+        val entries = original.entries() + (overridden?.build()?.entries() ?: emptySet())
+        return entries.filterNot { removed != null && it.key in removed }.toSet()
     }
 
     override fun isEmpty(): Boolean {

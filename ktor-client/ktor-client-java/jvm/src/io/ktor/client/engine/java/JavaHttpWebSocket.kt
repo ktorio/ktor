@@ -7,6 +7,7 @@ package io.ktor.client.engine.java
 import io.ktor.client.engine.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.websocket.*
+import io.ktor.client.plugins.websocket.WebSocketHandshakeException
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.http.HttpHeaders
@@ -29,6 +30,7 @@ import java.util.concurrent.CompletionStage
 import kotlin.coroutines.CoroutineContext
 import kotlin.text.String
 import kotlin.text.toByteArray
+import java.net.http.WebSocketHandshakeException as JdkWebSocketHandshakeException
 
 private val ILLEGAL_HEADERS = TreeSet(String.CASE_INSENSITIVE_ORDER).apply {
     addAll(
@@ -82,11 +84,15 @@ internal class JavaHttpWebSocket(
 
     override var masking: Boolean
         get() = true
-        set(_) {}
+        set(value) {
+            if (!value) throw WebSocketException("Masking switch is not supported in Java engine.")
+        }
 
-    override var maxFrameSize: Long
-        get() = Long.MAX_VALUE
-        set(_) {}
+    /**
+     * Not enforced here: incoming frames don't match frames on the wire.
+     * [DefaultWebSocketSessionImpl] enforces it on reassembled messages.
+     */
+    override var maxFrameSize: Long = Long.MAX_VALUE
 
     override val incoming: ReceiveChannel<Frame>
         get() = _incoming
@@ -170,17 +176,21 @@ internal class JavaHttpWebSocket(
 
         var status = HttpStatusCode.SwitchingProtocols
         var headers: Headers
+        var body: Any = this
         try {
-            webSocket = builder.buildAsync(requestData.url.toURI(), this).await()
+            webSocket = builder.buildAsync(requestData.url.toURI(), this).awaitInterruptible()
             val protocol = webSocket.subprotocol?.takeIf { it.isNotEmpty() }
             headers = if (protocol != null) headersOf(HttpHeaders.SecWebSocketProtocol, protocol) else Headers.Empty
-        } catch (cause: WebSocketHandshakeException) {
-            if (cause.response.statusCode() == HttpStatusCode.Unauthorized.value) {
-                status = HttpStatusCode.Unauthorized
-                headers = headersOf(cause.response.headers().map())
-            } else {
-                throw cause
-            }
+        } catch (cause: JdkWebSocketHandshakeException) {
+            // A failed handshake - expose the response.
+            val response = cause.response
+                ?: throw WebSocketHandshakeException(cause.message ?: "WebSocket handshake failed", cause)
+            status = HttpStatusCode.fromValue(response.statusCode())
+            headers = headersOf(response.headers().map())
+
+            // On current OpenJDK versions, response.body() is null or a String. This isn't public API, so it can
+            // change. JDK 14 and older discard the body.
+            body = (response.body() as? String)?.let { ByteReadChannel(it.toByteArray()) } ?: ByteReadChannel.Empty
         }
 
         return HttpResponseData(
@@ -188,7 +198,7 @@ internal class JavaHttpWebSocket(
             requestTime,
             headers,
             HttpProtocolVersion.HTTP_1_1,
-            this,
+            body,
             callContext
         )
     }

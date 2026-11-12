@@ -98,5 +98,21 @@ public interface PipelineResponse : ApplicationResponse {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.response.PipelineResponse.pipeline)
      */
+    @Deprecated(
+        "A call's own send pipeline will be removed. Intercept the application's or a route's instead, " +
+            "for example with onCallRespond in a plugin, and use execute() to run it."
+    )
     public val pipeline: ApplicationSendPipeline
+
+    /**
+     * Runs this response's send pipeline on [subject], with [call] as its context.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.response.PipelineResponse.execute)
+     *
+     * @param call the call the pipeline's interceptors see.
+     * @param subject the message to send.
+     * @return what the pipeline transformed [subject] into.
+     */
+    @Suppress("DEPRECATION")
+    public suspend fun execute(call: PipelineCall, subject: Any): Any = pipeline.execute(call, subject)
 }

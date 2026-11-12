@@ -121,7 +121,7 @@ class NestedRoutesTest {
     fun `authenticateWith with roles inside authenticateWith`() = testApplication {
         routing {
             authenticateWith(basicScheme) {
-                authenticateWith(roleScheme, roles = setOf(TestRole.Admin)) {
+                authenticateWith(roleScheme, roles = allOf(TestRole.Admin)) {
                     get("/admin") {
                         call.respondText("admin:${call.principal.roles.joinToString(",") { it.name }}")
                     }

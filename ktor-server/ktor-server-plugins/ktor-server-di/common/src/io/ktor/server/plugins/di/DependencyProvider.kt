@@ -82,15 +82,26 @@ internal class MapDependencyProvider(
     override fun <T> set(key: DependencyKey, value: suspend DependencyResolver.() -> T) {
         val create = DependencyInitializer.Explicit(key, value)
         log.debug { "Provided $key ${DependencyReference().externalTraceLine()}" }
-        trySet(key, create)
-        insertCovariantKeys(create, key)
+        val replaced = mutableListOf<DependencyInitializer>()
+        try {
+            trySet(key, create)?.let(replaced::add)
+            insertCovariantKeys(create, key, replaced)
+        } finally {
+            for (waiting in replaced.filterIsInstance<DependencyInitializer.Missing>()) {
+                waiting.provide(create)
+            }
+        }
     }
 
-    private fun trySet(key: DependencyKey, newFunction: DependencyInitializer) {
-        map[key] = when (val previous = map[key]) {
+    private fun trySet(
+        key: DependencyKey,
+        newFunction: DependencyInitializer
+    ): DependencyInitializer? {
+        val previous = map[key]
+        map[key] = when (previous) {
             null -> newFunction
 
-            is DependencyInitializer.Missing -> newFunction.also(previous::provide)
+            is DependencyInitializer.Missing -> newFunction
 
             else -> when (val result = resolveConflict(previous, newFunction)) {
                 Ambiguous ->
@@ -105,6 +116,7 @@ internal class MapDependencyProvider(
                 is Replace -> result.function
             }
         }
+        return previous
     }
 
     private fun resolveConflict(
@@ -118,12 +130,13 @@ internal class MapDependencyProvider(
 
     private fun insertCovariantKeys(
         createFunction: DependencyInitializer.Explicit,
-        key: DependencyKey
+        key: DependencyKey,
+        replaced: MutableList<DependencyInitializer>
     ) {
         val covariantKeys = keyMapping.map(key, 0).toList()
         log.trace { "Covariant keys: ${formatKeys(covariantKeys)}" }
         for ((key, distance) in covariantKeys) {
-            trySet(key, createFunction.derived(distance))
+            trySet(key, createFunction.derived(distance))?.let(replaced::add)
         }
     }
 

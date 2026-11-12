@@ -58,6 +58,10 @@ public final class io/ktor/server/auth/jwt/JWTPrincipal : io/ktor/server/auth/jw
 	public fun <init> (Lcom/auth0/jwt/interfaces/Payload;)V
 }
 
+public final class io/ktor/server/auth/jwt/JWTUtilsKt {
+	public static final fun causedByProviderSentInvalidJwk (Lcom/auth0/jwk/SigningKeyNotFoundException;)Z
+}
+
 public final class io/ktor/server/auth/jwt/TypedJwtAuthConfig {
 	public fun <init> ()V
 	public final fun authHeader (Lkotlin/jvm/functions/Function1;)V

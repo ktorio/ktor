@@ -1045,6 +1045,52 @@ class DescribeRouteTest {
         assertTrue("DTO.Bar2" in schemas, "Full dot-containing Title should be used as component key: ${schemas.keys}")
     }
 
+    @Test
+    fun `type with example annotations referenced twice keeps a single component`() = testApplication {
+        install(ContentNegotiation) {
+            json(jsonFormat)
+        }
+        @OptIn(ExperimentalKtorApi::class)
+        routing {
+            get("/routes") {
+                call.respond(
+                    OpenApiDoc(info = OpenApiInfo("Test API", "1.0.0")) +
+                        call.application.routingRoot.descendants()
+                )
+            }.hide()
+
+            get("/first") {
+                call.respondText("ok")
+            }.describe {
+                responses {
+                    HttpStatusCode.OK {
+                        schema = jsonSchema<ExampleAnnotatedDto>()
+                    }
+                }
+            }
+
+            get("/second") {
+                call.respondText("ok")
+            }.describe {
+                responses {
+                    HttpStatusCode.OK {
+                        schema = jsonSchema<ExampleAnnotatedDto>()
+                    }
+                }
+            }
+        }
+
+        val responseText = client.get("/routes").bodyAsText()
+        val openApiSpec = jsonFormat.decodeFromString<OpenApiDoc>(responseText)
+        val schemas = openApiSpec.components?.schemas ?: fail("Schema components should be defined")
+
+        assertEquals(
+            listOf("ExampleAnnotatedDto"),
+            schemas.keys.toList(),
+            "The same type should map to a single component: ${schemas.keys}"
+        )
+    }
+
     private inline fun <reified T : Any> componentName(): String =
         T::class.qualifiedName ?: fail("Missing qualified name")
 
@@ -1176,3 +1222,9 @@ data class DotSerialNameDto(val value: String)
 @Serializable
 @JsonSchema.Title("DTO.Bar2")
 data class DotTitleDto(val value: String)
+
+@Serializable
+data class ExampleAnnotatedDto(
+    @JsonSchema.Example("\"example value\"")
+    val value: String,
+)

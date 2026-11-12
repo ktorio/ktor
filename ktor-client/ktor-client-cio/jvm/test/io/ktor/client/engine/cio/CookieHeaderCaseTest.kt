@@ -23,6 +23,11 @@ class CookieHeaderCaseTest {
                 val thread = thread {
                     try {
                         server.accept().use { socket ->
+                            // Read the request first: closing a socket with unread input sends RST instead of FIN
+                            val request = socket.getInputStream().bufferedReader()
+                            while (!request.readLine().isNullOrEmpty()) {
+                                // skip request headers
+                            }
                             socket.getOutputStream().let { out ->
                                 out.write(
                                     (

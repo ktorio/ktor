@@ -5,6 +5,7 @@
 package io.ktor.client.tests
 
 import io.ktor.client.*
+import io.ktor.client.engine.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.api.*
 import io.ktor.client.plugins.auth.*
@@ -18,6 +19,7 @@ import io.ktor.http.*
 import io.ktor.serialization.*
 import io.ktor.test.*
 import io.ktor.util.reflect.*
+import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
@@ -27,10 +29,19 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 internal val ENGINES_WITHOUT_WS = listOf("Android", "Apache", "Apache5", "DarwinLegacy")
-internal val ENGINES_NOT_SUPPORTING_MAX_FRAME_SIZE = listOf("OkHttp", "Js", "Java", "WinHttp")
+internal val ENGINES_NOT_SUPPORTING_MAX_FRAME_SIZE = listOf("OkHttp", "Js")
+internal val ENGINES_NOT_SUPPORTING_MASKING_SWITCH = listOf("OkHttp", "Js", "Java", "WinHttp", "Darwin", "Curl")
 
-// TODO: KTOR-9328 Options `maxFrameSize` and `masking` are silently ignored on some engines
-internal val ENGINES_NOT_SUPPORTING_MAX_FRAME_SIZE_SILENTLY = listOf("Java", "WinHttp")
+// Engines that don't expose the response of a rejected WebSocket handshake.
+private val ENGINES_WITHOUT_HANDSHAKE_RESPONSE = listOf("Js")
+
+// Engines that don't expose the response body of a rejected WebSocket handshake.
+private val ENGINES_WITHOUT_HANDSHAKE_RESPONSE_BODY = listOf("Curl", "Darwin") +
+    ENGINES_WITHOUT_HANDSHAKE_RESPONSE +
+    PLATFORM_ENGINES_WITHOUT_HANDSHAKE_RESPONSE_BODY
+
+// Engines that don't expose the response body of a rejected WebSocket handshake on the current platform and runtime.
+internal expect val PLATFORM_ENGINES_WITHOUT_HANDSHAKE_RESPONSE_BODY: List<String>
 
 private const val TEST_SIZE: Int = 100
 
@@ -395,7 +406,7 @@ class WebSocketTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
     }
 
     @Test
-    fun testAuthenticationWithValidRefreshToken() = clientTests(except("Js", "WinHttp")) {
+    fun testAuthenticationWithValidRefreshToken() = clientTests(except("Js")) {
         config {
             install(WebSockets)
 
@@ -438,7 +449,7 @@ class WebSocketTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
     }
 
     @Test
-    fun testAuthenticationWithInvalidToken() = clientTests(except("Js", "WinHttp")) {
+    fun testAuthenticationWithInvalidToken() = clientTests(except("Js")) {
         config {
             install(WebSockets)
 
@@ -540,28 +551,72 @@ class WebSocketTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
     fun testMaxFrameSizeSupported() = clientTests(except(ENGINES_NOT_SUPPORTING_MAX_FRAME_SIZE)) {
         config {
             install(WebSockets) {
+                maxFrameSize = 100
+            }
+        }
+
+        test { client ->
+            client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/uncompressed-binary?size=100") {
+                assertEquals(100, incoming.receive().data.size)
+            }
+            client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/uncompressed-binary?size=101") {
+                assertFailsWith<FrameTooBigException> { incoming.receive() }
+            }
+        }
+    }
+
+    @Test
+    fun testMaxFrameSizeEndlessMessage() = clientTests(
+        except(ENGINES_NOT_SUPPORTING_MAX_FRAME_SIZE),
+        timeout = 10.seconds,
+    ) {
+        config {
+            install(WebSockets) {
                 maxFrameSize = 10
             }
         }
 
-        val shortMessage = "abc"
-        val longMessage = "def".repeat(500)
+        // The message never ends, so a client buffering it before checking the size would never fail
         test { client ->
-            assertFailsWith<FrameTooBigException> {
-                client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
-                    send(shortMessage)
-                    assertEquals(shortMessage, (incoming.receive() as Frame.Text).readText())
-                    send(longMessage)
-                    incoming.receive() // This should throw FrameTooBigException
+            client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/endless-message") {
+                assertFailsWith<FrameTooBigException> { incoming.receive() }
+            }
+        }
+    }
+
+    @Test
+    fun testMaxFrameSizeExceededBeforeSessionIsConsumed() = clientTests(
+        except(ENGINES_NOT_SUPPORTING_MAX_FRAME_SIZE),
+        retries = 0,
+    ) {
+        test { delegateClient ->
+            // The oversized frame arrives while the engine is still returning the handshake response
+            @OptIn(InternalAPI::class)
+            val delayingEngine = object : HttpClientEngine by delegateClient.engine {
+                override suspend fun execute(data: HttpRequestData): HttpResponseData =
+                    delegateClient.engine.execute(data).also { delay(10.milliseconds) }
+
+                // The default implementation calls `execute` on the engine it's installed on,
+                // so it must not be delegated
+                override fun install(client: HttpClient) = super.install(client)
+            }
+
+            val delayingClient = HttpClient(delayingEngine) {
+                install(WebSockets) {
+                    maxFrameSize = 10
+                }
+            }
+
+            delayingClient.use {
+                it.webSocket("$TEST_WEBSOCKET_SERVER/websockets/uncompressed-binary?size=1024") {
+                    assertFailsWith<FrameTooBigException> { incoming.receive() }
                 }
             }
         }
     }
 
     @Test
-    fun testMaxFrameSizeNotSupported() = clientTests(
-        only(ENGINES_NOT_SUPPORTING_MAX_FRAME_SIZE - ENGINES_NOT_SUPPORTING_MAX_FRAME_SIZE_SILENTLY)
-    ) {
+    fun testMaxFrameSizeNotSupported() = clientTests(only(ENGINES_NOT_SUPPORTING_MAX_FRAME_SIZE)) {
         config {
             install(WebSockets) {
                 maxFrameSize = 10
@@ -575,6 +630,73 @@ class WebSocketTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
                 }
             }
             assertContains(exception.message!!, "Max frame size switch is not supported")
+        }
+    }
+
+    @Test
+    fun testMaskingSwitchSupported() = clientTests(except(ENGINES_NOT_SUPPORTING_MASKING_SWITCH)) {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
+                masking = false
+                assertFalse(masking)
+
+                send("abc")
+                assertEquals("abc", (incoming.receive() as Frame.Text).readText())
+            }
+        }
+    }
+
+    @Test
+    fun testMaskingSwitchNotSupported() = clientTests(only(ENGINES_NOT_SUPPORTING_MASKING_SWITCH)) {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/echo") {
+                val exception = assertFailsWith<WebSocketException> {
+                    masking = false
+                }
+                assertContains(exception.message!!, "Masking switch is not supported")
+                assertTrue(masking)
+
+                masking = true
+            }
+        }
+    }
+
+    @Test
+    fun testFailedHandshakeExposesResponseBody() = clientTests(except(ENGINES_WITHOUT_HANDSHAKE_RESPONSE_BODY)) {
+        testWebSocketHandshakeError(checkBody = true)
+    }
+
+    @Test
+    fun testFailedHandshakeExposesResponse() = clientTests(except(ENGINES_WITHOUT_HANDSHAKE_RESPONSE)) {
+        testWebSocketHandshakeError(checkBody = false)
+    }
+
+    private fun TestClientBuilder<*>.testWebSocketHandshakeError(checkBody: Boolean) {
+        config {
+            install(WebSockets)
+        }
+
+        test { client ->
+            val exception = assertFailsWith<WebSocketHandshakeException> {
+                client.webSocket("$TEST_WEBSOCKET_SERVER/websockets/handshake-403") {
+                    fail("Unreachable")
+                }
+            }
+
+            val response = assertNotNull(exception.response)
+            assertEquals(HttpStatusCode.Forbidden, response.status)
+            assertEquals("forbidden", response.headers["X-Handshake-Reason"])
+            if (checkBody) {
+                assertEquals("handshake forbidden", response.bodyAsText())
+            }
         }
     }
 

@@ -5,6 +5,7 @@
 package io.ktor.client.engine.darwin.internal
 
 import io.ktor.client.engine.darwin.*
+import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.util.date.*
@@ -32,7 +33,8 @@ import kotlin.coroutines.resumeWithException
 internal class DarwinWebsocketSession(
     callContext: CoroutineContext,
     private val task: NSURLSessionWebSocketTask,
-    channelsConfig: WebSocketChannelsConfig
+    channelsConfig: WebSocketChannelsConfig,
+    private val requestData: HttpRequestData,
 ) : WebSocketSession {
 
     private val requestTime: GMTDate = GMTDate()
@@ -45,7 +47,9 @@ internal class DarwinWebsocketSession(
 
     override var masking: Boolean
         get() = true
-        set(_) {}
+        set(value) {
+            if (!value) throw WebSocketException("Masking switch is not supported in Darwin engine.")
+        }
 
     @OptIn(ExperimentalForeignApi::class)
     override var maxFrameSize: Long
@@ -53,6 +57,8 @@ internal class DarwinWebsocketSession(
         set(value) {
             task.setMaximumMessageSize(value.convert())
         }
+
+    override fun checksMaxMessageSize(): Boolean = true
 
     override val incoming: ReceiveChannel<Frame>
         get() = _incoming
@@ -82,7 +88,13 @@ internal class DarwinWebsocketSession(
 
     private suspend fun receiveMessages() {
         while (true) {
-            val message = task.receiveMessage()
+            val message = try {
+                task.receiveMessage()
+            } catch (cause: FrameTooBigException) {
+                if (!response.isCompleted) throw cause
+                closeFrameTooBig(cause)
+                return
+            }
             val frame = when (message.type) {
                 NSURLSessionWebSocketMessageTypeData ->
                     Frame.Binary(true, message.data()!!.toByteArray())
@@ -181,7 +193,7 @@ internal class DarwinWebsocketSession(
         val headers = if (protocol != null) headersOf(HttpHeaders.SecWebSocketProtocol, protocol) else Headers.Empty
 
         val response = HttpResponseData(
-            task.getStatusCode()?.let { HttpStatusCode.fromValue(it) } ?: HttpStatusCode.SwitchingProtocols,
+            HttpStatusCode.SwitchingProtocols,
             requestTime,
             headers,
             HttpProtocolVersion.HTTP_1_1,
@@ -197,16 +209,40 @@ internal class DarwinWebsocketSession(
             return
         }
 
-        // KTOR-7363 We want to proceed with the request if we get 401 Unauthorized status code
-        if (task.getStatusCode() == HttpStatusCode.Unauthorized.value) {
-            didOpen(protocol = null)
+        val nsResponse = task.response() as? NSHTTPURLResponse
+        if (nsResponse != null && nsResponse.statusCode.toInt() != HttpStatusCode.SwitchingProtocols.value) {
+            // Server rejected the upgrade.
+            // We don't have the response body. We proceed without the body, so that the rest of the response
+            // is available in WebSocketHandshakeException.response when it's thrown in WebSockets plugin.
+            val response = HttpResponseData(
+                HttpStatusCode.fromValue(nsResponse.statusCode.toInt()),
+                requestTime,
+                nsResponse.readHeaders(requestData.method, requestData.attributes),
+                HttpProtocolVersion.HTTP_1_1,
+                ByteReadChannel.Empty,
+                coroutineContext
+            )
+            this.response.complete(response)
             socketJob.complete()
             return
         }
 
         val exception = convertWebsocketError(error)
+        // The session is already handed over to the user, so the error is reported through it
+        // instead of failing the call
+        if (exception is FrameTooBigException && response.isCompleted) {
+            closeFrameTooBig(exception)
+            return
+        }
         response.completeExceptionally(exception)
         socketJob.completeExceptionally(exception)
+    }
+
+    private fun closeFrameTooBig(cause: FrameTooBigException) {
+        _incoming.close(cause)
+        val reason = CloseReason.truncated(CloseReason.Codes.TOO_BIG, cause.message)
+        task.cancelWithCloseCode(reason.code.convert(), reason.message.toByteArray().toNSData())
+        socketJob.cancel()
     }
 
     @OptIn(DelicateCoroutinesApi::class)
@@ -230,9 +266,13 @@ private suspend fun NSURLSessionWebSocketTask.receiveMessage(): NSURLSessionWebS
     suspendCancellableCoroutine {
         receiveMessageWithCompletionHandler { message, error ->
             if (error != null) {
-                // KTOR-7363 We want to proceed with the request if we get 401 Unauthorized status code
-                // KTOR-6198 We want to set correct close code and reason on URLSession:webSocketTask:didCloseWithCode:reason:
-                if ((getStatusCode() == HttpStatusCode.Unauthorized.value) ||
+                if (
+                    // The handshake was rejected: let didComplete complete with the response data
+                    // so that WebSockets plugin can throw WebSocketHandshakeException (KTOR-9729)
+                    // or so Auth plugin can handle the failure (KTOR-7363)
+                    hasFailedHandshake() ||
+                    // KTOR-6198 We want to set correct close code and reason on
+                    // URLSession:webSocketTask:didCloseWithCode:reason:
                     (this.closeCode != NSURLSessionWebSocketCloseCodeInvalid)
                 ) {
                     it.cancel()
@@ -254,6 +294,11 @@ private suspend fun NSURLSessionWebSocketTask.receiveMessage(): NSURLSessionWebS
 @OptIn(UnsafeNumber::class)
 @Suppress("REDUNDANT_CALL_OF_CONVERSION_METHOD")
 internal fun NSURLSessionTask.getStatusCode() = (response() as NSHTTPURLResponse?)?.statusCode?.toInt()
+
+private fun NSURLSessionWebSocketTask.hasFailedHandshake() = when (getStatusCode()) {
+    null, HttpStatusCode.SwitchingProtocols.value -> false
+    else -> true
+}
 
 @OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
 private fun convertWebsocketError(error: NSError): Exception = when {

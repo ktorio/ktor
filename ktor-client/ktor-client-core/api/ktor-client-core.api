@@ -784,6 +784,7 @@ public final class io/ktor/client/plugins/cookies/HttpCookies$Companion : io/kto
 public final class io/ktor/client/plugins/cookies/HttpCookies$Config {
 	public fun <init> ()V
 	public final fun default (Lkotlin/jvm/functions/Function2;)V
+	public final fun expiresParser (Lkotlin/jvm/functions/Function1;)V
 	public final fun getStorage ()Lio/ktor/client/plugins/cookies/CookiesStorage;
 	public final fun setStorage (Lio/ktor/client/plugins/cookies/CookiesStorage;)V
 }
@@ -1040,11 +1041,13 @@ public abstract interface class io/ktor/client/plugins/websocket/ClientWebSocket
 }
 
 public final class io/ktor/client/plugins/websocket/ClientWebSocketSession$DefaultImpls {
+	public static fun checksMaxMessageSize (Lio/ktor/client/plugins/websocket/ClientWebSocketSession;)Z
 	public static fun send (Lio/ktor/client/plugins/websocket/ClientWebSocketSession;Lio/ktor/websocket/Frame;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
 public final class io/ktor/client/plugins/websocket/DefaultClientWebSocketSession : io/ktor/client/plugins/websocket/ClientWebSocketSession, io/ktor/websocket/DefaultWebSocketSession {
 	public fun <init> (Lio/ktor/client/call/HttpClientCall;Lio/ktor/websocket/DefaultWebSocketSession;)V
+	public fun checksMaxMessageSize ()Z
 	public fun flush (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getCall ()Lio/ktor/client/call/HttpClientCall;
 	public fun getCloseReason ()Lkotlinx/coroutines/Deferred;
@@ -1080,7 +1083,7 @@ public final class io/ktor/client/plugins/websocket/WebSocketCapability : io/kto
 	public fun toString ()Ljava/lang/String;
 }
 
-public final class io/ktor/client/plugins/websocket/WebSocketException : java/lang/IllegalStateException {
+public class io/ktor/client/plugins/websocket/WebSocketException : java/lang/IllegalStateException {
 	public fun <init> (Ljava/lang/String;)V
 	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
 }
@@ -1090,6 +1093,12 @@ public final class io/ktor/client/plugins/websocket/WebSocketExtensionsCapabilit
 	public fun equals (Ljava/lang/Object;)Z
 	public fun hashCode ()I
 	public fun toString ()Ljava/lang/String;
+}
+
+public final class io/ktor/client/plugins/websocket/WebSocketHandshakeException : io/ktor/client/plugins/websocket/WebSocketException {
+	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;Lio/ktor/client/statement/HttpResponse;)V
+	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;Lio/ktor/client/statement/HttpResponse;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun getResponse ()Lio/ktor/client/statement/HttpResponse;
 }
 
 public final class io/ktor/client/plugins/websocket/WebSockets {

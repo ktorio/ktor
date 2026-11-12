@@ -34,6 +34,7 @@ public final class io/ktor/util/Attributes$DefaultImpls {
 public final class io/ktor/util/AttributesJvmKt {
 	public static final fun Attributes (Z)Lio/ktor/util/Attributes;
 	public static synthetic fun Attributes$default (ZILjava/lang/Object;)Lio/ktor/util/Attributes;
+	public static final fun readMostlyAttributes ()Lio/ktor/util/Attributes;
 }
 
 public final class io/ktor/util/AttributesKt {
@@ -713,6 +714,8 @@ public final class io/ktor/util/date/DateKt {
 	public static final fun minus-HG0u8IE (Lio/ktor/util/date/GMTDate;J)Lio/ktor/util/date/GMTDate;
 	public static final fun plus (Lio/ktor/util/date/GMTDate;J)Lio/ktor/util/date/GMTDate;
 	public static final fun plus-HG0u8IE (Lio/ktor/util/date/GMTDate;J)Lio/ktor/util/date/GMTDate;
+	public static final fun toGMTDate (Lkotlin/time/Instant;)Lio/ktor/util/date/GMTDate;
+	public static final fun toInstant (Lio/ktor/util/date/GMTDate;)Lkotlin/time/Instant;
 	public static final fun truncateToSeconds (Lio/ktor/util/date/GMTDate;)Lio/ktor/util/date/GMTDate;
 }
 

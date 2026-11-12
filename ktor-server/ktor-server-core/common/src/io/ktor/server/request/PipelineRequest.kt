@@ -96,7 +96,23 @@ public interface PipelineRequest : ApplicationRequest {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.request.PipelineRequest.pipeline)
      */
+    @Deprecated(
+        "A call's own receive pipeline will be removed. Intercept the application's or a route's instead, " +
+            "for example with onCallReceive in a plugin, and use execute() to run it."
+    )
     public val pipeline: ApplicationReceivePipeline
+
+    /**
+     * Runs this request's receive pipeline on [subject], with [call] as its context.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.request.PipelineRequest.execute)
+     *
+     * @param call the call the pipeline's interceptors see.
+     * @param subject the content to transform, such as the request body channel.
+     * @return what the pipeline transformed [subject] into.
+     */
+    @Suppress("DEPRECATION")
+    public suspend fun execute(call: PipelineCall, subject: Any): Any = pipeline.execute(call, subject)
 
     /**
      * Overrides request headers. Will remove header [name] if passed [values] is `null` or set [values] otherwise.

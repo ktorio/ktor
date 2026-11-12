@@ -89,8 +89,10 @@ public data class CloseReason(val code: Short, val message: String) {
         }
     }
 
-    internal companion object {
-        fun truncated(code: Codes, message: String): CloseReason =
+    @InternalAPI
+    public companion object {
+        @InternalAPI
+        public fun truncated(code: Codes, message: String): CloseReason =
             CloseReason(code, message.utf8Truncate(MAX_CLOSE_REASON_MESSAGE_SIZE))
     }
 }

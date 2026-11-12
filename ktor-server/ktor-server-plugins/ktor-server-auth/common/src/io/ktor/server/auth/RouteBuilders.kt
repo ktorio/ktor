@@ -6,6 +6,7 @@
 
 package io.ktor.server.auth
 
+import io.ktor.server.application.*
 import io.ktor.server.routing.*
 import io.ktor.util.*
 import io.ktor.util.reflect.*
@@ -89,11 +90,12 @@ internal fun <P : Any, C> Route.installTypedAuthentication(
     scheme: AuthenticationScheme<P, C>,
     isOptional: Boolean,
     onUnauthorized: UnauthorizedHandler? = null,
+    beforeAuthenticate: ((ApplicationCall) -> Unit)? = null,
     onAccepted: (suspend RoutingContext.(P) -> Unit)? = null,
 ): Route {
     val selector = AuthenticationRouteSelector(listOf(scheme.name))
     val route = createChild(selector).also { scheme.preinstallAt(route = it) }
-    route.install(scheme.createPlugin(isOptional, onUnauthorized, onAccepted))
+    route.install(scheme.createPlugin(isOptional, onUnauthorized, beforeAuthenticate, onAccepted))
     return route
 }
 
@@ -178,7 +180,8 @@ internal fun <P : Any> Route.authenticateWithAnyOf(
  * Creates a child route protected by [scheme] and the required [roles].
  *
  * Authentication failures are handled as in [authenticateWith]. If authentication succeeds but the resolved roles do
- * not include every required role, the forbidden handler is invoked. Route-level [onForbidden] takes precedence over
+ * not satisfy [roles], the forbidden handler is invoked. Use [allOf] to require every listed role or [anyOf] to
+ * require at least one of them. Route-level [onForbidden] takes precedence over
  * [AuthenticationSchemeWithRoles.forbiddenHandler] on [scheme].
  *
  * ```kotlin
@@ -186,7 +189,7 @@ internal fun <P : Any> Route.authenticateWithAnyOf(
  *     redis.getUserRoles(user.id) // suspend lookup from Redis or database
  * }
  *
- * authenticateWith(adminAuth, roles = setOf(Role.Admin)) {
+ * authenticateWith(adminAuth, roles = anyOf(Role.Admin, Role.Moderator)) {
  *     get("/admin") {
  *         val user = call.principal
  *         call.respondText("${user.name}:${user.roles.joinToString(",") { it.name }}")
@@ -197,16 +200,17 @@ internal fun <P : Any> Route.authenticateWithAnyOf(
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.authenticateWith)
  *
  * @param scheme role-based typed authentication scheme.
- * @param roles roles required to enter this route when the request is authenticated, or `null` to skip role
- * enforcement while still resolving roles for authenticated callers.
+ * @param roles [RoleRequirement] to enter this route when the request is authenticated, created with [allOf] or
+ * [anyOf]. Defaults to an empty [allOf], which skips role enforcement while still resolving roles for
+ * authenticated callers.
  * @param onUnauthorized optional route-level handler invoked when authentication fails.
- * @param onForbidden optional route-level handler invoked when the principal lacks required roles.
+ * @param onForbidden optional route-level handler invoked when the principal does not satisfy [roles].
  * @param build route builder with [RolesContext] and the base scheme context available as context parameters.
  */
 @ExperimentalKtorApi
 public fun <P, R, C, S> Route.authenticateWith(
     scheme: AuthenticationSchemeWithRoles<P, R, C, S>,
-    roles: Set<R>? = null,
+    roles: RoleRequirement<R> = allOf(),
     onUnauthorized: UnauthorizedHandler? = null,
     onForbidden: ForbiddenHandler<P, C, R>? = null,
     build: context(PrincipalContext<P>, C, RolesContext<P, R>) Route.() -> Unit,
@@ -217,6 +221,7 @@ public fun <P, R, C, S> Route.authenticateWith(
         scheme = scheme.base,
         isOptional = false,
         onUnauthorized = onUnauthorized,
+        beforeAuthenticate = { call -> scheme.putRequiredRoles(call, roles) },
         onAccepted = { principal -> scheme.validateRoles(principal, roles, onForbidden) },
     )
     scheme.base.provideContext {
@@ -226,16 +231,37 @@ public fun <P, R, C, S> Route.authenticateWith(
 }
 
 /**
+ * Creates a child route protected by [scheme] that requires every role in [roles].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.authenticateWith)
+ */
+@ExperimentalKtorApi
+@Deprecated(
+    "Use a RoleRequirement created with allOf(...) or anyOf(...) instead.",
+    ReplaceWith("authenticateWith(scheme, allOf(*roles.toTypedArray()), onUnauthorized, onForbidden, build)")
+)
+public fun <P, R, C, S> Route.authenticateWith(
+    scheme: AuthenticationSchemeWithRoles<P, R, C, S>,
+    roles: Set<R>,
+    onUnauthorized: UnauthorizedHandler? = null,
+    onForbidden: ForbiddenHandler<P, C, R>? = null,
+    build: context(PrincipalContext<P>, C, RolesContext<P, R>) Route.() -> Unit,
+): Route where P : Any,
+               R : AuthenticationRole,
+               S : AuthenticationScheme<P, C> =
+    authenticateWith(scheme, AllOfRoles(roles), onUnauthorized, onForbidden, build)
+
+/**
  * Creates a child route where role-based authentication is optional.
  *
  * Requests without credentials enter the route and expose `null` from `principalOrNull`.
  * Requests with invalid credentials invoke [onUnauthorized] or the scheme-level failure handler.
- * When a caller is authenticated, required [roles] are enforced: missing roles invoke [onForbidden] or the
+ * When a caller is authenticated, [roles] are enforced: an unsatisfied requirement invokes [onForbidden] or the
  * scheme-level forbidden handler. Requests without credentials skip role checks and enter the route with
  * `principalOrNull == null`. Use required [authenticateWith] when every caller must authenticate and satisfy [roles].
  *
  * ```kotlin
- * authenticateWithOptional(adminAuth, roles = setOf(Role.Admin)) {
+ * authenticateWithOptional(adminAuth, roles = allOf(Role.Admin)) {
  *     get("/admin") {
  *         val user = call.principalOrNull
  *         if (user == null) {
@@ -250,16 +276,17 @@ public fun <P, R, C, S> Route.authenticateWith(
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.authenticateWithOptional)
  *
  * @param scheme role-based typed authentication scheme.
- * @param roles roles required when the request is authenticated, or `null` to skip role enforcement while still
- * resolving roles for authenticated callers.
+ * @param roles [RoleRequirement] enforced when the request is authenticated, created with [allOf] or [anyOf].
+ * Defaults to an empty [allOf], which skips role enforcement while still resolving roles for authenticated
+ * callers.
  * @param onUnauthorized optional route-level handler invoked when credentials are present but invalid.
- * @param onForbidden optional route-level handler invoked when the principal lacks required roles.
+ * @param onForbidden optional route-level handler invoked when the principal does not satisfy [roles].
  * @param build route builder with the base scheme context and [RolesContext] available as context parameters.
  */
 @ExperimentalKtorApi
 public fun <P, R, C> Route.authenticateWithOptional(
     scheme: AuthenticationSchemeWithRoles<P, R, C, *>,
-    roles: Set<R>? = null,
+    roles: RoleRequirement<R> = allOf(),
     onUnauthorized: UnauthorizedHandler? = null,
     onForbidden: ForbiddenHandler<P, C, R>? = null,
     build: context(OptionalPrincipalContext<P>, C, RolesContext<P, R>) Route.() -> Unit,
@@ -269,6 +296,7 @@ public fun <P, R, C> Route.authenticateWithOptional(
         scheme = scheme.base,
         isOptional = true,
         onUnauthorized = onUnauthorized,
+        beforeAuthenticate = { call -> scheme.putRequiredRoles(call, roles) },
         onAccepted = { principal -> scheme.validateRoles(principal, roles, onForbidden) },
     )
     scheme.base.provideOptionalContext {
@@ -276,3 +304,24 @@ public fun <P, R, C> Route.authenticateWithOptional(
     }
     return route
 }
+
+/**
+ * Creates a child route where role-based authentication is optional and authenticated callers must hold every
+ * role in [roles].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.authenticateWithOptional)
+ */
+@ExperimentalKtorApi
+@Deprecated(
+    "Use a RoleRequirement created with allOf(...) or anyOf(...) instead.",
+    ReplaceWith("authenticateWithOptional(scheme, allOf(*roles.toTypedArray()), onUnauthorized, onForbidden, build)")
+)
+public fun <P, R, C> Route.authenticateWithOptional(
+    scheme: AuthenticationSchemeWithRoles<P, R, C, *>,
+    roles: Set<R>,
+    onUnauthorized: UnauthorizedHandler? = null,
+    onForbidden: ForbiddenHandler<P, C, R>? = null,
+    build: context(OptionalPrincipalContext<P>, C, RolesContext<P, R>) Route.() -> Unit,
+): Route where P : Any,
+               R : AuthenticationRole =
+    authenticateWithOptional(scheme, AllOfRoles(roles), onUnauthorized, onForbidden, build)

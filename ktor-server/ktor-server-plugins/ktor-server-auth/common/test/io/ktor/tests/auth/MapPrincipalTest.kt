@@ -216,7 +216,7 @@ class MapPrincipalTest {
                 scheme.base.setSession(UserSession(call.parameters["name"]!!))
                 call.respondText("ok")
             }
-            authenticateWith(scheme, roles = setOf(TestRole.Admin)) {
+            authenticateWith(scheme, roles = allOf(TestRole.Admin)) {
                 get("/admin") {
                     val user = call.principal
                     call.respondText(

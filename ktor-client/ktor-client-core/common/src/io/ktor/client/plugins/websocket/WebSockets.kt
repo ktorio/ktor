@@ -16,6 +16,7 @@ import io.ktor.util.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import io.ktor.websocket.*
+import kotlin.coroutines.cancellation.CancellationException
 
 private val REQUEST_EXTENSIONS_KEY = AttributeKey<List<WebSocketExtension<*>>>("Websocket extensions")
 
@@ -23,6 +24,12 @@ private val REQUEST_EXTENSIONS_KEY = AttributeKey<List<WebSocketExtension<*>>>("
 public val WEBSOCKETS_KEY: AttributeKey<WebSockets> = AttributeKey<WebSockets>("Websocket plugin config")
 
 internal val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.websocket.WebSockets")
+
+internal const val DEFAULT_MAX_FRAME_SIZE: Long = Int.MAX_VALUE.toLong()
+
+// Marks a call whose failed-handshake response has already been captured, so reading that
+// response's body (via WebSocketHandshakeException.response) doesn't re-enter the handshake handling below.
+private val FAILED_HANDSHAKE_RESPONSE_KEY = AttributeKey<Unit>("WebSocketFailedHandshakeResponse")
 
 /**
  * Indicates if a client engine supports WebSockets.
@@ -66,7 +73,7 @@ public class WebSockets internal constructor(
      */
     public constructor(
         pingIntervalMillis: Long = PINGER_DISABLED,
-        maxFrameSize: Long = Int.MAX_VALUE.toLong()
+        maxFrameSize: Long = DEFAULT_MAX_FRAME_SIZE
     ) : this(pingIntervalMillis, maxFrameSize, WebSocketExtensionsConfig())
 
     /**
@@ -74,7 +81,7 @@ public class WebSockets internal constructor(
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.WebSockets.WebSockets)
      */
-    public constructor() : this(PINGER_DISABLED, Int.MAX_VALUE.toLong(), WebSocketExtensionsConfig())
+    public constructor() : this(PINGER_DISABLED, DEFAULT_MAX_FRAME_SIZE, WebSocketExtensionsConfig())
 
     private fun installExtensions(context: HttpRequestBuilder) {
         val installed = extensionsConfig.build()
@@ -108,7 +115,9 @@ public class WebSockets internal constructor(
 
         val timeoutMillis = (pingIntervalMillis * 2)
         return DefaultWebSocketSession(session, pingIntervalMillis, timeoutMillis, channelsConfig).also {
-            it.maxFrameSize = this@WebSockets.maxFrameSize
+            if (maxFrameSize != DEFAULT_MAX_FRAME_SIZE) {
+                it.maxFrameSize = maxFrameSize
+            }
         }
     }
 
@@ -136,9 +145,14 @@ public class WebSockets internal constructor(
         /**
          * Sets maximum frame size in bytes.
          *
+         * The limit applies to the incoming data before any possible decompression.
+         *
+         * Engines that can't enforce the limit throw [WebSocketException] when a session is established
+         * with a non-default value.
+         *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.websocket.WebSockets.Config.maxFrameSize)
          */
-        public var maxFrameSize: Long = Int.MAX_VALUE.toLong()
+        public var maxFrameSize: Long = DEFAULT_MAX_FRAME_SIZE
 
         /**
          * A converter for serialization/deserialization
@@ -227,21 +241,42 @@ public class WebSockets internal constructor(
                     LOGGER.trace { "Skipping non-websocket response from ${context.request.url}: $requestContent" }
                     return@intercept
                 }
+                if (context.attributes.contains(FAILED_HANDSHAKE_RESPONSE_KEY)) {
+                    // The user reads the body of a saved failed handshake. Let the default transformers handle it.
+                    return@intercept
+                }
                 if (status != HttpStatusCode.SwitchingProtocols) {
-                    @Suppress("ktlint:standard:max-line-length")
-                    throw WebSocketException(
-                        "Handshake exception, expected status code ${HttpStatusCode.SwitchingProtocols.value} but was ${status.value}"
+                    var saveFailure: Exception? = null
+                    val failedResponse = try {
+                        // Some engines use platform WebSocket clients that can't read rejected handshake body.
+                        // The response then has an empty body but the Content-Length from the server.
+                        // `allowMissingBody = true` skips Content-Length validation for this case.
+                        context.save(allowMissingBody = true)
+                            .also { it.attributes.put(FAILED_HANDSHAKE_RESPONSE_KEY, Unit) }
+                            .response
+                    } catch (cause: CancellationException) {
+                        throw cause
+                    } catch (cause: Exception) {
+                        saveFailure = cause
+                        null
+                    }
+                    val exception = WebSocketHandshakeException(
+                        "Handshake exception, expected status code ${HttpStatusCode.SwitchingProtocols.value} " +
+                            "but was ${status.value}",
+                        response = failedResponse,
                     )
+                    saveFailure?.let { exception.addSuppressed(it) }
+                    throw exception
                 }
                 if (session !is WebSocketSession) {
-                    throw WebSocketException(
+                    throw WebSocketHandshakeException(
                         "Handshake exception, expected `WebSocketSession` content but was ${session::class}"
                     )
                 }
 
                 LOGGER.trace { "Receive websocket session from ${context.request.url}: $session" }
 
-                if (plugin.maxFrameSize != Int.MAX_VALUE.toLong()) {
+                if (plugin.maxFrameSize != DEFAULT_MAX_FRAME_SIZE) {
                     session.maxFrameSize = plugin.maxFrameSize
                 }
 
@@ -272,7 +307,27 @@ public class WebSockets internal constructor(
     }
 }
 
-public class WebSocketException(message: String, cause: Throwable?) : IllegalStateException(message, cause) {
+/**
+ * This exception is thrown when a WebSocket session fails.
+ *
+ * Failures of the handshake itself are reported as [WebSocketHandshakeException].
+ */
+public open class WebSocketException(message: String, cause: Throwable?) : IllegalStateException(message, cause) {
     // required for backwards binary compatibility
     public constructor(message: String) : this(message, cause = null)
 }
+
+/**
+ * This exception is thrown when a WebSocket handshake fails, before session starts.
+ *
+ * @property response the HTTP response of the failed handshake: the status, the headers, and the body from the server.
+ * What is available depends on the engine:
+ * - Some engines give the full response.
+ * - Some engines give the status and the headers only. On these engines, the [HttpResponse.body] is empty.
+ * - Some engines don't give the response. On these engines, [response] is `null`.
+ */
+public class WebSocketHandshakeException(
+    message: String,
+    cause: Throwable? = null,
+    public val response: HttpResponse? = null,
+) : WebSocketException(message, cause)

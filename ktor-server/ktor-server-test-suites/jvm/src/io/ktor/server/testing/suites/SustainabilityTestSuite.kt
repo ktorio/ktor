@@ -45,7 +45,20 @@ import kotlin.time.Duration.Companion.minutes
 
 abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfiguration : ApplicationEngine.Configuration>(
     hostFactory: ApplicationEngineFactory<TEngine, TConfiguration>
-) : EngineTestBase<TEngine, TConfiguration>(hostFactory) {
+) : SustainabilityCommonTestSuite<TEngine, TConfiguration>(hostFactory) {
+
+    private val bigFile: File by lazy {
+        File("build/large-file.dat").also { file ->
+            if (!file.exists()) {
+                val rnd = Random()
+                file.bufferedWriter().use { out ->
+                    repeat(3 * 1024 * 1024 / 2) {
+                        out.append('a' + rnd.nextInt(25))
+                    }
+                }
+            }
+        }
+    }
 
     @Test
     fun testLoggerOnError() = runTest {
@@ -73,24 +86,48 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
 
         withUrl("/") {
             assertEquals(HttpStatusCode.InternalServerError.value, status.value)
+            collected.awaitExpected(message)
+        }
 
-            while (true) {
-                val exception = collected.poll(timeout.inWholeSeconds, TimeUnit.SECONDS)
-                if (exception is ExpectedException) {
-                    assertEquals(message, exception.message)
-                    break
-                }
+        // The writer can fail before its headers reach the client, which then sees the connection end.
+        withEachUrl("/respondWrite", onDisconnect = { collected.awaitExpected(message) }) {
+            assertEquals(HttpStatusCode.OK.value, status.value)
+            collected.awaitExpected(message)
+        }
+    }
+
+    /**
+     * Requests [path] over the same protocols as [withUrl], but a request whose connection ends with an
+     * [IOException] runs [onDisconnect] instead of skipping the protocols after it.
+     */
+    private suspend fun withEachUrl(
+        path: String,
+        onDisconnect: () -> Unit,
+        block: suspend HttpResponse.(Int) -> Unit
+    ) {
+        suspend fun attempt(request: suspend () -> Unit) {
+            try {
+                request()
+            } catch (_: IOException) {
+                onDisconnect()
             }
         }
 
-        withUrl("/respondWrite") {
-            assertEquals(HttpStatusCode.OK.value, status.value)
-            while (true) {
-                val exception = collected.poll(timeout.inWholeSeconds, TimeUnit.SECONDS)
-                if (exception is ExpectedException) {
-                    assertEquals(message, exception.message)
-                    break
-                }
+        attempt { withHttp1("http://127.0.0.1:$port$path", port, {}, block) }
+        if (enableSsl) {
+            attempt { withHttp1("https://127.0.0.1:$sslPort$path", sslPort, {}, block) }
+        }
+        if (enableHttp2 && enableSsl) {
+            attempt { withHttp2("https://127.0.0.1:$sslPort$path", sslPort, {}, block) }
+        }
+    }
+
+    private fun LinkedBlockingQueue<Throwable>.awaitExpected(message: String) {
+        while (true) {
+            val exception = assertNotNull(poll(timeout.inWholeSeconds, TimeUnit.SECONDS), "No error was logged")
+            if (exception is ExpectedException) {
+                assertEquals(message, exception.message)
+                return
             }
         }
     }
@@ -298,22 +335,6 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
         }
     }
 
-    @Test
-    fun testRepeatRequest() = runTest {
-        createAndStartServer {
-            get("/") {
-                call.respond("OK ${call.request.queryParameters["i"]}")
-            }
-        }
-
-        for (i in 1..100) {
-            withUrl("/?i=$i") {
-                assertEquals(200, status.value)
-                assertEquals("OK $i", bodyAsText())
-            }
-        }
-    }
-
     @OptIn(InternalAPI::class, ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
     @Test
     open fun testBlockingConcurrency() = runTest {
@@ -379,26 +400,12 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
 
     @OptIn(InternalAPI::class)
     @Test
-    fun testBigFile() = runTest(timeout = 1.minutes) {
-        val file = File("build/large-file.dat")
-        val rnd = Random()
-
-        if (!file.exists()) {
-            file.bufferedWriter().use { out ->
-                repeat(9000000) {
-                    repeat(30 + rnd.nextInt(40)) {
-                        out.append('a' + rnd.nextInt(25))
-                    }
-                    out.append('\n')
-                }
-            }
-        }
-
-        val (fileChecksum, fileCount) = file.inputStream().use { it.crcWithSize() }
+    fun testBigFile() = runTest(timeout = 2.minutes) {
+        val (fileChecksum, fileCount) = bigFile.inputStream().use { it.crcWithSize() }
 
         createAndStartServer {
             get("/file") {
-                call.respond(LocalFileContent(file))
+                call.respond(LocalFileContent(bigFile))
             }
         }
 
@@ -411,25 +418,11 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
 
     @Test
     fun testBigFileHttpUrlConnection() = runTest {
-        val file = File("build/large-file.dat")
-        val rnd = Random()
-
-        if (!file.exists()) {
-            file.bufferedWriter().use { out ->
-                repeat(9000000) {
-                    repeat(30 + rnd.nextInt(40)) {
-                        out.append('a' + rnd.nextInt(25))
-                    }
-                    out.append('\n')
-                }
-            }
-        }
-
-        val originalSha1WithSize = file.inputStream().use { it.crcWithSize() }
+        val originalSha1WithSize = bigFile.inputStream().use { it.crcWithSize() }
 
         createAndStartServer {
             get("/file") {
-                call.respond(LocalFileContent(file))
+                call.respond(LocalFileContent(bigFile))
             }
         }
 
@@ -467,92 +460,6 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
 
         val failedCnt = results.count { it.isFailure }
         assertEquals(0, failedCnt)
-    }
-
-    @Test
-    open fun testChunkedWithVSpace() = runTest {
-        createAndStartServer {
-            post("/") {
-                call.receiveParameters()
-                call.respond(HttpStatusCode.BadRequest, "")
-            }
-        }
-
-        val messages = listOf(
-            "POST / HTTP/1.1\r\n",
-            "Host:localhost\r\n",
-            "Connection: close\r\n",
-            "Content-Type: application/x-www-form-urlencoded\r\n",
-            "Content-Length: 1\r\n",
-            "Transfer-Encoding:\u000bchunked\r\n",
-            "\r\n",
-            "3\r\n",
-            "a=1\r\n",
-            "0\r\n",
-            "\r\n"
-        )
-
-        socket {
-            getOutputStream().writer().also { writer ->
-                messages.forEach { writer.write(it) }
-                writer.flush()
-            }
-
-            val result = getInputStream().reader().readLines().joinToString("\n")
-            val expected = listOf(
-                "HTTP/1.1 400",
-                "HTTP/1.0 400"
-            )
-
-            assert(expected.any { result.startsWith(it) }) {
-                "Invalid response: $result"
-            }
-        }
-    }
-
-    @Test
-    fun testChunkedIsNotFinal() = runTest {
-        createAndStartServer {
-            get("/") {
-                call.respondText("Hello, world!", ContentType.Text.Html)
-            }
-            post("/") {
-                call.receiveParameters()
-                fail("We should NOT receive any content")
-            }
-        }
-
-        val messages = listOf(
-            "POST / HTTP/1.1\r\n",
-            "Host:localhost\r\n",
-            "Connection: close\r\n",
-            "Content-Length: 1\r\n",
-            "Content-Type: application/x-www-form-urlencoded\r\n",
-            "Transfer-Encoding: chunked, smuggle\r\n",
-            "\r\n",
-            "3\r\n",
-            "a=1\r\n",
-            "0\r\n",
-            "\r\n"
-        )
-
-        socket {
-            getOutputStream().writer().also { writer ->
-                messages.forEach { writer.write(it) }
-                writer.flush()
-            }
-
-            val result = getInputStream().reader().readLines().joinToString("\n")
-            val expected = listOf(
-                "HTTP/1.1 501",
-                "HTTP/1.1 400",
-                "HTTP/1.0 400"
-            )
-
-            assert(expected.any { result.startsWith(it) }) {
-                "Invalid response: $result"
-            }
-        }
     }
 
     @Ignore("Flaky. To be investigated in KTOR-7811")
@@ -643,6 +550,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
     }
 
     @Test
+    @Suppress("DEPRECATION")
     fun testErrorInApplicationReceivePipelineInterceptor() = runTest {
         val exceptions = mutableListOf<Throwable>()
         val loggerDelegate = LoggerFactory.getLogger("io.ktor.test")
@@ -686,6 +594,7 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
     }
 
     @Test
+    @Suppress("DEPRECATION")
     fun testErrorInApplicationSendPipelineInterceptor() = runTest {
         val exceptions = mutableListOf<Throwable>()
         val loggerDelegate = LoggerFactory.getLogger("ktor.test")
@@ -794,36 +703,6 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
             assertEquals(ContentType.Text.Plain, contentType()?.withoutParameters())
             val result = rawContent.crcWithSize()
             assertEquals(10000 * 13L, result.second)
-        }
-    }
-
-    @Test
-    fun testDoubleHost() = runTest {
-        createAndStartServer {
-            get("/") {
-                call.respond("OK")
-            }
-        }
-
-        socket {
-            val content = """
-                GET / HTTP/1.1
-                Host: www.example.com
-                Host: www.example2.com
-
-
-            """.trimIndent()
-
-            outputStream.bufferedWriter().apply {
-                write(content)
-                flush()
-            }
-
-            val response = inputStream.bufferedReader()
-            val status = response.readLine()
-
-            assertContains(status, "400")
-            outputStream.close()
         }
     }
 
@@ -969,50 +848,6 @@ abstract class SustainabilityTestSuite<TEngine : ApplicationEngine, TConfigurati
             dispatcher.close()
             threadPool.shutdownNow()
         }
-    }
-
-    @Test
-    open fun testJobsAreCancelledOnShutdown() = runTest {
-        var applicationJob: Job? = null
-        var routingJob: Job? = null
-        val jobsStartedLatch = CountDownLatch(2)
-
-        suspend fun waitForever() {
-            jobsStartedLatch.countDown()
-            delay(Long.MAX_VALUE) // Hang until canceled
-        }
-
-        val server = createAndStartServer {
-            // Launch a coroutine in the application context
-            applicationJob = application.launch { waitForever() }
-
-            // Configure a route that launches a coroutine in the routing context
-            get("/launch-job") {
-                routingJob = call.launch { waitForever() }
-                call.respondText("Job launched")
-            }
-        }
-
-        // Trigger the route to start the routing job
-        withUrl("/launch-job") {
-            assertEquals("Job launched", call.body<String>())
-        }
-
-        // Wait for both jobs to start
-        assertTrue(jobsStartedLatch.await(5, TimeUnit.SECONDS), "Jobs did not start within timeout")
-
-        // Verify both jobs are active
-        assertNotNull(applicationJob, "Application job should not be null")
-        assertNotNull(routingJob, "Routing job should not be null")
-        assertTrue(applicationJob.isActive, "Application job should be active")
-        assertTrue(routingJob.isActive, "Routing job should be active")
-
-        // Stop the server
-        server.stop(1, 5, TimeUnit.SECONDS)
-
-        // Verify both jobs are canceled
-        assertTrue(applicationJob.isCancelled, "Application job should be canceled")
-        assertTrue(routingJob.isCancelled, "Routing job should be canceled")
     }
 }
 

@@ -58,6 +58,15 @@ public object EngineMain {
         deploymentConfig.propertyOrNull("requestReadTimeoutSeconds")?.getString()?.toInt()?.let {
             requestReadTimeoutSeconds = it
         }
+        deploymentConfig.propertyOrNull("readerIdleTimeoutSeconds")?.getString()?.toInt()?.let {
+            readerIdleTimeoutSeconds = it
+        }
+        deploymentConfig.propertyOrNull("writerIdleTimeoutSeconds")?.getString()?.toInt()?.let {
+            writerIdleTimeoutSeconds = it
+        }
+        deploymentConfig.propertyOrNull("allIdleTimeoutSeconds")?.getString()?.toInt()?.let {
+            allIdleTimeoutSeconds = it
+        }
         deploymentConfig.propertyOrNull("tcpKeepAlive")?.getString()?.toBoolean()?.let {
             tcpKeepAlive = it
         }

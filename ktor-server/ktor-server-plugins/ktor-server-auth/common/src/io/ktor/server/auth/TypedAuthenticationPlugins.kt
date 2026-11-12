@@ -41,6 +41,7 @@ internal fun typedAuthPluginName(vararg parts: String): String {
  *
  * Each layer receives a unique plugin key, so nested plugins run cumulatively instead of replacing one another.
  *
+ * [beforeAuthenticate] runs for every call that reaches this layer, whatever the authentication outcome.
  * On success the resolved principal is stored in [principalKey] and [onAccepted] runs before the route handler.
  * Failure handling order: route-level [onUnauthorized], then [AuthenticationScheme.onUnauthorized], then provider
  * challenges. A handler that completes without responding falls back to provider challenges, and the call is
@@ -49,15 +50,18 @@ internal fun typedAuthPluginName(vararg parts: String): String {
  *
  * @param isOptional when `true`, requests without credentials continue without storing a principal.
  * @param onUnauthorized route-level handler; overrides the scheme default when non-null.
+ * @param beforeAuthenticate optional hook invoked before the provider authenticates the call.
  * @param onAccepted optional hook invoked after authentication succeeds, before the route handler runs.
  */
 internal fun <P : Any> AuthenticationScheme<P, *>.createPlugin(
     isOptional: Boolean,
     onUnauthorized: UnauthorizedHandler?,
+    beforeAuthenticate: ((ApplicationCall) -> Unit)? = null,
     onAccepted: (suspend RoutingContext.(P) -> Unit)? = null
 ): RouteScopedPlugin<Unit> = createRouteScopedPlugin(name = typedAuthPluginName(name)) {
     on(AuthenticationHook) { call ->
         if (call.isHandled) return@on
+        beforeAuthenticate?.invoke(call)
 
         val authContext = call.authentication
         provider.logAuthenticationAttempt(call)

@@ -9,6 +9,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNotEquals
 
 class GenericElementTest {
 
@@ -21,6 +22,23 @@ class GenericElementTest {
     @Test
     fun `empty object deserialization`() {
         assertEquals(PathItem(), GenericElement.EmptyObject.deserialize(PathItem.serializer()))
+    }
+
+    @Test
+    fun `json elements with equal content are equal`() {
+        val element = JsonGenericElement(jsonFormat.parseToJsonElement("""{"name":"Ktor","tags":[1,2]}"""))
+        val sameContent = JsonGenericElement(jsonFormat.parseToJsonElement("""{"name":"Ktor","tags":[1,2]}"""))
+
+        assertEquals(element, sameContent)
+        assertEquals(element.hashCode(), sameContent.hashCode())
+    }
+
+    @Test
+    fun `json elements with different content are not equal`() {
+        val element = JsonGenericElement(jsonFormat.parseToJsonElement("""{"name":"Ktor"}"""))
+        val otherContent = JsonGenericElement(jsonFormat.parseToJsonElement("""{"name":"Other"}"""))
+
+        assertNotEquals(element, otherContent)
     }
 
     @Test

@@ -79,6 +79,7 @@ public val <P : Any> ApplicationCall.principalOrNull: P?
 @ExperimentalKtorApi
 public class RolesContext<P, R> internal constructor(
     private val key: AttributeKey<Set<R>>,
+    private val requiredRolesKey: AttributeKey<RoleRequirement<R>>,
 ) where P : Any,
           R : AuthenticationRole {
     /**
@@ -89,6 +90,16 @@ public class RolesContext<P, R> internal constructor(
     public fun getRoles(call: ApplicationCall): Set<R> =
         checkNotNull(call.attributes.getOrNull(key)) {
             "Roles not found. This should not happen inside an authenticateWith block"
+        }
+
+    /**
+     * Returns the [RoleRequirement] of the route handling [call].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.RolesContext.getRequiredRoles)
+     */
+    public fun getRequiredRoles(call: ApplicationCall): RoleRequirement<R> =
+        checkNotNull(call.attributes.getOrNull(requiredRolesKey)) {
+            "Required roles not found. This should not happen inside an authenticateWith block"
         }
 }
 
@@ -224,3 +235,14 @@ context(rolesContext: RolesContext<P, R>, routingContext: RoutingContext)
 public val <P, R> P.roles: Set<R> where P : Any,
           R : AuthenticationRole
     get() = rolesContext.getRoles(call = routingContext.call)
+
+/**
+ * [RoleRequirement] of the current role-protected typed route.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.requiredRoles)
+ */
+@ExperimentalKtorApi
+context(rolesContext: RolesContext<P, R>)
+public val <P, R> ApplicationCall.requiredRoles: RoleRequirement<R>
+    where P : Any, R : AuthenticationRole
+    get() = rolesContext.getRequiredRoles(call = this)

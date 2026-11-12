@@ -22,6 +22,7 @@ public final class io/ktor/websocket/ChannelOverflowException : java/lang/Runtim
 }
 
 public final class io/ktor/websocket/CloseReason {
+	public static final field Companion Lio/ktor/websocket/CloseReason$Companion;
 	public fun <init> (Lio/ktor/websocket/CloseReason$Codes;Ljava/lang/String;)V
 	public fun <init> (SLjava/lang/String;)V
 	public final fun component1 ()S
@@ -61,6 +62,10 @@ public final class io/ktor/websocket/CloseReason$Codes$Companion {
 	public final fun byCode (S)Lio/ktor/websocket/CloseReason$Codes;
 }
 
+public final class io/ktor/websocket/CloseReason$Companion {
+	public final fun truncated (Lio/ktor/websocket/CloseReason$Codes;Ljava/lang/String;)Lio/ktor/websocket/CloseReason;
+}
+
 public abstract interface class io/ktor/websocket/DefaultWebSocketSession : io/ktor/websocket/WebSocketSession {
 	public abstract fun getCloseReason ()Lkotlinx/coroutines/Deferred;
 	public abstract fun getPingIntervalMillis ()J
@@ -72,6 +77,7 @@ public abstract interface class io/ktor/websocket/DefaultWebSocketSession : io/k
 }
 
 public final class io/ktor/websocket/DefaultWebSocketSession$DefaultImpls {
+	public static fun checksMaxMessageSize (Lio/ktor/websocket/DefaultWebSocketSession;)Z
 	public static fun send (Lio/ktor/websocket/DefaultWebSocketSession;Lio/ktor/websocket/Frame;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun start$default (Lio/ktor/websocket/DefaultWebSocketSession;Ljava/util/List;ILjava/lang/Object;)V
 }
@@ -346,6 +352,7 @@ public final class io/ktor/websocket/WebSocketReader : kotlinx/coroutines/Corout
 }
 
 public abstract interface class io/ktor/websocket/WebSocketSession : kotlinx/coroutines/CoroutineScope {
+	public fun checksMaxMessageSize ()Z
 	public abstract fun flush (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun getExtensions ()Ljava/util/List;
 	public abstract fun getIncoming ()Lkotlinx/coroutines/channels/ReceiveChannel;
@@ -359,6 +366,7 @@ public abstract interface class io/ktor/websocket/WebSocketSession : kotlinx/cor
 }
 
 public final class io/ktor/websocket/WebSocketSession$DefaultImpls {
+	public static fun checksMaxMessageSize (Lio/ktor/websocket/WebSocketSession;)Z
 	public static fun send (Lio/ktor/websocket/WebSocketSession;Lio/ktor/websocket/Frame;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 

@@ -79,23 +79,35 @@ internal class NettyHttp1ApplicationResponse(
     override suspend fun respondUpgrade(upgrade: OutgoingContent.ProtocolUpgrade) {
         val nettyContext = context
         val nettyChannel = nettyContext.channel()
+        val nettyCall = call as NettyApplicationCall
 
-        val bodyHandler = nettyContext.pipeline().get(RequestBodyHandler::class.java)
+        val bodyHandler = nettyContext.pipeline().get(RequestBodyHandler::class.java) ?: run {
+            cancel()
+            throw CancellationException("HTTP upgrade has been cancelled")
+        }
         val upgradedReadChannel = bodyHandler.upgrade()
 
         val upgradedWriteChannel = ByteChannel()
 
-        sendResponse(chunked = false, content = upgradedWriteChannel)
+        fun cancelUpgrade(): Nothing {
+            cancel()
+            val cause = CancellationException("HTTP upgrade has been cancelled")
+            upgradedWriteChannel.cancel(cause)
+            upgradedReadChannel.cancel(cause)
+            bodyHandler.close()
+            throw cause
+        }
+
+        if (!sendResponse(chunked = false, content = upgradedWriteChannel)) {
+            cancelUpgrade()
+        }
 
         with(nettyChannel.pipeline()) {
             if (get(NettyHttp1Handler::class.java) != null) {
                 remove(NettyHttp1Handler::class.java)
                 addFirst(NettyDirectDecoder())
             } else {
-                cancel()
-                val cause = java.util.concurrent.CancellationException("HTTP upgrade has been cancelled")
-                upgradedWriteChannel.cancel(cause)
-                throw cause
+                cancelUpgrade()
             }
         }
 
@@ -110,10 +122,14 @@ internal class NettyHttp1ApplicationResponse(
             upgradedWriteChannel.close()
             bodyHandler.close()
             upgradedReadChannel.cancel(it)
-            context.channel().close()
+            // Close only once the response pipeline has handed over everything the session wrote, such as
+            // its close frame; the empty write completes after all earlier writes, so they are flushed first
+            nettyCall.finishedEvent.addListener {
+                context.writeAndFlush(Unpooled.EMPTY_BUFFER).addListener(ChannelFutureListener.CLOSE)
+            }
         }
 
-        (call as NettyApplicationCall).responseWriteJob.join()
+        nettyCall.responseWriteJob.join()
         job.join()
     }
 

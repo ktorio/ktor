@@ -121,8 +121,7 @@ public open class RoutingNode(
         for (index in 0..handlers.lastIndex) {
             pipeline.intercept(Call) {
                 val call = call as RoutingPipelineCall
-                val routingCall = RoutingCall(call)
-                val routingContext = RoutingContext(routingCall)
+                val routingContext = RoutingContext(call.routingCall)
                 if (call.isHandled) return@intercept
                 handlers[index].invoke(routingContext)
             }
@@ -164,11 +163,11 @@ public class RoutingRequest internal constructor(
     public override val call: RoutingCall
 ) : ApplicationRequest {
 
-    public override val queryParameters: Parameters = request.queryParameters
-    public override val rawQueryParameters: Parameters = request.rawQueryParameters
-    public override val headers: Headers = request.headers
-    public override val local: RequestConnectionPoint = request.local
-    public override val cookies: RequestCookies = request.cookies
+    public override val queryParameters: Parameters get() = request.queryParameters
+    public override val rawQueryParameters: Parameters get() = request.rawQueryParameters
+    public override val headers: Headers get() = request.headers
+    public override val local: RequestConnectionPoint get() = request.local
+    public override val cookies: RequestCookies get() = request.cookies
 
     override fun receiveChannel(): ByteReadChannel = request.receiveChannel()
 }
@@ -193,9 +192,9 @@ public class RoutingResponse internal constructor(
     override val isSent: Boolean
         get() = applicationResponse.isSent
 
-    public override val headers: ResponseHeaders = applicationResponse.headers
+    public override val headers: ResponseHeaders get() = applicationResponse.headers
 
-    public override val cookies: ResponseCookies = applicationResponse.cookies
+    public override val cookies: ResponseCookies get() = applicationResponse.cookies
 
     override fun status(): HttpStatusCode? = applicationResponse.status()
 
@@ -222,28 +221,40 @@ public class RoutingCall internal constructor(
     public val pipelineCall: RoutingPipelineCall
 ) : ApplicationCall {
 
+    init {
+        // The query is decoded lazily, but a bad '%' escape must still fail the call before its handler runs
+        val uri = pipelineCall.request.uri
+        val query = uri.indexOf('?')
+        if (query >= 0 && uri.indexOf('%', query) >= 0) {
+            pipelineCall.engineCall.parameters.names()
+        }
+    }
+
     override val coroutineContext: CoroutineContext
         get() = pipelineCall.coroutineContext
 
-    public override val request: RoutingRequest by lazy(LazyThreadSafetyMode.NONE) {
-        RoutingRequest(
+    private var routingRequest: RoutingRequest? = null
+    private var routingResponse: RoutingResponse? = null
+
+    public override val request: RoutingRequest
+        get() = routingRequest ?: RoutingRequest(
             pathVariables = pipelineCall.pathParameters,
             request = pipelineCall.request,
             call = this
-        )
-    }
-    public override val response: RoutingResponse by lazy(LazyThreadSafetyMode.NONE) {
-        RoutingResponse(
+        ).also { routingRequest = it }
+
+    public override val response: RoutingResponse
+        get() = routingResponse ?: RoutingResponse(
             applicationResponse = pipelineCall.response,
             call = this
-        )
-    }
+        ).also { routingResponse = it }
 
     public override val attributes: Attributes = pipelineCall.attributes
     public override val application: Application = pipelineCall.application
-    public override val parameters: Parameters = pipelineCall.parameters
+
+    public override val parameters: Parameters get() = pipelineCall.parameters
     public val pathParameters: Parameters = pipelineCall.pathParameters
-    public val queryParameters: Parameters = pipelineCall.engineCall.parameters
+    public val queryParameters: Parameters get() = pipelineCall.engineCall.parameters
     public val route: RoutingNode = pipelineCall.route
 
     override suspend fun <T> receive(typeInfo: TypeInfo): T = pipelineCall.receive(typeInfo)
@@ -283,7 +294,7 @@ public class RoutingContext(
 @InternalAPI
 public fun ApplicationCall.toRoutingContext(): RoutingContext = when (this) {
     is RoutingCall -> RoutingContext(call = this)
-    is RoutingPipelineCall -> RoutingContext(call = RoutingCall(this))
+    is RoutingPipelineCall -> RoutingContext(call = routingCall)
     else -> error("Expected a routing call, but got ${this::class.simpleName}")
 }
 

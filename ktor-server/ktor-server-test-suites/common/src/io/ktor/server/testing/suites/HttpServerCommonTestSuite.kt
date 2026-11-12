@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.testing.suites
@@ -119,6 +119,149 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
             assertEquals(200, status.value)
             assertNull(headers[HttpHeaders.TransferEncoding])
             assertEquals("5", headers[HttpHeaders.ContentLength])
+            assertContentEquals(byteArrayOf(), bodyAsChannel().toByteArray())
+        }
+    }
+
+    @Test
+    open fun `auto HEAD response for unknown length has no content length`() = runTest {
+        createAndStartServer {
+            application.install(AutoHeadResponse)
+            get("/") {
+                call.respondBytesWriter {
+                    writeStringUtf8("Hello")
+                }
+            }
+        }
+
+        withUrl("/", { method = HttpMethod.Head }) {
+            assertEquals(HttpStatusCode.OK, status)
+            assertNull(headers[HttpHeaders.ContentLength])
+            assertContentEquals(byteArrayOf(), bodyAsChannel().toByteArray())
+        }
+    }
+
+    @Test
+    open fun `204 response has no content length or body`() = runTest {
+        createAndStartServer {
+            get("/") {
+                call.respond(HttpStatusCode.NoContent)
+            }
+        }
+
+        withUrl("/") {
+            assertEquals(HttpStatusCode.NoContent, status)
+            assertNull(headers[HttpHeaders.ContentLength])
+            assertContentEquals(byteArrayOf(), bodyAsChannel().toByteArray())
+        }
+    }
+
+    @Test
+    open fun `304 response preserves representation content length`() = runTest {
+        createAndStartServer {
+            get("/") {
+                call.respond(object : OutgoingContent.NoContent() {
+                    override val status = HttpStatusCode.NotModified
+                    override val contentLength: Long = 150
+                })
+            }
+        }
+
+        withUrl("/") {
+            assertEquals(HttpStatusCode.NotModified, status)
+            assertEquals("150", headers[HttpHeaders.ContentLength])
+            assertContentEquals(byteArrayOf(), bodyAsChannel().toByteArray())
+        }
+    }
+
+    @Test
+    open fun `204 response with body skips body`() = runTest {
+        val writerCalled = CompletableDeferred<Unit>()
+        val channel = ByteChannel()
+        createAndStartServer {
+            get("/bytes") {
+                call.respondText("hello", status = HttpStatusCode.NoContent)
+            }
+            get("/writer") {
+                call.respondBytesWriter(status = HttpStatusCode.NoContent) {
+                    writerCalled.complete(Unit)
+                    writeStringUtf8("hello")
+                }
+            }
+            get("/channel") {
+                call.respond(HttpStatusCode.NoContent, channel)
+            }
+            get("/explicit-length") {
+                call.respond(object : OutgoingContent.NoContent() {
+                    override val status = HttpStatusCode.NoContent
+                    override val contentLength = 0L
+                })
+            }
+            get("/header-length") {
+                call.respond(object : OutgoingContent.NoContent() {
+                    override val status = HttpStatusCode.NoContent
+                    override val headers = headersOf(HttpHeaders.ContentLength, "5")
+                })
+            }
+        }
+
+        // Repeat the first request to make sure no body bytes were left on the connection
+        for (path in listOf("/bytes", "/writer", "/channel", "/explicit-length", "/header-length", "/bytes")) {
+            withUrl(path) {
+                assertEquals(HttpStatusCode.NoContent, status)
+                assertNull(headers[HttpHeaders.ContentLength])
+                assertNull(headers[HttpHeaders.TransferEncoding])
+                assertContentEquals(byteArrayOf(), bodyAsChannel().toByteArray())
+            }
+        }
+        assertFalse(writerCalled.isCompleted, "Body writer should not be called for 204 response")
+        assertTrue(channel.isClosedForWrite, "Body channel should be released for 204 response")
+    }
+
+    @Test
+    open fun `205 response has zero content length and no body`() = runTest {
+        createAndStartServer {
+            get("/") {
+                call.respondText("hello", status = HttpStatusCode.ResetContent)
+            }
+        }
+
+        withUrl("/") {
+            assertEquals(HttpStatusCode.ResetContent, status)
+            assertEquals("0", headers[HttpHeaders.ContentLength])
+            assertNull(headers[HttpHeaders.TransferEncoding])
+            assertContentEquals(byteArrayOf(), bodyAsChannel().toByteArray())
+        }
+    }
+
+    @Test
+    open fun `304 response without length has no content length`() = runTest {
+        createAndStartServer {
+            get("/") {
+                call.respond(HttpStatusCode.NotModified)
+            }
+        }
+
+        withUrl("/") {
+            assertEquals(HttpStatusCode.NotModified, status)
+            assertNull(headers[HttpHeaders.ContentLength])
+            assertNull(headers[HttpHeaders.TransferEncoding])
+            assertContentEquals(byteArrayOf(), bodyAsChannel().toByteArray())
+        }
+    }
+
+    @Test
+    open fun `HEAD response with unknown length has no content length`() = runTest {
+        createAndStartServer {
+            head("/") {
+                call.respond(HttpStatusCode.OK)
+            }
+        }
+
+        // Transfer-Encoding is allowed here (RFC 9112 §6.1), and some engines add it
+        withUrl("/", { method = HttpMethod.Head }) {
+            assertEquals(HttpStatusCode.OK, status)
+            assertNull(headers[HttpHeaders.ContentLength])
         }
     }
 
@@ -499,6 +642,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
             get("/") {
                 assertEquals("foo", call.request.headers["X-Single-Value"])
                 assertEquals("foo,bar", call.request.headers["X-Double-Value"])
+                assertEquals("", call.request.headers["X-Empty-Value"])
 
                 assertNull(call.request.headers["X-Nonexistent-Header"])
                 assertNull(call.request.headers.getAll("X-Nonexistent-Header"))
@@ -514,6 +658,7 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
                     append("X-Single-Value", "foo")
                     append("X-Double-Value", "foo")
                     append("X-Double-Value", "bar")
+                    append("X-Empty-Value", "")
                 }
             }
         ) {

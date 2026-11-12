@@ -6,6 +6,8 @@ package io.ktor.util.date
 
 import kotlinx.serialization.Serializable
 import kotlin.time.Duration
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
 // According to: http://pubs.opengroup.org/onlinepubs/9699919799/basedefs/time.h.html
 
@@ -134,6 +136,23 @@ public data class GMTDate(
  * @param timestamp is a number of epoch milliseconds (it is `now` by default).
  */
 public expect fun GMTDate(timestamp: Long? = null): GMTDate
+
+/**
+ * Converts this instant to a [GMTDate].
+ * Sub-millisecond precision is discarded.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.date.toGMTDate)
+ */
+@OptIn(ExperimentalTime::class)
+public fun Instant.toGMTDate(): GMTDate = GMTDate(toEpochMilliseconds())
+
+/**
+ * Converts this date to an [Instant] with millisecond precision.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.util.date.toInstant)
+ */
+@OptIn(ExperimentalTime::class)
+public fun GMTDate.toInstant(): Instant = Instant.fromEpochMilliseconds(timestamp)
 
 /**
  * Create an instance of [GMTDate] from the specified date/time components

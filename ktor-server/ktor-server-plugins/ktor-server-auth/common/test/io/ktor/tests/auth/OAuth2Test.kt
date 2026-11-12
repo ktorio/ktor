@@ -84,7 +84,11 @@ class OAuth2Test {
         requestMethod = HttpMethod.Post
     )
 
-    private val testClient = createOAuth2Server(
+    // Started only by the tests that use it; tearDown() closes the client once startup has finished
+    private val testClientDelegate = lazy { createTestOAuth2Server() }
+    private val testClient by testClientDelegate
+
+    private fun createTestOAuth2Server() = createOAuth2Server(
         object : OAuth2Server {
             override fun requestToken(
                 clientId: String,
@@ -203,7 +207,11 @@ class OAuth2Test {
     @OptIn(ExperimentalCoroutinesApi::class)
     @AfterTest
     fun tearDown() {
-        testClient.getCompleted().close()
+        if (testClientDelegate.isInitialized()) {
+            testClient.invokeOnCompletion { cause ->
+                if (cause == null) testClient.getCompleted().close()
+            }
+        }
     }
 
     @Test

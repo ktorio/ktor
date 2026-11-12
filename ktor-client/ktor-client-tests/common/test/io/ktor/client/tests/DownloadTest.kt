@@ -33,12 +33,18 @@ class DownloadTest : ClientLoader() {
             val size = 4 * 1024 * 1024
             client.prepareGet("$TEST_SERVER/download?size=$size").body<ByteReadChannel, Unit> { channel ->
                 var received = 0
+                var receivedSincePause = 0
                 val buffer = ByteArray(8 * 1024)
                 while (true) {
                     val readBytes = channel.readAvailable(buffer)
                     if (readBytes == -1) break
                     received += readBytes
-                    delay(1.milliseconds)
+                    receivedSincePause += readBytes
+                    // Keep pauses few: a delay can last much longer than asked, e.g. one ~15.6 ms timer tick on Windows.
+                    if (receivedSincePause >= 256 * 1024) {
+                        receivedSincePause = 0
+                        delay(8.milliseconds)
+                    }
                 }
                 assertEquals(size, received)
             }

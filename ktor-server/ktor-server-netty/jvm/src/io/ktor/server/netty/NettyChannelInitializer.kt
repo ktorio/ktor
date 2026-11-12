@@ -31,8 +31,12 @@ import io.netty.handler.ssl.SslContextBuilder
 import io.netty.handler.ssl.SslHandler
 import io.netty.handler.ssl.SslProvider
 import io.netty.handler.ssl.SupportedCipherSuiteFilter
+import io.netty.handler.timeout.IdleState
+import io.netty.handler.timeout.IdleStateEvent
+import io.netty.handler.timeout.IdleStateHandler
 import io.netty.handler.timeout.ReadTimeoutException
 import io.netty.handler.timeout.ReadTimeoutHandler
+import io.netty.handler.timeout.WriteTimeoutException
 import io.netty.handler.timeout.WriteTimeoutHandler
 import io.netty.util.concurrent.EventExecutor
 import io.netty.util.concurrent.EventExecutorGroup
@@ -41,6 +45,7 @@ import java.nio.channels.ClosedChannelException
 import java.security.KeyStore
 import java.security.PrivateKey
 import java.security.cert.X509Certificate
+import java.util.concurrent.TimeUnit
 import javax.net.ssl.TrustManagerFactory
 import kotlin.coroutines.CoroutineContext
 
@@ -65,6 +70,9 @@ public class NettyChannelInitializer(
     private val enableHttp2: Boolean,
     private val enableH2c: Boolean,
     private val enableFlushConsolidation: Boolean,
+    private val readerIdleTimeout: Int,
+    private val writerIdleTimeout: Int,
+    private val allIdleTimeout: Int,
 ) : ChannelInitializer<SocketChannel>() {
     private var sslContext: SslContext? = null
 
@@ -148,7 +156,56 @@ public class NettyChannelInitializer(
         channelPipelineConfig = channelPipelineConfig,
         enableHttp2 = enableHttp2,
         enableH2c = enableH2c,
-        enableFlushConsolidation = false
+        enableFlushConsolidation = false,
+        readerIdleTimeout = 0,
+        writerIdleTimeout = 0,
+        allIdleTimeout = 0,
+    )
+
+    @Deprecated(
+        message = "Use main constructor",
+        replaceWith = ReplaceWith(
+            "NettyChannelInitializer(" +
+                "applicationProvider, enginePipeline, environment, resolveCallExecutor, engineContext, " +
+                "userContext, connector, runningLimit, responseWriteTimeout, requestReadTimeout, " +
+                "httpServerCodec, channelPipelineConfig, enableHttp2, enableH2c, enableFlushConsolidation, 0, 0, 0)"
+        )
+    )
+    public constructor(
+        applicationProvider: () -> Application,
+        enginePipeline: EnginePipeline,
+        environment: ApplicationEnvironment,
+        resolveCallExecutor: (ChannelHandlerContext) -> EventExecutor,
+        engineContext: CoroutineContext,
+        userContext: CoroutineContext,
+        connector: EngineConnectorConfig,
+        runningLimit: Int,
+        responseWriteTimeout: Int,
+        requestReadTimeout: Int,
+        httpServerCodec: () -> HttpServerCodec,
+        channelPipelineConfig: ChannelPipeline.() -> Unit,
+        enableHttp2: Boolean,
+        enableH2c: Boolean,
+        enableFlushConsolidation: Boolean,
+    ) : this(
+        applicationProvider = applicationProvider,
+        enginePipeline = enginePipeline,
+        environment = environment,
+        resolveCallExecutor = resolveCallExecutor,
+        engineContext = engineContext,
+        userContext = userContext,
+        connector = connector,
+        runningLimit = runningLimit,
+        responseWriteTimeout = responseWriteTimeout,
+        requestReadTimeout = requestReadTimeout,
+        httpServerCodec = httpServerCodec,
+        channelPipelineConfig = channelPipelineConfig,
+        enableHttp2 = enableHttp2,
+        enableH2c = enableH2c,
+        enableFlushConsolidation = enableFlushConsolidation,
+        readerIdleTimeout = 0,
+        writerIdleTimeout = 0,
+        allIdleTimeout = 0,
     )
 
     init {
@@ -309,8 +366,13 @@ public class NettyChannelInitializer(
                             pipe.addAfter(ctx.name(), "continue", HttpServerExpectContinueHandler())
                         }
                         pipe.addAfter("continue", "timeout", WriteTimeoutHandler(responseWriteTimeout))
-                        pipe.addAfter("timeout", "http1", http1handler)
-
+                        val idleHandler = idleStateHandler(http1handler)
+                        if (idleHandler != null) {
+                            pipe.addAfter("timeout", "idle", idleHandler)
+                            pipe.addAfter("idle", "http1", http1handler)
+                        } else {
+                            pipe.addAfter("timeout", "http1", http1handler)
+                        }
                         pipe.remove(upgradeHandler)
                         pipe.remove(ctx.name())
 
@@ -344,6 +406,7 @@ public class NettyChannelInitializer(
                     addLast("codec", httpServerCodec())
                     addLast("continue", HttpServerExpectContinueHandler())
                     addLast("timeout", WriteTimeoutHandler(responseWriteTimeout))
+                    idleStateHandler(handler)?.let { addLast("idle", it) }
                     addLast("http1", handler)
                     channelPipelineConfig()
                 }
@@ -386,6 +449,11 @@ public class NettyChannelInitializer(
         }
     }
 
+    private fun idleStateHandler(http1Handler: NettyHttp1Handler): NettyIdleStateHandler? {
+        if (readerIdleTimeout <= 0 && writerIdleTimeout <= 0 && allIdleTimeout <= 0) return null
+        return NettyIdleStateHandler(readerIdleTimeout, writerIdleTimeout, allIdleTimeout, http1Handler::hasActiveCalls)
+    }
+
     public companion object {
         internal val alpnProvider by lazy { findAlpnProvider() }
 
@@ -416,6 +484,51 @@ internal class KtorReadTimeoutHandler(requestReadTimeout: Int) : ReadTimeoutHand
         if (!closed) {
             ctx?.fireExceptionCaught(ReadTimeoutException.INSTANCE)
             closed = true
+        }
+    }
+}
+
+/**
+ * Closes HTTP/1.1 connections that stay idle, using [IdleStateHandler] with `observeOutput = true`
+ * so that a write still moving bytes counts as activity. A non-positive timeout disables that check.
+ *
+ * - Writer idle: fails the channel with [WriteTimeoutException] when response data is pending but no bytes
+ *   have been written for [writerIdleTimeoutSeconds]. A slow client that keeps reading is never disconnected.
+ * - Reader idle: closes the connection when nothing has been received for [readerIdleTimeoutSeconds],
+ *   no call is in progress and no response data is pending, so a long response to a client that sends nothing
+ *   is not cut off.
+ * - All idle: closes the connection when nothing has been read or written for [allIdleTimeoutSeconds]
+ *   and no response data is pending.
+ *
+ * The first idle event is ignored for writer idle: [IdleStateHandler] raises it without checking output progress,
+ * so it would fail a large write that is still moving bytes. Idle events are not passed further down the pipeline.
+ */
+internal class NettyIdleStateHandler(
+    readerIdleTimeoutSeconds: Int,
+    writerIdleTimeoutSeconds: Int,
+    allIdleTimeoutSeconds: Int,
+    private val hasActiveCalls: () -> Boolean,
+) : IdleStateHandler(
+    true,
+    readerIdleTimeoutSeconds.toLong(),
+    writerIdleTimeoutSeconds.toLong(),
+    allIdleTimeoutSeconds.toLong(),
+    TimeUnit.SECONDS
+) {
+
+    override fun channelIdle(ctx: ChannelHandlerContext, evt: IdleStateEvent) {
+        val pendingBytes = ctx.channel().unsafe().outboundBuffer()?.totalPendingWriteBytes() ?: 0
+        when (evt.state()) {
+            IdleState.WRITER_IDLE -> if (!evt.isFirst && pendingBytes > 0) {
+                ctx.fireExceptionCaught(WriteTimeoutException.INSTANCE)
+            }
+
+            // A finished call can still have response bytes in the outbound buffer
+            IdleState.READER_IDLE -> if (!hasActiveCalls() && pendingBytes == 0L) ctx.close()
+
+            IdleState.ALL_IDLE -> if (pendingBytes == 0L) ctx.close()
+
+            null -> {}
         }
     }
 }

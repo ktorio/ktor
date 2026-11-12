@@ -86,6 +86,19 @@
                 }
             }
         },
+        "/anonymous-object": {
+            "get": {
+                "summary": "Local anonymous object referencing its own members",
+                "responses": {
+                    "200": {
+                        "description": "",
+                        "content": {
+                            "text/plain": {}
+                        }
+                    }
+                }
+            }
+        },
         "/set-cookies": {
             "get": {
                 "summary": "Local variables that can't be extracted",

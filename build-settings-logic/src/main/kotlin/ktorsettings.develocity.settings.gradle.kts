@@ -17,7 +17,7 @@ develocity {
     val scanJournal = File(settingsDir, "scan-journal.log")
 
     // Should be in sync with settings.gradle.kts
-    server = "https://ge.jetbrains.com"
+    server = "https://develocity.jetbrains.com"
 
     // Copy the value to the local variable for compatibility with configuration cache
     val isCIRun = isCIRun

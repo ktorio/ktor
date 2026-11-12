@@ -163,12 +163,11 @@ public class WriterJob internal constructor(
     public override val job: Job
 ) : ChannelJob
 
-@Suppress("UNUSED_PARAMETER")
 public fun CoroutineScope.writer(
     coroutineContext: CoroutineContext = EmptyCoroutineContext,
     autoFlush: Boolean = false,
     block: suspend WriterScope.() -> Unit
-): WriterJob = writer(coroutineContext, ByteChannel(), block)
+): WriterJob = writer(coroutineContext, ByteChannel(autoFlush), block)
 
 @OptIn(InternalCoroutinesApi::class)
 public fun CoroutineScope.writer(

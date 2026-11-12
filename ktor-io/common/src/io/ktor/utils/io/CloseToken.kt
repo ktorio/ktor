@@ -13,6 +13,8 @@ internal val CLOSED = CloseToken(null)
 @OptIn(ExperimentalCoroutinesApi::class)
 internal class CloseToken(private val origin: Throwable?) {
 
+    val hasCause: Boolean get() = origin != null
+
     companion object {
         inline fun CloseToken.wrapCause(
             wrap: (Throwable) -> Throwable = ::ClosedByteChannelException

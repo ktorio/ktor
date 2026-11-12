@@ -497,6 +497,7 @@ final class io.ktor.client.plugins.cookies/HttpCookies : io.ktor.utils.io.core/C
             final fun <set-storage>(io.ktor.client.plugins.cookies/CookiesStorage) // io.ktor.client.plugins.cookies/HttpCookies.Config.storage.<set-storage>|<set-storage>(io.ktor.client.plugins.cookies.CookiesStorage){}[0]
 
         final fun default(kotlin.coroutines/SuspendFunction1<io.ktor.client.plugins.cookies/CookiesStorage, kotlin/Unit>) // io.ktor.client.plugins.cookies/HttpCookies.Config.default|default(kotlin.coroutines.SuspendFunction1<io.ktor.client.plugins.cookies.CookiesStorage,kotlin.Unit>){}[0]
+        final fun expiresParser(kotlin/Function1<kotlin/String, io.ktor.util.date/GMTDate?>) // io.ktor.client.plugins.cookies/HttpCookies.Config.expiresParser|expiresParser(kotlin.Function1<kotlin.String,io.ktor.util.date.GMTDate?>){}[0]
     }
 
     final object Companion : io.ktor.client.plugins/HttpClientPlugin<io.ktor.client.plugins.cookies/HttpCookies.Config, io.ktor.client.plugins.cookies/HttpCookies> { // io.ktor.client.plugins.cookies/HttpCookies.Companion|null[0]
@@ -640,15 +641,18 @@ final class io.ktor.client.plugins.websocket/DefaultClientWebSocketSession : io.
         final fun <get-timeoutMillis>(): kotlin/Long // io.ktor.client.plugins.websocket/DefaultClientWebSocketSession.timeoutMillis.<get-timeoutMillis>|<get-timeoutMillis>(){}[0]
         final fun <set-timeoutMillis>(kotlin/Long) // io.ktor.client.plugins.websocket/DefaultClientWebSocketSession.timeoutMillis.<set-timeoutMillis>|<set-timeoutMillis>(kotlin.Long){}[0]
 
+    final fun checksMaxMessageSize(): kotlin/Boolean // io.ktor.client.plugins.websocket/DefaultClientWebSocketSession.checksMaxMessageSize|checksMaxMessageSize(){}[0]
     final fun start(kotlin.collections/List<io.ktor.websocket/WebSocketExtension<*>>) // io.ktor.client.plugins.websocket/DefaultClientWebSocketSession.start|start(kotlin.collections.List<io.ktor.websocket.WebSocketExtension<*>>){}[0]
     final fun terminate() // io.ktor.client.plugins.websocket/DefaultClientWebSocketSession.terminate|terminate(){}[0]
     final suspend fun flush() // io.ktor.client.plugins.websocket/DefaultClientWebSocketSession.flush|flush(){}[0]
     final suspend fun send(io.ktor.websocket/Frame) // io.ktor.client.plugins.websocket/DefaultClientWebSocketSession.send|send(io.ktor.websocket.Frame){}[0]
 }
 
-final class io.ktor.client.plugins.websocket/WebSocketException : kotlin/IllegalStateException { // io.ktor.client.plugins.websocket/WebSocketException|null[0]
-    constructor <init>(kotlin/String) // io.ktor.client.plugins.websocket/WebSocketException.<init>|<init>(kotlin.String){}[0]
-    constructor <init>(kotlin/String, kotlin/Throwable?) // io.ktor.client.plugins.websocket/WebSocketException.<init>|<init>(kotlin.String;kotlin.Throwable?){}[0]
+final class io.ktor.client.plugins.websocket/WebSocketHandshakeException : io.ktor.client.plugins.websocket/WebSocketException { // io.ktor.client.plugins.websocket/WebSocketHandshakeException|null[0]
+    constructor <init>(kotlin/String, kotlin/Throwable? = ..., io.ktor.client.statement/HttpResponse? = ...) // io.ktor.client.plugins.websocket/WebSocketHandshakeException.<init>|<init>(kotlin.String;kotlin.Throwable?;io.ktor.client.statement.HttpResponse?){}[0]
+
+    final val response // io.ktor.client.plugins.websocket/WebSocketHandshakeException.response|{}response[0]
+        final fun <get-response>(): io.ktor.client.statement/HttpResponse? // io.ktor.client.plugins.websocket/WebSocketHandshakeException.response.<get-response>|<get-response>(){}[0]
 }
 
 final class io.ktor.client.plugins.websocket/WebSockets { // io.ktor.client.plugins.websocket/WebSockets|null[0]
@@ -1282,6 +1286,11 @@ open class io.ktor.client.engine/HttpClientEngineConfig { // io.ktor.client.engi
 
 open class io.ktor.client.network.sockets/InterruptedIOException : kotlinx.io/IOException { // io.ktor.client.network.sockets/InterruptedIOException|null[0]
     constructor <init>() // io.ktor.client.network.sockets/InterruptedIOException.<init>|<init>(){}[0]
+}
+
+open class io.ktor.client.plugins.websocket/WebSocketException : kotlin/IllegalStateException { // io.ktor.client.plugins.websocket/WebSocketException|null[0]
+    constructor <init>(kotlin/String) // io.ktor.client.plugins.websocket/WebSocketException.<init>|<init>(kotlin.String){}[0]
+    constructor <init>(kotlin/String, kotlin/Throwable?) // io.ktor.client.plugins.websocket/WebSocketException.<init>|<init>(kotlin.String;kotlin.Throwable?){}[0]
 }
 
 open class io.ktor.client.plugins/ResponseException : kotlin/IllegalStateException { // io.ktor.client.plugins/ResponseException|null[0]

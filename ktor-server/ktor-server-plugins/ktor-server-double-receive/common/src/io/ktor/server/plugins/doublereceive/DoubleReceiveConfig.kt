@@ -22,8 +22,8 @@ public class DoubleReceiveConfig {
     /**
      * Caches a request before applying any transformations.
      *
-     * This is useful, for example, when you want to receive a request body twice with different types or receive data
-     * as a stream multiple times.
+     * This is useful, for example, when you want to receive a request body sequentially with different types or receive
+     * data as a stream multiple times. Starting the next receive cancels a stream from the previous one.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.doublereceive.DoubleReceiveConfig.cacheRawRequest)
      *
@@ -48,6 +48,9 @@ public class DoubleReceiveConfig {
      *
      * Can be called multiple times; if any of [block]s returns `true`, the request body will be cached in file.
      * Otherwise, it will be cached in memory.
+     *
+     * With a file cache, every receive waits until the whole body is written to the file.
+     * With a memory cache, the first receive streams the body as it arrives.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.doublereceive.DoubleReceiveConfig.useFileForCache)
      */

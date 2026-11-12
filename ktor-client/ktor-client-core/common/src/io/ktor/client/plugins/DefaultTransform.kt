@@ -18,6 +18,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.job
+import kotlinx.io.RawSource
 import kotlinx.io.Source
 
 private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.defaultTransformers")
@@ -54,6 +55,12 @@ public fun HttpClient.defaultTransformers() {
                 override fun readFrom(): ByteReadChannel = body
             }
 
+            is RawSource -> object : OutgoingContent.ReadChannelContent() {
+                override val contentLength = context.headers[HttpHeaders.ContentLength]?.toLong()
+                override val contentType: ContentType = contentType ?: ContentType.Application.OctetStream
+                override fun readFrom(): ByteReadChannel = ByteReadChannel(body)
+            }
+
             is OutgoingContent -> body
 
             else -> platformRequestDefaultTransform(contentType, context, body)
@@ -65,6 +72,7 @@ public fun HttpClient.defaultTransformers() {
         }
     }
 
+    val clientScope = this
     responsePipeline.intercept(HttpResponsePipeline.Parse) { (info, body) ->
         if (body !is ByteReadChannel) return@intercept
         val response = context.response
@@ -100,7 +108,8 @@ public fun HttpClient.defaultTransformers() {
                 // could be canceled immediately, but it doesn't matter
                 // since the copying job is running under the client job
                 val responseJobHolder = Job(response.coroutineContext.job)
-                val channel: ByteReadChannel = writer(this@defaultTransformers.coroutineContext) {
+                val byteChannel = ByteChannel()
+                val channel: ByteReadChannel = clientScope.writer(channel = byteChannel) {
                     try {
                         body.copyTo(channel, limit = Long.MAX_VALUE)
                         body.rethrowCloseCauseIfNeeded()
@@ -112,9 +121,13 @@ public fun HttpClient.defaultTransformers() {
                         throw cause
                     }
                 }.also { writerJob ->
+                    // writer finishes → complete responseJobHolder
                     writerJob.invokeOnCompletion {
                         responseJobHolder.complete()
                     }
+                    // response job cancels → cancel output
+                    byteChannel.attachJob(response.coroutineContext.job)
+                    // output cancels → cancel source
                     body.attachWriterJob(writerJob)
                 }.channel
 

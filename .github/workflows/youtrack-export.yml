@@ -4,6 +4,9 @@ on:
   issues:
     types: [ opened ]
 
+permissions:
+  issues: write
+
 jobs:
   export-to-youtrack:
     name: Export to YouTrack
@@ -178,3 +181,23 @@ jobs:
           fi
 
           echo "Tagged $ISSUE_ID with 'github-issue'"
+
+      - name: Link YouTrack issue in GitHub
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+          GH_ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_ID: ${{ steps.find-existing.outputs.issue_id || steps.create-issue.outputs.issue_id }}
+        run: |
+          set -euo pipefail
+          ISSUE_URL="$YOUTRACK_URL/issue/$ISSUE_ID"
+          COMMENT="Tracked in YouTrack: [$ISSUE_ID]($ISSUE_URL)"
+
+          COMMENTS=$(gh api --paginate "repos/$GH_REPO/issues/$GH_ISSUE_NUMBER/comments" \
+            --jq '.[].body')
+
+          if grep -qE "${ISSUE_URL//./\\.}([^0-9]|$)" <<< "$COMMENTS"; then
+            echo "GitHub issue #$GH_ISSUE_NUMBER already links to $ISSUE_ID"
+          else
+            gh issue comment "$GH_ISSUE_NUMBER" --body "$COMMENT"
+          fi

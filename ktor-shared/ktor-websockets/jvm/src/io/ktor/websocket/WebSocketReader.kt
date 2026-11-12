@@ -62,6 +62,9 @@ public class WebSocketReader(
             } catch (cause: ProtocolViolationException) {
                 // same as above
                 queue.close(cause)
+            } catch (_: ChannelOverflowException) {
+                // The queue is already closed with this cause. Rethrowing would cancel the session before the
+                // consumer reads it, so the incoming channel would be closed without the cause.
             } catch (cause: Throwable) {
                 throw cause
             } finally {

@@ -6,9 +6,12 @@ package io.ktor.tests.http.cio
 
 import io.ktor.http.cio.*
 import io.ktor.http.cio.internals.*
+import io.ktor.utils.io.InternalAPI
 import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class HttpHeadersMapTest {
@@ -66,6 +69,7 @@ class HttpHeadersMapTest {
     }
 
     @Test
+    @Suppress("DEPRECATION")
     fun testPutMultipleValuesPerKey(): Unit = test {
         val rawHeaders = "keyEven: 0,2,4,6; keyOdd: 1,3,5,7"
         val builder = CharArrayBuilder().also { it.append(rawHeaders) }
@@ -214,5 +218,55 @@ class HttpHeadersMapTest {
         val builder = CharArrayBuilder()
         (0..1000).map { HttpHeadersMap(builder) }.toList()
         builder.release()
+    }
+
+    @Test
+    @OptIn(InternalAPI::class)
+    fun testSingleOrNull() = test {
+        val rawHeaders = "Content-Length: 42; Connection: close; Duplicate-Header: first; Duplicate-Header: second"
+        val builder = CharArrayBuilder().also { it.append(rawHeaders) }
+        val headers = HttpHeadersMap(builder)
+
+        val clStart = rawHeaders.indexOf("Content-Length")
+        val connStart = rawHeaders.indexOf("Connection")
+        val dup1Start = rawHeaders.indexOf("Duplicate-Header")
+        val dup2Start = rawHeaders.lastIndexOf("Duplicate-Header")
+
+        val clValStart = rawHeaders.indexOf("42")
+        val connValStart = rawHeaders.indexOf("close")
+        val dup1ValStart = rawHeaders.indexOf("first")
+        val dup2ValStart = rawHeaders.indexOf("second")
+
+        try {
+            assertNull(headers.singleOrNull("Content-Length"))
+
+            headers.put(clStart, clStart + "Content-Length".length, clValStart, clValStart + 2)
+            headers.put(connStart, connStart + "Connection".length, connValStart, connValStart + 5)
+
+            assertEquals("42", headers.singleOrNull("Content-Length").toString())
+            assertEquals("42", headers.singleOrNull("content-length").toString())
+            assertEquals("close", headers.singleOrNull("Connection").toString())
+            assertNull(headers.singleOrNull("Non-Existent"))
+
+            headers.put(dup1Start, dup1Start + "Duplicate-Header".length, dup1ValStart, dup1ValStart + 5)
+            assertEquals("first", headers.singleOrNull("Duplicate-Header").toString())
+
+            headers.put(dup2Start, dup2Start + "Duplicate-Header".length, dup2ValStart, dup2ValStart + 6)
+            val exception = assertFailsWith<ParserException> {
+                headers.singleOrNull("Duplicate-Header")
+            }
+            assertEquals("Duplicate Duplicate-Header header", exception.message)
+
+            val exceptionLowerCase = assertFailsWith<ParserException> {
+                headers.singleOrNull("duplicate-header")
+            }
+            assertEquals("Duplicate duplicate-header header", exceptionLowerCase.message)
+
+            // Non-duplicate headers still return their single value
+            assertEquals("42", headers.singleOrNull("Content-Length").toString())
+            assertEquals("close", headers.singleOrNull("Connection").toString())
+        } finally {
+            headers.release()
+        }
     }
 }

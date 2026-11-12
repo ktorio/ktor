@@ -97,7 +97,25 @@ private val loweredPartNames = setOf("max-age", "expires", "domain", "path", "se
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.parseServerSetCookieHeader)
  */
-public fun parseServerSetCookieHeader(cookiesHeader: String): Cookie {
+public fun parseServerSetCookieHeader(cookiesHeader: String): Cookie =
+    parseServerSetCookieHeader(cookiesHeader, String::fromCookieToGmtDate)
+
+/**
+ * Parse server's [cookiesHeader], using [expiresParser] in place of the built-in `Expires` date parser.
+ *
+ * [expiresParser] is called only when `Expires` is present, with the value unquoted and trimmed.
+ * Returning `null` or throwing leaves [Cookie.expires] unset and keeps the cookie; the built-in parser
+ * is not retried.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.parseServerSetCookieHeader)
+ *
+ * @param cookiesHeader a single `Set-Cookie` header value.
+ * @param expiresParser the replacement date parser.
+ * @return the parsed cookie.
+ * @throws NoSuchElementException if [cookiesHeader] holds no cookie name/value pair.
+ * @throws IllegalArgumentException if the `$x-enc` marker names an unknown [CookieEncoding].
+ */
+public fun parseServerSetCookieHeader(cookiesHeader: String, expiresParser: (String) -> GMTDate?): Cookie {
     val asMap = parseClientCookiesHeader(cookiesHeader, false)
     val first = asMap.entries.first { !it.key.startsWith("$") }
     val encoding = asMap["\$x-enc"]?.let { CookieEncoding.valueOf(it) } ?: CookieEncoding.RAW
@@ -108,7 +126,7 @@ public fun parseServerSetCookieHeader(cookiesHeader: String): Cookie {
         value = decodeCookieValue(first.value, encoding),
         encoding = encoding,
         maxAge = loweredMap["max-age"]?.toMaxAgeOrNull(),
-        expires = runCatching { loweredMap["expires"]?.fromCookieToGmtDate() }.getOrNull(),
+        expires = runCatching { loweredMap["expires"]?.let { expiresParser(it.trim()) } }.getOrNull(),
         domain = loweredMap["domain"],
         path = loweredMap["path"],
         secure = "secure" in loweredMap,

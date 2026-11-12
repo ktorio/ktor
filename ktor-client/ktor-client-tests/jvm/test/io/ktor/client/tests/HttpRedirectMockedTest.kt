@@ -38,6 +38,91 @@ class HttpRedirectMockedTest {
     }
 
     @Test
+    fun `relative redirect removes dot segments`() = testWithEngine(MockEngine) {
+        config {
+            server { request ->
+                when (request.url.fullPath) {
+                    "/a/b/parent" -> "../child"
+                    "/a/b/current" -> "./child"
+                    else -> "../../../../child"
+                }
+            }
+        }
+
+        test { client ->
+            client.get("http://localhost/a/b/parent").let { response ->
+                assertEquals("OK", response.bodyAsText())
+                assertEquals("/a/child", response.request.url.fullPath)
+            }
+
+            client.get("http://localhost/a/b/current").let { response ->
+                assertEquals("OK", response.bodyAsText())
+                assertEquals("/a/b/child", response.request.url.fullPath)
+            }
+
+            client.get("http://localhost/a/b/above-root").let { response ->
+                assertEquals("OK", response.bodyAsText())
+                assertEquals("/child", response.request.url.fullPath)
+            }
+        }
+    }
+
+    @Test
+    fun `query-only redirect keeps the request path`() = testWithEngine(MockEngine) {
+        config {
+            server { "?child" }
+        }
+
+        test { client ->
+            client.get("http://localhost/a/../b?old").let { response ->
+                assertEquals("OK", response.bodyAsText())
+                assertEquals("/a/../b?child", response.request.url.fullPath)
+            }
+        }
+    }
+
+    @Test
+    fun `relative redirect removes dot segments from a path built with segments`() = testWithEngine(MockEngine) {
+        config {
+            server { "../child" }
+        }
+
+        test { client ->
+            client.get {
+                url {
+                    protocol = URLProtocol.HTTP
+                    host = "localhost"
+                    path("a", "parent")
+                }
+            }.let { response ->
+                assertEquals("OK", response.bodyAsText())
+                assertEquals("/child", response.request.url.fullPath)
+            }
+        }
+    }
+
+    @Test
+    fun `relative redirect keeps empty segments after the root of a path built with segments`() =
+        testWithEngine(MockEngine) {
+            config {
+                server { "..//child" }
+            }
+
+            test { client ->
+                client.get {
+                    url {
+                        protocol = URLProtocol.HTTP
+                        host = "localhost"
+                        path("a", "parent")
+                    }
+                }.let { response ->
+                    assertEquals("OK", response.bodyAsText())
+                    assertEquals("//child", response.request.url.fullPath)
+                }
+            }
+        }
+
+    @Test
     fun testAbsoluteRedirect() = testWithEngine(MockEngine) {
         config {
             server { "/child" }

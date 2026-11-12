@@ -138,6 +138,7 @@ public class CIOApplicationEngine(
         }
     }
 
+    @Suppress("DEPRECATION")
     private fun addHandlerForExpectedHeader(output: ByteWriteChannel, call: CIOApplicationCall) {
         val continueResponse = "HTTP/1.1 100 Continue$CRLF$CRLF"
         val expectHeaderValue = "100-continue"

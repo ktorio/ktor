@@ -17,6 +17,7 @@ import io.ktor.util.logging.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
+import kotlinx.io.RawSource
 import kotlin.reflect.KClass
 
 // Media types of the underlying representations mapped to the structured syntax suffixes
@@ -36,6 +37,7 @@ internal val DefaultCommonIgnoredTypes: Set<KClass<*>> = setOf(
     String::class,
     HttpStatusCode::class,
     ByteReadChannel::class,
+    RawSource::class,
     OutgoingContent::class,
     ClientSSESession::class,
     ClientSSESessionWithDeserialization::class,
@@ -76,10 +78,13 @@ public fun interface ContentTypeMergeStrategy {
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.contentnegotiation.ContentTypeMergeStrategy.Companion.Default)
          */
         public val Default: ContentTypeMergeStrategy = ContentTypeMergeStrategy { registered, headers ->
+            val parsedHeaders = headers.asSequence().flatMap { parseHeaderValue(it) }
             registered.asSequence().filter { contentType ->
-                headers.none { h ->
+                parsedHeaders.none { header ->
                     try {
-                        ContentType.parse(h).match(contentType)
+                        val acceptedType = ContentType.parse(header.value)
+                        ContentType(acceptedType.contentType, acceptedType.contentSubtype, header.params)
+                            .match(contentType)
                     } catch (e: BadContentTypeFormatException) {
                         false
                     }

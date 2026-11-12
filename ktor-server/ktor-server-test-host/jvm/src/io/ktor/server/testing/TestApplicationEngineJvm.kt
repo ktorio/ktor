@@ -49,7 +49,8 @@ internal suspend fun TestApplicationEngine.handleWebSocketConversation(
 
     val pool = KtorDefaultPool
     val engineContext = Dispatchers.Unconfined
-    val job = Job()
+    // A child of the engine, so stopping the engine ends a conversation whose server never closes.
+    val job = Job(this.coroutineContext[Job])
     val webSocketContext = engineContext + job
 
     withContext(configuration.dispatcher) {
@@ -83,7 +84,8 @@ internal suspend fun TestApplicationEngine.handleWebSocketConversation(
             } finally {
                 writer.flush()
                 writer.outgoing.close()
-                job.cancelAndJoin()
+                // Keep reading until the server closes, so its reply to our Close still arrives.
+                job.complete()
             }
         }
     }

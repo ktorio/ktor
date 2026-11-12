@@ -66,6 +66,16 @@ fun Application.installOddReferences() {
         }
 
         /**
+         * Local anonymous object referencing its own members
+         */
+        get("/anonymous-object") {
+            val checker = object : Checker() {
+                override fun check() = helper()
+            }
+            call.respondText("Checked: ${checker.check()}", contentType = ContentType.Text.Plain)
+        }
+
+        /**
          * Local variables that can't be extracted
          */
         get("/set-cookies") {
@@ -84,6 +94,11 @@ fun acceptedStatus() =
     HttpStatusCode.Accepted
 
 fun callLambdaArg(action: suspend RoutingContext.() -> Unit) {}
+
+abstract class Checker {
+    protected fun helper() = true
+    abstract fun check(): Boolean
+}
 
 @Serializable
 data class CustomResponse(val message: String)

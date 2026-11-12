@@ -65,7 +65,6 @@ public class ByteChannel(public override val autoFlush: Boolean = false) : ByteR
     override val readBuffer: Source
         get() {
             _closedCause.value?.throwOrNull(::ClosedReadChannelException)
-            if (_readBuffer.exhausted()) moveFlushToReadBuffer()
             return _readBuffer
         }
 
@@ -86,7 +85,8 @@ public class ByteChannel(public override val autoFlush: Boolean = false) : ByteR
         get() = _closedCause.value != null
 
     override val isClosedForRead: Boolean
-        get() = (closedCause != null) || (isClosedForWrite && flushBufferSize == 0 && _readBuffer.exhausted())
+        get() = (_closedCause.value?.hasCause == true) ||
+            (isClosedForWrite && flushBufferSize == 0 && _readBuffer.exhausted())
 
     override suspend fun awaitContent(min: Int): Boolean {
         rethrowCloseCauseIfNeeded()
