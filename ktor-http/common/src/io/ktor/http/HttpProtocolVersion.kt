@@ -80,14 +80,16 @@ public data class HttpProtocolVersion(val name: String, val major: Int, val mino
             if (value == "HTTP/1.1") return HTTP_1_1
             if (value == "HTTP/1.0") return HTTP_1_0
             if (value == "HTTP/2.0") return HTTP_2_0
+            if (value == "HTTP/2") return HTTP_2_0
             if (value == "HTTP/3.0") return HTTP_3_0
+            if (value == "HTTP/3") return HTTP_3_0
 
-            // Slow path: parse unknown versions (format: protocol/major.minor)
+            // Slow path: parse unknown versions (format: protocol/major[.minor])
             val (protocol, major, minor) = value.split("/", ".").also {
-                check(it.size == 3) {
-                    "Failed to parse HttpProtocolVersion. Expected format: protocol/major.minor, but actual: $value"
+                check(it.size == 2 || it.size == 3) {
+                    "Failed to parse HttpProtocolVersion. Expected format: protocol/major[.minor], but actual: $value"
                 }
-            }
+            }.let { Triple(it[0], it[1], it.getOrElse(2) { "0" }) }
 
             return fromValue(protocol, major.toInt(), minor.toInt())
         }

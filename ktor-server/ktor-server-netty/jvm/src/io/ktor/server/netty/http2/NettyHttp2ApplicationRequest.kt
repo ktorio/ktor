@@ -44,13 +44,29 @@ internal class NettyHttp2ApplicationRequest(
         }
     }
 
+    private var contentActor: SendChannel<Http2DataFrame>? = null
+    private var contentClosed: Boolean = false
+
+    fun offerContent(frame: Http2DataFrame): Boolean = !contentClosed && dataFrameActor().trySend(frame).isSuccess
+
+    fun closeContent(cause: Throwable? = null) {
+        if (contentClosed) return
+        contentClosed = true
+        val actor = contentActor
+        if (actor == null) {
+            if (cause == null) contentByteChannel.close() else contentByteChannel.cancel(cause)
+        } else {
+            actor.close(cause)
+        }
+    }
+
     @OptIn(ObsoleteCoroutinesApi::class)
-    val contentActor = actor(
+    private fun dataFrameActor(): SendChannel<Http2DataFrame> = contentActor ?: actor(
         Dispatchers.Unconfined,
         kotlinx.coroutines.channels.Channel.UNLIMITED
     ) {
         http2frameLoop(contentByteChannel)
-    }
+    }.also { contentActor = it }
 
     override val local = Http2LocalConnectionPoint(
         nettyHeaders,

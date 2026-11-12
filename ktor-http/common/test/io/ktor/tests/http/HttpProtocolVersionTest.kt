@@ -25,8 +25,18 @@ class HttpProtocolVersionTest {
     }
 
     @Test
+    fun `parse returns cached HTTP 2 instance`() {
+        assertSame(HttpProtocolVersion.HTTP_2_0, HttpProtocolVersion.parse("HTTP/2"))
+    }
+
+    @Test
     fun `parse returns cached HTTP 3_0 instance`() {
         assertSame(HttpProtocolVersion.HTTP_3_0, HttpProtocolVersion.parse("HTTP/3.0"))
+    }
+
+    @Test
+    fun `parse returns cached HTTP 3 instance`() {
+        assertSame(HttpProtocolVersion.HTTP_3_0, HttpProtocolVersion.parse("HTTP/3"))
     }
 
     @Test
@@ -35,6 +45,14 @@ class HttpProtocolVersionTest {
         assertEquals("SPDY", spdy.name)
         assertEquals(3, spdy.major)
         assertEquals(0, spdy.minor)
+    }
+
+    @Test
+    fun `parse handles protocol without minor version`() {
+        val version = HttpProtocolVersion.parse("CUSTOM/4")
+        assertEquals("CUSTOM", version.name)
+        assertEquals(4, version.major)
+        assertEquals(0, version.minor)
     }
 
     @Test
