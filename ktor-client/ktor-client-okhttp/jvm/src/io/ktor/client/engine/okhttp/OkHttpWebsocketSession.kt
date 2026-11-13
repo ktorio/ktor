@@ -104,15 +104,16 @@ internal class OkHttpWebsocketSession(
             }
         }
     }.apply {
-        invokeOnCompletion { stopOutgoing() }
+        invokeOnCompletion { cause -> stopOutgoing(cause) }
     }
 
     /**
      * Rejects pending and new outgoing frames and wakes suspended senders.
      */
     private fun stopOutgoing(cause: Throwable? = null) {
-        _outgoing.close(cause)
-        _outgoing.cancel()
+        val outgoingCause = cause as? CancellationException
+            ?: CancellationException("WebSocket session is closed", cause)
+        _outgoing.cancel(outgoingCause)
     }
 
     override val extensions: List<WebSocketExtension<*>>
@@ -141,7 +142,7 @@ internal class OkHttpWebsocketSession(
         val cause = CancellationException(
             "WebSocket session closed with code ${CloseReason.Codes.byCode(code.toShort())?.toString() ?: code}."
         )
-        stopOutgoing()
+        stopOutgoing(cause)
         writeJob.cancel(cause)
     }
 

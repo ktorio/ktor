@@ -12,7 +12,6 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
-import kotlinx.coroutines.channels.ClosedSendChannelException
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
@@ -27,7 +26,7 @@ import kotlin.coroutines.cancellation.CancellationException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import kotlin.test.assertFalse
+import kotlin.test.assertIs
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.seconds
 
@@ -113,7 +112,7 @@ class OkHttpWebsocketSessionTest {
     }
 
     @Test
-    fun `suspended send fails when the session is closed`() = runBlocking {
+    fun `suspended send fails when the session is closed`() = runBlocking<Unit> {
         val socket = FakeWebSocket(blockSends = true)
         val session = sessionWithRendezvousOutgoing(socket)
 
@@ -127,7 +126,7 @@ class OkHttpWebsocketSessionTest {
 
         val result = withTimeout(5.seconds) { late.await() }
         assertTrue(result.isFailure, "send() accepted a frame after the writer stopped")
-        assertFalse(result.exceptionOrNull() is CancellationException, "send() threw ${result.exceptionOrNull()}")
+        assertIs<CancellationException>(result.exceptionOrNull())
     }
 
     @Test
@@ -144,16 +143,17 @@ class OkHttpWebsocketSessionTest {
     }
 
     @Test
-    fun `send after onClosed fails with ClosedSendChannelException`() = runBlocking<Unit> {
+    fun `send after onClosed fails with CancellationException`() = runBlocking {
         val socket = FakeWebSocket()
         val session = sessionWithRendezvousOutgoing(socket)
 
         session.onClosed(socket, 1000, "bye")
 
         withTimeout(5.seconds) {
-            assertFailsWith<ClosedSendChannelException> {
+            val cause = assertFailsWith<CancellationException> {
                 session.outgoing.send(Frame.Text("late"))
             }
+            assertEquals("WebSocket session closed with code NORMAL.", cause.message)
         }
     }
 
