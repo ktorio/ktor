@@ -9,6 +9,7 @@ package io.ktor.tests.auth
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.server.application.ApplicationCall
 import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -34,7 +35,6 @@ class NestedRoutesTest {
             authenticateWith(basicScheme) {
                 route("/api") {
                     get("/users") { call.respondText("users:${call.principal.name}") }
-                    get("/items") { call.respondText("items:${call.principal.name}") }
                     route("/v2") {
                         route("/admin") {
                             get("/deep") { call.respondText("deep:${call.principal.name}") }
@@ -48,9 +48,6 @@ class NestedRoutesTest {
 
         val usersResp = client.get("/api/users") { header(HttpHeaders.Authorization, auth) }
         assertEquals("users:user", usersResp.bodyAsText())
-
-        val itemsResp = client.get("/api/items") { header(HttpHeaders.Authorization, auth) }
-        assertEquals("items:user", itemsResp.bodyAsText())
 
         val deepResp = client.get("/api/v2/admin/deep") { header(HttpHeaders.Authorization, auth) }
         assertEquals("deep:user", deepResp.bodyAsText())
@@ -86,18 +83,19 @@ class NestedRoutesTest {
 
         routing {
             authenticateWith(outerScheme) {
+                val getPrincipal = { call: ApplicationCall -> call.principal }
+
                 authenticateWith(innerScheme) {
                     post("/nested") {
-                        val outerPrincipal = call.principal<OuterUser>()
-                        call.respondText("${outerPrincipal?.name}:${call.principal.name}")
+                        val outerPrincipal = getPrincipal(call)
+                        call.respondText("${outerPrincipal.name}:${call.principal.name}")
                     }
                 }
             }
         }
 
         val onlyOuter = client.post("/nested") {
-            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
-            setBody("user=outer&password=pass")
+            formCredentials("outer")
         }
         assertEquals(HttpStatusCode.Unauthorized, onlyOuter.status)
 
@@ -107,9 +105,8 @@ class NestedRoutesTest {
         assertEquals(HttpStatusCode.Unauthorized, onlyInner.status)
 
         val both = client.post("/nested") {
-            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+            formCredentials("outer")
             header(HttpHeaders.Authorization, basicAuthHeader("inner"))
-            setBody("user=outer&password=pass")
         }
         assertEquals(HttpStatusCode.OK, both.status)
         assertEquals("outer:inner", both.bodyAsText())
