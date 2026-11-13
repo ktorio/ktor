@@ -215,7 +215,7 @@ internal class RoutingPathTree private constructor(private val root: Node) {
                 } ?: return AmbiguousNode
             }
 
-            return registerNode(listOf(currentRoot)) ?: AmbiguousNode
+            return registerNode(listOf(currentRoot))
         }
 
         private fun makeFastPathSuccess(node: RoutingNode): Success =
@@ -228,24 +228,24 @@ internal class RoutingPathTree private constructor(private val root: Node) {
         /**
          * Builds the index node for one path position.
          *
-         * @nodes RoutingNodes matching the same segment. Their children are merged.
-         * @returns `null` when the position cannot be resolved unambiguously.
+         * @param nodes RoutingNodes matching the same segment. Their children are merged.
+         * @return an ambiguous node when the position cannot be resolved unambiguously.
          */
-        private fun registerNode(nodes: List<RoutingNode>): Node? {
-            val route = pickRoute(nodes) ?: return null
-            val siblings = groupSiblings(effectiveChildren(nodes)) ?: return null
+        private fun registerNode(nodes: List<RoutingNode>): Node {
+            val route = pickRoute(nodes) ?: return AmbiguousNode
+            val siblings = groupSiblings(effectiveChildren(nodes)) ?: return AmbiguousNode
 
-            val children = registerConstants(siblings.constants) ?: return null
-            val methods = registerMethods(siblings.methods) ?: return null
+            val children = registerConstants(siblings.constants)
+            val methods = registerMethods(siblings.methods) ?: return AmbiguousNode
             val param = siblings.params.singleOrNull()?.let { child ->
-                val paramNode = registerNode(listOf(child)) ?: return null
+                val paramNode = registerNode(listOf(child))
                 paramName(child) to paramNode
             }
             val wildcard = siblings.wildcards.singleOrNull()?.let { child ->
-                registerNode(listOf(child)) ?: return null
+                registerNode(listOf(child))
             }
             val tail = siblings.tailcards.singleOrNull()?.let { child ->
-                val paramNode = registerNode(listOf(child)) ?: return null
+                val paramNode = registerNode(listOf(child))
                 tailcardName(child) to paramNode
             }
 
@@ -323,10 +323,10 @@ internal class RoutingPathTree private constructor(private val root: Node) {
             return siblings
         }
 
-        private fun registerConstants(groups: Map<String, List<RoutingNode>>): MutableMap<String, Node>? {
+        private fun registerConstants(groups: Map<String, List<RoutingNode>>): MutableMap<String, Node> {
             val result = mutableMapOf<String, Node>()
             for ((segment, nodes) in groups) {
-                result[segment] = registerNode(nodes) ?: return null
+                result[segment] = registerNode(nodes)
             }
             return result
         }
