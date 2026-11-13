@@ -29,6 +29,7 @@ public fun Route.scalarUI(
 ): Route {
     val config = ScalarConfig().apply(block)
     val source = config.source
+    val pathPrefix = config.pathPrefix
     val apiUrl = config.remotePath
     val openApiDoc = with(application) {
         async(start = CoroutineStart.LAZY) {
@@ -71,10 +72,15 @@ public fun Route.scalarUI(
         }.hide()
 
         get {
-            val fullPath = call.request.path()
+            val requestPath = call.request.path()
                 .removeSuffix("/")
                 .encodeURLPath(encodeEncoded = false)
                 .replace("'", "%27")
+            val fullPath = if (pathPrefix.isNotBlank()) {
+                "/${pathPrefix.trim('/')}$requestPath"
+            } else {
+                requestPath
+            }
             val safeApiUrl = apiUrl
                 .encodeURLPath(encodeEncoded = false)
                 .replace("'", "%27")

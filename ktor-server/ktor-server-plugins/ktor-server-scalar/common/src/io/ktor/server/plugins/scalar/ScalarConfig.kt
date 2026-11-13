@@ -33,6 +33,13 @@ public class ScalarConfig private constructor(
     )
 
     /**
+     * Path prefix used when generating HTML.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.scalar.ScalarConfig.pathPrefix)
+     */
+    public var pathPrefix: String = ""
+
+    /**
      * Relative path from the scalar URL root to the specification file.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.scalar.ScalarConfig.remotePath)
