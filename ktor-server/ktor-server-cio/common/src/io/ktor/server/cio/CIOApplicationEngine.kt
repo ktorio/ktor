@@ -17,7 +17,9 @@ import io.ktor.server.response.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.CancellationException
 import kotlin.concurrent.Volatile
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Engine that based on CIO backend
@@ -91,7 +93,7 @@ public class CIOApplicationEngine(
     override suspend fun stopSuspend(gracePeriodMillis: Long, timeoutMillis: Long) {
         stopRequest.complete()
 
-        val result = withTimeoutOrNull(gracePeriodMillis) {
+        val result = withTimeoutOrNull(gracePeriodMillis.milliseconds) {
             serverJob.join()
             true
         }
@@ -100,7 +102,7 @@ public class CIOApplicationEngine(
             // timeout
             serverJob.cancel()
 
-            withTimeoutOrNull(timeoutMillis - gracePeriodMillis) {
+            withTimeoutOrNull((timeoutMillis - gracePeriodMillis).milliseconds) {
                 serverJob.join()
             }
         }
@@ -213,8 +215,18 @@ public class CIOApplicationEngine(
         val startupJob = startupJob
         val cioConnectors = resolvedConnectorsDeferred
 
+        val parentContext = applicationProvider().parentCoroutineContext
+        val runningServerFailureHandler = parentContext[CoroutineExceptionHandler]
+            ?: DefaultUncaughtExceptionHandler(environment.log)
+        val exceptionHandler = CoroutineExceptionHandler { context, cause ->
+            // Leaving startup failure uncaught would abort the whole process on Native
+            if (startupJob.isCompleted && !startupJob.isCancelled) {
+                runningServerFailureHandler.handleException(context, cause)
+            }
+        }
+
         return CoroutineScope(
-            applicationProvider().parentCoroutineContext + engineDispatcher
+            parentContext + engineDispatcher + exceptionHandler
         ).launch(start = CoroutineStart.LAZY) {
             val connectors = ArrayList<HttpServer>(configuration.connectors.size)
 
@@ -241,8 +253,10 @@ public class CIOApplicationEngine(
                 cioConnectors.complete(resolvedConnectors)
             } catch (cause: Throwable) {
                 connectors.forEach { it.rootServerJob.cancel() }
-                stopRequest.completeExceptionally(cause)
-                startupJob.completeExceptionally(cause)
+                if (cause !is CancellationException) {
+                    stopRequest.completeExceptionally(cause)
+                    startupJob.completeExceptionally(cause)
+                }
                 throw cause
             }
 
