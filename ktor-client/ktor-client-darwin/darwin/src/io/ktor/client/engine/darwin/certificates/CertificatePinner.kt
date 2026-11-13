@@ -124,32 +124,35 @@ public data class CertificatePinner(
     private val validateTrust: Boolean
 ) : ChallengeHandler {
 
+    @OptIn(ExperimentalForeignApi::class)
     override fun invoke(
         session: NSURLSession,
         task: NSURLSessionTask,
         challenge: NSURLAuthenticationChallenge,
         completionHandler: (NSURLSessionAuthChallengeDisposition, NSURLCredential?) -> Unit
     ) {
-        if (applyPinning(challenge)) {
-            completionHandler(NSURLSessionAuthChallengeUseCredential, challenge.proposedCredential)
-        } else {
+        val trust = applyPinning(challenge)
+        if (trust == null) {
             completionHandler(NSURLSessionAuthChallengePerformDefaultHandling, null)
+        } else {
+            val credential = NSURLCredential.credentialForTrust(trust)
+            completionHandler(NSURLSessionAuthChallengeUseCredential, credential)
         }
     }
 
     @OptIn(ExperimentalForeignApi::class)
-    private fun applyPinning(challenge: NSURLAuthenticationChallenge): Boolean {
+    private fun applyPinning(challenge: NSURLAuthenticationChallenge): SecTrustRef? {
         val hostname = challenge.protectionSpace.host
         val matchingPins = findMatchingPins(hostname)
 
         if (matchingPins.isEmpty()) {
             LOG.trace { "No pins found for host" }
-            return false
+            return null
         }
 
         if (challenge.protectionSpace.authenticationMethod != NSURLAuthenticationMethodServerTrust) {
             LOG.trace { "Authentication method not suitable for pinning" }
-            return false
+            return null
         }
 
         val trust = challenge.protectionSpace.serverTrust
@@ -178,7 +181,7 @@ public data class CertificatePinner(
             val message = buildErrorMessage(certificates, hostname, matchingPins)
             throw TlsPeerUnverifiedException(message)
         }
-        return true
+        return trust
     }
 
     /**
