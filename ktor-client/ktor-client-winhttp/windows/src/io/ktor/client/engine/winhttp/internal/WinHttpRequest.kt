@@ -4,7 +4,9 @@
 
 package io.ktor.client.engine.winhttp.internal
 
+import io.ktor.client.engine.*
 import io.ktor.client.engine.winhttp.*
+import io.ktor.client.plugins.*
 import io.ktor.client.plugins.websocket.WEBSOCKETS_KEY
 import io.ktor.client.request.*
 import io.ktor.http.*
@@ -58,6 +60,7 @@ internal class WinHttpRequest(
         hRequest = connect.openRequest(data.method, data.url, httpVersion)
             ?: throw getWinHttpException("Unable to open request")
 
+        configureTimeouts(data)
         configureFeatures()
 
         enableHttpProtocols(protocolVersion)
@@ -226,6 +229,17 @@ internal class WinHttpRequest(
             callContext,
             wsConfig.channelsConfig
         ).also { closeRequest() }
+    }
+
+    @OptIn(InternalAPI::class)
+    private fun configureTimeouts(data: HttpRequestData) {
+        val timeout = data.getCapabilityOrNull(HttpTimeoutCapability) ?: return
+        hRequest.setTimeouts(
+            connectTimeout = timeout.connectTimeoutMillis?.let(::convertLongTimeoutToIntWithInfiniteAsZero)
+                ?: DEFAULT_CONNECT_TIMEOUT,
+            socketTimeout = timeout.socketTimeoutMillis?.let(::convertLongTimeoutToIntWithInfiniteAsZero)
+                ?: DEFAULT_SOCKET_TIMEOUT,
+        )
     }
 
     /**

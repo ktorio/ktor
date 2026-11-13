@@ -957,6 +957,11 @@ public fun <T : HttpClientEngineConfig> HttpClient(
  * By directly setting the engine (e.g., `Apache5`, `OkHttp`), you can optimize startup performance
  * by preventing the default service loader mechanism.
  *
+ * # Sharing an engine
+ * The [engine] can be shared between several clients. Per-request configuration, such as timeouts set with
+ * [HttpTimeout], applies only to requests of the client it is configured in.
+ * The [engine] is not closed together with the client and must be closed explicitly.
+ *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.HttpClient)
  */
 public fun HttpClient(
@@ -1432,6 +1437,9 @@ public class HttpClient(
     /**
      * Returns a new [HttpClient] by copying this client's configuration
      * and additionally configured by the [block] parameter.
+     *
+     * The new client shares the [engine] with this client. Per-request configuration, such as timeouts set with
+     * [HttpTimeout], applies only to requests of the client it is configured in.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.HttpClient.config)
      */

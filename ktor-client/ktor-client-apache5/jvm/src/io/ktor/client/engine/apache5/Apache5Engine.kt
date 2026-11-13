@@ -21,7 +21,6 @@ import org.apache.hc.core5.http.ssl.TLS
 import org.apache.hc.core5.io.CloseMode
 import org.apache.hc.core5.reactor.IOReactorConfig
 import org.apache.hc.core5.ssl.SSLContexts
-import org.apache.hc.core5.util.Timeout
 import java.net.InetSocketAddress
 import java.net.Proxy
 import java.util.concurrent.TimeUnit
@@ -40,7 +39,7 @@ internal class Apache5Engine(override val config: Apache5EngineConfig) : HttpCli
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
         val callContext = callContext()
 
-        val engine = engine(data)
+        val engine = engine()
 
         val apacheRequest = ApacheRequestProducer(data, config, callContext)
         return engine.sendRequest(apacheRequest, callContext, data)
@@ -54,10 +53,9 @@ internal class Apache5Engine(override val config: Apache5EngineConfig) : HttpCli
         }
     }
 
-    private fun engine(data: HttpRequestData): CloseableHttpAsyncClient {
+    private fun engine(): CloseableHttpAsyncClient {
         return engine ?: synchronized(this) {
             engine ?: HttpAsyncClients.custom().apply {
-                val timeout = data.getCapabilityOrNull(HttpTimeoutCapability)
                 setThreadFactory {
                     Thread(it, "Ktor-client-apache").apply {
                         isDaemon = true
@@ -67,22 +65,6 @@ internal class Apache5Engine(override val config: Apache5EngineConfig) : HttpCli
                 disableAuthCaching()
                 disableConnectionState()
                 disableCookieManagement()
-
-                val socketTimeoutMillis: Long = timeout?.socketTimeoutMillis ?: config.socketTimeout.toLong()
-                val socketTimeout = if (socketTimeoutMillis == HttpTimeoutConfig.INFINITE_TIMEOUT_MS) {
-                    null
-                } else {
-                    Timeout.of(
-                        socketTimeoutMillis,
-                        TimeUnit.MILLISECONDS
-                    )
-                }
-                val connectTimeoutMillis: Long = timeout?.connectTimeoutMillis ?: config.connectTimeout
-                val connectTimeout = if (connectTimeoutMillis == HttpTimeoutConfig.INFINITE_TIMEOUT_MS) {
-                    0
-                } else {
-                    connectTimeoutMillis
-                }
 
                 setConnectionManager(
                     PoolingAsyncClientConnectionManagerBuilder.create()
@@ -97,8 +79,8 @@ internal class Apache5Engine(override val config: Apache5EngineConfig) : HttpCli
                         )
                         .setDefaultConnectionConfig(
                             ConnectionConfig.custom()
-                                .setConnectTimeout(connectTimeout, TimeUnit.MILLISECONDS)
-                                .setSocketTimeout(socketTimeout)
+                                .setConnectTimeout(config.connectTimeout.toTimeout())
+                                .setSocketTimeout(config.socketTimeout, TimeUnit.MILLISECONDS)
                                 .build()
                         )
                         .apply { config.dnsResolver?.let { setDnsResolver(it) } }

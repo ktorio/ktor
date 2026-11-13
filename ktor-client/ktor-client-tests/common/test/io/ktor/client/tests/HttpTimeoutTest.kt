@@ -4,6 +4,7 @@
 
 package io.ktor.client.tests
 
+import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.network.sockets.*
 import io.ktor.client.plugins.*
@@ -457,7 +458,7 @@ class HttpTimeoutTest : ClientLoader(timeout = 30.seconds) {
 
     @Test
     fun testSocketTimeoutReadPerRequestAttributes() = clientTests(
-        except(ENGINES_WITHOUT_SOCKET_TIMEOUT, "native:CIO", "Apache5")
+        except(ENGINES_WITHOUT_SOCKET_TIMEOUT, "native:CIO")
     ) {
         config {
             install(HttpTimeout)
@@ -470,6 +471,41 @@ class HttpTimeoutTest : ClientLoader(timeout = 30.seconds) {
 
                     timeout { socketTimeoutMillis = 1000 }
                 }.body<String>()
+            }
+        }
+    }
+
+    @Test
+    fun `socket timeout does not leak into another client sharing the engine`() = clientTests(
+        except(ENGINES_WITHOUT_SOCKET_TIMEOUT, "native:CIO"),
+        retries = 5,
+    ) {
+        test { client ->
+            HttpClient(client.engine) {
+                install(HttpTimeout) { socketTimeoutMillis = 500 }
+            }.use { clientWithTimeout ->
+                clientWithTimeout.get("$TEST_URL/with-delay") { parameter("delay", 0) }
+
+                val response = client.get("$TEST_URL/with-delay") { parameter("delay", 1000) }.body<String>()
+                assertEquals("Text", response)
+            }
+        }
+    }
+
+    @Test
+    fun `socket timeout is applied when another client sharing the engine made the first request`() = clientTests(
+        except(ENGINES_WITHOUT_SOCKET_TIMEOUT, "native:CIO"),
+        retries = 5,
+    ) {
+        test { client ->
+            client.get("$TEST_URL/with-delay") { parameter("delay", 0) }
+
+            HttpClient(client.engine) {
+                install(HttpTimeout) { socketTimeoutMillis = 500 }
+            }.use { clientWithTimeout ->
+                assertFailsWith<IOException> {
+                    clientWithTimeout.get("$TEST_URL/with-stream") { parameter("delay", 1000) }.body<String>()
+                }
             }
         }
     }
@@ -492,7 +528,7 @@ class HttpTimeoutTest : ClientLoader(timeout = 30.seconds) {
 
     @Test
     fun testSocketTimeoutWriteFailOnWritePerRequestAttributes() = clientTests(
-        except(ENGINES_WITHOUT_SOCKET_TIMEOUT, "Android", "Apache5", "native:CIO", "web:CIO", "WinHttp")
+        except(ENGINES_WITHOUT_SOCKET_TIMEOUT, "Android", "native:CIO", "web:CIO", "WinHttp")
     ) {
         config {
             install(HttpTimeout)
