@@ -1,4 +1,5 @@
 [versions]
+kron = "0.1.0-SNAPSHOT"
 
 kotlin = "2.3.21"
 android-gradlePlugin = "9.4.0"
@@ -99,6 +100,8 @@ ws = "8.20.1"
 puppeteer = "25.0.4"
 
 [libraries]
+kron-core = { module = "io.github.mda2av:kron", version.ref = "kron" }
+kron-glyph11 = { module = "io.github.mda2av:glyph11", version.ref = "kron" }
 
 android-gradlePlugin = { module = "com.android.tools.build:gradle", version.ref = "android-gradlePlugin" }
 androidx-core = { module = "androidx.test:core", version.ref = "androidx-test" }
