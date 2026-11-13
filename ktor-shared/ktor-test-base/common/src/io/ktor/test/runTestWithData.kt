@@ -13,15 +13,19 @@ import kotlin.time.TimeMark
 import kotlin.time.TimeSource
 
 /**
- * Represents a test case with associated data and retry attempt information.
+ * A single attempt of one test case run by [runTestWithData].
  *
- * @property data The input data for the test case.
- * @property retry The current retry attempt number for this test case. `0` means the initial test run before retries.
+ * @property data The test case's input data, as supplied via [runTestWithData]'s `testCases`.
+ * @property retry Which attempt this is: `0` for the first attempt, incrementing on each retry.
  */
 data class TestCase<T>(val data: T, val retry: Int)
 
 /**
- * Represents a failed test execution with the [cause] of failure.
+ * A [TestCase] attempt that failed, run by [runTestWithData].
+ *
+ * @property testCase The test case and retry number this result belongs to.
+ * @property cause The throwable that failed the attempt.
+ * @property duration How long the attempt took before it failed.
  */
 data class TestFailure<T>(
     override val testCase: TestCase<T>,
@@ -30,7 +34,10 @@ data class TestFailure<T>(
 ) : TestExecutionResult<T>
 
 /**
- * Represents a successful test execution.
+ * A [TestCase] attempt that completed without throwing, run by [runTestWithData].
+ *
+ * @property testCase The test case and retry number this result belongs to.
+ * @property duration How long the attempt took to complete.
  */
 data class TestSuccess<T>(
     override val testCase: TestCase<T>,
@@ -38,10 +45,11 @@ data class TestSuccess<T>(
 ) : TestExecutionResult<T>
 
 /**
- * The result of a test execution. Can be [TestFailure] or [TestSuccess].
+ * The outcome of a single [TestCase] attempt run by [runTestWithData]: either a [TestSuccess] or a
+ * [TestFailure].
  *
- * @property testCase The test case associated with this execution.
- * @property duration The duration of the test execution.
+ * @property testCase The test case and retry number this result belongs to.
+ * @property duration How long the attempt took.
  */
 sealed interface TestExecutionResult<T> {
     val testCase: TestCase<T>
@@ -59,14 +67,12 @@ sealed interface TestExecutionResult<T> {
  *     testCases = listOf("test1", "test2"),
  *     timeout = 10.seconds,
  *     retries = 2,
- *     afterEach = { (data, retry), error ->
- *         println("Test case $data attempt $retry ${if (error != null) "failed" else "succeeded"}")
- *     },
+ *     afterEach = { result -> println("Test case ${result.testCase.data}: $result") },
  *     afterAll = { println("All tests completed") },
  *     handleFailures = { failures ->
- *         failures.forEach { (cause, data) -> println("Test $data failed: $cause") }
+ *         failures.forEach { (testCase, cause) -> println("Test ${testCase.data} failed: $cause") }
  *     },
- * ) { (data, retry) ->
+ * ) { testCase ->
  *     // test implementation
  * }
  * ```
@@ -75,6 +81,8 @@ sealed interface TestExecutionResult<T> {
  * @param context Optional coroutine context for test execution. Defaults to [EmptyCoroutineContext].
  * @param timeout Maximum duration allowed for each test attempt. Defaults to 1 minute.
  * @param retries Number of additional attempts after initial failure (`0` means no retries).
+ *  Only transient failures are retried: an assertion failure thrown by the test body is
+ *  deterministic, so it is reported immediately instead of being retried and masked.
  * @param afterEach Called after each test case attempt, regardless of success or failure.
  *  Receives the test case and error (if any occurred).
  * @param handleFailures Called after all tests finished if any failures occurred.
@@ -100,6 +108,8 @@ fun <T> runTestWithData(
 
     val failures = mutableListOf<TestFailure<T>>()
     return runTestForEach(testCases) { data ->
+        val guard = DeterministicFailureGuard()
+
         retryTest(retries) { retry ->
             val testCase = TestCase(data, retry)
 
@@ -107,15 +117,20 @@ fun <T> runTestWithData(
                 recover = { cause ->
                     val failure = TestFailure(testCase, cause, start?.elapsedNow() ?: Duration.ZERO)
                     afterEach(failure)
-                    // Don't rethrow the exception on the last retry,
-                    // save it instead to pass in handleFailures later
-                    if (retry == retries) failures += failure else throw cause
+                    // Don't rethrow the exception on the last retry, save it instead to pass in handleFailures later
+                    if (retry == retries || guard.hasFailure) failures += failure else throw cause
                 }
             ) {
                 runTest(context, timeout = timeout) {
-                    start = timeSource.markNow()
-                    test(testCase)
-                    afterEach(TestSuccess(testCase, start.elapsedNow()))
+                    val mark = timeSource.markNow()
+                    start = mark
+                    try {
+                        test(testCase)
+                    } catch (cause: Throwable) {
+                        guard.record(cause)
+                        throw cause
+                    }
+                    afterEach(TestSuccess(testCase, mark.elapsedNow()))
                 }
             }
         }

@@ -14,12 +14,17 @@ kotlin {
             api(libs.kotlin.test)
             api(projects.ktorUtils)
             api(projects.ktorTestDispatcher)
+            api(projects.ktorTestConstants)
         }
 
         jvmMain.dependencies {
             api(libs.kotlin.test.junit5)
             api(libs.junit)
             api(libs.kotlinx.coroutines.debug)
+        }
+
+        jvmTest.dependencies {
+            implementation(libs.konsist)
         }
     }
 }
