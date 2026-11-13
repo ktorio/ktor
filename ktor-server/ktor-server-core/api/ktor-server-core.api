@@ -170,6 +170,18 @@ public final class io/ktor/server/application/OnCallRespondContext : io/ktor/ser
 	public final fun transformBody (Lkotlin/jvm/functions/Function3;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 }
 
+public final class io/ktor/server/application/ParallelModuleTracker : kotlin/coroutines/AbstractCoroutineContextElement {
+	public static final field Key Lio/ktor/server/application/ParallelModuleTracker$Key;
+	public fun <init> ()V
+	public final fun abort (Ljava/lang/Throwable;)V
+	public final fun awaitIdle (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
+	public final fun decrement ()V
+	public final fun increment ()V
+}
+
+public final class io/ktor/server/application/ParallelModuleTracker$Key : kotlin/coroutines/CoroutineContext$Key {
+}
+
 public abstract interface class io/ktor/server/application/PipelineCall : io/ktor/server/application/ApplicationCall {
 	public abstract fun getRequest ()Lio/ktor/server/request/PipelineRequest;
 	public abstract fun getResponse ()Lio/ktor/server/response/PipelineResponse;

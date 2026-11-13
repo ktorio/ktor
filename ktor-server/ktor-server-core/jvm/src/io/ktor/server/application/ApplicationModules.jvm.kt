@@ -4,6 +4,7 @@
 
 package io.ktor.server.application
 
+import io.ktor.utils.io.InternalAPI
 import kotlinx.coroutines.*
 
 internal class DynamicApplicationModule(
@@ -38,8 +39,11 @@ internal val LoadSequentially = ApplicationModuleLoader { application, classLoad
     }
 }
 
+@OptIn(InternalAPI::class)
 internal val LoadConcurrently = ApplicationModuleLoader { application, classLoader, modules ->
     val errors = mutableListOf<Throwable>()
+
+    val parallelModuleTracker = ParallelModuleTracker()
 
     withContext(
         application.coroutineContext +
@@ -47,18 +51,26 @@ internal val LoadConcurrently = ApplicationModuleLoader { application, classLoad
                 application.environment.log.error("Failed to load module", e)
                 errors.add(e)
             } +
-            Dispatchers.Default.limitedParallelism(1)
+            Dispatchers.Default.limitedParallelism(1) +
+            parallelModuleTracker
     ) {
         val jobs = modules.map { module ->
+            parallelModuleTracker.increment()
             launch {
-                module(application, classLoader)
+                try {
+                    module(application, classLoader)
+                } catch (cause: CancellationException) {
+                    parallelModuleTracker.abort(cause)
+                    throw cause
+                } finally {
+                    parallelModuleTracker.decrement()
+                }
             }
         }
 
-        // ensure all modules are started before proceeding
-        yield()
+        // wait until every module has either finished or is suspended on a missing dependency
+        parallelModuleTracker.awaitIdle()
 
-        // all modules are either loaded or suspended at this point
         application.monitor.raise(ApplicationModulesLoading, application)
 
         // wait for all modules to finish
