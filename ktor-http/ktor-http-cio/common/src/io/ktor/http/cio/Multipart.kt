@@ -6,6 +6,7 @@ package io.ktor.http.cio
 
 import io.ktor.http.*
 import io.ktor.http.cio.internals.*
+import io.ktor.http.content.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.CompletableDeferred
@@ -145,6 +146,7 @@ private suspend fun parsePartHeadersImpl(input: ByteReadChannel): HttpHeadersMap
 /**
  * Parse multipart part body copying them to [output] channel but up to [limit] bytes
  */
+@OptIn(InternalAPI::class)
 private suspend fun parsePartBodyImpl(
     boundaryPrefixed: ByteString,
     input: ByteReadChannel,
@@ -153,9 +155,15 @@ private suspend fun parsePartBodyImpl(
     limit: Long,
 ): Long {
     val byteCount = when (val contentLength = headers["Content-Length"]?.parseDecLong()) {
-        null -> input.readUntil(boundaryPrefixed, output, limit, ignoreMissing = true)
+        null -> try {
+            input.readUntil(boundaryPrefixed, output, limit, ignoreMissing = true)
+        } catch (cause: LimitExceededException) {
+            throw FormFieldLimitExceededException.from(headers.snapshot(), cause)
+        }
+
         in 0L..limit -> input.copyTo(output, contentLength) + input.skipIfFoundReadCount(boundaryPrefixed)
-        else -> throwLimitExceeded(contentLength, limit)
+
+        else -> throwLimitExceeded(headers, contentLength, limit)
     }
     output.flush()
 
@@ -447,8 +455,14 @@ internal fun parseBoundaryInternal(contentType: CharSequence): ByteArray {
     return boundaryBytes.copyOfRange(0, position)
 }
 
-private fun throwLimitExceeded(actual: Long, limit: Long): Nothing =
-    throw IOException(
-        "Multipart content length exceeds limit $actual > $limit; " +
-            "limit is defined using 'formFieldLimit' argument"
+/**
+ * Throws a [FormFieldLimitExceededException] with the specified [headers], [actual size][actual], and [limit].
+ */
+@OptIn(InternalAPI::class)
+private fun throwLimitExceeded(headers: HttpHeadersMap, actual: Long, limit: Long): Nothing =
+    throw FormFieldLimitExceededException.from(
+        headers = headers.snapshot(),
+        cause = LimitExceededException(
+            "Multipart content length exceeds limit $actual > $limit; limit is defined using 'formFieldLimit' argument"
+        )
     )

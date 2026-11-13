@@ -321,6 +321,10 @@ public abstract interface annotation class io/ktor/utils/io/KtorDsl : java/lang/
 public abstract interface annotation class io/ktor/utils/io/KtorExperimentalAPI : java/lang/annotation/Annotation {
 }
 
+public final class io/ktor/utils/io/LimitExceededException : java/io/IOException {
+	public fun <init> (Ljava/lang/String;)V
+}
+
 public final class io/ktor/utils/io/LineEnding : java/lang/Enum {
 	public static final field Default Lio/ktor/utils/io/LineEnding;
 	public static final field Lenient Lio/ktor/utils/io/LineEnding;

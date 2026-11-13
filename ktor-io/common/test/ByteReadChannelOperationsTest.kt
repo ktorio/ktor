@@ -319,10 +319,11 @@ class ByteReadChannelOperationsTest {
         assertEquals(" is a test", input.readBuffer().readText())
     }
 
+    @OptIn(InternalAPI::class)
     @Test
     fun readUntilLimit() = runTest {
         val input = "This is a test of the readUntil limit".toByteChannel()
-        assertFailsWith<IOException> {
+        assertFailsWith<LimitExceededException> {
             input.readUntil("abc".encodeToByteString(), ByteChannel(), limit = 10, ignoreMissing = true)
         }
     }
