@@ -38,7 +38,8 @@ internal actual suspend fun udpConnect(
             selector = selector,
             descriptor = descriptor,
             remote = remoteAddress,
-            parent = selector.coroutineContext
+            parent = selector.coroutineContext,
+            receiveMode = options.receiveMode
         )
     }
 }
@@ -67,7 +68,8 @@ internal actual suspend fun udpBind(
             selector = selector,
             descriptor = descriptor,
             remote = null,
-            parent = selector.coroutineContext
+            parent = selector.coroutineContext,
+            receiveMode = options.receiveMode
         )
     }
 }
