@@ -1,5 +1,5 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+* Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
 */
 
 package io.ktor.client.engine.okhttp
@@ -10,7 +10,9 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.CancellationException
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.channels.SendChannel
 import okhttp3.*
 import okio.ByteString
 import okio.ByteString.Companion.toByteString
@@ -67,7 +69,6 @@ internal class OkHttpWebsocketSession(
     override val closeReason: Deferred<CloseReason?>
         get() = _closeReason
 
-    @OptIn(InternalAPI::class)
     override fun start(negotiatedExtensions: List<WebSocketExtension<*>>) {
         require(negotiatedExtensions.isEmpty()) { "Extensions are not supported." }
     }
@@ -102,6 +103,17 @@ internal class OkHttpWebsocketSession(
                 throw cause
             }
         }
+    }.apply {
+        invokeOnCompletion { cause -> stopOutgoing(cause) }
+    }
+
+    /**
+     * Rejects pending and new outgoing frames and wakes suspended senders.
+     */
+    private fun stopOutgoing(cause: Throwable? = null) {
+        val outgoingCause = cause as? CancellationException
+            ?: CancellationException("WebSocket session is closed", cause)
+        _outgoing.cancel(outgoingCause)
     }
 
     override val extensions: List<WebSocketExtension<*>>
@@ -130,15 +142,30 @@ internal class OkHttpWebsocketSession(
         val cause = CancellationException(
             "WebSocket session closed with code ${CloseReason.Codes.byCode(code.toShort())?.toString() ?: code}."
         )
-        outgoing.close(cause)
+        stopOutgoing(cause)
         writeJob.cancel(cause)
+    }
+
+    private fun queueOutgoing(frame: Frame) {
+        val result = _outgoing.trySend(frame)
+        if (result.isSuccess || result.isClosed) {
+            return
+        }
+        launch(start = CoroutineStart.UNDISPATCHED) {
+            try {
+                _outgoing.send(frame)
+            } catch (_: Exception) {
+                coroutineContext.ensureActive()
+            }
+        }
     }
 
     override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
         super.onClosing(webSocket, code, reason)
-
-        _closeReason.complete(CloseReason(code.toShort(), reason))
-        outgoing.trySend(Frame.Close(CloseReason(code.toShort(), reason)))
+        val closeReason = CloseReason(code.toShort(), reason)
+        val closeFrame = Frame.Close(closeReason)
+        queueOutgoing(closeFrame)
+        _closeReason.complete(closeReason)
         _incoming.close()
     }
 
@@ -149,12 +176,12 @@ internal class OkHttpWebsocketSession(
         if (statusCode == HttpStatusCode.Unauthorized.value) {
             originResponse.complete(response)
             _incoming.close()
-            outgoing.close()
+            stopOutgoing()
         } else {
             originResponse.completeExceptionally(t)
             _closeReason.completeExceptionally(t)
-            _incoming.close(t)
-            outgoing.close(t)
+            _incoming.close(cause = t)
+            _outgoing.close(cause = t)
         }
     }
 
