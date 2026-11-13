@@ -141,6 +141,19 @@ class MapApplicationConfigTest {
     }
 
     @Test
+    fun `nested config with a list converts to map`() {
+        val config = MapApplicationConfig()
+        config.put("auth.salt", "ktor")
+        config.put("auth.values", listOf("a", "b"))
+
+        val auth = mapOf("salt" to "ktor", "values" to listOf("a", "b"))
+
+        assertEquals(auth, config.config("auth").toMap())
+        assertEquals(auth, config.property("auth").getMap())
+        assertEquals(mapOf("auth" to auth), config.toMap())
+    }
+
+    @Test
     fun testGetAsFromRoot() {
         val config = MapApplicationConfig(
             "host" to "0.0.0.0",

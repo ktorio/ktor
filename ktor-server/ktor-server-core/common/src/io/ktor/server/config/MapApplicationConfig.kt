@@ -154,7 +154,7 @@ public open class MapApplicationConfig : ApplicationConfig {
                 map.containsKey(path) -> key to map[path]
 
                 map.containsKey(combine(path, "size")) -> when {
-                    map.containsKey(combine(path, "0")) -> key to property(path).getList()
+                    map.containsKey(combine(path, "0")) -> key to property(key).getList()
                     else -> key to configList(key).map { it.toMap() }
                 }
 
