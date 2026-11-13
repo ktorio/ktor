@@ -181,7 +181,7 @@ internal class OkHttpWebsocketSession(
             originResponse.completeExceptionally(t)
             _closeReason.completeExceptionally(t)
             _incoming.close(cause = t)
-            stopOutgoing(cause = t)
+            _outgoing.close(cause = t)
         }
     }
 
