@@ -16,7 +16,7 @@ import kotlin.experimental.*
 private const val MAX_TLS_FRAME_SIZE = 0x4800
 
 internal suspend fun ByteReadChannel.readTLSRecord(): TLSRecord {
-    val type = TLSRecordType.byCode(readByte().toInt() and 0xff)
+    val type = readTLSRecordType()
     val version = readTLSVersion()
 
     val length = readShortCompatible() and 0xffff
@@ -28,7 +28,9 @@ internal suspend fun ByteReadChannel.readTLSRecord(): TLSRecord {
 
 internal fun Source.readTLSHandshake(): TLSHandshake = TLSHandshake().apply {
     val typeAndVersion = readInt()
-    type = TLSHandshakeType.byCode(typeAndVersion ushr 24)
+    val typeCode = typeAndVersion ushr 24
+    type = TLSHandshakeType.byCodeOrNull(typeCode)
+        ?: throw TlsException("Invalid TLS handshake type code: $typeCode")
     val length = typeAndVersion and 0xffffff
     packet = buildPacket {
         writeFully(readByteArray(length))
@@ -84,7 +86,10 @@ internal fun Source.readTLSServerHello(): TLSServerHello {
 
 internal fun Source.readCurveParams(): NamedCurve {
     val type = readByte().toInt() and 0xff
-    when (ServerKeyExchangeType.byCode(type)) {
+    val exchangeType = ServerKeyExchangeType.byCodeOrNull(type)
+        ?: throw TlsException("Invalid TLS ServerKeyExchange type code: $type")
+
+    when (exchangeType) {
         ServerKeyExchangeType.NamedCurve -> {
             val curveId = readShort()
 
@@ -136,11 +141,20 @@ internal fun Source.readECPoint(fieldSize: Int): ECPoint {
     )
 }
 
-private suspend fun ByteReadChannel.readTLSVersion() =
-    TLSVersion.byCode(readShortCompatible() and 0xffff)
+private suspend fun ByteReadChannel.readTLSRecordType(): TLSRecordType {
+    val code = readByte().toInt() and 0xff
+    return TLSRecordType.byCodeOrNull(code) ?: throw TlsException("Invalid TLS record type code: $code")
+}
 
-private fun Source.readTLSVersion() =
-    TLSVersion.byCode(readShort().toInt() and 0xffff)
+private suspend fun ByteReadChannel.readTLSVersion(): TLSVersion {
+    val code = readShortCompatible() and 0xffff
+    return TLSVersion.byCodeOrNull(code) ?: throw TlsException("Invalid TLS version code: $code")
+}
+
+private fun Source.readTLSVersion(): TLSVersion {
+    val code = readShort().toInt() and 0xffff
+    return TLSVersion.byCodeOrNull(code) ?: throw TlsException("Invalid TLS version code: $code")
+}
 
 internal fun Source.readTripleByteLength(): Int = (readByte().toInt() and 0xff shl 16) or
     (readShort().toInt() and 0xffff)
