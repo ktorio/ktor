@@ -12,20 +12,14 @@ import kotlinx.coroutines.channels.*
 
 internal suspend fun ReceiveChannel<Http2DataFrame>.http2frameLoop(bc: ByteWriteChannel) {
     try {
-        while (true) {
-            val message = receive()
+        for (message in this) {
             try {
                 val content = message.content() ?: Unpooled.EMPTY_BUFFER
                 transferByteBuf(content, bc)
             } finally {
                 message.release()
             }
-
-            if (message.isEndStream) {
-                break
-            }
         }
-    } catch (expected: ClosedReceiveChannelException) {
     } catch (t: Throwable) {
         bc.close(t)
     } finally {
