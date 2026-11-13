@@ -75,7 +75,7 @@ public val GZip: Encoder = object : Encoder {
 
 private val InflateWriterCoroutineName = CoroutineName("encoder-inflate-writer")
 
-@OptIn(DelicateCoroutinesApi::class)
+@OptIn(DelicateCoroutinesApi::class, InternalAPI::class)
 private fun inflate(
     source: ByteReadChannel,
     gzip: Boolean = true,
@@ -167,7 +167,7 @@ private fun inflate(
         KtorDefaultPool.recycle(readBuffer)
         KtorDefaultPool.recycle(writeBuffer)
     }
-}.channel
+}.also { source.attachWriterJob(it) }.channel
 
 private suspend fun Inflater.inflateTo(channel: ByteWriteChannel, buffer: ByteBuffer, checksum: Checksum): Int {
     buffer.clear()
