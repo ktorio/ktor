@@ -10,6 +10,7 @@ import io.ktor.client.plugins.sse.*
 import io.ktor.client.request.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.job
 import org.apache.hc.client5.http.config.ConnectionConfig
 import org.apache.hc.client5.http.impl.async.CloseableHttpAsyncClient
 import org.apache.hc.client5.http.impl.async.HttpAsyncClientBuilder
@@ -43,7 +44,7 @@ internal class Apache5Engine(override val config: Apache5EngineConfig) : HttpCli
         val engine = engine(data)
 
         val apacheRequest = ApacheRequestProducer(data, config, callContext)
-        return engine.sendRequest(apacheRequest, callContext, data)
+        return engine.sendRequest(apacheRequest, callContext, data, this.coroutineContext.job)
     }
 
     override fun close() {
