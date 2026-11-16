@@ -63,7 +63,7 @@ velocity = "2.4.1"
 velocity-tools = "3.1"
 webjars-locator = "0.59"
 thymeleaf = "3.1.7.RELEASE"
-jte = "3.2.4"
+jte = "3.2.5"
 
 javax-servlet = "4.0.1"
 jakarta-servlet = "5.0.0"
