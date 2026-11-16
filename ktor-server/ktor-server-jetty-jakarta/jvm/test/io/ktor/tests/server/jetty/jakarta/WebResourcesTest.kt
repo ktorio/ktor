@@ -70,6 +70,17 @@ class WebResourcesTest {
         }
     }
 
+    @Test
+    fun `default web resources exclusion rejects WEB-INF web xml`() = testApplication {
+        application {
+            attributes.put(ServletContextAttribute, testContext())
+            routing { route("public") { webResources() } }
+        }
+
+        val response = client.get("/public/WEB-INF/web.xml")
+        assertFalse(response.status.isSuccess())
+    }
+
     private inner class TestContextHandler : ServletContextHandler() {
         inner class TestContext : ServletContextApi() {
             override fun getResource(path: String?): URL? {
@@ -77,6 +88,7 @@ class WebResourcesTest {
                     "/pages/index.txt" -> textFile
                     "/pages/password.txt" -> textFile
                     "/pages/index.html" -> htmlFile
+                    "/WEB-INF/web.xml" -> textFile
                     else -> null
                 }?.toUri()?.toURL()
             }
