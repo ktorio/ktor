@@ -49,6 +49,10 @@ public fun <P : Any> ldapAuthenticate(
     userDNFormat: String,
     validate: InitialDirContext.(UserPasswordCredential) -> P?
 ): P? {
+    // RFC 4513 §5.1.2: a simple bind with a DN and an empty password is an "unauthenticated bind"
+    // that many servers accept as anonymous, so it must never be treated as successful authentication.
+    if (credential.name.isEmpty() || credential.password.isEmpty()) return null
+
     val configurator: (MutableMap<String, Any?>) -> Unit = { env ->
         env[Context.SECURITY_AUTHENTICATION] = "simple"
         env[Context.SECURITY_PRINCIPAL] = userDNFormat.format(ldapEscape(credential.name))
