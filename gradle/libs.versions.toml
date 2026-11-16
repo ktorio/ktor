@@ -1,7 +1,7 @@
 [versions]
 
 kotlin = "2.3.21"
-android-gradlePlugin = "9.4.0"
+android-gradlePlugin = "9.5.1"
 androidx-test = "1.7.0"
 kotlinx-html = "0.12.0"
 kotlinx-datetime = "0.8.0-0.6.x-compat"
@@ -9,8 +9,8 @@ kotlinx-io = "0.9.1"
 coroutines = "1.11.0"
 atomicfu = "0.33.0"
 serialization = "1.11.0"
-dokka = "2.2.0"
-kover = "0.9.9"
+dokka = "2.3.0"
+kover = "0.9.11"
 kotlinter = "5.7.0"
 kotlinx-browser = "0.5.0"
 
@@ -43,7 +43,7 @@ jackson-annotations = "2.22"
 
 junit = "5.14.4"
 slf4j = "2.0.19"
-logback = "1.6.3"
+logback = "1.6.7"
 
 dropwizard = "4.2.40"
 micrometer = "1.17.1"
@@ -51,7 +51,7 @@ micrometer = "1.17.1"
 jansi = "2.4.3"
 typesafe = "1.4.9"
 
-mockk = "1.14.11"
+mockk = "1.14.12"
 
 java-jwt = "4.6.0"
 
@@ -72,11 +72,11 @@ xmlutil = "0.91.3"
 yamlkt = "0.13.0"
 kaml = "0.79.0"
 
-swagger-codegen = "3.0.82"
+swagger-codegen = "3.0.85"
 swagger-codegen-generators = "1.0.62"
 swagger-parser = "2.1.48"
 
-tomlj = "1.1.1"
+tomlj = "1.3.1"
 
 zstd-jni = "1.5.7-16"
 
@@ -261,4 +261,4 @@ kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 
 doctor = { id = "com.osacky.doctor", version.ref = "gradleDoctor" }
 
-buildconfig = { id = "com.github.gmazzo.buildconfig", version = "6.0.10" }
+buildconfig = { id = "com.github.gmazzo.buildconfig", version = "6.1.2" }
