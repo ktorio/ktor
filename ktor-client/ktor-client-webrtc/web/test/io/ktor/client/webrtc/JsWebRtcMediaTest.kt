@@ -12,7 +12,6 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-@OptIn(ExperimentalKtorApi::class)
 class JsWebRtcMediaTest {
 
     private lateinit var client: WebRtcClient

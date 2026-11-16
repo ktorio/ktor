@@ -8,7 +8,6 @@ import io.ktor.client.webrtc.utils.collectToChannel
 import io.ktor.client.webrtc.utils.connect
 import io.ktor.client.webrtc.utils.createTestWebRtcClient
 import io.ktor.client.webrtc.utils.runTestWithPermissions
-import io.ktor.utils.io.ExperimentalKtorApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.TestResult
 import kotlinx.coroutines.withTimeout
@@ -37,7 +36,7 @@ import kotlin.time.Duration.Companion.seconds
  * against any build of `ktor-client-webrtc` that doesn't hold a strong reference
  * to the iOS delegate.
  */
-@OptIn(ExperimentalKtorApi::class, ExperimentalNativeApi::class, NativeRuntimeApi::class)
+@OptIn(ExperimentalNativeApi::class, NativeRuntimeApi::class)
 class IosDelegateRetentionTest {
 
     private lateinit var client: WebRtcClient

@@ -82,14 +82,14 @@ public class AndroidMediaDevices(
     }
 
     override suspend fun createAudioTrack(constraints: WebRtcMedia.AudioTrackConstraints): WebRtcMedia.AudioTrack {
-        if (constraints.latency != null) {
-            TODO("Latency is not supported yet for Android. You can provide custom MediaTrackFactory")
+        require(constraints.latency == null) {
+            "Latency is not supported yet for Android. You can provide custom MediaTrackFactory"
         }
-        if (constraints.channelCount != null) {
-            TODO("Channel count is not supported yet for Android. You can provide custom MediaTrackFactory")
+        require(constraints.channelCount == null) {
+            "Channel count is not supported yet for Android. You can provide custom MediaTrackFactory"
         }
-        if (constraints.sampleSize != null) {
-            TODO("Sample size is not supported yet for Android. You can provide custom MediaTrackFactory")
+        require(constraints.sampleSize == null) {
+            "Sample size is not supported yet for Android. You can provide custom MediaTrackFactory"
         }
         assertPermission(Manifest.permission.RECORD_AUDIO)
 
@@ -173,8 +173,8 @@ public class AndroidMediaDevices(
     }
 
     override suspend fun createVideoTrack(constraints: WebRtcMedia.VideoTrackConstraints): WebRtcMedia.VideoTrack {
-        if (constraints.resizeMode != null) {
-            TODO("Resize mode is not supported yet for Android. You can provide custom MediaTrackFactory")
+        require(constraints.resizeMode == null) {
+            "Resize mode is not supported yet for Android. You can provide custom MediaTrackFactory"
         }
         assertPermission(Manifest.permission.CAMERA)
 

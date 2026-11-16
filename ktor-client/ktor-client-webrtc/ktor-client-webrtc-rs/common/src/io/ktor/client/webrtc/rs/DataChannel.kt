@@ -5,7 +5,6 @@
 package io.ktor.client.webrtc.rs
 
 import io.ktor.client.webrtc.*
-import io.ktor.utils.io.InternalAPI
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.launch
@@ -61,13 +60,11 @@ public class RustWebRtcDataChannel(
         throw WebRtc.DataChannelClosedException("Data channel '$label' cannot send.")
     }
 
-    @OptIn(InternalAPI::class)
     override suspend fun send(text: String) {
         requireOpen()
         withIOException { inner.sendText(text) }
     }
 
-    @OptIn(InternalAPI::class)
     override suspend fun send(bytes: ByteArray) {
         requireOpen()
         withIOException { inner.send(bytes) }

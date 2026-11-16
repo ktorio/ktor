@@ -178,6 +178,7 @@ public class WebRtcEngineClosedException : CancellationException("WebRtc engine 
  *
  * @param engineName Name identifier for the engine, used in coroutine naming.
  */
+@SubclassOptInRequired(InternalKtorWebRtcSubclassing::class)
 public abstract class WebRtcEngineBase(
     private val engineName: String,
     configuration: WebRtcConfig

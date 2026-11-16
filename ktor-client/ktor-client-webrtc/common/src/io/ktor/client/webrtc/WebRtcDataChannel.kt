@@ -197,6 +197,7 @@ private fun Channel(options: DataChannelReceiveOptions): Channel<WebRtc.DataChan
  *
  * @see [MDN RTCDataChannel](https://developer.mozilla.org/en-US/docs/Web/API/RTCDataChannel)
  */
+@SubclassOptInRequired(InternalKtorWebRtcSubclassing::class)
 public abstract class WebRtcDataChannel private constructor(
     private val receiveChannel: Channel<WebRtc.DataChannel.Message>,
 ) : WebRtc.DataChannel {

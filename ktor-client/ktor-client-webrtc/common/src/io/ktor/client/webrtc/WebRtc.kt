@@ -7,6 +7,25 @@ package io.ktor.client.webrtc
 import kotlinx.serialization.Serializable
 
 /**
+ * Marks open WebRTC types that are not intended to be subclassed outside Ktor and its plugins.
+ *
+ * Subclassing requires explicit opt-in via [OptIn].
+ *
+ * This annotation mirrors `io.ktor.util.annotations.InternalKtorSubclassing`,
+ * which isn't available here because this module doesn't depend on `ktor-utils`.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.InternalKtorWebRtcSubclassing)
+ */
+@RequiresOptIn(
+    level = RequiresOptIn.Level.ERROR,
+    message = "This type is not intended to be subclassed outside Ktor and its plugins.",
+)
+@MustBeDocumented
+@Retention(AnnotationRetention.BINARY)
+@Target(AnnotationTarget.CLASS)
+public annotation class InternalKtorWebRtcSubclassing
+
+/**
  * An object containing WebRTC protocol entities and abstractions.
  * Provides the core types and interfaces needed for WebRTC peer-to-peer communication.
  *

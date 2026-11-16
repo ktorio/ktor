@@ -9,7 +9,6 @@ import WebRTC.RTCVideoCapturerDelegateProtocol
 import WebRTC.RTCVideoFrame
 import io.ktor.client.webrtc.media.*
 import io.ktor.test.dispatcher.*
-import io.ktor.utils.io.InternalAPI
 import kotlinx.atomicfu.atomic
 import kotlinx.cinterop.BetaInteropApi
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -70,7 +69,6 @@ class VideoCapturerTest {
     }
 
     @Test
-    @OptIn(InternalAPI::class)
     fun testSampleVideoCapturerFrameRate() = runTestWithRealTime {
         val targetFps = 10
         val constraints = WebRtcMedia.VideoTrackConstraints(frameRate = targetFps)

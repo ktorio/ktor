@@ -88,7 +88,7 @@ public class JsWebRtcPeerConnection(
         return createDataChannelInternal(label, options).also { it.setupEvents(events) }
     }
 
-    internal suspend fun createDataChannelInternal(
+    internal fun createDataChannelInternal(
         label: String,
         options: WebRtcDataChannelOptions.() -> Unit
     ): JsWebRtcDataChannel {

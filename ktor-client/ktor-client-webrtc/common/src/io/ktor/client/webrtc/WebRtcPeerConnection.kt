@@ -16,6 +16,7 @@ import kotlin.coroutines.CoroutineContext
  *
  * @see [MDN RTCPeerConnection](https://developer.mozilla.org/en-US/docs/Web/API/RTCPeerConnection)
  */
+@SubclassOptInRequired(InternalKtorWebRtcSubclassing::class)
 public abstract class WebRtcPeerConnection private constructor(
     protected val events: WebRtcConnectionEventsEmitter,
     protected val coroutineScope: CoroutineScope,

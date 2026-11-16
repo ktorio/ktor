@@ -4,7 +4,6 @@
 
 package io.ktor.client.webrtc
 
-import io.ktor.utils.io.InternalAPI
 import js.buffer.ArrayBuffer
 import js.buffer.toByteArray
 import js.typedarrays.toInt8Array
@@ -15,7 +14,6 @@ import web.buffer.BinaryType
 import web.buffer.arraybuffer
 import web.buffer.blob
 import web.rtc.RTCDataChannel
-import kotlin.js.ExperimentalWasmJsInterop
 import kotlin.js.JsString
 
 /**
@@ -66,13 +64,11 @@ public class JsWebRtcDataChannel(
         throw WebRtc.DataChannelClosedException("Data channel '$label' cannot send.")
     }
 
-    @OptIn(InternalAPI::class)
     override suspend fun send(text: String) {
         requireOpen()
         withIOException { channel.send(text) }
     }
 
-    @OptIn(InternalAPI::class)
     override suspend fun send(bytes: ByteArray) {
         requireOpen()
         withIOException { channel.send(bytes.toInt8Array()) }
@@ -87,7 +83,6 @@ public class JsWebRtcDataChannel(
         channel.close()
     }
 
-    @OptIn(ExperimentalWasmJsInterop::class)
     internal fun setupEvents(eventsEmitter: WebRtcConnectionEventsEmitter) {
         channel.onopen = eventHandler(coroutineScope) {
             eventsEmitter.emitDataChannelEvent(DataChannelEvent.Open(this))

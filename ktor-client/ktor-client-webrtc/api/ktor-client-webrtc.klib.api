@@ -7,6 +7,10 @@
 // - Show declarations: true
 
 // Library unique name: <io.ktor:ktor-client-webrtc>
+open annotation class io.ktor.client.webrtc/InternalKtorWebRtcSubclassing : kotlin/Annotation { // io.ktor.client.webrtc/InternalKtorWebRtcSubclassing|null[0]
+    constructor <init>() // io.ktor.client.webrtc/InternalKtorWebRtcSubclassing.<init>|<init>(){}[0]
+}
+
 abstract fun interface <#A: out io.ktor.client.webrtc/WebRtcConfig> io.ktor.client.webrtc/WebRtcClientEngineFactory { // io.ktor.client.webrtc/WebRtcClientEngineFactory|null[0]
     abstract fun create(kotlin/Function1<#A, kotlin/Unit>): io.ktor.client.webrtc/WebRtcEngine // io.ktor.client.webrtc/WebRtcClientEngineFactory.create|create(kotlin.Function1<1:0,kotlin.Unit>){}[0]
 }
