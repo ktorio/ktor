@@ -23,8 +23,9 @@ import uniffi.ktor_client_webrtc.RtcException
 public class RustWebRtcDataChannel(
     internal val inner: DataChannel,
     private val coroutineScope: CoroutineScope,
+    eventsEmitter: WebRtcConnectionEventsEmitter,
     receiveOptions: DataChannelReceiveOptions
-) : WebRtcDataChannel(receiveOptions) {
+) : WebRtcDataChannel(eventsEmitter, receiveOptions) {
 
     override val id: Int?
         get() = inner.id()?.toInt()
@@ -93,19 +94,19 @@ public class RustWebRtcDataChannel(
         }
     }
 
-    internal fun setupEvents(events: WebRtcConnectionEventsEmitter): Unit = runBlocking {
+    internal fun setupEvents(): Unit = runBlocking {
         inner.registerObserver(object : DataChannelObserver {
             override fun onOpen() = runInScope {
-                events.emitDataChannelEvent(DataChannelEvent.Open(this@RustWebRtcDataChannel))
+                eventsEmitter.emitDataChannelEvent(DataChannelEvent.Open(this@RustWebRtcDataChannel))
             }
 
             override fun onClose() = runInScope {
                 stopReceivingMessages()
-                events.emitDataChannelEvent(DataChannelEvent.Closed(this@RustWebRtcDataChannel))
+                eventsEmitter.emitDataChannelEvent(DataChannelEvent.Closed(this@RustWebRtcDataChannel))
             }
 
             override fun onError(error: RtcException) = runInScope {
-                events.emitDataChannelEvent(
+                eventsEmitter.emitDataChannelEvent(
                     DataChannelEvent.Error(
                         this@RustWebRtcDataChannel,
                         error.message ?: "Unknown datachannel error"
@@ -123,7 +124,7 @@ public class RustWebRtcDataChannel(
             }
 
             override fun onBufferedAmountLow() = runInScope {
-                events.emitDataChannelEvent(DataChannelEvent.BufferedAmountLow(this@RustWebRtcDataChannel))
+                eventsEmitter.emitDataChannelEvent(DataChannelEvent.BufferedAmountLow(this@RustWebRtcDataChannel))
             }
         })
     }

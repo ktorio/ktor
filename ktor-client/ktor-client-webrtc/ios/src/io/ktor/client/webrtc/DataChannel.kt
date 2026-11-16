@@ -22,8 +22,9 @@ import platform.darwin.NSObject
 public class IosWebRtcDataChannel(
     internal val nativeChannel: RTCDataChannel,
     private val coroutineScope: CoroutineScope,
+    eventsEmitter: WebRtcConnectionEventsEmitter,
     receiveOptions: DataChannelReceiveOptions
-) : WebRtcDataChannel(receiveOptions) {
+) : WebRtcDataChannel(eventsEmitter, receiveOptions) {
 
     // Apple's `RTCDataChannel.delegate` is `weak` — keep a strong reference on the
     // Kotlin side so the anonymous delegate object stays alive for the connection's lifetime.
@@ -91,7 +92,7 @@ public class IosWebRtcDataChannel(
         coroutineScope.launch(start = CoroutineStart.UNDISPATCHED, block = block)
     }
 
-    internal fun setupEvents(eventsEmitter: WebRtcConnectionEventsEmitter) {
+    internal fun setupEvents() {
         check(retainedDelegate == null) { "setupEvents() must be called at most once per channel." }
         val delegate = object : RTCDataChannelDelegateProtocol, NSObject() {
             override fun dataChannel(dataChannel: RTCDataChannel, didChangeBufferedAmount: ULong) =

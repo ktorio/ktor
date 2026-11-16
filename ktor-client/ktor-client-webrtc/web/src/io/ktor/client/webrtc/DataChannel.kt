@@ -28,8 +28,9 @@ import kotlin.js.JsString
 public class JsWebRtcDataChannel(
     internal val channel: RTCDataChannel,
     private val coroutineScope: CoroutineScope,
+    eventsEmitter: WebRtcConnectionEventsEmitter,
     receiveOptions: DataChannelReceiveOptions
-) : WebRtcDataChannel(receiveOptions) {
+) : WebRtcDataChannel(eventsEmitter, receiveOptions) {
 
     override val id: Int?
         get() = channel.id?.let { if (it >= 0) it.toInt() else null }
@@ -88,7 +89,7 @@ public class JsWebRtcDataChannel(
     }
 
     @OptIn(ExperimentalWasmJsInterop::class)
-    internal fun setupEvents(eventsEmitter: WebRtcConnectionEventsEmitter) {
+    internal fun setupEvents() {
         channel.onopen = eventHandler(coroutineScope) {
             eventsEmitter.emitDataChannelEvent(DataChannelEvent.Open(this))
         }
@@ -98,22 +99,22 @@ public class JsWebRtcDataChannel(
         }
 
         channel.onmessage = eventHandler(coroutineScope) { e ->
-            when {
-                e.data is JsString -> {
-                    emitMessage(WebRtc.DataChannel.Message.Text(e.data.toString()))
-                }
+            val message = when {
+                e.data is JsString -> WebRtc.DataChannel.Message.Text(e.data.toString())
 
                 channel.binaryType == BinaryType.arraybuffer -> {
-                    emitMessage(WebRtc.DataChannel.Message.Binary((e.data as ArrayBuffer).toByteArray()))
+                    val data = (e.data as ArrayBuffer).toByteArray()
+                    WebRtc.DataChannel.Message.Binary(data)
                 }
 
                 channel.binaryType == BinaryType.blob -> {
                     val buffer = (e.data as Blob).arrayBuffer()
-                    emitMessage(WebRtc.DataChannel.Message.Binary(buffer.toByteArray()))
+                    WebRtc.DataChannel.Message.Binary(buffer.toByteArray())
                 }
 
                 else -> error("Received message of unknown type: ${e.data}")
             }
+            emitMessage(message)
         }
 
         channel.onclose = eventHandler(coroutineScope) { _ ->

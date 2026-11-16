@@ -382,7 +382,7 @@ final class io.ktor.client.webrtc.rs/RustWebRtcConnection : io.ktor.client.webrt
 }
 
 final class io.ktor.client.webrtc.rs/RustWebRtcDataChannel : io.ktor.client.webrtc/WebRtcDataChannel { // io.ktor.client.webrtc.rs/RustWebRtcDataChannel|null[0]
-    constructor <init>(uniffi.ktor_client_webrtc/DataChannel, kotlinx.coroutines/CoroutineScope, io.ktor.client.webrtc/DataChannelReceiveOptions) // io.ktor.client.webrtc.rs/RustWebRtcDataChannel.<init>|<init>(uniffi.ktor_client_webrtc.DataChannel;kotlinx.coroutines.CoroutineScope;io.ktor.client.webrtc.DataChannelReceiveOptions){}[0]
+    constructor <init>(uniffi.ktor_client_webrtc/DataChannel, kotlinx.coroutines/CoroutineScope, io.ktor.client.webrtc/WebRtcConnectionEventsEmitter, io.ktor.client.webrtc/DataChannelReceiveOptions) // io.ktor.client.webrtc.rs/RustWebRtcDataChannel.<init>|<init>(uniffi.ktor_client_webrtc.DataChannel;kotlinx.coroutines.CoroutineScope;io.ktor.client.webrtc.WebRtcConnectionEventsEmitter;io.ktor.client.webrtc.DataChannelReceiveOptions){}[0]
 
     final val bufferedAmount // io.ktor.client.webrtc.rs/RustWebRtcDataChannel.bufferedAmount|{}bufferedAmount[0]
         final fun <get-bufferedAmount>(): kotlin/Long // io.ktor.client.webrtc.rs/RustWebRtcDataChannel.bufferedAmount.<get-bufferedAmount>|<get-bufferedAmount>(){}[0]

@@ -46,9 +46,10 @@ public class RustWebRtcConnection(
                 val channel = RustWebRtcDataChannel(
                     inner = channel,
                     coroutineScope = coroutineScope,
-                    receiveOptions = DataChannelReceiveOptions()
+                    eventsEmitter = events,
+                    receiveOptions = remoteDataChannelReceiveOptions()
                 )
-                channel.setupEvents(events)
+                channel.setupEvents()
             }
 
             override fun onTrack(track: MediaStreamTrack) = runInConnectionScope {
@@ -102,7 +103,7 @@ public class RustWebRtcConnection(
         options: WebRtcDataChannelOptions.() -> Unit
     ): WebRtcDataChannel {
         return createDataChannelInternal(label, options).apply {
-            setupEvents(events)
+            setupEvents()
         }
     }
 
@@ -123,7 +124,7 @@ public class RustWebRtcConnection(
         )
         val nativeChannel = inner.createDataChannel(label, channelInit)
         val receiveOptions = DataChannelReceiveOptions().apply(options.receiveOptions)
-        return RustWebRtcDataChannel(nativeChannel, coroutineScope, receiveOptions)
+        return RustWebRtcDataChannel(nativeChannel, coroutineScope, events, receiveOptions)
     }
 
     override suspend fun setLocalDescription(description: WebRtc.SessionDescription): Unit = withSdpException {

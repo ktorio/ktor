@@ -94,9 +94,10 @@ public class IosWebRtcConnection(
             val channel = IosWebRtcDataChannel(
                 nativeChannel = didOpenDataChannel,
                 coroutineScope = coroutineScope,
-                receiveOptions = DataChannelReceiveOptions()
+                eventsEmitter = events,
+                receiveOptions = remoteDataChannelReceiveOptions()
             )
-            channel.setupEvents(events)
+            channel.setupEvents()
         }
 
         override fun peerConnection(peerConnection: RTCPeerConnection, didRemoveIceCandidates: List<*>) {}
@@ -171,7 +172,7 @@ public class IosWebRtcConnection(
         options: WebRtcDataChannelOptions.() -> Unit
     ): WebRtcDataChannel {
         return createDataChannelInternal(label, options).apply {
-            setupEvents(events)
+            setupEvents()
         }
     }
 
@@ -198,7 +199,7 @@ public class IosWebRtcConnection(
             "Failed to create data channel with label: $label"
         }
         val receiveOptions = DataChannelReceiveOptions().apply(options.receiveOptions)
-        return IosWebRtcDataChannel(nativeChannel, coroutineScope, receiveOptions)
+        return IosWebRtcDataChannel(nativeChannel, coroutineScope, events, receiveOptions)
     }
 
     override suspend fun setLocalDescription(description: WebRtc.SessionDescription): Unit =

@@ -33,11 +33,16 @@ class WebRtcDataChannelTest {
 
     private inline fun testDataChannel(
         realtime: Boolean = true,
+        noinline receiverConfig: WebRtcConnectionConfig.() -> Unit = {},
         crossinline block: suspend BackgroundTasksScope.(WebRtcPeerConnection, WebRtcPeerConnection) -> Unit
     ): TestResult {
         return runTestWithPermissions(audio = false, video = false, realtime) {
             client.createPeerConnection().use { pc1 ->
-                client.createPeerConnection().use { pc2 ->
+                val pc2Config: WebRtcConnectionConfig.() -> Unit = {
+                    client.config.defaultConnectionConfig(this)
+                    receiverConfig()
+                }
+                client.createPeerConnection(pc2Config).use { pc2 ->
                     block(pc1, pc2)
                 }
             }
@@ -172,7 +177,32 @@ class WebRtcDataChannelTest {
     }
 
     @Test
-    fun testDataChannelSendManyMessages() = testDataChannel { pc1, pc2 ->
+    fun testPeerCreatedChannelClosesOnReceiveBufferOverflow() = testDataChannel { pc1, pc2 ->
+        val dataChannelEvents = pc2.dataChannelEvents.collectToChannel()
+        val dataChannel1 = pc1.createDataChannel("overflow-test")
+        connect(pc1, pc2)
+
+        val dataChannel2 = waitForChannel(dataChannelEvents)
+
+        repeat(DataChannelReceiveOptions.DEFAULT_CAPACITY + 1) { dataChannel1.send("Message $it") }
+
+        val error = withTimeout(5.seconds) {
+            while (true) {
+                val event = dataChannelEvents.receive()
+                if (event is DataChannelEvent.Error) return@withTimeout event
+            }
+            @Suppress("UNREACHABLE_CODE")
+            error("Expected DataChannelEvent.Error")
+        }
+        assertEquals(dataChannel2, error.channel)
+        assertContains(error.reason, "overflowed")
+        dataChannel2.waitForClose(dataChannelEvents)
+    }
+
+    @Test
+    fun testDataChannelSendManyMessages() = testDataChannel(
+        receiverConfig = { dataChannelReceiveOptions = { capacity = Channel.UNLIMITED } }
+    ) { pc1, pc2 ->
         val dataChannelEvents = pc2.dataChannelEvents.collectToChannel()
         val dataChannel1 = pc1.createDataChannel("multi-message-test")
         connect(pc1, pc2)
