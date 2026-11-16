@@ -288,6 +288,10 @@ final class io.ktor.utils.io/CountedByteWriteChannel : io.ktor.utils.io/ByteWrit
     final suspend fun flushAndClose() // io.ktor.utils.io/CountedByteWriteChannel.flushAndClose|flushAndClose(){}[0]
 }
 
+final class io.ktor.utils.io/LimitExceededException : kotlinx.io/IOException { // io.ktor.utils.io/LimitExceededException|null[0]
+    constructor <init>(kotlin/String) // io.ktor.utils.io/LimitExceededException.<init>|<init>(kotlin.String){}[0]
+}
+
 final class io.ktor.utils.io/ReaderJob : io.ktor.utils.io/ChannelJob { // io.ktor.utils.io/ReaderJob|null[0]
     final val channel // io.ktor.utils.io/ReaderJob.channel|{}channel[0]
         final fun <get-channel>(): io.ktor.utils.io/ByteWriteChannel // io.ktor.utils.io/ReaderJob.channel.<get-channel>|<get-channel>(){}[0]

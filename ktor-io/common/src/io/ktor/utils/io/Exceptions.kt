@@ -36,3 +36,11 @@ public class ClosedReadChannelException(cause: Throwable? = null) : ClosedByteCh
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.ConnectionClosedException)
  */
 public class ConnectionClosedException(message: String = "Connection was closed") : IOException(message)
+
+/**
+ * Exception thrown when a channel reading operation exceeds the specified limit.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.utils.io.LimitExceededException)
+ */
+@InternalAPI
+public class LimitExceededException(message: String) : IOException(message)
