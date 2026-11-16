@@ -64,7 +64,10 @@ public class WebResourcesConfig internal constructor() {
     }
 
     init {
-        excludes.add { path -> path == "WEB-INF" || path.startsWith("WEB-INF/") }
+        excludes.add { path ->
+            val trimmed = path.trimStart('/')
+            trimmed == "WEB-INF" || trimmed.startsWith("WEB-INF/")
+        }
     }
 }
 
