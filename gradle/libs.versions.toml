@@ -42,7 +42,7 @@ jackson3 = "3.2.2"
 jackson-annotations = "2.22"
 
 junit = "5.14.4"
-slf4j = "2.0.19"
+slf4j = "2.0.20"
 logback = "1.6.7"
 
 dropwizard = "4.2.40"
