@@ -68,10 +68,11 @@ public class JvmWebRtcConnection(
             if (dataChannel == null) return@runInConnectionScope
             val channel = JvmWebRtcDataChannel(
                 inner = dataChannel,
+                eventsEmitter = events,
                 coroutineScope = coroutineScope,
-                receiveOptions = DataChannelReceiveOptions()
+                receiveOptions = remoteDataChannelReceiveOptions()
             )
-            channel.setupEvents(events)
+            channel.setupEvents()
         }
 
         override fun onAddTrack(receiver: RTCRtpReceiver?, mediaStreams: Array<out MediaStream?>?) =
@@ -122,8 +123,8 @@ public class JvmWebRtcConnection(
         }
         val nativeChannel = inner.createDataChannel(label, channelInit)
         val receiveOptions = DataChannelReceiveOptions().apply(options.receiveOptions)
-        return JvmWebRtcDataChannel(nativeChannel, coroutineScope, receiveOptions).apply {
-            setupEvents(events)
+        return JvmWebRtcDataChannel(nativeChannel, coroutineScope, events, receiveOptions).apply {
+            setupEvents()
         }
     }
 

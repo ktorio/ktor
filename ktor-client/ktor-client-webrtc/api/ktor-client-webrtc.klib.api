@@ -15,6 +15,17 @@ abstract fun interface <#A: out io.ktor.client.webrtc/WebRtcConfig> io.ktor.clie
     abstract fun create(kotlin/Function1<#A, kotlin/Unit>): io.ktor.client.webrtc/WebRtcEngine // io.ktor.client.webrtc/WebRtcClientEngineFactory.create|create(kotlin.Function1<1:0,kotlin.Unit>){}[0]
 }
 
+abstract interface io.ktor.client.webrtc/DataChannelBufferOverflow { // io.ktor.client.webrtc/DataChannelBufferOverflow|null[0]
+    final object Companion { // io.ktor.client.webrtc/DataChannelBufferOverflow.Companion|null[0]
+        final val Close // io.ktor.client.webrtc/DataChannelBufferOverflow.Companion.Close|{}Close[0]
+            final fun <get-Close>(): io.ktor.client.webrtc/DataChannelBufferOverflow // io.ktor.client.webrtc/DataChannelBufferOverflow.Companion.Close.<get-Close>|<get-Close>(){}[0]
+        final val DropLatest // io.ktor.client.webrtc/DataChannelBufferOverflow.Companion.DropLatest|{}DropLatest[0]
+            final fun <get-DropLatest>(): io.ktor.client.webrtc/DataChannelBufferOverflow // io.ktor.client.webrtc/DataChannelBufferOverflow.Companion.DropLatest.<get-DropLatest>|<get-DropLatest>(){}[0]
+        final val DropOldest // io.ktor.client.webrtc/DataChannelBufferOverflow.Companion.DropOldest|{}DropOldest[0]
+            final fun <get-DropOldest>(): io.ktor.client.webrtc/DataChannelBufferOverflow // io.ktor.client.webrtc/DataChannelBufferOverflow.Companion.DropOldest.<get-DropOldest>|<get-DropOldest>(){}[0]
+    }
+}
+
 abstract interface io.ktor.client.webrtc/MediaTrackFactory { // io.ktor.client.webrtc/MediaTrackFactory|null[0]
     abstract suspend fun createAudioTrack(io.ktor.client.webrtc/WebRtcMedia.AudioTrackConstraints): io.ktor.client.webrtc/WebRtcMedia.AudioTrack // io.ktor.client.webrtc/MediaTrackFactory.createAudioTrack|createAudioTrack(io.ktor.client.webrtc.WebRtcMedia.AudioTrackConstraints){}[0]
     abstract suspend fun createVideoTrack(io.ktor.client.webrtc/WebRtcMedia.VideoTrackConstraints): io.ktor.client.webrtc/WebRtcMedia.VideoTrack // io.ktor.client.webrtc/MediaTrackFactory.createVideoTrack|createVideoTrack(io.ktor.client.webrtc.WebRtcMedia.VideoTrackConstraints){}[0]
@@ -113,7 +124,10 @@ sealed interface io.ktor.client.webrtc/TrackEvent { // io.ktor.client.webrtc/Tra
 }
 
 abstract class io.ktor.client.webrtc/WebRtcDataChannel : io.ktor.client.webrtc/WebRtc.DataChannel { // io.ktor.client.webrtc/WebRtcDataChannel|null[0]
-    constructor <init>(io.ktor.client.webrtc/DataChannelReceiveOptions) // io.ktor.client.webrtc/WebRtcDataChannel.<init>|<init>(io.ktor.client.webrtc.DataChannelReceiveOptions){}[0]
+    constructor <init>(io.ktor.client.webrtc/WebRtcConnectionEventsEmitter, io.ktor.client.webrtc/DataChannelReceiveOptions) // io.ktor.client.webrtc/WebRtcDataChannel.<init>|<init>(io.ktor.client.webrtc.WebRtcConnectionEventsEmitter;io.ktor.client.webrtc.DataChannelReceiveOptions){}[0]
+
+    final val eventsEmitter // io.ktor.client.webrtc/WebRtcDataChannel.eventsEmitter|{}eventsEmitter[0]
+        final fun <get-eventsEmitter>(): io.ktor.client.webrtc/WebRtcConnectionEventsEmitter // io.ktor.client.webrtc/WebRtcDataChannel.eventsEmitter.<get-eventsEmitter>|<get-eventsEmitter>(){}[0]
 
     final fun emitMessage(io.ktor.client.webrtc/WebRtc.DataChannel.Message): kotlinx.coroutines.channels/ChannelResult<kotlin/Unit> // io.ktor.client.webrtc/WebRtcDataChannel.emitMessage|emitMessage(io.ktor.client.webrtc.WebRtc.DataChannel.Message){}[0]
     final fun iterator(): kotlinx.coroutines.channels/ChannelIterator<io.ktor.client.webrtc/WebRtc.DataChannel.Message> // io.ktor.client.webrtc/WebRtcDataChannel.iterator|iterator(){}[0]
@@ -177,6 +191,7 @@ abstract class io.ktor.client.webrtc/WebRtcPeerConnection : io.ktor.client.webrt
     abstract suspend fun removeTrack(io.ktor.client.webrtc/WebRtcMedia.Track) // io.ktor.client.webrtc/WebRtcPeerConnection.removeTrack|removeTrack(io.ktor.client.webrtc.WebRtcMedia.Track){}[0]
     abstract suspend fun setLocalDescription(io.ktor.client.webrtc/WebRtc.SessionDescription) // io.ktor.client.webrtc/WebRtcPeerConnection.setLocalDescription|setLocalDescription(io.ktor.client.webrtc.WebRtc.SessionDescription){}[0]
     abstract suspend fun setRemoteDescription(io.ktor.client.webrtc/WebRtc.SessionDescription) // io.ktor.client.webrtc/WebRtcPeerConnection.setRemoteDescription|setRemoteDescription(io.ktor.client.webrtc.WebRtc.SessionDescription){}[0]
+    final fun remoteDataChannelReceiveOptions(): io.ktor.client.webrtc/DataChannelReceiveOptions // io.ktor.client.webrtc/WebRtcPeerConnection.remoteDataChannelReceiveOptions|remoteDataChannelReceiveOptions(){}[0]
     final inline fun runInConnectionScope(crossinline kotlin/Function0<kotlin/Unit>) // io.ktor.client.webrtc/WebRtcPeerConnection.runInConnectionScope|runInConnectionScope(kotlin.Function0<kotlin.Unit>){}[0]
     final suspend fun awaitIceGatheringComplete() // io.ktor.client.webrtc/WebRtcPeerConnection.awaitIceGatheringComplete|awaitIceGatheringComplete(){}[0]
     open fun close() // io.ktor.client.webrtc/WebRtcPeerConnection.close|close(){}[0]
@@ -191,9 +206,17 @@ final class io.ktor.client.webrtc/DataChannelReceiveOptions { // io.ktor.client.
     final var onBufferOverflow // io.ktor.client.webrtc/DataChannelReceiveOptions.onBufferOverflow|{}onBufferOverflow[0]
         final fun <get-onBufferOverflow>(): kotlinx.coroutines.channels/BufferOverflow // io.ktor.client.webrtc/DataChannelReceiveOptions.onBufferOverflow.<get-onBufferOverflow>|<get-onBufferOverflow>(){}[0]
         final fun <set-onBufferOverflow>(kotlinx.coroutines.channels/BufferOverflow) // io.ktor.client.webrtc/DataChannelReceiveOptions.onBufferOverflow.<set-onBufferOverflow>|<set-onBufferOverflow>(kotlinx.coroutines.channels.BufferOverflow){}[0]
+    final var onOverflow // io.ktor.client.webrtc/DataChannelReceiveOptions.onOverflow|{}onOverflow[0]
+        final fun <get-onOverflow>(): io.ktor.client.webrtc/DataChannelBufferOverflow // io.ktor.client.webrtc/DataChannelReceiveOptions.onOverflow.<get-onOverflow>|<get-onOverflow>(){}[0]
+        final fun <set-onOverflow>(io.ktor.client.webrtc/DataChannelBufferOverflow) // io.ktor.client.webrtc/DataChannelReceiveOptions.onOverflow.<set-onOverflow>|<set-onOverflow>(io.ktor.client.webrtc.DataChannelBufferOverflow){}[0]
     final var onUndeliveredElement // io.ktor.client.webrtc/DataChannelReceiveOptions.onUndeliveredElement|{}onUndeliveredElement[0]
         final fun <get-onUndeliveredElement>(): kotlin/Function1<io.ktor.client.webrtc/WebRtc.DataChannel.Message, kotlin/Unit>? // io.ktor.client.webrtc/DataChannelReceiveOptions.onUndeliveredElement.<get-onUndeliveredElement>|<get-onUndeliveredElement>(){}[0]
         final fun <set-onUndeliveredElement>(kotlin/Function1<io.ktor.client.webrtc/WebRtc.DataChannel.Message, kotlin/Unit>?) // io.ktor.client.webrtc/DataChannelReceiveOptions.onUndeliveredElement.<set-onUndeliveredElement>|<set-onUndeliveredElement>(kotlin.Function1<io.ktor.client.webrtc.WebRtc.DataChannel.Message,kotlin.Unit>?){}[0]
+
+    final object Companion { // io.ktor.client.webrtc/DataChannelReceiveOptions.Companion|null[0]
+        final const val DEFAULT_CAPACITY // io.ktor.client.webrtc/DataChannelReceiveOptions.Companion.DEFAULT_CAPACITY|{}DEFAULT_CAPACITY[0]
+            final fun <get-DEFAULT_CAPACITY>(): kotlin/Int // io.ktor.client.webrtc/DataChannelReceiveOptions.Companion.DEFAULT_CAPACITY.<get-DEFAULT_CAPACITY>|<get-DEFAULT_CAPACITY>(){}[0]
+    }
 }
 
 final class io.ktor.client.webrtc/DefaultExceptionHandler : kotlinx.coroutines/CoroutineExceptionHandler { // io.ktor.client.webrtc/DefaultExceptionHandler|null[0]
@@ -307,6 +330,9 @@ open class io.ktor.client.webrtc/WebRtcConnectionConfig { // io.ktor.client.webr
     final var dataChannelEventsReplay // io.ktor.client.webrtc/WebRtcConnectionConfig.dataChannelEventsReplay|{}dataChannelEventsReplay[0]
         final fun <get-dataChannelEventsReplay>(): kotlin/Int // io.ktor.client.webrtc/WebRtcConnectionConfig.dataChannelEventsReplay.<get-dataChannelEventsReplay>|<get-dataChannelEventsReplay>(){}[0]
         final fun <set-dataChannelEventsReplay>(kotlin/Int) // io.ktor.client.webrtc/WebRtcConnectionConfig.dataChannelEventsReplay.<set-dataChannelEventsReplay>|<set-dataChannelEventsReplay>(kotlin.Int){}[0]
+    final var dataChannelReceiveOptions // io.ktor.client.webrtc/WebRtcConnectionConfig.dataChannelReceiveOptions|{}dataChannelReceiveOptions[0]
+        final fun <get-dataChannelReceiveOptions>(): kotlin/Function1<io.ktor.client.webrtc/DataChannelReceiveOptions, kotlin/Unit> // io.ktor.client.webrtc/WebRtcConnectionConfig.dataChannelReceiveOptions.<get-dataChannelReceiveOptions>|<get-dataChannelReceiveOptions>(){}[0]
+        final fun <set-dataChannelReceiveOptions>(kotlin/Function1<io.ktor.client.webrtc/DataChannelReceiveOptions, kotlin/Unit>) // io.ktor.client.webrtc/WebRtcConnectionConfig.dataChannelReceiveOptions.<set-dataChannelReceiveOptions>|<set-dataChannelReceiveOptions>(kotlin.Function1<io.ktor.client.webrtc.DataChannelReceiveOptions,kotlin.Unit>){}[0]
     final var exceptionHandler // io.ktor.client.webrtc/WebRtcConnectionConfig.exceptionHandler|{}exceptionHandler[0]
         final fun <get-exceptionHandler>(): kotlinx.coroutines/CoroutineExceptionHandler? // io.ktor.client.webrtc/WebRtcConnectionConfig.exceptionHandler.<get-exceptionHandler>|<get-exceptionHandler>(){}[0]
         final fun <set-exceptionHandler>(kotlinx.coroutines/CoroutineExceptionHandler?) // io.ktor.client.webrtc/WebRtcConnectionConfig.exceptionHandler.<set-exceptionHandler>|<set-exceptionHandler>(kotlinx.coroutines.CoroutineExceptionHandler?){}[0]
@@ -1008,7 +1034,7 @@ final class io.ktor.client.webrtc/IosWebRtcConnection : io.ktor.client.webrtc/We
 
 // Targets: [ios]
 final class io.ktor.client.webrtc/IosWebRtcDataChannel : io.ktor.client.webrtc/WebRtcDataChannel { // io.ktor.client.webrtc/IosWebRtcDataChannel|null[0]
-    constructor <init>(WebRTC/RTCDataChannel, kotlinx.coroutines/CoroutineScope, io.ktor.client.webrtc/DataChannelReceiveOptions) // io.ktor.client.webrtc/IosWebRtcDataChannel.<init>|<init>(WebRTC.RTCDataChannel;kotlinx.coroutines.CoroutineScope;io.ktor.client.webrtc.DataChannelReceiveOptions){}[0]
+    constructor <init>(WebRTC/RTCDataChannel, kotlinx.coroutines/CoroutineScope, io.ktor.client.webrtc/WebRtcConnectionEventsEmitter, io.ktor.client.webrtc/DataChannelReceiveOptions) // io.ktor.client.webrtc/IosWebRtcDataChannel.<init>|<init>(WebRTC.RTCDataChannel;kotlinx.coroutines.CoroutineScope;io.ktor.client.webrtc.WebRtcConnectionEventsEmitter;io.ktor.client.webrtc.DataChannelReceiveOptions){}[0]
 
     final val bufferedAmount // io.ktor.client.webrtc/IosWebRtcDataChannel.bufferedAmount|{}bufferedAmount[0]
         final fun <get-bufferedAmount>(): kotlin/Long // io.ktor.client.webrtc/IosWebRtcDataChannel.bufferedAmount.<get-bufferedAmount>|<get-bufferedAmount>(){}[0]
@@ -1168,7 +1194,7 @@ final class io.ktor.client.webrtc/JsVideoTrack : io.ktor.client.webrtc/JsMediaTr
 
 // Targets: [js, wasmJs]
 final class io.ktor.client.webrtc/JsWebRtcDataChannel : io.ktor.client.webrtc/WebRtcDataChannel { // io.ktor.client.webrtc/JsWebRtcDataChannel|null[0]
-    constructor <init>(web.rtc/RTCDataChannel, kotlinx.coroutines/CoroutineScope, io.ktor.client.webrtc/DataChannelReceiveOptions) // io.ktor.client.webrtc/JsWebRtcDataChannel.<init>|<init>(web.rtc.RTCDataChannel;kotlinx.coroutines.CoroutineScope;io.ktor.client.webrtc.DataChannelReceiveOptions){}[0]
+    constructor <init>(web.rtc/RTCDataChannel, kotlinx.coroutines/CoroutineScope, io.ktor.client.webrtc/WebRtcConnectionEventsEmitter, io.ktor.client.webrtc/DataChannelReceiveOptions) // io.ktor.client.webrtc/JsWebRtcDataChannel.<init>|<init>(web.rtc.RTCDataChannel;kotlinx.coroutines.CoroutineScope;io.ktor.client.webrtc.WebRtcConnectionEventsEmitter;io.ktor.client.webrtc.DataChannelReceiveOptions){}[0]
 
     final val bufferedAmount // io.ktor.client.webrtc/JsWebRtcDataChannel.bufferedAmount|{}bufferedAmount[0]
         final fun <get-bufferedAmount>(): kotlin/Long // io.ktor.client.webrtc/JsWebRtcDataChannel.bufferedAmount.<get-bufferedAmount>|<get-bufferedAmount>(){}[0]

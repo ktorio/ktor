@@ -79,7 +79,7 @@ public final class io/ktor/client/webrtc/rs/RustWebRtcConnection : io/ktor/clien
 }
 
 public final class io/ktor/client/webrtc/rs/RustWebRtcDataChannel : io/ktor/client/webrtc/WebRtcDataChannel {
-	public fun <init> (Luniffi/ktor_client_webrtc/DataChannel;Lkotlinx/coroutines/CoroutineScope;Lio/ktor/client/webrtc/DataChannelReceiveOptions;)V
+	public fun <init> (Luniffi/ktor_client_webrtc/DataChannel;Lkotlinx/coroutines/CoroutineScope;Lio/ktor/client/webrtc/WebRtcConnectionEventsEmitter;Lio/ktor/client/webrtc/DataChannelReceiveOptions;)V
 	public fun close ()V
 	public fun closeTransport ()V
 	public fun getBufferedAmount ()J

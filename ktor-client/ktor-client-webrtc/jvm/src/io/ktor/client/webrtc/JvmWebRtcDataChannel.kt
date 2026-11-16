@@ -21,8 +21,9 @@ import java.nio.ByteBuffer
 public class JvmWebRtcDataChannel(
     internal val inner: RTCDataChannel,
     private val coroutineScope: CoroutineScope,
+    eventsEmitter: WebRtcConnectionEventsEmitter,
     receiveOptions: DataChannelReceiveOptions
-) : WebRtcDataChannel(receiveOptions) {
+) : WebRtcDataChannel(eventsEmitter, receiveOptions) {
 
     override val id: Int?
         get() = inner.id.takeIf { it >= 0 }
@@ -102,7 +103,7 @@ public class JvmWebRtcDataChannel(
         coroutineScope.launch(start = CoroutineStart.UNDISPATCHED, block = block)
     }
 
-    internal fun setupEvents(eventsEmitter: WebRtcConnectionEventsEmitter) {
+    internal fun setupEvents() {
         inner.registerObserver(object : RTCDataChannelObserver {
             override fun onBufferedAmountChange(previousAmount: Long) = runInConnectionScope {
                 // guard against duplicate events
