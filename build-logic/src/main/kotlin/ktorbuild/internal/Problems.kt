@@ -6,10 +6,11 @@
 package ktorbuild.internal
 
 import org.gradle.api.Project
-import org.gradle.api.problems.ProblemGroup
+import org.gradle.api.problems.ProblemGroups
 import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.ProblemReporter
 import org.gradle.api.problems.ProblemSpec
+import org.gradle.api.problems.Problems
 
 context(project: Project)
 internal fun ProblemReporter.reportVisible(
@@ -33,23 +34,13 @@ internal fun ProblemSpec.buildFileLocation() {
     fileLocation(project.buildFile.absolutePath)
 }
 
-@Suppress("UnstableApiUsage")
-internal object KtorBuildProblems {
-    private val group = ProblemGroup.create("ktor", "Ktor")
+internal val Problems.ktorBuildProblems: KtorBuildProblems
+    get() = KtorBuildProblems(groups)
 
-    val extraSourceSet = ProblemId.create(
-        "ktor-extra-source-sets",
-        "Extra source sets detected",
-        group,
-    )
-    val missingAndroidSdk = ProblemId.create(
-        "ktor-missing-android-sdk",
-        "Missing Android SDK",
-        group,
-    )
-    val missingCocoaPods = ProblemId.create(
-        "ktor-missing-cocoapods",
-        "Missing CocoaPods",
-        group,
-    )
+internal class KtorBuildProblems(groups: ProblemGroups) {
+    private val group = groups.others.group("Ktor")
+
+    val extraSourceSet = group.problemId("Extra source sets detected")
+    val missingAndroidSdk = group.problemId("Missing Android SDK")
+    val missingCocoaPods = group.problemId("Missing CocoaPods")
 }
