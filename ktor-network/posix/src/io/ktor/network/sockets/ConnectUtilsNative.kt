@@ -12,8 +12,6 @@ import kotlinx.cinterop.convert
 import kotlinx.io.IOException
 import platform.posix.SOCK_STREAM
 
-private const val DEFAULT_BACKLOG_SIZE = 50
-
 @OptIn(ExperimentalForeignApi::class)
 internal actual suspend fun tcpConnect(
     selector: SelectorManager,
@@ -71,7 +69,7 @@ internal actual suspend fun tcpBind(
             ktor_bind(descriptor, pointer, size).check()
         }
 
-        ktor_listen(descriptor, DEFAULT_BACKLOG_SIZE).check()
+        ktor_listen(descriptor, socketOptions.backlogSize).check()
 
         val resolvedLocalAddress = getLocalAddress(descriptor)
 
