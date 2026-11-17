@@ -15,8 +15,11 @@ import io.ktor.server.engine.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.util.logging.*
+import io.ktor.utils.io.errors.PosixException
 import kotlinx.coroutines.*
+import kotlinx.io.IOException
 import kotlin.coroutines.*
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 actual abstract class EngineTestBase<
@@ -59,17 +62,46 @@ actual constructor(
         parent: CoroutineContext,
         routingConfigurer: Route.() -> Unit
     ): EmbeddedServer<TEngine, TConfiguration> {
-        val server = createServer(log, parent) {
-            plugins(this, routingConfigurer)
+        var lastFailures = emptyList<Throwable>()
+
+        repeat(STARTUP_ATTEMPTS) {
+            val server = createServer(log, parent) {
+                plugins(this, routingConfigurer)
+            }
+
+            val failures = startServer(server)
+            when {
+                failures.isEmpty() -> return server
+
+                // A transient startup failure (for example, a failed address resolution
+                // reported as EADDRINUSE or a bind conflict on the dynamic port) is
+                // retried with a fresh server on a fresh port, mirroring the JVM test base.
+                failures.any { it.hasTransientStartupFailure() } -> {
+                    server.stop(1L, 1L)
+                    delay(STARTUP_RETRY_DELAY)
+                    lastFailures = failures
+                }
+
+                else -> {
+                    server.stop(1L, 1L)
+                    error(failures)
+                }
+            }
         }
 
-        val failures = startServer(server)
-        if (failures.isNotEmpty()) {
-            server.stop(1L, 1L)
-            error(failures)
-        }
+        error(lastFailures)
+    }
 
-        return server
+    private fun Throwable.hasTransientStartupFailure(): Boolean {
+        var current: Throwable? = this
+        var depth = 0
+        while (current != null && depth++ < 10) {
+            if (current is IOException || current is PosixException || current is TimeoutCancellationException) {
+                return true
+            }
+            current = current.cause
+        }
+        return false
     }
 
     protected open fun createServer(
@@ -92,7 +124,15 @@ actual constructor(
             }
         }
         val properties = serverConfig(environment) {
-            this.parentCoroutineContext = parent
+            this.parentCoroutineContext = parent + CoroutineExceptionHandler { _, cause ->
+                // On native, an uncaught coroutine exception terminates the whole test
+                // process, so a transient server startup failure would abort the run
+                // before the retry loop gets a chance to recover. Log it instead,
+                // mirroring the JVM behaviour where such exceptions are only reported.
+                if (cause is ExpectedTestException) return@CoroutineExceptionHandler
+                println("Uncaught exception in server coroutine: $cause")
+                cause.printStackTrace()
+            }
             module(module)
         }
 
@@ -143,6 +183,11 @@ actual constructor(
         block: suspend HttpResponse.(Int) -> Unit
     ) {
         withUrl("http://127.0.0.1:$port$path", port, builder, block)
+    }
+
+    private companion object {
+        const val STARTUP_ATTEMPTS = 5
+        val STARTUP_RETRY_DELAY = 100.milliseconds
     }
 
     private suspend fun withUrl(
