@@ -15,6 +15,11 @@ dependencies {
 // Should be synced with gradle/gradle-daemon-jvm.properties
 kotlin {
     jvmToolchain(21)
+
+    compilerOptions {
+        // Kotlin user project builds should never pass -Werror, see ktorsettings.kotlin-user-project
+        allWarningsAsErrors = providers.gradleProperty("kotlin_version").map { false }.orElse(true)
+    }
 }
 
 tasks.validatePlugins {

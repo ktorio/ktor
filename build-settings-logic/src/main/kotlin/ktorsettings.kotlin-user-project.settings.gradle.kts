@@ -106,8 +106,12 @@ gradle.afterProject {
                 log("$path : Set Kotlin APIV $version")
             }
 
-            // Unconditionally disable the -Werror option
-            allWarningsAsErrors = false
+            // Never pass the -Werror option when building as a Kotlin user project.
+            // `kotlin_version` is always specified in this case, so it's used to detect it.
+            if (kotlinVersion != null) {
+                allWarningsAsErrors = false
+                log("$path : Disabled -Werror")
+            }
 
             val argsToAdd = listOf(
                 // Output reported warnings even in the presence of reported errors
