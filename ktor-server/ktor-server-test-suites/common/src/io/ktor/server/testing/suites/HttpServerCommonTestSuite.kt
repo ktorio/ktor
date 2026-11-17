@@ -824,17 +824,19 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
     @OptIn(InternalAPI::class, DelicateCoroutinesApi::class)
     @Test
     open fun testCanModifyRequestBody() = runTest {
+        var bodyRewriter: WriterJob? = null
         createAndStartServer {
             install(
                 createRouteScopedPlugin("plugin") {
                     onCall { call ->
                         val oldChannel = call.request.receiveChannel()
-                        val newChannel = GlobalScope.writer {
+                        val writerJob = GlobalScope.writer {
                             channel.writeStringUtf8("start")
                             oldChannel.copyTo(channel)
                             channel.writeStringUtf8("finish")
-                        }.channel
-                        call.request.setReceiveChannel(newChannel)
+                        }
+                        bodyRewriter = writerJob
+                        call.request.setReceiveChannel(writerJob.channel)
                     }
                 }
             )
@@ -856,6 +858,12 @@ abstract class HttpServerCommonTestSuite<TEngine : ApplicationEngine, TConfigura
 
             assertEquals("starttestfinish", response.bodyAsText())
         }
+
+        // The rewriter runs on GlobalScope, so it can outlive the test: if it is still running when
+        // afterTest() stops the server, an error it reports afterwards is attributed to the next test
+        // as an unhandled error (observed as random failures of unrelated tests on native CI).
+        // Joining here keeps the coroutine inside this test's lifetime.
+        bodyRewriter?.job?.join()
     }
 
     @Test
