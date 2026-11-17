@@ -8,7 +8,7 @@ plugins {
 
 dependencies {
     implementation(libs.kotlin.gradlePlugin)
-    implementation(project(":develocity-patched"))
+    implementation(libs.develocity)
     implementation(libs.develocity.commonCustomUserData)
 }
 
