@@ -24,11 +24,15 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
+import kotlinx.io.readAtMostTo
 import java.io.IOException
 import kotlin.coroutines.CoroutineContext
 import java.util.concurrent.atomic.AtomicBoolean as JavaAtomicBoolean
 
 private const val UNFLUSHED_LIMIT = 65536
+
+// Matches the channel segment size; larger requests bypass the pooled allocator's size classes
+private const val READ_CHUNK_SIZE = 8192
 private val http2FlushScheduledKey =
     AttributeKey.valueOf<Http2FlushCoalescer>("ktor.netty.http2.flushScheduled")
 
@@ -344,6 +348,7 @@ internal class NettyHttpResponsePipeline(
         unflushedBytes >= UNFLUSHED_LIMIT || channel.availableForRead == 0
     }
 
+    @OptIn(InternalAPI::class)
     private suspend fun respondWithBigBody(
         call: NettyApplicationCall,
         response: NettyApplicationResponse,
@@ -361,10 +366,10 @@ internal class NettyHttpResponsePipeline(
                 continue
             }
 
-            val buf = context.alloc().ioBuffer(minOf(channel.availableForRead, UNFLUSHED_LIMIT))
+            val buf = context.alloc().ioBuffer(minOf(channel.availableForRead, READ_CHUNK_SIZE))
             val idx = buf.writerIndex()
             val rc = try {
-                channel.readAvailable(buf.nioBuffer(idx, buf.writableBytes()))
+                channel.readBuffer.readAtMostTo(buf.internalNioBuffer(idx, buf.writableBytes()))
             } catch (cause: Throwable) {
                 buf.release()
                 throw cause
