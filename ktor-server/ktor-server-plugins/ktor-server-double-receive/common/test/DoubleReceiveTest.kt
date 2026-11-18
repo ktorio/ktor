@@ -47,6 +47,17 @@ class DoubleReceiveTest {
     }
 
     @Test
+    fun testInMemoryCacheReaderCancellationDuringFlushIsNotPropagated() = runTest {
+        val content = ByteArray(4 * 1024 * 1024) { it.toByte() }
+        val cache = startMemoryCache(ByteReadChannel(content))
+        cache.reader()
+
+        val second = withTimeout(1.seconds) { cache.reader() }
+
+        assertContentEquals(content, second.readBuffer().readByteArray())
+    }
+
+    @Test
     fun testFirstInMemoryCacheReaderStreamsBeforeBodyIsComplete() = runTest {
         val body = ByteChannel()
         val cache = startMemoryCache(body)

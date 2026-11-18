@@ -15,7 +15,7 @@ pluginManagement {
 
 plugins {
     // Keep it in sync with libs.versions.toml
-    id("com.gradle.develocity") version "4.3.3"
+    id("com.gradle.develocity") version "4.4.3"
 }
 
 @Suppress("UnstableApiUsage")
@@ -62,5 +62,3 @@ buildCache {
     }
 }
 // endregion
-
-include(":develocity-patched")

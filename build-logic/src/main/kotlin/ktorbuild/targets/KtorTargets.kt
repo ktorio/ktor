@@ -9,13 +9,14 @@ package ktorbuild.targets
 import com.android.build.api.dsl.KotlinMultiplatformAndroidLibraryTarget
 import ktorbuild.KtorSyncMode
 import ktorbuild.internal.KotlinHierarchyTracker
-import ktorbuild.internal.KtorBuildProblems
 import ktorbuild.internal.TrackedKotlinHierarchyTemplate
 import ktorbuild.internal.android
 import ktorbuild.internal.gradle.projectGradleProperties
 import ktorbuild.internal.gradle.projectTargetDirectories
+import ktorbuild.internal.ktorBuildProblems
 import ktorbuild.isLightSync
 import org.gradle.api.file.ProjectLayout
+import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.ProblemReporter
 import org.gradle.api.problems.Problems
 import org.gradle.api.provider.Provider
@@ -262,6 +263,7 @@ internal fun KotlinMultiplatformExtension.addTargets(targets: KtorTargets, isCI:
     // See: https://kotlinlang.org/docs/native-target-support.html
 
     // Tier 1
+    @Suppress("DEPRECATION") // Deprecated in Kotlin, but Ktor still publishes it
     if (targets.isEnabled("macosX64")) macosX64()
     if (targets.isEnabled("macosArm64")) macosArm64()
     if (targets.isEnabled("iosArm64")) iosArm64()
@@ -273,9 +275,11 @@ internal fun KotlinMultiplatformExtension.addTargets(targets: KtorTargets, isCI:
     if (targets.isEnabled("linuxX64")) linuxX64()
     if (targets.isEnabled("watchosArm32")) watchosArm32()
     if (targets.isEnabled("watchosArm64")) watchosArm64()
+    @Suppress("DEPRECATION") // Deprecated in Kotlin, but Ktor still publishes it
     if (targets.isEnabled("watchosX64")) watchosX64()
     if (targets.isEnabled("watchosSimulatorArm64")) watchosSimulatorArm64()
     if (targets.isEnabled("tvosArm64")) tvosArm64()
+    @Suppress("DEPRECATION") // Deprecated in Kotlin, but Ktor still publishes it
     if (targets.isEnabled("tvosX64")) tvosX64()
     if (targets.isEnabled("tvosSimulatorArm64")) tvosSimulatorArm64()
 
@@ -307,7 +311,9 @@ private const val IGNORE_EXTRA_SOURCE_SETS_PROPERTY = "ktorbuild.ignoreExtraSour
  * When [IGNORE_EXTRA_SOURCE_SETS_PROPERTY] property is set to `true`, extra source sets are ignored instead.
  */
 private fun KotlinMultiplatformExtension.freezeSourceSets(isLightSync: Boolean) {
-    val problemReporter = project.serviceOf<Problems>().reporter
+    val problems = project.serviceOf<Problems>()
+    val problemReporter = problems.reporter
+    val extraSourceSetProblem = problems.ktorBuildProblems.extraSourceSet
     val ignoreExtraSourceSets = project.providers.gradleProperty(IGNORE_EXTRA_SOURCE_SETS_PROPERTY)
         .map(String::toBoolean)
         .getOrElse(isLightSync)
@@ -321,23 +327,23 @@ private fun KotlinMultiplatformExtension.freezeSourceSets(isLightSync: Boolean) 
             val context = "Detected extra source sets registered manually: $names (project ${project.path})"
 
             if (ignoreExtraSourceSets) {
-                problemReporter.reportExtraSourceSetsWarning(context)
+                problemReporter.reportExtraSourceSetsWarning(extraSourceSetProblem, context)
                 sourceSets.removeAll(extraSourceSets)
             } else {
-                throw problemReporter.reportExtraSourceSetsError(context)
+                throw problemReporter.reportExtraSourceSetsError(extraSourceSetProblem, context)
             }
         }
     }
 }
 
-private fun ProblemReporter.reportExtraSourceSetsWarning(context: String) = report(KtorBuildProblems.extraSourceSet) {
+private fun ProblemReporter.reportExtraSourceSetsWarning(problemId: ProblemId, context: String) = report(problemId) {
     contextualLabel(context)
     details("Ignoring them because '$IGNORE_EXTRA_SOURCE_SETS_PROPERTY' property is set to 'true'.")
 }
 
-private fun ProblemReporter.reportExtraSourceSetsError(context: String) = throwing(
-    IllegalStateException(KtorBuildProblems.extraSourceSet.displayName),
-    KtorBuildProblems.extraSourceSet,
+private fun ProblemReporter.reportExtraSourceSetsError(problemId: ProblemId, context: String) = throwing(
+    IllegalStateException(problemId.name),
+    problemId,
 ) {
     contextualLabel(context)
     details(

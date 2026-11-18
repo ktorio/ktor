@@ -9,7 +9,9 @@ import io.ktor.client.test.base.*
 import io.ktor.client.test.base.EngineSelectionRule.Companion.except
 import io.ktor.websocket.*
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
@@ -105,6 +107,7 @@ class WebSocketBackpressureTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
                 }
             } catch (e: Exception) {
                 // may be thrown if propagated from ws
+                coroutineContext.ensureActive()
                 assertTrue(e.isChannelOverflow, "Unexpected exception: $e")
             }
         }
@@ -132,6 +135,7 @@ class WebSocketBackpressureTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
                 runCatching {
                     for (i in 1..FRAMES_COUNT) send("message $i")
                 }.onFailure {
+                    coroutineContext.ensureActive()
                     assertTrue(it.isChannelOverflow, "Unexpected exception: $it")
                 }.onSuccess {
                     fail("Expected overflow exception but got success")
@@ -140,6 +144,36 @@ class WebSocketBackpressureTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
                     outgoingChannelClosed.await()
                 }
             }
+        }
+    }
+
+    @Test
+    fun `send after server close fails instead of hanging`() = clientTests {
+        config {
+            install(WebSockets) {
+                channels {
+                    outgoing = bounded(capacity = 0)
+                }
+            }
+        }
+
+        test { client ->
+            val session = client.webSocketSession("$TEST_WEBSOCKET_SERVER/websockets/close")
+            session.send("End")
+            assertEquals(CloseReason(CloseReason.Codes.NORMAL, "End"), session.closeReason.await())
+
+            val failure = withTimeout(5.seconds) {
+                try {
+                    session.send("late")
+                    null
+                } catch (cause: TimeoutCancellationException) {
+                    throw cause
+                } catch (cause: Throwable) {
+                    coroutineContext.ensureActive()
+                    cause
+                }
+            }
+            assertNotNull(failure, "send() accepted a frame after the server closed the session")
         }
     }
 }

@@ -14,6 +14,15 @@ import org.jetbrains.kotlin.gradle.plugin.mpp.DefaultCInteropSettings
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinNativeCompile
 
+/**
+ * Workaround for KT-76147: the commonizer accesses `Task.project` when the metadata compilation task executes.
+ *
+ * It doesn't fail when the task graph is loaded from the configuration cache, so it isn't noticeable in most builds.
+ * It fails when the task graph isn't loaded from the cache, though: during IDE sync,
+ * or when the cache entry is discarded because of another incompatible task or a configuration cache problem.
+ *
+ * TODO: Remove when Kotlin is updated to 2.5
+ */
 fun KotlinMultiplatformExtension.disableNativeCompileConfigurationCache() {
     // Disable configuration cache for compile[target]MainKotlinMetadata tasks
     project.tasks.withType<KotlinNativeCompile>()

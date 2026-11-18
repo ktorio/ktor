@@ -2,6 +2,7 @@
  * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
+import com.gradle.develocity.agent.gradle.DevelocityConfiguration
 import com.gradle.develocity.agent.gradle.scan.BuildScanConfiguration
 import java.util.*
 
@@ -83,3 +84,8 @@ private fun BuildScanConfiguration.reportSyncMode(providers: ProviderFactory) {
 
     value("Sync mode", providers.gradleProperty("ktorbuild.syncMode").getOrElse("light"))
 }
+
+// The Develocity plugin ships its own `Settings.develocity` accessor (still in 4.6.1),
+// which is ambiguous with the accessor Gradle generates for precompiled script plugins.
+// So we define our own accessor shading both accessors.
+private val Settings.develocity: DevelocityConfiguration get() = the()

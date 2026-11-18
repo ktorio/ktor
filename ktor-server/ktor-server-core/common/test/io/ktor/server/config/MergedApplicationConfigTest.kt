@@ -121,6 +121,21 @@ class MergedApplicationConfigTest {
     }
 
     @Test
+    fun `merged nested object takes the overriding list`() {
+        val base = MapApplicationConfig("app.name" to "ktor")
+        base.put("app.versions", listOf("1", "2"))
+        val overrides = MapApplicationConfig()
+        overrides.put("app.versions", listOf("3"))
+
+        val merged = base.mergeWith(overrides)
+
+        assertEquals(
+            mapOf("name" to "ktor", "versions" to listOf("3")),
+            merged.property("app").getMap()
+        )
+    }
+
+    @Test
     fun testMergeWith() {
         val first = MapApplicationConfig(
             "value1" to "1",

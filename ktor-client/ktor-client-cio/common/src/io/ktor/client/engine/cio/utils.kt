@@ -52,6 +52,7 @@ internal suspend fun writeHeaders(
     val responseEncoding = contentBody.headers[HttpHeaders.TransferEncoding]
     val chunked = isChunked(contentLength, responseEncoding, contentEncoding)
     val expected = headers[HttpHeaders.Expect]
+    val tunneled = overProxy && url.protocol.isSecure()
 
     try {
         val normalizedUrl = if (url.rawSegments.isEmpty()) URLBuilder(url).apply { encodedPath = "/" }.build() else url
@@ -77,6 +78,7 @@ internal suspend fun writeHeaders(
 
         mergeHeaders(headers, body) { key, value ->
             if (key == HttpHeaders.ContentLength || key == HttpHeaders.Expect) return@mergeHeaders
+            if (tunneled && key.equals(HttpHeaders.ProxyAuthorization, ignoreCase = true)) return@mergeHeaders
 
             builder.headerLine(key, value)
         }

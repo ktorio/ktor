@@ -30,7 +30,7 @@ public fun <K : Any, P : Any> ldapAuthenticate(
         } finally {
             root.close()
         }
-    } catch (ne: NamingException) {
+    } catch (_: NamingException) {
         null
     }
 }
@@ -85,8 +85,8 @@ private fun ldapLogin(ldapURL: String, ldapEnvironmentBuilder: (MutableMap<Strin
 }
 
 internal fun ldapEscape(string: String): String {
-    for (index in 0..string.lastIndex) {
-        val character = string[index]
+    for ((index, element) in string.withIndex()) {
+        val character = element
         if (character.shouldEscape()) {
             return ldapEscapeImpl(string, index)
         }
