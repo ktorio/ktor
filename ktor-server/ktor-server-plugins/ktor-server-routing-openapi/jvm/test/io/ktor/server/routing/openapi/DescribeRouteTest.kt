@@ -1091,6 +1091,71 @@ class DescribeRouteTest {
         )
     }
 
+    @Test
+    fun `nullable use of a type keeps the component non-null and wraps the reference`() = testApplication {
+        install(ContentNegotiation) {
+            json(jsonFormat)
+        }
+        @OptIn(ExperimentalKtorApi::class)
+        routing {
+            get("/routes") {
+                call.respond(
+                    OpenApiDoc(info = OpenApiInfo("Test API", "1.0.0")) +
+                        call.application.routingRoot.descendants()
+                )
+            }.hide()
+
+            get("/person") {
+                call.respondText("ok")
+            }.describe {
+                responses {
+                    HttpStatusCode.OK {
+                        schema = jsonSchema<NullablePerson>()
+                    }
+                }
+            }
+
+            get("/person-reversed") {
+                call.respondText("ok")
+            }.describe {
+                responses {
+                    HttpStatusCode.OK {
+                        schema = jsonSchema<NullablePersonReversed>()
+                    }
+                }
+            }
+        }
+
+        val responseText = client.get("/routes").bodyAsText()
+        val openApiSpec = jsonFormat.decodeFromString<OpenApiDoc>(responseText)
+        val schemas = openApiSpec.components?.schemas ?: fail("Schema components should be defined")
+
+        assertEquals(
+            setOf("NullableAddress", "NullableColor", "NullablePerson", "NullablePersonReversed"),
+            schemas.keys,
+            "T and T? of the same type should map to a single component: ${schemas.keys}"
+        )
+        assertEquals(JsonType.OBJECT, schemas.getValue("NullableAddress").type)
+        assertEquals(JsonType.STRING, schemas.getValue("NullableColor").type)
+
+        for (personComponent in listOf("NullablePerson", "NullablePersonReversed")) {
+            val properties = schemas.getValue(personComponent).properties ?: fail("Missing properties")
+
+            assertEquals(ReferenceOr.schema("NullableAddress"), properties["home"])
+            assertEquals(ReferenceOr.schema("NullableColor"), properties["favourite"])
+            assertNullableReference("NullableAddress", properties["work"])
+            assertNullableReference("NullableColor", properties["second"])
+        }
+    }
+
+    private fun assertNullableReference(componentName: String, property: ReferenceOr<JsonSchema>?) {
+        val schema = (property as? ReferenceOr.Value)?.value ?: fail("Expected an inline oneOf, got $property")
+        assertEquals(
+            listOf(ReferenceOr.schema(componentName), ReferenceOr.Value(JsonSchema(type = JsonType.NULL))),
+            schema.oneOf
+        )
+    }
+
     private inline fun <reified T : Any> componentName(): String =
         T::class.qualifiedName ?: fail("Missing qualified name")
 
@@ -1222,6 +1287,29 @@ data class DotSerialNameDto(val value: String)
 @Serializable
 @JsonSchema.Title("DTO.Bar2")
 data class DotTitleDto(val value: String)
+
+@Serializable
+data class NullableAddress(val city: String)
+
+@Serializable
+@JsonSchema.Title("NullableColor")
+enum class NullableColor { Red, Green }
+
+@Serializable
+data class NullablePerson(
+    val home: NullableAddress,
+    val work: NullableAddress?,
+    val favourite: NullableColor,
+    val second: NullableColor?,
+)
+
+@Serializable
+data class NullablePersonReversed(
+    val work: NullableAddress?,
+    val home: NullableAddress,
+    val second: NullableColor?,
+    val favourite: NullableColor,
+)
 
 @Serializable
 data class ExampleAnnotatedDto(
