@@ -130,10 +130,15 @@ internal class ApacheRequestProducer(
         var length: String? = null
         var type: String? = null
 
+        val secure = url.protocol.isSecure()
         mergeHeaders(headers, content) { key, value ->
-            when (key) {
-                HttpHeaders.CONTENT_LENGTH -> length = value
-                HttpHeaders.CONTENT_TYPE -> type = value
+            when {
+                key == HttpHeaders.CONTENT_LENGTH -> length = value
+
+                key == HttpHeaders.CONTENT_TYPE -> type = value
+
+                secure && key.equals(HttpHeaders.PROXY_AUTHORIZATION, ignoreCase = true) -> {}
+
                 else -> builder.addHeader(key, value)
             }
         }

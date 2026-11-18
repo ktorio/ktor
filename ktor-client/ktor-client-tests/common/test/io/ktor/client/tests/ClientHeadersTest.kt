@@ -107,6 +107,23 @@ class ClientHeadersTest : ClientLoader(timeout = 30.seconds) {
         }
     }
 
+    @Test
+    fun `lowercase unsafe headers are rejected`() = clientTests {
+        test { client ->
+            val cause = assertFailsWith<UnsafeHeaderException> {
+                client.get("$TEST_SERVER/headers") {
+                    header("transfer-encoding", "chunked")
+                    header("upgrade", "upgrade")
+                }
+            }
+
+            assertEquals(
+                "Header(s) [transfer-encoding, upgrade] are controlled by the engine and cannot be set explicitly",
+                cause.message
+            )
+        }
+    }
+
     // Fails on Java before 19 because of https://bugs.openjdk.org/browse/JDK-8283544
     @Test
     fun testRequestHasContentLength() = clientTests(except("Java")) {
@@ -144,6 +161,32 @@ class ClientHeadersTest : ClientLoader(timeout = 30.seconds) {
             client.supportedMethods()
                 .filter { it.supportsRequestBody }
                 .forEach { testWithMethod(it) }
+        }
+    }
+
+    @Test
+    fun `lowercase content headers are sent once`() = clientTests {
+        test { client ->
+            val body = client.post("$TEST_SERVER/echo/headers") {
+                header("content-type", "application/json")
+                header("content-length", "5")
+                setBody("Hello".encodeToByteArray())
+            }.bodyAsText().lines()
+
+            assertContains(body, "content-type: [application/json]")
+            assertContains(body, "content-length: [5]")
+        }
+    }
+
+    @Test
+    fun `lowercase expect header is sent once`() = clientTests(except("Js")) {
+        test { client ->
+            val body = client.post("$TEST_SERVER/echo/headers") {
+                header("expect", "100-continue")
+                setBody("Hello")
+            }.bodyAsText().lines()
+
+            assertTrue(body.count { it.startsWith("expect:") } <= 1, body.joinToString("\n"))
         }
     }
 }

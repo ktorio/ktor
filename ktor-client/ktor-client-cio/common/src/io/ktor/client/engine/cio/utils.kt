@@ -77,7 +77,9 @@ internal suspend fun writeHeaders(
         }
 
         mergeHeaders(headers, body) { key, value ->
-            if (key == HttpHeaders.ContentLength || key == HttpHeaders.Expect) return@mergeHeaders
+            if (key == HttpHeaders.ContentLength || key.equals(HttpHeaders.Expect, ignoreCase = true)) {
+                return@mergeHeaders
+            }
             if (tunneled && key.equals(HttpHeaders.ProxyAuthorization, ignoreCase = true)) return@mergeHeaders
 
             builder.headerLine(key, value)
@@ -239,9 +241,6 @@ internal suspend fun startTunnel(
         builder.headerLine("Proxy-Connection", "Keep-Alive") // For HTTP/1.0 proxies like Squid.
         request.headers[HttpHeaders.UserAgent]?.let {
             builder.headerLine(HttpHeaders.UserAgent, it)
-        }
-        request.headers[HttpHeaders.ProxyAuthenticate]?.let {
-            builder.headerLine(HttpHeaders.ProxyAuthenticate, it)
         }
         request.headers[HttpHeaders.ProxyAuthorization]?.let {
             builder.headerLine(HttpHeaders.ProxyAuthorization, it)

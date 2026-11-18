@@ -8,6 +8,7 @@ package io.ktor.client.engine.curl.internal
 
 import io.ktor.client.request.*
 import io.ktor.http.*
+import io.ktor.util.*
 import io.ktor.utils.io.*
 import kotlinx.cinterop.*
 import libcurl.*
@@ -21,11 +22,14 @@ internal typealias MultiHandle = COpaquePointer
  * Curl manages websocket headers internally:
  * @see <a href="https://github.com/curl/curl/blob/f0986c6e18417865f49e725201a5224d9b5af849/lib/ws.c#L684">List of headers</a>
  */
-internal val DISALLOWED_WEBSOCKET_HEADERS = setOf(
-    HttpHeaders.Upgrade,
-    HttpHeaders.Connection,
-    HttpHeaders.SecWebSocketVersion,
-    HttpHeaders.SecWebSocketKey
+@OptIn(InternalAPI::class)
+internal val DISALLOWED_WEBSOCKET_HEADERS: Set<String> = CaseInsensitiveSet(
+    listOf(
+        HttpHeaders.Upgrade,
+        HttpHeaders.Connection,
+        HttpHeaders.SecWebSocketVersion,
+        HttpHeaders.SecWebSocketKey
+    )
 )
 
 internal fun CURLMcode.verify() {
@@ -182,8 +186,10 @@ internal fun HttpRequestData.headersToCurl(): CPointer<curl_slist> {
     var result: CPointer<curl_slist>? = null
 
     val isUpgradeRequest = isUpgradeRequest()
+    val secure = url.protocol.isSecure()
     forEachHeader { key, value ->
         if (isUpgradeRequest && key in DISALLOWED_WEBSOCKET_HEADERS) return@forEachHeader
+        if (secure && key.equals(HttpHeaders.ProxyAuthorization, ignoreCase = true)) return@forEachHeader
         val header = "$key: $value"
         result = curl_slist_append(result, header)
     }

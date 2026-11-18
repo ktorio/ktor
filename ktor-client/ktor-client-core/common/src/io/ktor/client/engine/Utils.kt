@@ -24,16 +24,22 @@ import kotlin.coroutines.coroutineContext
 @InternalAPI
 public val KTOR_DEFAULT_USER_AGENT: String = "ktor-client"
 
-private val DATE_HEADERS = setOf(
-    HttpHeaders.Date,
-    HttpHeaders.Expires,
-    HttpHeaders.LastModified,
-    HttpHeaders.IfModifiedSince,
-    HttpHeaders.IfUnmodifiedSince
+@OptIn(InternalAPI::class)
+private val DATE_HEADERS = CaseInsensitiveSet(
+    listOf(
+        HttpHeaders.Date,
+        HttpHeaders.Expires,
+        HttpHeaders.LastModified,
+        HttpHeaders.IfModifiedSince,
+        HttpHeaders.IfUnmodifiedSince
+    )
 )
 
 /**
  * Merge headers from [content] and [requestHeaders] according to [OutgoingContent] properties
+ *
+ * Header names are matched case-insensitively. [HttpHeaders.ContentType] and [HttpHeaders.ContentLength]
+ * are passed to [block] at most once each, with their canonical names, after all other headers.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.mergeHeaders)
  */
@@ -47,8 +53,8 @@ public fun mergeHeaders(
         appendAll(requestHeaders)
         appendAll(content.headers)
     }.forEach { key, values ->
-        if (HttpHeaders.ContentLength == key) return@forEach // set later
-        if (HttpHeaders.ContentType == key) return@forEach // set later
+        if (key.equals(HttpHeaders.ContentLength, ignoreCase = true)) return@forEach // set later
+        if (key.equals(HttpHeaders.ContentType, ignoreCase = true)) return@forEach // set later
 
         // https://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2
         if (DATE_HEADERS.contains(key)) {
@@ -56,7 +62,7 @@ public fun mergeHeaders(
                 block(key, value)
             }
         } else {
-            val separator = if (HttpHeaders.Cookie == key) "; " else ","
+            val separator = if (key.equals(HttpHeaders.Cookie, ignoreCase = true)) "; " else ","
             block(key, values.joinToString(separator))
         }
     }
