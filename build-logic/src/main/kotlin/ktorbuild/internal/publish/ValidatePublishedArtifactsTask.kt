@@ -84,9 +84,13 @@ internal abstract class ValidatePublishedArtifactsTask : DefaultTask() {
     }
 
     private fun configurePublishTaskName(): Boolean {
-        val taskNames = project.gradle.startParameter.taskNames.filterNot { name ->
+        val requestedTaskNames = project.gradle.startParameter.taskNames
+        // The task can be created when it isn't requested, for example, during IDE sync
+        if (requestedTaskNames.none(::isValidationTask)) return false
+
+        val taskNames = requestedTaskNames.filterNot { name ->
             // Filter out the validation task itself and task parameters
-            name == NAME || name.startsWith("-")
+            isValidationTask(name) || name.startsWith("-")
         }
         if (taskNames.size != 1) {
             logger.warn("Task $NAME should be run together with exactly one publish task, but got: $taskNames")
@@ -100,6 +104,8 @@ internal abstract class ValidatePublishedArtifactsTask : DefaultTask() {
         }
         return true
     }
+
+    private fun isValidationTask(taskName: String): Boolean = taskName.removePrefix(":") == NAME
 
     fun dependsOn(publishedProjects: Provider<List<Project>>) = with(project) {
         // publishTaskName won't be set if the task is used improperly and should be skipped

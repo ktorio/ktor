@@ -9,9 +9,9 @@ import org.gradle.kotlin.dsl.support.serviceOf
 if (isAndroidSdkAvailable()) {
     apply(plugin = "com.android.kotlin.multiplatform.library")
 } else @Suppress("UnstableApiUsage") {
-    val problemReporter = project.serviceOf<Problems>().reporter
-    problemReporter.reportVisible(
-        KtorBuildProblems.missingAndroidSdk,
+    val problems = project.serviceOf<Problems>()
+    problems.reporter.reportVisible(
+        problems.ktorBuildProblems.missingAndroidSdk,
         details = "Android SDK not found.",
         contextualLabel = "Android target won't be added to the project ${project.path}.",
     ) {

@@ -22,7 +22,6 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
     id("ktorsettings")
     id("ktorsettings.develocity")
-    id("ktorsettings.configuration-cache")
 }
 
 rootProject.name = "ktor"

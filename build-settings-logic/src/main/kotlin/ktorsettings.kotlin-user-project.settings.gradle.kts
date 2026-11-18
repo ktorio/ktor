@@ -7,6 +7,7 @@
 import org.gradle.api.tasks.testing.AbstractTestTask
 import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.dsl.*
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 /*
  * These properties are used to build Ktor against Kotlin compiler snapshot in two different configurations:
@@ -105,8 +106,12 @@ gradle.afterProject {
                 log("$path : Set Kotlin APIV $version")
             }
 
-            // Unconditionally disable the -Werror option
-            allWarningsAsErrors = false
+            // Never pass the -Werror option when building as a Kotlin user project.
+            // `kotlin_version` is always specified in this case, so it's used to detect it.
+            if (kotlinVersion != null) {
+                allWarningsAsErrors = false
+                log("$path : Disabled -Werror")
+            }
 
             val argsToAdd = listOf(
                 // Output reported warnings even in the presence of reported errors
@@ -126,6 +131,22 @@ gradle.afterProject {
             printManifest()
         }
         filterTests()
+    }
+}
+
+// Ktor's Kotlin Gradle Plugin on the settings classpath overrides the one embedded in Gradle,
+// so builds using the `kotlin-dsl` plugin are compiled with Ktor's Kotlin version instead of the embedded one.
+// The versions are never guaranteed to match, as the Kotlin version can be overridden for Kotlin user projects.
+gradle.beforeProject {
+    pluginManager.withPlugin("org.gradle.kotlin.kotlin-dsl") {
+        // The different Kotlin version is expected, so the warning about it is just noise
+        tasks.named("checkKotlinCompilerVersion") { enabled = false }
+
+        // Gradle doesn't pass this flag since 9.9, but Kotlin 2.3 can't compile scripts in LightTree mode
+        // TODO: KTOR-9663 Remove when Kotlin is updated to 2.4
+        tasks.withType<KotlinCompile>().configureEach {
+            compilerOptions.freeCompilerArgs.add("-Xuse-fir-lt=false")
+        }
     }
 }
 

@@ -5,6 +5,7 @@
 package test.server.tests
 
 import io.ktor.http.*
+import io.ktor.http.auth.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
@@ -26,31 +27,33 @@ internal fun Application.authTestServer() {
 
         digest("digest") {
             val password = "Circle Of Life"
-            algorithmName = "MD5"
+            @Suppress("DEPRECATION") // Client tests cover MD5 digest auth
+            algorithms = listOf(DigestAlgorithm.MD5)
             realm = "testrealm@host.com"
 
-            digestProvider { userName, realm ->
-                digest(MessageDigest.getInstance(algorithmName), "$userName:$realm:$password")
+            digestProvider { userName, realm, algorithm ->
+                digest(algorithm.toDigester(), "$userName:$realm:$password")
             }
         }
 
         digest("digest-2") {
             val password = "some password"
-            algorithmName = "MD5"
+            @Suppress("DEPRECATION") // Client tests cover MD5 digest auth
+            algorithms = listOf(DigestAlgorithm.MD5)
             realm = "testrealm-2@host.com"
 
-            digestProvider { userName, realm ->
-                digest(MessageDigest.getInstance(algorithmName), "$userName:$realm:$password")
+            digestProvider { userName, realm, algorithm ->
+                digest(algorithm.toDigester(), "$userName:$realm:$password")
             }
         }
 
         digest("digest-SHA256") {
             val password = "Circle Of Life"
-            algorithmName = "SHA-256"
+            algorithms = listOf(DigestAlgorithm.SHA_256)
             realm = "testrealm@host.com"
 
-            digestProvider { userName, realm ->
-                digest(MessageDigest.getInstance(algorithmName), "$userName:$realm:$password")
+            digestProvider { userName, realm, algorithm ->
+                digest(algorithm.toDigester(), "$userName:$realm:$password")
             }
         }
 

@@ -27,9 +27,9 @@ if (ktorBuild.targets.hasDarwin) {
             val darwinTargets = KtorTargets.resolveTargets("darwin")
             ktorBuild.targets.filterTargets { it !in darwinTargets }
 
-            val problemReporter = project.serviceOf<Problems>().reporter
-            problemReporter.reportVisible(
-                KtorBuildProblems.missingCocoaPods,
+            val problems = project.serviceOf<Problems>()
+            problems.reporter.reportVisible(
+                problems.ktorBuildProblems.missingCocoaPods,
                 details = "CocoaPods not found.",
                 contextualLabel = "Apple targets won't be added in the project.",
             ) {
