@@ -12,6 +12,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
@@ -354,6 +355,41 @@ class TestApplicationTestJvm {
 
     @Test
     fun testSocketTimeoutWriteNotElapsed() = testSocketTimeoutWrite(1000, false)
+
+    @Test
+    fun testRequestBodyWriterSurvivesHandlerClosingTheBodyAfterReadingIt() = testApplication {
+        // In order to make this test fail consistently without the KTOR-8016
+        // fix, use a single thread for both client and server, so the handler
+        // always reads the body and closes it before the writer resumes from
+        // its flush. With the default dispatchers this would be a
+        // nondeterministic race.
+        val oneThread = Dispatchers.IO.limitedParallelism(1)
+        // A full channel's worth, so the writer's flush waits for the handler to read it.
+        val bodySize = 1024 * 1024
+        engine { dispatcher = oneThread }
+        routing {
+            post {
+                // Read the whole body, then close it, like a parser that closes its input stream when done.
+                val body = call.receiveChannel()
+                val bytes = body.readByteArray(bodySize)
+                body.cancel()
+                call.respondText("received ${bytes.size} bytes")
+            }
+        }
+
+        val response = client.post("/") {
+            setBody(
+                object : OutgoingContent.WriteChannelContent() {
+                    override suspend fun writeTo(channel: ByteWriteChannel) = withContext(oneThread) {
+                        channel.writeFully(ByteArray(bodySize))
+                    }
+                }
+            )
+        }
+
+        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals("received $bodySize bytes", response.bodyAsText())
+    }
 }
 
 class TestClass(val value: Int) : Serializable
