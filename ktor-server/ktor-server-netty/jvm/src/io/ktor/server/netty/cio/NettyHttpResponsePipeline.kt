@@ -304,7 +304,7 @@ internal class NettyHttpResponsePipeline(
         response: NettyApplicationResponse,
         size: Int
     ) {
-        val buffer = context.alloc().buffer(size)
+        val buffer = context.alloc().ioBuffer(size)
         val channel = response.responseChannel
         val start = buffer.writerIndex()
 
@@ -361,20 +361,22 @@ internal class NettyHttpResponsePipeline(
                 continue
             }
 
-            var message: Any? = null
-            channel.read { array, startIndex, endIndex ->
-                val rc = endIndex - startIndex
-                val buf = context.alloc().buffer(rc)
-                val idx = buf.writerIndex()
-                buf.setBytes(idx, array, startIndex, rc)
-                buf.writerIndex(idx + rc)
-                unflushedBytes += rc
-
-                message = call.prepareMessage(buf, false)
-                rc
+            val buf = context.alloc().ioBuffer(minOf(channel.availableForRead, UNFLUSHED_LIMIT))
+            val idx = buf.writerIndex()
+            val rc = try {
+                channel.readAvailable(buf.nioBuffer(idx, buf.writableBytes()))
+            } catch (cause: Throwable) {
+                buf.release()
+                throw cause
             }
+            if (rc <= 0) {
+                buf.release()
+                continue
+            }
+            buf.writerIndex(idx + rc)
+            unflushedBytes += rc
 
-            val responseMessage = checkNotNull(message)
+            val responseMessage = call.prepareMessage(buf, false)
             if (shouldFlush.invoke(channel, unflushedBytes)) {
                 context.read()
                 val future = context.writeAndFlushCoalesced(responseMessage)
@@ -402,8 +404,8 @@ private fun ChannelHandlerContext.flushCoalesced() {
 
     val parent = streamChannel.parent()
     val attribute = parent.attr(http2FlushScheduledKey)
-    val coalescer = attribute.get() ?: attribute.setIfAbsent(Http2FlushCoalescer()) ?: attribute.get()!!
-    coalescer.flush(parent)
+    val coalescer = attribute.get() ?: attribute.setIfAbsent(Http2FlushCoalescer(parent)) ?: attribute.get()!!
+    coalescer.flush()
 }
 
 private fun ChannelHandlerContext.writeAndFlushCoalesced(message: Any): ChannelFuture {
@@ -414,27 +416,26 @@ private fun ChannelHandlerContext.writeAndFlushCoalesced(message: Any): ChannelF
     return future
 }
 
-private class Http2FlushCoalescer {
+private class Http2FlushCoalescer(private val parent: Channel) {
     private val flushScheduled = JavaAtomicBoolean()
     private val additionalFlushRequested = JavaAtomicBoolean()
+    private val flushTask = Runnable { runFlush() }
 
-    fun flush(parent: Channel) {
+    fun flush() {
         if (flushScheduled.compareAndSet(false, true)) {
-            scheduleFlush(parent)
+            parent.eventLoop().execute(flushTask)
         } else if (!parent.eventLoop().inEventLoop()) {
             additionalFlushRequested.set(true)
         }
     }
 
-    private fun scheduleFlush(parent: Channel) {
-        parent.eventLoop().execute {
-            try {
-                parent.flush()
-            } finally {
-                flushScheduled.set(false)
-                if (additionalFlushRequested.getAndSet(false) && flushScheduled.compareAndSet(false, true)) {
-                    scheduleFlush(parent)
-                }
+    private fun runFlush() {
+        try {
+            parent.flush()
+        } finally {
+            flushScheduled.set(false)
+            if (additionalFlushRequested.getAndSet(false) && flushScheduled.compareAndSet(false, true)) {
+                parent.eventLoop().execute(flushTask)
             }
         }
     }
