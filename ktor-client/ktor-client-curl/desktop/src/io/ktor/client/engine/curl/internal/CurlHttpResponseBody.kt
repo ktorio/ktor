@@ -71,7 +71,9 @@ internal class CurlHttpResponseBody(
 
     override fun close(cause: Throwable?) {
         if (bodyChannel.isClosedForWrite) return
-        bodyChannel.close(cause)
+        // Close synchronously: a fire-and-forget flushAndClose would suspend while the channel is full,
+        // and cancelling the job below would then cancel the channel, dropping the bytes not read yet.
+        if (cause == null) bodyChannel.close() else bodyChannel.cancel(cause)
         cancel(cause as? CancellationException ?: CancellationException(cause))
     }
 }

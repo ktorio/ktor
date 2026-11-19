@@ -13,6 +13,7 @@ import io.ktor.utils.io.locks.*
 import kotlinx.cinterop.*
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CompletableJob
+import kotlinx.io.IOException
 import kotlinx.io.readByteArray
 import libcurl.*
 import platform.posix.getenv
@@ -320,7 +321,14 @@ internal class CurlMultiApiHandler : Closeable {
                     proxyCode = proxyCode.value
                 ) ?: collectSuccessResponse(easyHandle)!!
             } finally {
-                responseBuilder.responseBody.close()
+                val responseBody = responseBuilder.responseBody
+                // A body cut short by a transfer error must fail instead of looking complete
+                val bodyCause = if (result != CURLE_OK && responseBody is CurlHttpResponseBody) {
+                    IOException("Response body is incomplete. Reason: ${result.errorMessage}")
+                } else {
+                    null
+                }
+                responseBody.close(bodyCause)
                 responseBuilder.headersBytes.close()
             }
         } finally {
