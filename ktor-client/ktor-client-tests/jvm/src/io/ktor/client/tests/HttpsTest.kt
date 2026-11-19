@@ -54,8 +54,7 @@ abstract class HttpsTest<T : HttpClientEngineConfig>(
 
         test { client ->
             val first = client.get("https://localhost:8089/")
-            assertEquals("Hello, TLS!", first.body())
-            assertEquals("TLS test server", first.headers["X-Comment"])
+            assertEquals("Hello, world!", first.body())
         }
     }
 

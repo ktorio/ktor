@@ -13,7 +13,6 @@ dependencies {
     implementation(ktorLibs.server.defaultHeaders)
     implementation(ktorLibs.server.netty)
     implementation(ktorLibs.server.cio)
-    implementation(ktorLibs.server.jetty)
     implementation(ktorLibs.server.websockets)
     implementation(ktorLibs.server.sse)
     implementation(ktorLibs.server.auth)

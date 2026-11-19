@@ -124,7 +124,7 @@ abstract class TestServerService : BuildService<TestServerService.Parameters>, A
         // Should be synced with the `testServerLibraries` configuration in server/build.gradle.kts
         private const val SERVER_LIBRARIES_USAGE = "ktor-test-server-libraries"
         // [State on 19.11.2026]
-        // Live heap after full GC peaks at ~65 MB during client tests.
+        // Live heap after full GC peaks at ~60 MB during JVM client tests, process RSS at ~280 MB.
         // SerialGC avoids G1's native overhead (~60 MB at this heap size).
         private val JVM_ARGS = listOf(
             "-Xmx128m",
