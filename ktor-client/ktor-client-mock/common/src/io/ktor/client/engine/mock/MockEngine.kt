@@ -21,9 +21,6 @@ private val SCHEME_PATTERN = Regex("[a-zA-Z][a-zA-Z0-9+.-]*")
 /**
  * [HttpClientEngine] for writing tests without network.
  *
- * Requests with a malformed URL (for example, with an invalid scheme produced by the URL builder) are rejected
- * with an error, mirroring the behavior of real HTTP engines.
- *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.mock.MockEngine)
  */
 public open class MockEngine internal constructor(
