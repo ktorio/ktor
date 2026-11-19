@@ -56,7 +56,7 @@ internal suspend fun writeHeaders(
 
     try {
         val normalizedUrl = if (url.rawSegments.isEmpty()) URLBuilder(url).apply { encodedPath = "/" }.build() else url
-        val urlString = if (overProxy) normalizedUrl.toString() else normalizedUrl.fullPath
+        val urlString = if (overProxy && !tunneled) normalizedUrl.toString() else normalizedUrl.fullPath
 
         builder.requestLine(method, urlString, HttpProtocolVersion.HTTP_1_1.toString())
         // this will only add the port to the host header if the port is non-standard for the protocol
