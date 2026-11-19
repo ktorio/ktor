@@ -28,6 +28,8 @@ abstract class TestServerService : BuildService<TestServerService.Parameters>, A
     private val logFile = parameters.logFile.get().asFile
     private val scope = CoroutineScope(Dispatchers.IO)
     private var process: Process? = null
+    @Volatile
+    private var stopping = false
 
     @Synchronized
     fun start(libraries: File) {
@@ -54,6 +56,7 @@ abstract class TestServerService : BuildService<TestServerService.Parameters>, A
         val command = buildList {
             add(ProcessHandle.current().info().command().orElseThrow())
             addAll(JVM_ARGS)
+            add("-XX:HeapDumpPath=${logFile.parent}")
             add("-Dktor.testServer.readyMarker=$READY_MARKER")
             add("-cp")
             add(libraries.resolve("*").path)
@@ -75,7 +78,10 @@ abstract class TestServerService : BuildService<TestServerService.Parameters>, A
                 if (line == READY_MARKER) ready.complete(true)
             }
         }
-        ready.complete(false)
+        val exitedAfterStart = !ready.complete(false)
+        if (exitedAfterStart && !stopping) {
+            logger.warn("Test server exited unexpectedly with code ${waitFor()}. See the log: $logFile")
+        }
     }
 
     private suspend fun Process.awaitReady(ready: Deferred<Boolean>) {
@@ -93,6 +99,7 @@ abstract class TestServerService : BuildService<TestServerService.Parameters>, A
     override fun close() {
         val process = process ?: return
         logger.lifecycle("Stopping test server...")
+        stopping = true
         process.stop()
         scope.cancel()
         logger.lifecycle("Test server stopped.")
@@ -119,7 +126,13 @@ abstract class TestServerService : BuildService<TestServerService.Parameters>, A
         // [State on 19.11.2026]
         // Live heap after full GC peaks at ~65 MB during client tests.
         // SerialGC avoids G1's native overhead (~60 MB at this heap size).
-        private val JVM_ARGS = listOf("-Xmx128m", "-XX:+UseSerialGC")
+        private val JVM_ARGS = listOf(
+            "-Xmx128m",
+            "-XX:+UseSerialGC",
+            // Keep the heap for investigation and fail fast instead of serving tests from a broken state
+            "-XX:+HeapDumpOnOutOfMemoryError",
+            "-XX:+ExitOnOutOfMemoryError",
+        )
         private val START_TIMEOUT = 60.seconds
 
         fun registerIfAbsent(project: Project): Provider<TestServerService> {
