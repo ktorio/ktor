@@ -4,13 +4,18 @@
 
 package io.ktor.network.selector
 
-import kotlin.coroutines.*
+import kotlinx.coroutines.CancellableContinuation
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 internal data class EventInfo(
     val descriptor: Int,
     val interest: SelectInterest,
     private val continuation: Continuation<Unit>
 ) {
+    val isCancelled: Boolean
+        get() = (continuation as? CancellableContinuation<*>)?.isCancelled == true
 
     fun complete() {
         continuation.resume(Unit)
