@@ -78,7 +78,7 @@ internal fun Application.encodingTestServer() {
                 get {
                     val content = "Hello, world"
                     val compressed: ByteArray = GZipEncoder.encode(ByteReadChannel(content.toByteArray()))
-                        .readRemaining().readByteArray()
+                        .readBuffer().readByteArray()
 
                     call.respond(object : OutgoingContent.ReadChannelContent() {
 
@@ -99,7 +99,7 @@ internal fun Application.encodingTestServer() {
                 head {
                     val content = "Hello, world"
                     val compressed: ByteArray = GZipEncoder.encode(ByteReadChannel(content.toByteArray()))
-                        .readRemaining().readByteArray()
+                        .readBuffer().readByteArray()
 
                     call.respond(object : OutgoingContent.NoContent() {
                         override val contentLength: Long = compressed.size.toLong()
