@@ -134,11 +134,8 @@ internal class ApacheRequestProducer(
         mergeHeaders(headers, content) { key, value ->
             when {
                 key == HttpHeaders.CONTENT_LENGTH -> length = value
-
                 key == HttpHeaders.CONTENT_TYPE -> type = value
-
                 secure && key.equals(HttpHeaders.PROXY_AUTHORIZATION, ignoreCase = true) -> {}
-
                 else -> builder.addHeader(key, value)
             }
         }

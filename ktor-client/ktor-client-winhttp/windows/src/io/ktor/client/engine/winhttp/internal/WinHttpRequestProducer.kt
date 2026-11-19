@@ -95,7 +95,11 @@ internal class WinHttpRequestProducer(
 
     private fun HttpRequestData.headersToMap(): MutableMap<String, String> {
         val result = mutableMapOf<String, String>()
-        forEachHeader(result::put)
+        val secure = url.protocol.isSecure()
+        forEachHeader { key, value ->
+            if (secure && key.equals(HttpHeaders.ProxyAuthorization, ignoreCase = true)) return@forEachHeader
+            result[key] = value
+        }
 
         return result
     }

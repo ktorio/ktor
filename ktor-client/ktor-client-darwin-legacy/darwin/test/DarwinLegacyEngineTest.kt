@@ -11,17 +11,25 @@ import io.ktor.client.test.base.*
 import io.ktor.http.*
 import io.ktor.test.*
 import io.ktor.utils.io.*
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.UnsafeNumber
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import platform.Foundation.NSHTTPCookieStorage.Companion.sharedHTTPCookieStorage
 import platform.Foundation.NSOperationQueue
+import platform.Foundation.NSURLCredential
 import platform.Foundation.NSURLSession
+import platform.Foundation.NSURLSessionAuthChallengePerformDefaultHandling
+import platform.Foundation.NSURLSessionAuthChallengeUseCredential
 import platform.Foundation.NSURLSessionConfiguration
+import platform.Foundation.credentialForTrust
+import platform.Foundation.serverTrust
 import platform.Foundation.setValue
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import kotlin.test.fail
 import kotlin.time.Duration.Companion.seconds
@@ -143,6 +151,38 @@ class DarwinLegacyEngineTest : ClientEngineTest<DarwinLegacyClientEngineConfig>(
             val response = client.get("$TEST_SERVER/headers/echo?headerName=XCustomHeader")
             assertEquals(HttpStatusCode.OK, response.status)
             assertEquals("my header value", response.bodyAsText())
+        }
+    }
+
+    @OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
+    @Test
+    fun `Proxy-Authorization is not sent over HTTPS`() = testClient {
+        config {
+            engine {
+                handleChallenge { _, _, challenge, completionHandler ->
+                    val serverTrust = challenge.protectionSpace.serverTrust
+                    if (serverTrust != null) {
+                        completionHandler(
+                            NSURLSessionAuthChallengeUseCredential,
+                            NSURLCredential.credentialForTrust(serverTrust)
+                        )
+                    } else {
+                        completionHandler(NSURLSessionAuthChallengePerformDefaultHandling, null)
+                    }
+                }
+            }
+        }
+
+        test { client ->
+            for (name in listOf(HttpHeaders.ProxyAuthorization, "proxy-authorization")) {
+                val response = client.get("https://localhost:8089/echo/headers") {
+                    header(name, "Basic secret")
+                }
+                assertEquals(HttpStatusCode.OK, response.status)
+                val headers = response.bodyAsText()
+
+                assertFalse("proxy-authorization" in headers, "$name was sent to the origin server:\n$headers")
+            }
         }
     }
 

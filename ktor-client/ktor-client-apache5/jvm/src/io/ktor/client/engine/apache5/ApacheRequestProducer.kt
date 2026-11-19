@@ -64,11 +64,8 @@ private fun setupRequest(requestData: HttpRequestData, config: Apache5EngineConf
     mergeHeaders(headers, body) { key, value ->
         when {
             key == HttpHeaders.ContentLength -> {}
-
             key == HttpHeaders.ContentType -> {}
-
             secure && key.equals(HttpHeaders.ProxyAuthorization, ignoreCase = true) -> {}
-
             else -> request.addHeader(key, value)
         }
     }
