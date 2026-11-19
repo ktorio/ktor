@@ -28,3 +28,5 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "ktor-test-server"
+
+include("server")
