@@ -33,7 +33,7 @@ private const val UNFLUSHED_LIMIT = 65536
 
 // Matches the default HTTP/2 max frame size, so each write is a single contiguous buffer that fills one frame.
 // Smaller writes get coalesced by Netty into CompositeByteBufs, whose nioBuffer() copies into heap arrays.
-private const val READ_CHUNK_SIZE = 16384
+internal const val READ_CHUNK_SIZE = 16384
 private val http2FlushScheduledKey =
     AttributeKey.valueOf<Http2FlushCoalescer>("ktor.netty.http2.flushScheduled")
 
