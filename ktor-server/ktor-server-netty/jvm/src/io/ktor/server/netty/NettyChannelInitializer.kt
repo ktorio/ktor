@@ -210,7 +210,13 @@ public class NettyChannelInitializer(
                             enabledProtocols = it.toTypedArray()
                         }
                     }
-                    addLast("ssl", SslHandler(sslEngine))
+                    val sslHandler = SslHandler(sslEngine)
+                    if (enableHttp2) {
+                        // Encrypt each queued write as is. Coalescing writes whose boundaries don't line up with
+                        // TLS records slices a CompositeByteBuf, and copying that slice allocates a merged heap buffer.
+                        sslHandler.setWrapDataSize(0)
+                    }
+                    addLast("ssl", sslHandler)
 
                     if (enableHttp2 && alpnProvider != null) {
                         addLast(NegotiatedPipelineInitializer())

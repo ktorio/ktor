@@ -31,8 +31,9 @@ import java.util.concurrent.atomic.AtomicBoolean as JavaAtomicBoolean
 
 private const val UNFLUSHED_LIMIT = 65536
 
-// Matches the channel segment size; larger requests bypass the pooled allocator's size classes
-private const val READ_CHUNK_SIZE = 8192
+// Matches the default HTTP/2 max frame size, so each write is a single contiguous buffer that fills one frame.
+// Smaller writes get coalesced by Netty into CompositeByteBufs, whose nioBuffer() copies into heap arrays.
+private const val READ_CHUNK_SIZE = 16384
 private val http2FlushScheduledKey =
     AttributeKey.valueOf<Http2FlushCoalescer>("ktor.netty.http2.flushScheduled")
 
@@ -369,7 +370,16 @@ internal class NettyHttpResponsePipeline(
             val buf = context.alloc().ioBuffer(minOf(channel.availableForRead, READ_CHUNK_SIZE))
             val idx = buf.writerIndex()
             val rc = try {
-                channel.readBuffer.readAtMostTo(buf.internalNioBuffer(idx, buf.writableBytes()))
+                var total = 0
+                while (buf.writableBytes() > 0 && !channel.readBuffer.exhausted()) {
+                    val read = channel.readBuffer.readAtMostTo(
+                        buf.internalNioBuffer(idx + total, buf.writableBytes())
+                    )
+                    if (read <= 0) break
+                    total += read
+                    buf.writerIndex(idx + total)
+                }
+                total
             } catch (cause: Throwable) {
                 buf.release()
                 throw cause
