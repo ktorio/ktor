@@ -16,6 +16,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.Serializable
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -312,9 +313,9 @@ class AuthenticationSchemeWithRolesTest {
     }
 
     @Test
-    fun `empty anyOf is rejected when route is built`() {
+    fun `empty anyOf is rejected when route is built`() = runTest {
         assertFailsWith<IllegalArgumentException> {
-            testApplication {
+            runTestApplication {
                 routing {
                     authenticateWith(roleScheme(), roles = anyOf()) {
                         get("/never") { call.respondText("unreachable") }
