@@ -4,9 +4,15 @@
 
 import test.server.TestServerService
 
+val testServerLibraries = TestServerService.serverLibraries(project)
+
 tasks.withType<AbstractTestTask>().configureEach {
     val testServerService = TestServerService.registerIfAbsent(project)
     usesService(testServerService)
-    // Trigger server start if it is not started yet
-    doFirst("start test server") { testServerService.get() }
+    // Local copy: capturing the script property in the action would reference the script object
+    val libraries = testServerLibraries
+    inputs.files(libraries)
+        .withPropertyName("testServerLibraries")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+    doFirst("start test server") { testServerService.get().start(libraries.singleFile) }
 }
