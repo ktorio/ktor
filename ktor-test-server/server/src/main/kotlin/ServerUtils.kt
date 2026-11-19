@@ -32,6 +32,6 @@ internal suspend fun filenameContentTypeAndContentString(provider: () -> ByteRea
     val disposition: ContentDisposition = ContentDisposition.parse(dispositionHeader)
     val filename: String = disposition.parameter("filename") ?: ""
     val contentType = headers[HttpHeaders.ContentType]?.let { ContentType.parse(it) } ?: ""
-    val content: String = provider().readRemaining().readByteArray().let { "Content of ${it.size} bytes" }
+    val content: String = provider().readBuffer().readByteArray().let { "Content of ${it.size} bytes" }
     return "$filename$contentType$content"
 }

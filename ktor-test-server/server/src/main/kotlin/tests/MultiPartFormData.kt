@@ -26,7 +26,7 @@ internal fun Application.multiPartFormDataTest() {
                             it.provider().readFully(array)
                         }
                     } finally {
-                        it.dispose()
+                        it.release()
                     }
                 }
                 call.respond(HttpStatusCode.OK)
