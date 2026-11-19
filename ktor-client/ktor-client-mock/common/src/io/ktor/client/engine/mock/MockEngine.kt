@@ -8,12 +8,15 @@ import io.ktor.client.engine.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.websocket.*
 import io.ktor.client.request.*
+import io.ktor.http.*
 import io.ktor.utils.io.*
 import kotlinx.atomicfu.locks.SynchronizedObject
 import kotlinx.atomicfu.locks.synchronized
 import kotlinx.coroutines.CompletableJob
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.withContext
+
+private val SCHEME_PATTERN = Regex("[a-zA-Z][a-zA-Z0-9+.-]*")
 
 /**
  * [HttpClientEngine] for writing tests without network.
@@ -64,6 +67,8 @@ public open class MockEngine internal constructor(
 
     @OptIn(InternalAPI::class)
     override suspend fun execute(data: HttpRequestData): HttpResponseData {
+        requireValidUrlScheme(data.url)
+
         val callContext = callContext()
 
         val handler = synchronized(mutex) {
@@ -88,6 +93,15 @@ public open class MockEngine internal constructor(
         }
 
         return response
+    }
+
+    private fun requireValidUrlScheme(url: Url) {
+        val scheme = url.protocol.name
+        require(scheme.matches(SCHEME_PATTERN)) {
+            "MockEngine received a request with a malformed URL \"$url\": the URL scheme \"$scheme\" is invalid. " +
+                "A real HTTP engine would refuse such a request, " +
+                "so check the request URL and the 'defaultRequest' configuration."
+        }
     }
 
     override fun close() {
