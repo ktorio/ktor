@@ -5,9 +5,12 @@
 package io.ktor.test
 
 import kotlinx.coroutines.test.TestResult
+import kotlin.time.Duration
 
 @Suppress("CAST_NEVER_SUCCEEDS")
 internal actual val DummyTestResult = Unit as TestResult
+
+internal actual fun TestResult.withWatchdog(timeout: Duration): TestResult = this
 
 actual inline fun TestResult.andThen(block: () -> Any): TestResult = also { block() }
 

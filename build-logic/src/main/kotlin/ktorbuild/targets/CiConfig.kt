@@ -17,6 +17,7 @@ import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTest
 import org.jetbrains.kotlin.gradle.targets.jvm.tasks.KotlinJvmTest
 import org.jetbrains.kotlin.gradle.tasks.KotlinTest
+import java.time.Duration
 
 /** Applies CI-specific configurations to test tasks. */
 internal fun Project.configureTestTasksOnCi() {
@@ -33,6 +34,9 @@ internal fun Project.configureTestTasksOnCi() {
 
     tasks.withType<KotlinJsTest>().configureEach {
         withLimitedParallelism("js-flakiness")
+        // Backstop for hanging JS/Wasm tests: Mocha has no timeout and Wasm runner has no timeout at all.
+        // Without it, a hanging test blocks the build until TeamCity kills it, losing results of other tasks.
+        timeout = Duration.ofMinutes(30)
     }
     tasks.withType<KotlinJvmTest>().configureEach {
         testRetry {
