@@ -4,6 +4,8 @@
 
 package io.ktor.server.plugins.di
 
+import io.ktor.server.application.ParallelModuleTracker
+import io.ktor.utils.io.InternalAPI
 import kotlinx.atomicfu.AtomicRef
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CompletableDeferred
@@ -183,7 +185,28 @@ public sealed interface DependencyInitializer {
         private val deferred: CompletableDeferred<Any?> = CompletableDeferred()
         private val delegate: AtomicRef<DependencyInitializer?> = atomic(null)
 
+        // null once released, so late waiters are resumed immediately
+        private val waiters: AtomicRef<List<() -> Unit>?> = atomic(emptyList())
+
         override fun resolve(resolver: DependencyResolver): Deferred<Any?> = deferred
+
+        @OptIn(InternalAPI::class)
+        internal suspend fun awaitTracked(tracker: ParallelModuleTracker): Any? {
+            tracker.decrement()
+            addWaiter(tracker::increment)
+            return deferred.await()
+        }
+
+        private fun addWaiter(waiter: () -> Unit) {
+            while (true) {
+                val current = waiters.value ?: return waiter()
+                if (waiters.compareAndSet(current, current + waiter)) return
+            }
+        }
+
+        private fun releaseWaiters() {
+            waiters.getAndSet(null)?.forEach { it() }
+        }
 
         /**
          * We pipe the result of the provided function into the current function.
@@ -194,6 +217,8 @@ public sealed interface DependencyInitializer {
          */
         public fun provide(other: DependencyInitializer) {
             if (delegate.compareAndSet(null, other)) {
+                // waiters count as active again while the provider is being initialized
+                releaseWaiters()
                 deferred.completeWith(other.resolve(resolver))
             }
         }
@@ -202,6 +227,7 @@ public sealed interface DependencyInitializer {
             if (deferred.isActive) {
                 deferred.completeExceptionally(MissingDependencyException(key))
             }
+            releaseWaiters()
         }
     }
 
