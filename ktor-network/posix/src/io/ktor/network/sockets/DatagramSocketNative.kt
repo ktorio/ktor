@@ -87,17 +87,12 @@ internal class DatagramSocketNative(
                 ).toLong()
             }
 
-            when (bytesRead) {
-                0L -> throw IOException("Failed reading from closed socket")
-
-                -1L -> {
-                    val error = getSocketError()
-                    if (isWouldBlockError(error)) return null
-                    if (error == 0) return null
-                    throw PosixException.forSocketError(error)
-                }
+            if (bytesRead == -1L) {
+                val error = getSocketError()
+                if (isWouldBlockError(error)) return null
+                if (error == 0) return null
+                throw PosixException.forSocketError(error)
             }
-
             val address = clientAddress.reinterpret<sockaddr>().toNativeSocketAddress()
 
             Datagram(
