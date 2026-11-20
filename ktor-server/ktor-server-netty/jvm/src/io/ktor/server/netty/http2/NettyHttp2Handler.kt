@@ -57,29 +57,31 @@ internal class NettyHttp2Handler(
                 startHttp2(context, message.headers())
                 if (message.isEndStream) {
                     context.applicationCall?.request?.apply {
-                        contentActor.close()
+                        closeContent()
                         state.isCurrentRequestFullyRead.compareAndSet(expect = false, update = true)
                     }
                 }
             }
 
             is Http2DataFrame -> {
-                context.applicationCall?.request?.apply {
-                    val eof = message.isEndStream
-                    contentActor.trySend(message).isSuccess
+                val eof = message.isEndStream
+                val request = context.applicationCall?.request
+                if (request == null || !request.offerContent(message)) {
+                    message.release()
+                } else {
                     if (eof) {
-                        contentActor.close()
+                        request.closeContent()
                         state.isCurrentRequestFullyRead.compareAndSet(expect = false, update = true)
                     } else {
                         state.isCurrentRequestFullyRead.compareAndSet(expect = true, update = false)
                     }
-                } ?: message.release()
+                }
             }
 
             is Http2ResetFrame -> {
                 context.applicationCall?.request?.let { r ->
                     val e = if (message.errorCode() == 0L) null else Http2ClosedChannelException(message.errorCode())
-                    r.contentActor.close(e)
+                    r.closeContent(e)
                 }
             }
 

@@ -6,6 +6,7 @@ package io.ktor.server.netty
 
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
+import io.ktor.server.netty.cio.READ_CHUNK_SIZE
 import io.ktor.server.netty.http1.*
 import io.ktor.server.netty.http2.*
 import io.netty.channel.ChannelHandlerContext
@@ -210,7 +211,13 @@ public class NettyChannelInitializer(
                             enabledProtocols = it.toTypedArray()
                         }
                     }
-                    addLast("ssl", SslHandler(sslEngine))
+                    val sslHandler = SslHandler(sslEngine)
+                    if (enableHttp2) {
+                        // Http2WriteCoalescingHandler already gathers writes into contiguous buffers.
+                        // Any wrapDataSize > 0 makes SslHandler coalesce again, which allocates more.
+                        sslHandler.setWrapDataSize(0)
+                    }
+                    addLast("ssl", sslHandler)
 
                     if (enableHttp2 && alpnProvider != null) {
                         addLast(NegotiatedPipelineInitializer())
@@ -242,6 +249,9 @@ public class NettyChannelInitializer(
                     runningLimit
                 )
 
+                if (pipeline.get(SslHandler::class.java) != null) {
+                    pipeline.addLast(Http2WriteCoalescingHandler())
+                }
                 pipeline.addLast(Http2MultiplexCodecBuilder.forServer(handler).build())
                 // Swallow connection-level Http2Frame messages (e.g. SETTINGS, PING, GOAWAY) that the
                 // Http2MultiplexCodec forwards down the parent pipeline. Without this, those frames
