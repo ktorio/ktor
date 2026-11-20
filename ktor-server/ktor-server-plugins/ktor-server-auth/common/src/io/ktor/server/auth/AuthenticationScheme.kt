@@ -172,20 +172,21 @@ public class AuthenticationScheme<P, C> @PublishedApi internal constructor(
  * @param P authenticated principal type produced when credentials are valid.
  * @param AP anonymous principal type returned by [fallback].
  * @param CP common principal type shared by authenticated and anonymous principals.
+ * @param C the intrinsic extension context supplied to authenticated routes.
  * @param fallback creates the anonymous principal when no credentials are present.
  * @return a scheme that produces [CP] for authenticated and anonymous callers.
  */
 @ExperimentalKtorApi
-public inline fun <reified CP, P, AP> SimpleAuthenticationScheme<P>.orAnonymous(
+public inline fun <reified CP, P, AP, C> AuthenticationScheme<P, C>.orAnonymous(
     noinline fallback: suspend RoutingContext.() -> AP,
-): SimpleAuthenticationScheme<CP> where CP : Any, P : AP, AP : CP =
+): AuthenticationScheme<CP, C> where CP : Any, P : AP, AP : CP =
     orAnonymous(fallback, commonPrincipalType = CP::class)
 
 @PublishedApi
-internal fun <P, AP, CP> SimpleAuthenticationScheme<P>.orAnonymous(
+internal fun <P, AP, CP, C> AuthenticationScheme<P, C>.orAnonymous(
     fallback: suspend RoutingContext.() -> AP,
     commonPrincipalType: KClass<CP>,
-): SimpleAuthenticationScheme<CP> where CP : Any, P : AP, AP : CP =
+): AuthenticationScheme<CP, C> where CP : Any, P : AP, AP : CP =
     AuthenticationScheme(
         provider = provider,
         principalType = commonPrincipalType,
@@ -198,7 +199,7 @@ internal fun <P, AP, CP> SimpleAuthenticationScheme<P>.orAnonymous(
                 else -> null
             }
         },
-        extension = EmptyAuthenticationSchemeExtension,
+        extension = extension,
     )
 
 /**
