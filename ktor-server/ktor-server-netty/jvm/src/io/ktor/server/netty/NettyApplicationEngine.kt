@@ -73,8 +73,9 @@ public class NettyApplicationEngine(
         public var runningLimit: Int = 32
 
         /**
-         * All tasks use a common event group, and call dispatchers wrap this event group without thread pinning.
-         * This setting reduces some overhead in scheduling at the expense of the safety provided by segregating the work and call groups.
+         * All tasks (accepting connections, I/O and calls) use a single common event group, and call dispatchers
+         * wrap this event group without thread pinning. The group size defaults to the greater value between
+         * [callGroupSize] and [workerGroupSize], which resolves to [parallelism] when these values are not set.
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.netty.NettyApplicationEngine.Configuration.shareWorkGroup)
          */
@@ -243,7 +244,11 @@ public class NettyApplicationEngine(
      * [EventLoopGroupProxy] for accepting connections
      */
     private val connectionEventGroup: EventLoopGroup by lazy {
-        customBootstrap.config().group() ?: EventLoopGroupProxy.create(configuration.connectionGroupSize)
+        customBootstrap.config().group() ?: if (configuration.shareWorkGroup) {
+            workerEventGroup
+        } else {
+            EventLoopGroupProxy.create(configuration.connectionGroupSize)
+        }
     }
 
     /**
@@ -254,7 +259,7 @@ public class NettyApplicationEngine(
             return@lazy it
         }
         if (configuration.shareWorkGroup) {
-            EventLoopGroupProxy.create(configuration.workerGroupSize + configuration.callGroupSize)
+            EventLoopGroupProxy.create(maxOf(configuration.callGroupSize, configuration.workerGroupSize))
         } else {
             EventLoopGroupProxy.create(configuration.workerGroupSize)
         }
@@ -532,8 +537,10 @@ public class NettyApplicationEngine(
         withStopException {
             connectionEventGroup.shutdownGracefully().sync()
         }
-        withStopException {
-            callEventGroup.shutdownGracefully().sync()
+        if (callEventGroup !== connectionEventGroup) {
+            withStopException {
+                callEventGroup.shutdownGracefully().sync()
+            }
         }
     }
 
@@ -564,12 +571,14 @@ public class NettyApplicationEngine(
         var remainingTimeoutMillis = (timeoutMillis - channelsCloseTime).coerceAtLeast(100L)
 
         val connectionsShutdownTime = measureTimeMillis {
-            withStopException {
-                connectionEventGroup.shutdownGracefully(
-                    noQuietPeriod,
-                    remainingTimeoutMillis,
-                    TimeUnit.MILLISECONDS
-                ).sync()
+            if (connectionEventGroup !== workerEventGroup) {
+                withStopException {
+                    connectionEventGroup.shutdownGracefully(
+                        noQuietPeriod,
+                        remainingTimeoutMillis,
+                        TimeUnit.MILLISECONDS
+                    ).sync()
+                }
             }
         }
 
