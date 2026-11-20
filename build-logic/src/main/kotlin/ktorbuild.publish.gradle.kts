@@ -69,6 +69,11 @@ plugins.withId("ktorbuild.kmp") {
     }
 
     registerTargetsPublishTasks(ktorBuild.targets)
+    if (ktorBuild.targets.hasJvm) registerMavenDependencyConvergenceCheck("jvmRuntimeClasspath")
+}
+
+plugins.withId("org.jetbrains.kotlin.jvm") {
+    registerMavenDependencyConvergenceCheck("runtimeClasspath")
 }
 
 private fun Project.configureSigning(mavenPublishing: MavenPublishBaseExtension) {
