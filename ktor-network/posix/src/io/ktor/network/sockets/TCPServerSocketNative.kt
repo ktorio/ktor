@@ -30,10 +30,6 @@ internal class TCPServerSocketNative(
 
     private val closeFlag = atomic(false)
 
-    init {
-        signalIgnoreSigpipe()
-    }
-
     @Suppress("DUPLICATE_LABEL_IN_WHEN")
     override suspend fun accept(): Socket = memScoped {
         val clientAddress = alloc<sockaddr_storage>()

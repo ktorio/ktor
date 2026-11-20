@@ -176,10 +176,6 @@ internal actual fun nonBlocking(descriptor: Int): Int {
     }
 }
 
-internal actual fun signalIgnoreSigpipe() {
-    // Unsupported on Windows
-}
-
 @OptIn(ExperimentalForeignApi::class)
 internal actual fun ktor_send(socket: Int, buf: CValuesRef<ByteVar>?, len: Int, flags: Int): Int {
     return send(socket.convert(), buf, len, flags)
