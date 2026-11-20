@@ -97,6 +97,12 @@ internal fun Application.tlsTests() {
         get("/") {
             call.respondText("Hello, TLS!")
         }
+        get("/echo/headers") {
+            val headers = call.request.headers.entries().joinToString("\n") { (name, value) ->
+                "${name.lowercase()}: $value"
+            }
+            call.respondText(headers)
+        }
         route("websockets") {
             webSocket("echo") {
                 for (frame in incoming) {

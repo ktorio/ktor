@@ -64,7 +64,11 @@ public class AndroidClientEngine(override val config: AndroidEngineConfig) : Htt
             useCaches = false
             instanceFollowRedirects = false
 
-            data.forEachHeader(::addRequestProperty)
+            val secure = data.url.protocol.isSecure()
+            data.forEachHeader { key, value ->
+                if (secure && key.equals(HttpHeaders.ProxyAuthorization, ignoreCase = true)) return@forEachHeader
+                addRequestProperty(key, value)
+            }
 
             config.requestConfig(this)
 

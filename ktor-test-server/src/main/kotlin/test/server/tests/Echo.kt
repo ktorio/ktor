@@ -25,6 +25,11 @@ internal fun Application.echoTest() {
 
             route("/headers") {
                 handle {
+                    // Reading the body makes the server answer Expect: 100-continue before responding.
+                    // Other requests are left unread, since an h2c Upgrade request body never ends.
+                    if (call.request.headers.contains(HttpHeaders.Expect)) {
+                        call.receiveChannel().discard()
+                    }
                     val headers = call.request.headers.entries().joinToString("\n") { (name, value) ->
                         "${name.lowercase()}: $value"
                     }

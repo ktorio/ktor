@@ -60,10 +60,12 @@ internal fun ApacheRequestProducer(
 private fun setupRequest(requestData: HttpRequestData, config: Apache5EngineConfig): HttpRequest = with(requestData) {
     val request = ConfigurableHttpRequest(method.value, url.toURI())
 
+    val secure = url.protocol.isSecure()
     mergeHeaders(headers, body) { key, value ->
-        when (key) {
-            HttpHeaders.ContentLength -> {}
-            HttpHeaders.ContentType -> {}
+        when {
+            key == HttpHeaders.ContentLength -> {}
+            key == HttpHeaders.ContentType -> {}
+            secure && key.equals(HttpHeaders.ProxyAuthorization, ignoreCase = true) -> {}
             else -> request.addHeader(key, value)
         }
     }

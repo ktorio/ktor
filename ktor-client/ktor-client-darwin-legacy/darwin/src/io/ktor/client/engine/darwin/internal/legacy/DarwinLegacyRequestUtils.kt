@@ -5,6 +5,7 @@
 package io.ktor.client.engine.darwin.internal.legacy
 
 import io.ktor.client.request.*
+import io.ktor.http.*
 import io.ktor.utils.io.*
 import kotlinx.cinterop.UnsafeNumber
 import platform.Foundation.*
@@ -19,7 +20,11 @@ internal suspend fun HttpRequestData.toNSUrlRequest(): NSMutableURLRequest {
             setHTTPBody(it)
         }
 
-        forEachHeader { key, value -> setValue(value, key) }
+        val secure = this@toNSUrlRequest.url.protocol.isSecure()
+        forEachHeader { key, value ->
+            if (secure && key.equals(HttpHeaders.ProxyAuthorization, ignoreCase = true)) return@forEachHeader
+            setValue(value, key)
+        }
 
         setCachePolicy(NSURLRequestReloadIgnoringCacheData)
         setHTTPMethod(method.value)
