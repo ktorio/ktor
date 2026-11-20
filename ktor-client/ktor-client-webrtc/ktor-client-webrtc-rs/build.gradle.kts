@@ -36,6 +36,14 @@ cargo {
 kotlin {
     jvmToolchain(17)
 
+    compilerOptions {
+        optIn.addAll(
+            "io.ktor.client.webrtc.InternalKtorWebRtcSubclassing",
+            "io.ktor.utils.io.InternalAPI",
+            "io.ktor.utils.io.ExperimentalKtorApi",
+        )
+    }
+
     sourceSets {
         commonMain.dependencies {
             api(projects.ktorClientWebrtc)

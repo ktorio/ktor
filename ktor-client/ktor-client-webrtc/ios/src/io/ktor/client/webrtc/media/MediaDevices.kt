@@ -89,7 +89,6 @@ private const val GOOG_NOISE_SUPPRESSION = "googNoiseSuppression"
  * @param videoCapturerFactory Factory for creating video capturer instances.
  *                            Defaults to platform-specific implementation
  */
-@OptIn(InternalAPI::class)
 public class IosMediaDevices(
     private val videoCapturerFactory: VideoCapturerFactory = defaultVideoCapturerFactory()
 ) : MediaTrackFactory {

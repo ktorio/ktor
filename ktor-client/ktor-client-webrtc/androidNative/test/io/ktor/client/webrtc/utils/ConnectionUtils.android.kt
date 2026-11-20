@@ -5,9 +5,7 @@
 package io.ktor.client.webrtc.utils
 
 import io.ktor.client.webrtc.*
-import io.ktor.utils.io.ExperimentalKtorApi
 
-@OptIn(ExperimentalKtorApi::class)
 actual fun createTestWebRtcClient(): WebRtcClient {
     TODO("There are no Android Native WebRTC clients now.")
 }

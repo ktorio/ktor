@@ -29,15 +29,18 @@ public class AndroidWebRtcEngineConfig : WebRtcConfig() {
 
 public class AndroidWebRtcEngine(
     override val config: AndroidWebRtcEngineConfig,
-    private val mediaTrackFactory: MediaTrackFactory = config.mediaTrackFactory
-        ?: AndroidMediaDevices(config.context ?: error("Context is required for AndroidWebRtcEngine"))
+    private val mediaTrackFactory: MediaTrackFactory = config.mediaTrackFactory ?: run {
+        val context = requireNotNull(config.context) { "Context is required for AndroidWebRtcEngine" }
+        AndroidMediaDevices(context)
+    }
 ) : WebRtcEngineBase("android-webrtc", config),
     MediaTrackFactory by mediaTrackFactory {
 
     private val localFactory: PeerConnectionFactory
         get() = config.rtcFactory
-            ?: (mediaTrackFactory as? AndroidMediaDevices)?.peerConnectionFactory
-            ?: error("Please specify custom rtcFactory for custom MediaTrackFactory")
+            ?: requireNotNull((mediaTrackFactory as? AndroidMediaDevices)?.peerConnectionFactory) {
+                "Please specify custom rtcFactory for custom MediaTrackFactory"
+            }
 
     private fun WebRtc.IceServer.toNative(): PeerConnection.IceServer {
         return PeerConnection.IceServer

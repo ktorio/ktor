@@ -36,8 +36,9 @@ public class JvmWebRtcEngine(
 
     private val localFactory: PeerConnectionFactory
         get() = config.rtcFactory
-            ?: (mediaTrackFactory as? JvmMediaDevices)?.peerConnectionFactory
-            ?: error("Provide `JvmWebRtcEngineConfig.rtcFactory` when mediaTrackFactory is not `JvmMediaDevices`.")
+            ?: requireNotNull((mediaTrackFactory as? JvmMediaDevices)?.peerConnectionFactory) {
+                "Provide `JvmWebRtcEngineConfig.rtcFactory` when mediaTrackFactory is not `JvmMediaDevices`."
+            }
 
     override suspend fun createPeerConnection(config: WebRtcConnectionConfig): WebRtcPeerConnection {
         require(config.iceCandidatePoolSize <= 0) {

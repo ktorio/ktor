@@ -167,6 +167,7 @@ public interface WebRtcEngine : AutoCloseable, MediaTrackFactory {
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcEngineClosedException)
  */
+@Deprecated("WebRtcEngine is no longer closed with this exception. Handle CancellationException instead.")
 public class WebRtcEngineClosedException : CancellationException("WebRtc engine is closed.")
 
 /**
@@ -178,6 +179,7 @@ public class WebRtcEngineClosedException : CancellationException("WebRtc engine 
  *
  * @param engineName Name identifier for the engine, used in coroutine naming.
  */
+@SubclassOptInRequired(InternalKtorWebRtcSubclassing::class)
 public abstract class WebRtcEngineBase(
     private val engineName: String,
     configuration: WebRtcConfig
@@ -198,6 +200,7 @@ public abstract class WebRtcEngineBase(
     }
 
     override fun close() {
-        parentJob.cancel(WebRtcEngineClosedException())
+        val cause = CancellationException("WebRtc engine is closed.")
+        parentJob.cancel(cause)
     }
 }

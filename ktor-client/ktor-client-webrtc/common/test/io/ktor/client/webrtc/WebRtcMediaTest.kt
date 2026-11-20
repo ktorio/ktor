@@ -7,7 +7,6 @@ import kotlinx.coroutines.withTimeout
 import kotlin.test.*
 import kotlin.time.Duration.Companion.seconds
 
-@OptIn(ExperimentalKtorApi::class)
 class WebRtcMediaTest {
 
     private lateinit var client: WebRtcClient
