@@ -106,8 +106,6 @@ private fun toUpperCasePreservingASCII(ch: Char): Char = when (ch) {
     else -> ch.lowercaseChar()
 }
 
-internal fun String.caseInsensitive(): CaseInsensitiveString = CaseInsensitiveString(this)
-
 internal class CaseInsensitiveString(val content: String) {
     private val hash: Int
 

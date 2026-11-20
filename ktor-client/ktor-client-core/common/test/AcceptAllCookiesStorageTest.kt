@@ -101,6 +101,15 @@ class AcceptAllCookiesStorageTest {
     }
 
     @Test
+    fun testMatchesHostsThatAreNotValidDomainNames() = runTest {
+        val storage = AcceptAllCookiesStorage()
+        val cookie = Cookie(name = "name", value = "value", domain = "my_service", path = "/")
+        storage.addCookie(Url("http://my_service/"), cookie)
+
+        assertEquals("value", storage.get(Url("http://MY_SERVICE/")).singleOrNull()?.value)
+    }
+
+    @Test
     fun testRejectedCookieDoesNotReplaceExistingCookie() = runTest {
         val storage = AcceptAllCookiesStorage()
         val victimUrl = Url("https://victim.com/")
