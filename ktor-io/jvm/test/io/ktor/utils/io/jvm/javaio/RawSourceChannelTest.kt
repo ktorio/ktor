@@ -232,6 +232,38 @@ class RawSourceChannelTest {
             channel.job.cancel()
         }
     }
+
+    @Test
+    fun `awaitContent completes when caller coroutine is cancelled on blocking stream`() {
+        val closeLatch = CountDownLatch(1)
+
+        val blockingInput = object : java.io.InputStream() {
+            override fun read(): Int {
+                closeLatch.await()
+                return -1
+            }
+
+            override fun close() {
+                closeLatch.countDown()
+            }
+        }
+
+        val channel = blockingInput.toByteReadChannel()
+
+        runBlocking {
+            val job = launch(Dispatchers.IO) {
+                channel.readFully(ByteArray(1024))
+            }
+
+            Thread.sleep(500)
+
+            job.cancel()
+
+            withTimeout(5000) {
+                job.join()
+            }
+        }
+    }
 }
 
 /** Runs [block] and releases its resources on completion or cancellation. */
