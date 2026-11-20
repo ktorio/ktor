@@ -263,6 +263,30 @@ class DarwinEngineTest : ClientEngineTest<DarwinClientEngineConfig>(Darwin) {
         }
     }
 
+    @OptIn(UnsafeNumber::class, ExperimentalForeignApi::class)
+    @Test
+    fun `Proxy-Authorization is not sent over HTTPS`() = testClient {
+        config {
+            engine {
+                handleChallenge { _, _, challenge, completionHandler ->
+                    trustAnyCertificate(challenge, completionHandler)
+                }
+            }
+        }
+
+        test { client ->
+            for (name in listOf(HttpHeaders.ProxyAuthorization, "proxy-authorization")) {
+                val response = client.get("https://localhost:8089/echo/headers") {
+                    header(name, "Basic secret")
+                }
+                assertEquals(HttpStatusCode.OK, response.status)
+                val headers = response.bodyAsText()
+
+                assertFalse("proxy-authorization" in headers, "$name was sent to the origin server:\n$headers")
+            }
+        }
+    }
+
     @OptIn(UnsafeNumber::class)
     @Test
     fun testRethrowExceptionThrownDuringCustomChallenge() = runBlocking {

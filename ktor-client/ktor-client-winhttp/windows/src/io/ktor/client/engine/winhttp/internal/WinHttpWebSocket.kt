@@ -22,6 +22,9 @@ import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
+// The WebSocket protocol limit in bytes of UTF-8
+private const val MAX_CLOSE_REASON_LENGTH = 123
+
 private object WinHttpWebSocketBuffer {
     val BinaryMessage = WINHTTP_WEB_SOCKET_BINARY_MESSAGE_BUFFER_TYPE
     val BinaryFragment = WINHTTP_WEB_SOCKET_BINARY_FRAGMENT_BUFFER_TYPE
@@ -245,15 +248,15 @@ internal class WinHttpWebSocket(
         if (closed.value) return@memScoped
 
         val status = alloc<UShortVar>()
-        val reason = allocArray<ShortVar>(123)
+        val reason = allocArray<ByteVar>(MAX_CLOSE_REASON_LENGTH)
         val reasonLengthConsumed = alloc<UIntVar>()
 
         try {
             if (WinHttpWebSocketQueryCloseStatus(
                     hWebSocket,
                     status.ptr,
-                    null,
-                    0.convert(),
+                    reason,
+                    MAX_CLOSE_REASON_LENGTH.convert(),
                     reasonLengthConsumed.ptr
                 ) != 0u
             ) {
@@ -264,7 +267,7 @@ internal class WinHttpWebSocket(
                 Frame.Close(
                     CloseReason(
                         code = status.value.convert<Short>(),
-                        message = reason.toKStringFromUtf16()
+                        message = reason.readBytes(reasonLengthConsumed.value.toInt()).decodeToString()
                     )
                 )
             )

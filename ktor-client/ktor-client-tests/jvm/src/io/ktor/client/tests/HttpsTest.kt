@@ -7,8 +7,10 @@ package io.ktor.client.tests
 import io.ktor.client.call.*
 import io.ktor.client.engine.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.client.test.base.*
 import io.ktor.client.tests.utils.*
+import io.ktor.http.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import kotlinx.io.IOException
@@ -19,6 +21,7 @@ import javax.net.ssl.X509TrustManager
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 
 abstract class HttpsTest<T : HttpClientEngineConfig>(
     private val factory: HttpClientEngineFactory<T>
@@ -51,8 +54,29 @@ abstract class HttpsTest<T : HttpClientEngineConfig>(
 
         test { client ->
             val first = client.get("https://localhost:8089/")
-            assertEquals("Hello, TLS!", first.body())
-            assertEquals("TLS test server", first.headers["X-Comment"])
+            assertEquals("Hello, world!", first.body())
+        }
+    }
+
+    @Test
+    fun `test Proxy-Authorization is not sent through the tunnel`() = testWithEngine(factory) {
+        config {
+            engine {
+                proxy = ProxyBuilder.http(TCP_SERVER)
+                disableCertificatePinning()
+            }
+        }
+
+        test { client ->
+            for (name in listOf(HttpHeaders.ProxyAuthorization, "proxy-authorization")) {
+                val response = client.get("https://localhost:8089/echo/headers") {
+                    header(name, "Basic secret")
+                }
+                assertEquals(HttpStatusCode.OK, response.status)
+                val headers = response.bodyAsText()
+
+                assertFalse("proxy-authorization" in headers, "$name was sent to the origin server:\n$headers")
+            }
         }
     }
 

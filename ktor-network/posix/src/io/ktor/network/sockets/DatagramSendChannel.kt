@@ -9,11 +9,18 @@ import io.ktor.network.util.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.errors.*
 import io.ktor.utils.io.pool.*
-import kotlinx.cinterop.*
-import kotlinx.coroutines.*
-import kotlinx.io.*
+import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.addressOf
+import kotlinx.cinterop.convert
+import kotlinx.cinterop.usePinned
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
+import kotlinx.coroutines.withContext
 import kotlinx.io.IOException
-import kotlinx.io.unsafe.*
+import kotlinx.io.InternalIoApi
+import kotlinx.io.UnsafeIoApi
+import kotlinx.io.readTo
+import kotlinx.io.unsafe.UnsafeBufferOperations
 
 internal class DatagramSendChannel(
     private val descriptor: Int,
@@ -23,6 +30,21 @@ internal class DatagramSendChannel(
     @OptIn(InternalIoApi::class, UnsafeIoApi::class)
     override fun trySendImpl(element: Datagram): Boolean {
         val packetSize = element.packet.remaining
+        if (packetSize == 0L) {
+            return DefaultDatagramByteArrayPool.useInstance { buffer ->
+                val bytesWritten = sendto(element, buffer, 0, 0)
+                if (bytesWritten == -1) {
+                    val error = getSocketError()
+                    if (isWouldBlockError(error)) {
+                        false
+                    } else {
+                        throw PosixException.forSocketError(error)
+                    }
+                } else {
+                    true
+                }
+            }
+        }
         var writeWithPool = false
         UnsafeBufferOperations.readFromHead(element.packet.buffer) { bytes, startIndex, endIndex ->
             val length = endIndex - startIndex
@@ -81,6 +103,12 @@ internal class DatagramSendChannel(
     override suspend fun sendImpl(element: Datagram) {
         withContext(Dispatchers.IO) {
             val packetSize = element.packet.remaining
+            if (packetSize == 0L) {
+                DefaultDatagramByteArrayPool.useInstance { buffer ->
+                    sendSuspend(element, buffer, 0, 0)
+                }
+                return@withContext
+            }
             var writeWithPool = false
             UnsafeBufferOperations.readFromHead(element.packet.buffer) { bytes, startIndex, endIndex ->
                 val length = endIndex - startIndex
@@ -141,7 +169,11 @@ internal class DatagramSendChannel(
         val bytesWritten: Int = sendto(datagram, buffer, offset, length)
 
         when (bytesWritten) {
-            0 -> throw IOException("Failed writing to closed socket")
+            0 -> {
+                if (length != 0) {
+                    throw IOException("Failed writing to closed socket")
+                }
+            }
 
             -1 -> {
                 val error = getSocketError()

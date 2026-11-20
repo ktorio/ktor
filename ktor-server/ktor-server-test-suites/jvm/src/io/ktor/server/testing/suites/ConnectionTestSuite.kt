@@ -54,6 +54,7 @@ abstract class ConnectionTestSuite(val engine: ApplicationEngineFactory<*, *>) {
         val server = embeddedServer(
             factory = engine,
             configure = {
+                connector { port = 0 }
                 shutdownGracePeriod = shutdownGracePeriodValue
             }
         )
@@ -64,7 +65,9 @@ abstract class ConnectionTestSuite(val engine: ApplicationEngineFactory<*, *>) {
         GlobalScope.launch {
             server.start(true)
         }
-        serverStarted.join()
+        withTimeout(15000) {
+            serverStarted.join()
+        }
 
         val time = measureTimeMillis {
             server.stop()

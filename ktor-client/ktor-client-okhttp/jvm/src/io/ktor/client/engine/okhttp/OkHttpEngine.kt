@@ -214,7 +214,11 @@ private fun HttpRequestData.convertToOkHttpRequest(callContext: CoroutineContext
     with(builder) {
         url(url.toString())
 
-        forEachHeader(::addHeader)
+        val secure = url.protocol.isSecure()
+        forEachHeader { key, value ->
+            if (secure && key.equals(HttpHeaders.ProxyAuthorization, ignoreCase = true)) return@forEachHeader
+            addHeader(key, value)
+        }
 
         val bodyBytes = if (HttpMethod.permitsRequestBody(method.value)) {
             body.convertToOkHttpBody(callContext, config)

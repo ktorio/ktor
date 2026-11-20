@@ -25,8 +25,24 @@ internal class CIORequestLineTest {
     @Test
     fun `use encoded path in absolute-form request target`() = runTest {
         assertEquals(
-            "GET https://assets.example.org/library/annual%E2%80%93review/cover-image.webp HTTP/1.1",
-            requestLine("https://assets.example.org/library/annual–review/cover-image.webp", overProxy = true)
+            "GET http://assets.example.org/library/annual%E2%80%93review/cover-image.webp HTTP/1.1",
+            requestLine("http://assets.example.org/library/annual–review/cover-image.webp", overProxy = true)
+        )
+    }
+
+    @Test
+    fun `use origin-form request target through the HTTPS tunnel`() = runTest {
+        assertEquals(
+            "GET /path?query=1 HTTP/1.1",
+            requestLine("https://example.org:8443/path?query=1", overProxy = true)
+        )
+    }
+
+    @Test
+    fun `use absolute-form request target for an HTTP proxy`() = runTest {
+        assertEquals(
+            "GET http://example.org:8080/path?query=1 HTTP/1.1",
+            requestLine("http://example.org:8080/path?query=1", overProxy = true)
         )
     }
 

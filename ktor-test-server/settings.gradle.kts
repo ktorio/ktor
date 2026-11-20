@@ -22,9 +22,11 @@ plugins {
 dependencyResolutionManagement {
     versionCatalogs {
         create("ktorLibs") {
-            from("io.ktor:ktor-version-catalog:3.5.0-eap-1620")
+            from("io.ktor:ktor-version-catalog:3.6.1")
         }
     }
 }
 
 rootProject.name = "ktor-test-server"
+
+include("server")

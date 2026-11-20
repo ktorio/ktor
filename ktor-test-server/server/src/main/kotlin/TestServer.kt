@@ -8,8 +8,8 @@ import io.ktor.network.tls.certificates.*
 import io.ktor.server.application.*
 import io.ktor.server.cio.*
 import io.ktor.server.engine.*
-import io.ktor.server.jetty.jakarta.*
 import io.ktor.server.netty.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import test.server.tests.socksServerHandler
 import test.server.tests.tcpServerHandler
@@ -29,8 +29,7 @@ internal fun startServer(scope: CoroutineScope, verbose: Boolean) {
 
     val servers = listOf(
         embeddedServer(CIO, DEFAULT_PORT, module = { tests(verbose) }),
-        setupHttp2Server(HTTP2_SERVER_PORT, module = { tests(verbose) }),
-        setupTLSServer(DEFAULT_TLS_PORT, module = Application::tlsTests),
+        setupNettyServer(HTTP2_SERVER_PORT, DEFAULT_TLS_PORT, module = { tests(verbose) }),
     )
 
     scope.launch(CoroutineName("server-stopper")) {
@@ -47,40 +46,37 @@ internal fun startServer(scope: CoroutineScope, verbose: Boolean) {
     }
 }
 
-private fun setupTLSServer(
-    @Suppress("SameParameterValue") port: Int,
+/**
+ * Netty server running the same application on two connectors:
+ * - [plainPort]: HTTP/1.1 and HTTP/2 without TLS (h2c).
+ * - [tlsPort]: HTTP/1.1 and HTTP/2 over TLS (negotiated via ALPN), and HTTP/3 over UDP on the same port.
+ */
+@OptIn(ExperimentalKtorApi::class)
+@Suppress("SameParameterValue")
+private fun setupNettyServer(
+    plainPort: Int,
+    tlsPort: Int,
     module: suspend Application.() -> Unit,
 ): EmbeddedServer<*, *> {
     val file = File.createTempFile("server", "certificate")
     val testKeyStore = generateCertificate(file)
-    val tlsServer = embeddedServer(
-        factory = Jetty,
+    return embeddedServer(
+        factory = Netty,
         configure = {
+            connector { port = plainPort }
             sslConnector(
                 keyStore = testKeyStore,
                 keyAlias = "mykey",
                 keyStorePassword = { "changeit".toCharArray() },
                 privateKeyPassword = { "changeit".toCharArray() }
             ) {
-                this.port = port
-                this.keyStorePath = file
+                port = tlsPort
+                keyStorePath = file
             }
+            enableHttp2 = true
+            enableH2c = true
+            enableHttp3()
         },
         module = module,
     )
-
-    return tlsServer
 }
-
-private fun setupHttp2Server(
-    @Suppress("SameParameterValue") port: Int,
-    module: suspend Application.() -> Unit,
-): EmbeddedServer<*, *> = embeddedServer(
-    factory = Netty,
-    configure = {
-        connector { this.port = port }
-        enableHttp2 = true
-        enableH2c = true
-    },
-    module = module,
-)
