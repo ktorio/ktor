@@ -54,6 +54,11 @@ public final class io/ktor/server/application/ApplicationConfigExtensionsKt {
 	public static final fun getPort (Lio/ktor/server/config/ApplicationConfig;)I
 }
 
+public final class io/ktor/server/application/ApplicationCoroutineFailuresKt {
+	public static final fun handleCoroutineFailure (Lio/ktor/server/application/Application;Lkotlin/coroutines/CoroutineContext;Ljava/lang/Throwable;)Z
+	public static final fun setCoroutineFailureHandler (Lio/ktor/server/application/Application;Lkotlin/jvm/functions/Function2;)V
+}
+
 public abstract interface class io/ktor/server/application/ApplicationEnvironment {
 	public abstract fun getClassLoader ()Ljava/lang/ClassLoader;
 	public abstract fun getConfig ()Lio/ktor/server/config/ApplicationConfig;
@@ -624,6 +629,7 @@ public final class io/ktor/server/engine/DefaultTransformKt {
 
 public final class io/ktor/server/engine/DefaultUncaughtExceptionHandler : kotlinx/coroutines/CoroutineExceptionHandler {
 	public fun <init> (Lkotlin/jvm/functions/Function0;)V
+	public fun <init> (Lkotlin/jvm/functions/Function0;Lkotlin/jvm/functions/Function0;)V
 	public fun <init> (Lorg/slf4j/Logger;)V
 	public fun fold (Ljava/lang/Object;Lkotlin/jvm/functions/Function2;)Ljava/lang/Object;
 	public fun get (Lkotlin/coroutines/CoroutineContext$Key;)Lkotlin/coroutines/CoroutineContext$Element;

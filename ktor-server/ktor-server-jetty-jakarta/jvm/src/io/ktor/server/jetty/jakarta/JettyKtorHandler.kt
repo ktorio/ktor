@@ -49,7 +49,7 @@ internal class JettyKtorHandler(
     )
     private val dispatcher = executor.asCoroutineDispatcher()
     private val handlerContext: CoroutineContext = dispatcher +
-        DefaultUncaughtExceptionHandler(environment.log) +
+        DefaultUncaughtExceptionHandler({ environment.log }, applicationProvider) +
         JettyCallHandlerCoroutineName
 
     override fun destroy() {

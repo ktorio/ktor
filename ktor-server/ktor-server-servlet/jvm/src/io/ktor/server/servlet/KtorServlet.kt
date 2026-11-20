@@ -9,6 +9,7 @@ import io.ktor.server.engine.*
 import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.util.pipeline.*
+import io.ktor.utils.io.*
 import kotlinx.coroutines.*
 import org.slf4j.*
 import java.util.concurrent.CancellationException
@@ -47,10 +48,11 @@ public abstract class KtorServlet : HttpServlet(), CoroutineScope {
      */
     protected abstract val upgrade: ServletUpgrade
 
+    @OptIn(InternalAPI::class)
     override val coroutineContext: CoroutineContext = Dispatchers.Unconfined +
         SupervisorJob() +
         CoroutineName("servlet") +
-        DefaultUncaughtExceptionHandler { logger }
+        DefaultUncaughtExceptionHandler({ logger }, { application })
 
     /**
      * Called by the servlet container when loading the servlet (on load)

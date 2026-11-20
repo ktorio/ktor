@@ -1,0 +1,17 @@
+/*
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
+
+package io.ktor.server.application
+
+import kotlinx.coroutines.CoroutineName
+import kotlin.coroutines.CoroutineContext
+
+internal actual fun handleUnhandledCoroutineFailure(
+    application: Application,
+    context: CoroutineContext,
+    exception: Throwable,
+) {
+    val coroutineName = context[CoroutineName] ?: context.toString()
+    application.environment.log.error("Unhandled exception caught for $coroutineName", exception)
+}

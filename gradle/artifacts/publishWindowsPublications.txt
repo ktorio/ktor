@@ -155,6 +155,9 @@ io.ktor:ktor-server-di-mingwx64/sources.jar
 io.ktor:ktor-server-double-receive-mingwx64/.klib
 io.ktor:ktor-server-double-receive-mingwx64/javadoc.jar
 io.ktor:ktor-server-double-receive-mingwx64/sources.jar
+io.ktor:ktor-server-exception-boundaries-mingwx64/.klib
+io.ktor:ktor-server-exception-boundaries-mingwx64/javadoc.jar
+io.ktor:ktor-server-exception-boundaries-mingwx64/sources.jar
 io.ktor:ktor-server-forwarded-header-mingwx64/.klib
 io.ktor:ktor-server-forwarded-header-mingwx64/javadoc.jar
 io.ktor:ktor-server-forwarded-header-mingwx64/sources.jar

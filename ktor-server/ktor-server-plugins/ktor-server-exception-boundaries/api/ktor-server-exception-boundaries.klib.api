@@ -1,0 +1,27 @@
+// Klib ABI Dump
+// Targets: [androidNativeArm32, androidNativeArm64, androidNativeX64, androidNativeX86, iosArm64, iosSimulatorArm64, iosX64, js, linuxArm64, linuxX64, macosArm64, macosX64, mingwX64, tvosArm64, tvosSimulatorArm64, tvosX64, wasmJs, watchosArm32, watchosArm64, watchosDeviceArm64, watchosSimulatorArm64, watchosX64]
+// Rendering settings:
+// - Signature version: 2
+// - Show manifest properties: true
+// - Show declarations: true
+
+// Library unique name: <io.ktor:ktor-server-exception-boundaries>
+final class io.ktor.server.plugins.exceptionboundaries/ExceptionHandler // io.ktor.server.plugins.exceptionboundaries/ExceptionHandler|null[0]
+
+final class io.ktor.server.plugins.exceptionboundaries/ExceptionHandlerBuilder { // io.ktor.server.plugins.exceptionboundaries/ExceptionHandlerBuilder|null[0]
+    final fun <#A1: kotlin/Throwable> on(kotlin.reflect/KClass<#A1>, kotlin.coroutines/SuspendFunction2<io.ktor.server.routing/RoutingContext, #A1, kotlin/Unit>) // io.ktor.server.plugins.exceptionboundaries/ExceptionHandlerBuilder.on|on(kotlin.reflect.KClass<0:0>;kotlin.coroutines.SuspendFunction2<io.ktor.server.routing.RoutingContext,0:0,kotlin.Unit>){0§<kotlin.Throwable>}[0]
+    final fun <#A1: kotlin/Throwable> onCallCoroutineFailure(kotlin.reflect/KClass<#A1>, kotlin/Function2<#A1, kotlin.coroutines/CoroutineContext, kotlin/Unit>) // io.ktor.server.plugins.exceptionboundaries/ExceptionHandlerBuilder.onCallCoroutineFailure|onCallCoroutineFailure(kotlin.reflect.KClass<0:0>;kotlin.Function2<0:0,kotlin.coroutines.CoroutineContext,kotlin.Unit>){0§<kotlin.Throwable>}[0]
+    final inline fun <#A1: reified kotlin/Throwable> on(noinline kotlin.coroutines/SuspendFunction2<io.ktor.server.routing/RoutingContext, #A1, kotlin/Unit>) // io.ktor.server.plugins.exceptionboundaries/ExceptionHandlerBuilder.on|on(kotlin.coroutines.SuspendFunction2<io.ktor.server.routing.RoutingContext,0:0,kotlin.Unit>){0§<kotlin.Throwable>}[0]
+    final inline fun <#A1: reified kotlin/Throwable> onCallCoroutineFailure(noinline kotlin/Function2<#A1, kotlin.coroutines/CoroutineContext, kotlin/Unit>) // io.ktor.server.plugins.exceptionboundaries/ExceptionHandlerBuilder.onCallCoroutineFailure|onCallCoroutineFailure(kotlin.Function2<0:0,kotlin.coroutines.CoroutineContext,kotlin.Unit>){0§<kotlin.Throwable>}[0]
+}
+
+final class io.ktor.server.plugins.exceptionboundaries/GlobalExceptionBoundaryBuilder { // io.ktor.server.plugins.exceptionboundaries/GlobalExceptionBoundaryBuilder|null[0]
+    final fun <#A1: kotlin/Throwable> on(kotlin.reflect/KClass<#A1>, kotlin.coroutines/SuspendFunction2<io.ktor.server.routing/RoutingContext, #A1, kotlin/Unit>) // io.ktor.server.plugins.exceptionboundaries/GlobalExceptionBoundaryBuilder.on|on(kotlin.reflect.KClass<0:0>;kotlin.coroutines.SuspendFunction2<io.ktor.server.routing.RoutingContext,0:0,kotlin.Unit>){0§<kotlin.Throwable>}[0]
+    final fun <#A1: kotlin/Throwable> onApplicationCoroutineFailure(kotlin.reflect/KClass<#A1>, kotlin/Function2<#A1, kotlin.coroutines/CoroutineContext, kotlin/Unit>) // io.ktor.server.plugins.exceptionboundaries/GlobalExceptionBoundaryBuilder.onApplicationCoroutineFailure|onApplicationCoroutineFailure(kotlin.reflect.KClass<0:0>;kotlin.Function2<0:0,kotlin.coroutines.CoroutineContext,kotlin.Unit>){0§<kotlin.Throwable>}[0]
+    final inline fun <#A1: reified kotlin/Throwable> on(noinline kotlin.coroutines/SuspendFunction2<io.ktor.server.routing/RoutingContext, #A1, kotlin/Unit>) // io.ktor.server.plugins.exceptionboundaries/GlobalExceptionBoundaryBuilder.on|on(kotlin.coroutines.SuspendFunction2<io.ktor.server.routing.RoutingContext,0:0,kotlin.Unit>){0§<kotlin.Throwable>}[0]
+    final inline fun <#A1: reified kotlin/Throwable> onApplicationCoroutineFailure(noinline kotlin/Function2<#A1, kotlin.coroutines/CoroutineContext, kotlin/Unit>) // io.ktor.server.plugins.exceptionboundaries/GlobalExceptionBoundaryBuilder.onApplicationCoroutineFailure|onApplicationCoroutineFailure(kotlin.Function2<0:0,kotlin.coroutines.CoroutineContext,kotlin.Unit>){0§<kotlin.Throwable>}[0]
+}
+
+final fun (io.ktor.server.application/Application).io.ktor.server.plugins.exceptionboundaries/globalExceptionBoundary(kotlin/Boolean = ..., kotlin/Function1<io.ktor.server.plugins.exceptionboundaries/GlobalExceptionBoundaryBuilder, kotlin/Unit>) // io.ktor.server.plugins.exceptionboundaries/globalExceptionBoundary|globalExceptionBoundary@io.ktor.server.application.Application(kotlin.Boolean;kotlin.Function1<io.ktor.server.plugins.exceptionboundaries.GlobalExceptionBoundaryBuilder,kotlin.Unit>){}[0]
+final fun (io.ktor.server.routing/Route).io.ktor.server.plugins.exceptionboundaries/exceptionBoundary(kotlin/Array<out io.ktor.server.plugins.exceptionboundaries/ExceptionHandler>..., kotlin/Function1<io.ktor.server.routing/Route, kotlin/Unit>): io.ktor.server.routing/Route // io.ktor.server.plugins.exceptionboundaries/exceptionBoundary|exceptionBoundary@io.ktor.server.routing.Route(kotlin.Array<out|io.ktor.server.plugins.exceptionboundaries.ExceptionHandler>...;kotlin.Function1<io.ktor.server.routing.Route,kotlin.Unit>){}[0]
+final fun io.ktor.server.plugins.exceptionboundaries/exceptionHandler(kotlin/Boolean = ..., kotlin/Function1<io.ktor.server.plugins.exceptionboundaries/ExceptionHandlerBuilder, kotlin/Unit>): io.ktor.server.plugins.exceptionboundaries/ExceptionHandler // io.ktor.server.plugins.exceptionboundaries/exceptionHandler|exceptionHandler(kotlin.Boolean;kotlin.Function1<io.ktor.server.plugins.exceptionboundaries.ExceptionHandlerBuilder,kotlin.Unit>){}[0]
