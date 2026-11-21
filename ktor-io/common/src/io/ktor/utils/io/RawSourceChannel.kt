@@ -53,11 +53,12 @@ internal class RawSourceChannel(
             return buffer.remaining >= min
         }
 
-        // A blocking read ignores thread interruption, so close the source as soon as the
-        // caller is cancelled to abort the native read on platforms like Windows.
+        // A blocking read ignores thread interruption, so tear down the channel when the caller
+        // is cancelled: closing the source aborts the native read (e.g. on Windows), and
+        // cancelling the channel job prevents a parent scope from waiting on it forever.
         val callerJob = currentCoroutineContext()[Job]
         val cancellationHandler = callerJob?.invokeOnCompletion(onCancelling = true) { cause ->
-            closeSourceOnCancellation(cause.asCancellationException())
+            cancel(cause)
         }
 
         try {
