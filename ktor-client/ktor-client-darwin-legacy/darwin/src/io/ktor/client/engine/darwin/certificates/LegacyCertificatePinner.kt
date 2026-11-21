@@ -179,7 +179,8 @@ public data class LegacyCertificatePinner(
 
         val result = hasOnePinnedCertificate(certificates)
         if (result) {
-            completionHandler(NSURLSessionAuthChallengeUseCredential, challenge.proposedCredential)
+            val credential = NSURLCredential.credentialForTrust(trust)
+            completionHandler(NSURLSessionAuthChallengeUseCredential, credential)
         } else {
             val message = buildErrorMessage(certificates, hostname)
             println(message)
