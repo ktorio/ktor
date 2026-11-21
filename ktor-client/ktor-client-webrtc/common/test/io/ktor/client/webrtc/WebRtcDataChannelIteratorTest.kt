@@ -47,7 +47,10 @@ class WebRtcDataChannelIteratorTest {
         for (message in this@toList) add(message)
     }
 
-    private class TestWebRtcDataChannel : WebRtcDataChannel(DataChannelReceiveOptions()) {
+    private class TestWebRtcDataChannel : WebRtcDataChannel(
+        WebRtcConnectionEventsEmitter(WebRtcConnectionConfig()),
+        DataChannelReceiveOptions()
+    ) {
         override val id: Int? = null
         override val label: String = "test"
         override var state: WebRtc.DataChannel.State = WebRtc.DataChannel.State.OPEN

@@ -60,8 +60,9 @@ public class JsWebRtcPeerConnection(
         }
 
         connection.ondatachannel = eventHandler(coroutineScope) { event: RTCDataChannelEvent ->
-            val channel = JsWebRtcDataChannel(event.channel, coroutineScope, DataChannelReceiveOptions())
-            channel.setupEvents(events)
+            val receiveOptions = remoteDataChannelReceiveOptions()
+            val channel = JsWebRtcDataChannel(event.channel, coroutineScope, events, receiveOptions)
+            channel.setupEvents()
         }
 
         connection.onnegotiationneeded = eventHandler(coroutineScope) { events.emitNegotiationNeeded() }
@@ -85,17 +86,17 @@ public class JsWebRtcPeerConnection(
         label: String,
         options: WebRtcDataChannelOptions.() -> Unit
     ): WebRtcDataChannel {
-        return createDataChannelInternal(label, options).also { it.setupEvents(events) }
+        return createDataChannelInternal(label, options).also { it.setupEvents() }
     }
 
-    internal suspend fun createDataChannelInternal(
+    internal fun createDataChannelInternal(
         label: String,
         options: WebRtcDataChannelOptions.() -> Unit
     ): JsWebRtcDataChannel {
         val options = WebRtcDataChannelOptions().apply(options)
         val receiveOptions = DataChannelReceiveOptions().apply(options.receiveOptions)
         val nativeChannel = connection.createDataChannel(label, options.toJs())
-        return JsWebRtcDataChannel(nativeChannel, coroutineScope, receiveOptions)
+        return JsWebRtcDataChannel(nativeChannel, coroutineScope, events, receiveOptions)
     }
 
     override suspend fun setLocalDescription(description: WebRtc.SessionDescription): Unit =
