@@ -1,0 +1,27 @@
+public final class io/ktor/server/plugins/exceptionboundaries/ExceptionBoundaryKt {
+	public static final fun exceptionBoundary (Lio/ktor/server/routing/Route;[Lio/ktor/server/plugins/exceptionboundaries/ExceptionHandler;Lkotlin/jvm/functions/Function1;)Lio/ktor/server/routing/Route;
+}
+
+public final class io/ktor/server/plugins/exceptionboundaries/ExceptionHandler {
+}
+
+public final class io/ktor/server/plugins/exceptionboundaries/ExceptionHandlerBuilder {
+	public final fun on (Lkotlin/reflect/KClass;Lkotlin/jvm/functions/Function3;)V
+	public final fun onCallCoroutineFailure (Lkotlin/reflect/KClass;Lkotlin/jvm/functions/Function2;)V
+}
+
+public final class io/ktor/server/plugins/exceptionboundaries/ExceptionHandlerKt {
+	public static final fun exceptionHandler (ZLkotlin/jvm/functions/Function1;)Lio/ktor/server/plugins/exceptionboundaries/ExceptionHandler;
+	public static synthetic fun exceptionHandler$default (ZLkotlin/jvm/functions/Function1;ILjava/lang/Object;)Lio/ktor/server/plugins/exceptionboundaries/ExceptionHandler;
+}
+
+public final class io/ktor/server/plugins/exceptionboundaries/GlobalExceptionBoundaryBuilder {
+	public final fun on (Lkotlin/reflect/KClass;Lkotlin/jvm/functions/Function3;)V
+	public final fun onApplicationCoroutineFailure (Lkotlin/reflect/KClass;Lkotlin/jvm/functions/Function2;)V
+}
+
+public final class io/ktor/server/plugins/exceptionboundaries/GlobalExceptionBoundaryKt {
+	public static final fun globalExceptionBoundary (Lio/ktor/server/application/Application;ZLkotlin/jvm/functions/Function1;)V
+	public static synthetic fun globalExceptionBoundary$default (Lio/ktor/server/application/Application;ZLkotlin/jvm/functions/Function1;ILjava/lang/Object;)V
+}
+

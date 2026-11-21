@@ -306,6 +306,12 @@ io.ktor:ktor-server-double-receive-linuxarm64/sources.jar
 io.ktor:ktor-server-double-receive-linuxx64/.klib
 io.ktor:ktor-server-double-receive-linuxx64/javadoc.jar
 io.ktor:ktor-server-double-receive-linuxx64/sources.jar
+io.ktor:ktor-server-exception-boundaries-linuxarm64/.klib
+io.ktor:ktor-server-exception-boundaries-linuxarm64/javadoc.jar
+io.ktor:ktor-server-exception-boundaries-linuxarm64/sources.jar
+io.ktor:ktor-server-exception-boundaries-linuxx64/.klib
+io.ktor:ktor-server-exception-boundaries-linuxx64/javadoc.jar
+io.ktor:ktor-server-exception-boundaries-linuxx64/sources.jar
 io.ktor:ktor-server-forwarded-header-linuxarm64/.klib
 io.ktor:ktor-server-forwarded-header-linuxarm64/javadoc.jar
 io.ktor:ktor-server-forwarded-header-linuxarm64/sources.jar

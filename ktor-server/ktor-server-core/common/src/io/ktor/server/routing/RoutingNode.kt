@@ -285,17 +285,38 @@ public class RoutingContext(
 /**
  * Creates a [RoutingContext] for this routing call.
  *
+ * A [PipelineCall] that hasn't reached routing yet, for example one that failed in a plugin before routing,
+ * is wrapped into a call of the root route with no path parameters.
+ *
  * This function is intended for use by Ktor internal code only.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.routing.toRoutingContext)
  *
- * @throws IllegalStateException if this call is neither a [RoutingCall] nor a [RoutingPipelineCall].
+ * @throws IllegalStateException if this call is neither a [RoutingCall] nor a [PipelineCall].
  */
 @InternalAPI
 public fun ApplicationCall.toRoutingContext(): RoutingContext = when (this) {
     is RoutingCall -> RoutingContext(call = this)
     is RoutingPipelineCall -> RoutingContext(call = routingCall)
-    else -> error("Expected a routing call, but got ${this::class.simpleName}")
+    is PipelineCall -> RoutingContext(call = toRootRoutingCall())
+    else -> error("Expected a routing call or a pipeline call, but got ${this::class.simpleName}")
+}
+
+private fun PipelineCall.toRootRoutingCall(): RoutingCall {
+    val root = application.pluginOrNull(RoutingRoot) ?: RoutingNode(
+        parent = null,
+        selector = RootRouteSelector(application.rootPath),
+        developmentMode = application.developmentMode,
+        environment = application.environment
+    )
+    return RoutingPipelineCall(
+        this,
+        root,
+        coroutineContext,
+        request.pipelineToMerge(),
+        response.pipelineToMerge(),
+        Parameters.Empty
+    ).routingCall
 }
 
 /**

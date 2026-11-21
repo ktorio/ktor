@@ -9,6 +9,7 @@ import io.ktor.server.engine.*
 import io.ktor.util.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
@@ -134,7 +135,8 @@ public class Application internal constructor(
 
     public val engine: ApplicationEngine get() = engineProvider()
 
-    override val coroutineContext: CoroutineContext = parentCoroutineContext + applicationJob
+    override val coroutineContext: CoroutineContext = parentCoroutineContext + applicationJob +
+        ApplicationCoroutineExceptionHandler(this, parentCoroutineContext[CoroutineExceptionHandler])
 
     /**
      * Cancels the application job without waiting for join.

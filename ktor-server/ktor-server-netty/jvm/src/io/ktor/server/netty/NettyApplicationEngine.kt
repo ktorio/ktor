@@ -305,6 +305,7 @@ public class NettyApplicationEngine(
             .map { createHttp3Bootstrap(it, http3Configuration) }
     }
 
+    @OptIn(InternalAPI::class)
     private fun createBootstrap(connector: EngineConnectorConfig): ServerBootstrap {
         return customBootstrap.clone().apply {
             if (config().group() == null && config().childGroup() == null) {
@@ -318,7 +319,7 @@ public class NettyApplicationEngine(
             val userContext =
                 NettyApplicationCallHandler.CallHandlerCoroutineName +
                     NettyDispatcher +
-                    DefaultUncaughtExceptionHandler(environment.log)
+                    DefaultUncaughtExceptionHandler({ environment.log }, applicationProvider)
 
             childHandler(
                 NettyChannelInitializer(
@@ -422,6 +423,7 @@ public class NettyApplicationEngine(
     }
 
     @Suppress("UNCHECKED_CAST")
+    @OptIn(InternalAPI::class)
     private fun createHttp3Bootstrap(
         connector: EngineSSLConnectorConfig,
         http3Configuration: NettyHttp3Configuration
@@ -439,7 +441,7 @@ public class NettyApplicationEngine(
         val userContext =
             NettyApplicationCallHandler.CallHandlerCoroutineName +
                 NettyDispatcher +
-                DefaultUncaughtExceptionHandler(environment.log)
+                DefaultUncaughtExceptionHandler({ environment.log }, applicationProvider)
 
         return Bootstrap().apply {
             group(workerEventGroup)
