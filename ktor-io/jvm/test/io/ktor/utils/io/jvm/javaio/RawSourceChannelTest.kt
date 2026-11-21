@@ -235,10 +235,12 @@ class RawSourceChannelTest {
 
     @Test
     fun `awaitContent completes when caller coroutine is cancelled on blocking stream`() {
+        val readStarted = CountDownLatch(1)
         val closeLatch = CountDownLatch(1)
 
         val blockingInput = object : java.io.InputStream() {
             override fun read(): Int {
+                readStarted.countDown()
                 closeLatch.await()
                 return -1
             }
@@ -255,12 +257,17 @@ class RawSourceChannelTest {
                 channel.readFully(ByteArray(1024))
             }
 
-            Thread.sleep(500)
+            readStarted.await()
 
             job.cancel()
 
-            withTimeout(5000) {
-                job.join()
+            try {
+                withTimeout(5000) {
+                    job.join()
+                }
+            } finally {
+                // Release the reader so a broken cancellation fails the test instead of hanging it.
+                blockingInput.close()
             }
         }
     }
