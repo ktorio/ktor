@@ -14,6 +14,7 @@ import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
+import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.seconds
 
 class EncodersJvmTest {
@@ -43,6 +44,38 @@ class EncodersJvmTest {
         val decoded = Deflate.decodeBytes(compressed)
 
         assertContentEquals(bytes, decoded)
+    }
+
+    @Test
+    fun `gzip decode cancels the source when the decoded channel is cancelled`() = runTest(timeout = 1.seconds) {
+        val source = ByteChannel()
+        GZip.decode(source, currentCoroutineContext()).cancel()
+        assertTrue(source.isClosedForRead)
+    }
+
+    @Test
+    fun `deflate decode cancels the source when the decoded channel is cancelled`() = runTest(timeout = 1.seconds) {
+        val source = ByteChannel()
+        Deflate.decode(source, currentCoroutineContext()).cancel()
+        assertTrue(source.isClosedForRead)
+    }
+
+    @Test
+    fun `gzip decode cancels the source when the input is malformed`() = runTest(timeout = 1.seconds) {
+        val source = ByteChannel()
+        source.writeFully(ByteArray(10))
+        source.flush()
+        val decoded = GZip.decode(source, currentCoroutineContext())
+
+        assertFails { decoded.readBuffer().readByteArray() }
+        assertTrue(source.isClosedForRead)
+    }
+
+    @Test
+    fun `deflated cancels the source when the compressed channel is cancelled`() = runTest(timeout = 1.seconds) {
+        val source = ByteChannel()
+        (source as ByteReadChannel).deflated(coroutineContext = currentCoroutineContext()).cancel()
+        assertTrue(source.isClosedForRead)
     }
 }
 

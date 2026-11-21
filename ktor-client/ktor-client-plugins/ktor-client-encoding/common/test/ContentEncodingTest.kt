@@ -8,6 +8,7 @@ import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.test.base.*
 import io.ktor.http.*
+import kotlin.time.Duration.Companion.seconds
 import kotlin.test.*
 
 private const val TEST_URL = "$TEST_SERVER/compression"
@@ -61,6 +62,20 @@ class ContentEncodingTest : ClientLoader() {
             assertNull(response.headers[HttpHeaders.ContentEncoding])
             assertEquals(listOf("gzip"), response.appliedDecoders)
             assertEquals("Compressed response!", response.body<String>())
+        }
+    }
+
+    @Test
+    fun testGZipBodyNotRead() = clientTests(timeout = 10.seconds) {
+        config {
+            ContentEncoding {
+                gzip()
+            }
+        }
+
+        test { client ->
+            val status = client.prepareGet("$TEST_URL/gzip").execute { it.status }
+            assertEquals(HttpStatusCode.OK, status)
         }
     }
 
