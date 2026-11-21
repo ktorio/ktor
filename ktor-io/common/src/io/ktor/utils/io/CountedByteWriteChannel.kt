@@ -33,7 +33,13 @@ public class CountedByteWriteChannel(private val delegate: ByteWriteChannel) : B
     override suspend fun flush() {
         flushedCount += writeBuffer.size
         delegate.flush()
-        initial = writeBuffer.size
+        initial = try {
+            writeBuffer.size
+        } catch (_: ClosedWriteChannelException) {
+            // The reader closed the channel while the flush was suspended, so nothing more can be written.
+            // (We expect writeBuffer.size to be 0 after flush anyway.)
+            0
+        }
     }
 
     override suspend fun flushAndClose() {
