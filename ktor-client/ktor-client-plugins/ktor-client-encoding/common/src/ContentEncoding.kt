@@ -15,8 +15,27 @@ import io.ktor.util.*
 import io.ktor.util.logging.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.*
+import kotlinx.io.IOException
+import kotlin.coroutines.CoroutineContext
 
 private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.compression.ContentEncoding")
+
+/**
+ * Default maximum number of chained content encodings allowed in a `Content-Encoding` response header.
+ *
+ * Helps mitigate "decompression bomb" attacks where a small response chains many
+ * encodings to expand into a huge payload.
+ */
+internal const val DEFAULT_MAX_ENCODING_CHAIN_LENGTH: Int = 2
+
+/**
+ * Default maximum size, in bytes, of decompressed response content. Defaults to -1 (disabled).
+ *
+ * Helps mitigate "decompression bomb" attacks where a small compressed body
+ * decompresses to a huge payload.
+ */
+internal const val DEFAULT_MAX_DECODED_CONTENT_LENGTH: Long = -1
 
 /**
  * A configuration for the [ContentEncoding] plugin.
@@ -37,6 +56,32 @@ public class ContentEncodingConfig {
     internal val qualityValues: MutableMap<String, Float> = CaseInsensitiveMap()
 
     public var mode: Mode = Mode.DecompressResponse
+
+    /**
+     * The maximum number of chained content encodings that will be decoded automatically.
+     *
+     * Responses whose `Content-Encoding` header lists more than this number of codecs will fail
+     * with a [ContentEncodingChainTooLongException]. This protects against "decompression bomb"
+     * attacks where a small response chains many encodings to expand into a huge payload.
+     *
+     * Set to a non-positive value to disable the chain length check. Defaults to `2`.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.compression.ContentEncodingConfig.maxEncodingChainLength)
+     */
+    public var maxEncodingChainLength: Int = DEFAULT_MAX_ENCODING_CHAIN_LENGTH
+
+    /**
+     * The maximum size (in bytes) of the decoded response body.
+     *
+     * If decompression produces more than this number of bytes, reading the body fails with a
+     * [DecodedContentTooLargeException] and the underlying channel is cancelled. This protects
+     * against "decompression bomb" attacks where a small compressed body decompresses to a huge payload.
+     *
+     * Set to a non-positive value to disable the size cap. Defaults to `-1` (disabled).
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.compression.ContentEncodingConfig.maxDecodedContentLength)
+     */
+    public var maxDecodedContentLength: Long = DEFAULT_MAX_DECODED_CONTENT_LENGTH
 
     /**
      * Installs the `gzip` encoder.
@@ -109,6 +154,8 @@ public val ContentEncoding: ClientPlugin<ContentEncodingConfig> = createClientPl
     val encoders: Map<String, ContentEncoder> = pluginConfig.encoders
     val qualityValues: Map<String, Float> = pluginConfig.qualityValues
     val mode = pluginConfig.mode
+    val maxEncodingChainLength = pluginConfig.maxEncodingChainLength
+    val maxDecodedContentLength = pluginConfig.maxDecodedContentLength
 
     val requestHeader = buildString {
         for (encoder in encoders.values) {
@@ -131,6 +178,10 @@ public val ContentEncoding: ClientPlugin<ContentEncodingConfig> = createClientPl
             current = encoder.decode(current, coroutineContext)
         }
 
+        if (maxDecodedContentLength > 0) {
+            current = current.limitDecodedSize(maxDecodedContentLength, coroutineContext)
+        }
+
         return current
     }
 
@@ -139,6 +190,14 @@ public val ContentEncoding: ClientPlugin<ContentEncodingConfig> = createClientPl
         val contentEncodingHeader = response.headers[HttpHeaders.ContentEncoding]
             ?: error("${HttpHeaders.ContentEncoding} unavailable")
         val encodings = contentEncodingHeader.split(",").map { it.trim().lowercase() }
+
+        if (maxEncodingChainLength > 0 && encodings.size > maxEncodingChainLength) {
+            LOGGER.trace {
+                "Rejecting decompression for ${response.call.request.url} because the Content-Encoding chain " +
+                    "of length ${encodings.size} exceeds the configured limit of $maxEncodingChainLength."
+            }
+            throw ContentEncodingChainTooLongException(encodings.size, maxEncodingChainLength)
+        }
 
         val selectedEncoders = encodings.asReversed().map { encoding ->
             encoders[encoding] ?: throw UnsupportedContentEncodingException(encoding)
@@ -255,6 +314,67 @@ public fun HttpClientConfig<*>.ContentEncoding(
 
 public class UnsupportedContentEncodingException(encoding: String) :
     IllegalStateException("Content-Encoding: $encoding unsupported.")
+
+/**
+ * Thrown when the `Content-Encoding` header of a response lists more codecs than
+ * [ContentEncodingConfig.maxEncodingChainLength] allows.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.compression.ContentEncodingChainTooLongException)
+ *
+ * @param chainLength the number of encodings present in the response
+ * @param limit the configured maximum chain length
+ */
+public class ContentEncodingChainTooLongException(chainLength: Int, limit: Int) : IllegalStateException(
+    "Content-Encoding chain of length $chainLength exceeds the configured limit of $limit. " +
+        "This may indicate a decompression bomb."
+)
+
+/**
+ * Thrown while reading a response body when the decoded content exceeds
+ * [ContentEncodingConfig.maxDecodedContentLength] bytes.
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.compression.DecodedContentTooLargeException)
+ *
+ * @param limit the configured maximum decoded content length in bytes
+ */
+@OptIn(ExperimentalCoroutinesApi::class)
+public class DecodedContentTooLargeException(
+    private val limit: Long
+) : IOException(
+    "Decoded content exceeds the configured limit of $limit bytes. This may indicate a decompression bomb."
+),
+    CopyableThrowable<DecodedContentTooLargeException> {
+
+    override fun createCopy(): DecodedContentTooLargeException = DecodedContentTooLargeException(limit)
+}
+
+/**
+ * Wraps this [ByteReadChannel] so that reading more than [limit] bytes from it fails with a
+ * [DecodedContentTooLargeException] and cancels the source channel.
+ */
+internal fun ByteReadChannel.limitDecodedSize(
+    limit: Long,
+    coroutineContext: CoroutineContext,
+): ByteReadChannel {
+    val source = this
+    return CoroutineScope(coroutineContext).writer(coroutineContext) {
+        val buffer = ByteArray(8192)
+        var total = 0L
+        try {
+            while (true) {
+                val read = source.readAvailable(buffer, 0, buffer.size)
+                if (read == -1) break
+                total += read
+                if (total > limit) throw DecodedContentTooLargeException(limit)
+                channel.writeFully(buffer, 0, read)
+                channel.flush()
+            }
+        } catch (cause: Throwable) {
+            source.cancel(cause)
+            throw cause
+        }
+    }.channel
+}
 
 internal val CompressionListAttribute: AttributeKey<List<String>> = AttributeKey("CompressionListAttribute")
 internal val DecompressionListAttribute: AttributeKey<List<String>> = AttributeKey("DecompressionListAttribute")
