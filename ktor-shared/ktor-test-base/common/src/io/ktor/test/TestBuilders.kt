@@ -19,7 +19,7 @@ fun runTest(
     context: CoroutineContext = EmptyCoroutineContext,
     timeout: Duration = DEFAULT_TEST_TIMEOUT,
     testBody: suspend TestScope.() -> Unit
-): TestResult = runTestImpl(context, timeout, testBody)
+): TestResult = runTestImpl(context, timeout, testBody).withWatchdog(timeout)
 
 /**
  * An override of [kotlinx.coroutines.test.runTest] using our [DEFAULT_TEST_TIMEOUT].
@@ -28,4 +28,4 @@ fun runTest(
 fun TestScope.runTest(
     timeout: Duration = DEFAULT_TEST_TIMEOUT,
     testBody: suspend TestScope.() -> Unit
-): TestResult = this.runTestImpl(timeout, testBody)
+): TestResult = this.runTestImpl(timeout, testBody).withWatchdog(timeout)

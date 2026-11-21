@@ -5,6 +5,7 @@
 package io.ktor.test
 
 import kotlinx.coroutines.test.TestResult
+import kotlin.time.Duration
 
 internal expect val DummyTestResult: TestResult
 
@@ -15,6 +16,12 @@ internal expect val DummyTestResult: TestResult
  * @see TestResult
  */
 expect inline fun TestResult.andThen(crossinline block: () -> Any): TestResult
+
+/**
+ * Fails the test if it doesn't complete within [timeout] plus a grace period, measured by a platform timer.
+ * A backstop for the case when `runTest` can't enforce its own timeout. Only implemented on JS and WasmJS.
+ */
+internal expect fun TestResult.withWatchdog(timeout: Duration): TestResult
 
 internal expect inline fun testWithRecover(noinline recover: (Throwable) -> Unit, test: () -> TestResult): TestResult
 
