@@ -64,8 +64,14 @@ internal class MergedApplicationConfig(
         merge(first.propertyOrNull(path), second.propertyOrNull(path))
 
     override fun config(path: String): ApplicationConfig {
-        if (firstKeys.none { it.startsWith("$path.") }) return second.config(path)
-        if (secondKeys.none { it.startsWith("$path.") }) return first.config(path)
+        // `keys()` only exposes leaf paths for some implementations (e.g. HOCON),
+        // so a key-prefix check can miss existing sections, especially empty ones.
+        // Look up the merged property instead: delegating to a fallback config is only
+        // needed when the section itself is missing (or not an object) in this config.
+        val firstProperty = first.propertyOrNull(path)
+        if (firstProperty?.type != ApplicationConfigValue.Type.OBJECT) return second.config(path)
+        val secondProperty = second.propertyOrNull(path)
+        if (secondProperty?.type != ApplicationConfigValue.Type.OBJECT) return first.config(path)
         return MergedApplicationConfig(first.config(path), second.config(path))
     }
 

@@ -73,6 +73,18 @@ class MergedApplicationConfigJvmTest {
     }
 
     @Test
+    fun mergedConfigReturnsEmptySection() {
+        val hocon = HoconApplicationConfig(ConfigFactory.parseString("section.nested {}"))
+        val merged = hocon.withFallback(HoconApplicationConfig(ConfigFactory.parseString("other = 1")))
+
+        assertEquals(ApplicationConfigValue.Type.OBJECT, merged.propertyOrNull("section.nested")?.type)
+        // An empty section has no leaf keys, so the merge must not delegate the lookup to the fallback.
+        val section = merged.config("section.nested")
+        assertEquals(emptySet(), section.keys())
+        assertEquals(emptyMap(), section.toMap())
+    }
+
+    @Test
     fun mergedConfigThrowsOnMissingPath() {
         val hocon = HoconApplicationConfig(ConfigFactory.parseString("ktor { deployment { port = 8080 } }"))
         // Map config has no "nonexistent.*" keys, so the lookup is delegated to the HOCON fallback.
