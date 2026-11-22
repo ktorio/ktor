@@ -119,7 +119,7 @@ public class ForwardedHeadersConfig {
         }
 
         if (forward.forParam != null) {
-            val remoteHostOrAddress = forward.forParam.split(",").first().trim()
+            val remoteHostOrAddress = forward.forParam.split(",").first().trim().dropForwardedPort()
             if (remoteHostOrAddress.isNotBlank()) {
                 connectionPoint.remoteHost = remoteHostOrAddress
                 if (remoteHostOrAddress.isNotHostAddress()) {
