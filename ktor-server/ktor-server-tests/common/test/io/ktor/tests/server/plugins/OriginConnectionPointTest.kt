@@ -5,6 +5,7 @@
 package io.ktor.tests.server.plugins
 
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.plugins.*
@@ -871,5 +872,41 @@ class OriginConnectionPointTest {
         client.get("/ipv6-address") {
             header(HttpHeaders.Forwarded, "for=2001:db8::1")
         }
+    }
+
+    @Test
+    fun testForwardedHeadersSetRemoteAddressStripsPort() = testApplication {
+        install(ForwardedHeaders)
+
+        routing {
+            get("/ipv4-address") {
+                call.respondText(call.request.origin.remoteAddress + "|" + call.request.origin.remoteHost)
+            }
+            get("/ipv6-address") {
+                call.respondText(call.request.origin.remoteAddress + "|" + call.request.origin.remoteHost)
+            }
+            get("/hostname") {
+                call.respondText(call.request.origin.remoteAddress + "|" + call.request.origin.remoteHost)
+            }
+        }
+
+        val ipv4 = client.get("/ipv4-address") {
+            header(HttpHeaders.Forwarded, "for=192.168.0.1:5678")
+        }
+        assertEquals(HttpStatusCode.OK, ipv4.status)
+        assertEquals("192.168.0.1|192.168.0.1", ipv4.bodyAsText())
+
+        val ipv6 = client.get("/ipv6-address") {
+            header(HttpHeaders.Forwarded, "for=\"[2001:db8::1]:40000\"")
+        }
+        assertEquals(HttpStatusCode.OK, ipv6.status)
+        assertEquals("2001:db8::1|2001:db8::1", ipv6.bodyAsText())
+
+        val hostname = client.get("/hostname") {
+            header(HttpHeaders.Forwarded, "for=example.com:8443")
+        }
+        assertEquals(HttpStatusCode.OK, hostname.status)
+        // A hostname is not an address, so remoteAddress set by the engine stays untouched.
+        assertEquals("localhost|example.com", hostname.bodyAsText())
     }
 }
