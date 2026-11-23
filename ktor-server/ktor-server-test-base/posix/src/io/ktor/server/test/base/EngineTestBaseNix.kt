@@ -124,15 +124,7 @@ actual constructor(
             }
         }
         val properties = serverConfig(environment) {
-            this.parentCoroutineContext = parent + CoroutineExceptionHandler { _, cause ->
-                // On native, an uncaught coroutine exception terminates the whole test
-                // process, so a transient server startup failure would abort the run
-                // before the retry loop gets a chance to recover. Log it instead,
-                // mirroring the JVM behaviour where such exceptions are only reported.
-                if (cause is ExpectedTestException) return@CoroutineExceptionHandler
-                println("Uncaught exception in server coroutine: $cause")
-                cause.printStackTrace()
-            }
+            this.parentCoroutineContext = parent
             module(module)
         }
 

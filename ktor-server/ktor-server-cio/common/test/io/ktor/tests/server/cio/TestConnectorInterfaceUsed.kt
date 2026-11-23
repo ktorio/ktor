@@ -15,24 +15,12 @@ import kotlin.time.Duration.Companion.seconds
 class TestConnectorInterfaceUsed {
     @Test
     fun testConnectorListenHost() {
-        val server = embeddedServer(
-            CIO,
-            serverConfig(applicationEnvironment()) {
-                // The illegal host below makes this server fail to start by design. The
-                // engine's root coroutine rethrows the startup failure, and on native
-                // targets an uncaught coroutine exception terminates the whole test
-                // process, randomly failing whichever test is running next. Contain the
-                // expected failure here so it is only reported by server.start().
-                parentCoroutineContext = CoroutineExceptionHandler { _, cause ->
-                    println("Expected startup failure: $cause")
-                }
-            }
-        ) {
+        val server = embeddedServer(CIO, applicationEnvironment(), {
             connector {
                 host = "some/illegal/host/name"
                 port = 9091
             }
-        }
+        })
 
         assertFails {
             server.start()
