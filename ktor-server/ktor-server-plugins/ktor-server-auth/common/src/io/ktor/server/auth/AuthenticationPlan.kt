@@ -79,8 +79,7 @@ internal class AuthenticationRun(val plan: AuthenticationPlan, val context: Auth
     private var phaseIndex = 0
     private var stepIndex = 0
 
-    // An earlier mechanism (e.g. typed authentication) may have already authenticated the call.
-    private var finished = context.hasPrincipal
+    private var finished = false
 
     /**
      * Runs the steps owned by registrations up to [ownIndex], stopping at the first step owned by a nested block.
