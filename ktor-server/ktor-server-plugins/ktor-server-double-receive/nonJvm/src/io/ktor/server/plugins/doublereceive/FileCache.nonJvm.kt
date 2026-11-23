@@ -5,11 +5,13 @@
 package io.ktor.server.plugins.doublereceive
 
 import io.ktor.utils.io.*
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 
 internal actual class FileCache actual constructor(
-    bufferSize: Int
+    bufferSize: Int,
+    ioDispatcher: CoroutineDispatcher?
 ) : DoubleReceiveCache {
     init {
         error("File cache is not supported on nix")

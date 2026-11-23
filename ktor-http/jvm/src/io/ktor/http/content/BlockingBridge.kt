@@ -27,10 +27,16 @@ private val BlockingBridgeDispatcher = Dispatchers.IO.limitedParallelism(
     name = "ktor-blocking-bridge",
 )
 
+@OptIn(InternalAPI::class)
+private suspend fun resolveBlockingDispatcher(explicit: CoroutineDispatcher?): CoroutineDispatcher =
+    explicit ?: currentCoroutineContext()[BlockingDispatcherElement]?.dispatcher ?: BlockingBridgeDispatcher
+
 /**
  * Executes [block] with this channel represented as a blocking [OutputStream].
  *
- * Blocking operations are dispatched to [dispatcher] so they don't block event loop threads. This function doesn't
+ * Blocking operations are dispatched to [dispatcher] so they don't block event loop threads. If [dispatcher] is `null`,
+ * the dispatcher of the [BlockingDispatcherElement] in the current coroutine context is used, falling back to the
+ * default blocking bridge dispatcher. This function doesn't
  * close the channel after [block] finishes: the caller that owns the [ByteWriteChannel] lifecycle is responsible for
  * closing it from a suspending context.
  *
@@ -38,10 +44,10 @@ private val BlockingBridgeDispatcher = Dispatchers.IO.limitedParallelism(
  */
 @OptIn(InternalAPI::class)
 internal suspend inline fun ByteWriteChannel.withBlockingOutputStream(
-    dispatcher: CoroutineDispatcher = BlockingBridgeDispatcher,
+    dispatcher: CoroutineDispatcher? = null,
     crossinline block: suspend (OutputStream) -> Unit,
 ) {
-    withContext(dispatcher) {
+    withContext(resolveBlockingDispatcher(dispatcher)) {
         val outputStream = asOutputStream(coroutineContext.job)
         block(outputStream)
     }
@@ -50,7 +56,8 @@ internal suspend inline fun ByteWriteChannel.withBlockingOutputStream(
 /**
  * Executes [block] with this channel represented as a blocking [Writer] using [charset].
  *
- * Blocking operations are dispatched to [dispatcher] so they don't block event loop threads. The [Writer] is closed
+ * Blocking operations are dispatched to [dispatcher], or, if it is `null`, to the dispatcher resolved the same way as
+ * for [withBlockingOutputStream], so they don't block event loop threads. The [Writer] is closed
  * inside [dispatcher] to finalize encoder state, but the underlying stream close is suppressed: the caller that owns
  * the [ByteWriteChannel] lifecycle is responsible for closing the channel from a suspending context.
  *
@@ -59,10 +66,10 @@ internal suspend inline fun ByteWriteChannel.withBlockingOutputStream(
 @OptIn(InternalAPI::class)
 internal suspend inline fun ByteWriteChannel.withBlockingWriter(
     charset: Charset,
-    dispatcher: CoroutineDispatcher = BlockingBridgeDispatcher,
+    dispatcher: CoroutineDispatcher? = null,
     crossinline block: suspend (Writer) -> Unit,
 ) {
-    withContext(dispatcher) {
+    withContext(resolveBlockingDispatcher(dispatcher)) {
         val writer = asOutputStream(coroutineContext.job).nonClosing().writer(charset)
         writer.use { block(it) }
     }

@@ -116,13 +116,14 @@ public abstract class KtorServlet : HttpServlet(), CoroutineScope {
             timeout = 0L
         }
 
-        launch(Dispatchers.IO) {
+        val ioDispatcher = application.ioDispatcher
+        launch(ioDispatcher) {
             val call = AsyncServletApplicationCall(
                 application,
                 request,
                 response,
-                engineContext = Dispatchers.IO,
-                userContext = Dispatchers.IO,
+                engineContext = ioDispatcher,
+                userContext = ioDispatcher,
                 upgrade = upgrade,
                 parentCoroutineContext = coroutineContext,
                 managedByEngineHeaders

@@ -241,13 +241,15 @@ public abstract class BaseApplicationResponse(
     /**
      * Process response [content] using [OutgoingContent.WriteChannelContent.writeTo].
      */
+    @OptIn(InternalAPI::class)
     protected open suspend fun respondWriteChannelContent(content: OutgoingContent.WriteChannelContent) {
         // Retrieve response channel, that might send out headers, so it should go after commitHeaders
         responseChannel().use {
             // Call user code to send data
 //            val before = totalBytesWritten
             try {
-                withContext(Dispatchers.IOBridge) {
+                val dispatcher = call.application.ioDispatcher
+                withContext(dispatcher + BlockingDispatcherElement(dispatcher)) {
                     content.writeTo(this@use)
                 }
             } catch (closed: ClosedWriteChannelException) {

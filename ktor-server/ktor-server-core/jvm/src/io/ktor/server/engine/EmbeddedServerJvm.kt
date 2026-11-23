@@ -83,7 +83,7 @@ actual constructor(
         monitor,
         rootConfig.parentCoroutineContext,
         ::engine
-    )
+    ).also { it.installIODispatcher(engineConfig.ioDispatcher) }
 
     public actual val engine: TEngine = engineFactory.create(
         environment,
@@ -417,7 +417,7 @@ actual constructor(
     }
 
     public actual suspend fun startSuspend(wait: Boolean): EmbeddedServer<TEngine, TConfiguration> {
-        return withContext(Dispatchers.IOBridge) { start(wait) }
+        return withContext(engineConfig.ioDispatcher) { start(wait) }
     }
 
     public fun stop(shutdownGracePeriod: Long, shutdownTimeout: Long, timeUnit: TimeUnit) {
@@ -439,7 +439,7 @@ actual constructor(
     }
 
     public actual suspend fun stopSuspend(gracePeriodMillis: Long, timeoutMillis: Long) {
-        withContext(Dispatchers.IOBridge) { stop(gracePeriodMillis, timeoutMillis) }
+        withContext(engineConfig.ioDispatcher) { stop(gracePeriodMillis, timeoutMillis) }
     }
 
     private fun instantiateAndConfigureApplication(currentClassLoader: ClassLoader): Application {
@@ -452,7 +452,7 @@ actual constructor(
                 monitor,
                 rootConfig.parentCoroutineContext,
                 ::engine
-            )
+            ).also { it.installIODispatcher(engineConfig.ioDispatcher) }
         } else {
             recreateInstance = true
             applicationInstance!!

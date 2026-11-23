@@ -8,12 +8,15 @@ package io.ktor.server.auth.oidc
 
 import io.ktor.http.*
 import io.ktor.http.auth.*
+import io.ktor.http.content.BlockingDispatcherElement
 import io.ktor.server.auth.*
+import io.ktor.server.engine.ioDispatcher
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.sessions.serialization.*
 import io.ktor.util.reflect.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import org.slf4j.Logger
 
@@ -29,7 +32,9 @@ internal fun OidcProvider.createJwtBearerScheme(): SimpleAuthenticationScheme<Oi
 
         validate { credential ->
             try {
-                verifyJwtAccessToken(credential.token)
+                withContext(BlockingDispatcherElement(call.application.ioDispatcher)) {
+                    verifyJwtAccessToken(credential.token)
+                }
             } catch (cause: OidcTokenRejectedException) {
                 logger.trace("OpenID JWT access token authentication failed $cause")
                 null

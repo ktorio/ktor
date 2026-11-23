@@ -255,7 +255,7 @@ internal class NettyHttp1Handler(
             else -> {
                 val newContext = application.coroutineContext +
                     userContext +
-                    CurrentContext(context, callExecutor) +
+                    CurrentContext(context, callExecutor, application.ioDispatcher) +
                     CallHandlerCoroutineName
                 channelApplication = application
                 channelCoroutineContext = newContext

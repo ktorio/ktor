@@ -9,6 +9,7 @@ import io.ktor.http.content.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
+import kotlinx.coroutines.CoroutineDispatcher
 import org.webjars.*
 import java.io.*
 
@@ -30,8 +31,9 @@ internal fun extractWebJar(
 
 internal class InputStreamContent(
     private val input: InputStream,
-    override val contentType: ContentType
+    override val contentType: ContentType,
+    private val ioDispatcher: CoroutineDispatcher,
 ) : OutgoingContent.ReadChannelContent() {
 
-    override fun readFrom(): ByteReadChannel = input.toByteReadChannel(pool = KtorDefaultPool)
+    override fun readFrom(): ByteReadChannel = input.toByteReadChannel(context = ioDispatcher, pool = KtorDefaultPool)
 }

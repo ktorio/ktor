@@ -113,6 +113,7 @@ public class TestApplicationResponse(
         responseChannelDeferred.completeExceptionally(IllegalStateException("No response channel assigned"))
     }
 
+    @OptIn(InternalAPI::class)
     override suspend fun respondWriteChannelContent(content: OutgoingContent.WriteChannelContent) {
         val writerJob = scope.writer(currentCoroutineContext().minusKey(Job)) {
             val counted = channel.counted()
@@ -141,7 +142,8 @@ public class TestApplicationResponse(
             }
 
             try {
-                withContext(Dispatchers.IOBridge) {
+                val ioDispatcher = call.application.ioDispatcher
+                withContext(ioDispatcher + BlockingDispatcherElement(ioDispatcher)) {
                     content.writeTo(counted)
                 }
             } catch (closed: ClosedWriteChannelException) {

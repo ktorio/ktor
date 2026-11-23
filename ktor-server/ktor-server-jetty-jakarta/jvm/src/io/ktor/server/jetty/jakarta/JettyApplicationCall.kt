@@ -164,7 +164,8 @@ public class JettyApplicationCall(
                 endpoint,
                 bufferPool,
                 call.coroutineContext,
-                executor
+                executor,
+                call.application.ioDispatcher
             )
 
             // 5. Handle the websocket upgrade

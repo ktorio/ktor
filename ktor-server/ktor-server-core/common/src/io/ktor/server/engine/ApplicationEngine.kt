@@ -6,6 +6,7 @@ package io.ktor.server.engine
 
 import io.ktor.server.application.*
 import io.ktor.server.engine.internal.*
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -75,6 +76,32 @@ public interface ApplicationEngine {
         public var connectors: MutableList<EngineConnectorConfig> = mutableListOf()
 
         /**
+         * Specifies the dispatcher used by the server for blocking operations, such as reading static files,
+         * [io.ktor.server.response.respondOutputStream], [io.ktor.server.response.respondTextWriter],
+         * or fetching remote keys in authentication plugins.
+         *
+         * By default, this is [Dispatchers.IO] on JVM and native, and [Dispatchers.Default] on web targets.
+         *
+         * For example, to run blocking operations on virtual threads (JVM 21+):
+         * ```kotlin
+         * embeddedServer(CIO) {
+         *     ioDispatcher = Executors.newVirtualThreadPerTaskExecutor().asCoroutineDispatcher()
+         * }
+         * ```
+         *
+         * Notes:
+         * - A custom dispatcher is used as is: the parallelism limit that Ktor applies to its own
+         *   blocking bridges does not apply to it.
+         * - Blocking code inside `synchronized` blocks may pin the carrier thread of a virtual thread.
+         * - Ktor does not close the dispatcher; the caller owns its lifecycle.
+         * - Code outside of the server's control, such as user calls of `File.readChannel()`,
+         *   keeps using its own dispatcher.
+         *
+         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.ApplicationEngine.Configuration.ioDispatcher)
+         */
+        public var ioDispatcher: CoroutineDispatcher = Dispatchers.IOBridge
+
+        /**
          * Uses [other] configuration and overrides this with its values.
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.engine.ApplicationEngine.Configuration.takeFrom)
@@ -85,6 +112,7 @@ public interface ApplicationEngine {
             callGroupSize = other.callGroupSize
             shutdownGracePeriod = other.shutdownGracePeriod
             shutdownTimeout = other.shutdownTimeout
+            ioDispatcher = other.ioDispatcher
             connectors.addAll(other.connectors)
         }
     }

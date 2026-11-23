@@ -20,7 +20,8 @@ internal class JettyWebsocketConnection(
     private val endpoint: EndPoint,
     private val bufferPool: ByteBufferPool,
     override val coroutineContext: CoroutineContext,
-    executor: Executor
+    executor: Executor,
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : AbstractConnection(endpoint, executor), CoroutineScope {
     companion object {
         /**
@@ -63,7 +64,7 @@ internal class JettyWebsocketConnection(
     private val onFill = Channel<Boolean>(Channel.RENDEZVOUS)
 
     private val inputJob: WriterJob =
-        writer(Dispatchers.IO + coroutineContext + CoroutineName("jetty-ws-input")) {
+        writer(ioDispatcher + coroutineContext + CoroutineName("jetty-ws-input")) {
             val buffer = bufferPool.borrow()
             try {
                 while (true) {
@@ -86,7 +87,7 @@ internal class JettyWebsocketConnection(
         }
 
     private val outputJob: ReaderJob =
-        reader(Dispatchers.IO + coroutineContext + CoroutineName("jetty-ws-output")) {
+        reader(ioDispatcher + coroutineContext + CoroutineName("jetty-ws-output")) {
             val buffer = bufferPool.borrow()
             try {
                 while (true) {

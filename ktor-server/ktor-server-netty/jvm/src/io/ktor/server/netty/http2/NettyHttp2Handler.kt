@@ -135,7 +135,7 @@ internal class NettyHttp2Handler(
         val callExecutor = resolveCallExecutor(context)
         // Combine the cached static context with the per-stream dispatcher and per-call [Job] only.
         val callContext = staticCallContext +
-            NettyDispatcher.CurrentContext(context, callExecutor) +
+            NettyDispatcher.CurrentContext(context, callExecutor, application.ioDispatcher) +
             callJob
         val call = NettyHttp2ApplicationCall(
             application = application,

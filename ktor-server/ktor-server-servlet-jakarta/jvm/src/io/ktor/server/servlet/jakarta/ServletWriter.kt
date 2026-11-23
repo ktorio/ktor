@@ -13,11 +13,16 @@ import kotlinx.coroutines.channels.*
 import kotlinx.coroutines.withTimeout
 import java.io.*
 import java.util.concurrent.*
+import kotlin.coroutines.CoroutineContext
 import kotlin.time.Duration
 
-internal fun CoroutineScope.servletWriter(output: ServletOutputStream, idleTimeout: Duration? = null): ReaderJob {
+internal fun CoroutineScope.servletWriter(
+    output: ServletOutputStream,
+    idleTimeout: Duration? = null,
+    dispatcher: CoroutineContext = Dispatchers.IO
+): ReaderJob {
     val writer = ServletWriter(output, idleTimeout)
-    return reader(Dispatchers.IO, writer.channel) {
+    return reader(dispatcher, writer.channel) {
         writer.run()
     }
 }

@@ -6,6 +6,7 @@ package io.ktor.server.plugins.doublereceive
 
 import io.ktor.server.application.*
 import io.ktor.server.application.hooks.*
+import io.ktor.server.engine.ioDispatcher
 import io.ktor.server.request.*
 import io.ktor.util.*
 import io.ktor.util.logging.*
@@ -71,7 +72,7 @@ public val DoubleReceive: RouteScopedPlugin<DoubleReceiveConfig> = createRouteSc
 
         val bodyCache = if (pluginConfig.shouldUseFileCache.any { it(call) }) {
             LOGGER.trace("Storing raw body in file cache")
-            FileCache()
+            FileCache(ioDispatcher = call.application.ioDispatcher)
         } else {
             LOGGER.trace("Storing raw body in memory cache")
             InMemoryCache()

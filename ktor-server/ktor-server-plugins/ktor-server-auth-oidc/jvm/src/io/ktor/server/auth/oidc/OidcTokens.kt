@@ -21,10 +21,12 @@ import io.ktor.client.request.forms.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.http.auth.*
+import io.ktor.http.content.BlockingDispatcherElement
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonObject
 import kotlin.contracts.ExperimentalContracts
@@ -343,7 +345,8 @@ private suspend fun OidcProvider.verifyJwtToken(
     val tokenAlgorithm = requireAllowedAlgorithm(jwt, tokenType)
     val keyId = jwt.keyId
     val jwk = try {
-        withContext(Dispatchers.IO) { state.jwkProvider.get(keyId) }
+        val ioDispatcher = currentCoroutineContext()[BlockingDispatcherElement]?.dispatcher ?: Dispatchers.IO
+        withContext(ioDispatcher) { state.jwkProvider.get(keyId) }
     } catch (cause: JwkException) {
         when (cause) {
             is RateLimitReachedException ->
