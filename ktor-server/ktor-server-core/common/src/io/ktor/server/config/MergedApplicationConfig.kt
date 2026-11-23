@@ -64,14 +64,8 @@ internal class MergedApplicationConfig(
         merge(first.propertyOrNull(path), second.propertyOrNull(path))
 
     override fun config(path: String): ApplicationConfig {
-        // `keys()` only exposes leaf paths for some implementations (e.g. HOCON),
-        // so a key-prefix check can miss existing sections, especially empty ones.
-        // Look up the merged property instead: delegating to a fallback config is only
-        // needed when the section itself is missing (or not an object) in this config.
-        val firstProperty = first.propertyOrNull(path)
-        if (firstProperty?.type != ApplicationConfigValue.Type.OBJECT) return second.config(path)
-        val secondProperty = second.propertyOrNull(path)
-        if (secondProperty?.type != ApplicationConfigValue.Type.OBJECT) return first.config(path)
+        if (!first.hasSection(path, firstKeys)) return second.config(path)
+        if (!second.hasSection(path, secondKeys)) return first.config(path)
         return MergedApplicationConfig(first.config(path), second.config(path))
     }
 
@@ -138,5 +132,23 @@ internal class MergedApplicationConfig(
         val flattenedMap = mergedMap.flatten().toMap().toMutableMap()
 
         return MapApplicationConfigValue(flattenedMap, "")
+    }
+
+    /**
+     * Returns `true` if the config contains a section (an object) at [path].
+     *
+     * `keys()` only exposes leaf paths for some implementations (e.g. HOCON), so a section
+     * without leaf values (an empty object) is detected by its property.
+     */
+    private fun ApplicationConfig.hasSection(path: String, keys: Set<String>): Boolean =
+        keys.any { it.startsWith("$path.") } || hasObject(path)
+
+    /**
+     * The property of a merged config is a flattened value, and its `size` entry makes it look like a list,
+     * so the parts of a merged config are checked instead of its own property.
+     */
+    private fun ApplicationConfig.hasObject(path: String): Boolean = when (this) {
+        is MergedApplicationConfig -> this.first.hasObject(path) || this.second.hasObject(path)
+        else -> propertyOrNull(path)?.type == OBJECT
     }
 }
