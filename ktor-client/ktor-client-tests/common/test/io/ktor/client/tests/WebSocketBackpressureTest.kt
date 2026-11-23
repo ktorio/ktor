@@ -11,6 +11,7 @@ import io.ktor.websocket.*
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
@@ -135,7 +136,7 @@ class WebSocketBackpressureTest : ClientLoader(except(ENGINES_WITHOUT_WS)) {
                 runCatching {
                     for (i in 1..FRAMES_COUNT) send("message $i")
                 }.onFailure {
-                    coroutineContext.ensureActive()
+                    currentCoroutineContext().ensureActive()
                     assertTrue(it.isChannelOverflow, "Unexpected exception: $it")
                 }.onSuccess {
                     fail("Expected overflow exception but got success")
