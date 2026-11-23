@@ -542,12 +542,16 @@ class RateLimitTest {
         var createCount = 0
         // The limiter uses an injectable clock that is frozen during the exhaustion phase,
         // so the requests never trigger a refill no matter how slow the host is.
-        var time = getTimeMillis()
+        var time = 0L
         val refillPeriod = 2.seconds
         install(RateLimit) {
             register {
                 rateLimiter { _, _ ->
                     createCount++
+                    // The clock starts with the first limiter, after the application has started.
+                    // The removal job is scheduled on the real clock from the same moment,
+                    // so a slow startup must not use up the refill period in advance.
+                    if (createCount == 1) time = getTimeMillis()
                     RateLimiter.default(limit = 3, refillPeriod = refillPeriod) { time }
                 }
             }
