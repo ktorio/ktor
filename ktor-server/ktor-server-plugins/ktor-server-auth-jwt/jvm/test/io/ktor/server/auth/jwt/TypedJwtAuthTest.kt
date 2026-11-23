@@ -144,6 +144,43 @@ class TypedJwtAuthTest {
         assertEquals("route:InvalidCredentials", routeResponse.bodyAsText())
     }
 
+    @Test
+    fun `issuer-only JWK verifier rejects token from a different issuer`() = withJwksServer(jwksKeys) { jwksIssuer ->
+        runTestApplication {
+            val scheme = jwt<JwtUser>("typed-jwk") {
+                verifier(jwksIssuer)
+                validate { credential ->
+                    if (credential.audience.contains(AUDIENCE)) {
+                        JwtUser(credential.payload.subject)
+                    } else {
+                        null
+                    }
+                }
+            }
+
+            routing {
+                authenticateWith(scheme) {
+                    get("/profile") {
+                        call.respondText(call.principal.name)
+                    }
+                }
+            }
+
+            val ok = client.get("/profile") {
+                header(HttpHeaders.Authorization, "Bearer " + jwksKeys.token(jwksIssuer, AUDIENCE, subject = "alice"))
+            }
+            assertEquals(HttpStatusCode.OK, ok.status)
+            assertEquals("alice", ok.bodyAsText())
+
+            val foreign = client.get("/profile") {
+                header(HttpHeaders.Authorization, "Bearer " + jwksKeys.token("https://other-issuer/", AUDIENCE))
+            }
+            assertEquals(HttpStatusCode.Unauthorized, foreign.status)
+        }
+    }
+
+    private val jwksKeys = JwksTestKeys()
+
     private data class JwtUser(val name: String)
 
     private fun token(

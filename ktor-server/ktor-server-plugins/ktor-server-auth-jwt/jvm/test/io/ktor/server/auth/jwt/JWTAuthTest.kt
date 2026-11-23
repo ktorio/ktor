@@ -19,7 +19,6 @@ import io.mockk.*
 import java.io.*
 import java.security.*
 import java.security.interfaces.*
-import java.util.concurrent.*
 import kotlin.test.*
 
 class JWTAuthTest {
@@ -215,7 +214,7 @@ class JWTAuthTest {
 
     @Test
     fun testJwkSuccessNoIssuer() = testApplication {
-        configureServerJwkNoIssuer(mock = true)
+        configureServerJwkNoIssuer()
 
         val token = getJwkToken()
 
@@ -223,6 +222,28 @@ class JWTAuthTest {
 
         assertEquals(HttpStatusCode.OK, response.status)
         assertTrue(response.bodyAsText().isNotEmpty())
+    }
+
+    @Test
+    fun `issuer-only JWK verifier accepts token from the configured issuer`() = withJwksServer(jwksKeys) { jwksIssuer ->
+        runTestApplication {
+            configureServerIssuerOnlyJwk(jwksIssuer)
+
+            val response = handleRequestWithToken("Bearer " + jwksKeys.token(jwksIssuer, audience))
+
+            assertEquals(HttpStatusCode.OK, response.status)
+        }
+    }
+
+    @Test
+    fun `issuer-only JWK verifier rejects token from a different issuer`() = withJwksServer(jwksKeys) { jwksIssuer ->
+        runTestApplication {
+            configureServerIssuerOnlyJwk(jwksIssuer)
+
+            val response = handleRequestWithToken("Bearer " + jwksKeys.token("https://other-issuer/", audience))
+
+            verifyResponseUnauthorized(response)
+        }
     }
 
     @Test
@@ -428,9 +449,6 @@ class JWTAuthTest {
             every { type } returns "EC"
             every { publicKey } returns ecKeyPair.public
         }
-        val provider = mockk<JwkProvider> {
-            every { this@mockk.get(kid) } returns jwk
-        }
 
         val resolvedAlgorithm = jwk.makeAlgorithm()
         val verifier = JWT.require(resolvedAlgorithm).withIssuer(issuer).build()
@@ -574,15 +592,23 @@ class JWTAuthTest {
         }
     }
 
-    private fun ApplicationTestBuilder.configureServerJwkNoIssuer(mock: Boolean = false) = configureServer {
+    private fun ApplicationTestBuilder.configureServerJwkNoIssuer() = configureServer {
         jwt {
             this@jwt.realm = this@JWTAuthTest.realm
-            if (mock) {
-                verifier(getJwkProviderMock())
-            } else {
-                verifier(issuer)
+            verifier(getJwkProviderMock())
+            validate { credential ->
+                when {
+                    credential.audience.contains(audience) -> JWTPrincipal(credential.payload)
+                    else -> null
+                }
             }
-            verifier(if (mock) getJwkProviderMock() else makeJwkProvider())
+        }
+    }
+
+    private fun ApplicationTestBuilder.configureServerIssuerOnlyJwk(jwksIssuer: String) = configureServer {
+        jwt {
+            this@jwt.realm = this@JWTAuthTest.realm
+            verifier(jwksIssuer)
             validate { credential ->
                 when {
                     credential.audience.contains(audience) -> JWTPrincipal(credential.payload)
@@ -651,11 +677,7 @@ class JWTAuthTest {
     private val issuer = "https://jwt-provider-domain/"
     private val audience = "jwt-audience"
     private val realm = "ktor jwt auth test"
-
-    private fun makeJwkProvider(): JwkProvider = JwkProviderBuilder(issuer)
-        .cached(10, 24, TimeUnit.HOURS)
-        .rateLimited(10, 1, TimeUnit.MINUTES)
-        .build()
+    private val jwksKeys = JwksTestKeys()
 
     private val kid = "NkJCQzIyQzRBMEU4NjhGNUU4MzU4RkY0M0ZDQzkwOUQ0Q0VGNUMwQg"
 
