@@ -182,6 +182,50 @@ class LegacyApiCoexistenceTest {
     }
 
     @Test
+    fun `required legacy guard inside typed guard checks its own credentials`() = testApplication {
+        install(Authentication) {
+            form("legacy") {
+                validate { credentials ->
+                    TestUser(credentials.name, "legacy@test.com").takeIf { credentials.name == "legacy" }
+                }
+            }
+        }
+
+        val typedScheme = basic<TestUser>("outer-typed") {
+            validate { credentials ->
+                TestUser(credentials.name, "typed@test.com").takeIf { credentials.name == "typed" }
+            }
+        }
+
+        routing {
+            authenticateWith(typedScheme) {
+                authenticate("legacy", strategy = AuthenticationStrategy.Required) {
+                    post("/both-required") {
+                        val legacy = call.principal<TestUser>("legacy")
+                        call.respondText("${call.principal.name}:${legacy?.name}")
+                    }
+                }
+            }
+        }
+
+        val auth = basicAuthHeader("typed")
+
+        // The typed principal does not satisfy the nested required legacy provider.
+        val onlyTyped = client.post("/both-required") { header(HttpHeaders.Authorization, auth) }
+        assertEquals(HttpStatusCode.Unauthorized, onlyTyped.status)
+
+        val onlyLegacy = client.post("/both-required") { formCredentials("legacy") }
+        assertEquals(HttpStatusCode.Unauthorized, onlyLegacy.status)
+
+        val both = client.post("/both-required") {
+            formCredentials("legacy")
+            header(HttpHeaders.Authorization, auth)
+        }
+        assertEquals(HttpStatusCode.OK, both.status)
+        assertEquals("typed:legacy", both.bodyAsText())
+    }
+
+    @Test
     fun `legacy authenticate inside authenticateWith is skipped once typed principal is set`() = testApplication {
         install(Authentication) {
             form("legacy") {
