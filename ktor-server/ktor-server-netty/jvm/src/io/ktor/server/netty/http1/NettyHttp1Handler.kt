@@ -168,6 +168,12 @@ internal class NettyHttp1Handler(
         context.fireChannelInactive()
     }
 
+    override fun handlerRemoved(context: ChannelHandlerContext) {
+        if (::handlerJob.isInitialized) {
+            handlerJob.complete()
+        }
+    }
+
     private fun onConnectionClose(context: ChannelHandlerContext) {
         if (context.channel().isActive) {
             return
