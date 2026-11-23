@@ -143,6 +143,9 @@ public class TypedJwtAuthConfig<P : Any> @PublishedApi internal constructor() {
     /**
      * Creates a [JWTVerifier] using JSON Web Keys discovered from [issuer].
      *
+     * The token's `iss` claim must be equal to [issuer] exactly. If the keys are hosted elsewhere or tokens
+     * from several issuers must be accepted, use the overloads that take a [JwkProvider] instead.
+     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.jwt.TypedJwtAuthConfig.verifier)
      *
      * @param issuer expected token issuer and JWK provider base URL.

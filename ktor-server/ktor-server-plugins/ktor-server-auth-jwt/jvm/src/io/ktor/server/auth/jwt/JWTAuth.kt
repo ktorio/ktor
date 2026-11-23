@@ -371,12 +371,16 @@ public class JWTAuthenticationProvider internal constructor(config: Config) : Au
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.jwt.JWTAuthenticationProvider.Config.verifier)
          *
-         * @param [issuer] the issuer of JSON Web Token
-         * @param [block] configuration of [JwkProvider]
+         * The JSON Web Keys are discovered at `[issuer]/.well-known/jwks.json`, and the token's `iss` claim
+         * must be equal to [issuer] exactly. If the keys are hosted elsewhere or tokens from several issuers
+         * must be accepted, use the overloads that take a [JwkProvider] instead.
+         *
+         * @param [issuer] the expected issuer of JSON Web Token and the base URL of its JSON Web Keys
+         * @param [block] function is applied during [JWTVerifier] construction
          */
         public fun verifier(issuer: String, block: JWTConfigureFunction = {}) {
             val provider = JwkProviderBuilder(issuer).build()
-            verifier = { token -> getVerifier(provider, token, schemes, block) }
+            verifier = { token -> getVerifier(provider, issuer, token, schemes, block) }
         }
 
         /**
