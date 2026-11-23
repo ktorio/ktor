@@ -19,6 +19,7 @@ kotlin {
         }
         jvmTest.dependencies {
             implementation(libs.mockk)
+            implementation(projects.ktorServerCio)
         }
     }
 }
