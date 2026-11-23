@@ -735,6 +735,55 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         }
     }
 
+    @Test
+    fun `closed WebSockets leave no application child jobs`() = runTest {
+        createAndStartServer {
+            webSocket("/") {
+                incoming.consumeEach {}
+            }
+        }
+        val applicationJob = server!!.application.coroutineContext.job
+        val childrenBefore = applicationJob.children.count()
+
+        repeat(3) {
+            useSocket {
+                negotiateHttpWebSocket()
+                output.writeFrame(Frame.Close(), false)
+                output.flush()
+                assertCloseFrame()
+            }
+        }
+
+        assertApplicationChildJobsDrained(applicationJob, childrenBefore)
+    }
+
+    @Test
+    fun `abruptly disconnected WebSockets leave no application child jobs`() = runTest {
+        createAndStartServer {
+            webSocket("/") {
+                incoming.consumeEach {}
+            }
+        }
+        val applicationJob = server!!.application.coroutineContext.job
+        val childrenBefore = applicationJob.children.count()
+
+        repeat(3) {
+            useSocket {
+                negotiateHttpWebSocket()
+            }
+        }
+
+        assertApplicationChildJobsDrained(applicationJob, childrenBefore)
+    }
+
+    private suspend fun assertApplicationChildJobsDrained(applicationJob: Job, expected: Int) {
+        withTimeoutOrNull(5.seconds) {
+            while (applicationJob.children.count() > expected) delay(50.milliseconds)
+        }
+        val children = applicationJob.children.toList()
+        assertEquals(expected, children.size, "Application child jobs left after closed WebSockets: $children")
+    }
+
     private suspend fun Connection.negotiateHttpWebSocket(
         additionalHeader: List<Pair<String, String>> = emptyList(),
     ) {
