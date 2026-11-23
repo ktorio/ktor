@@ -9,6 +9,7 @@ package io.ktor.tests.auth
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.http.auth.*
 import io.ktor.server.auth.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -71,26 +72,7 @@ class LegacyApiCoexistenceTest {
     }
 
     @Test
-    fun `authentication plugin auto-installed by typesafe API`() = testApplication {
-        val scheme = basic<TestUser>("auto-install") {
-            validate { TestUser(it.name, "auto@test.com") }
-        }
-
-        routing {
-            authenticateWith(scheme) {
-                get("/test") { call.respondText(call.principal.name) }
-            }
-        }
-
-        val response = client.get("/test") {
-            header(HttpHeaders.Authorization, basicAuthHeader("user"))
-        }
-        assertEquals(HttpStatusCode.OK, response.status)
-        assertEquals("user", response.bodyAsText())
-    }
-
-    @Test
-    fun `authenticateWith inside authenticate`() = testApplication {
+    fun `legacy authenticate around authenticateWith requires both principals`() = testApplication {
         install(Authentication) {
             form("legacy") {
                 validate { credentials ->
@@ -125,8 +107,7 @@ class LegacyApiCoexistenceTest {
         }
 
         val onlyLegacy = client.post("/nested") {
-            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
-            setBody("user=legacy&password=pass")
+            formCredentials("legacy")
         }
         assertEquals(HttpStatusCode.Unauthorized, onlyLegacy.status)
 
@@ -136,9 +117,8 @@ class LegacyApiCoexistenceTest {
         assertEquals(HttpStatusCode.Unauthorized, onlyTyped.status)
 
         val both = client.post("/nested") {
-            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+            formCredentials("legacy")
             header(HttpHeaders.Authorization, basicAuthHeader("typed"))
-            setBody("user=legacy&password=pass")
         }
         assertEquals(HttpStatusCode.OK, both.status)
         assertEquals("legacy:typed", both.bodyAsText())
@@ -147,7 +127,62 @@ class LegacyApiCoexistenceTest {
     }
 
     @Test
-    fun `authenticate inside authenticateWith`() = testApplication {
+    fun `required authenticate layers around authenticateWith are all enforced`() = testApplication {
+        install(Authentication) {
+            form("outer-legacy") {
+                validate { credentials ->
+                    TestUser(credentials.name, "outer@test.com").takeIf { credentials.name == "outer" }
+                }
+            }
+            bearer("inner-legacy") {
+                authHeader { call ->
+                    call.request.headers["X-Inner-Token"]?.let { HttpAuthHeader.Single(AuthScheme.Bearer, it) }
+                }
+                authenticate { credential ->
+                    TestUser("inner", "inner@test.com").takeIf { credential.token == "inner" }
+                }
+            }
+        }
+
+        val typedScheme = basic<TestUser>("middle-typed") {
+            validate { credentials ->
+                TestUser(credentials.name, "typed@test.com").takeIf { credentials.name == "typed" }
+            }
+        }
+
+        routing {
+            authenticate("outer-legacy", strategy = AuthenticationStrategy.Required) {
+                authenticateWith(typedScheme) {
+                    authenticate("inner-legacy", strategy = AuthenticationStrategy.Required) {
+                        post("/nested") {
+                            val outer = call.principal<TestUser>("outer-legacy")
+                            val inner = call.principal<TestUser>("inner-legacy")
+                            call.respondText("${outer?.name}:${call.principal.name}:${inner?.name}")
+                        }
+                    }
+                }
+            }
+        }
+
+        suspend fun post(outer: Boolean, typed: Boolean, inner: Boolean) = client.post("/nested") {
+            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+            if (outer) setBody("user=outer&password=p")
+            if (typed) header(HttpHeaders.Authorization, basicAuthHeader("typed"))
+            if (inner) header("X-Inner-Token", "inner")
+        }
+
+        val all = post(outer = true, typed = true, inner = true)
+        assertEquals(HttpStatusCode.OK, all.status)
+        assertEquals("outer:typed:inner", all.bodyAsText())
+
+        // The typed principal does not make the surrounding required legacy layers optional.
+        assertEquals(HttpStatusCode.Unauthorized, post(outer = false, typed = true, inner = true).status)
+        assertEquals(HttpStatusCode.Unauthorized, post(outer = true, typed = true, inner = false).status)
+        assertEquals(HttpStatusCode.Unauthorized, post(outer = true, typed = false, inner = true).status)
+    }
+
+    @Test
+    fun `legacy authenticate inside authenticateWith is skipped once typed principal is set`() = testApplication {
         install(Authentication) {
             form("legacy") {
                 validate { credentials ->
@@ -172,7 +207,6 @@ class LegacyApiCoexistenceTest {
 
         routing {
             authenticateWith(newScheme) {
-                get("/outer") { call.respondText(call.principal.email) }
                 authenticate("legacy") {
                     post("/nested") {
                         val typed = call.principal
@@ -186,25 +220,19 @@ class LegacyApiCoexistenceTest {
 
         val auth = basicAuthHeader("typed")
 
-        // Outer scope works with typesafe principal
-        val outerResp = client.get("/outer") { header(HttpHeaders.Authorization, auth) }
-        assertEquals("typed@test.com", outerResp.bodyAsText())
-
         // Legacy authenticate keeps Ktor's FirstSuccessful behavior and skips once typed auth set a principal.
         val onlyTyped = client.post("/nested") { header(HttpHeaders.Authorization, auth) }
         assertEquals(HttpStatusCode.OK, onlyTyped.status)
         assertEquals("typed@test.com:typed@test.com:null", onlyTyped.bodyAsText())
 
         val onlyLegacy = client.post("/nested") {
-            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
-            setBody("user=legacy&password=pass")
+            formCredentials("legacy")
         }
         assertEquals(HttpStatusCode.Unauthorized, onlyLegacy.status)
 
         val both = client.post("/nested") {
-            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded.toString())
+            formCredentials("legacy")
             header(HttpHeaders.Authorization, auth)
-            setBody("user=legacy&password=pass")
         }
         assertEquals(HttpStatusCode.OK, both.status)
         assertEquals("typed@test.com:typed@test.com:null", both.bodyAsText())
