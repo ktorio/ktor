@@ -24,7 +24,7 @@ public fun OutgoingContent.compressed(
         CompressedReadChannelResponse(this, { readFrom() }, contentEncoder, coroutineContext)
 
     is OutgoingContent.WriteChannelContent ->
-        CompressedWriteChannelResponse(this, contentEncoder, coroutineContext)
+        CompressedWriteChannelResponse(this, contentEncoder, coroutineContext.minusKey(Job))
 
     is OutgoingContent.ByteArrayContent ->
         CompressedReadChannelResponse(this, { ByteReadChannel(bytes()) }, contentEncoder, coroutineContext)
@@ -68,7 +68,7 @@ private class CompressedReadChannelResponse(
 private class CompressedWriteChannelResponse(
     val original: WriteChannelContent,
     val encoder: ContentEncoder,
-    val coroutineContext: CoroutineContext
+    val encoderContext: CoroutineContext,
 ) : OutgoingContent.WriteChannelContent() {
     override val headers by lazy(LazyThreadSafetyMode.NONE) {
         Headers.build {
@@ -91,8 +91,8 @@ private class CompressedWriteChannelResponse(
     override fun <T : Any> setProperty(key: AttributeKey<T>, value: T?) = original.setProperty(key, value)
 
     override suspend fun writeTo(channel: ByteWriteChannel) {
-        withContext(coroutineContext) {
-            encoder.encode(channel, coroutineContext).use {
+        coroutineScope {
+            encoder.encode(channel, coroutineContext + encoderContext).use {
                 original.writeTo(this)
             }
         }
