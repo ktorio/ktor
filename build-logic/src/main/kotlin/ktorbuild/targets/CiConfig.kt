@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package ktorbuild.targets
@@ -14,7 +14,6 @@ import org.gradle.kotlin.dsl.assign
 import org.gradle.kotlin.dsl.extra
 import org.gradle.kotlin.dsl.getByName
 import org.gradle.kotlin.dsl.withType
-import org.jetbrains.kotlin.gradle.targets.js.testing.KotlinJsTest
 import org.jetbrains.kotlin.gradle.targets.jvm.tasks.KotlinJvmTest
 import org.jetbrains.kotlin.gradle.tasks.KotlinTest
 
@@ -31,8 +30,10 @@ internal fun Project.configureTestTasksOnCi() {
     // KotlinTestReport overwrites ignoreFailure values and fails build on test failure if this flag is disabled
     extra["kotlin.tests.individualTaskReports"] = true
 
-    tasks.withType<KotlinJsTest>().configureEach {
-        withLimitedParallelism("js-flakiness")
+    // JS browser tests run one task at a time: with several Karma runs in parallel,
+    // a run sometimes ended early ("Test running process exited unexpectedly") and its remaining tests didn't run.
+    tasks.named { it == "jsBrowserTest" }.configureEach {
+        withLimitedParallelism("js-browser-tests")
     }
     tasks.withType<KotlinJvmTest>().configureEach {
         testRetry {
