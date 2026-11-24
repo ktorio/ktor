@@ -43,7 +43,7 @@ internal fun Application.configureOAuthRoute(provider: OidcProvider) {
                     }
 
                     val refreshedIdToken = refreshResult.idToken
-                        ?.takeIf { provider.hasSameSubject(current = idToken, refreshed = it) }
+                        ?.takeIf { provider.isValidRefreshOf(current = idToken, refreshed = it) }
                         ?: return@post call.respond(HttpStatusCode.Unauthorized)
 
                     call.session = refreshedIdToken

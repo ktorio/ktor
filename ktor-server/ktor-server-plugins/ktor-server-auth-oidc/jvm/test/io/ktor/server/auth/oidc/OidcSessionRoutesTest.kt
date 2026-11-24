@@ -6,6 +6,7 @@
 
 package io.ktor.server.auth.oidc
 
+import com.auth0.jwt.JWT
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -240,6 +241,45 @@ class OidcSessionRoutesTest {
     }
 
     @Test
+    fun `auto refresh accepts refreshed id token repeating original nonce`() = testApplication {
+        val keys = testRsaKeys
+        val idTokensByState = ConcurrentHashMap<String, String>()
+        val refreshCalls = AtomicInteger()
+
+        openIdRefreshProvider(idTokensByState) {
+            val originalNonce = JWT.decode(idTokensByState.values.single()).getClaim("nonce").asString()
+            respondRefreshedIdToken(keys, refreshCalls = refreshCalls, nonce = originalNonce)
+        }
+        installSessionTestApp(keys) {
+            tokenRefreshStrategy = OidcTokenRefreshStrategy.Auto(beforeExpiry = 30.seconds)
+        }
+
+        val browser = noRedirectsClient()
+        val cookie = browser.signInWithIdToken(idTokensByState, keys, expiresIn = 10.seconds)
+
+        browser.assertMe(cookie, HttpStatusCode.OK, "refreshed-user")
+        assertEquals(1, refreshCalls.get())
+    }
+
+    @Test
+    fun `auto refresh keeps session when refreshed id token has different nonce`() = testApplication {
+        val keys = testRsaKeys
+        val idTokensByState = ConcurrentHashMap<String, String>()
+
+        openIdRefreshProvider(idTokensByState) {
+            respondRefreshedIdToken(keys, nonce = "different-nonce")
+        }
+        installSessionTestApp(keys) {
+            tokenRefreshStrategy = OidcTokenRefreshStrategy.Auto(beforeExpiry = 30.seconds)
+        }
+
+        val browser = noRedirectsClient()
+        val cookie = browser.signInWithIdToken(idTokensByState, keys, expiresIn = 10.seconds)
+
+        browser.assertMe(cookie, HttpStatusCode.OK, "session-user")
+    }
+
+    @Test
     fun `auto refresh clears expired session when refreshed response has no id token`() = testApplication {
         val keys = testRsaKeys
         val idTokensByState = ConcurrentHashMap<String, String>()
@@ -341,11 +381,11 @@ class OidcSessionRoutesTest {
             "missing id token" to { _: OpenIdTestKeys ->
                 TokenRefreshResponse(accessToken = "access-token-only", tokenType = "Bearer")
             },
-            "id token contains nonce" to { keys: OpenIdTestKeys ->
+            "id token nonce differs from original" to { keys: OpenIdTestKeys ->
                 TokenRefreshResponse(
                     accessToken = "access-token-2",
                     tokenType = "Bearer",
-                    idToken = keys.idToken(subject = "refreshed-user") {
+                    idToken = keys.idToken(subject = "session-user") {
                         audience = "client-id"
                         nonce = "unexpected-nonce"
                     },

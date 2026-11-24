@@ -55,7 +55,28 @@ class OidcProviderOperationsTest {
             val failure = assertFailsWith<OidcTokenRejectedException> {
                 provider.refreshToken("refresh-token-dpop")
             }
-            assertContains(failure.message.orEmpty(), "token_type")
+            assertContains(failure.message, "token_type")
+        }
+    }
+
+    @Test
+    fun `refreshToken accepts id token containing nonce`() = runTest {
+        val keys = testRsaKeys
+        refreshTokenClient(keys).use { client ->
+            val provider = operationsProvider(client) {
+                testIssuer(metadata = browserFlowMetadata())
+                jwt(keys)
+                oauth {
+                    clientId = "client-id"
+                    clientSecret = "client-secret"
+                    resourceIndicators = listOf("https://api.example.com")
+                }
+            }
+
+            // OIDC Core 12.2 allows a refreshed ID token to repeat the nonce of the original authentication.
+            val result = provider.refreshToken("refresh-token-with-nonce")
+            val principal = assertNotNull(result.idToken)
+            assertEquals("nonce-user", principal.userInfo.subject)
         }
     }
 
@@ -98,7 +119,7 @@ class OidcProviderOperationsTest {
                         expectedAudience = "client-id",
                     )
                 }
-                assertContains(failure.message.orEmpty(), "at_hash")
+                assertContains(failure.message, "at_hash")
             }
         }
     }
@@ -198,6 +219,15 @@ class OidcProviderOperationsTest {
                         tokenType = "Bearer",
                         idToken = keys.idToken(subject = "non-rotated-user") {
                             audience = "client-id"
+                        },
+                    )
+
+                    "refresh-token-with-nonce" -> TokenRefreshResponse(
+                        accessToken = "access-token-with-nonce",
+                        tokenType = "Bearer",
+                        idToken = keys.idToken(subject = "nonce-user") {
+                            audience = "client-id"
+                            nonce = "original-nonce"
                         },
                     )
 
