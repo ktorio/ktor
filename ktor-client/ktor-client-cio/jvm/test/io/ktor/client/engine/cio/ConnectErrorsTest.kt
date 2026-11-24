@@ -187,6 +187,47 @@ class ConnectErrorsTest {
     }
 
     @Test
+    fun `chunked response body fails when connection closes between chunks`() = runTest {
+        val client = HttpClient(CIO)
+
+        client.use {
+            serverSocket.close()
+
+            ServerSocket(serverSocket.localPort).use { server ->
+                val thread = thread {
+                    try {
+                        server.accept().use { socket ->
+                            socket.getOutputStream().let { out ->
+                                out.write(
+                                    buildString {
+                                        append("HTTP/1.1 200 OK\r\n")
+                                        append("Content-Type: text/plain\r\n")
+                                        append("Transfer-Encoding: chunked\r\n\r\n")
+                                        append("4\r\nTest\r\n")
+                                        append("4\r\nTest\r\n")
+                                    }.toByteArray()
+                                )
+                                out.flush()
+                            }
+                            // Upstream dies between chunks: no terminating zero-length chunk is ever sent.
+                            // Half-close and drain the request: close() with unread input sends RST instead of FIN
+                            socket.shutdownOutput()
+                            socket.getInputStream().readBytes()
+                        }
+                    } catch (_: SocketException) {
+                    }
+                }
+
+                client.prepareGet("http://localhost:${serverSocket.localPort}/").execute { response ->
+                    assertEquals(HttpStatusCode.OK, response.status)
+                    assertFails { response.bodyAsText() }
+                }
+                thread.join()
+            }
+        }
+    }
+
+    @Test
     fun testConnectionClosedBeforeReadingResponseStatusLine() = runTest {
         val client = HttpClient(CIO)
 

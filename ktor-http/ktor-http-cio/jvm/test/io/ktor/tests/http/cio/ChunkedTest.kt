@@ -63,8 +63,34 @@ class ChunkedTest {
         val ch = ByteReadChannel(bodyText)
         val parsed = ByteChannel()
 
-        decodeChunked(ch, parsed)
-        assertEquals("", parsed.readBuffer().readText())
+        assertFailsWith<EOFException> {
+            decodeChunked(ch, parsed)
+        }
+        assertClosedWithEof(parsed)
+    }
+
+    @Test
+    fun `input ending after a complete chunk without the last chunk fails`(): Unit = runBlocking {
+        val bodyText = "3\r\n123\r\n"
+        val ch = ByteReadChannel(bodyText)
+        val parsed = ByteChannel()
+
+        assertFailsWith<EOFException> {
+            decodeChunked(ch, parsed)
+        }
+        assertClosedWithEof(parsed)
+    }
+
+    @Test
+    fun `input ending after several chunks without the last chunk fails`(): Unit = runBlocking {
+        val bodyText = "3\r\n123\r\n2\r\n45\r\n"
+        val ch = ByteReadChannel(bodyText)
+        val parsed = ByteChannel()
+
+        assertFailsWith<EOFException> {
+            decodeChunked(ch, parsed)
+        }
+        assertClosedWithEof(parsed)
     }
 
     @Test
@@ -298,5 +324,12 @@ class ChunkedTest {
         assertFailsWith<IOException> {
             encodeChunked(defunctWriteChannel, ByteReadChannel("123"))
         }
+    }
+
+    private suspend fun assertClosedWithEof(channel: ByteReadChannel) {
+        val cause = assertFailsWith<ClosedByteChannelException> {
+            channel.readRemaining()
+        }.cause
+        assertIs<EOFException>(cause)
     }
 }

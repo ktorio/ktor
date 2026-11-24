@@ -52,17 +52,19 @@ public fun CoroutineScope.decodeChunked(input: ByteReadChannel, contentLength: L
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.cio.decodeChunked)
  *
- * @throws EOFException if stream has ended unexpectedly.
+ * @throws EOFException if [input] ends before the zero-length last chunk, including when it is empty.
  * @throws ParserException if the format is invalid.
  */
 public suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel) {
     var totalBytesCopied = 0L
+    var lastChunkRead = false
 
     try {
         while (!input.exhausted()) {
             val chunkSize = parseChunkSize(input)
             if (chunkSize == 0L) {
                 input.skipCrLf()
+                lastChunkRead = true
                 break
             }
 
@@ -70,6 +72,12 @@ public suspend fun decodeChunked(input: ByteReadChannel, out: ByteWriteChannel) 
             input.skipCrLf()
             out.flush()
             totalBytesCopied += chunkSize
+        }
+
+        if (!lastChunkRead) {
+            throw EOFException(
+                "Chunked stream has ended unexpectedly: no last chunk after $totalBytesCopied bytes"
+            )
         }
     } catch (t: Throwable) {
         out.close(t)
