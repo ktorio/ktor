@@ -8,6 +8,7 @@ import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.mock.*
 import io.ktor.client.plugins.*
+import io.ktor.client.plugins.cookies.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.test.base.*
@@ -260,6 +261,57 @@ class HttpRedirectMockedTest {
     }
 
     @Test
+    fun `cookie header is removed on cross-authority redirect`() = testWithEngine(MockEngine) {
+        config {
+            server {
+                when (it.url.parameters["i"]) {
+                    "1" -> "http://localhost/child"
+                    "2" -> "http://localhost:80/child"
+                    "3" -> "http://localhost:443/child"
+                    "4" -> "https://localhost/child"
+                    "5" -> "http://otherhost/child"
+                    else -> fail()
+                }
+            }
+        }
+
+        test { client ->
+            val results = HashMap<String, String>()
+
+            repeat(5) {
+                val number = it + 1
+                val response = client.get("http://localhost/path?i=$number") { cookie("session", "secret") }
+                assertEquals("OK", response.bodyAsText())
+                results[number.toString()] = response.headers["_cookie"]!!
+            }
+
+            assertEquals("session=secret", results["1"])
+            assertEquals("session=secret", results["2"])
+            assertEquals("", results["3"])
+            assertEquals("session=secret", results["4"])
+            assertEquals("", results["5"])
+        }
+    }
+
+    @Test
+    fun `HttpCookies still sends stored cookies for the redirect target`() = testWithEngine(MockEngine) {
+        config {
+            server { "http://otherhost/child" }
+            install(HttpCookies) {
+                default {
+                    addCookie("http://otherhost", Cookie("target", "ok"))
+                }
+            }
+        }
+
+        test { client ->
+            val response = client.get("http://localhost/path") { cookie("session", "secret") }
+            assertEquals("OK", response.bodyAsText())
+            assertEquals("target=ok", response.headers["_cookie"])
+        }
+    }
+
+    @Test
     fun testProhibitedRedirectHttpMethodCheck() = testWithEngine(MockEngine) {
         config {
             expectSuccess = true
@@ -308,6 +360,7 @@ class HttpRedirectMockedTest {
                         HttpStatusCode.OK,
                         headers = Headers.build {
                             append("_auth", request.headers[HttpHeaders.Authorization] ?: "")
+                            append("_cookie", request.headers[HttpHeaders.Cookie] ?: "")
                         }
                     )
                 } else {
