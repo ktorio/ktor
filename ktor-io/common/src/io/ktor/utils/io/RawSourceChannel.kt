@@ -46,31 +46,43 @@ internal class RawSourceChannel(
         }
     }
 
-    @OptIn(InternalAPI::class)
+    @OptIn(InternalAPI::class, InternalCoroutinesApi::class)
     override suspend fun awaitContent(min: Int): Boolean {
         if (closedToken.value != null) {
             rethrowCloseCauseIfNeeded()
             return buffer.remaining >= min
         }
 
-        withContext(coroutineContext) {
-            var result = 0L
-            while (buffer.remaining < min && result >= 0) {
-                ensureActive()
-                result = try {
-                    source.readAtMostTo(buffer, CHANNEL_MAX_SIZE.toLong())
-                } catch (_: EOFException) {
-                    -1L
-                } catch (cause: IOException) {
+        // A blocking read ignores thread interruption, so tear down the channel when the caller
+        // is cancelled: closing the source aborts the native read (e.g. on Windows), and
+        // cancelling the channel job prevents a parent scope from waiting on it forever.
+        val callerJob = currentCoroutineContext()[Job]
+        val cancellationHandler = callerJob?.invokeOnCompletion(onCancelling = true) { cause ->
+            cancel(cause)
+        }
+
+        try {
+            withContext(coroutineContext) {
+                var result = 0L
+                while (buffer.remaining < min && result >= 0) {
+                    ensureActive()
+                    result = try {
+                        source.readAtMostTo(buffer, CHANNEL_MAX_SIZE.toLong())
+                    } catch (_: EOFException) {
+                        -1L
+                    } catch (cause: IOException) {
+                        rethrowCloseCauseIfNeeded()
+                        throw cause
+                    }
+                }
+
+                if (result == -1L) {
+                    closeNormally()
                     rethrowCloseCauseIfNeeded()
-                    throw cause
                 }
             }
-
-            if (result == -1L) {
-                closeNormally()
-                rethrowCloseCauseIfNeeded()
-            }
+        } finally {
+            cancellationHandler?.dispose()
         }
 
         return buffer.remaining >= min

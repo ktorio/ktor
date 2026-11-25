@@ -232,6 +232,79 @@ class RawSourceChannelTest {
             channel.job.cancel()
         }
     }
+
+    @Test
+    fun `awaitContent completes when caller coroutine is cancelled on blocking stream`() {
+        val readStarted = CountDownLatch(1)
+        val closeLatch = CountDownLatch(1)
+
+        val blockingInput = object : java.io.InputStream() {
+            override fun read(): Int {
+                readStarted.countDown()
+                closeLatch.await()
+                return -1
+            }
+
+            override fun close() {
+                closeLatch.countDown()
+            }
+        }
+
+        val channel = blockingInput.toByteReadChannel()
+
+        runBlocking {
+            val job = launch(Dispatchers.IO) {
+                channel.readFully(ByteArray(1024))
+            }
+
+            readStarted.await()
+
+            job.cancel()
+
+            try {
+                withTimeout(5000) {
+                    job.join()
+                }
+            } finally {
+                // Release the reader so a broken cancellation fails the test instead of hanging it.
+                blockingInput.close()
+            }
+        }
+    }
+
+    @Test
+    fun `parent scope completes when only the reader is cancelled`() {
+        val readStarted = CountDownLatch(1)
+        val closeLatch = CountDownLatch(1)
+
+        val blockingInput = object : java.io.InputStream() {
+            override fun read(): Int {
+                readStarted.countDown()
+                closeLatch.await()
+                return -1
+            }
+
+            override fun close() {
+                closeLatch.countDown()
+            }
+        }
+
+        runBlocking {
+            withTimeout(10_000) {
+                coroutineScope {
+                    val channel = blockingInput.toByteReadChannel(coroutineContext + Dispatchers.IO)
+                    val reader = launch(Dispatchers.IO) {
+                        channel.readFully(ByteArray(1024))
+                    }
+
+                    readStarted.await()
+                    reader.cancel()
+                    // coroutineScope must finish: it waits for both the reader and the
+                    // channel job, which is a child of this scope's job.
+                }
+            }
+        }
+    }
 }
 
 /** Runs [block] and releases its resources on completion or cancellation. */
