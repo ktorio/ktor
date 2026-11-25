@@ -562,3 +562,25 @@ internal suspend fun test304WithoutVaryMatchesByEtagScenario(cache: CacheTestFix
 
     assertEquals(1, cache.publicEntries(url).size)
 }
+
+internal fun MockCacheTestScope.cacheControlHandler(vararg cacheControl: String) {
+    handler = { respond("body", HttpStatusCode.OK, headersOf(HttpHeaders.CacheControl, cacheControl.toList())) }
+}
+
+internal suspend fun testResponseIsNotStoredScenario(
+    cache: CacheTestFixtures,
+    client: HttpClient,
+    url: Url,
+    authorized: Boolean,
+) {
+    client.get(url) { if (authorized) header(HttpHeaders.Authorization, "Bearer token") }.bodyAsText()
+
+    assertTrue(cache.publicEntries(url).isEmpty())
+    assertTrue(cache.privateEntries(url).isEmpty())
+}
+
+internal suspend fun testAuthorizedResponseIsStoredScenario(cache: CacheTestFixtures, client: HttpClient, url: Url) {
+    client.get(url) { header(HttpHeaders.Authorization, "Bearer token") }.bodyAsText()
+
+    assertEquals(1, cache.publicEntries(url).size)
+}

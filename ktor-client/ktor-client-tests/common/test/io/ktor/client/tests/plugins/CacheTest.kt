@@ -510,4 +510,76 @@ class CacheTest : ClientLoader() {
             assertEquals("2", response3)
         }
     }
+
+    @Test
+    fun `shared cache does not store response to authorized request`() = mockCacheTest(
+        configureCache = { isShared = true },
+    ) {
+        cacheControlHandler("max-age=60")
+        testBody = { client -> testResponseIsNotStoredScenario(fixtures, client, url, authorized = true) }
+    }
+
+    @Test
+    fun `shared cache does not store response to authorized request with invalid s-maxage`() = mockCacheTest(
+        configureCache = { isShared = true },
+    ) {
+        cacheControlHandler("s-maxage=invalid, max-age=60")
+        testBody = { client -> testResponseIsNotStoredScenario(fixtures, client, url, authorized = true) }
+    }
+
+    @Test
+    fun `shared cache stores response to authorized request when public`() = mockCacheTest(
+        configureCache = { isShared = true },
+    ) {
+        cacheControlHandler("public, max-age=60")
+        testBody = { client -> testAuthorizedResponseIsStoredScenario(fixtures, client, url) }
+    }
+
+    @Test
+    fun `shared cache stores response to authorized request when must-revalidate`() = mockCacheTest(
+        configureCache = { isShared = true },
+    ) {
+        cacheControlHandler("must-revalidate, max-age=60")
+        testBody = { client -> testAuthorizedResponseIsStoredScenario(fixtures, client, url) }
+    }
+
+    @Test
+    fun `shared cache stores response to authorized request when s-maxage`() = mockCacheTest(
+        configureCache = { isShared = true },
+    ) {
+        cacheControlHandler("s-maxage=60")
+        testBody = { client -> testAuthorizedResponseIsStoredScenario(fixtures, client, url) }
+    }
+
+    @Test
+    fun `shared cache does not store private response with upper case directive`() = mockCacheTest(
+        configureCache = { isShared = true },
+    ) {
+        cacheControlHandler("PRIVATE, max-age=60")
+        testBody = { client -> testResponseIsNotStoredScenario(fixtures, client, url, authorized = false) }
+    }
+
+    @Test
+    fun `shared cache stores response to authorized request when s-maxage is upper case`() = mockCacheTest(
+        configureCache = { isShared = true },
+    ) {
+        cacheControlHandler("S-MAXAGE=60")
+        testBody = { client -> testAuthorizedResponseIsStoredScenario(fixtures, client, url) }
+    }
+
+    @Test
+    fun `shared cache stores response to authorized request when s-maxage overflows`() = mockCacheTest(
+        configureCache = { isShared = true },
+    ) {
+        cacheControlHandler("s-maxage=99999999999999999999")
+        testBody = { client -> testAuthorizedResponseIsStoredScenario(fixtures, client, url) }
+    }
+
+    @Test
+    fun `shared cache does not store private response with directives in separate headers`() = mockCacheTest(
+        configureCache = { isShared = true },
+    ) {
+        cacheControlHandler("max-age=60", "private")
+        testBody = { client -> testResponseIsNotStoredScenario(fixtures, client, url, authorized = false) }
+    }
 }
