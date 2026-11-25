@@ -9,7 +9,7 @@ pluginManagement {
 
         // Should be in sync with ktorsettings.kotlin-user-project
         val kotlinRepoUrl = providers.gradleProperty("kotlin_repo_url").orNull
-        val kotlin_version: String? by settings
+        val kotlin_version: String? = providers.gradleProperty("kotlin_version").orNull
         val repoUrl = kotlinRepoUrl
         val kotlinVersion = kotlin_version
         if (!repoUrl.isNullOrEmpty() && !kotlinVersion.isNullOrEmpty()) {
