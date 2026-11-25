@@ -22,6 +22,7 @@
 * [KTOR-10009](https://youtrack.jetbrains.com/issue/KTOR-10009) AutoHeadResponse: For chunked response, HEAD request leads to a response with `Content-Length: 0`
 * [KTOR-10152](https://youtrack.jetbrains.com/issue/KTOR-10152) Routing: segments failing whole fast path
 * [KTOR-10197](https://youtrack.jetbrains.com/issue/KTOR-10197) Curl: Keep unread response body bytes when the transfer finishes
+* [KTOR-9930](https://youtrack.jetbrains.com/issue/KTOR-9930) ktor-serialization-kotlinx pulls in kotlinx-datetime:0.8.0-0.6.x-compat since 3.6.0
 
 
 # 3.6.1
