@@ -5,7 +5,10 @@
 package io.ktor.client.webrtc
 
 import io.ktor.utils.io.*
-import kotlinx.coroutines.channels.*
+import kotlinx.coroutines.channels.BufferOverflow
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ChannelIterator
+import kotlinx.coroutines.channels.ChannelResult
 import kotlin.time.Duration
 
 /**
@@ -17,43 +20,29 @@ import kotlin.time.Duration
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.DataChannelBufferOverflow)
  */
 public interface DataChannelBufferOverflow {
-    public companion object {
-        /**
-         * Fail the data channel: the receive buffer is closed with a [WebRtc.IOException] cause,
-         * a [DataChannelEvent.Error] is emitted, and the transport is closed.
-         * Messages that were already buffered can still be received.
-         *
-         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.DataChannelBufferOverflow.Companion.Close)
-         */
-        public val Close: DataChannelBufferOverflow = BuiltInDataChannelBufferOverflow(BufferOverflow.SUSPEND)
+    /**
+     * Fail the data channel: the receive buffer is closed with a [WebRtc.IOException] cause,
+     * a [DataChannelEvent.Error] is emitted, and the transport is closed.
+     * Messages that were already buffered can still be received.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.DataChannelBufferOverflow.Close)
+     */
+    public object Close : DataChannelBufferOverflow
 
-        /**
-         * Drop the oldest buffered message to make room for the new one. The data channel stays open.
-         *
-         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.DataChannelBufferOverflow.Companion.DropOldest)
-         */
-        public val DropOldest: DataChannelBufferOverflow = BuiltInDataChannelBufferOverflow(BufferOverflow.DROP_OLDEST)
+    /**
+     * Drop the oldest buffered message to make room for the new one. The data channel stays open.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.DataChannelBufferOverflow.DropOldest)
+     */
+    public object DropOldest : DataChannelBufferOverflow
 
-        /**
-         * Drop the new message and keep the buffered ones. The data channel stays open.
-         *
-         * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.DataChannelBufferOverflow.Companion.DropLatest)
-         */
-        public val DropLatest: DataChannelBufferOverflow = BuiltInDataChannelBufferOverflow(BufferOverflow.DROP_LATEST)
-    }
+    /**
+     * Drop the new message and keep the buffered ones. The data channel stays open.
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.DataChannelBufferOverflow.DropLatest)
+     */
+    public object DropLatest : DataChannelBufferOverflow
 }
-
-private class BuiltInDataChannelBufferOverflow(
-    val channelOverflow: BufferOverflow
-) : DataChannelBufferOverflow
-
-private val DataChannelBufferOverflow.channelOverflow: BufferOverflow
-    get() {
-        require(this is BuiltInDataChannelBufferOverflow) {
-            "Unsupported DataChannelBufferOverflow $this."
-        }
-        return channelOverflow
-    }
 
 /**
  * Configuration options for the buffer of incoming messages in [WebRtcDataChannel].
@@ -92,7 +81,11 @@ public class DataChannelReceiveOptions {
      */
     @Deprecated("Use onOverflow instead. BufferOverflow.SUSPEND is allowed only with Channel.UNLIMITED capacity.")
     public var onBufferOverflow: BufferOverflow
-        get() = onOverflow.channelOverflow
+        get() = when (onOverflow) {
+            DataChannelBufferOverflow.DropOldest -> BufferOverflow.DROP_OLDEST
+            DataChannelBufferOverflow.DropLatest -> BufferOverflow.DROP_LATEST
+            else -> BufferOverflow.SUSPEND
+        }
         set(value) {
             onOverflow = when (value) {
                 BufferOverflow.SUSPEND -> DataChannelBufferOverflow.Close
@@ -270,9 +263,13 @@ private fun Channel.Factory.from(options: DataChannelReceiveOptions): Channel<We
         "BufferOverflow.SUSPEND isn't supported with the bounded receive capacity ${options.capacity} " +
             "because the remote peer can't be suspended. Set onOverflow or use Channel.UNLIMITED capacity."
     }
+    val onBufferOverflow = when (options.onOverflow) {
+        DataChannelBufferOverflow.DropOldest -> BufferOverflow.DROP_OLDEST
+        else -> BufferOverflow.SUSPEND
+    }
     return Channel(
         capacity = options.capacity,
-        onBufferOverflow = options.onOverflow.channelOverflow,
+        onBufferOverflow = onBufferOverflow,
         onUndeliveredElement = options.onUndeliveredElement
     )
 }
@@ -292,6 +289,7 @@ public abstract class WebRtcDataChannel(
 ) : WebRtc.DataChannel {
     private val receiveCapacity: Int = receiveOptions.capacity
     private val onUndeliveredMessage = receiveOptions.onUndeliveredElement
+    private val onOverflow = receiveOptions.onOverflow
     private val receiveChannel: Channel<WebRtc.DataChannel.Message> = Channel.from(receiveOptions)
 
     /**
@@ -328,15 +326,26 @@ public abstract class WebRtcDataChannel(
     /**
      * Adds a received [message] to the receive buffer.
      *
-     * When the buffer is full and [DataChannelReceiveOptions.onOverflow] is [DataChannelBufferOverflow.Close],
-     * the receive buffer is closed, a [DataChannelEvent.Error] is emitted, and the transport is closed.
+     * When the buffer is full, [DataChannelReceiveOptions.onOverflow] decides what happens:
+     * - [DataChannelBufferOverflow.Close]: the receive buffer is closed, a [DataChannelEvent.Error] is emitted,
+     *   and the transport is closed.
+     * - [DataChannelBufferOverflow.DropLatest]: the [message] is dropped.
+     * - [DataChannelBufferOverflow.DropOldest]: the receive buffer drops its oldest message, so this never fails.
      */
     protected fun emitMessage(message: WebRtc.DataChannel.Message): ChannelResult<Unit> {
         val result = receiveChannel.trySend(message)
         if (result.isSuccess || result.isClosed) {
             return result
         }
+        // The buffer is full. A failed `trySend` doesn't call `onUndeliveredElement`, so it's called here.
         onUndeliveredMessage?.invoke(message)
+        if (onOverflow == DataChannelBufferOverflow.Close) {
+            closeOnOverflow()
+        }
+        return result
+    }
+
+    private fun closeOnOverflow() {
         val cause = WebRtc.IOException(
             "Receive buffer of data channel '$label' overflowed: more than $receiveCapacity messages were not read. " +
                 "Read messages faster or configure DataChannelReceiveOptions."
@@ -346,7 +355,6 @@ public abstract class WebRtcDataChannel(
             eventsEmitter.emitDataChannelEvent(event)
             closeTransport()
         }
-        return result
     }
 
     protected fun stopReceivingMessages() {

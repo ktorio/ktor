@@ -1,11 +1,16 @@
 public abstract interface class io/ktor/client/webrtc/DataChannelBufferOverflow {
-	public static final field Companion Lio/ktor/client/webrtc/DataChannelBufferOverflow$Companion;
 }
 
-public final class io/ktor/client/webrtc/DataChannelBufferOverflow$Companion {
-	public final fun getClose ()Lio/ktor/client/webrtc/DataChannelBufferOverflow;
-	public final fun getDropLatest ()Lio/ktor/client/webrtc/DataChannelBufferOverflow;
-	public final fun getDropOldest ()Lio/ktor/client/webrtc/DataChannelBufferOverflow;
+public final class io/ktor/client/webrtc/DataChannelBufferOverflow$Close : io/ktor/client/webrtc/DataChannelBufferOverflow {
+	public static final field INSTANCE Lio/ktor/client/webrtc/DataChannelBufferOverflow$Close;
+}
+
+public final class io/ktor/client/webrtc/DataChannelBufferOverflow$DropLatest : io/ktor/client/webrtc/DataChannelBufferOverflow {
+	public static final field INSTANCE Lio/ktor/client/webrtc/DataChannelBufferOverflow$DropLatest;
+}
+
+public final class io/ktor/client/webrtc/DataChannelBufferOverflow$DropOldest : io/ktor/client/webrtc/DataChannelBufferOverflow {
+	public static final field INSTANCE Lio/ktor/client/webrtc/DataChannelBufferOverflow$DropOldest;
 }
 
 public abstract interface class io/ktor/client/webrtc/DataChannelEvent {

@@ -49,13 +49,16 @@ class WebRtcDataChannelBackpressureTest {
 
     @Test
     fun `drop oldest keeps the channel open`() = runTest {
+        val undelivered = mutableListOf<String>()
         val channel = TestWebRtcDataChannel {
             capacity = 2
             onOverflow = DataChannelBufferOverflow.DropOldest
+            onUndeliveredElement = { undelivered.add(it.textOrThrow()) }
         }
 
         repeat(4) { assertTrue(channel.emit("message-$it").isSuccess) }
 
+        assertEquals(listOf("message-0", "message-1"), undelivered)
         assertEquals(0, channel.closeTransportCalls)
         assertTrue(channel.events.dataChannelEvents.replayCache.isEmpty())
         assertEquals("message-2", channel.receiveText())
@@ -64,14 +67,19 @@ class WebRtcDataChannelBackpressureTest {
 
     @Test
     fun `drop latest keeps the channel open`() = runTest {
+        val undelivered = mutableListOf<String>()
         val channel = TestWebRtcDataChannel {
             capacity = 2
             onOverflow = DataChannelBufferOverflow.DropLatest
+            onUndeliveredElement = { undelivered.add(it.textOrThrow()) }
         }
 
-        repeat(4) { assertTrue(channel.emit("message-$it").isSuccess) }
+        repeat(2) { assertTrue(channel.emit("message-$it").isSuccess) }
+        repeat(2) { assertTrue(channel.emit("message-${it + 2}").isFailure) }
 
+        assertEquals(listOf("message-2", "message-3"), undelivered)
         assertEquals(0, channel.closeTransportCalls)
+        assertTrue(channel.events.dataChannelEvents.replayCache.isEmpty())
         assertEquals("message-0", channel.receiveText())
         assertEquals("message-1", channel.receiveText())
     }

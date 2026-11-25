@@ -16,14 +16,11 @@ abstract fun interface <#A: out io.ktor.client.webrtc/WebRtcConfig> io.ktor.clie
 }
 
 abstract interface io.ktor.client.webrtc/DataChannelBufferOverflow { // io.ktor.client.webrtc/DataChannelBufferOverflow|null[0]
-    final object Companion { // io.ktor.client.webrtc/DataChannelBufferOverflow.Companion|null[0]
-        final val Close // io.ktor.client.webrtc/DataChannelBufferOverflow.Companion.Close|{}Close[0]
-            final fun <get-Close>(): io.ktor.client.webrtc/DataChannelBufferOverflow // io.ktor.client.webrtc/DataChannelBufferOverflow.Companion.Close.<get-Close>|<get-Close>(){}[0]
-        final val DropLatest // io.ktor.client.webrtc/DataChannelBufferOverflow.Companion.DropLatest|{}DropLatest[0]
-            final fun <get-DropLatest>(): io.ktor.client.webrtc/DataChannelBufferOverflow // io.ktor.client.webrtc/DataChannelBufferOverflow.Companion.DropLatest.<get-DropLatest>|<get-DropLatest>(){}[0]
-        final val DropOldest // io.ktor.client.webrtc/DataChannelBufferOverflow.Companion.DropOldest|{}DropOldest[0]
-            final fun <get-DropOldest>(): io.ktor.client.webrtc/DataChannelBufferOverflow // io.ktor.client.webrtc/DataChannelBufferOverflow.Companion.DropOldest.<get-DropOldest>|<get-DropOldest>(){}[0]
-    }
+    final object Close : io.ktor.client.webrtc/DataChannelBufferOverflow // io.ktor.client.webrtc/DataChannelBufferOverflow.Close|null[0]
+
+    final object DropLatest : io.ktor.client.webrtc/DataChannelBufferOverflow // io.ktor.client.webrtc/DataChannelBufferOverflow.DropLatest|null[0]
+
+    final object DropOldest : io.ktor.client.webrtc/DataChannelBufferOverflow // io.ktor.client.webrtc/DataChannelBufferOverflow.DropOldest|null[0]
 }
 
 abstract interface io.ktor.client.webrtc/MediaTrackFactory { // io.ktor.client.webrtc/MediaTrackFactory|null[0]
