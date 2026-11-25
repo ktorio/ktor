@@ -25,14 +25,14 @@ internal suspend fun PipelineContext<Any, HttpRequestBuilder>.interceptSendLegac
 ) {
     val cache = plugin.selectResponseToUpdate(context, content)
     if (cache == null) {
-        val header = parseHeaderValue(context.headers[HttpHeaders.CacheControl])
+        val header = context.headers.cacheControlDirectives()
         if (CacheControl.ONLY_IF_CACHED in header) {
             proceedWithMissingCache(scope)
         }
         return
     }
     val cachedCall = cache.produceResponse().call
-    val validateStatus = shouldValidate(cache.expires, cache.response.headers, context)
+    val validateStatus = shouldValidate(cache.expires, cache.response.headers, context, plugin.isSharedClient)
 
     if (validateStatus == ValidateStatus.ShouldNotValidate) {
         proceedWithCache(scope, cachedCall)
@@ -100,10 +100,15 @@ private suspend fun PipelineContext<Any, HttpRequestBuilder>.proceedWithWarning(
 
 private suspend fun HttpCache.cacheResponse(response: HttpResponse): HttpResponse {
     val request = response.call.request
-    val responseCacheControl: List<HeaderValue> = response.cacheControl()
-    val requestCacheControl: List<HeaderValue> = request.cacheControl()
+    val responseCacheControl: List<HeaderValue> = response.headers.cacheControlDirectives()
+    val requestCacheControl: List<HeaderValue> = request.headers.cacheControlDirectives()
 
-    val storage = if (CacheControl.PRIVATE in responseCacheControl) privateStorage else publicStorage
+    if (!authorizationAllowsStoring(request, responseCacheControl)) return response
+
+    val isPrivate = CacheControl.PRIVATE in responseCacheControl
+    if (isPrivate && isSharedClient) return response
+
+    val storage = if (isPrivate) privateStorage else publicStorage
 
     if (CacheControl.NO_STORE in responseCacheControl || CacheControl.NO_STORE in requestCacheControl) {
         return response
@@ -115,9 +120,12 @@ private suspend fun HttpCache.cacheResponse(response: HttpResponse): HttpRespons
 
 private fun HttpCache.findAndRefresh(request: HttpRequest, response: HttpResponse): HttpResponse? {
     val url = response.call.request.url
-    val cacheControl = response.cacheControl()
+    val cacheControl = response.headers.cacheControlDirectives()
 
-    val storage = if (CacheControl.PRIVATE in cacheControl) privateStorage else publicStorage
+    val isPrivate = CacheControl.PRIVATE in cacheControl
+    if (isPrivate && isSharedClient) return null
+
+    val storage = if (isPrivate) privateStorage else publicStorage
 
     val cache = storage.selectResponseToUpdate(response, url, request) ?: return null
     val newVaryKeys = response.varyKeys().ifEmpty { cache.varyKeys }

@@ -137,7 +137,6 @@ class CacheLegacyStorageTest : ClientLoader() {
     @Test
     fun test304WithoutVaryMatchesByEtag() = mockCacheTest(
         url = Url("https://example.com/x"),
-        fixtures = CacheTestFixtures.legacy(),
     ) {
         revalidateHandler(
             initialHeaders = defaultRevalidateInitialHeaders(
@@ -147,4 +146,50 @@ class CacheLegacyStorageTest : ClientLoader() {
         )
         testBody = { client -> test304WithoutVaryMatchesByEtagScenario(fixtures, client, url) }
     }
+
+    @Test
+    fun `shared cache does not store response to authorized request`() = mockCacheTest(
+        configureCache = { isShared = true },
+    ) {
+        cacheControlHandler("max-age=60")
+        testBody = { client -> testResponseIsNotStoredScenario(fixtures, client, url, authorized = true) }
+    }
+
+    @Test
+    fun `shared cache does not store private response to authorized request`() = mockCacheTest(
+        configureCache = { isShared = true },
+    ) {
+        cacheControlHandler("private, must-revalidate, max-age=60")
+        testBody = { client -> testResponseIsNotStoredScenario(fixtures, client, url, authorized = true) }
+    }
+
+    @Test
+    fun `shared cache stores response to authorized request when public`() = mockCacheTest(
+        configureCache = { isShared = true },
+    ) {
+        cacheControlHandler("public, max-age=60")
+        testBody = { client -> testAuthorizedResponseIsStoredScenario(fixtures, client, url) }
+    }
+
+    @Test
+    fun `shared cache does not store private response with upper case directive`() = mockCacheTest(
+        configureCache = { isShared = true },
+    ) {
+        cacheControlHandler("PRIVATE, max-age=60")
+        testBody = { client -> testResponseIsNotStoredScenario(fixtures, client, url, authorized = false) }
+    }
+
+    @Test
+    fun `shared cache does not store private response with directives in separate headers`() = mockCacheTest(
+        configureCache = { isShared = true },
+    ) {
+        cacheControlHandler("max-age=60", "private")
+        testBody = { client -> testResponseIsNotStoredScenario(fixtures, client, url, authorized = false) }
+    }
 }
+
+private fun mockCacheTest(
+    url: Url = Url("https://example.com/test"),
+    configureCache: HttpCache.Config.() -> Unit = {},
+    block: MockCacheTestScope.() -> Unit,
+) = mockCacheTest(url, CacheTestFixtures.legacy(), configureCache, block)
