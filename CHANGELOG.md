@@ -1,3 +1,29 @@
+# 3.6.2
+> Published 25 November 2026
+
+### Bugfixes
+* [KTOR-10013](https://youtrack.jetbrains.com/issue/KTOR-10013) Netty: SupervisorJob for the connection remains attached to application and active after WebSocket closes
+* [KTOR-10033](https://youtrack.jetbrains.com/issue/KTOR-10033) Apache5: Socket timeout is overridden by the client with shared engine
+* [KTOR-6905](https://youtrack.jetbrains.com/issue/KTOR-6905) The client reads incomplete streamed responses without failing
+* [KTOR-10175](https://youtrack.jetbrains.com/issue/KTOR-10175) OidcProvider.refreshToken rejects refreshed ID tokens containing the original nonce (breaks Microsoft Entra ID)
+* [KTOR-10101](https://youtrack.jetbrains.com/issue/KTOR-10101) Native: pending socket operations hang forever when the selector loop fails
+* [KTOR-9783](https://youtrack.jetbrains.com/issue/KTOR-9783) RateLimit: No access to any principal when used between multiple authentication methods
+* [KTOR-10089](https://youtrack.jetbrains.com/issue/KTOR-10089) ForwardedHeaders includes the source port in remoteAddress and splits per-IP rate limits
+* [KTOR-10181](https://youtrack.jetbrains.com/issue/KTOR-10181) WinHttp: `closeReason` is `NORMAL, "OK"` instead of the server's reason
+* [KTOR-10137](https://youtrack.jetbrains.com/issue/KTOR-10137) UDP receiver closes its incoming channel after an empty datagram
+* [KTOR-10034](https://youtrack.jetbrains.com/issue/KTOR-10034) mergeHeaders does case-sensitive checks for Content-Type and Content-Length headers
+* [KTOR-10100](https://youtrack.jetbrains.com/issue/KTOR-10100) Tomcat: Server returns normally when the port is already in use
+* [KTOR-10179](https://youtrack.jetbrains.com/issue/KTOR-10179) CIO: Use origin-form request target inside the HTTPS proxy tunnel
+* [KTOR-9810](https://youtrack.jetbrains.com/issue/KTOR-9810) MockEngine: The mocked "server" accepts illegal URLs
+* [KTOR-10146](https://youtrack.jetbrains.com/issue/KTOR-10146) OkHttp: WebSocket send() hangs forever when it races the server's close since 3.4.0
+* [KTOR-10151](https://youtrack.jetbrains.com/issue/KTOR-10151) DoubleReceive: reader channel cancellation is uncaught
+* [KTOR-10163](https://youtrack.jetbrains.com/issue/KTOR-10163) MapApplicationConfig.toMap() fails for a list under a nested path
+* [KTOR-10111](https://youtrack.jetbrains.com/issue/KTOR-10111) 204 No Content responses include a forbidden Content-Length header
+* [KTOR-10009](https://youtrack.jetbrains.com/issue/KTOR-10009) AutoHeadResponse: For chunked response, HEAD request leads to a response with `Content-Length: 0`
+* [KTOR-10152](https://youtrack.jetbrains.com/issue/KTOR-10152) Routing: segments failing whole fast path
+* [KTOR-10197](https://youtrack.jetbrains.com/issue/KTOR-10197) Curl: Keep unread response body bytes when the transfer finishes
+
+
 # 3.6.1
 > Published 29 October 2026
 
