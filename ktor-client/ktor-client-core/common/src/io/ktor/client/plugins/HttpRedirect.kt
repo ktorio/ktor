@@ -75,7 +75,7 @@ public val HttpRedirect: ClientPlugin<HttpRedirectConfig> = createClientPlugin(
         while (true) {
             // Protocol/authority of the current hop
             val previousProtocol = call.request.url.protocol
-            val previousAuthority = call.request.url.authority
+            val previousAuthority = requestBuilder.url.authority
             if (!call.response.status.isRedirect()) return call
 
             val location = call.response.headers[HttpHeaders.Location]
