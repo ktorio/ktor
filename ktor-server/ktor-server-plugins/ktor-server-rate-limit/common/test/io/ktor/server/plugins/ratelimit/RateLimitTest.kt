@@ -7,6 +7,7 @@ package io.ktor.server.plugins.ratelimit
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import io.ktor.ratelimit.RateLimitName
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
@@ -20,6 +21,8 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.ExperimentalTime
+import kotlin.time.TestTimeSource
 
 class RateLimitTest {
 
@@ -211,6 +214,36 @@ class RateLimitTest {
     }
 
     @Test
+    fun testNestedRateLimitsWithSameNameAndTimeSource() = testApplication {
+        val timeSource = TestTimeSource()
+        install(RateLimit) {
+            register(RateLimitName("limit1")) {
+                rateLimiter(limit = 10, refillPeriod = 5.seconds, timeSource = timeSource)
+            }
+        }
+        routing {
+            rateLimit(RateLimitName("limit1")) {
+                rateLimit(RateLimitName("limit1")) {
+                    get("/a") {
+                        call.respond("OK")
+                    }
+                }
+            }
+        }
+
+        repeat(10) {
+            client.get("/a").assertOk()
+        }
+        client.get("/a").assertTooManyRequests()
+
+        timeSource += 5.seconds
+        repeat(10) {
+            client.get("/a").assertOk()
+        }
+        client.get("/a").assertTooManyRequests()
+    }
+
+    @Test
     fun testRefreshLimitsAfterPeriodPassed() = testApplication {
         var time = getTimeMillis()
         install(RateLimit) {
@@ -346,6 +379,9 @@ class RateLimitTest {
     fun testLimitersSharedForSubRoutesForOneRequestKey() = testApplication {
         install(RateLimit) {
             register {
+                rateLimiterFactory {
+                    io.ktor.ratelimit.RateLimiter.default(limit = 10, refillPeriod = 5.seconds)
+                }
                 rateLimiter { _, _ -> RateLimiter.default(limit = 10, refillPeriod = 5.seconds) }
             }
         }

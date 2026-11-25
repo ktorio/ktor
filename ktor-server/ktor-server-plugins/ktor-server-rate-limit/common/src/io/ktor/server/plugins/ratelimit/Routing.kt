@@ -4,8 +4,30 @@
 
 package io.ktor.server.plugins.ratelimit
 
+import io.ktor.ratelimit.LIMITER_NAME_EMPTY
 import io.ktor.server.routing.*
 import io.ktor.util.*
+import io.ktor.utils.io.*
+
+/**
+ * Creates a route that uses the unnamed rate limit provider.
+ *
+ * @param build configures the new route.
+ * @return the route with rate limiting applied.
+ */
+@OptIn(InternalAPI::class)
+public fun Route.rateLimit(build: Route.() -> Unit): Route = rateLimit(LIMITER_NAME_EMPTY, build)
+
+/**
+ * Creates a route that uses a rate limit provider identified by a shared name.
+ *
+ * @param configuration the registered provider name.
+ * @param build configures the new route.
+ * @return the route with rate limiting applied.
+ */
+@Suppress("DEPRECATION")
+public fun Route.rateLimit(configuration: io.ktor.ratelimit.RateLimitName, build: Route.() -> Unit): Route =
+    rateLimit(RateLimitName(configuration.name), build)
 
 /**
  * Creates a route with Rate-Limit rules applied to it.
@@ -23,8 +45,10 @@ import io.ktor.util.*
  * @param configuration names of RateLimit providers defined in the [RateLimit] plugin configuration.
  * @throws IllegalArgumentException if there are no registered providers referred by [configuration] names.
  */
+@Deprecated("Use the overload accepting io.ktor.ratelimit.RateLimitName.")
+@OptIn(InternalAPI::class)
 public fun Route.rateLimit(
-    configuration: RateLimitName = LIMITER_NAME_EMPTY,
+    configuration: RateLimitName = RateLimitName(LIMITER_NAME_EMPTY.name),
     build: Route.() -> Unit
 ): Route {
     val rateLimitRoute = createChild(RateLimitRouteSelector(configuration))

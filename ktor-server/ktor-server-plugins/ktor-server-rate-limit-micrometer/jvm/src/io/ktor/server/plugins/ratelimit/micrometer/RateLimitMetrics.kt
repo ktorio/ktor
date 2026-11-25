@@ -31,6 +31,8 @@ public class RateLimitMetricsConfig {
      * - "ktor.rate.limit.requests"
      * - "ktor.rate.limit.retry.after"
      *
+     * A blank value leaves out the prefix, so the meter names are `requests` and `retry.after`.
+     *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.micrometer.RateLimitMetricsConfig.metricName)
      */
     public var metricName: String = "ktor.rate.limit"
@@ -43,7 +45,7 @@ public class RateLimitMetricsConfig {
      * Avoid high-cardinality values, such as the request key, because each distinct tag value creates a new time series.
      *
      * ```kotlin
-     * addTag("tier") { event -> if (event.limiter.providerName == "premium") "paid" else "free" }
+     * addTag("tier") { event -> if (event.limiter.providerName.name == "premium") "paid" else "free" }
      * ```
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.micrometer.RateLimitMetricsConfig.addTag)
@@ -73,7 +75,7 @@ public class RateLimitMetricsConfig {
  * install(MicrometerMetrics) {
  *     registry = prometheusMeterRegistry
  *     meterBinders += RateLimitMetrics(monitor) {
- *         addTag("tier") { event -> if (event.limiter.providerName == "premium") "paid" else "free" }
+ *         addTag("tier") { event -> if (event.limiter.providerName.name == "premium") "paid" else "free" }
  *     }
  * }
  * ```
@@ -89,18 +91,16 @@ public class RateLimitMetrics(
 ) : MeterBinder {
     private val config = RateLimitMetricsConfig().apply(configure)
 
-    init {
-        require(config.metricName.isNotBlank()) { "Metric name should not be blank" }
-    }
-
     override fun bindTo(registry: MeterRegistry) {
-        val requestsName = "${config.metricName}.requests"
-        val retryAfterName = "${config.metricName}.retry.after"
+        val metricName = config.metricName
+        val prefix = if (metricName.isBlank()) "" else "$metricName."
+        val requestsName = "${prefix}requests"
+        val retryAfterName = "${prefix}retry.after"
         val additionalTags = config.tags.toList()
 
         val handle = monitor.subscribe(RateLimitEvent) { event ->
             val commonTags = Tags.of(
-                Tag.of("limiter", event.limiter.providerName),
+                Tag.of("limiter", event.limiter.providerName.name),
                 Tag.of("route", event.route?.path() ?: "n/a"),
                 Tag.of("method", event.method.value),
             ).and(additionalTags.map { (key, value) -> Tag.of(key, value(event)) })

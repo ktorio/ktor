@@ -17,16 +17,21 @@ import kotlinx.coroutines.job
 /**
  * Limits outgoing request attempts, suspending requests in FIFO order until tokens are available.
  *
+ * Installing without providers respects server cooldown headers for all requests without imposing a token quota.
+ * Cooldowns apply to every request to the same origin (scheme, host, and port), regardless of provider selection.
+ * Without providers, waiting requests may resume together when the cooldown expires.
  * The global provider applies automatically; nameless and named providers require explicit request selection.
  * Each provider and key has an unbounded queue. Each provider allows up to five seconds of waiting by default.
  * A provider with a non-positive maximum wait time rejects immediately when tokens are unavailable.
  * Waiting does not occupy an engine connection, and cancelling a request removes it from the queue.
  * Closing the client cancels waiting requests. Completing an HTTP request does not return consumed tokens.
  * Server cooldowns are checked first, then global and selected providers acquire tokens in selection order.
+ * A final cooldown check respects feedback received while waiting for provider tokens.
  * Consumed tokens are not returned if admission to a later provider fails.
  * Server Retry-After and exhausted quota headers postpone future admission for the response's origin,
- * independently of providers. Waiting for the server consumes no provider tokens and continues until the cooldown
- * expires or the request is cancelled. Provider wait budgets start after the server cooldown ends.
+ * independently of providers. Cooldown waiting continues until the deadline expires or the request is cancelled.
+ * Provider wait budgets start after the initial cooldown ends. Tokens already consumed are retained during the
+ * final cooldown wait, so several admitted requests can resume together when the cooldown ends.
  * Supports Retry-After seconds and HTTP dates, draft RateLimit items with r/t parameters, legacy RateLimit-Remaining
  * with relative RateLimit-Reset, and X-RateLimit/X-Rate-Limit remaining/reset headers with Unix epoch resets.
  * X-RateLimit-Reset-After is interpreted as relative seconds, including fractional seconds.
@@ -36,7 +41,6 @@ import kotlinx.coroutines.job
 public val RateLimit: ClientPlugin<RateLimitConfig> = createClientPlugin("RateLimit", ::RateLimitConfig) {
     val global = pluginConfig.global
     val providers = pluginConfig.providers.toMap()
-    check(global != null || providers.isNotEmpty()) { "At least one provider must be specified" }
     val queues = RateLimiterQueues()
     val cooldown = RateLimitCooldown()
     val serverCooldownExtractor = pluginConfig.serverCooldownExtractor
@@ -62,7 +66,6 @@ public val RateLimit: ClientPlugin<RateLimitConfig> = createClientPlugin("RateLi
                 for (provider in applicable) {
                     val key = provider.requestKey(request)
                     val weight = provider.requestWeight(request, key)
-                    require(weight > 0) { "Request weight must be positive, but was $weight" }
                     val queue = queues.get(provider, key)
                     try {
                         queue.acquire(
@@ -82,6 +85,7 @@ public val RateLimit: ClientPlugin<RateLimitConfig> = createClientPlugin("RateLi
                         )
                     }
                 }
+                cooldown.await(origin)
             } finally {
                 cancellation.dispose()
             }
@@ -101,8 +105,6 @@ public val RateLimit: ClientPlugin<RateLimitConfig> = createClientPlugin("RateLi
     }
 }
 
-private data class ProviderKey(val name: RateLimitName, val key: Any)
-
 private data class RateLimitOrigin(val scheme: String, val host: String, val port: Int) {
     companion object {
         fun from(url: Url): RateLimitOrigin =
@@ -112,11 +114,11 @@ private data class RateLimitOrigin(val scheme: String, val host: String, val por
 
 @OptIn(InternalAPI::class)
 private class RateLimiterQueues {
-    private val queues = ConcurrentMap<ProviderKey, RateLimiterQueue>()
+    private val queues = ConcurrentMap<io.ktor.ratelimit.RateLimiterKey, RateLimiterQueue>()
     private val closed = atomic(false)
 
     fun get(provider: RateLimitProvider, key: Any): RateLimiterQueue {
-        val queue = queues.computeIfAbsent(ProviderKey(provider.name, key)) {
+        val queue = queues.computeIfAbsent(io.ktor.ratelimit.RateLimiterKey(provider.name, key)) {
             RateLimiterQueue(provider.rateLimiterFactory(key), provider.maxWaitTime)
         }
         if (closed.value) queue.close()

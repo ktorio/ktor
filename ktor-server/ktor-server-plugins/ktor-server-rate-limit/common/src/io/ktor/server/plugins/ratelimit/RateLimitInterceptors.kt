@@ -6,6 +6,8 @@ package io.ktor.server.plugins.ratelimit
 
 import io.ktor.events.EventDefinition
 import io.ktor.http.*
+import io.ktor.ratelimit.LIMITER_NAME_EMPTY
+import io.ktor.ratelimit.RateLimiterKey
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -13,7 +15,10 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.RoutingPipelineCall
 import io.ktor.util.collections.*
 import io.ktor.util.logging.*
+import io.ktor.utils.io.*
 import kotlin.time.Duration
+import kotlin.time.ExperimentalTime
+import kotlin.time.Instant
 
 private object ValidatorsPhase : Hook<suspend (ApplicationCall) -> Unit> {
     override fun install(pipeline: ApplicationCallPipeline, handler: suspend (ApplicationCall) -> Unit) {
@@ -41,28 +46,6 @@ internal val RateLimitApplicationInterceptors = createApplicationPlugin(
 }
 
 /**
- * Identifies a [RateLimiter] instance: a rate limiter is shared by all routes
- * that use the same provider and produce the same request key.
- *
- * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.RateLimiterKey)
- *
- * @property providerName the name of the rate limit provider, or `Global` for the global rate limiter.
- * @property key the request key produced by the provider's `requestKey` function.
- */
-public class RateLimiterKey(
-    public val providerName: String,
-    public val key: Any,
-) {
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is RateLimiterKey) return false
-        return providerName == other.providerName && key == other.key
-    }
-
-    override fun hashCode(): Int = 31 * providerName.hashCode() + key.hashCode()
-}
-
-/**
  * A rate limiter's decision for a request.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.RateLimitEventData)
@@ -86,15 +69,16 @@ public sealed class RateLimitEventData(
      * @param method the HTTP method of the request.
      * @property tokensLeft the tokens remaining after consumption.
      * @property tokensTotal the limiter's capacity.
-     * @property nextRefillTs the epoch time in milliseconds when the bucket will be full without further consumption.
+     * @property fullRefillAt the time when the bucket will be full if no more tokens are spent.
+     * The unlimited limiter uses `Instant.fromEpochMilliseconds(Long.MAX_VALUE)`.
      */
-    public class Allowed(
+    public class Allowed @OptIn(ExperimentalTime::class) constructor(
         limiter: RateLimiterKey,
         route: Route?,
         method: HttpMethod,
         public val tokensLeft: Int,
         public val tokensTotal: Int,
-        public val nextRefillTs: Long,
+        public val fullRefillAt: Instant,
     ) : RateLimitEventData(limiter, route, method)
 
     /**
@@ -122,6 +106,7 @@ public sealed class RateLimitEventData(
  */
 public val RateLimitEvent: EventDefinition<RateLimitEventData> = EventDefinition()
 
+@OptIn(ExperimentalTime::class)
 private fun PluginBuilder<RateLimitInterceptorsConfig>.rateLimiterPluginBuilder(
     hook: Hook<suspend (ApplicationCall) -> Unit>,
 ) {
@@ -144,8 +129,8 @@ private fun PluginBuilder<RateLimitInterceptorsConfig>.rateLimiterPluginBuilder(
             val weight = provider.requestWeight(call, key)
             LOGGER.trace { "Using key=$key and weight=$weight for ${call.request.uri}" }
 
-            val providerKey = ProviderKey(provider.name, key)
-            val rateLimiterForCall = registry.computeIfAbsent(providerKey) {
+            val limiterKey = RateLimiterKey(io.ktor.ratelimit.RateLimitName(provider.name.name), key)
+            val rateLimiterForCall = registry.computeIfAbsent(limiterKey) {
                 val factory = provider.rateLimiterFactory
 
                 if (factory != null) {
@@ -162,10 +147,6 @@ private fun PluginBuilder<RateLimitInterceptorsConfig>.rateLimiterPluginBuilder(
             val state = rateLimiterForCall.tryConsume(weight)
             provider.modifyResponse(call, state)
 
-            val limiterKey = RateLimiterKey(
-                providerName = if (provider.name == LIMITER_NAME_GLOBAL) "Global" else provider.name.name,
-                key = key,
-            )
             val route = if (call is RoutingPipelineCall) call.route else null
             val event = when (state) {
                 is RateLimiter.State.Available -> {
@@ -175,7 +156,7 @@ private fun PluginBuilder<RateLimitInterceptorsConfig>.rateLimiterPluginBuilder(
                         method = call.request.httpMethod,
                         tokensTotal = state.limit,
                         tokensLeft = state.remainingTokens,
-                        nextRefillTs = state.refillAtTimeMillis
+                        fullRefillAt = Instant.fromEpochMilliseconds(state.refillAtTimeMillis)
                     )
                 }
 
@@ -205,5 +186,6 @@ private fun PluginBuilder<RateLimitInterceptorsConfig>.rateLimiterPluginBuilder(
 }
 
 internal class RateLimitInterceptorsConfig {
-    internal var providerNames: List<RateLimitName> = listOf(LIMITER_NAME_EMPTY)
+    @OptIn(InternalAPI::class)
+    internal var providerNames: List<RateLimitName> = listOf(RateLimitName(LIMITER_NAME_EMPTY.name))
 }

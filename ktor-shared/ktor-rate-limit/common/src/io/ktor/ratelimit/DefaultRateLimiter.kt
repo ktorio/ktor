@@ -34,9 +34,15 @@ internal class DefaultRateLimiter @OptIn(ExperimentalTime::class) constructor(
         clock: () -> Long = ::getTimeMillis
     ) : this(limit, refillPeriod, clock.asClock(), clock.asTimeSource())
 
+    init {
+        require(refillPeriod > Duration.ZERO && refillPeriod.isFinite()) {
+            "Refill period must be positive and finite, but was $refillPeriod"
+        }
+    }
+
     private val state = atomic(LimiterState(limit, timeSource.markNow()))
 
-    override suspend fun state(): RateLimiterSnapshot {
+    override suspend fun snapshot(): RateLimiterSnapshot {
         val current = state.value
         val tokens = if (timeSource.markNow() - current.lastRefillMark >= refillPeriod) limit else current.tokens
         return RateLimiterSnapshot(tokens, limit)
@@ -74,9 +80,15 @@ internal class IncrementalRefillRateLimiter @OptIn(ExperimentalTime::class) cons
         clock: () -> Long = ::getTimeMillis
     ) : this(limit, refillInterval, clock.asClock(), clock.asTimeSource())
 
+    init {
+        require(refillInterval > Duration.ZERO && refillInterval.isFinite()) {
+            "Refill interval must be positive and finite, but was $refillInterval"
+        }
+    }
+
     private val state = atomic(LimiterState(limit, timeSource.markNow()))
 
-    override suspend fun state(): RateLimiterSnapshot {
+    override suspend fun snapshot(): RateLimiterSnapshot {
         val current = state.value
         return RateLimiterSnapshot(refilled(current, timeSource.markNow()).tokens, limit)
     }

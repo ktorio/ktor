@@ -5,9 +5,12 @@
 package io.ktor.server.plugins.ratelimit
 
 import io.ktor.http.*
+import io.ktor.ratelimit.LIMITER_NAME_EMPTY
+import io.ktor.ratelimit.LIMITER_NAME_GLOBAL
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.util.date.*
 import io.ktor.utils.io.*
 import kotlin.jvm.JvmInline
 import kotlin.time.*
@@ -24,11 +27,39 @@ public class RateLimitConfig {
     internal var global: RateLimitProvider? = null
 
     /**
+     * Registers the unnamed rate limit provider.
+     *
+     * @param block configures the provider.
+     * @throws IllegalStateException if the unnamed provider is already registered.
+     */
+    @OptIn(InternalAPI::class)
+    public fun register(block: RateLimitProviderConfig.() -> Unit) {
+        register(io.ktor.ratelimit.LIMITER_NAME_EMPTY, block)
+    }
+
+    /**
+     * Registers a rate limit provider under a shared name.
+     *
+     * @param name the name used to select the provider.
+     * @param block configures the provider.
+     * @throws IllegalStateException if a provider with [name] is already registered.
+     */
+    @Suppress("DEPRECATION")
+    public fun register(name: io.ktor.ratelimit.RateLimitName, block: RateLimitProviderConfig.() -> Unit) {
+        register(RateLimitName(name.name), block)
+    }
+
+    /**
      * Registers the Rate-Limit provider that can be used in sub-routes via the [Route.rateLimit] function.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.RateLimitConfig.register)
      */
-    public fun register(name: RateLimitName = LIMITER_NAME_EMPTY, block: RateLimitProviderConfig.() -> Unit) {
+    @Deprecated("Use the overload accepting io.ktor.ratelimit.RateLimitName.")
+    @OptIn(InternalAPI::class)
+    public fun register(
+        name: RateLimitName = RateLimitName(LIMITER_NAME_EMPTY.name),
+        block: RateLimitProviderConfig.() -> Unit,
+    ) {
         if (providers.containsKey(name)) {
             throw IllegalStateException("Rate limit provider with name $name is already configured")
         }
@@ -44,9 +75,11 @@ public class RateLimitConfig {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.RateLimitConfig.global)
      */
+    @OptIn(InternalAPI::class)
+    @Suppress("DEPRECATION")
     public fun global(block: RateLimitProviderConfig.() -> Unit) {
         global = RateLimitProvider(
-            RateLimitProviderConfig(LIMITER_NAME_GLOBAL).apply {
+            RateLimitProviderConfig(RateLimitName(LIMITER_NAME_GLOBAL.name)).apply {
                 block()
             }
         )
@@ -56,10 +89,13 @@ public class RateLimitConfig {
 /**
  * A name of registered [RateLimit] provider.
  *
+ * @property name the provider identifier supplied at construction.
+ *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.RateLimitName)
  */
+@Deprecated("Use io.ktor.ratelimit.RateLimitName.")
 @JvmInline
-public value class RateLimitName(internal val name: String)
+public value class RateLimitName(public val name: String)
 
 /**
  * A config for [RateLimit] provider inside [RateLimiterConfig].
@@ -88,7 +124,6 @@ public class RateLimitProviderConfig(internal val name: RateLimitName) {
         }
     }
 
-    @Deprecated("Use rateLimiterFactory. Retained for compatibility with call-dependent factories.")
     internal var rateLimiterProvider: ((call: ApplicationCall, key: Any) -> RateLimiter)? = null
     internal var rateLimiterFactory: ((key: Any) -> RateLimiter)? = null
 
@@ -110,7 +145,8 @@ public class RateLimitProviderConfig(internal val name: RateLimitName) {
     }
 
     /**
-     * Sets a [factory] that creates a [RateLimiter] from the request key, independently of an [ApplicationCall].
+     * Sets a [factory] that creates a shared [io.ktor.ratelimit.RateLimiter] from the request key,
+     * independently of an [ApplicationCall].
      *
      * A limiter is shared by requests with equal keys using this provider, including requests to different routes.
      * The factory is called when no limiter exists for the provider and key. Created limiters remain registered
@@ -123,8 +159,8 @@ public class RateLimitProviderConfig(internal val name: RateLimitName) {
      * @param factory creates a limiter for the key produced by [requestKey].
      */
     @Suppress("DEPRECATION")
-    public fun rateLimiterFactory(factory: (key: Any) -> RateLimiter) {
-        rateLimiterFactory = factory
+    public fun rateLimiterFactory(factory: (key: Any) -> io.ktor.ratelimit.RateLimiter) {
+        rateLimiterFactory = { key -> factory(key).asServerRateLimiter() }
         rateLimiterProvider = null
     }
 
@@ -133,62 +169,76 @@ public class RateLimitProviderConfig(internal val name: RateLimitName) {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.RateLimitProviderConfig.rateLimiter)
      */
+    @OptIn(InternalAPI::class)
     @Deprecated("Use the overload accepting kotlin.time.Clock.")
-    @Suppress("DEPRECATION")
     public fun rateLimiter(
         limit: Int,
         refillPeriod: Duration,
-        initialSize: Int = limit,
-        clock: () -> Long
+        @Suppress("UNUSED_PARAMETER") initialSize: Int = limit,
+        clock: () -> Long = { getTimeMillis() }
     ) {
         rateLimiterFactory {
-            RateLimiter.default(limit = limit, refillPeriod = refillPeriod, initialSize = initialSize, clock = clock)
+            io.ktor.ratelimit.RateLimiter.default(limit, refillPeriod, clock)
         }
+    }
+
+    /**
+     * Configures a rate limiter with [limit] tokens that is fully refilled every [refillPeriod], using [Clock.System].
+     * Starts with a full bucket and uses [timeSource] for refill timing.
+     */
+    @OptIn(ExperimentalTime::class)
+    public fun rateLimiter(
+        limit: Int,
+        refillPeriod: Duration,
+        timeSource: TimeSource.WithComparableMarks = TimeSource.Monotonic
+    ) {
+        rateLimiter(limit, refillPeriod, Clock.System, timeSource)
     }
 
     /**
      * Configures a rate limiter with [limit] tokens that is fully refilled every [refillPeriod].
      *
-     * Refill timing uses monotonic time. The [clock] supplies epoch timestamps for reset headers.
-     * The [initialSize] parameter is ignored.
+     * Refill timing uses [timeSource]. The [clock] supplies epoch timestamps for reset headers.
+     * The bucket starts full.
      */
     @OptIn(ExperimentalTime::class)
     public fun rateLimiter(
         limit: Int,
         refillPeriod: Duration,
-        initialSize: Int = limit,
-        clock: Clock = Clock.System
+        clock: Clock,
+        timeSource: TimeSource.WithComparableMarks = TimeSource.Monotonic
     ) {
         rateLimiterFactory {
-            RateLimiter.default(limit = limit, refillPeriod = refillPeriod, initialSize = initialSize, clock = clock)
+            io.ktor.ratelimit.RateLimiter.default(limit, refillPeriod, clock, timeSource)
         }
     }
 
-    @Deprecated("Use the overload accepting kotlin.time.Clock.")
-    @Suppress("DEPRECATION")
+    /**
+     * Configures an initially full limiter with [limit] tokens, replenishing one token every [refillInterval].
+     * Uses the system clock for reset timestamps and [timeSource] for refill timing.
+     */
     public fun incrementalRefillRateLimiter(
         limit: Int,
         refillInterval: Duration,
-        clock: () -> Long
+        timeSource: TimeSource.WithComparableMarks = TimeSource.Monotonic
     ) {
-        rateLimiterFactory {
-            RateLimiter.incrementalRefill(limit = limit, refillInterval = refillInterval, clock = clock)
-        }
+        rateLimiterFactory { io.ktor.ratelimit.RateLimiter.incrementalRefill(limit, refillInterval, timeSource) }
     }
 
     /**
      * Configures a rate limiter with [limit] tokens that replenishes one token every [refillInterval].
      *
-     * Refill timing uses monotonic time. The [clock] supplies epoch timestamps for reset headers.
+     * Refill timing uses [timeSource]. The [clock] supplies epoch timestamps for reset headers.
      */
     @OptIn(ExperimentalTime::class)
     public fun incrementalRefillRateLimiter(
         limit: Int,
         refillInterval: Duration,
-        clock: Clock = Clock.System
+        clock: Clock,
+        timeSource: TimeSource.WithComparableMarks = TimeSource.Monotonic
     ) {
         rateLimiterFactory {
-            RateLimiter.incrementalRefill(limit = limit, refillInterval = refillInterval, clock = clock)
+            io.ktor.ratelimit.RateLimiter.incrementalRefill(limit, refillInterval, clock, timeSource)
         }
     }
 
@@ -232,8 +282,20 @@ public class RateLimitProviderConfig(internal val name: RateLimitName) {
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.RateLimitProviderConfig.modifyResponse)
      */
+    @Deprecated("Use modifySharedResponse with io.ktor.ratelimit.RateLimiter.State.")
     public fun modifyResponse(block: (ApplicationCall, RateLimiter.State) -> Unit) {
         modifyResponse = block
+    }
+
+    /**
+     * Sets a [block] that modifies the response using the shared limiter state.
+     *
+     * Replaces the default rate limit headers and any previously configured response callback.
+     *
+     * @param block receives the call and the result of consuming its request weight.
+     */
+    public fun modifySharedResponse(block: (ApplicationCall, io.ktor.ratelimit.RateLimiter.State) -> Unit) {
+        modifyResponse = { call, state -> block(call, state.asSharedState()) }
     }
 }
 

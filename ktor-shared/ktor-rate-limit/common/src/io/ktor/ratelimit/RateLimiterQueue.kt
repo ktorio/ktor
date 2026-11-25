@@ -9,8 +9,10 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.job
 import kotlinx.coroutines.selects.onTimeout
 import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.sync.Mutex
@@ -25,6 +27,7 @@ import kotlin.time.Duration.Companion.milliseconds
  *
  * Waiting callers retain their own coroutines; the queue does not execute their work.
  * Only the first waiter attempts consumption, so later arrivals cannot overtake it.
+ * Limiter calls run outside the queue mutex. Custom limiters must cooperate with coroutine cancellation.
  *
  * @param rateLimiter the limiter that supplies tokens.
  * @param maxWaitTime maximum duration of one acquisition, including time waiting behind other callers.
@@ -44,46 +47,71 @@ public class RateLimiterQueue(
      *
      * Cancelling the caller removes its acquisition from the queue.
      * Consumed tokens are replenished by the limiter and are not returned when the caller finishes its work.
-     * When the wait time is zero or negative, attempts immediate admission without queuing or overtaking waiters.
+     * When the wait time is zero or negative, attempts admission without waiting for a queue position or tokens.
+     * Existing waiters cannot be overtaken. A custom limiter call can still have its own execution latency.
      * Token and FIFO waiting count toward the same maximum wait time.
      *
-     * @param tokens the positive number of tokens to consume.
+     * @param tokens the number of tokens to consume, passed unchanged to the limiter.
      * @param maxWaitTime overrides this queue's default waiting budget for this acquisition only.
-     * @throws RateLimitRejectedException if tokens are unavailable and waiting is disabled, or the wait expires.
+     * @throws RateLimitRejectedException if the acquisition must wait but waiting is disabled, or if the wait expires.
      * @throws CancellationException if the caller is cancelled or the queue is closed.
      */
     public suspend fun acquire(
         tokens: Int = 1,
         maxWaitTime: Duration = this.maxWaitTime
-    ) {
-        require(tokens > 0) { "Token count must be positive, but was $tokens" }
+    ): Unit = coroutineScope {
         val acquisition = Acquisition()
-        if (maxWaitTime <= Duration.ZERO) {
+        val acquisitionJob = currentCoroutineContext().job
+        val closeHandle = closed.invokeOnCompletion {
+            acquisitionJob.cancel(CancellationException("Rate limiter queue is closed"))
+        }
+        try {
             currentCoroutineContext().ensureActive()
             ensureOpen()
-            if (tryConsume(tokens, acquisition, rejectIfQueued = true) is RateLimiter.State.Exhausted) {
+            if (maxWaitTime <= Duration.ZERO) {
+                awaitTokens(tokens, acquisition, maxWaitTime)
+                return@coroutineScope
+            }
+            val acquired = withTimeoutOrNull(maxWaitTime) {
+                awaitTokens(tokens, acquisition, maxWaitTime)
+                true
+            }
+            if (acquired == null) {
                 throw RateLimitRejectedException(maxWaitTime, rejectionMessage(acquisition.reason, maxWaitTime))
             }
-            return
-        }
-        val acquired = withTimeoutOrNull(maxWaitTime) {
-            awaitTokens(tokens, acquisition)
-            true
-        }
-        if (acquired == null) {
-            throw RateLimitRejectedException(maxWaitTime, rejectionMessage(acquisition.reason, maxWaitTime))
+        } finally {
+            closeHandle.dispose()
         }
     }
 
-    private suspend fun awaitTokens(tokens: Int, acquisition: Acquisition) {
+    private suspend fun awaitTokens(tokens: Int, acquisition: Acquisition, maxWaitTime: Duration) {
         val turn = CompletableDeferred<Unit>()
-        mutex.withLock {
-            ensureOpen()
-            waiters.addLast(turn)
-            if (waiters.size == 1) turn.complete(Unit)
-        }
-
+        var enqueued = false
         try {
+            val first = if (maxWaitTime <= Duration.ZERO) {
+                if (!mutex.tryLock()) {
+                    throw RateLimitRejectedException(maxWaitTime, rejectionMessage(acquisition.reason, maxWaitTime))
+                }
+                try {
+                    ensureOpen()
+                    if (waiters.isNotEmpty()) {
+                        throw RateLimitRejectedException(maxWaitTime, rejectionMessage(acquisition.reason, maxWaitTime))
+                    }
+                    waiters.addLast(turn)
+                    enqueued = true
+                } finally {
+                    mutex.unlock()
+                }
+                true
+            } else {
+                mutex.withLock {
+                    ensureOpen()
+                    waiters.addLast(turn)
+                    enqueued = true
+                    waiters.size == 1
+                }
+            }
+            if (first) turn.complete(Unit)
             select<Unit> {
                 closed.onAwait { throw CancellationException("Rate limiter queue is closed") }
                 turn.onAwait {}
@@ -91,30 +119,33 @@ public class RateLimiterQueue(
             while (true) {
                 currentCoroutineContext().ensureActive()
                 ensureOpen()
-                when (val state = tryConsume(tokens, acquisition)) {
+                acquisition.reason = "tokens exhausted"
+                when (val state = rateLimiter.tryConsume(tokens)) {
                     is RateLimiter.State.Available -> return
-                    is RateLimiter.State.Exhausted -> awaitRefill(state.toWait)
+
+                    is RateLimiter.State.Exhausted -> {
+                        if (maxWaitTime <= Duration.ZERO) {
+                            throw RateLimitRejectedException(
+                                maxWaitTime,
+                                rejectionMessage(acquisition.reason, maxWaitTime)
+                            )
+                        }
+                        awaitRefill(state.toWait)
+                    }
                 }
             }
         } finally {
-            withContext(NonCancellable) {
-                mutex.withLock {
-                    waiters.remove(turn)
-                    waiters.firstOrNull()?.complete(Unit)
+            if (enqueued) {
+                withContext(NonCancellable) {
+                    val next = mutex.withLock {
+                        val wasFirst = waiters.firstOrNull() === turn
+                        waiters.remove(turn)
+                        if (wasFirst) waiters.firstOrNull() else null
+                    }
+                    next?.complete(Unit)
                 }
             }
         }
-    }
-
-    private suspend fun tryConsume(
-        tokens: Int,
-        acquisition: Acquisition,
-        rejectIfQueued: Boolean = false
-    ): RateLimiter.State = mutex.withLock {
-        ensureOpen()
-        if (rejectIfQueued && waiters.isNotEmpty()) return@withLock RateLimiter.State.Exhausted(Duration.ZERO)
-        acquisition.reason = "tokens exhausted"
-        rateLimiter.tryConsume(tokens)
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -130,7 +161,8 @@ public class RateLimiterQueue(
     }
 
     /**
-     * Rejects future acquisitions and cancels waiting acquisitions without closing the underlying limiter.
+     * Rejects future acquisitions and cancels active acquisitions, including suspending limiter calls,
+     * without closing the underlying limiter. Custom limiters must cooperate with cancellation.
      */
     public fun close() {
         closed.complete(Unit)
@@ -147,7 +179,7 @@ private fun rejectionMessage(reason: String, maxWaitTime: Duration): String {
 }
 
 /**
- * Rejects a request because tokens are unavailable and waiting is disabled, or the maximum wait time expires.
+ * Indicates that a request could not proceed within its allowed wait time.
  *
  * @property maxWaitTime the configured maximum duration of an acquisition.
  * @param message a rejection description, optionally including context supplied by the caller.
@@ -155,4 +187,4 @@ private fun rejectionMessage(reason: String, maxWaitTime: Duration): String {
 public class RateLimitRejectedException(
     public val maxWaitTime: Duration,
     message: String = rejectionMessage("tokens exhausted", maxWaitTime)
-) : CancellationException(message)
+) : IllegalStateException(message)

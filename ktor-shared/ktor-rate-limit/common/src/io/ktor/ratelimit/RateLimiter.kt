@@ -4,6 +4,8 @@
 
 package io.ktor.ratelimit
 
+import io.ktor.util.*
+import io.ktor.utils.io.InternalAPI
 import kotlin.time.*
 
 /**
@@ -26,12 +28,12 @@ public interface RateLimiter {
      * Concurrent requests can change the quota immediately after the snapshot is taken.
      * Implementations that support quota inspection should override this method.
      *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.ratelimit.RateLimiter.state)
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.ratelimit.RateLimiter.snapshot)
      *
      * @return a snapshot of the remaining tokens and current limit.
      * @throws UnsupportedOperationException if this limiter does not support quota inspection.
      */
-    public suspend fun state(): RateLimiterSnapshot {
+    public suspend fun snapshot(): RateLimiterSnapshot {
         throw UnsupportedOperationException("This rate limiter does not support quota inspection")
     }
 
@@ -67,67 +69,80 @@ public interface RateLimiter {
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.ratelimit.RateLimiter.Companion.Unlimited)
          */
         public val Unlimited: RateLimiter = object : RateLimiter {
-            override suspend fun state(): RateLimiterSnapshot = RateLimiterSnapshot(Int.MAX_VALUE, Int.MAX_VALUE)
+            override suspend fun snapshot(): RateLimiterSnapshot = RateLimiterSnapshot(Int.MAX_VALUE, Int.MAX_VALUE)
 
             override suspend fun tryConsume(tokens: Int): State =
                 State.Available(Int.MAX_VALUE, Int.MAX_VALUE, Long.MAX_VALUE)
         }
 
         /**
-         * An implementation of [RateLimiter] that starts with [limit] tokens,
-         * and will be refilled every [refillPeriod].
+         * Creates a limiter for the legacy server API using a millisecond callback for refill timing and headers.
          *
-         * Note: [initialSize] parameter is ignored and will be removed in the future.
+         * [refillPeriod] must be positive and finite.
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.ratelimit.RateLimiter.Companion.default)
          */
-        @Deprecated("Use the overload accepting kotlin.time.Clock.")
+        @InternalAPI
         public fun default(
             limit: Int,
             refillPeriod: Duration,
-            @Suppress("UNUSED_PARAMETER") initialSize: Int = limit,
             clock: () -> Long
         ): RateLimiter {
             return DefaultRateLimiter(limit, refillPeriod, clock)
         }
+
+        /**
+         * Creates a limiter with [limit] tokens, fully refilled every positive, finite [refillPeriod].
+         * Uses the system clock for reset timestamps and [timeSource] for refill timing.
+         */
+        @OptIn(ExperimentalTime::class)
+        public fun default(
+            limit: Int,
+            refillPeriod: Duration,
+            timeSource: TimeSource.WithComparableMarks = TimeSource.Monotonic
+        ): RateLimiter = default(limit, refillPeriod, Clock.System, timeSource)
 
         /**
          * Creates a rate limiter with [limit] tokens that is fully refilled every [refillPeriod].
          *
-         * Refill timing uses monotonic time. The [clock] supplies epoch timestamps for reset headers.
-         * The [initialSize] parameter is ignored.
+         * Refill timing uses [timeSource]. The [clock] supplies epoch timestamps for reset headers.
+         * [refillPeriod] must be positive and finite.
          */
         @OptIn(ExperimentalTime::class)
         public fun default(
             limit: Int,
             refillPeriod: Duration,
-            @Suppress("UNUSED_PARAMETER") initialSize: Int = limit,
-            clock: Clock = Clock.System
+            clock: Clock,
+            timeSource: TimeSource.WithComparableMarks = TimeSource.Monotonic
         ): RateLimiter {
-            return DefaultRateLimiter(limit, refillPeriod, clock)
-        }
-
-        @Deprecated("Use the overload accepting kotlin.time.Clock.")
-        public fun incrementalRefill(
-            limit: Int,
-            refillInterval: Duration,
-            clock: () -> Long
-        ): RateLimiter {
-            return IncrementalRefillRateLimiter(limit, refillInterval, clock)
+            return DefaultRateLimiter(limit, refillPeriod, clock, timeSource)
         }
 
         /**
-         * Creates a rate limiter with [limit] tokens that replenishes one token every [refillInterval].
-         *
-         * Refill timing uses monotonic time. The [clock] supplies epoch timestamps for reset headers.
+         * Creates an initially full limiter with [limit] tokens, replenishing one token every positive,
+         * finite [refillInterval]. Uses the system clock for reset timestamps and [timeSource] for refills.
          */
         @OptIn(ExperimentalTime::class)
         public fun incrementalRefill(
             limit: Int,
             refillInterval: Duration,
-            clock: Clock = Clock.System
+            timeSource: TimeSource.WithComparableMarks = TimeSource.Monotonic
+        ): RateLimiter = incrementalRefill(limit, refillInterval, Clock.System, timeSource)
+
+        /**
+         * Creates a rate limiter with [limit] tokens that replenishes one token every [refillInterval].
+         * [refillInterval] must be positive and finite.
+         *
+         * Refill timing uses [timeSource]. The [clock] supplies epoch timestamps for reset headers.
+         */
+        @OptIn(ExperimentalTime::class)
+        public fun incrementalRefill(
+            limit: Int,
+            refillInterval: Duration,
+            clock: Clock,
+            timeSource: TimeSource.WithComparableMarks = TimeSource.Monotonic
         ): RateLimiter {
-            return IncrementalRefillRateLimiter(limit, refillInterval, clock)
+            return IncrementalRefillRateLimiter(limit, refillInterval, clock, timeSource)
         }
     }
 }
