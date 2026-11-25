@@ -78,7 +78,7 @@ internal fun HttpResponse.varyKeys(): Map<String, String> {
 }
 
 internal fun HttpResponse.cacheExpires(isShared: Boolean, fallback: () -> GMTDate = { GMTDate() }): GMTDate {
-    val cacheControl = cacheControl()
+    val cacheControl = headers.cacheControlDirectives()
 
     val maxAgeKey = if (isShared && cacheControl.any { it.value.startsWith("s-maxage") }) "s-maxage" else "max-age"
 
@@ -106,11 +106,12 @@ internal fun HttpResponse.cacheExpires(isShared: Boolean, fallback: () -> GMTDat
 internal fun shouldValidate(
     cacheExpires: GMTDate,
     responseHeaders: Headers,
-    request: HttpRequestBuilder
+    request: HttpRequestBuilder,
+    isShared: Boolean = false,
 ): ValidateStatus {
     val requestHeaders = request.headers
-    val responseCacheControl = parseHeaderValue(responseHeaders.getAll(HttpHeaders.CacheControl)?.joinToString(","))
-    val requestCacheControl = parseHeaderValue(requestHeaders.getAll(HttpHeaders.CacheControl)?.joinToString(","))
+    val responseCacheControl = responseHeaders.cacheControlDirectives()
+    val requestCacheControl = requestHeaders.cacheControlDirectives()
 
     if (CacheControl.NO_CACHE in requestCacheControl) {
         LOGGER.trace { "\"no-cache\" is set for ${request.url}, should validate cached response" }
@@ -136,6 +137,10 @@ internal fun shouldValidate(
     }
     if (CacheControl.MUST_REVALIDATE in responseCacheControl) {
         LOGGER.trace { "\"must-revalidate\" is set for ${request.url}, should validate cached response" }
+        return ValidateStatus.ShouldValidate
+    }
+    if (isShared && responseCacheControl.any { it == CacheControl.PROXY_REVALIDATE || it.isSMaxAge() }) {
+        LOGGER.trace { "Shared cache must revalidate stale response for ${request.url}" }
         return ValidateStatus.ShouldValidate
     }
 

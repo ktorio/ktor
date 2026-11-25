@@ -27,9 +27,11 @@ import kotlin.coroutines.CoroutineContext
 internal object CacheControl {
     internal val NO_STORE = HeaderValue("no-store")
     internal val NO_CACHE = HeaderValue("no-cache")
+    internal val PUBLIC = HeaderValue("public")
     internal val PRIVATE = HeaderValue("private")
     internal val ONLY_IF_CACHED = HeaderValue("only-if-cached")
     internal val MUST_REVALIDATE = HeaderValue("must-revalidate")
+    internal val PROXY_REVALIDATE = HeaderValue("proxy-revalidate")
 }
 
 internal val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.HttpCache")
@@ -64,7 +66,9 @@ public class HttpCache private constructor(
 
         /**
          * Specifies if the client where this plugin is installed is shared among multiple users.
-         * When set to true, all responses with `private` Cache-Control directive will not be cached.
+         * When set to true, responses with the `private` Cache-Control directive will not be cached.
+         * Responses to requests with the Authorization header will only be cached when explicitly allowed by
+         * the `public`, `must-revalidate`, or `s-maxage` Cache-Control response directive.
          *
          * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.plugins.cache.HttpCache.Config.isShared)
          */
@@ -204,14 +208,14 @@ public class HttpCache private constructor(
                 val cache = plugin.findResponse(context, content)
                 if (cache == null) {
                     LOGGER.trace { "No cached response for ${context.url} found" }
-                    val header = parseHeaderValue(context.headers[HttpHeaders.CacheControl])
+                    val header = context.headers.cacheControlDirectives()
                     if (CacheControl.ONLY_IF_CACHED in header) {
                         LOGGER.trace { "No cache found and \"only-if-cached\" set for ${context.url}" }
                         proceedWithMissingCache(scope)
                     }
                     return@intercept
                 }
-                val validateStatus = shouldValidate(cache.expires, cache.headers, context)
+                val validateStatus = shouldValidate(cache.expires, cache.headers, context, plugin.isSharedClient)
 
                 if (validateStatus == ValidateStatus.ShouldNotValidate) {
                     val cachedCall =
@@ -328,8 +332,10 @@ public class HttpCache private constructor(
 
     private suspend fun cacheResponse(response: HttpResponse): CachedResponseData? {
         val request = response.call.request
-        val responseCacheControl: List<HeaderValue> = response.cacheControl()
-        val requestCacheControl: List<HeaderValue> = request.cacheControl()
+        val responseCacheControl: List<HeaderValue> = response.headers.cacheControlDirectives()
+        val requestCacheControl: List<HeaderValue> = request.headers.cacheControlDirectives()
+
+        if (!authorizationAllowsStoring(request, responseCacheControl)) return null
 
         val isPrivate = CacheControl.PRIVATE in responseCacheControl
         val storage = when {
@@ -347,7 +353,7 @@ public class HttpCache private constructor(
 
     private suspend fun findAndRefresh(request: HttpRequest, response: HttpResponse): HttpResponse? {
         val url = response.call.request.url
-        val cacheControl = response.cacheControl()
+        val cacheControl = response.headers.cacheControlDirectives()
 
         val isPrivate = CacheControl.PRIVATE in cacheControl
         val storage = when {
@@ -402,6 +408,14 @@ public class HttpCache private constructor(
     }
 }
 
+internal fun Headers.cacheControlDirectives(): List<HeaderValue> =
+    parseCacheControl(getAll(HttpHeaders.CacheControl))
+internal fun HeadersBuilder.cacheControlDirectives(): List<HeaderValue> =
+    parseCacheControl(getAll(HttpHeaders.CacheControl))
+
+private fun parseCacheControl(values: List<String>?): List<HeaderValue> =
+    parseHeaderValue(values?.joinToString(",")).map { HeaderValue(it.value.lowercase(), it.params) }
+
 @OptIn(InternalAPI::class)
 internal fun mergedHeadersLookup(
     content: OutgoingContent,
@@ -422,6 +436,23 @@ internal fun mergedHeadersLookup(
             value.joinHeaderValues()
         }
     }
+}
+
+internal fun HttpCache.authorizationAllowsStoring(
+    request: HttpRequest,
+    responseCacheControl: List<HeaderValue>,
+): Boolean = !isSharedClient ||
+    HttpHeaders.Authorization !in request.headers ||
+    responseCacheControl.any { it.allowsSharedCachingOfAuthorizedResponse() }
+
+internal fun HeaderValue.isSMaxAge(): Boolean = params.isEmpty() && value.substringBefore('=') == "s-maxage"
+
+private fun HeaderValue.allowsSharedCachingOfAuthorizedResponse(): Boolean {
+    if (this == CacheControl.PUBLIC || this == CacheControl.MUST_REVALIDATE) return true
+    if (!isSMaxAge()) return false
+
+    val seconds = value.substringAfter('=', missingDelimiterValue = "")
+    return seconds.isNotEmpty() && seconds.all { it in '0'..'9' }
 }
 
 public class InvalidCacheStateException(requestUrl: Url) : IllegalStateException(

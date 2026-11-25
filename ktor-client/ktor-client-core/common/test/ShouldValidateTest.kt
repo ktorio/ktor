@@ -71,4 +71,36 @@ class ShouldValidateTest {
         )
         assertEquals(ValidateStatus.ShouldValidate, result)
     }
+
+    @Test
+    fun `stale response with s-maxage in shared cache should be validated despite max-stale`() {
+        val result = shouldValidate(
+            GMTDate(getTimeMillis() - 1),
+            headersOf(HttpHeaders.CacheControl, "s-maxage=0"),
+            HttpRequestBuilder().apply { headers.append(HttpHeaders.CacheControl, "max-stale=10") },
+            isShared = true,
+        )
+        assertEquals(ValidateStatus.ShouldValidate, result)
+    }
+
+    @Test
+    fun `stale response with proxy-revalidate in shared cache should be validated despite max-stale`() {
+        val result = shouldValidate(
+            GMTDate(getTimeMillis() - 1),
+            headersOf(HttpHeaders.CacheControl, "proxy-revalidate"),
+            HttpRequestBuilder().apply { headers.append(HttpHeaders.CacheControl, "max-stale=10") },
+            isShared = true,
+        )
+        assertEquals(ValidateStatus.ShouldValidate, result)
+    }
+
+    @Test
+    fun `stale response with s-maxage in private cache can be served with max-stale`() {
+        val result = shouldValidate(
+            GMTDate(getTimeMillis() - 1),
+            headersOf(HttpHeaders.CacheControl, "s-maxage=0"),
+            HttpRequestBuilder().apply { headers.append(HttpHeaders.CacheControl, "max-stale=10") },
+        )
+        assertEquals(ValidateStatus.ShouldWarn, result)
+    }
 }
