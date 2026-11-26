@@ -9,8 +9,10 @@ package io.ktor.server.auth.oidc
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.auth.*
 import io.ktor.server.auth.oidc.utils.*
 import io.ktor.server.response.*
+import io.ktor.server.routing.*
 import io.ktor.server.testing.*
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.joinAll
@@ -23,6 +25,62 @@ import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
 
 class OidcSessionRoutesTest {
+
+    @Test
+    fun `several providers with sessions can be registered in one application`() = testApplication {
+        val keys = testRsaKeys
+        val idTokensByState = ConcurrentHashMap<String, String>()
+        openIdProvider(keys, idTokensByState)
+
+        val client = discoveryClient()
+        application {
+            val oidc = install(Oidc) {
+                httpClient = client
+                discoveryRefreshInterval = ZERO
+            }
+            val auth0 = oidc.identityProvider("auth0") {
+                testIssuer(metadata = browserFlowMetadata())
+                jwt(keys)
+                oauth {
+                    clientId = "client-id"
+                    clientSecret = "client-secret"
+                    onAuthenticated { call.respondText("signed in") }
+                    sessions {
+                        name = OIDC_TEST_SESSION_NAME
+                        cookie { cookie.secure = false }
+                        disableCsrfProtection()
+                    }
+                }
+            }
+            val okta = oidc.identityProvider("okta") {
+                testIssuer("https://okta.example.com")
+                oauth {
+                    clientId = "client-id"
+                    clientSecret = "client-secret"
+                    sessions {
+                        cookie { cookie.secure = false }
+                        disableCsrfProtection()
+                    }
+                }
+            }
+
+            routing {
+                authenticateWith(auth0.session) {
+                    get("/me") { call.respondText(call.principal.userInfo.subject) }
+                }
+                authenticateWith(okta.session) {
+                    get("/okta/me") { call.respondText(call.principal.userInfo.subject) }
+                }
+            }
+        }
+
+        val browser = noRedirectsClient()
+        val cookie = browser.signInWithIdToken(idTokensByState, keys)
+
+        browser.assertMe(cookie, HttpStatusCode.OK, "session-user")
+        val oktaResponse = browser.get("/okta/me") { header(HttpHeaders.Cookie, cookie) }
+        assertEquals(HttpStatusCode.Unauthorized, oktaResponse.status)
+    }
 
     @Test
     fun `auto refresh updates session before user route handler`() = testApplication {

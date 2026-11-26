@@ -205,9 +205,7 @@ internal data class SessionData(
     }
 
     override fun findName(type: KClass<*>): String {
-        val entry = providerData.entries.firstOrNull { it.value.provider.type == type }
-            ?: throw IllegalArgumentException("Session data for type `$type` was not registered")
-        return entry.value.provider.name
+        return providerData.values.map { it.provider }.findNameFor(type)
     }
 
     override fun set(name: String, value: Any?) {
@@ -246,6 +244,20 @@ internal data class SessionData(
         val tracker = providerData.provider.tracker as? SessionTrackerById
             ?: throw IllegalStateException("Session provider `$name` doesn't use session IDs")
         tracker.clearById(sessionId)
+    }
+}
+
+internal fun List<SessionProvider<*>>.findNameFor(type: KClass<*>): String {
+    val matching = filter { it.type == type }
+    return when (matching.size) {
+        0 -> throw IllegalArgumentException("Session data for type `$type` was not registered")
+
+        1 -> matching.single().name
+
+        else -> throw IllegalArgumentException(
+            "Several sessions are registered for type `$type`: ${matching.joinToString { it.name }}. " +
+                "Access the session by name instead."
+        )
     }
 }
 

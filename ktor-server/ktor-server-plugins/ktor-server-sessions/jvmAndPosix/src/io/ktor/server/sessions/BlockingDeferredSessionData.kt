@@ -36,13 +36,7 @@ internal class BlockingDeferredSessionData(
     }
 
     override fun findName(type: KClass<*>): String {
-        val entry = providerData.values.map {
-            it.awaitBlocking()
-        }.firstOrNull {
-            it.provider.type == type
-        } ?: throw IllegalArgumentException("Session data for type `$type` was not registered")
-
-        return entry.provider.name
+        return providerData.values.map { it.awaitBlocking().provider }.findNameFor(type)
     }
 
     override fun set(name: String, value: Any?) {

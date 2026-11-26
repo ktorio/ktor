@@ -34,8 +34,13 @@ data class OAuthPrincipal(val token: String, val source: String)
 
 class OAuthFlowTest {
 
-    private fun createOAuth(testClient: HttpClient) =
-        oauth2Session<OAuthPrincipal, OAuthSession>("test-oauth") {
+    private fun createOAuth(
+        testClient: HttpClient,
+        name: String = "test-oauth",
+        pathPrefix: String = "",
+        source: String = "session",
+    ) =
+        oauth2Session<OAuthPrincipal, OAuthSession>(name) {
             client = testClient
             settings = OAuthServerSettings.OAuth2ServerSettings(
                 name = "test-provider",
@@ -45,8 +50,8 @@ class OAuthFlowTest {
                 clientSecret = "test-client-secret",
                 requestMethod = HttpMethod.Post,
             )
-            loginPath = "/login"
-            callback("/callback") {
+            loginPath = "$pathPrefix/login"
+            callback("$pathPrefix/callback") {
                 val user = call.principal
                 call.respondText(call.session.accessToken + ":" + user.token + ":" + user.source)
             }
@@ -54,7 +59,7 @@ class OAuthFlowTest {
                 sessionCreator = { token ->
                     OAuthSession(token.accessToken)
                 }
-                validate { OAuthPrincipal(it.accessToken, source = "session") }
+                validate { OAuthPrincipal(it.accessToken, source = source) }
             }
         }
 
@@ -90,6 +95,33 @@ class OAuthFlowTest {
         val params = parseQueryString(authorizeResponse.bodyAsText())
         assertEquals("test_code", params["code"])
         return client.get("$callbackPath?code=${params["code"]!!}&state=${params["state"]!!}")
+    }
+
+    @Test
+    fun `several session flows can be installed on the same route`() = testApplication {
+        val testClient = createClient { install(HttpCookies) }
+        val first = createOAuth(testClient, name = "first", pathPrefix = "/first", source = "first")
+        val second = createOAuth(testClient, name = "second", pathPrefix = "/second", source = "second")
+        mockOAuthServices()
+
+        routing {
+            install(first)
+            install(second)
+            authenticateWith(first.session) {
+                get("/first/profile") { call.respondText(call.principal.source) }
+            }
+            authenticateWith(second.session) {
+                get("/second/profile") { call.respondText(call.principal.source) }
+            }
+        }
+
+        performOAuthFlow(testClient, loginPath = "/first/login", callbackPath = "/first/callback")
+        assertEquals("first", testClient.get("/first/profile").bodyAsText())
+        assertEquals(HttpStatusCode.Unauthorized, testClient.get("/second/profile").status)
+
+        performOAuthFlow(testClient, loginPath = "/second/login", callbackPath = "/second/callback")
+        assertEquals("first", testClient.get("/first/profile").bodyAsText())
+        assertEquals("second", testClient.get("/second/profile").bodyAsText())
     }
 
     @Test
