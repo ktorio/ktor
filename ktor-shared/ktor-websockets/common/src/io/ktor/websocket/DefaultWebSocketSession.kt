@@ -160,6 +160,10 @@ internal class DefaultWebSocketSessionImpl(
     private val _extensions: MutableList<WebSocketExtension<*>> = mutableListOf()
     private val started = atomic(false)
 
+    private var rsv1Allowed = false
+    private var rsv2Allowed = false
+    private var rsv3Allowed = false
+
     override val incoming: ReceiveChannel<Frame> get() = filtered
 
     override val outgoing: SendChannel<Frame> get() = outgoingToBeProcessed
@@ -207,6 +211,9 @@ internal class DefaultWebSocketSessionImpl(
         }
 
         _extensions.addAll(negotiatedExtensions)
+        rsv1Allowed = negotiatedExtensions.any { it.factory.rsv1 }
+        rsv2Allowed = negotiatedExtensions.any { it.factory.rsv2 }
+        rsv3Allowed = negotiatedExtensions.any { it.factory.rsv3 }
         runOrCancelPinger()
 
         val incomingJob = runIncomingProcessor(ponger(outgoing))
@@ -424,13 +431,16 @@ internal class DefaultWebSocketSessionImpl(
      * Fails the connection if [frame] has an RSV bit that no negotiated extension uses (RFC 6455, section 5.2).
      */
     private suspend fun checkReservedBits(frame: Frame) {
-        val unexpectedBits = buildList {
-            if (frame.rsv1 && extensions.none { it.factory.rsv1 }) add("RSV1")
-            if (frame.rsv2 && extensions.none { it.factory.rsv2 }) add("RSV2")
-            if (frame.rsv3 && extensions.none { it.factory.rsv3 }) add("RSV3")
-        }
-        if (unexpectedBits.isEmpty()) return
+        val unexpectedRsv1 = frame.rsv1 && !rsv1Allowed
+        val unexpectedRsv2 = frame.rsv2 && !rsv2Allowed
+        val unexpectedRsv3 = frame.rsv3 && !rsv3Allowed
+        if (!unexpectedRsv1 && !unexpectedRsv2 && !unexpectedRsv3) return
 
+        val unexpectedBits = buildList {
+            if (unexpectedRsv1) add("RSV1")
+            if (unexpectedRsv2) add("RSV2")
+            if (unexpectedRsv3) add("RSV3")
+        }
         val violation = "${frame.frameType} frame has ${unexpectedBits.joinToString()} set, " +
             "but no negotiated extension uses it"
         close(CloseReason(CloseReason.Codes.PROTOCOL_ERROR, violation))
