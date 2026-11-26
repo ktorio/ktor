@@ -126,3 +126,12 @@ kotlin {
         }
     }
 }
+
+// These JVM tests require a dedicated WebRTC environment; keep them disabled for community builds.
+tasks.withType<Test>().configureEach {
+    filter {
+        excludeTestsMatching("io.ktor.client.webrtc.WebRtcDataChannelTest")
+        excludeTestsMatching("io.ktor.client.webrtc.WebRtcEngineTest")
+        excludeTestsMatching("io.ktor.client.webrtc.WebRtcMediaTest")
+    }
+}
