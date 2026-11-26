@@ -174,7 +174,7 @@ internal fun OidcProvider.oauthServerSettings(): OAuthServerSettings.OAuth2Serve
         authorizeUrlInterceptor = authorize@{ request ->
             val state = parameters[OAuth2RequestParameters.State]
             val transaction = state?.let {
-                request.call.readAuthorizationTransaction(stateCookieName, stateCodec, it)
+                request.call.readAuthorizationTransaction(stateCookie, stateCodec, it)
             } ?: return@authorize
             parameters.append("nonce", transaction.nonce)
             oauthConfig.codeChallengeMethod?.let { method ->
@@ -184,18 +184,18 @@ internal fun OidcProvider.oauthServerSettings(): OAuthServerSettings.OAuth2Serve
         },
         verifyState = { call, state ->
             withCapturedState { call.validateAuthorizationResponseIssuer() }
-            state != null && call.readAuthorizationTransaction(stateCookieName, stateCodec, state) != null
+            state != null && call.readAuthorizationTransaction(stateCookie, stateCodec, state) != null
         },
         extraTokenParametersProvider = provider@{ call, callback ->
             if (oauthConfig.codeChallengeMethod == null) {
                 return@provider emptyList()
             }
-            val transaction = call.readAuthorizationTransaction(stateCookieName, stateCodec, callback.state)
+            val transaction = call.readAuthorizationTransaction(stateCookie, stateCodec, callback.state)
             transaction?.let { listOf("code_verifier" to it.codeVerifier) }.orEmpty()
         },
         onStateCreated = { call, state ->
             val method = oauthConfig.codeChallengeMethod ?: CodeChallengeMethod.S256
-            call.createAuthorizationTransaction(stateCookieName, stateCodec, method, state)
+            call.createAuthorizationTransaction(stateCookie, stateCodec, method, state)
         },
     )
 }

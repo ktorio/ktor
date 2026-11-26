@@ -115,7 +115,7 @@ public final class io/ktor/server/auth/oidc/OidcOAuthConfig {
 	public final fun getRedirectUri ()Lkotlin/jvm/functions/Function1;
 	public final fun getResourceIndicators ()Ljava/util/List;
 	public final fun getScopes ()Ljava/util/List;
-	public final fun getStateEncryptionKey-aaX1N3g ()Ljava/util/List;
+	public final fun getStateEncryptionKey-gBDAtJk ()Ljava/util/List;
 	public final fun getTokenEndpointAuthMethod ()Lio/ktor/server/auth/oidc/ClientAuthenticationMethod;
 	public final fun logout (Ljava/lang/String;Lkotlin/jvm/functions/Function1;Lkotlin/jvm/functions/Function2;)V
 	public final fun logout (Ljava/lang/String;Lkotlin/jvm/functions/Function2;)V
@@ -135,7 +135,7 @@ public final class io/ktor/server/auth/oidc/OidcOAuthConfig {
 	public final fun setRedirectUri (Lkotlin/jvm/functions/Function1;)V
 	public final fun setResourceIndicators (Ljava/util/List;)V
 	public final fun setScopes (Ljava/util/List;)V
-	public final fun setStateEncryptionKey-HcXpOzs (Ljava/util/List;)V
+	public final fun setStateEncryptionKey-4t5uIWU (Ljava/util/List;)V
 	public final fun setTokenEndpointAuthMethod (Lio/ktor/server/auth/oidc/ClientAuthenticationMethod;)V
 }
 
@@ -199,26 +199,6 @@ public final class io/ktor/server/auth/oidc/OidcSessionsConfig {
 public final class io/ktor/server/auth/oidc/OidcSigningKeyUnavailableException : java/lang/RuntimeException {
 	public fun <init> (Ljava/lang/String;Ljava/lang/Throwable;)V
 	public synthetic fun <init> (Ljava/lang/String;Ljava/lang/Throwable;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
-}
-
-public final class io/ktor/server/auth/oidc/OidcStateEncryptionKey {
-	public static final field Companion Lio/ktor/server/auth/oidc/OidcStateEncryptionKey$Companion;
-	public static final field KEY_SIZE I
-	public static final synthetic fun box-impl (Ljava/util/List;)Lio/ktor/server/auth/oidc/OidcStateEncryptionKey;
-	public fun equals (Ljava/lang/Object;)Z
-	public static fun equals-impl (Ljava/util/List;Ljava/lang/Object;)Z
-	public static final fun equals-impl0 (Ljava/util/List;Ljava/util/List;)Z
-	public fun hashCode ()I
-	public static fun hashCode-impl (Ljava/util/List;)I
-	public fun toString ()Ljava/lang/String;
-	public static fun toString-impl (Ljava/util/List;)Ljava/lang/String;
-	public final synthetic fun unbox-impl ()Ljava/util/List;
-}
-
-public final class io/ktor/server/auth/oidc/OidcStateEncryptionKey$Companion {
-	public final fun of-DSUPm1Q ([B)Ljava/util/List;
-	public final fun random-sNEp4Nk ()Ljava/util/List;
-	public final fun rotating-yHTCmOs ([B[B)Ljava/util/List;
 }
 
 public abstract interface class io/ktor/server/auth/oidc/OidcToken {

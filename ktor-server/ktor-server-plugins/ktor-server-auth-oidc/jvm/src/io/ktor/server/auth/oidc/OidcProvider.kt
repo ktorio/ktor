@@ -217,7 +217,8 @@ public class OidcProvider internal constructor(
 
     internal val stateCodec: OidcStateCodec by lazy { createStateCodec() }
 
-    internal val stateCookieName: String = oidcStateCookieName(name)
+    @OptIn(InternalAPI::class)
+    internal val stateCookie = AuthenticationStateCookie(oidcStateCookieName(name), AuthorizationTransactionTtl)
 
     internal val tokenRefreshes = ConcurrentHashMap<String, CompletableDeferred<OidcTokenRefreshResult>>()
 

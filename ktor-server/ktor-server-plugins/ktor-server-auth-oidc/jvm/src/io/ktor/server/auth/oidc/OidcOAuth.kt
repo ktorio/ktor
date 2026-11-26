@@ -91,7 +91,7 @@ internal suspend fun OidcProvider.handleOAuthCallbackSuccess(
         // The authorization response issuer is validated in verifyState, before the token exchange.
         val oauthState = response.state ?: call.request.queryParameters["state"]
         val authorizationTransaction = oauthState?.let { state ->
-            call.consumeAuthorizationTransaction(stateCookieName, stateCodec, state)
+            call.consumeAuthorizationTransaction(stateCookie, stateCodec, state)
         }
         val expectedNonce = authorizationTransaction?.nonce
         return buildOAuthToken(response, expectedNonce)

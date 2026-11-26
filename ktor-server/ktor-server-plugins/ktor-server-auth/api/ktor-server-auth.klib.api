@@ -374,6 +374,21 @@ final class io.ktor.server.auth/AuthenticationRouteSelector : io.ktor.server.rou
     }
 }
 
+final class io.ktor.server.auth/AuthenticationStateCookie { // io.ktor.server.auth/AuthenticationStateCookie|null[0]
+    constructor <init>(kotlin/String, kotlin.time/Duration, kotlin/String = ...) // io.ktor.server.auth/AuthenticationStateCookie.<init>|<init>(kotlin.String;kotlin.time.Duration;kotlin.String){}[0]
+
+    final val maxAge // io.ktor.server.auth/AuthenticationStateCookie.maxAge|{}maxAge[0]
+        final fun <get-maxAge>(): kotlin.time/Duration // io.ktor.server.auth/AuthenticationStateCookie.maxAge.<get-maxAge>|<get-maxAge>(){}[0]
+    final val name // io.ktor.server.auth/AuthenticationStateCookie.name|{}name[0]
+        final fun <get-name>(): kotlin/String // io.ktor.server.auth/AuthenticationStateCookie.name.<get-name>|<get-name>(){}[0]
+    final val sameSite // io.ktor.server.auth/AuthenticationStateCookie.sameSite|{}sameSite[0]
+        final fun <get-sameSite>(): kotlin/String // io.ktor.server.auth/AuthenticationStateCookie.sameSite.<get-sameSite>|<get-sameSite>(){}[0]
+
+    final fun clear(io.ktor.server.application/ApplicationCall) // io.ktor.server.auth/AuthenticationStateCookie.clear|clear(io.ktor.server.application.ApplicationCall){}[0]
+    final fun read(io.ktor.server.application/ApplicationCall): kotlin/String? // io.ktor.server.auth/AuthenticationStateCookie.read|read(io.ktor.server.application.ApplicationCall){}[0]
+    final fun write(io.ktor.server.application/ApplicationCall, kotlin/String) // io.ktor.server.auth/AuthenticationStateCookie.write|write(io.ktor.server.application.ApplicationCall;kotlin.String){}[0]
+}
+
 final class io.ktor.server.auth/BasicAuthenticationProvider : io.ktor.server.auth/AuthenticationProvider { // io.ktor.server.auth/BasicAuthenticationProvider|null[0]
     final suspend fun onAuthenticate(io.ktor.server.auth/AuthenticationContext) // io.ktor.server.auth/BasicAuthenticationProvider.onAuthenticate|onAuthenticate(io.ktor.server.auth.AuthenticationContext){}[0]
 

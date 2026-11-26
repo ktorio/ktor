@@ -161,6 +161,43 @@ public final class io/ktor/server/auth/AuthenticationSchemeWithRolesKt {
 	public static synthetic fun withRoles$default (Lio/ktor/server/auth/AuthenticationScheme;Lio/ktor/server/auth/ForbiddenHandler;Lkotlin/jvm/functions/Function3;ILjava/lang/Object;)Lio/ktor/server/auth/AuthenticationSchemeWithRoles;
 }
 
+public final class io/ktor/server/auth/AuthenticationStateCodec {
+	public synthetic fun <init> (Ljava/util/List;Lkotlinx/serialization/KSerializer;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun decode (Ljava/lang/String;)Ljava/lang/Object;
+	public final fun encode (Ljava/lang/Object;)Ljava/lang/String;
+}
+
+public final class io/ktor/server/auth/AuthenticationStateCookie {
+	public synthetic fun <init> (Ljava/lang/String;JLjava/lang/String;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public synthetic fun <init> (Ljava/lang/String;JLjava/lang/String;Lkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public final fun clear (Lio/ktor/server/application/ApplicationCall;)V
+	public final fun getMaxAge-UwyO8pc ()J
+	public final fun getName ()Ljava/lang/String;
+	public final fun getSameSite ()Ljava/lang/String;
+	public final fun read (Lio/ktor/server/application/ApplicationCall;)Ljava/lang/String;
+	public final fun write (Lio/ktor/server/application/ApplicationCall;Ljava/lang/String;)V
+}
+
+public final class io/ktor/server/auth/AuthenticationStateEncryptionKey {
+	public static final field Companion Lio/ktor/server/auth/AuthenticationStateEncryptionKey$Companion;
+	public static final field KEY_SIZE I
+	public static final synthetic fun box-impl (Ljava/util/List;)Lio/ktor/server/auth/AuthenticationStateEncryptionKey;
+	public fun equals (Ljava/lang/Object;)Z
+	public static fun equals-impl (Ljava/util/List;Ljava/lang/Object;)Z
+	public static final fun equals-impl0 (Ljava/util/List;Ljava/util/List;)Z
+	public fun hashCode ()I
+	public static fun hashCode-impl (Ljava/util/List;)I
+	public fun toString ()Ljava/lang/String;
+	public static fun toString-impl (Ljava/util/List;)Ljava/lang/String;
+	public final synthetic fun unbox-impl ()Ljava/util/List;
+}
+
+public final class io/ktor/server/auth/AuthenticationStateEncryptionKey$Companion {
+	public final fun of-FHwYepQ ([B)Ljava/util/List;
+	public final fun random-qbbx-gM ()Ljava/util/List;
+	public final fun rotating-QH2BkxI ([B[B)Ljava/util/List;
+}
+
 public final class io/ktor/server/auth/AuthenticationStrategy : java/lang/Enum {
 	public static final field FirstSuccessful Lio/ktor/server/auth/AuthenticationStrategy;
 	public static final field Optional Lio/ktor/server/auth/AuthenticationStrategy;
