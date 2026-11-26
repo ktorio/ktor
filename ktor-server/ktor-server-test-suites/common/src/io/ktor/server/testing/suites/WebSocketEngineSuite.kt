@@ -12,6 +12,7 @@ import io.ktor.server.engine.*
 import io.ktor.server.routing.*
 import io.ktor.server.test.base.*
 import io.ktor.server.websocket.*
+import io.ktor.util.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import io.ktor.utils.io.core.*
@@ -616,6 +617,9 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
     open fun testFragmentedFlagsFromTheFirstFrame() = runTest {
         val first = CompletableDeferred<Frame.Text>()
         val second = CompletableDeferred<Frame.Text>()
+        pluginConfiguration = {
+            extensions { install(Rsv1TestExtension) }
+        }
         createAndStartServer {
             webSocket("/") {
                 val frame = incoming.receive()
@@ -629,7 +633,7 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
         }
 
         useSocket {
-            negotiateHttpWebSocket()
+            negotiateHttpWebSocket(listOf(HttpHeaders.SecWebSocketExtensions to Rsv1TestExtension.NAME))
 
             output.apply {
                 repeat(2) {
@@ -733,6 +737,35 @@ abstract class WebSocketEngineSuite<TEngine : ApplicationEngine, TConfiguration 
 
             assertCloseFrame(CloseReason.Codes.PROTOCOL_ERROR.code, replyCloseFrame = false)
         }
+    }
+
+    @Test
+    fun testFrameWithReservedBitWithoutNegotiatedExtension() = runTest {
+        val handlerFailure = CompletableDeferred<Throwable?>()
+        createAndStartServer {
+            webSocket("/") {
+                val result = runCatching {
+                    for (frame in incoming) {
+                        outgoing.send(frame)
+                    }
+                }
+                handlerFailure.complete(result.exceptionOrNull())
+            }
+        }
+
+        useSocket {
+            negotiateHttpWebSocket()
+
+            output.apply {
+                writeFrameTest(Frame.Binary(true, ByteArray(16), rsv1 = false, rsv2 = true, rsv3 = false), false)
+                writeFrameTest(Frame.Ping("ping".toByteArray()), false)
+                flush()
+            }
+
+            assertCloseFrame(CloseReason.Codes.PROTOCOL_ERROR.code, replyCloseFrame = false)
+        }
+
+        assertIs<ProtocolViolationException>(handlerFailure.await())
     }
 
     private suspend fun Connection.negotiateHttpWebSocket(
@@ -888,6 +921,34 @@ internal suspend fun ByteWriteChannel.writeFrameTest(frame: Frame, masking: Bool
 }
 
 internal fun Boolean.flagAt(at: Int) = if (this) 1 shl at else 0
+
+/**
+ * Lets a session accept frames with RSV1 set.
+ */
+private class Rsv1TestExtension : WebSocketExtension<Unit> {
+    override val factory: WebSocketExtensionFactory<Unit, Rsv1TestExtension> = Companion
+    override val protocols: List<WebSocketExtensionHeader> = listOf(WebSocketExtensionHeader(NAME, emptyList()))
+
+    override fun clientNegotiation(negotiatedProtocols: List<WebSocketExtensionHeader>): Boolean =
+        negotiatedProtocols.any { it.name == NAME }
+
+    override fun serverNegotiation(requestedProtocols: List<WebSocketExtensionHeader>): List<WebSocketExtensionHeader> =
+        requestedProtocols.filter { it.name == NAME }
+
+    override fun processOutgoingFrame(frame: Frame): Frame = frame
+    override fun processIncomingFrame(frame: Frame): Frame = frame
+
+    companion object : WebSocketExtensionFactory<Unit, Rsv1TestExtension> {
+        const val NAME = "x-ktor-test-rsv1"
+
+        override val key: AttributeKey<Rsv1TestExtension> = AttributeKey(NAME)
+        override val rsv1: Boolean = true
+        override val rsv2: Boolean = false
+        override val rsv3: Boolean = false
+
+        override fun install(config: Unit.() -> Unit): Rsv1TestExtension = Rsv1TestExtension()
+    }
+}
 
 private object CustomTestElement : CoroutineContext.Key<AbstractCoroutineContextElement>
 

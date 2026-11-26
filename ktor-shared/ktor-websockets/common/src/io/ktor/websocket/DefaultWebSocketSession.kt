@@ -266,6 +266,7 @@ internal class DefaultWebSocketSessionImpl(
                     is Frame.Ping -> ponger.send(frame)
 
                     else -> {
+                        checkReservedBits(frame)
                         // check max message size only if the raw session is not checking it
                         if (!raw.checksMaxMessageSize()) checkMaxFrameSize(frameBody, frame)
 
@@ -417,6 +418,23 @@ internal class DefaultWebSocketSessionImpl(
             close(CloseReason(CloseReason.Codes.TOO_BIG, "Frame is too big: $size. Max size is $maxFrameSize"))
             throw FrameTooBigException(size.toLong())
         }
+    }
+
+    /**
+     * Fails the connection if [frame] has an RSV bit that no negotiated extension uses (RFC 6455, section 5.2).
+     */
+    private suspend fun checkReservedBits(frame: Frame) {
+        val unexpectedBits = buildList {
+            if (frame.rsv1 && extensions.none { it.factory.rsv1 }) add("RSV1")
+            if (frame.rsv2 && extensions.none { it.factory.rsv2 }) add("RSV2")
+            if (frame.rsv3 && extensions.none { it.factory.rsv3 }) add("RSV3")
+        }
+        if (unexpectedBits.isEmpty()) return
+
+        val violation = "${frame.frameType} frame has ${unexpectedBits.joinToString()} set, " +
+            "but no negotiated extension uses it"
+        close(CloseReason(CloseReason.Codes.PROTOCOL_ERROR, violation))
+        throw ProtocolViolationException(violation)
     }
 
     private fun processIncomingExtensions(frame: Frame): Frame =
