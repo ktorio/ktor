@@ -327,9 +327,6 @@ open class io.ktor.client.webrtc/WebRtcConnectionConfig { // io.ktor.client.webr
     final var dataChannelEventsReplay // io.ktor.client.webrtc/WebRtcConnectionConfig.dataChannelEventsReplay|{}dataChannelEventsReplay[0]
         final fun <get-dataChannelEventsReplay>(): kotlin/Int // io.ktor.client.webrtc/WebRtcConnectionConfig.dataChannelEventsReplay.<get-dataChannelEventsReplay>|<get-dataChannelEventsReplay>(){}[0]
         final fun <set-dataChannelEventsReplay>(kotlin/Int) // io.ktor.client.webrtc/WebRtcConnectionConfig.dataChannelEventsReplay.<set-dataChannelEventsReplay>|<set-dataChannelEventsReplay>(kotlin.Int){}[0]
-    final var dataChannelReceiveOptions // io.ktor.client.webrtc/WebRtcConnectionConfig.dataChannelReceiveOptions|{}dataChannelReceiveOptions[0]
-        final fun <get-dataChannelReceiveOptions>(): kotlin/Function1<io.ktor.client.webrtc/DataChannelReceiveOptions, kotlin/Unit> // io.ktor.client.webrtc/WebRtcConnectionConfig.dataChannelReceiveOptions.<get-dataChannelReceiveOptions>|<get-dataChannelReceiveOptions>(){}[0]
-        final fun <set-dataChannelReceiveOptions>(kotlin/Function1<io.ktor.client.webrtc/DataChannelReceiveOptions, kotlin/Unit>) // io.ktor.client.webrtc/WebRtcConnectionConfig.dataChannelReceiveOptions.<set-dataChannelReceiveOptions>|<set-dataChannelReceiveOptions>(kotlin.Function1<io.ktor.client.webrtc.DataChannelReceiveOptions,kotlin.Unit>){}[0]
     final var exceptionHandler // io.ktor.client.webrtc/WebRtcConnectionConfig.exceptionHandler|{}exceptionHandler[0]
         final fun <get-exceptionHandler>(): kotlinx.coroutines/CoroutineExceptionHandler? // io.ktor.client.webrtc/WebRtcConnectionConfig.exceptionHandler.<get-exceptionHandler>|<get-exceptionHandler>(){}[0]
         final fun <set-exceptionHandler>(kotlinx.coroutines/CoroutineExceptionHandler?) // io.ktor.client.webrtc/WebRtcConnectionConfig.exceptionHandler.<set-exceptionHandler>|<set-exceptionHandler>(kotlinx.coroutines.CoroutineExceptionHandler?){}[0]
@@ -354,6 +351,8 @@ open class io.ktor.client.webrtc/WebRtcConnectionConfig { // io.ktor.client.webr
     final var statsRefreshRate // io.ktor.client.webrtc/WebRtcConnectionConfig.statsRefreshRate|{}statsRefreshRate[0]
         final fun <get-statsRefreshRate>(): kotlin.time/Duration? // io.ktor.client.webrtc/WebRtcConnectionConfig.statsRefreshRate.<get-statsRefreshRate>|<get-statsRefreshRate>(){}[0]
         final fun <set-statsRefreshRate>(kotlin.time/Duration?) // io.ktor.client.webrtc/WebRtcConnectionConfig.statsRefreshRate.<set-statsRefreshRate>|<set-statsRefreshRate>(kotlin.time.Duration?){}[0]
+
+    final fun dataChannelReceiveOptions(kotlin/Function1<io.ktor.client.webrtc/DataChannelReceiveOptions, kotlin/Unit>) // io.ktor.client.webrtc/WebRtcConnectionConfig.dataChannelReceiveOptions|dataChannelReceiveOptions(kotlin.Function1<io.ktor.client.webrtc.DataChannelReceiveOptions,kotlin.Unit>){}[0]
 }
 
 final object io.ktor.client.webrtc/WebRtc { // io.ktor.client.webrtc/WebRtc|null[0]

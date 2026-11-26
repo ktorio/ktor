@@ -565,9 +565,9 @@ public class io/ktor/client/webrtc/WebRtcConfig {
 
 public class io/ktor/client/webrtc/WebRtcConnectionConfig {
 	public fun <init> ()V
+	public final fun dataChannelReceiveOptions (Lkotlin/jvm/functions/Function1;)V
 	public final fun getBundlePolicy ()Lio/ktor/client/webrtc/WebRtc$BundlePolicy;
 	public final fun getDataChannelEventsReplay ()I
-	public final fun getDataChannelReceiveOptions ()Lkotlin/jvm/functions/Function1;
 	public final fun getExceptionHandler ()Lkotlinx/coroutines/CoroutineExceptionHandler;
 	public final fun getIceCandidatePoolSize ()I
 	public final fun getIceCandidatesReplay ()I
@@ -578,7 +578,6 @@ public class io/ktor/client/webrtc/WebRtcConnectionConfig {
 	public final fun getStatsRefreshRate-FghU774 ()Lkotlin/time/Duration;
 	public final fun setBundlePolicy (Lio/ktor/client/webrtc/WebRtc$BundlePolicy;)V
 	public final fun setDataChannelEventsReplay (I)V
-	public final fun setDataChannelReceiveOptions (Lkotlin/jvm/functions/Function1;)V
 	public final fun setExceptionHandler (Lkotlinx/coroutines/CoroutineExceptionHandler;)V
 	public final fun setIceCandidatePoolSize (I)V
 	public final fun setIceCandidatesReplay (I)V

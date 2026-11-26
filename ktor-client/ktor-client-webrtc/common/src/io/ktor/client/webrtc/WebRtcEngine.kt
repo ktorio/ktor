@@ -80,13 +80,17 @@ public open class WebRtcConnectionConfig {
      */
     public var dataChannelEventsReplay: Int = 10
 
+    internal val dataChannelReceiveOptions: DataChannelReceiveOptions = DataChannelReceiveOptions()
+
     /**
-     * Receive options for data channels opened by the remote peer.
+     * Configures receive options for data channels opened by the remote peer.
      * Data channels created locally use [WebRtcDataChannelOptions.receiveOptions] instead.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.WebRtcConnectionConfig.dataChannelReceiveOptions)
      */
-    public var dataChannelReceiveOptions: DataChannelReceiveOptions.() -> Unit = {}
+    public fun dataChannelReceiveOptions(block: DataChannelReceiveOptions.() -> Unit) {
+        dataChannelReceiveOptions.apply(block)
+    }
 
     /**
      * Replay for the shared flow of ICE candidates. Defaults to 20.

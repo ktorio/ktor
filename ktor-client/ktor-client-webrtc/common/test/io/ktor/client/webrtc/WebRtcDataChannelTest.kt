@@ -200,7 +200,7 @@ class WebRtcDataChannelTest {
 
     @Test
     fun testDataChannelSendManyMessages() = testDataChannel(
-        receiverConfig = { dataChannelReceiveOptions = { capacity = Channel.UNLIMITED } }
+        receiverConfig = { dataChannelReceiveOptions { capacity = Channel.UNLIMITED } }
     ) { pc1, pc2 ->
         val dataChannelEvents = pc2.dataChannelEvents.collectToChannel()
         val dataChannel1 = pc1.createDataChannel("multi-message-test")

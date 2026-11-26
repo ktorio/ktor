@@ -164,7 +164,7 @@ public abstract class WebRtcPeerConnection private constructor(
     }
 
     protected fun remoteDataChannelReceiveOptions(): DataChannelReceiveOptions {
-        return DataChannelReceiveOptions().apply(config.dataChannelReceiveOptions)
+        return config.dataChannelReceiveOptions
     }
 
     /**
