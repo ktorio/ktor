@@ -192,8 +192,24 @@ public class CollectSchemaReferences(private val schemaToComponent: (JsonSchema)
      * We use the "title" field for referencing types to schema definitions.
      *
      * This applies a "depth-first" transformation on the schema to extract all nested references first.
+     *
+     * Nullability belongs to the use, not to the type, so a nullable titled schema is stored as its
+     * non-null component and the use becomes `oneOf: [$ref, {type: null}]`. Otherwise `T` and `T?`
+     * produce two different components for the same type (KTOR-9895).
      */
     private fun mapSchemaReferences(schema: JsonSchema): ReferenceOr<JsonSchema> {
+        val nonNullTypes = schema.nonNullTypesOfTitledNullable()
+        if (nonNullTypes != null) {
+            val nonNullSchema = schema.copy(type = nonNullTypes)
+            return when (val mapped = mapSchemaReferences(nonNullSchema)) {
+                // the schema became a component reference, so null goes on the use instead
+                is ReferenceOr.Reference -> mapped.wrapNullable()
+
+                // no component was created (no title mapping), so keep the schema nullable inline
+                is ReferenceOr.Value -> ReferenceOr.Value(mapped.value.copy(type = schema.type))
+            }
+        }
+
         val nestedSchema = schema.copy(
             allOf = schema.allOf?.map { it.mapToSchemaReference(::mapSchemaReferences, ::mapSchemaReferences) },
             anyOf = schema.anyOf?.map { it.mapToSchemaReference(::mapSchemaReferences, ::mapSchemaReferences) },
@@ -249,6 +265,36 @@ public class CollectSchemaReferences(private val schemaToComponent: (JsonSchema)
     private fun schemaRef(title: String): ReferenceOr<JsonSchema> =
         ReferenceOr.schema(title)
 }
+
+/**
+ * Returns the type of this schema without `null` when it is a titled schema whose type admits
+ * `null`, so it can become a component, or `null` otherwise.
+ */
+private fun JsonSchema.nonNullTypesOfTitledNullable(): JsonSchema.SchemaType? {
+    if (title == null) return null
+    val schemaType = type as? JsonSchema.SchemaType.AnyOf ?: return null
+    if (JsonType.NULL !in schemaType.types) return null
+    val nonNullTypes = schemaType.types.filter { it != JsonType.NULL }
+    return when (nonNullTypes.size) {
+        0 -> null
+        1 -> nonNullTypes.single()
+        else -> JsonSchema.SchemaType.AnyOf(nonNullTypes)
+    }
+}
+
+/**
+ * Wraps a component reference so the use admits `null`, in the same shape as
+ * `ReferenceOr<JsonSchema>.wrapIfNullable`.
+ */
+private fun ReferenceOr.Reference.wrapNullable(): ReferenceOr<JsonSchema> =
+    ReferenceOr.Value(
+        JsonSchema(
+            oneOf = listOf(
+                this,
+                ReferenceOr.Value(JsonSchema(type = JsonType.NULL))
+            )
+        )
+    )
 
 private fun ReferenceOr<JsonSchema>.mapToSchemaReference(
     mappingFunction: (JsonSchema) -> ReferenceOr<JsonSchema>,
