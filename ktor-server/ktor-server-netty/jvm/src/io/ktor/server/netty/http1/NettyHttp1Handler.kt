@@ -10,6 +10,7 @@ import io.ktor.server.http.*
 import io.ktor.server.netty.*
 import io.ktor.server.netty.NettyApplicationCallHandler.CallHandlerCoroutineName
 import io.ktor.server.netty.NettyDispatcher.CurrentContext
+import io.ktor.server.netty.NettyRequestCoroutine
 import io.ktor.server.netty.cio.*
 import io.ktor.util.pipeline.*
 import io.ktor.utils.io.*
@@ -22,7 +23,6 @@ import io.netty.util.ReferenceCountUtil
 import io.netty.util.concurrent.EventExecutor
 import kotlinx.coroutines.*
 import java.io.IOException
-import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
 import kotlin.coroutines.cancellation.CancellationException
@@ -49,8 +49,6 @@ internal class NettyHttp1Handler(
     // so the only way to make runningLimit an actual hard cap is to buffer messages here instead of dispatching them,
     // and replay them in order once a slot frees up. Access is confined to this channel's event loop.
     private val pendingMessages = ArrayDeque<Any>()
-
-    private val activeCalls = ConcurrentLinkedQueue<NettyHttp1ApplicationCall>()
 
     private var activated = false
 
@@ -174,8 +172,9 @@ internal class NettyHttp1Handler(
         while (pendingMessages.isNotEmpty()) {
             ReferenceCountUtil.release(pendingMessages.removeFirst())
         }
-        while (true) {
-            val call = activeCalls.poll() ?: break
+        for (requestJob in handlerJob.children) {
+            if (requestJob !is NettyRequestCoroutine) continue
+            val call = requestJob.http1Call ?: continue
             @OptIn(InternalAPI::class)
             call.attributes.getOrNull(HttpRequestCloseHandlerKey)?.invoke()
         }
@@ -196,12 +195,13 @@ internal class NettyHttp1Handler(
             }
 
             is ReadTimeoutException -> {
-                if (activeCalls.isEmpty()) {
+                if (handlerJob.children.none { it is NettyRequestCoroutine }) {
                     context.fireExceptionCaught(cause)
                     return
                 }
-                context.respond408RequestTimeoutHttp1(activeCalls)
-                activeCalls.forEach { call ->
+                val calls = handlerJob.children.mapNotNull { (it as? NettyRequestCoroutine)?.http1Call }.toList()
+                context.respond408RequestTimeoutHttp1(calls)
+                calls.forEach { call ->
                     call.coroutineContext.cancel(CancellationException(cause))
                 }
             }
@@ -226,6 +226,8 @@ internal class NettyHttp1Handler(
 
         // check for reload before re-using handlerJob
         if (application !== channelApplication) {
+            // no connection should outlive the application it was serving
+            handlerJob.cancel(CancellationException("Application has been reloaded"))
             handlerJob = SupervisorJob(application.coroutineContext[Job])
             responseWriter.coroutineContext = handlerJob
         }
@@ -255,7 +257,7 @@ internal class NettyHttp1Handler(
             callCoroutine.resumeWith(Result.failure(cause))
             throw cause
         }
-        activeCalls.add(call)
+        callCoroutine.http1Call = call
 
         try {
             // Fire channel read for custom handlers added to the pipeline
@@ -281,12 +283,9 @@ internal class NettyHttp1Handler(
                     enginePipeline.execute(call)
                 } catch (error: Throwable) {
                     handleFailure(call, error)
-                } finally {
-                    activeCalls.remove(call)
                 }
             }
         } catch (cause: Throwable) {
-            activeCalls.remove(call)
             callCoroutine.resumeWith(Result.failure(cause.asCallCompletion()))
             throw cause
         }

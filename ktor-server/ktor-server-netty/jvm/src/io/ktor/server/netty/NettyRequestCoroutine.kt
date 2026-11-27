@@ -4,6 +4,7 @@
 
 package io.ktor.server.netty
 
+import io.ktor.server.netty.http1.*
 import kotlinx.coroutines.*
 import java.util.concurrent.Executor
 import java.util.concurrent.RejectedExecutionException
@@ -31,6 +32,13 @@ internal class NettyRequestCoroutine(parentContext: CoroutineContext) :
     Runnable {
 
     private var block: (suspend CoroutineScope.() -> Unit)? = null
+
+    /**
+     * The HTTP/1 call handled by this coroutine. Set right after the call is created, so it may be `null`
+     * for a short time after the coroutine is attached to its parent.
+     */
+    @Volatile
+    internal var http1Call: NettyHttp1ApplicationCall? = null
 
     /**
      * Schedules [block] to run undispatched on [executor]. Must be called at most once.
