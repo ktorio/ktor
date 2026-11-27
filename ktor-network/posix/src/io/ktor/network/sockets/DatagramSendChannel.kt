@@ -32,17 +32,7 @@ internal class DatagramSendChannel(
         val packetSize = element.packet.remaining
         if (packetSize == 0L) {
             return DefaultDatagramByteArrayPool.useInstance { buffer ->
-                val bytesWritten = sendto(element, buffer, 0, 0)
-                if (bytesWritten == -1) {
-                    val error = getSocketError()
-                    if (isWouldBlockError(error)) {
-                        false
-                    } else {
-                        throw PosixException.forSocketError(error)
-                    }
-                } else {
-                    true
-                }
+                sendto(element, buffer, 0, 0) != WOULD_BLOCK
             }
         }
         var writeWithPool = false
@@ -54,20 +44,9 @@ internal class DatagramSendChannel(
                 return@readFromHead 0
             }
 
-            val bytesWritten = sendto(element, bytes, startIndex, length)
-
-            when (bytesWritten) {
+            when (sendto(element, bytes, startIndex, length)) {
                 0 -> throw IOException("Failed writing to closed socket")
-
-                -1 -> {
-                    val error = getSocketError()
-                    if (isWouldBlockError(error)) {
-                        0
-                    } else {
-                        throw PosixException.forSocketError(error)
-                    }
-                }
-
+                WOULD_BLOCK -> 0
                 else -> length
             }
         }
@@ -76,23 +55,14 @@ internal class DatagramSendChannel(
                 val length = element.packet.remaining.toInt()
                 element.packet.peek().readTo(buffer, endIndex = length)
 
-                val bytesWritten = sendto(element, buffer, 0, length)
-
-                when (bytesWritten) {
+                when (sendto(element, buffer, 0, length)) {
                     0 -> throw IOException("Failed writing to closed socket")
 
-                    -1 -> {
-                        val error = getSocketError()
-                        if (isWouldBlockError(error)) {
-                            // would block: drop on best-effort trySend
-                        } else {
-                            throw PosixException.forSocketError(error)
-                        }
+                    WOULD_BLOCK -> {
+                        // would block: drop on best-effort trySend
                     }
 
-                    else -> {
-                        element.packet.discard()
-                    }
+                    else -> element.packet.discard()
                 }
             }
         }
@@ -131,8 +101,15 @@ internal class DatagramSendChannel(
         }
     }
 
+    /**
+     * Returns the number of bytes sent, or [WOULD_BLOCK] if the socket is not writable.
+     * The socket error is read before the descriptor is released, because closing the socket can overwrite it.
+     *
+     * @throws PosixException if the send failed for any other reason.
+     * @throws IOException if the descriptor is already closed.
+     */
     @OptIn(ExperimentalForeignApi::class)
-    private fun sendto(datagram: Datagram, buffer: ByteArray, offset: Int, length: Int): Int {
+    private fun sendto(datagram: Datagram, buffer: ByteArray, offset: Int, length: Int): Int = socket.useDescriptor {
         var bytesWritten: Int? = null
         buffer.usePinned { pinned ->
             if (remote == null) {
@@ -157,7 +134,12 @@ internal class DatagramSendChannel(
                 )
             }
         }
-        return bytesWritten ?: error("bytesWritten cannot be null")
+        val result = bytesWritten ?: error("bytesWritten cannot be null")
+        if (result == -1) {
+            val error = getSocketError()
+            if (!isWouldBlockError(error)) throw PosixException.forSocketError(error)
+        }
+        result
     }
 
     private tailrec suspend fun sendSuspend(
@@ -166,24 +148,19 @@ internal class DatagramSendChannel(
         offset: Int,
         length: Int
     ) {
-        val bytesWritten: Int = sendto(datagram, buffer, offset, length)
-
-        when (bytesWritten) {
+        when (sendto(datagram, buffer, offset, length)) {
             0 -> {
                 if (length != 0) {
                     throw IOException("Failed writing to closed socket")
                 }
             }
 
-            -1 -> {
-                val error = getSocketError()
-                if (isWouldBlockError(error)) {
-                    socket.selector.select(socket, SelectInterest.WRITE)
-                    sendSuspend(datagram, buffer, offset, length)
-                } else {
-                    throw PosixException.forSocketError(error)
-                }
+            WOULD_BLOCK -> {
+                socket.selector.select(socket, SelectInterest.WRITE)
+                sendSuspend(datagram, buffer, offset, length)
             }
         }
     }
 }
+
+private const val WOULD_BLOCK = -1
