@@ -186,7 +186,8 @@ public class TestApplicationEngine(
         }
     }
 
-    internal suspend fun handleRequest(
+    internal fun handleRequest(
+        clientJob: Job,
         closeRequest: Boolean = true,
         timeoutAttributes: HttpTimeoutConfig? = null,
         setup: TestApplicationRequest.() -> Unit
@@ -202,13 +203,28 @@ public class TestApplicationEngine(
             call.attributes.put(timeoutAttributesKey, timeoutAttributes)
         }
 
-        val context = SupervisorJob(job) + CoroutineName("request")
-        withContext(coroutineContext + context) {
-            pipeline.execute(call)
-            call.response.awaitForResponseCompletion()
+        val response = call.response
+        val requestScope = CoroutineScope(coroutineContext + job)
+        val request = requestScope.launch(CoroutineName("request")) {
+            try {
+                coroutineScope {
+                    pipeline.execute(call)
+                    response.awaitForResponseCompletion()
+                }
+                processResponse(call)
+                response.completeResponse()
+            } catch (cause: Throwable) {
+                response.responseChannel.completeExceptionally(cause)
+            }
         }
-        context.cancel()
-        processResponse(call)
+        val clientCancellation = clientJob.invokeOnCompletion { cause ->
+            if (cause != null) request.cancel(CancellationException("Client request cancelled", cause))
+        }
+        request.invokeOnCompletion { cause ->
+            clientCancellation.dispose()
+            if (cause != null) response.responseChannel.completeExceptionally(cause)
+            job.cancel()
+        }
 
         return call
     }

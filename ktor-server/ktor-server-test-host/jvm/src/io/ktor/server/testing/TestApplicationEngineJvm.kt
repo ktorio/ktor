@@ -10,6 +10,7 @@ import io.ktor.utils.io.*
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Makes a test request that sets up a WebSocket session and invokes the [callback] function
@@ -27,47 +28,39 @@ internal suspend fun TestApplicationEngine.handleWebSocketConversation(
         setup()
         bodyChannel = websocketChannel
     }
+    val response = call.response
 
-    // we need this to wait for response channel appearance
-    // otherwise we get NPE at websocket reader start attempt
-    val responseSent: CompletableJob = Job()
-    call.response.responseChannelDeferred.invokeOnCompletion { cause ->
-        when (cause) {
-            null -> responseSent.complete()
-            else -> responseSent.completeExceptionally(cause)
-        }
-    }
-
-    this.launch(configuration.dispatcher) {
+    launch(configuration.dispatcher) {
         try {
-            // execute server-side
             pipeline.execute(call)
-        } catch (t: Throwable) {
-            responseSent.completeExceptionally(t)
+        } catch (cause: Throwable) {
+            response.responseChannel.completeExceptionally(cause)
+        }
+    }.invokeOnCompletion { cause ->
+        if (cause == null) {
+            response.responseChannel.complete(null)
+        } else {
+            response.responseChannel.completeExceptionally(cause)
         }
     }
-
-    val pool = KtorDefaultPool
-    val engineContext = Dispatchers.Unconfined
-    // A child of the engine, so stopping the engine ends a conversation whose server never closes.
-    val job = Job(this.coroutineContext[Job])
-    val webSocketContext = engineContext + job
 
     withContext(configuration.dispatcher) {
-        responseSent.join()
+        val responseChannel = response.responseChannel.await()
+            ?: error("WebSocket connection failed")
         processResponse(call)
-        val connectionEstablished = withTimeoutOrNull(1000) {
-            call.response.webSocketEstablished.join()
+        val connectionEstablished = withTimeoutOrNull(1000.milliseconds) {
+            response.webSocketEstablished.join()
         }
         if (connectionEstablished == null) {
-            job.cancel()
-            throw IllegalStateException("WebSocket connection failed")
+            error("WebSocket connection failed")
         }
 
+        // A child of the engine, so stopping the engine ends a conversation whose server never closes.
+        val job = Job(this@handleWebSocketConversation.coroutineContext[Job])
+        val webSocketContext = Dispatchers.Unconfined + job
+        val pool = KtorDefaultPool
         val writer =
             WebSocketWriter(websocketChannel, webSocketContext, pool = pool, queueConfig = ChannelConfig.UNLIMITED)
-        val responseChannel = call.response.websocketChannel()
-            ?: error("Expected websocket channel in the established connection")
         val reader = WebSocketReader(
             responseChannel,
             webSocketContext,

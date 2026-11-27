@@ -41,27 +41,17 @@ public class TestApplicationResponse(
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplicationResponse.byteContent)
      */
     public var byteContent: ByteArray?
-        get() = when {
-            _byteContent.value != null -> _byteContent.value
-            responseChannel == null -> null
-            else -> maybeRunBlocking { responseChannel!!.toByteArray() }
+        get() = _byteContent.value ?: websocketChannel()?.let { channel ->
+            maybeRunBlocking { channel.toByteArray() }
         }
         private set(value) {
             _byteContent.value = value
         }
 
-    private var responseChannel: ByteReadChannel? = null
-
     private var responseJob: Job? = null
 
-    internal val writeContentChannel = atomic<ByteReadChannel?>(null)
-
-    /**
-     * Get completed when a response channel is assigned.
-     * A response could have no channel assigned in some particular failure cases so the deferred could
-     * remain incomplete or become completed exceptionally.
-     */
-    internal val responseChannelDeferred: CompletableJob = Job()
+    // Streaming responses publish their channel immediately. Buffered responses publish it after request processing.
+    internal val responseChannel = CompletableDeferred<ByteReadChannel?>()
 
     override fun setStatus(statusCode: HttpStatusCode) {}
 
@@ -96,8 +86,9 @@ public class TestApplicationResponse(
             responseJob = job.job
         }
 
-        responseChannel = result
-        responseChannelDeferred.complete()
+        if (!readResponse) {
+            responseChannel.complete(result)
+        }
 
         return job.channel
     }
@@ -108,50 +99,41 @@ public class TestApplicationResponse(
         }
     }
 
-    override suspend fun respondOutgoingContent(content: OutgoingContent) {
-        super.respondOutgoingContent(content)
-        responseChannelDeferred.completeExceptionally(IllegalStateException("No response channel assigned"))
-    }
-
     override suspend fun respondWriteChannelContent(content: OutgoingContent.WriteChannelContent) {
-        val writerJob = scope.writer(currentCoroutineContext().minusKey(Job)) {
-            val counted = channel.counted()
-            val job = coroutineContext.job
+        val channel = ByteChannel()
+        val output: ByteWriteChannel = channel
+        responseChannel.complete(channel)
 
-            val socketTimeoutMillis = timeoutAttributes?.socketTimeoutMillis
-            if (socketTimeoutMillis != null) {
-                val killJob = launch {
-                    try {
-                        var cur = counted.totalBytesWritten
-                        while (job.isActive) {
-                            delay(socketTimeoutMillis.milliseconds)
-                            val next = counted.totalBytesWritten
-                            if (cur == next) {
-                                counted.cancel(SocketTimeoutException("Socket timeout elapsed"))
+        try {
+            withContext(Dispatchers.IOBridge) {
+                val counted = output.counted()
+                val timeout = timeoutAttributes?.socketTimeoutMillis
+                val timeoutJob = timeout?.let {
+                    launch {
+                        var previous = counted.totalBytesWritten
+                        while (isActive) {
+                            delay(timeout.milliseconds)
+                            val written = counted.totalBytesWritten
+                            if (previous == written) {
+                                channel.cancel(SocketTimeoutException("Socket timeout elapsed"))
+                                break
                             }
-                            cur = next
+                            previous = written
                         }
-                    } catch (_: ClosedWriteChannelException) {
-                        // Do nothing since the channel is already closed
                     }
                 }
-                job.invokeOnCompletion {
-                    killJob.cancel()
-                }
-            }
 
-            try {
-                withContext(Dispatchers.IOBridge) {
+                try {
                     content.writeTo(counted)
+                } catch (closed: ClosedWriteChannelException) {
+                    throw ChannelWriteException(exception = closed)
+                } finally {
+                    timeoutJob?.cancel()
                 }
-            } catch (closed: ClosedWriteChannelException) {
-                throw ChannelWriteException(exception = closed)
-            } finally {
-                channel.flushAndClose()
             }
+        } finally {
+            channel.flushAndClose()
         }
-
-        writeContentChannel.compareAndSet(null, writerJob.channel)
     }
 
     /**
@@ -163,6 +145,10 @@ public class TestApplicationResponse(
 
     internal suspend fun awaitForResponseCompletion() {
         responseJob?.join()
+    }
+
+    internal fun completeResponse() {
+        responseChannel.complete(_byteContent.value?.let { ByteReadChannel(it) })
     }
 
     // Websockets & upgrade
@@ -183,5 +169,9 @@ public class TestApplicationResponse(
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplicationResponse.websocketChannel)
      */
-    public fun websocketChannel(): ByteReadChannel? = responseChannel
+    @OptIn(ExperimentalCoroutinesApi::class)
+    public fun websocketChannel(): ByteReadChannel? {
+        if (readResponse || !responseChannel.isCompleted || responseChannel.isCancelled) return null
+        return responseChannel.getCompleted()
+    }
 }
