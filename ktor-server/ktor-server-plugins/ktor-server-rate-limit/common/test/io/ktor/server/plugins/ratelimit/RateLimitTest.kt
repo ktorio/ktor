@@ -540,11 +540,19 @@ class RateLimitTest {
     @Test
     fun testRemovesUnusedRateLimitersOnRefill() = testApplication {
         var createCount = 0
+        // The limiter uses an injectable clock that is frozen during the exhaustion phase,
+        // so the requests never trigger a refill no matter how slow the host is.
+        var time = 0L
+        val refillPeriod = 2.seconds
         install(RateLimit) {
             register {
                 rateLimiter { _, _ ->
                     createCount++
-                    RateLimiter.default(limit = 3, refillPeriod = 500.milliseconds)
+                    // The clock starts with the first limiter, after the application has started.
+                    // The removal job is scheduled on the real clock from the same moment,
+                    // so a slow startup must not use up the refill period in advance.
+                    if (createCount == 1) time = getTimeMillis()
+                    RateLimiter.default(limit = 3, refillPeriod = refillPeriod) { time }
                 }
             }
         }
@@ -561,7 +569,12 @@ class RateLimitTest {
         }
         client.get("/").assertTooManyRequests()
 
-        delay(1.seconds)
+        assertEquals(1, createCount)
+
+        // The refill period elapses without requests, so the scheduled removal job removes the unused limiter.
+        // The removal job itself is scheduled on the real clock, so wait for it in real time.
+        time += refillPeriod.inWholeMilliseconds + 1
+        delay(refillPeriod + 500.milliseconds)
         assertEquals(1, createCount)
 
         client.get("/").assertOk()
