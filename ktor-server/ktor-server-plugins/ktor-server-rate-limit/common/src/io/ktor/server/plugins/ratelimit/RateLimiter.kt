@@ -4,7 +4,6 @@
 
 package io.ktor.server.plugins.ratelimit
 
-import io.ktor.ratelimit.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.InternalAPI
 import kotlin.time.*
@@ -26,21 +25,6 @@ public interface RateLimiter {
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.RateLimiter.tryConsume)
      */
     public suspend fun tryConsume(tokens: Int = 1): State
-
-    /**
-     * Returns the current quota, accounting for elapsed refills without consuming tokens.
-     *
-     * Concurrent requests can change the quota immediately after the snapshot is taken.
-     * Implementations that support quota inspection should override this method.
-     *
-     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.RateLimiter.snapshot)
-     *
-     * @return a snapshot of the remaining tokens and current limit.
-     * @throws UnsupportedOperationException if this limiter does not support quota inspection.
-     */
-    public suspend fun snapshot(): RateLimiterSnapshot {
-        throw UnsupportedOperationException("This rate limiter does not support quota inspection")
-    }
 
     /**
      * State of the rate limiter.

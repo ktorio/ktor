@@ -42,7 +42,6 @@ public final class io/ktor/server/plugins/ratelimit/RateLimitName {
 	public fun equals (Ljava/lang/Object;)Z
 	public static fun equals-impl (Ljava/lang/String;Ljava/lang/Object;)Z
 	public static final fun equals-impl0 (Ljava/lang/String;Ljava/lang/String;)Z
-	public final fun getName ()Ljava/lang/String;
 	public fun hashCode ()I
 	public static fun hashCode-impl (Ljava/lang/String;)I
 	public fun toString ()Ljava/lang/String;
@@ -79,7 +78,6 @@ public final class io/ktor/server/plugins/ratelimit/RateLimitRouteSelector : io/
 
 public abstract interface class io/ktor/server/plugins/ratelimit/RateLimiter {
 	public static final field Companion Lio/ktor/server/plugins/ratelimit/RateLimiter$Companion;
-	public fun snapshot (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun tryConsume (ILkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun tryConsume$default (Lio/ktor/server/plugins/ratelimit/RateLimiter;ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
@@ -91,7 +89,6 @@ public final class io/ktor/server/plugins/ratelimit/RateLimiter$Companion {
 }
 
 public final class io/ktor/server/plugins/ratelimit/RateLimiter$DefaultImpls {
-	public static fun snapshot (Lio/ktor/server/plugins/ratelimit/RateLimiter;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun tryConsume$default (Lio/ktor/server/plugins/ratelimit/RateLimiter;ILkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 }
 

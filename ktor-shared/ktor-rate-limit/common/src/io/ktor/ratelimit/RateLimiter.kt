@@ -16,9 +16,12 @@ import kotlin.time.*
 public interface RateLimiter {
 
     /**
-     * Tries to consume the [tokens] amount of tokens and returns state of the rate limiter.
+     * Tries to consume [tokens] and returns the state of the rate limiter.
+     * The token count must be non-negative. A count of zero consumes no tokens.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.ratelimit.RateLimiter.tryConsume)
+     *
+     * @throws IllegalArgumentException if a built-in limiter receives a negative token count.
      */
     public suspend fun tryConsume(tokens: Int = 1): State
 
@@ -71,8 +74,10 @@ public interface RateLimiter {
         public val Unlimited: RateLimiter = object : RateLimiter {
             override suspend fun snapshot(): RateLimiterSnapshot = RateLimiterSnapshot(Int.MAX_VALUE, Int.MAX_VALUE)
 
-            override suspend fun tryConsume(tokens: Int): State =
-                State.Available(Int.MAX_VALUE, Int.MAX_VALUE, Long.MAX_VALUE)
+            override suspend fun tryConsume(tokens: Int): State {
+                require(tokens >= 0) { "Token count must be non-negative, got $tokens" }
+                return State.Available(Int.MAX_VALUE, Int.MAX_VALUE, Long.MAX_VALUE)
+            }
         }
 
         /**

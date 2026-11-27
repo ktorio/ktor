@@ -106,8 +106,7 @@ public class RateLimitProviderConfig(internal val name: RateLimitName) {
     /**
      * Selects the number of tokens consumed by an attempt. Defaults to one.
      * The key is the result of [requestKey] for the same request.
-     * As on the server, weights are passed unchanged to the limiter. Built-in limiters consume no tokens for zero
-     * and add tokens for negative weights.
+     * Zero consumes no tokens. The plugin throws [IllegalArgumentException] if the weight is negative.
      */
     public fun requestWeight(block: suspend (HttpRequestBuilder, key: Any) -> Int) {
         requestWeight = block

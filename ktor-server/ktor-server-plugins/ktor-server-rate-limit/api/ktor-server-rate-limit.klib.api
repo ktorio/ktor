@@ -8,7 +8,6 @@
 // Library unique name: <io.ktor:ktor-server-rate-limit>
 abstract interface io.ktor.server.plugins.ratelimit/RateLimiter { // io.ktor.server.plugins.ratelimit/RateLimiter|null[0]
     abstract suspend fun tryConsume(kotlin/Int = ...): io.ktor.server.plugins.ratelimit/RateLimiter.State // io.ktor.server.plugins.ratelimit/RateLimiter.tryConsume|tryConsume(kotlin.Int){}[0]
-    open suspend fun snapshot(): io.ktor.ratelimit/RateLimiterSnapshot // io.ktor.server.plugins.ratelimit/RateLimiter.snapshot|snapshot(){}[0]
 
     sealed class State { // io.ktor.server.plugins.ratelimit/RateLimiter.State|null[0]
         final class Available : io.ktor.server.plugins.ratelimit/RateLimiter.State { // io.ktor.server.plugins.ratelimit/RateLimiter.State.Available|null[0]
@@ -85,9 +84,6 @@ final class io.ktor.server.plugins.ratelimit/RateLimiterKey { // io.ktor.server.
 
 final value class io.ktor.server.plugins.ratelimit/RateLimitName { // io.ktor.server.plugins.ratelimit/RateLimitName|null[0]
     constructor <init>(kotlin/String) // io.ktor.server.plugins.ratelimit/RateLimitName.<init>|<init>(kotlin.String){}[0]
-
-    final val name // io.ktor.server.plugins.ratelimit/RateLimitName.name|{}name[0]
-        final fun <get-name>(): kotlin/String // io.ktor.server.plugins.ratelimit/RateLimitName.name.<get-name>|<get-name>(){}[0]
 
     final fun equals(kotlin/Any?): kotlin/Boolean // io.ktor.server.plugins.ratelimit/RateLimitName.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // io.ktor.server.plugins.ratelimit/RateLimitName.hashCode|hashCode(){}[0]

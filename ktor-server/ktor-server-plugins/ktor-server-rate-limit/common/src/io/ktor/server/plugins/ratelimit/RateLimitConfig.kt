@@ -95,7 +95,7 @@ public class RateLimitConfig {
  */
 @Deprecated("Use io.ktor.ratelimit.RateLimitName.")
 @JvmInline
-public value class RateLimitName(public val name: String)
+public value class RateLimitName(internal val name: String)
 
 /**
  * A config for [RateLimit] provider inside [RateLimiterConfig].
@@ -257,6 +257,7 @@ public class RateLimitProviderConfig(internal val name: RateLimitName) {
      * Sets a function that returns a weight of a request.
      * Weight is used to calculate how many tokens are consumed by a request.
      * By default, weight is always 1.
+     * Zero consumes no tokens. The plugin throws [IllegalArgumentException] if the weight is negative.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.plugins.ratelimit.RateLimitProviderConfig.requestWeight)
      */

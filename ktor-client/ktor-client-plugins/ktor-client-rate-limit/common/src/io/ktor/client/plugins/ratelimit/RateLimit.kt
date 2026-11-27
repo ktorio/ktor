@@ -66,6 +66,9 @@ public val RateLimit: ClientPlugin<RateLimitConfig> = createClientPlugin("RateLi
                 for (provider in applicable) {
                     val key = provider.requestKey(request)
                     val weight = provider.requestWeight(request, key)
+                    require(weight >= 0) {
+                        "Rate limit provider '${provider.name.name}' returned a negative request weight ($weight)"
+                    }
                     val queue = queues.get(provider, key)
                     try {
                         queue.acquire(

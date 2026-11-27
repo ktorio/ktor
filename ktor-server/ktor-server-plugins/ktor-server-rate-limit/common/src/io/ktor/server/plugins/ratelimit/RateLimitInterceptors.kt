@@ -127,6 +127,9 @@ private fun PluginBuilder<RateLimitInterceptorsConfig>.rateLimiterPluginBuilder(
             LOGGER.trace { "Using rate limit ${provider.name} for ${call.request.uri}" }
             val key = provider.requestKey(call)
             val weight = provider.requestWeight(call, key)
+            require(weight >= 0) {
+                "Rate limit provider '${provider.name.name}' returned a negative request weight ($weight)"
+            }
             LOGGER.trace { "Using key=$key and weight=$weight for ${call.request.uri}" }
 
             val limiterKey = RateLimiterKey(io.ktor.ratelimit.RateLimitName(provider.name.name), key)

@@ -26,13 +26,9 @@ internal fun RateLimiter.State.asSharedState(): io.ktor.ratelimit.RateLimiter.St
 
 private class ServerRateLimiter(val delegate: io.ktor.ratelimit.RateLimiter) : RateLimiter {
     override suspend fun tryConsume(tokens: Int): RateLimiter.State = delegate.tryConsume(tokens).asServerState()
-
-    override suspend fun snapshot(): io.ktor.ratelimit.RateLimiterSnapshot = delegate.snapshot()
 }
 
 private class SharedRateLimiter(val delegate: RateLimiter) : io.ktor.ratelimit.RateLimiter {
     override suspend fun tryConsume(tokens: Int): io.ktor.ratelimit.RateLimiter.State =
         delegate.tryConsume(tokens).asSharedState()
-
-    override suspend fun snapshot(): io.ktor.ratelimit.RateLimiterSnapshot = delegate.snapshot()
 }

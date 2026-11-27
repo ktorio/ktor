@@ -50,6 +50,8 @@ internal class DefaultRateLimiter @OptIn(ExperimentalTime::class) constructor(
 
     @OptIn(ExperimentalTime::class)
     override suspend fun tryConsume(tokens: Int): RateLimiter.State {
+        require(tokens >= 0) { "Token count must be non-negative, got $tokens" }
+
         while (true) {
             val current = state.value
             val now = timeSource.markNow()
@@ -95,6 +97,8 @@ internal class IncrementalRefillRateLimiter @OptIn(ExperimentalTime::class) cons
 
     @OptIn(ExperimentalTime::class)
     override suspend fun tryConsume(tokens: Int): RateLimiter.State {
+        require(tokens >= 0) { "Token count must be non-negative, got $tokens" }
+
         while (true) {
             val current = state.value
             val now = timeSource.markNow()
