@@ -84,8 +84,6 @@ internal expect fun ktor_shutdown(fd: Int, how: Int): Int
 
 internal expect fun nonBlocking(descriptor: Int): Int
 
-internal expect fun signalIgnoreSigpipe()
-
 @OptIn(ExperimentalForeignApi::class)
 internal expect fun ktor_send(socket: Int, buf: CValuesRef<ByteVar>?, len: Int, flags: Int): Int
 
