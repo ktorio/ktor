@@ -266,30 +266,75 @@ class TCPSocketTest {
         val address = InetSocketAddress("127.0.0.1", 0)
         val serverSocket = aSocket(SelectorManager(Dispatchers.Default)).tcp().bind(address)
 
+        // Accepted sockets are kept open until the end of the current batch: closing each of
+        // them immediately would churn socket handles in the middle of a connect burst.
+        // On Windows, a concurrent closesocket from the selector thread can make a parallel
+        // connect() fail spuriously (it may even return -1 with a zero error code), so no
+        // socket handle is closed while connections are being established.
+        val accepted = mutableListOf<Socket>()
         val serverJob = launch {
             while (isActive) {
                 ensureActive()
-                serverSocket.accept().close()
+                // On Windows, a connection that is reset by the client before it is retrieved
+                // from the listen backlog makes accept() fail with a connection-specific error
+                // while the listening socket itself remains usable. When that happens, keep
+                // draining the backlog instead of failing the whole accept loop: otherwise the
+                // remaining connects below are refused once the listen backlog overflows.
+                // This mirrors the CIO server accept loop, which also retries transient accept
+                // errors unless the server socket is closed.
+                try {
+                    accepted += serverSocket.accept()
+                } catch (cause: IOException) {
+                    if (serverSocket.isClosed) break
+                    delay(100)
+                }
             }
         }
 
         val resolvedAddress = serverSocket.localAddress
-        repeat(256) {
-            val socket = aSocket(selector).tcp().connect(resolvedAddress)
-            socket.openWriteChannel(autoFlush = true)
 
-            try {
-                withTimeout(2000) {
-                    socket.close()
-                    socket.awaitClosed()
-                }
-            } catch (cause: TimeoutCancellationException) {
-                fail("Dead lock while closing a socket", cause)
+        // Connections are established and closed in bounded batches. Every connection holds
+        // two descriptors open at once (the client socket and its accepted counterpart), so
+        // keeping all 256 of them open would need 512 descriptors and exhaust the
+        // 256-descriptor soft limit of a native POSIX test process before any socket is
+        // closed. A batch of 64 keeps at most 128 descriptors open and is still a connect
+        // burst on its own.
+        val connections = 256
+        val batchSize = 64
+        repeat(connections / batchSize) {
+            // Phase one: establish the batch while nothing is being closed, so connect()
+            // never runs in parallel with a pending descriptor close.
+            //
+            // A loopback connect under a tight burst can still fail transiently on Windows:
+            // connect() occasionally returns -1 while WSAGetLastError() reports zero (once per
+            // ~250 connects in instrumented runs), which tcpConnect reports as
+            // "Failed to connect to InetSocketAddress". Such a failure is indeterminate rather
+            // than a real refusal, so retry it a bounded number of times before failing.
+            val sockets = List(batchSize) {
+                val socket = connectWithRetry(selector, resolvedAddress)
+                socket.openWriteChannel(autoFlush = true)
+                socket
+            }
+
+            // Phase two: close each socket and await its closure: `awaitClosed` must never hang.
+            sockets.forEach { socket ->
+                closeAndAwaitClosed(socket)
+            }
+
+            // Phase three: release the descriptors of the accepted sockets before the next
+            // batch connects. Every close is awaited: a close that is only requested would be
+            // completed by the selector thread later, possibly in the middle of the next
+            // connect burst.
+            val acceptedSockets = accepted.toList()
+            accepted.clear()
+            acceptedSockets.forEach { socket ->
+                closeAndAwaitClosed(socket)
             }
         }
 
         serverJob.cancelAndJoin()
         serverSocket.close()
+        accepted.forEach { closeAndAwaitClosed(it) }
     }
 
     @Test
@@ -322,5 +367,42 @@ class TCPSocketTest {
         } finally {
             server.close()
         }
+    }
+}
+
+/**
+ * Connects to [remoteAddress], retrying a bounded number of times on a transient
+ * connect failure. Under a tight connect burst on Windows, a loopback connect can
+ * fail spuriously: connect() returns -1 while the reported error is zero, and no
+ * data was written by the failed attempt, so a retry on a fresh socket is safe.
+ */
+private suspend fun connectWithRetry(
+    selector: SelectorManager,
+    remoteAddress: SocketAddress,
+    attempts: Int = 3
+): Socket {
+    var lastFailure: IOException? = null
+    repeat(attempts) { attempt ->
+        try {
+            return aSocket(selector).tcp().connect(remoteAddress)
+        } catch (cause: IOException) {
+            lastFailure = cause
+            if (attempt < attempts - 1) delay(10)
+        }
+    }
+    throw lastFailure!!
+}
+
+/**
+ * Closes [socket] and awaits its closure under a deadlock guard: `awaitClosed` must never hang.
+ */
+private suspend fun closeAndAwaitClosed(socket: Socket) {
+    try {
+        withTimeout(2000) {
+            socket.close()
+            socket.awaitClosed()
+        }
+    } catch (cause: TimeoutCancellationException) {
+        fail("Dead lock while closing a socket", cause)
     }
 }
