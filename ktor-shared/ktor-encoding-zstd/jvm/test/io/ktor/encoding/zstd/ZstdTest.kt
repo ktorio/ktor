@@ -9,11 +9,13 @@ import io.ktor.test.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.pool.*
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.io.readByteArray
 import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 /**
  * Taken from [KtorDefaultPool]
@@ -64,6 +66,13 @@ class ZstdTest {
         val decodedString = decodedReadChannel.readBuffer().readText()
 
         assertEquals(string, decodedString)
+    }
+
+    @Test
+    fun `decode cancels the source when the decoded channel is cancelled`() = runTest {
+        val source = ByteChannel()
+        ZstdEncoder().decode(source, currentCoroutineContext()).cancel()
+        assertTrue(source.isClosedForRead)
     }
 }
 
