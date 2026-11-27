@@ -4,10 +4,11 @@
 
 package io.ktor.server.engine
 
-import kotlinx.atomicfu.atomic
 import kotlinx.cinterop.*
 import platform.posix.*
 import kotlin.concurrent.*
+import kotlin.concurrent.atomics.AtomicBoolean
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
 
 internal actual val SHUTDOWN_HOOK_ENABLED = true
 
@@ -19,9 +20,9 @@ private val shutdownHook: AtomicReference<() -> Unit> = AtomicReference {}
  * The listener is not removed on normal stop, but the [stop] block still runs at most once.
  * Please note that a shutdown hook is only registered when the application is running.
  */
-@OptIn(ExperimentalForeignApi::class)
+@OptIn(ExperimentalForeignApi::class, ExperimentalAtomicApi::class)
 internal actual fun EmbeddedServer<*, *>.platformAddShutdownHook(stop: () -> Unit) {
-    val shouldStop = atomic(true)
+    val shouldStop = AtomicBoolean(true)
     shutdownHook.value = {
         if (shouldStop.compareAndSet(true, false)) {
             stop()

@@ -6,7 +6,6 @@ package io.ktor.client.engine
 
 import io.ktor.util.*
 import io.ktor.utils.io.*
-import kotlinx.atomicfu.AtomicInt
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CompletableJob
 import kotlinx.coroutines.CoroutineDispatcher
@@ -44,13 +43,20 @@ public abstract class HttpClientEngineBase(private val engineName: String) : Htt
     private val closed = atomic(false)
 
     /** Number of [io.ktor.client.HttpClient] instances sharing this engine */
-    internal val clientRefCount: AtomicInt = atomic(0)
+    private val clientRefCount = atomic(0)
 
     override val dispatcher: CoroutineDispatcher by lazy { config.dispatcher ?: ioDispatcher() }
 
     override val coroutineContext: CoroutineContext by lazy {
         SilentSupervisor() + dispatcher + CoroutineName("$engineName-context")
     }
+
+    internal fun retainClient() {
+        clientRefCount.incrementAndGet()
+    }
+
+    /** Returns `true` if no [io.ktor.client.HttpClient] instances are sharing this engine anymore */
+    internal fun releaseClient(): Boolean = clientRefCount.decrementAndGet() <= 0
 
     override fun close() {
         if (!closed.compareAndSet(false, true)) return

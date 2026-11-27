@@ -144,6 +144,6 @@ public class IosMediaDevices(
     }
 
     private companion object {
-        var sslInitialized = atomic(false)
+        val sslInitialized = atomic(false)
     }
 }

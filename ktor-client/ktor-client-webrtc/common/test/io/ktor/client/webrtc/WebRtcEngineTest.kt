@@ -12,6 +12,9 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.test.TestResult
+import kotlin.concurrent.atomics.AtomicInt
+import kotlin.concurrent.atomics.ExperimentalAtomicApi
+import kotlin.concurrent.atomics.incrementAndFetch
 import kotlin.coroutines.CoroutineContext
 import kotlin.test.*
 import kotlin.time.Duration.Companion.milliseconds
@@ -92,17 +95,18 @@ class WebRtcEngineTest {
         }
     }
 
+    @OptIn(ExperimentalAtomicApi::class)
     @Test
     fun testEstablishPeerConnection() = testConnection(realtime = true) { pc1 ->
         client.createPeerConnection().use { pc2 ->
 
-            val cnt = atomic(0)
+            val cnt = AtomicInt(0)
             val negotiationNeededCnt = Channel<Int>(Channel.CONFLATED)
             launch {
-                pc1.negotiationNeeded.collect { negotiationNeededCnt.send(cnt.incrementAndGet()) }
+                pc1.negotiationNeeded.collect { negotiationNeededCnt.send(cnt.incrementAndFetch()) }
             }
             launch {
-                pc2.negotiationNeeded.collect { negotiationNeededCnt.send(cnt.incrementAndGet()) }
+                pc2.negotiationNeeded.collect { negotiationNeededCnt.send(cnt.incrementAndFetch()) }
             }
 
             val iceConnectionState1 = pc1.iceConnectionState.collectToChannel()

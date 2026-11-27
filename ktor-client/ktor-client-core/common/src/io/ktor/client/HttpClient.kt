@@ -1293,11 +1293,11 @@ public class HttpClient(
 
         if (this.manageEngine) {
             if (engine is HttpClientEngineBase) {
-                engine.clientRefCount.incrementAndGet()
+                engine.retainClient()
             }
 
             coroutineContext[Job]!!.invokeOnCompletion { cause ->
-                val shouldClose = engine !is HttpClientEngineBase || engine.clientRefCount.decrementAndGet() <= 0
+                val shouldClose = engine !is HttpClientEngineBase || engine.releaseClient()
 
                 if (shouldClose) {
                     if (cause == null) {

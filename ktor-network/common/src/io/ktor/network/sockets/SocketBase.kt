@@ -46,20 +46,19 @@ internal abstract class SocketBase(
     }
 
     final override fun attachForReading(channel: ByteChannel): WriterJob {
-        return attachFor("reading", channel, writerJob, ::attachForReadingImpl)
+        return writerJob.attachFor("reading", channel, ::attachForReadingImpl)
     }
 
     final override fun attachForWriting(channel: ByteChannel): ReaderJob {
-        return attachFor("writing", channel, readerJob, ::attachForWritingImpl)
+        return readerJob.attachFor("writing", channel, ::attachForWritingImpl)
     }
 
     abstract fun attachForReadingImpl(channel: ByteChannel): WriterJob
     abstract fun attachForWritingImpl(channel: ByteChannel): ReaderJob
 
-    private inline fun <J : ChannelJob> attachFor(
+    private inline fun <J : ChannelJob> AtomicRef<J?>.attachFor(
         name: String,
         channel: ByteChannel,
-        ref: AtomicRef<J?>,
         producer: (ByteChannel) -> J,
     ): J {
         if (closeFlag.value) {
@@ -70,7 +69,7 @@ internal abstract class SocketBase(
 
         val j = producer(channel)
 
-        if (!ref.compareAndSet(null, j)) {
+        if (!compareAndSet(null, j)) {
             val e = IllegalStateException("$name channel has already been set")
             j.cancel()
             throw e
@@ -92,11 +91,11 @@ internal abstract class SocketBase(
     internal abstract fun actualClose(): Throwable?
 
     private fun checkChannels() {
-        if (closeFlag.value && readerJob.completedOrNotStarted && writerJob.completedOrNotStarted) {
+        if (closeFlag.value && readerJob.value.completedOrNotStarted && writerJob.value.completedOrNotStarted) {
             if (!actualCloseFlag.compareAndSet(expect = false, update = true)) return
 
-            val e1 = readerJob.exception
-            val e2 = writerJob.exception
+            val e1 = readerJob.value.exception
+            val e2 = writerJob.value.exception
             val e3 = actualClose()
 
             val combined = combine(combine(e1, e2), e3)
@@ -118,10 +117,10 @@ internal abstract class SocketBase(
         }
     }
 
-    private inline val AtomicRef<out ChannelJob?>.completedOrNotStarted: Boolean
-        get() = value.let { it == null || it.isCompleted }
+    private inline val ChannelJob?.completedOrNotStarted: Boolean
+        get() = this == null || isCompleted
 
-    private inline val AtomicRef<out ChannelJob?>.exception: Throwable?
-        get() = value?.takeIf { it.isCancelled }
+    private inline val ChannelJob?.exception: Throwable?
+        get() = this?.takeIf { it.isCancelled }
             ?.getCancellationException()?.cause // TODO it should be completable deferred or provide its own exception
 }
