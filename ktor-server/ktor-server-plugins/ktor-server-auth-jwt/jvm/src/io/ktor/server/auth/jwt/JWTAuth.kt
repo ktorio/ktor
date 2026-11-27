@@ -14,9 +14,13 @@ import com.auth0.jwt.interfaces.JWTVerifier
 import com.auth0.jwt.interfaces.Payload
 import com.auth0.jwt.interfaces.Verification
 import io.ktor.http.auth.*
+import io.ktor.http.content.BlockingDispatcherElement
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
+import io.ktor.server.engine.ioDispatcher
 import io.ktor.server.response.*
+import io.ktor.utils.io.InternalAPI
+import kotlinx.coroutines.withContext
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.IOException
@@ -189,6 +193,7 @@ public class JWTAuthenticationProvider internal constructor(config: Config) : Au
 
     private val challengeFunction: JWTAuthChallengeFunction = config.challenge
 
+    @OptIn(InternalAPI::class)
     override suspend fun onAuthenticate(context: AuthenticationContext) {
         val call = context.call
         val token = authHeader(call)
@@ -199,7 +204,9 @@ public class JWTAuthenticationProvider internal constructor(config: Config) : Au
         }
 
         try {
-            val jwtVerifier = verifier(token)
+            val jwtVerifier = withContext(BlockingDispatcherElement(call.application.ioDispatcher)) {
+                verifier(token)
+            }
             if (jwtVerifier == null) {
                 JWTLogger.debug("JWT authentication failed: Unable to create JWT verifier")
                 context.bearerChallenge(AuthenticationFailedCause.InvalidCredentials, realm, schemes, challengeFunction)

@@ -8,6 +8,8 @@ import io.ktor.http.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import java.net.*
 
 /**
@@ -27,6 +29,35 @@ public class URIFileContent(
         contentType
     )
 
+    private var ioDispatcher: CoroutineDispatcher = Dispatchers.IO
+
+    /**
+     * Creates [URIFileContent] that reads the [uri] using [ioDispatcher].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.content.URIFileContent)
+     */
+    public constructor(
+        uri: URI,
+        contentType: ContentType,
+        contentLength: Long?,
+        ioDispatcher: CoroutineDispatcher
+    ) : this(uri, contentType, contentLength) {
+        this.ioDispatcher = ioDispatcher
+    }
+
+    /**
+     * Creates [URIFileContent] that reads the [url] using [ioDispatcher].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.http.content.URIFileContent)
+     */
+    public constructor(url: URL, contentType: ContentType, ioDispatcher: CoroutineDispatcher) : this(
+        url.toURI(),
+        contentType,
+        null,
+        ioDispatcher
+    )
+
     // TODO: use http client
-    override fun readFrom(): ByteReadChannel = uri.toURL().openStream().toByteReadChannel(pool = KtorDefaultPool)
+    override fun readFrom(): ByteReadChannel =
+        uri.toURL().openStream().toByteReadChannel(context = ioDispatcher, pool = KtorDefaultPool)
 }

@@ -56,9 +56,9 @@ public class CIOApplicationEngine(
         public var reuseAddress: Boolean = false
     }
 
-    private val engineDispatcher = Dispatchers.IOBridge
+    private val engineDispatcher = configuration.ioDispatcher
 
-    private val userDispatcher = Dispatchers.IOBridge
+    private val userDispatcher = configuration.ioDispatcher
 
     private val startupJob: CompletableDeferred<Unit> = CompletableDeferred()
     private val stopRequest: CompletableJob = Job()

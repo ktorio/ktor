@@ -14,8 +14,11 @@ import java.io.*
 import java.nio.*
 
 internal actual class FileCache actual constructor(
-    private val bufferSize: Int
+    private val bufferSize: Int,
+    ioDispatcher: CoroutineDispatcher?
 ) : DoubleReceiveCache {
+
+    private val ioDispatcher: CoroutineDispatcher = ioDispatcher ?: Dispatchers.IO
 
     private sealed interface State {
         /** The body is being written to the file. Readers wait for [done]. */
@@ -31,7 +34,7 @@ internal actual class FileCache actual constructor(
     private val state = atomic<State>(initial = State.Saving(done = CompletableDeferred()))
 
     actual override fun CoroutineScope.launchPump(channel: ByteReadChannel): Job =
-        launch(context = Dispatchers.IO, start = CoroutineStart.ATOMIC) {
+        launch(context = ioDispatcher, start = CoroutineStart.ATOMIC) {
             if (state.value !is State.Saving) {
                 return@launch
             }
@@ -68,7 +71,7 @@ internal actual class FileCache actual constructor(
         while (true) {
             when (val current = state.value) {
                 is State.Saving -> current.done.await()
-                State.Saved -> return file.readChannel()
+                State.Saved -> return file.readChannel(coroutineContext = ioDispatcher)
                 is State.Failed -> throw current.cause
             }
         }

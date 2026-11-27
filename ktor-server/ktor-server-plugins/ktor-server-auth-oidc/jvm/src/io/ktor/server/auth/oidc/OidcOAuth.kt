@@ -4,12 +4,16 @@
 package io.ktor.server.auth.oidc
 
 import io.ktor.http.*
+import io.ktor.http.content.BlockingDispatcherElement
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
+import io.ktor.server.engine.ioDispatcher
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.utils.io.InternalAPI
+import kotlinx.coroutines.withContext
 
+@OptIn(InternalAPI::class)
 internal fun Application.configureOAuthRoute(provider: OidcProvider) {
     val config = provider.oauthConfig
 
@@ -32,7 +36,9 @@ internal fun Application.configureOAuthRoute(provider: OidcProvider) {
                     }
 
                     val refreshResult = try {
-                        provider.refreshToken(refreshToken)
+                        withContext(BlockingDispatcherElement(call.application.ioDispatcher)) {
+                            provider.refreshToken(refreshToken)
+                        }
                     } catch (cause: OidcTokenRejectedException) {
                         provider.logger.debug("Refreshed token is invalid.", cause)
                         null
@@ -94,7 +100,9 @@ internal suspend fun OidcProvider.handleOAuthCallbackSuccess(
             call.consumeAuthorizationTransaction(stateCookieName, stateCodec, state)
         }
         val expectedNonce = authorizationTransaction?.nonce
-        return buildOAuthToken(response, expectedNonce)
+        return withContext(BlockingDispatcherElement(call.application.ioDispatcher)) {
+            buildOAuthToken(response, expectedNonce)
+        }
     } catch (cause: OidcTokenRejectedException) {
         val failure = AuthenticationFailedCause.Error(cause.message)
         call.authentication.processFailure(failure, onOAuthFailure)

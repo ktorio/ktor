@@ -118,7 +118,7 @@ internal object NettyDispatcher : CoroutineDispatcher(), Delay {
         execute(
             context = context,
             action = { execute(block) },
-            fallback = { Dispatchers.IO.dispatch(context, block) }
+            fallback = { (context[CurrentContextKey]?.ioDispatcher ?: Dispatchers.IO).dispatch(context, block) }
         )
     }
 
@@ -155,11 +155,12 @@ internal object NettyDispatcher : CoroutineDispatcher(), Delay {
     /**
      * Carries the Netty channel context for the current call along with the executor that should be used
      * to dispatch coroutine continuations. When [executor] is not provided, the channel's own
-     * event-loop executor is used (which runs I/O work).
+     * event-loop executor is used (which runs I/O work). The [ioDispatcher] is used when the executor can't be used.
      */
     class CurrentContext(
         val context: ChannelHandlerContext,
-        val executor: EventExecutor = context.executor()
+        val executor: EventExecutor = context.executor(),
+        val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
     ) : AbstractCoroutineContextElement(CurrentContextKey)
 
     object CurrentContextKey : CoroutineContext.Key<CurrentContext>

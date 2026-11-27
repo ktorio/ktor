@@ -36,7 +36,6 @@ public fun File.readChannel(
             "endInclusive points to the position out of the file: file size = $fileLength, endInclusive = $endInclusive"
         }
 
-        @Suppress("BlockingMethodInNonBlockingContext")
         randomAccessFile.value.use { file ->
             val fileChannel: FileChannel = file.channel
             fileChannel.writeToScope(this, start, endInclusive)

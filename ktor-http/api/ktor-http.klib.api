@@ -309,6 +309,15 @@ final class io.ktor.http.auth/SignatureAlgorithm { // io.ktor.http.auth/Signatur
     }
 }
 
+final class io.ktor.http.content/BlockingDispatcherElement : kotlin.coroutines/AbstractCoroutineContextElement { // io.ktor.http.content/BlockingDispatcherElement|null[0]
+    constructor <init>(kotlinx.coroutines/CoroutineDispatcher) // io.ktor.http.content/BlockingDispatcherElement.<init>|<init>(kotlinx.coroutines.CoroutineDispatcher){}[0]
+
+    final val dispatcher // io.ktor.http.content/BlockingDispatcherElement.dispatcher|{}dispatcher[0]
+        final fun <get-dispatcher>(): kotlinx.coroutines/CoroutineDispatcher // io.ktor.http.content/BlockingDispatcherElement.dispatcher.<get-dispatcher>|<get-dispatcher>(){}[0]
+
+    final object Key : kotlin.coroutines/CoroutineContext.Key<io.ktor.http.content/BlockingDispatcherElement> // io.ktor.http.content/BlockingDispatcherElement.Key|null[0]
+}
+
 final class io.ktor.http.content/ByteArrayContent : io.ktor.http.content/OutgoingContent.ByteArrayContent { // io.ktor.http.content/ByteArrayContent|null[0]
     constructor <init>(kotlin/ByteArray, io.ktor.http/ContentType? = ..., io.ktor.http/HttpStatusCode? = ...) // io.ktor.http.content/ByteArrayContent.<init>|<init>(kotlin.ByteArray;io.ktor.http.ContentType?;io.ktor.http.HttpStatusCode?){}[0]
 

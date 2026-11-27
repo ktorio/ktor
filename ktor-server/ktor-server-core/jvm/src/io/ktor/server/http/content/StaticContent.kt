@@ -8,6 +8,7 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
 import io.ktor.server.application.hooks.*
+import io.ktor.server.engine.ioDispatcher
 import io.ktor.server.http.content.FileSystemPaths.Companion.paths
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -768,6 +769,7 @@ private fun Route.watchDefaultPathForUpdates(
         }.toTypedArray()
 
         val job = watchForUpdates(
+            application.ioDispatcher,
             watchService,
             defaultPath.parent,
             { it.isDefaultFile(defaultPath, defaultCompressedPaths) },
@@ -798,11 +800,12 @@ private fun Path.isDefaultFile(defaultPath: Path, compressedPaths: Array<Path>):
 
 @OptIn(DelicateCoroutinesApi::class)
 private fun watchForUpdates(
+    dispatcher: CoroutineDispatcher,
     watchService: WatchService,
     relativePath: Path,
     validate: (Path) -> Boolean,
     onUpdate: () -> Unit
-): Job = GlobalScope.launch(Dispatchers.IO) {
+): Job = GlobalScope.launch(dispatcher) {
     while (this.isActive) {
         yield()
 

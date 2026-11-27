@@ -1415,6 +1415,15 @@ public final class io/ktor/http/auth/SignatureAlgorithm_jvmKt {
 	public static final fun toJcaSignature (Lio/ktor/http/auth/SignatureAlgorithm;)Ljava/security/Signature;
 }
 
+public final class io/ktor/http/content/BlockingDispatcherElement : kotlin/coroutines/AbstractCoroutineContextElement {
+	public static final field Key Lio/ktor/http/content/BlockingDispatcherElement$Key;
+	public fun <init> (Lkotlinx/coroutines/CoroutineDispatcher;)V
+	public final fun getDispatcher ()Lkotlinx/coroutines/CoroutineDispatcher;
+}
+
+public final class io/ktor/http/content/BlockingDispatcherElement$Key : kotlin/coroutines/CoroutineContext$Key {
+}
+
 public final class io/ktor/http/content/ByteArrayContent : io/ktor/http/content/OutgoingContent$ByteArrayContent {
 	public fun <init> ([BLio/ktor/http/ContentType;Lio/ktor/http/HttpStatusCode;)V
 	public synthetic fun <init> ([BLio/ktor/http/ContentType;Lio/ktor/http/HttpStatusCode;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
@@ -1647,8 +1656,10 @@ public final class io/ktor/http/content/TextContent : io/ktor/http/content/Outgo
 public final class io/ktor/http/content/URIFileContent : io/ktor/http/content/OutgoingContent$ReadChannelContent {
 	public fun <init> (Ljava/net/URI;Lio/ktor/http/ContentType;Ljava/lang/Long;)V
 	public synthetic fun <init> (Ljava/net/URI;Lio/ktor/http/ContentType;Ljava/lang/Long;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/net/URI;Lio/ktor/http/ContentType;Ljava/lang/Long;Lkotlinx/coroutines/CoroutineDispatcher;)V
 	public fun <init> (Ljava/net/URL;Lio/ktor/http/ContentType;)V
 	public synthetic fun <init> (Ljava/net/URL;Lio/ktor/http/ContentType;ILkotlin/jvm/internal/DefaultConstructorMarker;)V
+	public fun <init> (Ljava/net/URL;Lio/ktor/http/ContentType;Lkotlinx/coroutines/CoroutineDispatcher;)V
 	public fun getContentLength ()Ljava/lang/Long;
 	public fun getContentType ()Lio/ktor/http/ContentType;
 	public final fun getUri ()Ljava/net/URI;

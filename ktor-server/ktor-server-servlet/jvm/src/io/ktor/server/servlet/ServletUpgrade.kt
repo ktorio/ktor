@@ -91,6 +91,7 @@ public class ServletUpgradeHandler : HttpUpgradeHandler, CoroutineScope {
         }
 
         upgradeJob = Job(up.engineContext[Job])
+        val ioContext: CoroutineContext = up.engineContext[ContinuationInterceptor] ?: Dispatchers.IO
         upgradeJob.invokeOnCompletion(onCancelling = true) {
             webConnection.close()
         }
@@ -101,10 +102,10 @@ public class ServletUpgradeHandler : HttpUpgradeHandler, CoroutineScope {
                 pool = KtorDefaultPool
             )
 
-            else -> servletReader(webConnection.inputStream, Int.MAX_VALUE).channel
+            else -> servletReader(webConnection.inputStream, Int.MAX_VALUE, dispatcher = ioContext).channel
         }
 
-        val outputChannel = servletWriter(webConnection.outputStream).channel
+        val outputChannel = servletWriter(webConnection.outputStream, dispatcher = ioContext).channel
 
         launch(up.userContext + ServletUpgradeCoroutineName, start = CoroutineStart.UNDISPATCHED) {
             val job = up.upgradeMessage.upgrade(

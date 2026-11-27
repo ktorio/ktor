@@ -12,6 +12,7 @@ import com.auth0.jwt.impl.*
 import com.auth0.jwt.interfaces.*
 import com.auth0.jwt.interfaces.JWTVerifier
 import io.ktor.http.auth.*
+import io.ktor.http.content.BlockingDispatcherElement
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.request.*
@@ -77,6 +78,7 @@ internal fun JwkException.isJwkProviderFailure(): Boolean =
     this is RateLimitReachedException ||
         (this is SigningKeyNotFoundException && causedByProviderSentInvalidJwk())
 
+@OptIn(InternalAPI::class)
 internal suspend fun getVerifier(
     jwkProvider: JwkProvider,
     issuer: String?,
@@ -87,7 +89,8 @@ internal suspend fun getVerifier(
     val jwk = token.getBlob(schemes)?.let { blob ->
         try {
             val keyId = JWT.decode(blob).keyId
-            withContext(Dispatchers.IO) { jwkProvider.get(keyId) }
+            val ioDispatcher = currentCoroutineContext()[BlockingDispatcherElement]?.dispatcher ?: Dispatchers.IO
+            withContext(ioDispatcher) { jwkProvider.get(keyId) }
         } catch (cause: JwkException) {
             if (cause.isJwkProviderFailure()) {
                 throw cause

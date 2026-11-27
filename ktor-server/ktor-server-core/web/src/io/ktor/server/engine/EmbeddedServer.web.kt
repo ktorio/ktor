@@ -33,7 +33,7 @@ actual constructor(
         monitor,
         rootConfig.parentCoroutineContext,
         ::engine
-    )
+    ).also { it.installIODispatcher(engineConfig.ioDispatcher) }
 
     public actual val engine: TEngine = engineFactory.create(
         environment,

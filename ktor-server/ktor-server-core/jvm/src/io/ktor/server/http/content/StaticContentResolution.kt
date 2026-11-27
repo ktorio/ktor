@@ -7,9 +7,12 @@ package io.ktor.server.http.content
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
+import io.ktor.server.engine.*
 import io.ktor.server.plugins.*
 import io.ktor.server.util.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import java.io.File
 import java.io.IOException
 import java.net.JarURLConnection
@@ -33,11 +36,13 @@ public fun ApplicationCall.resolveResource(
     mimeResolve: (String) -> ContentType = { ContentType.defaultForFileExtension(it) }
 ): OutgoingContent.ReadChannelContent? {
     val normalizedPath = normalisedPath(resourcePackage, path) ?: return null
+    val ioDispatcher = application.ioDispatcher
 
     for (url in classLoader.getResources(normalizedPath).asSequence()) {
-        resourceClasspathResource(url, normalizedPath) { mimeResolve(it.path.extension()) }?.let { content ->
-            return content
+        val content = resourceClasspathResource(url, normalizedPath, ioDispatcher) {
+            mimeResolve(it.path.extension())
         }
+        if (content != null) return content
     }
 
     return null
@@ -74,8 +79,9 @@ internal fun Application.resolveResource(
     mimeResolve: (URL) -> ContentType
 ): Pair<URL, OutgoingContent.ReadChannelContent>? {
     val cacheKey = "${classLoader.hashCode()}/$path"
+    val ioDispatcher = ioDispatcher
     val resolveContent: (URL) -> Pair<URL, OutgoingContent.ReadChannelContent>? = { url ->
-        resourceClasspathResource(url, path, mimeResolve)?.let { url to it }
+        resourceClasspathResource(url, path, ioDispatcher, mimeResolve)?.let { url to it }
     }
     return resourceCache[cacheKey]?.let(resolveContent)
         ?: classLoader.getResources(path).asSequence()
@@ -95,25 +101,38 @@ public fun resourceClasspathResource(
     url: URL,
     path: String,
     mimeResolve: (URL) -> ContentType
+): OutgoingContent.ReadChannelContent? = resourceClasspathResource(url, path, Dispatchers.IO, mimeResolve)
+
+/**
+ * Attempt to find a local file or a file inside of zip, reading its content using [ioDispatcher].
+ *
+ * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.resourceClasspathResource)
+ */
+@InternalAPI
+public fun resourceClasspathResource(
+    url: URL,
+    path: String,
+    ioDispatcher: CoroutineDispatcher,
+    mimeResolve: (URL) -> ContentType
 ): OutgoingContent.ReadChannelContent? {
     return when (url.protocol) {
         "file" -> {
             val file = File(url.path.decodeURLPart())
-            if (file.isFile) LocalFileContent(file, mimeResolve(url)) else null
+            if (file.isFile) LocalFileContent(file, mimeResolve(url), ioDispatcher) else null
         }
 
         "jar" -> {
             if (path.endsWith("/")) return null
             findContainingJarFile(url.toString())?.let { zipFile ->
-                return JarFileContent(zipFile, path, mimeResolve(url))
+                return JarFileContent(zipFile, path, mimeResolve(url), ioDispatcher)
                     .takeIf { it.isFile }
             }
             if (url.isJarDirectory()) return null
-            URIFileContent(url, mimeResolve(url))
+            URIFileContent(url, mimeResolve(url), ioDispatcher)
         }
 
         "jrt", "resource" -> {
-            URIFileContent(url, mimeResolve(url))
+            URIFileContent(url, mimeResolve(url), ioDispatcher)
         }
 
         else -> null

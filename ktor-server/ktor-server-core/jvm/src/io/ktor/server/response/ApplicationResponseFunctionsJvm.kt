@@ -7,9 +7,12 @@ package io.ktor.server.response
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
+import io.ktor.server.engine.ioDispatcher
 import io.ktor.server.http.content.*
+import io.ktor.util.*
 import java.io.*
 import java.nio.file.*
+import kotlin.io.path.extension
 
 /**
  * Respond with text content writer.
@@ -55,7 +58,11 @@ public suspend fun ApplicationCall.respondFile(
     fileName: String,
     configure: OutgoingContent.() -> Unit = {}
 ) {
-    val message = LocalFileContent(baseDir, fileName).apply(configure)
+    val message = LocalFileContent(
+        baseDir.combineSafe(fileName),
+        ContentType.defaultForFilePath(fileName),
+        application.ioDispatcher
+    ).apply(configure)
     respond(message)
 }
 
@@ -69,7 +76,11 @@ public suspend fun ApplicationCall.respondPath(
     relativePath: Path,
     configure: OutgoingContent.() -> Unit = {}
 ) {
-    val message = LocalPathContent(baseDir, relativePath).apply(configure)
+    val message = LocalPathContent(
+        baseDir.combineSafe(relativePath),
+        ContentType.defaultForPath(relativePath),
+        application.ioDispatcher
+    ).apply(configure)
     respond(message)
 }
 
@@ -79,7 +90,8 @@ public suspend fun ApplicationCall.respondPath(
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.response.respondFile)
  */
 public suspend fun ApplicationCall.respondFile(file: File, configure: OutgoingContent.() -> Unit = {}) {
-    val message = LocalFileContent(file).apply(configure)
+    val message = LocalFileContent(file, ContentType.defaultForFile(file), application.ioDispatcher)
+        .apply(configure)
     respond(message)
 }
 
@@ -89,7 +101,11 @@ public suspend fun ApplicationCall.respondFile(file: File, configure: OutgoingCo
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.response.respondPath)
  */
 public suspend fun ApplicationCall.respondPath(path: Path, configure: OutgoingContent.() -> Unit = {}) {
-    val message = LocalPathContent(path).apply(configure)
+    val message = LocalPathContent(
+        path,
+        ContentType.defaultForFileExtension(path.extension),
+        application.ioDispatcher
+    ).apply(configure)
     respond(message)
 }
 

@@ -9,6 +9,8 @@ import io.ktor.http.content.*
 import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
@@ -27,6 +29,20 @@ public class LocalFileContent(
     override val contentType: ContentType = ContentType.defaultForFile(file)
 ) : OutgoingContent.ReadChannelContent() {
 
+    private var ioDispatcher: CoroutineDispatcher = Dispatchers.IO
+
+    /**
+     * Creates [LocalFileContent] that reads the [file] using [ioDispatcher].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.LocalFileContent)
+     */
+    public constructor(file: File, contentType: ContentType, ioDispatcher: CoroutineDispatcher) : this(
+        file,
+        contentType
+    ) {
+        this.ioDispatcher = ioDispatcher
+    }
+
     override val contentLength: Long get() = file.length()
 
     init {
@@ -40,9 +56,10 @@ public class LocalFileContent(
 
     // TODO: consider using WriteChannelContent to avoid piping
     // Or even make it dual-content so engine implementation can choose
-    override fun readFrom(): ByteReadChannel = file.readChannel()
+    override fun readFrom(): ByteReadChannel = file.readChannel(coroutineContext = ioDispatcher)
 
-    override fun readFrom(range: LongRange): ByteReadChannel = file.readChannel(range.first, range.last)
+    override fun readFrom(range: LongRange): ByteReadChannel =
+        file.readChannel(range.first, range.last, ioDispatcher)
 }
 
 /**
@@ -88,6 +105,20 @@ public class LocalPathContent(
     override val contentType: ContentType = ContentType.defaultForFileExtension(path.extension)
 ) : OutgoingContent.ReadChannelContent() {
 
+    private var ioDispatcher: CoroutineDispatcher = Dispatchers.IO
+
+    /**
+     * Creates [LocalPathContent] that reads the [path] using [ioDispatcher].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.LocalPathContent)
+     */
+    public constructor(path: Path, contentType: ContentType, ioDispatcher: CoroutineDispatcher) : this(
+        path,
+        contentType
+    ) {
+        this.ioDispatcher = ioDispatcher
+    }
+
     override val contentLength: Long get() = Files.size(path)
 
     init {
@@ -99,7 +130,8 @@ public class LocalPathContent(
         }
     }
 
-    override fun readFrom(): ByteReadChannel = path.readChannel()
+    override fun readFrom(): ByteReadChannel = path.readChannel(coroutineContext = ioDispatcher)
 
-    override fun readFrom(range: LongRange): ByteReadChannel = path.readChannel(range.first, range.last)
+    override fun readFrom(range: LongRange): ByteReadChannel =
+        path.readChannel(range.first, range.last, ioDispatcher)
 }

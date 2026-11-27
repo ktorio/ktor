@@ -9,6 +9,8 @@ import io.ktor.http.content.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.jvm.javaio.*
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import java.io.File
 import java.io.IOException
 import java.nio.file.Path
@@ -35,11 +37,39 @@ public class JarFileContent(
 
     public val isFile: Boolean by lazy(LazyThreadSafetyMode.NONE) { jarEntry?.isDirectory?.not() ?: false }
 
+    private var ioDispatcher: CoroutineDispatcher = Dispatchers.IO
+
     public constructor(zipFilePath: Path, resourcePath: String, contentType: ContentType) : this(
         zipFilePath.toFile(),
         resourcePath,
         contentType
     )
+
+    /**
+     * Creates [JarFileContent] that reads the resource using [ioDispatcher].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.JarFileContent)
+     */
+    public constructor(
+        jarFile: File,
+        resourcePath: String,
+        contentType: ContentType,
+        ioDispatcher: CoroutineDispatcher
+    ) : this(jarFile, resourcePath, contentType) {
+        this.ioDispatcher = ioDispatcher
+    }
+
+    /**
+     * Creates [JarFileContent] that reads the resource using [ioDispatcher].
+     *
+     * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.http.content.JarFileContent)
+     */
+    public constructor(
+        zipFilePath: Path,
+        resourcePath: String,
+        contentType: ContentType,
+        ioDispatcher: CoroutineDispatcher
+    ) : this(zipFilePath.toFile(), resourcePath, contentType, ioDispatcher)
 
     init {
         require(!normalized.startsWith("..")) { "Bad resource relative path $resourcePath" }
@@ -50,6 +80,6 @@ public class JarFileContent(
 
     override fun readFrom(): ByteReadChannel {
         val jarEntry = jarEntry ?: throw IOException("Resource $normalized not found")
-        return jar.getInputStream(jarEntry).toByteReadChannel(pool = KtorDefaultPool)
+        return jar.getInputStream(jarEntry).toByteReadChannel(context = ioDispatcher, pool = KtorDefaultPool)
     }
 }

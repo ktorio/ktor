@@ -7,6 +7,7 @@ package io.ktor.server.http.content
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
+import io.ktor.server.engine.ioDispatcher
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
@@ -257,7 +258,7 @@ internal suspend fun ApplicationCall.respondStaticFile(
     if (bestCompressionFit == null) {
         modify(requestedFile, this)
 
-        val content = LocalFileContent(requestedFile, responseContentType)
+        val content = LocalFileContent(requestedFile, responseContentType, application.ioDispatcher)
             .provideVersions(etag, lastModified, requestedFile)
 
         respond(content)
@@ -268,7 +269,7 @@ internal suspend fun ApplicationCall.respondStaticFile(
 
         val (compressedFile, compression) = bestCompressionFit
 
-        val localFileContent = LocalFileContent(compressedFile, responseContentType)
+        val localFileContent = LocalFileContent(compressedFile, responseContentType, application.ioDispatcher)
             .provideVersions(etag, lastModified, compressedFile)
 
         respond(PreCompressedResponse(localFileContent, compression))
@@ -304,7 +305,7 @@ internal suspend fun ApplicationCall.respondStaticPath(
     if (bestCompressionFit == null) {
         modify(requestedPath, this)
 
-        val content = LocalPathContent(requestedPath, responseContentType)
+        val content = LocalPathContent(requestedPath, responseContentType, application.ioDispatcher)
             .provideVersions(etag, lastModified, requestedPath)
 
         respond(content)
@@ -315,7 +316,7 @@ internal suspend fun ApplicationCall.respondStaticPath(
 
         val (compressedPath, compression) = bestCompressionFit
 
-        val localFileContent = LocalPathContent(compressedPath, responseContentType)
+        val localFileContent = LocalPathContent(compressedPath, responseContentType, application.ioDispatcher)
             .provideVersions(etag, lastModified, compressedPath)
 
         respond(PreCompressedResponse(localFileContent, compression))

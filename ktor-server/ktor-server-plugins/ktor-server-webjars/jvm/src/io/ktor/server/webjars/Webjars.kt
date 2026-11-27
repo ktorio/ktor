@@ -7,6 +7,7 @@ package io.ktor.server.webjars
 import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.server.application.*
+import io.ktor.server.engine.ioDispatcher
 import io.ktor.server.http.content.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
@@ -122,7 +123,11 @@ public val Webjars: ApplicationPlugin<WebjarsConfig> = createApplicationPlugin("
             call.attributes.put(StaticFileLocationProperty, resourcePath)
             val (location, info) = extractWebJar(resourcePath, knownWebJars, locator)
             val stream = WebjarsConfig::class.java.classLoader.getResourceAsStream(location) ?: return@onCall
-            val content = InputStreamContent(stream, ContentType.defaultForFilePath(fullPath)).apply {
+            val content = InputStreamContent(
+                stream,
+                ContentType.defaultForFilePath(fullPath),
+                call.application.ioDispatcher
+            ).apply {
                 lastModifiedExtractor(info)?.let { versions += LastModifiedVersion(it) }
                 etagExtractor(info)?.let { versions += EntityTagVersion(it) }
                 maxAgeExtractor(info)?.let { caching = CachingOptions(CacheControl.MaxAge(it.inWholeSeconds.toInt())) }

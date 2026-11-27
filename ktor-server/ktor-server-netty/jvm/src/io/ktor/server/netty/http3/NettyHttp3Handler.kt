@@ -103,7 +103,9 @@ internal class NettyHttp3Handler(
         val callJob = Job(parent = handlerJob)
         val callExecutor = resolveCallExecutor(context)
         // Combine the cached static context with the per-stream dispatcher and per-call [Job] only.
-        val callContext = staticCallContext + NettyDispatcher.CurrentContext(context, callExecutor) + callJob
+        val callContext = staticCallContext +
+            NettyDispatcher.CurrentContext(context, callExecutor, application.ioDispatcher) +
+            callJob
         val call = NettyHttp3ApplicationCall(
             application,
             context,
