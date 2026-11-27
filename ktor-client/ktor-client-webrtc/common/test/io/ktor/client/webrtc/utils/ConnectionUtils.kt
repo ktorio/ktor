@@ -16,7 +16,6 @@ import kotlinx.coroutines.test.TestResult
 import kotlin.time.Duration
 
 // Create different WebRtc engine implementation to be tested for every platform.
-@OptIn(ExperimentalKtorApi::class)
 expect fun createTestWebRtcClient(): WebRtcClient
 
 // Grant permissions to use audio and video media devices

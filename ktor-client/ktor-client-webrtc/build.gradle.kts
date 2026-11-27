@@ -4,7 +4,6 @@
 
 import ktorbuild.disableNativeCompileConfigurationCache
 import ktorbuild.targets.*
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask
 
 description = "Ktor WebRTC Client"
 
@@ -35,6 +34,14 @@ fun resolveWebRtcJavaClassifier(): String {
 
 kotlin {
     jvmToolchain(17)
+
+    compilerOptions {
+        optIn.addAll(
+            "io.ktor.client.webrtc.InternalKtorWebRtcSubclassing",
+            "io.ktor.utils.io.InternalAPI",
+            "io.ktor.utils.io.ExperimentalKtorApi",
+        )
+    }
 
     optionalAndroid {
         namespace = "io.ktor.client.webrtc"

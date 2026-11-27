@@ -172,7 +172,7 @@ public class JvmWebRtcConnection(
     override suspend fun removeTrack(track: WebRtcMedia.Track) {
         val mediaTrack = track as JvmMediaTrack
         val sender = inner.senders.firstOrNull { it.track?.id == mediaTrack.id }
-            ?: error("Track is not found.")
+        requireNotNull(sender) { "Track is not found." }
         inner.removeTrack(sender)
     }
 

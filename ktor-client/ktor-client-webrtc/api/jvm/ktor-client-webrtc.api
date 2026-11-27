@@ -48,6 +48,9 @@ public final class io/ktor/client/webrtc/DefaultExceptionHandler : kotlinx/corou
 	public fun plus (Lkotlin/coroutines/CoroutineContext;)Lkotlin/coroutines/CoroutineContext;
 }
 
+public abstract interface annotation class io/ktor/client/webrtc/InternalKtorWebRtcSubclassing : java/lang/annotation/Annotation {
+}
+
 public final class io/ktor/client/webrtc/JvmDtmfSender : io/ktor/client/webrtc/WebRtc$DtmfSender {
 	public fun <init> (Ldev/onvoid/webrtc/RTCDtmfSender;)V
 	public fun getCanInsertDtmf ()Z
