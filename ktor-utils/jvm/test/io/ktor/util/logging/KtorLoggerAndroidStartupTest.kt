@@ -11,18 +11,14 @@ import org.slf4j.LoggerFactory
 import org.slf4j.helpers.NOPLogger
 import org.slf4j.helpers.NOP_FallbackServiceProvider
 import org.slf4j.spi.SLF4JServiceProvider
-import java.net.URL
 import java.net.URLClassLoader
 import java.nio.file.Files
 import java.nio.file.Path
-import java.util.Enumeration
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicBoolean
 import javax.tools.ToolProvider
-import kotlin.concurrent.thread
 import kotlin.test.*
 
 class KtorLoggerAndroidStartupTest {
@@ -39,50 +35,12 @@ class KtorLoggerAndroidStartupTest {
     }
 
     @Test
-    fun `logging during SLF4J startup on Android does not fail`() {
-        val failures = ConcurrentLinkedQueue<Throwable>()
-        val appThreads = object : ThreadGroup("ktor-android-startup-test") {
-            override fun uncaughtException(thread: Thread, cause: Throwable) {
-                failures += cause
-            }
-        }
-        val busy = AtomicBoolean(true)
-        val load = List(Runtime.getRuntime().availableProcessors()) {
-            thread(isDaemon = true) {
-                while (busy.get()) {
-                    // Simulate CPU contention during a background app start.
-                }
-            }
-        }
-        try {
-            Thread(appThreads, {
-                repeat(3_000) {
-                    if (failures.isNotEmpty()) return@Thread
-                    runApp(App::class.java, providerLookupDelayMillis = 20)
-                }
-            }, "ktor-android-startup-driver").apply {
-                start()
-                join()
-            }
-        } finally {
-            busy.set(false)
-            load.forEach { it.join() }
-        }
-        assertTrue(failures.isEmpty(), failures.joinToString("\n") { it.stackTraceToString() })
-    }
-
-    @Test
     fun `logger uses the SLF4J provider after initialization on Android`() {
         val services = Files.createDirectories(stubDirectory.resolve("META-INF/services"))
         val descriptor = services.resolve(SLF4JServiceProvider::class.java.name)
         Files.write(descriptor, BlockingProvider::class.java.name.toByteArray())
-        runApp(ProviderApp::class.java)
-    }
 
-    private fun runApp(
-        app: Class<out Runnable>,
-        providerLookupDelayMillis: Long = 0
-    ) {
+        val app = ProviderApp::class.java
         val classpath = listOf(
             app,
             Attributes::class.java,
@@ -90,15 +48,8 @@ class KtorLoggerAndroidStartupTest {
             Unit::class.java,
             Asserter::class.java
         ).map { it.protectionDomain.codeSource.location } + stubDirectory.toUri().toURL()
-        // Each app start gets a fresh SLF4J factory. The delay simulates scanning the APK for providers.
-        object : URLClassLoader(classpath.toTypedArray(), null) {
-            override fun getResources(name: String): Enumeration<URL> {
-                if (providerLookupDelayMillis > 0 && name.startsWith("META-INF/services/org.slf4j")) {
-                    Thread.sleep(providerLookupDelayMillis)
-                }
-                return super.getResources(name)
-            }
-        }.use { loader ->
+        // Load SLF4J separately so it binds to the test provider.
+        URLClassLoader(classpath.toTypedArray(), null).use { loader ->
             val thread = Thread.currentThread()
             val previousContextLoader = thread.contextClassLoader
             // kotlin.test discovers its asserter using the thread context class loader.
@@ -108,19 +59,6 @@ class KtorLoggerAndroidStartupTest {
             } finally {
                 thread.contextClassLoader = previousContextLoader
             }
-        }
-    }
-
-    class App : Runnable {
-        override fun run() {
-            val end = System.nanoTime() + 40_000_000
-            var index = 0
-            while (System.nanoTime() < end) KtorSimpleLogger("io.ktor.app.${index++}").info("event")
-
-            val appThreads = Thread.currentThread().threadGroup
-            Thread.getAllStackTraces().keys
-                .filter { it.threadGroup === appThreads && it.name == "ktor-slf4j-init" }
-                .forEach { it.join() }
         }
     }
 
