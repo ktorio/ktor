@@ -52,7 +52,7 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
                 }
             }
 
-            val (testServerCall, streamingBody) = with(data) {
+            val testServerCall = with(data) {
                 runRequest(
                     method,
                     url,
@@ -64,10 +64,10 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
                 )
             }
             val response = testServerCall.response
+            val body = response.responseChannel.await() ?: ByteReadChannel.Empty
             val status = response.statusOrNotFound()
             val headers = response.headers.allValues().takeUnless { it.isEmpty() } ?: Headers
                 .build { append(HttpHeaders.ContentLength, "0") }
-            val body = streamingBody ?: ByteReadChannel(response.byteContent ?: byteArrayOf())
             val responseBody: Any = data.attributes.getOrNull(ResponseAdapterAttributeKey)
                 ?.adapt(data, status, headers, body, data.body, callContext)
                 ?: body
@@ -85,7 +85,7 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
         }
     }
 
-    private suspend fun runRequest(
+    private fun runRequest(
         method: HttpMethod,
         url: Url,
         headers: Headers,
@@ -93,7 +93,7 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
         protocol: URLProtocol,
         clientJob: Job,
         timeoutAttributes: HttpTimeoutConfig? = null
-    ): Pair<TestApplicationCall, ByteReadChannel?> {
+    ): TestApplicationCall {
         return app.handleRequest(clientJob, timeoutAttributes = timeoutAttributes) {
             this.uri = url.fullPath
             this.port = url.port

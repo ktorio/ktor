@@ -41,27 +41,17 @@ public class TestApplicationResponse(
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplicationResponse.byteContent)
      */
     public var byteContent: ByteArray?
-        get() = when {
-            _byteContent.value != null -> _byteContent.value
-            responseChannel == null -> null
-            else -> maybeRunBlocking { responseChannel!!.toByteArray() }
+        get() = _byteContent.value ?: websocketChannel()?.let { channel ->
+            maybeRunBlocking { channel.toByteArray() }
         }
         private set(value) {
             _byteContent.value = value
         }
 
-    private var responseChannel: ByteReadChannel? = null
-
     private var responseJob: Job? = null
 
-    internal val responseReady = CompletableDeferred<ByteReadChannel?>()
-
-    /**
-     * Get completed when a response channel is assigned.
-     * A response could have no channel assigned in some particular failure cases so the deferred could
-     * remain incomplete or become completed exceptionally.
-     */
-    internal val responseChannelDeferred: CompletableJob = Job()
+    // Streaming responses publish their channel immediately. Buffered responses publish it after request processing.
+    internal val responseChannel = CompletableDeferred<ByteReadChannel?>()
 
     override fun setStatus(statusCode: HttpStatusCode) {}
 
@@ -96,8 +86,9 @@ public class TestApplicationResponse(
             responseJob = job.job
         }
 
-        responseChannel = result
-        responseChannelDeferred.complete()
+        if (!readResponse) {
+            responseChannel.complete(result)
+        }
 
         return job.channel
     }
@@ -108,15 +99,10 @@ public class TestApplicationResponse(
         }
     }
 
-    override suspend fun respondOutgoingContent(content: OutgoingContent) {
-        super.respondOutgoingContent(content)
-        responseChannelDeferred.completeExceptionally(IllegalStateException("No response channel assigned"))
-    }
-
     override suspend fun respondWriteChannelContent(content: OutgoingContent.WriteChannelContent) {
         val channel = ByteChannel()
         val output: ByteWriteChannel = channel
-        responseReady.complete(channel)
+        responseChannel.complete(channel)
 
         try {
             withContext(Dispatchers.IOBridge) {
@@ -161,6 +147,10 @@ public class TestApplicationResponse(
         responseJob?.join()
     }
 
+    internal fun completeResponse() {
+        responseChannel.complete(_byteContent.value?.let { ByteReadChannel(it) })
+    }
+
     // Websockets & upgrade
     internal val webSocketEstablished: CompletableJob = Job()
 
@@ -179,5 +169,9 @@ public class TestApplicationResponse(
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.testing.TestApplicationResponse.websocketChannel)
      */
-    public fun websocketChannel(): ByteReadChannel? = responseChannel
+    @OptIn(ExperimentalCoroutinesApi::class)
+    public fun websocketChannel(): ByteReadChannel? {
+        if (readResponse || !responseChannel.isCompleted || responseChannel.isCancelled) return null
+        return responseChannel.getCompleted()
+    }
 }

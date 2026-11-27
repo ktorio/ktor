@@ -186,12 +186,12 @@ public class TestApplicationEngine(
         }
     }
 
-    internal suspend fun handleRequest(
+    internal fun handleRequest(
         clientJob: Job,
         closeRequest: Boolean = true,
         timeoutAttributes: HttpTimeoutConfig? = null,
         setup: TestApplicationRequest.() -> Unit
-    ): Pair<TestApplicationCall, ByteReadChannel?> {
+    ): TestApplicationCall {
         val job = Job(testEngineJob)
         val call = createCall(
             readResponse = true,
@@ -203,18 +203,18 @@ public class TestApplicationEngine(
             call.attributes.put(timeoutAttributesKey, timeoutAttributes)
         }
 
-        val responseReady = call.response.responseReady
+        val response = call.response
         val requestScope = CoroutineScope(coroutineContext + job)
         val request = requestScope.launch(CoroutineName("request")) {
             try {
                 coroutineScope {
                     pipeline.execute(call)
-                    call.response.awaitForResponseCompletion()
+                    response.awaitForResponseCompletion()
                 }
                 processResponse(call)
-                responseReady.complete(null)
+                response.completeResponse()
             } catch (cause: Throwable) {
-                responseReady.completeExceptionally(cause)
+                response.responseChannel.completeExceptionally(cause)
             }
         }
         val clientCancellation = clientJob.invokeOnCompletion { cause ->
@@ -222,16 +222,11 @@ public class TestApplicationEngine(
         }
         request.invokeOnCompletion { cause ->
             clientCancellation.dispose()
-            if (cause != null) responseReady.completeExceptionally(cause)
+            if (cause != null) response.responseChannel.completeExceptionally(cause)
             job.cancel()
         }
 
-        return try {
-            call to responseReady.await()
-        } catch (cause: Throwable) {
-            request.cancel()
-            throw cause
-        }
+        return call
     }
 
     internal fun createWebSocketCall(uri: String, setup: TestApplicationRequest.() -> Unit): TestApplicationCall =
