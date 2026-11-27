@@ -37,11 +37,13 @@ public actual fun KtorSimpleLogger(name: String): Logger = if (!isAndroid) {
                         factory = LoggerFactory.getILoggerFactory()
                     }
                     androidLoggerFactory = factory
-                } catch (_: IllegalStateException) {
-                    // SLF4J reports the binding failure and keeps its factory in a failed state.
+                } catch (cause: IllegalStateException) {
+                    // SLF4J keeps its factory in a failed state.
                     androidLoggerFactory = NOPLoggerFactory()
+                    System.err.println("Ktor disabled Android SLF4J logging after initialization failed ($cause).")
                 } catch (_: InterruptedException) {
                     Thread.currentThread().interrupt()
+                    System.err.println("Ktor disabled Android SLF4J logging because initialization was interrupted.")
                 }
             },
             "ktor-slf4j-init"
