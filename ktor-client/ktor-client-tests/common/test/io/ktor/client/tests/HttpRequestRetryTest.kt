@@ -668,6 +668,62 @@ class HttpRequestRetryTest {
             withTimeout(1.seconds) { requestJob.join() }
         }
     }
+
+    @Test
+    fun `does not retry when request job is cancelled`() = testWithEngine(MockEngine) {
+        val request = HttpRequestBuilder()
+        var retryChecks = 0
+        config {
+            engine {
+                addHandler {
+                    request.executionContext.cancel()
+                    awaitCancellation()
+                }
+            }
+            install(HttpRequestRetry) {
+                retryOnExceptionIf(maxRetries = 3) { _, _ ->
+                    retryChecks++
+                    true
+                }
+                delayMillis { 0 }
+            }
+        }
+
+        test { client ->
+            assertFailsWith<CancellationException> { client.get(request) }
+            assertEquals(0, retryChecks)
+        }
+    }
+
+    @Test
+    fun `does not retry when caller is cancelled`() = testWithEngine(MockEngine) {
+        val requestStarted = CompletableDeferred<Unit>()
+        var retryChecks = 0
+        config {
+            engine {
+                addHandler {
+                    requestStarted.complete(Unit)
+                    awaitCancellation()
+                }
+            }
+            install(HttpRequestRetry) {
+                retryOnExceptionIf(maxRetries = 3) { _, _ ->
+                    retryChecks++
+                    true
+                }
+                delayMillis { 0 }
+            }
+        }
+
+        test { client ->
+            coroutineScope {
+                val requestJob = launch { client.get("/") }
+                requestStarted.await()
+                requestJob.cancelAndJoin()
+            }
+            assertEquals(0, retryChecks)
+        }
+    }
 }
 
 private val RequestJobListener = createClientPlugin("RequestJobListener", { RequestJobListenerConfig() }) {

@@ -15,9 +15,8 @@ import io.ktor.http.*
 import io.ktor.util.*
 import io.ktor.util.logging.*
 import io.ktor.utils.io.*
+import kotlinx.coroutines.*
 import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CompletableJob
-import kotlinx.coroutines.SupervisorJob
 import kotlin.math.pow
 import kotlin.random.Random
 
@@ -361,6 +360,8 @@ public val HttpRequestRetry: ClientPlugin<HttpRequestRetryConfig> = createClient
                 HttpRetryEventData(subRequest, ++retryCount, call.response, null)
             } catch (cause: Throwable) {
                 attemptJob.completeExceptionally(cause)
+                currentCoroutineContext().ensureActive()
+                if (!request.executionContext.isActive) throw cause
                 if (!shouldRetryOnException(retryCount, maxRetries, shouldRetryOnException, subRequest, cause)) {
                     throw cause
                 }
