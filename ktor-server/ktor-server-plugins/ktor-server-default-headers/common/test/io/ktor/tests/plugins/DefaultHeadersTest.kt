@@ -77,13 +77,25 @@ class DefaultHeadersTest {
 
         assertEquals("Mon, 30 Sep 2019 22:34:01 GMT", client.get("/").headers[HttpHeaders.Date])
 
-        now += 999
+        now += 985 // the last millisecond of the same second
 
         assertEquals("Mon, 30 Sep 2019 22:34:01 GMT", client.get("/").headers[HttpHeaders.Date])
 
         now++
 
         assertEquals("Mon, 30 Sep 2019 22:34:02 GMT", client.get("/").headers[HttpHeaders.Date])
+    }
+
+    @Test
+    fun `date is set on the first call when the clock is below the cache timeout`() = testApplication {
+        install(DefaultHeaders) {
+            clock = DefaultHeadersConfig.Clock { 0 }
+        }
+        routing {
+            get { call.respond("OK") }
+        }
+
+        assertEquals("Thu, 01 Jan 1970 00:00:00 GMT", client.get("/").headers[HttpHeaders.Date])
     }
 
     @Test

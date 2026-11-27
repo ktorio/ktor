@@ -9,7 +9,7 @@ import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
-import kotlinx.atomicfu.atomic
+import kotlin.concurrent.Volatile
 import kotlin.time.ExperimentalTime
 
 /**
@@ -53,8 +53,6 @@ public class DefaultHeadersConfig {
          */
         public fun now(): Long
     }
-
-    internal var cachedDateText: String by atomic("")
 }
 
 /**
@@ -77,18 +75,7 @@ public val DefaultHeaders: RouteScopedPlugin<DefaultHeadersConfig> = createRoute
     ::DefaultHeadersConfig
 ) {
     val headers = pluginConfig.headers.build()
-    val DATE_CACHE_TIMEOUT_MILLISECONDS = 1000
-    var cachedDateTimeStamp = 0L
-
-    fun calculateDateHeader(): String {
-        val captureCached = cachedDateTimeStamp
-        val currentTimeStamp = pluginConfig.clock.now()
-        if (captureCached + DATE_CACHE_TIMEOUT_MILLISECONDS <= currentTimeStamp) {
-            cachedDateTimeStamp = currentTimeStamp
-            pluginConfig.cachedDateText = GMTDate(currentTimeStamp).toHttpDate()
-        }
-        return pluginConfig.cachedDateText
-    }
+    val dateCache = DateHeaderCache()
 
     onCallRespond { call, _ ->
         headers.forEach { name, value ->
@@ -96,10 +83,27 @@ public val DefaultHeaders: RouteScopedPlugin<DefaultHeadersConfig> = createRoute
         }
 
         if (!call.response.headers.contains(HttpHeaders.Date)) {
-            call.response.header(HttpHeaders.Date, calculateDateHeader())
+            call.response.header(HttpHeaders.Date, dateCache.get(pluginConfig.clock.now()))
         }
         if (!call.response.headers.contains(HttpHeaders.Server)) {
             call.response.header(HttpHeaders.Server, "Ktor/$KTOR_VERSION")
         }
     }
+}
+
+private class DateHeaderCache {
+    @Volatile
+    private var cached: CachedDate? = null
+
+    fun get(currentTimeStamp: Long): String {
+        // The header has a one-second resolution, so the text stays valid until the clock second changes
+        val epochSecond = currentTimeStamp / 1000
+        cached?.let { if (it.epochSecond == epochSecond) return it.text }
+
+        val text = GMTDate(currentTimeStamp).toHttpDate()
+        cached = CachedDate(epochSecond, text)
+        return text
+    }
+
+    private class CachedDate(val epochSecond: Long, val text: String)
 }
