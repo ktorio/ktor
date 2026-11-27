@@ -19,6 +19,7 @@ import kotlin.time.Duration
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.webrtc.DataChannelBufferOverflow)
  */
+@SubclassOptInRequired(InternalKtorWebRtcSubclassing::class)
 public interface DataChannelBufferOverflow {
     /**
      * Fail the data channel: the receive buffer is closed with a [WebRtc.IOException] cause,
