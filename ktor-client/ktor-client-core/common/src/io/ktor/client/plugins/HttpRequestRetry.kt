@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2024 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.plugins
@@ -17,6 +17,7 @@ import io.ktor.util.logging.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableJob
+import kotlinx.coroutines.SupervisorJob
 import kotlin.math.pow
 import kotlin.random.Random
 
@@ -315,14 +316,7 @@ public val HttpRequestRetry: ClientPlugin<HttpRequestRetryConfig> = createClient
 
     fun prepareRequest(request: HttpRequestBuilder): HttpRequestBuilder {
         val subRequest = HttpRequestBuilder().takeFrom(request)
-        request.executionContext.invokeOnCompletion { cause ->
-            val subRequestJob = subRequest.executionContext as CompletableJob
-            if (cause == null) {
-                subRequestJob.complete()
-            } else {
-                subRequestJob.completeExceptionally(cause)
-            }
-        }
+        subRequest.executionContext = SupervisorJob(request.executionContext)
         return subRequest
     }
 
@@ -344,6 +338,7 @@ public val HttpRequestRetry: ClientPlugin<HttpRequestRetryConfig> = createClient
         var lastRetryData: HttpRetryEventData? = null
         while (true) {
             val subRequest = prepareRequest(request)
+            val attemptJob = subRequest.executionContext as CompletableJob
 
             val retryData = try {
                 if (lastRetryData != null) {
@@ -354,15 +349,18 @@ public val HttpRequestRetry: ClientPlugin<HttpRequestRetryConfig> = createClient
                         lastRetryData.retryCount
                     )
                     modifyRequest(modifyRequestContext, subRequest)
+                    lastRetryData.request.executionContext.cancel()
                 }
                 call = proceed(subRequest)
                 if (!shouldRetry(retryCount, maxRetries, shouldRetry, call)) {
                     // throws exception if body is corrupt
                     call.response.throwOnInvalidResponseBody()
+                    attemptJob.complete()
                     break
                 }
                 HttpRetryEventData(subRequest, ++retryCount, call.response, null)
             } catch (cause: Throwable) {
+                attemptJob.completeExceptionally(cause)
                 if (!shouldRetryOnException(retryCount, maxRetries, shouldRetryOnException, subRequest, cause)) {
                     throw cause
                 }
