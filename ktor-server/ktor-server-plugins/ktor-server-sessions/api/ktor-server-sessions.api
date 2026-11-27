@@ -298,6 +298,7 @@ public final class io/ktor/server/sessions/SessionsConfig {
 public final class io/ktor/server/sessions/SessionsKt {
 	public static final fun getSessionProvidersKey ()Lio/ktor/util/AttributeKey;
 	public static final fun getSessions ()Lio/ktor/server/application/RouteScopedPlugin;
+	public static final fun installOrExtendSessions (Lio/ktor/server/routing/Route;Lkotlin/jvm/functions/Function1;)V
 }
 
 public final class io/ktor/server/sessions/TooLateSessionSetException : java/lang/IllegalStateException {

@@ -177,6 +177,118 @@ class SessionAuthenticationSchemeTest {
     }
 
     @Test
+    fun `several session schemes with the same session type share a route`() = testApplication {
+        val first = session<UserSession, UserSession>("first-session") { validate { it } }
+        val second = session<UserSession, UserSession>("second-session") { validate { it } }
+
+        routing {
+            install(first)
+            install(second)
+            get("/login-first") {
+                first.setSession(UserSession("Alice"))
+                call.respondText("ok")
+            }
+            get("/login-second") {
+                second.setSession(UserSession("Bob"))
+                call.respondText("ok")
+            }
+            authenticateWith(first) {
+                get("/first") { call.respondText(call.principal.username) }
+            }
+            authenticateWith(second) {
+                get("/second") { call.respondText(call.principal.username) }
+            }
+            get("/by-type") {
+                val failure = assertFailsWith<IllegalArgumentException> { call.sessions.get<UserSession>() }
+                call.respondText(failure.message.orEmpty())
+            }
+        }
+
+        val cookieClient = createClient { install(HttpCookies) }
+        cookieClient.get("/login-first")
+        assertEquals("Alice", cookieClient.get("/first").bodyAsText())
+        assertEquals(HttpStatusCode.Unauthorized, cookieClient.get("/second").status)
+
+        cookieClient.get("/login-second")
+        assertEquals("Alice", cookieClient.get("/first").bodyAsText())
+        assertEquals("Bob", cookieClient.get("/second").bodyAsText())
+
+        val byType = cookieClient.get("/by-type").bodyAsText()
+        assertContains(byType, "first-session, second-session")
+        assertContains(byType, "Access the session by name")
+    }
+
+    @Test
+    fun `session scheme extends Sessions installed in the application`() = testApplication {
+        val sessionScheme = session<UserSession, UserSession>("typed-session") { validate { it } }
+
+        install(Sessions) {
+            cookie<String>("plain-session")
+        }
+        routing {
+            install(sessionScheme)
+            get("/login") {
+                call.sessions.set("plain-session", "plain")
+                sessionScheme.setSession(UserSession("Alice"))
+                call.respondText("ok")
+            }
+            authenticateWith(sessionScheme) {
+                get("/protected") {
+                    call.respondText(call.principal.username + ":" + call.sessions.get("plain-session"))
+                }
+            }
+        }
+
+        val cookieClient = createClient { install(HttpCookies) }
+        cookieClient.get("/login")
+        assertEquals("Alice:plain", cookieClient.get("/protected").bodyAsText())
+    }
+
+    @Test
+    fun `session scheme installed on a nested route extends Sessions of the parent route`() = testApplication {
+        val outer = session<UserSession, UserSession>("outer-session") { validate { it } }
+        val inner = session<UserSession, UserSession>("inner-session") { validate { it } }
+
+        routing {
+            install(outer)
+            get("/login") {
+                outer.setSession(UserSession("Alice"))
+                call.respondText("ok")
+            }
+            route("/nested") {
+                install(inner)
+                authenticateWith(outer) {
+                    get("/outer") {
+                        inner.setSession(UserSession("Bob"))
+                        call.respondText(call.principal.username)
+                    }
+                }
+                authenticateWith(inner) {
+                    get("/inner") { call.respondText(call.principal.username) }
+                }
+            }
+        }
+
+        val cookieClient = createClient { install(HttpCookies) }
+        cookieClient.get("/login")
+        assertEquals("Alice", cookieClient.get("/nested/outer").bodyAsText())
+        assertEquals("Bob", cookieClient.get("/nested/inner").bodyAsText())
+    }
+
+    @Test
+    fun `session schemes with the same name cannot share a route`() = testApplication {
+        val first = session<UserSession, UserSession>("same-session") { validate { it } }
+        val second = session<UserSession, UserSession>("same-session") { validate { it } }
+
+        routing {
+            install(first)
+            install(second)
+        }
+        val failure = assertFailsWith<IllegalArgumentException> { startApplication() }
+        assertContains(failure.message.orEmpty(), "already registered session provider with name same-session")
+    }
+
+    @Test
     fun `session scheme requires Sessions to be installed before typed route`() = testApplication {
         val sessionScheme = session<UserSession, UserSession>("missing-session") {
             validate { session -> session }

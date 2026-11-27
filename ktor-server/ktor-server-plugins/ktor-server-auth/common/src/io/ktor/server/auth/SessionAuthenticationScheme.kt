@@ -44,8 +44,8 @@ internal class SessionAuthenticationSchemeExtension<S : Any>(
             error(
                 "Typed session auth scheme `$name` requires Sessions to be installed " +
                     "before authenticateWith. " +
-                    "Install Sessions manually with Route.install(SessionAuthenticationScheme<*, *>) " +
-                    "before the typed route or configure Sessions with SessionsConfig.applyTransport()."
+                    "Install the scheme with Route.install(SessionAuthenticationScheme<*, *>) " +
+                    "before the typed route."
             )
         }
 
@@ -57,8 +57,9 @@ internal class SessionAuthenticationSchemeExtension<S : Any>(
         val providers = route.application.attributes.getOrNull(SessionProvidersKey).orEmpty()
         val provider = providers.firstOrNull { it.name == name && it.type == sessionType }
         checkNotNull(provider) {
-            "Sessions are installed, but no session provider named `$name` of type `${sessionType.simpleName}`" +
-                "is registered. Configure the transport with SessionsConfig.applyTransport() for this scheme."
+            "Sessions are installed, but no session provider named `$name` of type `${sessionType.simpleName}` " +
+                "is registered. Install the scheme with Route.install(SessionAuthenticationScheme<*, *>) " +
+                "before the typed route."
         }
     }
 
@@ -76,6 +77,10 @@ internal class SessionAuthenticationSchemeExtension<S : Any>(
         }
     }
 }
+
+// The session-specific extension of this scheme.
+internal val <S : Any> SessionAuthenticationScheme<S, *>.sessionExtension: SessionAuthenticationSchemeExtension<S>
+    get() = extension.context.extension
 
 @PublishedApi
 internal fun <S : Any, P : Any> createSessionAuthenticationScheme(
@@ -100,16 +105,20 @@ internal fun <S : Any, P : Any> createSessionAuthenticationScheme(
 /**
  * Applies this scheme's configured [TypedSessionAuthConfig.transport] to a [SessionsConfig].
  *
- * Called automatically by [Route.install] when installing a [SessionAuthenticationScheme].
+ * Prefer [Route.install], which adds the session to [Sessions] when the plugin is already installed.
  *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.applyTransport)
  *
  * @receiver typed session authentication scheme whose transport configuration is applied.
  */
+@Deprecated(
+    "Install the scheme with Route.install(scheme). It adds the session to Sessions when the plugin is already installed.",
+    ReplaceWith("install(this)", "io.ktor.server.auth.install")
+)
 @ExperimentalKtorApi
 context(pluginConfig: SessionsConfig)
 public fun <S : Any> SessionAuthenticationScheme<S, *>.applyTransport() {
-    with(extension.context.extension) { pluginConfig.applyTransport() }
+    with(sessionExtension) { pluginConfig.applyTransport() }
 }
 
 /**
@@ -118,14 +127,18 @@ public fun <S : Any> SessionAuthenticationScheme<S, *>.applyTransport() {
  * This is used by integrations that own their route subtree and want the typed session scheme to install its
  * configured transport automatically.
  *
+ * When [Sessions] is already installed on this route, on one of its parents, or in the application, the session
+ * is added to that installation, so several session schemes can share a route.
+ *
  * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.install)
  *
  * @param session typed session authentication scheme whose transport configuration is applied.
  * @throws IllegalStateException when Sessions cannot be installed for this scheme.
+ * @throws IllegalArgumentException when a session with the same name is already registered.
  */
 @ExperimentalKtorApi
 public fun <S : Any> Route.install(session: SessionAuthenticationScheme<S, *>) {
-    install(Sessions) { session.applyTransport() }
+    installOrExtendSessions { with(session.sessionExtension) { applyTransport() } }
 }
 
 /**
