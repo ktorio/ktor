@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.tests
@@ -7,8 +7,10 @@ package io.ktor.client.tests
 import io.ktor.client.call.*
 import io.ktor.client.engine.mock.*
 import io.ktor.client.plugins.*
+import io.ktor.client.plugins.api.*
 import io.ktor.client.plugins.compression.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.client.test.base.*
 import io.ktor.http.*
 import io.ktor.util.*
@@ -626,4 +628,111 @@ class HttpRequestRetryTest {
             assertEquals(HttpStatusCode.OK, client.get("/").status)
         }
     }
+
+    @Test
+    fun `request job tracks attempt until response body is consumed`() = testWithEngine(MockEngine) {
+        lateinit var requestJob: Job
+        config {
+            engine { addHandler { respond(ByteChannel(), HttpStatusCode.OK) } }
+            install(RequestJobListener) { onRequestJob = { requestJob = it } }
+            install(HttpRequestRetry) { noRetry() }
+        }
+
+        test { client ->
+            client.prepareGet("/").execute { response ->
+                assertTrue(requestJob.isActive, "Request job should wait for the response body")
+
+                requestJob.cancel()
+                assertTrue(response.coroutineContext.job.isCancelled, "Request cancellation should reach the call")
+            }
+        }
+    }
+
+    @Test
+    fun `request job completes after retried request`() = testWithEngine(MockEngine) {
+        lateinit var requestJob: Job
+        config {
+            engine {
+                addHandler { respondError(HttpStatusCode.InternalServerError) }
+                addHandler { respondOk("OK") }
+            }
+            install(RequestJobListener) { onRequestJob = { requestJob = it } }
+            install(HttpRequestRetry) {
+                retryOnServerErrors(maxRetries = 1)
+                delayMillis { 0 }
+            }
+        }
+
+        test { client ->
+            client.prepareGet("/").execute { it.bodyAsText() }
+            withTimeout(1.seconds) { requestJob.join() }
+        }
+    }
+
+    @Test
+    fun `does not retry when request job is cancelled`() = testWithEngine(MockEngine) {
+        val request = HttpRequestBuilder()
+        var retryChecks = 0
+        config {
+            engine {
+                addHandler {
+                    request.executionContext.cancel()
+                    awaitCancellation()
+                }
+            }
+            install(HttpRequestRetry) {
+                retryOnExceptionIf(maxRetries = 3) { _, _ ->
+                    retryChecks++
+                    true
+                }
+                delayMillis { 0 }
+            }
+        }
+
+        test { client ->
+            assertFailsWith<CancellationException> { client.get(request) }
+            assertEquals(0, retryChecks)
+        }
+    }
+
+    @Test
+    fun `does not retry when caller is cancelled`() = testWithEngine(MockEngine) {
+        val requestStarted = CompletableDeferred<Unit>()
+        var retryChecks = 0
+        config {
+            engine {
+                addHandler {
+                    requestStarted.complete(Unit)
+                    awaitCancellation()
+                }
+            }
+            install(HttpRequestRetry) {
+                retryOnExceptionIf(maxRetries = 3) { _, _ ->
+                    retryChecks++
+                    true
+                }
+                delayMillis { 0 }
+            }
+        }
+
+        test { client ->
+            coroutineScope {
+                val requestJob = launch { client.get("/") }
+                requestStarted.await()
+                requestJob.cancelAndJoin()
+            }
+            assertEquals(0, retryChecks)
+        }
+    }
+}
+
+private val RequestJobListener = createClientPlugin("RequestJobListener", { RequestJobListenerConfig() }) {
+    on(Send) { request ->
+        pluginConfig.onRequestJob(request.executionContext)
+        proceed(request)
+    }
+}
+
+private class RequestJobListenerConfig {
+    var onRequestJob: (Job) -> Unit = {}
 }
