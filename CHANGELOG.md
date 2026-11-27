@@ -23,6 +23,15 @@
 * [KTOR-10152](https://youtrack.jetbrains.com/issue/KTOR-10152) Routing: segments failing whole fast path
 * [KTOR-10197](https://youtrack.jetbrains.com/issue/KTOR-10197) Curl: Keep unread response body bytes when the transfer finishes
 * [KTOR-9930](https://youtrack.jetbrains.com/issue/KTOR-9930) ktor-serialization-kotlinx pulls in kotlinx-datetime:0.8.0-0.6.x-compat since 3.6.0
+* [KTOR-10067](https://youtrack.jetbrains.com/issue/KTOR-10067) Servlet webResources() serves WEB-INF files despite the default exclusion
+* [KTOR-10054](https://youtrack.jetbrains.com/issue/KTOR-10054) LDAP login treats an anonymous empty-password bind as user authentication
+* [KTOR-10051](https://youtrack.jetbrains.com/issue/KTOR-10051) JWT verifier(issuer) accepts tokens with a different issuer
+* [KTOR-9992](https://youtrack.jetbrains.com/issue/KTOR-9992) CIO: Accept loop spins when accept() fails synchronously
+* [KTOR-9959](https://youtrack.jetbrains.com/issue/KTOR-9959) Sockets: CIO writer busy-loops when a nonblocking write returns zero
+* [KTOR-9905](https://youtrack.jetbrains.com/issue/KTOR-9905) Client leaks Cookie and other sensitive headers to a different host across an HTTP redirect
+* [KTOR-9906](https://youtrack.jetbrains.com/issue/KTOR-9906) HttpCookies: The storage does not validate the Set-Cookie `Domain` attribute (RFC 6265 §5.3) — cross-domain cookie injection
+* [KTOR-9731](https://youtrack.jetbrains.com/issue/KTOR-9731) CIO: HttpRequestLifecycle cancels `Connection: close` call too soon, sending an incomplete response
+* [KTOR-9477](https://youtrack.jetbrains.com/issue/KTOR-9477) Sessions: Session forgery vulnerability in the SessionTransportTransformerEncrypt component
 
 
 # 3.6.1
@@ -158,6 +167,19 @@
 * [KTOR-9889](https://youtrack.jetbrains.com/issue/KTOR-9889) DI: Concurrent module loading can cause a deadlock
 * [KTOR-9886](https://youtrack.jetbrains.com/issue/KTOR-9886) Netty: inverted skippedRead CAS leaves runningLimit read-resumption broken; runningLimit = 1 deadlocks keep-alive connections
 
+# 3.5.3
+> Published 26 Nov 2026
+
+### Bugfixes
+* [KTOR-10067](https://youtrack.jetbrains.com/issue/KTOR-10067) Servlet webResources() serves WEB-INF files despite the default exclusion
+* [KTOR-10054](https://youtrack.jetbrains.com/issue/KTOR-10054) LDAP login treats an anonymous empty-password bind as user authentication
+* [KTOR-10051](https://youtrack.jetbrains.com/issue/KTOR-10051) JWT verifier(issuer) accepts tokens with a different issuer
+* [KTOR-9992](https://youtrack.jetbrains.com/issue/KTOR-9992) CIO: Accept loop spins when accept() fails synchronously
+* [KTOR-9959](https://youtrack.jetbrains.com/issue/KTOR-9959) Sockets: CIO writer busy-loops when a nonblocking write returns zero
+* [KTOR-9905](https://youtrack.jetbrains.com/issue/KTOR-9905) Client leaks Cookie and other sensitive headers to a different host across an HTTP redirect
+* [KTOR-9906](https://youtrack.jetbrains.com/issue/KTOR-9906) HttpCookies: The storage does not validate the Set-Cookie `Domain` attribute (RFC 6265 §5.3) — cross-domain cookie injection
+* [KTOR-9731](https://youtrack.jetbrains.com/issue/KTOR-9731) CIO: HttpRequestLifecycle cancels `Connection: close` call too soon, sending an incomplete response
+* [KTOR-9477](https://youtrack.jetbrains.com/issue/KTOR-9477) Sessions: Session forgery vulnerability in the SessionTransportTransformerEncrypt component
 
 # 3.5.2
 > Published 31 July 2026
@@ -308,6 +330,19 @@
 * [KTOR-7416](https://youtrack.jetbrains.com/issue/KTOR-7416) Jetty, Java: Custom Host header doesn't override the default value
 * [KTOR-9203](https://youtrack.jetbrains.com/issue/KTOR-9203) CIOMultipartDataBase: Call thread is blocked when releasing file parts
 
+# 3.4.4
+> Published 26 Nov 2026
+
+### Bugfixes
+* [KTOR-10067](https://youtrack.jetbrains.com/issue/KTOR-10067) Servlet webResources() serves WEB-INF files despite the default exclusion
+* [KTOR-10054](https://youtrack.jetbrains.com/issue/KTOR-10054) LDAP login treats an anonymous empty-password bind as user authentication
+* [KTOR-10051](https://youtrack.jetbrains.com/issue/KTOR-10051) JWT verifier(issuer) accepts tokens with a different issuer
+* [KTOR-9992](https://youtrack.jetbrains.com/issue/KTOR-9992) CIO: Accept loop spins when accept() fails synchronously
+* [KTOR-9959](https://youtrack.jetbrains.com/issue/KTOR-9959) Sockets: CIO writer busy-loops when a nonblocking write returns zero
+* [KTOR-9905](https://youtrack.jetbrains.com/issue/KTOR-9905) Client leaks Cookie and other sensitive headers to a different host across an HTTP redirect
+* [KTOR-9906](https://youtrack.jetbrains.com/issue/KTOR-9906) HttpCookies: The storage does not validate the Set-Cookie `Domain` attribute (RFC 6265 §5.3) — cross-domain cookie injection
+* [KTOR-9731](https://youtrack.jetbrains.com/issue/KTOR-9731) CIO: HttpRequestLifecycle cancels `Connection: close` call too soon, sending an incomplete response
+* [KTOR-9477](https://youtrack.jetbrains.com/issue/KTOR-9477) Sessions: Session forgery vulnerability in the SessionTransportTransformerEncrypt component
 
 # 3.4.3
 > Published 22 April 2026
@@ -483,6 +518,19 @@
 * [KTOR-6198](https://youtrack.jetbrains.com/issue/KTOR-6198) Client/WebSocket/Darwin close code and reason are incorrect
 * [KTOR-7824](https://youtrack.jetbrains.com/issue/KTOR-7824) Ktor doesn't parse multiple headers
 
+# 3.3.4
+> Published 26 Nov 2026
+
+### Bugfixes
+* [KTOR-10067](https://youtrack.jetbrains.com/issue/KTOR-10067) Servlet webResources() serves WEB-INF files despite the default exclusion
+* [KTOR-10054](https://youtrack.jetbrains.com/issue/KTOR-10054) LDAP login treats an anonymous empty-password bind as user authentication
+* [KTOR-10051](https://youtrack.jetbrains.com/issue/KTOR-10051) JWT verifier(issuer) accepts tokens with a different issuer
+* [KTOR-9992](https://youtrack.jetbrains.com/issue/KTOR-9992) CIO: Accept loop spins when accept() fails synchronously
+* [KTOR-9959](https://youtrack.jetbrains.com/issue/KTOR-9959) Sockets: CIO writer busy-loops when a nonblocking write returns zero
+* [KTOR-9905](https://youtrack.jetbrains.com/issue/KTOR-9905) Client leaks Cookie and other sensitive headers to a different host across an HTTP redirect
+* [KTOR-9906](https://youtrack.jetbrains.com/issue/KTOR-9906) HttpCookies: The storage does not validate the Set-Cookie `Domain` attribute (RFC 6265 §5.3) — cross-domain cookie injection
+* [KTOR-9731](https://youtrack.jetbrains.com/issue/KTOR-9731) CIO: HttpRequestLifecycle cancels `Connection: close` call too soon, sending an incomplete response
+* [KTOR-9477](https://youtrack.jetbrains.com/issue/KTOR-9477) Sessions: Session forgery vulnerability in the SessionTransportTransformerEncrypt component
 
 # 3.3.3
 > Published 26 November 2025
@@ -576,6 +624,19 @@
 * HttpCache: plugin selects wrong cache entry when filtering Vary headers with different case ([KTOR-7621](https://youtrack.jetbrains.com/issue/KTOR-7621))
 * CountedByteWriteChannel: autoFlush of the source channel doesn't make the channel auto flushing ([KTOR-8411](https://youtrack.jetbrains.com/issue/KTOR-8411))
 
+# 3.2.4
+> Published 26 Nov 2026
+
+### Bugfixes
+* [KTOR-10067](https://youtrack.jetbrains.com/issue/KTOR-10067) Servlet webResources() serves WEB-INF files despite the default exclusion
+* [KTOR-10054](https://youtrack.jetbrains.com/issue/KTOR-10054) LDAP login treats an anonymous empty-password bind as user authentication
+* [KTOR-10051](https://youtrack.jetbrains.com/issue/KTOR-10051) JWT verifier(issuer) accepts tokens with a different issuer
+* [KTOR-9992](https://youtrack.jetbrains.com/issue/KTOR-9992) CIO: Accept loop spins when accept() fails synchronously
+* [KTOR-9959](https://youtrack.jetbrains.com/issue/KTOR-9959) Sockets: CIO writer busy-loops when a nonblocking write returns zero
+* [KTOR-9905](https://youtrack.jetbrains.com/issue/KTOR-9905) Client leaks Cookie and other sensitive headers to a different host across an HTTP redirect
+* [KTOR-9906](https://youtrack.jetbrains.com/issue/KTOR-9906) HttpCookies: The storage does not validate the Set-Cookie `Domain` attribute (RFC 6265 §5.3) — cross-domain cookie injection
+* [KTOR-9731](https://youtrack.jetbrains.com/issue/KTOR-9731) CIO: HttpRequestLifecycle cancels `Connection: close` call too soon, sending an incomplete response
+* [KTOR-9477](https://youtrack.jetbrains.com/issue/KTOR-9477) Sessions: Session forgery vulnerability in the SessionTransportTransformerEncrypt component
 
 # 3.2.3
 > Published 29 July 2025
@@ -680,6 +741,20 @@
 * Application job is not joined during shutdown ([KTOR-8291](https://youtrack.jetbrains.com/issue/KTOR-8291))
 * HttpCache: InvalidCacheStateException thrown when Vary header has different entries is overly severe ([KTOR-8345](https://youtrack.jetbrains.com/issue/KTOR-8345))
 * Fix socket channel close handling ([KTOR-8201](https://youtrack.jetbrains.com/issue/KTOR-8201))
+
+# 3.1.4
+> Published 26 Nov 2026
+
+### Bugfixes
+* [KTOR-10067](https://youtrack.jetbrains.com/issue/KTOR-10067) Servlet webResources() serves WEB-INF files despite the default exclusion
+* [KTOR-10054](https://youtrack.jetbrains.com/issue/KTOR-10054) LDAP login treats an anonymous empty-password bind as user authentication
+* [KTOR-10051](https://youtrack.jetbrains.com/issue/KTOR-10051) JWT verifier(issuer) accepts tokens with a different issuer
+* [KTOR-9992](https://youtrack.jetbrains.com/issue/KTOR-9992) CIO: Accept loop spins when accept() fails synchronously
+* [KTOR-9959](https://youtrack.jetbrains.com/issue/KTOR-9959) Sockets: CIO writer busy-loops when a nonblocking write returns zero
+* [KTOR-9905](https://youtrack.jetbrains.com/issue/KTOR-9905) Client leaks Cookie and other sensitive headers to a different host across an HTTP redirect
+* [KTOR-9906](https://youtrack.jetbrains.com/issue/KTOR-9906) HttpCookies: The storage does not validate the Set-Cookie `Domain` attribute (RFC 6265 §5.3) — cross-domain cookie injection
+* [KTOR-9731](https://youtrack.jetbrains.com/issue/KTOR-9731) CIO: HttpRequestLifecycle cancels `Connection: close` call too soon, sending an incomplete response
+* [KTOR-9477](https://youtrack.jetbrains.com/issue/KTOR-9477) Sessions: Session forgery vulnerability in the SessionTransportTransformerEncrypt component
 
 # 3.1.3
 > Published 5 May 2025
