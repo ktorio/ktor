@@ -1,21 +1,20 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.network.selector
 
 import kotlinx.atomicfu.*
-import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.coroutines.*
 
 internal actual abstract class SelectableBase : Selectable {
 
-    private val _isClosed = AtomicBoolean(false)
+    private val _isClosed = atomic(false)
 
     override val suspensions = InterestSuspensionsMap()
 
     override val isClosed: Boolean
-        get() = _isClosed.get()
+        get() = _isClosed.value
 
     private val _interestedOps = atomic(0)
 

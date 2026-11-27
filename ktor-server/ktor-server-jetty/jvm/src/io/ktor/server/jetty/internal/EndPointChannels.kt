@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.server.jetty.internal
@@ -8,13 +8,13 @@ import io.ktor.util.cio.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.pool.*
 import io.ktor.utils.io.pool.ByteBufferPool
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.*
 import org.eclipse.jetty.io.*
 import org.eclipse.jetty.util.*
 import java.nio.*
 import java.nio.channels.*
 import java.util.concurrent.*
-import java.util.concurrent.atomic.*
 import kotlin.coroutines.*
 
 private const val JETTY_WEBSOCKET_POOL_SIZE = 2000
@@ -30,7 +30,7 @@ internal class EndPointReader(
     override val coroutineContext: CoroutineContext,
     private val channel: ByteWriteChannel
 ) : AbstractConnection(endpoint, coroutineContext.executor()), Connection.UpgradeTo, CoroutineScope {
-    private val currentHandler = AtomicReference<Continuation<Unit>>()
+    private val currentHandler = atomic<Continuation<Unit>?>(null)
     private val buffer = JettyWebSocketPool.borrow()
 
     init {

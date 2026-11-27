@@ -1,14 +1,14 @@
 /*
- * Copyright 2014-2019 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.websocket
 
+import kotlinx.atomicfu.atomic
 import java.nio.*
-import java.util.concurrent.atomic.*
 
 public class FrameParser {
-    private val state = AtomicReference(State.HEADER0)
+    private val state = atomic(State.HEADER0)
 
     public var fin: Boolean = false
         private set
@@ -48,11 +48,11 @@ public class FrameParser {
     }
 
     public val bodyReady: Boolean
-        get() = state.get() == State.BODY
+        get() = state.value == State.BODY
 
     public fun bodyComplete() {
         if (!state.compareAndSet(State.BODY, State.HEADER0)) {
-            throw IllegalStateException("It should be state BODY but it is ${state.get()}")
+            throw IllegalStateException("It should be state BODY but it is ${state.value}")
         }
 
         // lastOpcode should be never reset!
@@ -69,7 +69,7 @@ public class FrameParser {
         }
     }
 
-    private fun handleStep(bb: ByteBuffer) = when (state.get()!!) {
+    private fun handleStep(bb: ByteBuffer) = when (state.value) {
         State.HEADER0 -> parseHeader1(bb)
         State.LENGTH -> parseLength(bb)
         State.MASK_KEY -> parseMaskKey(bb)
@@ -120,9 +120,9 @@ public class FrameParser {
 
         length = if (lengthLength == 0) length1.toLong() else 0
         when {
-            lengthLength > 0 -> state.set(State.LENGTH)
-            mask -> state.set(State.MASK_KEY)
-            else -> state.set(State.BODY)
+            lengthLength > 0 -> state.value = State.LENGTH
+            mask -> state.value = State.MASK_KEY
+            else -> state.value = State.BODY
         }
 
         return true
@@ -140,7 +140,7 @@ public class FrameParser {
         }
 
         val mask = if (mask) State.MASK_KEY else State.BODY
-        state.set(mask)
+        state.value = mask
         return true
     }
 
@@ -150,7 +150,7 @@ public class FrameParser {
         }
 
         maskKey = bb.getInt()
-        state.set(State.BODY)
+        state.value = State.BODY
         return true
     }
 }

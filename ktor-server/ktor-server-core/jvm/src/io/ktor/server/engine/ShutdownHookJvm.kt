@@ -1,11 +1,11 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.server.engine
 
 import io.ktor.server.application.*
-import java.util.concurrent.atomic.*
+import kotlinx.atomicfu.atomic
 
 internal actual val SHUTDOWN_HOOK_ENABLED = System.getProperty("io.ktor.server.engine.ShutdownHook", "true") == "true"
 
@@ -30,7 +30,7 @@ internal actual fun EmbeddedServer<*, *>.platformAddShutdownHook(stop: () -> Uni
 }
 
 private class ShutdownHook(private val stopFunction: () -> Unit) : Thread("KtorShutdownHook") {
-    private val shouldStop = AtomicBoolean(true)
+    private val shouldStop = atomic(true)
 
     override fun run() {
         if (shouldStop.compareAndSet(true, false)) {

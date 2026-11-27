@@ -1,24 +1,26 @@
 /*
- * Copyright 2014-2023 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.engine.jetty.jakarta
 
-import kotlinx.coroutines.*
-import org.eclipse.jetty.http2.api.*
-import org.eclipse.jetty.http2.frames.*
-import org.eclipse.jetty.util.*
-import java.nio.*
-import java.util.concurrent.atomic.*
-import kotlin.coroutines.*
+import kotlinx.atomicfu.atomic
+import kotlinx.coroutines.CancellableContinuation
+import kotlinx.coroutines.suspendCancellableCoroutine
+import org.eclipse.jetty.http2.api.Stream
+import org.eclipse.jetty.http2.frames.DataFrame
+import org.eclipse.jetty.util.Callback
+import java.nio.ByteBuffer
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 private val EmptyByteBuffer = ByteBuffer.allocate(0)!!
 
 internal class JettyHttp2Request(private val stream: Stream) : Callback {
-    private val deferred = AtomicReference<CancellableContinuation<Unit>?>()
+    private val deferred = atomic<CancellableContinuation<Unit>?>(null)
 
-    suspend fun write(src: ByteBuffer) = suspendCancellableCoroutine<Unit> { continuation ->
-        deferred.set(continuation)
+    suspend fun write(src: ByteBuffer) = suspendCancellableCoroutine { continuation ->
+        deferred.value = continuation
 
         val frame = DataFrame(stream.id, src, false)
         stream.data(frame, this)

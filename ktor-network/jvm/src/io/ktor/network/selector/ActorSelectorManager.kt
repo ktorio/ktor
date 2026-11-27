@@ -4,14 +4,13 @@
 
 package io.ktor.network.selector
 
+import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ClosedSendChannelException
 import java.io.Closeable
 import java.nio.channels.ClosedChannelException
 import java.nio.channels.ClosedSelectorException
 import java.nio.channels.Selector
-import java.util.concurrent.atomic.AtomicLong
-import java.util.concurrent.atomic.AtomicReference
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.intrinsics.COROUTINE_SUSPENDED
@@ -27,7 +26,7 @@ public class ActorSelectorManager(context: CoroutineContext) : SelectorManagerSu
     @Volatile
     private var selectorRef: Selector? = null
 
-    private val wakeup = AtomicLong()
+    private val wakeup = atomic(0L)
 
     @Volatile
     private var inSelect = false
@@ -109,13 +108,13 @@ public class ActorSelectorManager(context: CoroutineContext) : SelectorManagerSu
     private suspend fun select(selector: Selector): Int {
         inSelect = true
         dispatchIfNeeded()
-        return if (wakeup.get() == 0L) {
+        return if (wakeup.value == 0L) {
             val count = selector.select(500L)
             inSelect = false
             count
         } else {
             inSelect = false
-            wakeup.set(0)
+            wakeup.value = 0
             selector.selectNow()
         }
     }
@@ -201,7 +200,7 @@ public class ActorSelectorManager(context: CoroutineContext) : SelectorManagerSu
     }
 
     private class ContinuationHolder<R, C : Continuation<R>> {
-        private val ref = AtomicReference<C?>(null)
+        private val ref = atomic<C?>(null)
 
         fun resume(value: R): Boolean {
             val continuation = ref.getAndSet(null) ?: return false
