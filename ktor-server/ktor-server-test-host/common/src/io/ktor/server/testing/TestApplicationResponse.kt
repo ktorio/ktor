@@ -54,7 +54,7 @@ public class TestApplicationResponse(
 
     private var responseJob: Job? = null
 
-    internal val writeContentChannel = atomic<ByteReadChannel?>(null)
+    internal val responseReady = CompletableDeferred<ByteReadChannel?>()
 
     /**
      * Get completed when a response channel is assigned.
@@ -114,44 +114,40 @@ public class TestApplicationResponse(
     }
 
     override suspend fun respondWriteChannelContent(content: OutgoingContent.WriteChannelContent) {
-        val writerJob = scope.writer(currentCoroutineContext().minusKey(Job)) {
-            val counted = channel.counted()
-            val job = coroutineContext.job
+        val channel = ByteChannel()
+        val output: ByteWriteChannel = channel
+        responseReady.complete(channel)
 
-            val socketTimeoutMillis = timeoutAttributes?.socketTimeoutMillis
-            if (socketTimeoutMillis != null) {
-                val killJob = launch {
-                    try {
-                        var cur = counted.totalBytesWritten
-                        while (job.isActive) {
-                            delay(socketTimeoutMillis.milliseconds)
-                            val next = counted.totalBytesWritten
-                            if (cur == next) {
-                                counted.cancel(SocketTimeoutException("Socket timeout elapsed"))
+        try {
+            withContext(Dispatchers.IOBridge) {
+                val counted = output.counted()
+                val timeout = timeoutAttributes?.socketTimeoutMillis
+                val timeoutJob = timeout?.let {
+                    launch {
+                        var previous = counted.totalBytesWritten
+                        while (isActive) {
+                            delay(timeout.milliseconds)
+                            val written = counted.totalBytesWritten
+                            if (previous == written) {
+                                channel.cancel(SocketTimeoutException("Socket timeout elapsed"))
+                                break
                             }
-                            cur = next
+                            previous = written
                         }
-                    } catch (_: ClosedWriteChannelException) {
-                        // Do nothing since the channel is already closed
                     }
                 }
-                job.invokeOnCompletion {
-                    killJob.cancel()
-                }
-            }
 
-            try {
-                withContext(Dispatchers.IOBridge) {
+                try {
                     content.writeTo(counted)
+                } catch (closed: ClosedWriteChannelException) {
+                    throw ChannelWriteException(exception = closed)
+                } finally {
+                    timeoutJob?.cancel()
                 }
-            } catch (closed: ClosedWriteChannelException) {
-                throw ChannelWriteException(exception = closed)
-            } finally {
-                channel.flushAndClose()
             }
+        } finally {
+            channel.flushAndClose()
         }
-
-        writeContentChannel.compareAndSet(null, writerJob.channel)
     }
 
     /**

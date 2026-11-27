@@ -52,14 +52,22 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
                 }
             }
 
-            val testServerCall = with(data) {
-                runRequest(method, url, headers, body, url.protocol, data.getCapabilityOrNull(HttpTimeoutCapability))
+            val (testServerCall, streamingBody) = with(data) {
+                runRequest(
+                    method,
+                    url,
+                    headers,
+                    body,
+                    url.protocol,
+                    callContext.job,
+                    data.getCapabilityOrNull(HttpTimeoutCapability)
+                )
             }
             val response = testServerCall.response
             val status = response.statusOrNotFound()
             val headers = response.headers.allValues().takeUnless { it.isEmpty() } ?: Headers
                 .build { append(HttpHeaders.ContentLength, "0") }
-            val body = response.writeContentChannel.value ?: ByteReadChannel(response.byteContent ?: byteArrayOf())
+            val body = streamingBody ?: ByteReadChannel(response.byteContent ?: byteArrayOf())
             val responseBody: Any = data.attributes.getOrNull(ResponseAdapterAttributeKey)
                 ?.adapt(data, status, headers, body, data.body, callContext)
                 ?: body
@@ -83,9 +91,10 @@ public class TestHttpClientEngine(override val config: TestHttpClientConfig) : H
         headers: Headers,
         content: OutgoingContent,
         protocol: URLProtocol,
+        clientJob: Job,
         timeoutAttributes: HttpTimeoutConfig? = null
-    ): TestApplicationCall {
-        return app.handleRequest(timeoutAttributes = timeoutAttributes) {
+    ): Pair<TestApplicationCall, ByteReadChannel?> {
+        return app.handleRequest(clientJob, timeoutAttributes = timeoutAttributes) {
             this.uri = url.fullPath
             this.port = url.port
             this.method = method

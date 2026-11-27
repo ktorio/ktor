@@ -27,6 +27,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.test.runTest
 import kotlin.coroutines.CoroutineContext
 import kotlin.test.*
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 class TestApplicationTest {
@@ -574,7 +575,26 @@ class TestApplicationTest {
     }
 
     @Test
+    fun testWriteChannelContentIsWrittenBeforeRespondReturns() = testApplication {
+        routing {
+            get("/") {
+                var released = false
+                call.respond(object : OutgoingContent.WriteChannelContent() {
+                    override suspend fun writeTo(channel: ByteWriteChannel) {
+                        delay(50.milliseconds)
+                        channel.writeStringUtf8(if (released) "released" else "body")
+                    }
+                })
+                released = true
+            }
+        }
+
+        assertEquals("body", client.get("/").bodyAsText())
+    }
+
+    @Test
     fun testValidHandlerContextWhenStreaming() = testApplication {
+        val writerStopped = CompletableDeferred<Unit>()
         routing {
             get("/stream") {
                 withContext(MyElement("stream")) {
@@ -583,7 +603,11 @@ class TestApplicationTest {
                         assertEquals("stream", currentCoroutineContext()[MyElement]?.data)
                         writeStringUtf8("ready\n")
                         flush()
-                        awaitCancellation()
+                        try {
+                            awaitCancellation()
+                        } finally {
+                            writerStopped.complete(Unit)
+                        }
                     }
                 }
             }
@@ -593,6 +617,7 @@ class TestApplicationTest {
             client.prepareGet("/stream").execute { response ->
                 assertEquals("ready", response.bodyAsChannel().readLineStrict())
             }
+            writerStopped.await()
         }
     }
 
