@@ -40,7 +40,7 @@ public class Apache5EngineConfig : HttpClientEngineConfig() {
     /**
      * Specifies a time period (in milliseconds) in which a client should establish a connection with a server.
      *
-     * A `0` value represents an infinite timeout, while `-1` represents a system's default value.
+     * A `0` value represents an infinite timeout.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.apache5.Apache5EngineConfig.connectTimeout)
      */
@@ -49,7 +49,7 @@ public class Apache5EngineConfig : HttpClientEngineConfig() {
     /**
      * Specifies a time period (in milliseconds) in which a client should start a request.
      *
-     * A `0` value represents an infinite timeout, while `-1` represents a system's default value.
+     * A `0` value represents an infinite timeout.
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.client.engine.apache5.Apache5EngineConfig.connectionRequestTimeout)
      */

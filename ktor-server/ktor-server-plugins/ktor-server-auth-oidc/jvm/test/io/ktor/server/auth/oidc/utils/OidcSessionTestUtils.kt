@@ -58,6 +58,7 @@ internal suspend fun RoutingContext.respondRefreshedIdToken(
     keys: OpenIdTestKeys,
     subject: String = "session-user",
     refreshCalls: AtomicInteger? = null,
+    nonce: String? = null,
 ) {
     refreshCalls?.incrementAndGet()
     call.respondText(
@@ -69,6 +70,7 @@ internal suspend fun RoutingContext.respondRefreshedIdToken(
                 idToken = keys.idToken(subject = subject) {
                     audience = "client-id"
                     claim("email", "refreshed-user")
+                    nonce?.let { this.nonce = it }
                 },
             )
         ),

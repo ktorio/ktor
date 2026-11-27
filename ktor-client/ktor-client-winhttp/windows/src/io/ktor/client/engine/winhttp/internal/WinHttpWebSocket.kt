@@ -159,8 +159,9 @@ internal class WinHttpWebSocket(
             }
 
             WinHttpWebSocketBuffer.Close -> {
-                val data = readBuffer.copyOf(status.size)
-                _incoming.send(Frame.Close(data))
+                // A close message carries no payload in the receive buffer: the status and reason must be queried
+                val closeReason = queryCloseReason()
+                _incoming.send(closeReason?.let { Frame.Close(it) } ?: Frame.Close(readBuffer.copyOf(status.size)))
             }
         }
     }
@@ -244,36 +245,36 @@ internal class WinHttpWebSocket(
         }
     }
 
-    private fun onDisconnect() = memScoped {
-        if (closed.value) return@memScoped
+    private fun onDisconnect() {
+        if (closed.value) return
 
+        try {
+            queryCloseReason()?.let { _incoming.trySend(Frame.Close(it)) }
+        } finally {
+            socketJob.complete()
+        }
+    }
+
+    private fun queryCloseReason(): CloseReason? = memScoped {
         val status = alloc<UShortVar>()
         val reason = allocArray<ByteVar>(MAX_CLOSE_REASON_LENGTH)
         val reasonLengthConsumed = alloc<UIntVar>()
 
-        try {
-            if (WinHttpWebSocketQueryCloseStatus(
-                    hWebSocket,
-                    status.ptr,
-                    reason,
-                    MAX_CLOSE_REASON_LENGTH.convert(),
-                    reasonLengthConsumed.ptr
-                ) != 0u
-            ) {
-                return@memScoped
-            }
-
-            _incoming.trySend(
-                Frame.Close(
-                    CloseReason(
-                        code = status.value.convert<Short>(),
-                        message = reason.readBytes(reasonLengthConsumed.value.toInt()).decodeToString()
-                    )
-                )
-            )
-        } finally {
-            socketJob.complete()
+        if (WinHttpWebSocketQueryCloseStatus(
+                hWebSocket,
+                status.ptr,
+                reason,
+                MAX_CLOSE_REASON_LENGTH.convert(),
+                reasonLengthConsumed.ptr
+            ) != 0u
+        ) {
+            return@memScoped null
         }
+
+        CloseReason(
+            code = status.value.convert<Short>(),
+            message = reason.readBytes(reasonLengthConsumed.value.toInt()).decodeToString()
+        )
     }
 
     override suspend fun flush() = Unit

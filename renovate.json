@@ -8,6 +8,18 @@
   "baseBranchPatterns": ["/^release\\/.*/"],
   "dependencyDashboardApproval": true,
   "rebaseWhen": "conflicted",
+  "customManagers": [
+    {
+      "description": "Keep the Ktor Gradle plugin version in README.md in sync with the latest Ktor release",
+      "customType": "regex",
+      "managerFilePatterns": ["/^README\\.md$/"],
+      "matchStrings": [
+        "id\\(\"io\\.ktor\\.plugin\"\\) version \"(?<currentValue>[^\"]+)\""
+      ],
+      "depNameTemplate": "io.ktor:ktor-server-core",
+      "datasourceTemplate": "maven"
+    }
+  ],
   "packageRules": [
     {
       "description": "Allow EAPs for Ktor dependencies and use custom versioning to detect a build number",
@@ -23,6 +35,17 @@
       ],
       "fetchChangeLogs": "off",
       "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)(?:(?:-.+)?-eap-(?<build>\\d+))?$",
+      "automerge": true
+    },
+    {
+      "description": "README.md must only reference stable Ktor releases (no EAPs)",
+      "matchManagers": ["custom.regex"],
+      "matchFileNames": ["README.md"],
+      "matchPackageNames": ["io.ktor:ktor-server-core"],
+      "registryUrls": [
+        "https://repo.maven.apache.org/maven2"
+      ],
+      "versioning": "regex:^(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)$",
       "automerge": true
     },
     {

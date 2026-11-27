@@ -118,7 +118,6 @@ internal suspend fun OidcProvider.refreshTokenInternal(refreshToken: String): Oi
             accessToken = response.accessToken,
             refreshToken = effectiveRefreshToken,
             expectedAudience = oauthConfig.clientId,
-            requireNonceAbsent = true,
             fetchUserInfo = oauthConfig.fetchUserInfo,
         )
     }
@@ -233,7 +232,6 @@ internal suspend fun OidcProvider.buildIdToken(
     refreshToken: String?,
     expectedAudience: String,
     expectedNonce: String? = null,
-    requireNonceAbsent: Boolean = false,
     fetchUserInfo: Boolean = false,
 ): OidcToken.Id {
     val decoded = try {
@@ -272,9 +270,6 @@ internal suspend fun OidcProvider.buildIdToken(
     }
     requireToken(expectedNonce == null || tokenNonce == expectedNonce) {
         "ID token 'nonce' mismatch: replay protection check failed"
-    }
-    requireToken(!requireNonceAbsent || tokenNonce == null) {
-        "ID token 'nonce' must not be present on refresh token response"
     }
     verifiedJwt.validateAtHash(accessToken)
 

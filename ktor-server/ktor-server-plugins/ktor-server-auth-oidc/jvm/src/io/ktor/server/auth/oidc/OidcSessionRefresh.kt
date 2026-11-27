@@ -63,20 +63,26 @@ private suspend fun OidcProvider.refreshSessionAutomatically(
     }
 
     return refreshSession(token, now) {
-        refreshToken(refreshTokenValue).idToken?.takeIf { hasSameSubject(current = token, refreshed = it) }
+        refreshToken(refreshTokenValue).idToken?.takeIf { isValidRefreshOf(current = token, refreshed = it) }
     }
 }
 
 /**
  * OIDC Core 12.2 requires an ID token issued from a refresh request to keep the `sub` claim of the ID token
- * issued at the original authentication.
+ * issued at the original authentication. It should not contain a `nonce` claim, but if it does,
+ * the value must be the same as in the original ID token.
  */
-internal fun OidcProvider.hasSameSubject(current: OidcToken.Id, refreshed: OidcToken.Id): Boolean {
-    if (current.claims.subject == refreshed.claims.subject) {
-        return true
+internal fun OidcProvider.isValidRefreshOf(current: OidcToken.Id, refreshed: OidcToken.Id): Boolean {
+    if (current.claims.subject != refreshed.claims.subject) {
+        logger.warn("OpenID Connect refresh returned an ID token for a different subject. Discarding it.")
+        return false
     }
-    logger.warn("OpenID Connect refresh returned an ID token for a different subject. Discarding it.")
-    return false
+    val refreshedNonce = refreshed.claims.claimString("nonce")
+    if (refreshedNonce != null && refreshedNonce != current.claims.claimString("nonce")) {
+        logger.warn("OpenID Connect refresh returned an ID token with a different nonce. Discarding it.")
+        return false
+    }
+    return true
 }
 
 context(ctx: RoutingContext)
