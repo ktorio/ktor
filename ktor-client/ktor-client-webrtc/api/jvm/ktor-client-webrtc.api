@@ -1,3 +1,18 @@
+public abstract interface class io/ktor/client/webrtc/DataChannelBufferOverflow {
+}
+
+public final class io/ktor/client/webrtc/DataChannelBufferOverflow$Close : io/ktor/client/webrtc/DataChannelBufferOverflow {
+	public static final field INSTANCE Lio/ktor/client/webrtc/DataChannelBufferOverflow$Close;
+}
+
+public final class io/ktor/client/webrtc/DataChannelBufferOverflow$DropLatest : io/ktor/client/webrtc/DataChannelBufferOverflow {
+	public static final field INSTANCE Lio/ktor/client/webrtc/DataChannelBufferOverflow$DropLatest;
+}
+
+public final class io/ktor/client/webrtc/DataChannelBufferOverflow$DropOldest : io/ktor/client/webrtc/DataChannelBufferOverflow {
+	public static final field INSTANCE Lio/ktor/client/webrtc/DataChannelBufferOverflow$DropOldest;
+}
+
 public abstract interface class io/ktor/client/webrtc/DataChannelEvent {
 	public abstract fun getChannel ()Lio/ktor/client/webrtc/WebRtcDataChannel;
 }
@@ -29,13 +44,20 @@ public final class io/ktor/client/webrtc/DataChannelEvent$Open : io/ktor/client/
 }
 
 public final class io/ktor/client/webrtc/DataChannelReceiveOptions {
+	public static final field Companion Lio/ktor/client/webrtc/DataChannelReceiveOptions$Companion;
+	public static final field DEFAULT_CAPACITY I
 	public fun <init> ()V
 	public final fun getCapacity ()I
 	public final fun getOnBufferOverflow ()Lkotlinx/coroutines/channels/BufferOverflow;
+	public final fun getOnOverflow ()Lio/ktor/client/webrtc/DataChannelBufferOverflow;
 	public final fun getOnUndeliveredElement ()Lkotlin/jvm/functions/Function1;
 	public final fun setCapacity (I)V
 	public final fun setOnBufferOverflow (Lkotlinx/coroutines/channels/BufferOverflow;)V
+	public final fun setOnOverflow (Lio/ktor/client/webrtc/DataChannelBufferOverflow;)V
 	public final fun setOnUndeliveredElement (Lkotlin/jvm/functions/Function1;)V
+}
+
+public final class io/ktor/client/webrtc/DataChannelReceiveOptions$Companion {
 }
 
 public final class io/ktor/client/webrtc/DefaultExceptionHandler : kotlinx/coroutines/CoroutineExceptionHandler {
@@ -115,7 +137,7 @@ public final class io/ktor/client/webrtc/JvmWebRtcConnectionKt {
 }
 
 public final class io/ktor/client/webrtc/JvmWebRtcDataChannel : io/ktor/client/webrtc/WebRtcDataChannel {
-	public fun <init> (Ldev/onvoid/webrtc/RTCDataChannel;Lkotlinx/coroutines/CoroutineScope;Lio/ktor/client/webrtc/DataChannelReceiveOptions;)V
+	public fun <init> (Ldev/onvoid/webrtc/RTCDataChannel;Lkotlinx/coroutines/CoroutineScope;Lio/ktor/client/webrtc/WebRtcConnectionEventsEmitter;Lio/ktor/client/webrtc/DataChannelReceiveOptions;)V
 	public fun close ()V
 	public fun closeTransport ()V
 	public fun getBufferedAmount ()J
@@ -543,6 +565,7 @@ public class io/ktor/client/webrtc/WebRtcConfig {
 
 public class io/ktor/client/webrtc/WebRtcConnectionConfig {
 	public fun <init> ()V
+	public final fun dataChannelReceiveOptions (Lkotlin/jvm/functions/Function1;)V
 	public final fun getBundlePolicy ()Lio/ktor/client/webrtc/WebRtc$BundlePolicy;
 	public final fun getDataChannelEventsReplay ()I
 	public final fun getExceptionHandler ()Lkotlinx/coroutines/CoroutineExceptionHandler;
@@ -601,9 +624,10 @@ public final class io/ktor/client/webrtc/WebRtcConnectionEventsEmitter : io/ktor
 }
 
 public abstract class io/ktor/client/webrtc/WebRtcDataChannel : io/ktor/client/webrtc/WebRtc$DataChannel {
-	public fun <init> (Lio/ktor/client/webrtc/DataChannelReceiveOptions;)V
+	public fun <init> (Lio/ktor/client/webrtc/WebRtcConnectionEventsEmitter;Lio/ktor/client/webrtc/DataChannelReceiveOptions;)V
 	public fun close ()V
 	protected final fun emitMessage-JP2dKIU (Lio/ktor/client/webrtc/WebRtc$DataChannel$Message;)Ljava/lang/Object;
+	protected final fun getEventsEmitter ()Lio/ktor/client/webrtc/WebRtcConnectionEventsEmitter;
 	public final fun iterator ()Lkotlinx/coroutines/channels/ChannelIterator;
 	public fun receive (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun receiveBinary (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -804,6 +828,7 @@ public abstract class io/ktor/client/webrtc/WebRtcPeerConnection : io/ktor/clien
 	public abstract fun getStatistics (Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public fun getStats ()Lkotlinx/coroutines/flow/StateFlow;
 	public fun getTrackEvents ()Lkotlinx/coroutines/flow/SharedFlow;
+	protected final fun remoteDataChannelReceiveOptions ()Lio/ktor/client/webrtc/DataChannelReceiveOptions;
 	public abstract fun removeTrack (Lio/ktor/client/webrtc/WebRtc$RtpSender;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun removeTrack (Lio/ktor/client/webrtc/WebRtcMedia$Track;Lkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public abstract fun restartIce ()V

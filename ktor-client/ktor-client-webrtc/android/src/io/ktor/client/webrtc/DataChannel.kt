@@ -20,8 +20,9 @@ public class AndroidWebRtcDataChannel(
     internal val nativeChannel: DataChannel,
     private val channelInit: DataChannel.Init?,
     private val coroutineScope: CoroutineScope,
+    eventsEmitter: WebRtcConnectionEventsEmitter,
     receiveOptions: DataChannelReceiveOptions
-) : WebRtcDataChannel(receiveOptions) {
+) : WebRtcDataChannel(eventsEmitter, receiveOptions) {
 
     override val id: Int?
         get() = nativeChannel.id().let { if (it >= 0) it else null }
@@ -100,7 +101,7 @@ public class AndroidWebRtcDataChannel(
         }
     }
 
-    internal fun setupEvents(eventsEmitter: WebRtcConnectionEventsEmitter) {
+    internal fun setupEvents() {
         nativeChannel.registerObserver(object : DataChannel.Observer {
             override fun onStateChange() = runInConnectionScope {
                 val event = when (state) {

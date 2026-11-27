@@ -163,6 +163,10 @@ public abstract class WebRtcPeerConnection private constructor(
         iceGatheringState.first { it == WebRtc.IceGatheringState.COMPLETE }
     }
 
+    protected fun remoteDataChannelReceiveOptions(): DataChannelReceiveOptions {
+        return config.dataChannelReceiveOptions
+    }
+
     /**
      * Runs a [block] in the coroutine scope of the peer connection without extra dispatching.
      * This should be used to run some background tasks without losing thrown exceptions.
