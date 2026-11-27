@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.io.IOException
 import kotlin.coroutines.CoroutineContext
+import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(InternalAPI::class)
 @Deprecated("It should be marked with `@InternalAPI`, please use `ClientSSESession` instead")
@@ -95,42 +96,56 @@ public class DefaultClientSSESession(
         }
     }
 
-    private suspend fun doReconnection() {
-        withContext(coroutineContext) {
-            var retries = 1
-            while (retries <= maxReconnectionAttempts) {
-                try {
-                    input.cancel()
+    private suspend fun doReconnection() = coroutineScope {
+        val sessionContext = this@DefaultClientSSESession.coroutineContext
+        val handle = sessionContext.job.invokeOnCompletion { cause ->
+            val cause = cause as? CancellationException ?: CancellationException("SSE session was cancelled", cause)
+            this@coroutineScope.cancel(cause)
+        }
+        try {
+            withContext(sessionContext.minusKey(Job)) {
+                reconnect()
+            }
+        } finally {
+            handle.dispose()
+        }
+    }
 
-                    delay(reconnectionTimeMillis)
+    private suspend fun reconnect() {
+        var retries = 1
+        while (retries <= maxReconnectionAttempts) {
+            try {
+                input.cancel()
 
-                    val reconnectionRequest = getRequestForReconnection()
-                    LOGGER.trace {
-                        "Sending SSE request ${reconnectionRequest.url} (attempt ${retries + 1}/${maxReconnectionAttempts + 1})"
-                    }
+                delay(reconnectionTimeMillis.milliseconds)
 
-                    val reconnectionResponse = clientForReconnection.execute(reconnectionRequest).response
-                    LOGGER.trace { "Receive response for reconnection SSE request to ${reconnectionRequest.url}" }
-                    checkResponse(reconnectionResponse)
-
-                    if (reconnectionResponse.status == HttpStatusCode.NoContent) {
-                        needToReconnect = false
-                    }
-
-                    input = reconnectionResponse.rawContent
-                    return@withContext
-                } catch (cause: SSEClientException) {
-                    throw cause
-                } catch (cause: Throwable) {
-                    if (retries == maxReconnectionAttempts) {
-                        LOGGER.trace {
-                            "Max retries ($maxReconnectionAttempts) reached for SSE reconnection, closing session"
-                        }
-                        throw cause
-                    }
-                    LOGGER.trace { "SSE reconnection attempt ${retries + 1} failed" }
-                    retries++
+                val reconnectionRequest = getRequestForReconnection()
+                LOGGER.trace {
+                    "Sending SSE request ${reconnectionRequest.url} (attempt ${retries + 1}/${maxReconnectionAttempts + 1})"
                 }
+
+                val reconnectionResponse = clientForReconnection.execute(reconnectionRequest).response
+                LOGGER.trace { "Receive response for reconnection SSE request to ${reconnectionRequest.url}" }
+                checkResponse(reconnectionResponse)
+
+                if (reconnectionResponse.status == HttpStatusCode.NoContent) {
+                    needToReconnect = false
+                }
+
+                input = reconnectionResponse.rawContent
+                return
+            } catch (cause: SSEClientException) {
+                throw cause
+            } catch (cause: Throwable) {
+                currentCoroutineContext().ensureActive()
+                if (retries == maxReconnectionAttempts) {
+                    LOGGER.trace {
+                        "Max retries ($maxReconnectionAttempts) reached for SSE reconnection, closing session"
+                    }
+                    throw cause
+                }
+                LOGGER.trace { "SSE reconnection attempt ${retries + 1} failed" }
+                retries++
             }
         }
     }
