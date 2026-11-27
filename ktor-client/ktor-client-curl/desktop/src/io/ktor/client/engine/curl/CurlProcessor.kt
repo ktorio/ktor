@@ -13,6 +13,7 @@ import kotlinx.cinterop.alloc
 import kotlinx.cinterop.memScoped
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
+import kotlin.concurrent.Volatile
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.cancellation.CancellationException
 
@@ -22,7 +23,8 @@ internal class CurlProcessor(coroutineContext: CoroutineContext) {
     @OptIn(DelicateCoroutinesApi::class, ExperimentalCoroutinesApi::class)
     private val curlDispatcher = newSingleThreadContext("curl-dispatcher")
 
-    private var curlApi: CurlMultiApiHandler? by atomic(null)
+    @Volatile
+    private var curlApi: CurlMultiApiHandler? = null
     private val closed = atomic(false)
 
     private val curlScope = CoroutineScope(coroutineContext + curlDispatcher)

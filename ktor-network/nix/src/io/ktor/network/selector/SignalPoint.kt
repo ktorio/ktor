@@ -9,7 +9,6 @@ import io.ktor.utils.io.*
 import io.ktor.utils.io.core.*
 import io.ktor.utils.io.errors.*
 import io.ktor.utils.io.locks.*
-import kotlinx.atomicfu.*
 import kotlinx.cinterop.*
 import platform.posix.*
 
@@ -17,7 +16,7 @@ import platform.posix.*
 internal class SignalPoint : Closeable {
     private val readDescriptor: Int
     private val writeDescriptor: Int
-    private var remaining: Int by atomic(0)
+    private var remaining: Int = 0
     private val lock = SynchronizedObject()
     private var closed = false
 

@@ -4,7 +4,7 @@
 
 package io.ktor.client.tests.utils
 
-import kotlinx.atomicfu.atomic
+import kotlin.concurrent.Volatile
 import kotlin.test.assertEquals
 
 internal class LogMatcher(
@@ -14,7 +14,9 @@ internal class LogMatcher(
     private val predicates = originPredicates.filter { it !is Somewhere }
     private var index = 0
     private val log = mutableListOf<String>()
-    private var matchFailCause: Throwable? by atomic(null)
+
+    @Volatile
+    private var matchFailCause: Throwable? = null
 
     fun match(value: String) {
         matchFailCause?.let { throw it }
