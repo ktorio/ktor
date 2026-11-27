@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.tests
@@ -12,6 +12,8 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.client.test.base.*
 import io.ktor.http.*
+import io.ktor.utils.io.*
+import kotlinx.io.readString
 import kotlin.test.*
 
 class HttpResponseValidatorTest {
@@ -276,6 +278,44 @@ class HttpResponseValidatorTest {
             } catch (cause: ResponseException) {
                 assertEquals(900, cause.response.status.value)
                 assertEquals("Awesome response", cause.response.body())
+            }
+        }
+    }
+
+    @Test
+    fun testResponseExceptionBodyIsReadableAsChannel() = testWithEngine(MockEngine) {
+        config {
+            expectSuccess = true
+            engine {
+                addHandler { respond("Awesome response", HttpStatusCode.Forbidden) }
+            }
+        }
+
+        test { client ->
+            try {
+                client.get {}
+                fail("Should fail")
+            } catch (cause: ResponseException) {
+                assertEquals("Awesome response", cause.response.bodyAsChannel().readBuffer().readString())
+            }
+        }
+    }
+
+    @Test
+    fun testStreamingResponseExceptionBodyIsReadableAsChannel() = testWithEngine(MockEngine) {
+        config {
+            expectSuccess = true
+            engine {
+                addHandler { respond("Awesome response", HttpStatusCode.Forbidden) }
+            }
+        }
+
+        test { client ->
+            try {
+                client.prepareGet {}.execute { }
+                fail("Should fail")
+            } catch (cause: ResponseException) {
+                assertEquals("Awesome response", cause.response.bodyAsChannel().readBuffer().readString())
             }
         }
     }

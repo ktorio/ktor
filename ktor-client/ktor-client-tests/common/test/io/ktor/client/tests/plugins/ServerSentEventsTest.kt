@@ -1,5 +1,5 @@
 /*
- * Copyright 2014-2025 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
  */
 
 package io.ktor.client.tests.plugins
@@ -19,7 +19,7 @@ import io.ktor.http.*
 import io.ktor.http.content.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.sse.*
-import io.ktor.test.runTest
+import io.ktor.test.*
 import io.ktor.utils.io.*
 import io.ktor.utils.io.charsets.*
 import kotlinx.coroutines.*
@@ -27,6 +27,7 @@ import kotlinx.coroutines.flow.collectIndexed
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.flow.toList
+import kotlinx.io.readString
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.serializer
@@ -989,6 +990,22 @@ class ServerSentEventsTest : ClientLoader() {
             } catch (e: SSEClientException) {
                 assertEquals("Expected status code 200 but was 500", e.message)
                 assertEquals(e.response!!.bodyAsText(), "Server error")
+            }
+        }
+    }
+
+    @Test
+    fun `response body in exception is readable as channel`() = clientTests {
+        config {
+            install(SSE)
+        }
+
+        test { client ->
+            try {
+                client.sse(urlString = "$TEST_SERVER/sse/error", { bufferPolicy(SSEBufferPolicy.All) }) { }
+                fail("Should fail")
+            } catch (e: SSEClientException) {
+                assertEquals("Server error", e.response!!.bodyAsChannel().readBuffer().readString())
             }
         }
     }

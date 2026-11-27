@@ -1,6 +1,6 @@
 /*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+ * Copyright 2014-2026 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
+ */
 
 package io.ktor.client.plugins
 
@@ -96,10 +96,17 @@ public fun HttpClient.defaultTransformers() {
                 proceedWith(HttpResponseContainer(info, bytes))
             }
 
+            // The body is in memory. There are no resources to track, so return the body as is
+            ByteReadChannel::class if response is SavedHttpResponse -> {
+                proceedWith(HttpResponseContainer(info, body))
+            }
+
+            // The body is a live engine stream. Copy it through a coroutine to tie the stream to the call:
+            // - the call job doesn't complete until the body is fully copied (responseJobHolder)
+            // - a read failure cancels the response
+            // - cancellation propagates both ways between the returned channel and the engine stream
+            // The copy runs in the client scope, so it starts even if the call job has already completed
             ByteReadChannel::class -> {
-                // the response job could be already completed, so the job holder
-                // could be canceled immediately, but it doesn't matter
-                // since the copying job is running under the client job
                 val responseJobHolder = Job(response.coroutineContext.job)
                 val byteChannel = ByteChannel()
                 val channel: ByteReadChannel = clientScope.writer(channel = byteChannel) {
