@@ -5,6 +5,9 @@
 package io.ktor.util.logging
 
 import org.slf4j.*
+import org.slf4j.helpers.NOPLogger
+import org.slf4j.helpers.NOPLoggerFactory
+import org.slf4j.helpers.SubstituteLoggerFactory
 import java.util.concurrent.atomic.AtomicBoolean
 
 private val isAndroid = try {
@@ -16,30 +19,46 @@ private val isAndroid = try {
 
 private val initStarted = AtomicBoolean(false)
 
+@Volatile
+private var androidLoggerFactory: ILoggerFactory? = null
+
 @Suppress("FunctionName")
 public actual fun KtorSimpleLogger(name: String): Logger = if (!isAndroid) {
     LoggerFactory.getLogger(name)
 } else {
     if (initStarted.compareAndSet(false, true)) {
-        // Start SLF4J's one-time initialization on a background thread
-        // so later getLogger() calls should resolve without reading disk on the caller's thread.
-        // The StrictMode may still report a DiskReadViolation if logger is used before the initialization.
+        // SLF4J can hand out substitute loggers while binding. Wait for the real factory on this worker.
         Thread(
             {
-                LoggerFactory.getILoggerFactory()
+                try {
+                    var factory = LoggerFactory.getILoggerFactory()
+                    while (factory is SubstituteLoggerFactory) {
+                        Thread.sleep(10)
+                        factory = LoggerFactory.getILoggerFactory()
+                    }
+                    androidLoggerFactory = factory
+                } catch (cause: IllegalStateException) {
+                    // SLF4J keeps its factory in a failed state.
+                    androidLoggerFactory = NOPLoggerFactory()
+                    System.err.println("Ktor disabled Android SLF4J logging after initialization failed ($cause).")
+                } catch (_: InterruptedException) {
+                    Thread.currentThread().interrupt()
+                    System.err.println("Ktor disabled Android SLF4J logging because initialization was interrupted.")
+                }
             },
             "ktor-slf4j-init"
         ).apply { isDaemon = true }.start()
     }
 
     object : org.slf4j.Logger {
-        private val logger by lazy {
-            LoggerFactory.getLogger(name)
+        private val resolvedLogger by lazy {
+            checkNotNull(androidLoggerFactory).getLogger(name)
         }
 
-        override fun getName(): String {
-            return logger.name
-        }
+        private val logger: Logger
+            get() = if (androidLoggerFactory == null) NOPLogger.NOP_LOGGER else resolvedLogger
+
+        override fun getName(): String = name
 
         override fun isTraceEnabled(): Boolean {
             return logger.isTraceEnabled

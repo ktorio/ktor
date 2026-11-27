@@ -5,12 +5,13 @@
 package io.ktor.client.plugins.logging
 
 import io.ktor.client.*
+import io.ktor.util.logging.*
 import org.slf4j.*
 import org.slf4j.helpers.NOPLoggerFactory
 
 public actual val Logger.Companion.DEFAULT: Logger
     get() = object : Logger {
-        private val delegate = LoggerFactory.getLogger(HttpClient::class.java)!!
+        private val delegate = KtorSimpleLogger(HttpClient::class.java.name)
         override fun log(message: String) {
             delegate.info(message)
         }
@@ -27,15 +28,15 @@ public actual val Logger.Companion.DEFAULT: Logger
 public val Logger.Companion.ANDROID: Logger by lazy { getAndroidLogger() }
 
 private fun getAndroidLogger(): Logger {
-    val logger = Logger.DEFAULT
-
     val logClass = try {
         Class.forName("android.util.Log")
     } catch (_: ClassNotFoundException) {
-        return MessageLengthLimitingLogger(delegate = logger)
+        return MessageLengthLimitingLogger(delegate = Logger.DEFAULT)
     }
 
-    if (LoggerFactory.getILoggerFactory() !is NOPLoggerFactory) {
+    val factory = LoggerFactory.getILoggerFactory()
+    val logger = Logger.DEFAULT
+    if (factory !is NOPLoggerFactory) {
         return MessageLengthLimitingLogger(delegate = logger)
     }
 
