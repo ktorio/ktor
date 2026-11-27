@@ -4,14 +4,14 @@
 
 package io.ktor.util
 
+import io.ktor.util.logging.*
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.*
-import org.slf4j.*
 import java.security.*
 import java.util.concurrent.Executors
 import kotlin.random.*
 
-private val logger = LoggerFactory.getLogger("io.ktor.util.random")
+private val logger = KtorSimpleLogger("io.ktor.util.random")
 
 private const val SHA1PRNG = "SHA1PRNG"
 
