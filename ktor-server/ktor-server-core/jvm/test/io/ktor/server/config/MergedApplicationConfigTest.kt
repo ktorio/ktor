@@ -73,6 +73,56 @@ class MergedApplicationConfigJvmTest {
     }
 
     @Test
+    fun mergedConfigReturnsEmptySection() {
+        val hocon = HoconApplicationConfig(ConfigFactory.parseString("section.nested {}"))
+        val merged = hocon.withFallback(HoconApplicationConfig(ConfigFactory.parseString("other = 1")))
+
+        assertEquals(ApplicationConfigValue.Type.OBJECT, merged.propertyOrNull("section.nested")?.type)
+        // An empty section has no leaf keys, so the merge must not delegate the lookup to the fallback.
+        val section = merged.config("section.nested")
+        assertEquals(emptySet(), section.keys())
+        assertEquals(emptyMap(), section.toMap())
+    }
+
+    @Test
+    fun mergedConfigKeepsSectionFromChainedMerge() {
+        val first = HoconApplicationConfig(ConfigFactory.parseString("pool.size = 8"))
+        val second = HoconApplicationConfig(ConfigFactory.parseString("pool.timeout = 30"))
+        val third = HoconApplicationConfig(ConfigFactory.parseString("pool.name = x"))
+        // A merged section with a `size` entry is reported as a list, so the section is detected by its keys.
+        val mergedConfigs = listOf(
+            first.mergeWith(second).mergeWith(third),
+            first.withFallback(second).withFallback(third),
+        )
+
+        for (merged in mergedConfigs) {
+            val pool = merged.config("pool")
+            assertEquals("8", pool.property("size").getString())
+            assertEquals("30", pool.property("timeout").getString())
+            assertEquals("x", pool.property("name").getString())
+        }
+    }
+
+    @Test
+    fun mergedConfigReturnsEmptySectionFromChainedMerge() {
+        val withEmptySection = HoconApplicationConfig(ConfigFactory.parseString("pool {}\napp = 1"))
+        val fallback = HoconApplicationConfig(ConfigFactory.parseString("other = 1"))
+        val overrides = HoconApplicationConfig(ConfigFactory.parseString("env = test"))
+        // Only `withEmptySection` knows about the section, wherever it is in the chain.
+        val mergedConfigs = listOf(
+            withEmptySection.withFallback(fallback).mergeWith(overrides),
+            overrides.mergeWith(fallback).mergeWith(withEmptySection),
+        )
+
+        for (merged in mergedConfigs) {
+            assertEquals(ApplicationConfigValue.Type.OBJECT, merged.propertyOrNull("pool")?.type)
+            val pool = merged.config("pool")
+            assertEquals(emptySet(), pool.keys())
+            assertEquals(emptyMap(), pool.toMap())
+        }
+    }
+
+    @Test
     fun mergedConfigThrowsOnMissingPath() {
         val hocon = HoconApplicationConfig(ConfigFactory.parseString("ktor { deployment { port = 8080 } }"))
         // Map config has no "nonexistent.*" keys, so the lookup is delegated to the HOCON fallback.
