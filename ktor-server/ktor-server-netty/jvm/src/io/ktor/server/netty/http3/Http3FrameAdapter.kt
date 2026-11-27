@@ -12,8 +12,7 @@ import kotlinx.coroutines.channels.*
 
 internal suspend fun ReceiveChannel<Http3DataFrame>.http3frameLoop(bc: ByteWriteChannel) {
     try {
-        while (true) {
-            val message = receive()
+        for (message in this) {
             try {
                 val content = message.content() ?: Unpooled.EMPTY_BUFFER
                 transferByteBuf(content, bc)
@@ -21,7 +20,6 @@ internal suspend fun ReceiveChannel<Http3DataFrame>.http3frameLoop(bc: ByteWrite
                 message.release()
             }
         }
-    } catch (expected: ClosedReceiveChannelException) {
     } catch (t: Throwable) {
         bc.close(t)
     } finally {

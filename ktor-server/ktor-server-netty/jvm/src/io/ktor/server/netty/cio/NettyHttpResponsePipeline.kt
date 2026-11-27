@@ -8,23 +8,34 @@ import io.ktor.http.*
 import io.ktor.server.netty.*
 import io.ktor.util.cio.*
 import io.ktor.utils.io.*
+import io.netty.channel.Channel
 import io.netty.channel.ChannelFuture
 import io.netty.channel.ChannelHandlerContext
 import io.netty.channel.ChannelPromise
 import io.netty.handler.codec.http.FullHttpResponse
 import io.netty.handler.codec.http.HttpResponse
 import io.netty.handler.codec.http2.Http2HeadersFrame
+import io.netty.handler.codec.http2.Http2StreamChannel
 import io.netty.handler.codec.http3.Http3HeadersFrame
+import io.netty.util.AttributeKey
 import kotlinx.atomicfu.AtomicBoolean
 import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.asCoroutineDispatcher
 import kotlinx.coroutines.launch
+import kotlinx.io.readAtMostTo
 import java.io.IOException
 import kotlin.coroutines.CoroutineContext
+import java.util.concurrent.atomic.AtomicBoolean as JavaAtomicBoolean
 
 private const val UNFLUSHED_LIMIT = 65536
+
+// Matches the default HTTP/2 max frame size, so each write is a single contiguous buffer that fills one frame.
+// Smaller writes get coalesced by Netty into CompositeByteBufs, whose nioBuffer() copies into heap arrays.
+internal const val READ_CHUNK_SIZE = 16384
+private val http2FlushScheduledKey =
+    AttributeKey.valueOf<Http2FlushCoalescer>("ktor.netty.http2.flushScheduled")
 
 /**
  * Contains methods for handling HTTP responses with Netty.
@@ -71,7 +82,7 @@ internal class NettyHttpResponsePipeline(
      */
     internal fun flushIfNeeded() {
         if (isDataNotFlushed.value && httpHandlerState.isChannelReadCompleted.value) {
-            context.flush()
+            context.flushCoalesced()
             isDataNotFlushed.compareAndSet(expect = true, update = false)
         }
     }
@@ -145,7 +156,7 @@ internal class NettyHttpResponsePipeline(
         call.upgrade(context)
         call.isByteBufferContent = true
 
-        context.flush()
+        context.flushCoalesced()
         isDataNotFlushed.compareAndSet(expect = true, update = false)
         return future
     }
@@ -180,7 +191,11 @@ internal class NettyHttpResponsePipeline(
     }
 
     fun close(call: NettyApplicationCall, lastFuture: ChannelFuture) {
-        call.flushBeforeClose(context, lastFuture)
+        if (context.channel() is Http2StreamChannel) {
+            context.flushCoalesced()
+        } else {
+            call.flushBeforeClose(context, lastFuture)
+        }
         isDataNotFlushed.compareAndSet(expect = true, update = false)
         lastFuture.addListener {
             context.close()
@@ -237,7 +252,7 @@ internal class NettyHttpResponsePipeline(
      */
     private fun respondWithHeader(responseMessage: Any): ChannelFuture {
         return if (isHeaderFlushNeeded()) {
-            val future = context.writeAndFlush(responseMessage)
+            val future = context.writeAndFlushCoalesced(responseMessage)
             isDataNotFlushed.compareAndSet(expect = true, update = false)
             future
         } else {
@@ -294,7 +309,7 @@ internal class NettyHttpResponsePipeline(
         response: NettyApplicationResponse,
         size: Int
     ) {
-        val buffer = context.alloc().buffer(size)
+        val buffer = context.alloc().ioBuffer(size)
         val channel = response.responseChannel
         val start = buffer.writerIndex()
 
@@ -334,6 +349,7 @@ internal class NettyHttpResponsePipeline(
         unflushedBytes >= UNFLUSHED_LIMIT || channel.availableForRead == 0
     }
 
+    @OptIn(InternalAPI::class)
     private suspend fun respondWithBigBody(
         call: NettyApplicationCall,
         response: NettyApplicationResponse,
@@ -351,34 +367,92 @@ internal class NettyHttpResponsePipeline(
                 continue
             }
 
-            var message: Any? = null
-            channel.read { array, startIndex, endIndex ->
-                val rc = endIndex - startIndex
-                val buf = context.alloc().buffer(rc)
-                val idx = buf.writerIndex()
-                buf.setBytes(idx, array, startIndex, rc)
-                buf.writerIndex(idx + rc)
-                unflushedBytes += rc
-
-                message = call.prepareMessage(buf, false)
-                rc
+            val buf = context.alloc().ioBuffer(minOf(channel.availableForRead, READ_CHUNK_SIZE))
+            val idx = buf.writerIndex()
+            val rc = try {
+                var total = 0
+                while (buf.writableBytes() > 0 && !channel.readBuffer.exhausted()) {
+                    val read = channel.readBuffer.readAtMostTo(
+                        buf.internalNioBuffer(idx + total, buf.writableBytes())
+                    )
+                    if (read <= 0) break
+                    total += read
+                    buf.writerIndex(idx + total)
+                }
+                total
+            } catch (cause: Throwable) {
+                buf.release()
+                throw cause
             }
+            if (rc <= 0) {
+                buf.release()
+                continue
+            }
+            buf.writerIndex(idx + rc)
+            unflushedBytes += rc
 
+            val responseMessage = call.prepareMessage(buf, false)
             if (shouldFlush.invoke(channel, unflushedBytes)) {
                 context.read()
-                val future = context.writeAndFlush(message)
+                val future = context.writeAndFlushCoalesced(responseMessage)
                 isDataNotFlushed.compareAndSet(expect = true, update = false)
                 lastFuture = future
                 future.suspendAwait()
                 unflushedBytes = 0
             } else {
-                lastFuture = context.write(message)
+                lastFuture = context.write(responseMessage)
                 isDataNotFlushed.compareAndSet(expect = false, update = true)
             }
         }
 
         val lastMessage = response.prepareTrailerMessage() ?: call.prepareEndOfStreamMessage(false)
         handleLastResponseMessage(call, lastMessage, lastFuture)
+    }
+}
+
+private fun ChannelHandlerContext.flushCoalesced() {
+    val streamChannel = channel() as? Http2StreamChannel
+    if (streamChannel == null) {
+        flush()
+        return
+    }
+
+    val parent = streamChannel.parent()
+    val attribute = parent.attr(http2FlushScheduledKey)
+    val coalescer = attribute.get() ?: attribute.setIfAbsent(Http2FlushCoalescer(parent)) ?: attribute.get()!!
+    coalescer.flush()
+}
+
+private fun ChannelHandlerContext.writeAndFlushCoalesced(message: Any): ChannelFuture {
+    if (channel() !is Http2StreamChannel) return writeAndFlush(message)
+
+    val future = write(message)
+    flushCoalesced()
+    return future
+}
+
+private class Http2FlushCoalescer(private val parent: Channel) {
+    private val flushScheduled = JavaAtomicBoolean()
+    private val additionalFlushRequested = JavaAtomicBoolean()
+    private val flushTask = Runnable { runFlush() }
+
+    fun flush() {
+        if (flushScheduled.compareAndSet(false, true)) {
+            parent.eventLoop().execute(flushTask)
+        } else if (!parent.eventLoop().inEventLoop()) {
+            additionalFlushRequested.set(true)
+        }
+    }
+
+    private fun runFlush() {
+        try {
+            parent.flush()
+        } finally {
+            flushScheduled.set(false)
+            if (additionalFlushRequested.getAndSet(false) && flushScheduled.compareAndSet(false, true)) {
+                parent.eventLoop().execute(flushTask)
+            }
+        }
     }
 }
 
