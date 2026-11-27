@@ -10,6 +10,7 @@ import io.ktor.events.*
 import io.ktor.events.EventDefinition
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
+import io.ktor.server.auth.*
 import io.ktor.server.sessions.*
 import io.ktor.util.*
 import io.ktor.utils.io.*
@@ -321,7 +322,7 @@ public class Oidc internal constructor(
                     "An ephemeral key was generated for this process. In-flight OAuth logins will fail after restart " +
                     "and across application instances. Configure a shared stateEncryptionKey for production deployments."
             )
-            oauthConfig.stateEncryptionKey = OidcStateEncryptionKey.random()
+            oauthConfig.stateEncryptionKey = AuthenticationStateEncryptionKey.random()
         }
     }
 

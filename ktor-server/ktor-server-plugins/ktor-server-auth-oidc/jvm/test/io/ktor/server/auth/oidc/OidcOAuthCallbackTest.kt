@@ -14,8 +14,8 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.server.testing.*
-import io.ktor.util.*
 import java.util.concurrent.ConcurrentHashMap
+import kotlin.io.encoding.Base64
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -149,7 +149,11 @@ class OidcOAuthCallbackTest {
     fun `oauth state cookie works across provider instances sharing key`() {
         val keys = testRsaKeys
         val idTokensByState = ConcurrentHashMap<String, String>()
-        val stateEncryptionKey = OidcStateEncryptionKey.of(ByteArray(OidcStateEncryptionKey.KEY_SIZE) { it.toByte() })
+        val stateEncryptionKey = AuthenticationStateEncryptionKey.of(
+            ByteArray(AuthenticationStateEncryptionKey.KEY_SIZE) {
+                it.toByte()
+            }
+        )
 
         lateinit var loginState: String
         lateinit var loginNonce: String
@@ -493,7 +497,7 @@ class OidcOAuthCallbackTest {
         val cookie = browser.signInWithIdToken(idTokensByState, keys, expiresIn = 10.seconds)
         browser.assertMe(cookie, HttpStatusCode.OK, "refreshed-user")
 
-        val expectedAuth = "Basic " + "client-id:client-secret".encodeBase64()
+        val expectedAuth = "Basic " + Base64.encode("client-id:client-secret".encodeToByteArray())
         assertEquals(expectedAuth to null, tokenRequestAuth["authorization_code"])
         assertEquals(expectedAuth to null, tokenRequestAuth["refresh_token"])
     }
@@ -537,7 +541,7 @@ class OidcOAuthCallbackTest {
         }
         val callback = browser.completeOidcCallback(login)
         assertEquals(HttpStatusCode.OK, callback.status)
-        assertEquals("Basic " + "client-id:client-secret".encodeBase64() to null, tokenRequestAuth)
+        assertEquals("Basic " + Base64.encode("client-id:client-secret".encodeToByteArray()) to null, tokenRequestAuth)
     }
 
     @Test
@@ -570,7 +574,7 @@ class OidcOAuthCallbackTest {
 
     private fun ApplicationTestBuilder.installOAuthCallbackTestProvider(
         keys: OpenIdTestKeys,
-        stateEncryptionKey: OidcStateEncryptionKey? = null,
+        stateEncryptionKey: AuthenticationStateEncryptionKey? = null,
         metadata: OpenIdProviderMetadata = testOpenIdProviderMetadata(ISSUER_URL),
         configureOAuth: OidcOAuthConfig.() -> Unit = {},
     ) {

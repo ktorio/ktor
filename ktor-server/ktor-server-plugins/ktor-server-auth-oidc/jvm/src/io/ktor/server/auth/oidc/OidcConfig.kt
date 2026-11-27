@@ -642,7 +642,7 @@ public class OidcOAuthConfig internal constructor(
      *
      * [Report a problem](https://ktor.io/feedback/?fqname=io.ktor.server.auth.oidc.OidcOAuthConfig.stateEncryptionKey)
      */
-    public var stateEncryptionKey: OidcStateEncryptionKey? = null
+    public var stateEncryptionKey: AuthenticationStateEncryptionKey? = null
 
     /**
      * Code challenge method used for PKCE (RFC 7636) during the authorization code flow.

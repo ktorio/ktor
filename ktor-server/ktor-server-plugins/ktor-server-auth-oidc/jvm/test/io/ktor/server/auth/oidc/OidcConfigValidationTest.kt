@@ -8,6 +8,7 @@ import ch.qos.logback.classic.Level
 import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.server.application.*
+import io.ktor.server.auth.*
 import io.ktor.server.auth.oidc.utils.*
 import io.ktor.server.sessions.*
 import io.ktor.server.testing.*
@@ -333,6 +334,6 @@ class OidcConfigValidationTest {
         }
     }
 
-    private fun testStateEncryptionKey(): OidcStateEncryptionKey =
-        OidcStateEncryptionKey.of(ByteArray(OidcStateEncryptionKey.KEY_SIZE) { it.toByte() })
+    private fun testStateEncryptionKey(): AuthenticationStateEncryptionKey =
+        AuthenticationStateEncryptionKey.of(ByteArray(AuthenticationStateEncryptionKey.KEY_SIZE) { it.toByte() })
 }

@@ -4,6 +4,7 @@
 
 package io.ktor.server.auth.oidc
 
+import io.ktor.server.auth.*
 import kotlin.io.encoding.Base64
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -74,8 +75,8 @@ class OidcStateCodecTest {
     fun `rotating key accepts cookie encrypted with previous key`() {
         val previous = fixedKey(2)
         val current = fixedKey(3)
-        val writer = codec(key = OidcStateEncryptionKey.of(previous))
-        val reader = codec(key = OidcStateEncryptionKey.rotating(current, previous))
+        val writer = codec(key = AuthenticationStateEncryptionKey.of(previous))
+        val reader = codec(key = AuthenticationStateEncryptionKey.rotating(current, previous))
         val transaction = OidcAuthorizationTransaction(nonce = "nonce-1", codeVerifier = "verifier-1")
 
         val encoded = writer.encode("state-1", transaction)
@@ -97,7 +98,7 @@ class OidcStateCodecTest {
     }
 
     private fun codec(
-        key: OidcStateEncryptionKey = OidcStateEncryptionKey.of(fixedKey(1)),
+        key: AuthenticationStateEncryptionKey = AuthenticationStateEncryptionKey.of(fixedKey(1)),
         clock: Clock = TestClock(1_000L),
     ) = OidcStateCodec(
         encryptionKey = key,
@@ -113,7 +114,7 @@ class OidcStateCodecTest {
     }
 
     private fun fixedKey(seed: Int): ByteArray =
-        ByteArray(OidcStateEncryptionKey.KEY_SIZE) { index -> (seed + index).toByte() }
+        ByteArray(AuthenticationStateEncryptionKey.KEY_SIZE) { index -> (seed + index).toByte() }
 
     private class TestClock(var epochMs: Long) : Clock {
         override fun now(): Instant = Instant.fromEpochMilliseconds(epochMs)
