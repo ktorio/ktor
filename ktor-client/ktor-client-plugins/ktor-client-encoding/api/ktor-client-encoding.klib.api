@@ -6,9 +6,19 @@
 // - Show declarations: true
 
 // Library unique name: <io.ktor:ktor-client-encoding>
+final class io.ktor.client.plugins.compression/ContentEncodingChainTooLongException : kotlin/IllegalStateException { // io.ktor.client.plugins.compression/ContentEncodingChainTooLongException|null[0]
+    constructor <init>(kotlin/Int, kotlin/Int) // io.ktor.client.plugins.compression/ContentEncodingChainTooLongException.<init>|<init>(kotlin.Int;kotlin.Int){}[0]
+}
+
 final class io.ktor.client.plugins.compression/ContentEncodingConfig { // io.ktor.client.plugins.compression/ContentEncodingConfig|null[0]
     constructor <init>() // io.ktor.client.plugins.compression/ContentEncodingConfig.<init>|<init>(){}[0]
 
+    final var maxDecodedContentLength // io.ktor.client.plugins.compression/ContentEncodingConfig.maxDecodedContentLength|{}maxDecodedContentLength[0]
+        final fun <get-maxDecodedContentLength>(): kotlin/Long // io.ktor.client.plugins.compression/ContentEncodingConfig.maxDecodedContentLength.<get-maxDecodedContentLength>|<get-maxDecodedContentLength>(){}[0]
+        final fun <set-maxDecodedContentLength>(kotlin/Long) // io.ktor.client.plugins.compression/ContentEncodingConfig.maxDecodedContentLength.<set-maxDecodedContentLength>|<set-maxDecodedContentLength>(kotlin.Long){}[0]
+    final var maxEncodingChainLength // io.ktor.client.plugins.compression/ContentEncodingConfig.maxEncodingChainLength|{}maxEncodingChainLength[0]
+        final fun <get-maxEncodingChainLength>(): kotlin/Int // io.ktor.client.plugins.compression/ContentEncodingConfig.maxEncodingChainLength.<get-maxEncodingChainLength>|<get-maxEncodingChainLength>(){}[0]
+        final fun <set-maxEncodingChainLength>(kotlin/Int) // io.ktor.client.plugins.compression/ContentEncodingConfig.maxEncodingChainLength.<set-maxEncodingChainLength>|<set-maxEncodingChainLength>(kotlin.Int){}[0]
     final var mode // io.ktor.client.plugins.compression/ContentEncodingConfig.mode|{}mode[0]
         final fun <get-mode>(): io.ktor.client.plugins.compression/ContentEncodingConfig.Mode // io.ktor.client.plugins.compression/ContentEncodingConfig.mode.<get-mode>|<get-mode>(){}[0]
         final fun <set-mode>(io.ktor.client.plugins.compression/ContentEncodingConfig.Mode) // io.ktor.client.plugins.compression/ContentEncodingConfig.mode.<set-mode>|<set-mode>(io.ktor.client.plugins.compression.ContentEncodingConfig.Mode){}[0]
@@ -29,6 +39,12 @@ final class io.ktor.client.plugins.compression/ContentEncodingConfig { // io.kto
         final fun valueOf(kotlin/String): io.ktor.client.plugins.compression/ContentEncodingConfig.Mode // io.ktor.client.plugins.compression/ContentEncodingConfig.Mode.valueOf|valueOf#static(kotlin.String){}[0]
         final fun values(): kotlin/Array<io.ktor.client.plugins.compression/ContentEncodingConfig.Mode> // io.ktor.client.plugins.compression/ContentEncodingConfig.Mode.values|values#static(){}[0]
     }
+}
+
+final class io.ktor.client.plugins.compression/DecodedContentTooLargeException : kotlinx.coroutines/CopyableThrowable<io.ktor.client.plugins.compression/DecodedContentTooLargeException>, kotlinx.io/IOException { // io.ktor.client.plugins.compression/DecodedContentTooLargeException|null[0]
+    constructor <init>(kotlin/Long) // io.ktor.client.plugins.compression/DecodedContentTooLargeException.<init>|<init>(kotlin.Long){}[0]
+
+    final fun createCopy(): io.ktor.client.plugins.compression/DecodedContentTooLargeException // io.ktor.client.plugins.compression/DecodedContentTooLargeException.createCopy|createCopy(){}[0]
 }
 
 final class io.ktor.client.plugins.compression/UnsupportedContentEncodingException : kotlin/IllegalStateException { // io.ktor.client.plugins.compression/UnsupportedContentEncodingException|null[0]
