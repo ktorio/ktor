@@ -13,6 +13,7 @@ import io.ktor.server.websocket.*
 import io.ktor.server.websocket.WebSockets
 import io.ktor.websocket.*
 import kotlinx.coroutines.*
+import kotlinx.coroutines.selects.select
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
@@ -152,6 +153,102 @@ class WebSocketHandlerTerminationTest {
             (0 until 8).map { "m$it" },
             processed.toList(),
             "Every frame received before the close must be processed"
+        )
+    }
+
+    @Test
+    fun testSelectBasedConsumerDrainingBufferedFramesIsNotCancelledWhenClientCloses() = testApplication {
+        val handlerResult = CompletableDeferred<String>()
+        val processed = ConcurrentLinkedQueue<String>()
+
+        install(WebSockets)
+
+        routing {
+            webSocket("/ws") {
+                try {
+                    // The same active consumer as above, but it consumes the frames through the
+                    // select clauses of `incoming`, which bypass the receive and iterator entry
+                    // points of the tracking channel. The clauses must count as consumption as
+                    // well: the frames buffered by the session must all be processed before the
+                    // closed channel ends the loop on its own.
+                    val first = select { incoming.onReceive { it } }
+                    if (first is Frame.Text) {
+                        processed.add(first.readText())
+                        delay(200.milliseconds)
+                    }
+                    while (true) {
+                        val result = select { incoming.onReceiveCatching { it } }
+                        val frame = result.getOrNull() ?: break
+                        if (frame is Frame.Text) {
+                            processed.add(frame.readText())
+                            delay(200.milliseconds)
+                        }
+                    }
+                    handlerResult.complete("completed")
+                } catch (cause: CancellationException) {
+                    handlerResult.complete("cancelled")
+                    throw cause
+                } finally {
+                    handlerResult.complete("finally")
+                }
+            }
+        }
+
+        createWebSocketsClient().webSocket("/ws") {
+            repeat(8) { index -> send(Frame.Text("m$index")) }
+            close(CloseReason(CloseReason.Codes.NORMAL, "bye"))
+        }
+
+        val result = withTimeout(15.seconds) { handlerResult.await() }
+        assertEquals(
+            "completed",
+            result,
+            "A select-based consumer of incoming must not be cancelled while it drains buffered frames"
+        )
+        assertEquals(
+            (0 until 8).map { "m$it" },
+            processed.toList(),
+            "Every frame received through the select clauses must be processed"
+        )
+    }
+
+    @Test
+    fun testHandlerObservingCleanClosureIsNotCancelledDuringSlowCleanup() = testApplication {
+        val handlerResult = CompletableDeferred<String>()
+
+        install(WebSockets)
+
+        routing {
+            webSocket("/ws") {
+                try {
+                    // The client closes without sending any data frame, so the loop observes the
+                    // closed channel (`hasNext() == false`) and exits normally without ever
+                    // consuming a frame. Observing the closure still means the handler noticed
+                    // the session end and is finishing on its own, so the post-loop cleanup that
+                    // takes longer than the grace period must not be cancelled midway.
+                    for (frame in incoming) {
+                        // The client sends no frames - the loop only observes the closure.
+                    }
+                    delay(1500.milliseconds)
+                    handlerResult.complete("completed")
+                } catch (cause: CancellationException) {
+                    handlerResult.complete("cancelled")
+                    throw cause
+                } finally {
+                    handlerResult.complete("finally")
+                }
+            }
+        }
+
+        createWebSocketsClient().webSocket("/ws") {
+            close(CloseReason(CloseReason.Codes.NORMAL, "bye"))
+        }
+
+        val result = withTimeout(15.seconds) { handlerResult.await() }
+        assertEquals(
+            "completed",
+            result,
+            "A handler that observed the clean closure of incoming must finish its cleanup"
         )
     }
 

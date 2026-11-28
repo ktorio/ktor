@@ -25,6 +25,7 @@ import kotlinx.coroutines.channels.ChannelResult
 import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.selects.SelectClause1
 import kotlin.concurrent.Volatile
 
 /**
@@ -249,7 +250,8 @@ private suspend fun WebSocketServerSession.proceedWebSocket(handler: suspend Def
     // enters the try/catch below, and only [Job.invokeOnCompletion] is guaranteed to run.
     val handlerResult = CompletableDeferred<Unit>()
     // The handler's session wrapper records whether the handler consumes a frame from [incoming]
-    // (through any receive entry point or the iterator used by `for (frame in incoming)`). The
+    // or observes its closure (through any receive entry point, the select clauses, or the
+    // iterator used by `for (frame in incoming)`). The
     // close watcher below cancels the handler after the grace period only when it never did: a
     // consumer observes the closed channel itself and terminates on its own, so cancelling it
     // would abandon frames that are already buffered but not yet processed.
@@ -291,7 +293,8 @@ private suspend fun WebSocketServerSession.proceedWebSocket(handler: suspend Def
         // The close sequence has been performed (the peer closed the connection, the connection
         // was terminated abnormally, or the ping timeout expired), so the session is over. Only a
         // handler that never consumed [incoming] cannot notice the closure on its own (it neither
-        // reads frames nor observes the channel closing), so give it the grace period to finish
+        // reads frames nor observes the channel closing through any of its entry points), so give
+        // it the grace period to finish
         // and cancel it afterwards if it is still running. A handler that consumes [incoming] is
         // not cancelled: it observes the closed channel as soon as it processed the frames that
         // are already buffered, even when that takes longer than the grace period. The watcher is
@@ -314,9 +317,10 @@ private suspend fun CoroutineScope.joinSession() {
 }
 
 /**
- * Holds whether the handler consumed a frame from `incoming` at least once. Written by the
- * tracking receive channel below, read by the close watcher in [proceedWebSocket]; [Volatile]
- * is sufficient because the flag is only ever flipped from `false` to `true`.
+ * Holds whether the handler consumed a frame from `incoming` or observed the channel closing.
+ * Written by the tracking receive channel below, read by the close watcher in
+ * [proceedWebSocket]; [Volatile] is sufficient because the flag is only ever flipped from
+ * `false` to `true`.
  */
 private class IncomingConsumption {
     @Volatile
@@ -325,9 +329,9 @@ private class IncomingConsumption {
 
 /**
  * Delegates everything to [delegate] but replaces [incoming] with a channel that reports frame
- * consumption to [consumption], so the close watcher in [proceedWebSocket] can tell a handler
- * that reads frames (which ends on its own when the closed channel is drained) from a handler
- * that never does (which is cancelled after the grace period).
+ * consumption and closure observation to [consumption], so the close watcher in
+ * [proceedWebSocket] can tell a handler that reads frames (which ends on its own when the closed
+ * channel is drained) from a handler that never does (which is cancelled after the grace period).
  */
 private class TrackingIncomingSession(
     delegate: DefaultWebSocketSession,
@@ -348,22 +352,46 @@ private class TrackingIncomingChannel(
 
     override suspend fun receiveCatching(): ChannelResult<Frame> {
         val result = delegate.receiveCatching()
-        if (result.isSuccess) consumption.consumed = true
+        // A successful result consumed a frame; a closed result is the handler observing the
+        // session end itself, which means it will terminate on its own either way.
+        consumption.consumed = true
         return result
     }
 
     override fun tryReceive(): ChannelResult<Frame> {
         val result = delegate.tryReceive()
-        if (result.isSuccess) consumption.consumed = true
+        // A frame or the closed-channel outcome is an observation that ends the handler on its
+        // own, but an empty result is not: a handler that only ever sees it has not noticed
+        // anything and must stay a never-read consumer for the close watcher.
+        if (result.isSuccess || result.isClosed) consumption.consumed = true
         return result
     }
+
+    // A handler that consumes `incoming` through `select` does so via these clauses: evaluating
+    // `incoming.onReceive` inside a select builder is the moment the handler declares itself an
+    // active consumer, so the access is what marks the consumption. The clauses themselves are
+    // forwarded unchanged: kotlinx.coroutines seals `SelectClause1` and keeps its construction
+    // internal, so clauses cannot be wrapped from outside the library.
+    override val onReceive: SelectClause1<Frame>
+        get() {
+            consumption.consumed = true
+            return delegate.onReceive
+        }
+
+    override val onReceiveCatching: SelectClause1<ChannelResult<Frame>>
+        get() {
+            consumption.consumed = true
+            return delegate.onReceiveCatching
+        }
 
     override fun iterator(): ChannelIterator<Frame> = TrackingIncomingIterator(delegate.iterator(), consumption)
 }
 
 /**
- * Marks the flag on [hasNext] instead of [next]: [hasNext] is where a frame becomes available to
- * the consumer, and a `for` loop over `incoming` uses this iterator under the hood.
+ * Marks the flag on [hasNext] instead of [next]: [hasNext] is where an outcome becomes available
+ * to the consumer, and a `for` loop over `incoming` uses this iterator under the hood. Both
+ * outcomes count: `true` delivered a frame, `false` means the consumer observed the channel
+ * closing and will exit the loop to finish on its own.
  */
 private class TrackingIncomingIterator(
     private val delegate: ChannelIterator<Frame>,
@@ -371,7 +399,7 @@ private class TrackingIncomingIterator(
 ) : ChannelIterator<Frame> {
     override suspend fun hasNext(): Boolean {
         val hasNext = delegate.hasNext()
-        if (hasNext) consumption.consumed = true
+        consumption.consumed = true
         return hasNext
     }
 
