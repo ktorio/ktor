@@ -109,6 +109,53 @@ class WebSocketHandlerTerminationTest {
     }
 
     @Test
+    fun testSlowlyConsumedBufferedFramesAreNotAbandonedWhenClientCloses() = testApplication {
+        val handlerResult = CompletableDeferred<String>()
+        val processed = ConcurrentLinkedQueue<String>()
+
+        install(WebSockets)
+
+        routing {
+            webSocket("/ws") {
+                try {
+                    // The handler is an active consumer of incoming, but each frame takes longer
+                    // to process than the grace period: the frames buffered by the session must
+                    // all be processed before the closed channel ends the loop on its own.
+                    for (frame in incoming) {
+                        if (frame is Frame.Text) {
+                            processed.add(frame.readText())
+                            delay(200.milliseconds)
+                        }
+                    }
+                    handlerResult.complete("completed")
+                } catch (cause: CancellationException) {
+                    handlerResult.complete("cancelled")
+                    throw cause
+                } finally {
+                    handlerResult.complete("finally")
+                }
+            }
+        }
+
+        createWebSocketsClient().webSocket("/ws") {
+            repeat(8) { index -> send(Frame.Text("m$index")) }
+            close(CloseReason(CloseReason.Codes.NORMAL, "bye"))
+        }
+
+        val result = withTimeout(15.seconds) { handlerResult.await() }
+        assertEquals(
+            "completed",
+            result,
+            "An active consumer of incoming must not be cancelled while it drains buffered frames"
+        )
+        assertEquals(
+            (0 until 8).map { "m$it" },
+            processed.toList(),
+            "Every frame received before the close must be processed"
+        )
+    }
+
+    @Test
     fun testHandlerInitiatedCloseStillWorks() = testApplication {
         val handlerResult = CompletableDeferred<String>()
         var closeReasonFromClient: CloseReason? = null

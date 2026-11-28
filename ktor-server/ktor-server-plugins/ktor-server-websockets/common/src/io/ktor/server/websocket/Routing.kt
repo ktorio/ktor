@@ -20,8 +20,12 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.ChannelIterator
+import kotlinx.coroutines.channels.ChannelResult
+import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.concurrent.Volatile
 
 /**
  * Binds RAW WebSocket at the current route + [path] optionally checking the for WebSocket [protocol] (ignored if `null`)
@@ -208,8 +212,10 @@ private fun Route.webSocketProtocol(protocol: String?, block: Route.() -> Unit) 
 
 /**
  * The time a WebSocket handler has to finish on its own after the close sequence of its session
- * has been performed. A handler consuming [DefaultWebSocketSession.incoming] notices the closure
- * immediately, while a handler that ignores it is cancelled after this period.
+ * has been performed. Only a handler that never consumed [DefaultWebSocketSession.incoming]
+ * cannot notice the closure on its own, so it is cancelled after this period; a handler that
+ * consumes it is left alone to drain the frames buffered by the session, however long that
+ * takes.
  *
  * See KTOR-6686.
  */
@@ -242,9 +248,16 @@ private suspend fun WebSocketServerSession.proceedWebSocket(handler: suspend Def
     // dispatched handler within the grace period (e.g. a saturated engine event loop) never
     // enters the try/catch below, and only [Job.invokeOnCompletion] is guaranteed to run.
     val handlerResult = CompletableDeferred<Unit>()
+    // The handler's session wrapper records whether the handler consumes a frame from [incoming]
+    // (through any receive entry point or the iterator used by `for (frame in incoming)`). The
+    // close watcher below cancels the handler after the grace period only when it never did: a
+    // consumer observes the closed channel itself and terminates on its own, so cancelling it
+    // would abandon frames that are already buffered but not yet processed.
+    val incomingConsumption = IncomingConsumption()
+    val trackedSession = TrackingIncomingSession(session, incomingConsumption)
     val handlerJob = launch {
         try {
-            session.handleServerSession(call, handler)
+            trackedSession.handleServerSession(call, handler)
         } catch (cancelled: CancellationException) {
             // Rethrow so the job completes as cancelled and the completion handler below decides
             // whether the cancellation ends the session normally or must reach the caller.
@@ -276,14 +289,19 @@ private suspend fun WebSocketServerSession.proceedWebSocket(handler: suspend Def
 
     session.closeReason.invokeOnCompletion { cause ->
         // The close sequence has been performed (the peer closed the connection, the connection
-        // was terminated abnormally, or the ping timeout expired), so the session is over. Give a
-        // handler that consumes [incoming] time to notice the closure on its own (it resumes as
-        // soon as the channel closes, long before the grace period ends) and cancel it afterwards
-        // if it is still running. The watcher is launched on the plugin scope because the session
-        // processors are being torn down at this point.
+        // was terminated abnormally, or the ping timeout expired), so the session is over. Only a
+        // handler that never consumed [incoming] cannot notice the closure on its own (it neither
+        // reads frames nor observes the channel closing), so give it the grace period to finish
+        // and cancel it afterwards if it is still running. A handler that consumes [incoming] is
+        // not cancelled: it observes the closed channel as soon as it processed the frames that
+        // are already buffered, even when that takes longer than the grace period. The watcher is
+        // launched on the plugin scope because the session processors are being torn down at this
+        // point.
         webSockets.launch {
             delay(HANDLER_COMPLETION_GRACE_MILLIS)
-            handlerJob.cancel(CancellationException("WebSocket session is closed", cause))
+            if (!incomingConsumption.consumed) {
+                handlerJob.cancel(CancellationException("WebSocket session is closed", cause))
+            }
         }
     }
 
@@ -293,6 +311,71 @@ private suspend fun WebSocketServerSession.proceedWebSocket(handler: suspend Def
 
 private suspend fun CoroutineScope.joinSession() {
     coroutineContext[Job]!!.join()
+}
+
+/**
+ * Holds whether the handler consumed a frame from `incoming` at least once. Written by the
+ * tracking receive channel below, read by the close watcher in [proceedWebSocket]; [Volatile]
+ * is sufficient because the flag is only ever flipped from `false` to `true`.
+ */
+private class IncomingConsumption {
+    @Volatile
+    var consumed: Boolean = false
+}
+
+/**
+ * Delegates everything to [delegate] but replaces [incoming] with a channel that reports frame
+ * consumption to [consumption], so the close watcher in [proceedWebSocket] can tell a handler
+ * that reads frames (which ends on its own when the closed channel is drained) from a handler
+ * that never does (which is cancelled after the grace period).
+ */
+private class TrackingIncomingSession(
+    delegate: DefaultWebSocketSession,
+    consumption: IncomingConsumption
+) : DefaultWebSocketSession by delegate {
+    override val incoming: ReceiveChannel<Frame> = TrackingIncomingChannel(delegate.incoming, consumption)
+}
+
+private class TrackingIncomingChannel(
+    private val delegate: ReceiveChannel<Frame>,
+    private val consumption: IncomingConsumption
+) : ReceiveChannel<Frame> by delegate {
+    override suspend fun receive(): Frame {
+        val frame = delegate.receive()
+        consumption.consumed = true
+        return frame
+    }
+
+    override suspend fun receiveCatching(): ChannelResult<Frame> {
+        val result = delegate.receiveCatching()
+        if (result.isSuccess) consumption.consumed = true
+        return result
+    }
+
+    override fun tryReceive(): ChannelResult<Frame> {
+        val result = delegate.tryReceive()
+        if (result.isSuccess) consumption.consumed = true
+        return result
+    }
+
+    override fun iterator(): ChannelIterator<Frame> = TrackingIncomingIterator(delegate.iterator(), consumption)
+}
+
+/**
+ * Marks the flag on [hasNext] instead of [next]: [hasNext] is where a frame becomes available to
+ * the consumer, and a `for` loop over `incoming` uses this iterator under the hood.
+ */
+private class TrackingIncomingIterator(
+    private val delegate: ChannelIterator<Frame>,
+    private val consumption: IncomingConsumption
+) : ChannelIterator<Frame> {
+    override suspend fun hasNext(): Boolean {
+        val hasNext = delegate.hasNext()
+        if (hasNext) consumption.consumed = true
+        return hasNext
+    }
+
+    override fun next(): Frame = delegate.next()
 }
 
 private suspend fun DefaultWebSocketSession.handleServerSession(
