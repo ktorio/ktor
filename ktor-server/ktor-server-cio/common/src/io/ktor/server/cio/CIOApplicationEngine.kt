@@ -209,6 +209,7 @@ public class CIOApplicationEngine(
         }
     }
 
+    @OptIn(InternalAPI::class)
     private fun initServerJob(): Job {
         val environment = environment
         val userDispatcher = userDispatcher
@@ -222,6 +223,10 @@ public class CIOApplicationEngine(
         val exceptionHandler = CoroutineExceptionHandler { context, cause ->
             // Leaving startup failure uncaught would abort the whole process on Native
             if (startupJob.isCompleted && !startupJob.isCancelled) {
+                val application = runCatching { applicationProvider() }.getOrNull()
+                if (cause !is CancellationException && application?.handleCoroutineFailure(context, cause) == true) {
+                    return@CoroutineExceptionHandler
+                }
                 runningServerFailureHandler.handleException(context, cause)
             }
         }

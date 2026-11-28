@@ -79,6 +79,7 @@ projects {
             +"ktor-server-default-headers"
             +"ktor-server-di"
             +"ktor-server-double-receive"
+            +"ktor-server-exception-boundaries"
             +"ktor-server-forwarded-header"
             +"ktor-server-freemarker"
             +"ktor-server-hsts"

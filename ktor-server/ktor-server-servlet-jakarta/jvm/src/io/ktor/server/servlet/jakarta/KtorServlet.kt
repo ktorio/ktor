@@ -9,6 +9,7 @@ import io.ktor.server.engine.*
 import io.ktor.util.*
 import io.ktor.util.cio.*
 import io.ktor.util.pipeline.*
+import io.ktor.utils.io.*
 import jakarta.servlet.*
 import jakarta.servlet.http.*
 import kotlinx.coroutines.*
@@ -47,13 +48,17 @@ public abstract class KtorServlet : HttpServlet(), CoroutineScope {
      */
     protected abstract val upgrade: ServletUpgrade
 
+    @OptIn(InternalAPI::class)
     override val coroutineContext: CoroutineContext = Dispatchers.Unconfined +
         SupervisorJob() +
         CoroutineName("servlet") +
-        DefaultUncaughtExceptionHandler {
-            // fallback in case the coroutine fails after servlet context is cleared
-            runCatching { logger }.getOrNull() ?: LoggerFactory.getLogger(servletName)
-        }
+        DefaultUncaughtExceptionHandler(
+            {
+                // fallback in case the coroutine fails after servlet context is cleared
+                runCatching { logger }.getOrNull() ?: LoggerFactory.getLogger(servletName)
+            },
+            { application }
+        )
 
     /**
      * Called by the servlet container when loading the servlet (on load)

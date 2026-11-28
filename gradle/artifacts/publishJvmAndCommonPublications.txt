@@ -528,6 +528,13 @@ io.ktor:ktor-server-double-receive/.jar
 io.ktor:ktor-server-double-receive/javadoc.jar
 io.ktor:ktor-server-double-receive/kotlin-tooling-metadata.json
 io.ktor:ktor-server-double-receive/sources.jar
+io.ktor:ktor-server-exception-boundaries-jvm/.jar
+io.ktor:ktor-server-exception-boundaries-jvm/javadoc.jar
+io.ktor:ktor-server-exception-boundaries-jvm/sources.jar
+io.ktor:ktor-server-exception-boundaries/.jar
+io.ktor:ktor-server-exception-boundaries/javadoc.jar
+io.ktor:ktor-server-exception-boundaries/kotlin-tooling-metadata.json
+io.ktor:ktor-server-exception-boundaries/sources.jar
 io.ktor:ktor-server-forwarded-header-jvm/.jar
 io.ktor:ktor-server-forwarded-header-jvm/javadoc.jar
 io.ktor:ktor-server-forwarded-header-jvm/sources.jar

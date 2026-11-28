@@ -220,9 +220,9 @@ internal val routingCallKey = AttributeKey<RoutingCall>("RoutingHandler")
 
 // The pipeline the engine call runs: the application's, unless the call made its own, which merging must not make
 @Suppress("DEPRECATION")
-private fun PipelineRequest.pipelineToMerge(): ApplicationReceivePipeline =
+internal fun PipelineRequest.pipelineToMerge(): ApplicationReceivePipeline =
     (this as? BaseApplicationRequest)?.pipelineToRun ?: pipeline
 
 @Suppress("DEPRECATION")
-private fun PipelineResponse.pipelineToMerge(): ApplicationSendPipeline =
+internal fun PipelineResponse.pipelineToMerge(): ApplicationSendPipeline =
     (this as? BaseApplicationResponse)?.pipelineToRun ?: pipeline
