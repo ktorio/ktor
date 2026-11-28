@@ -26,6 +26,7 @@ import io.netty.handler.flush.FlushConsolidationHandler
 import io.netty.handler.ssl.ApplicationProtocolConfig
 import io.netty.handler.ssl.ApplicationProtocolNames
 import io.netty.handler.ssl.ApplicationProtocolNegotiationHandler
+import io.netty.handler.ssl.OpenSsl
 import io.netty.handler.ssl.SslContext
 import io.netty.handler.ssl.SslContextBuilder
 import io.netty.handler.ssl.SslHandler
@@ -237,6 +238,8 @@ public class NettyChannelInitializer(
                                 ApplicationProtocolNames.HTTP_1_1
                             )
                         )
+                    } else {
+                        openSslProvider?.let { sslProvider(it) }
                     }
                     connector.trustManagerFactory()?.let { this.trustManager(it) }
                 }
@@ -456,6 +459,15 @@ public class NettyChannelInitializer(
 
     public companion object {
         internal val alpnProvider by lazy { findAlpnProvider() }
+
+        // Used for HTTP/1.1-only TLS so native OpenSSL is preferred when available, instead of the JDK engine
+        private val openSslProvider: SslProvider? by lazy {
+            try {
+                if (OpenSsl.isAvailable()) SslProvider.OPENSSL else null
+            } catch (_: Throwable) {
+                null
+            }
+        }
 
         private fun findAlpnProvider(): SslProvider? {
             try {
