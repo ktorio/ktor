@@ -675,6 +675,66 @@ class ServerSentEventsTest : ClientLoader() {
     }
 
     @Test
+    fun `cancelling collector during reconnection completes it`() = clientTests {
+        config {
+            install(SSE) {
+                maxReconnectionAttempts = Int.MAX_VALUE
+                reconnectionTime = 30.seconds
+            }
+        }
+
+        test { client ->
+            coroutineScope {
+                val received = CompletableDeferred<Unit>()
+                val collector = launch {
+                    client.sse("$TEST_SERVER/sse/reconnection?count=1") {
+                        incoming.collect { received.complete(Unit) }
+                    }
+                }
+                received.await()
+                // let the session finish reading the first response and start waiting for reconnection
+                delay(500.milliseconds)
+
+                collector.cancel()
+                assertNotNull(
+                    withTimeoutOrNull(5.seconds) { collector.join() },
+                    "Cancelled collector did not complete within 5s"
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `cancelling session during reconnection completes incoming`() = clientTests {
+        config {
+            install(SSE) {
+                maxReconnectionAttempts = Int.MAX_VALUE
+                reconnectionTime = 30.seconds
+            }
+        }
+
+        test { client ->
+            coroutineScope {
+                val session = client.sseSession("$TEST_SERVER/sse/reconnection?count=1")
+                val received = CompletableDeferred<Unit>()
+                val collector = launch {
+                    session.incoming.collect { received.complete(Unit) }
+                }
+                received.await()
+                // let the session finish reading the first response and start waiting for reconnection
+                delay(500.milliseconds)
+
+                session.cancel()
+                assertNotNull(
+                    withTimeoutOrNull(5.seconds) { collector.join() },
+                    "session.incoming did not complete within 5s of session.cancel()"
+                )
+                assertFalse(collector.isCancelled, "session.incoming should complete normally")
+            }
+        }
+    }
+
+    @Test
     fun testClientExceptionDuringSSESession() = clientTests {
         config {
             install(SSE) {
@@ -989,7 +1049,7 @@ class ServerSentEventsTest : ClientLoader() {
                 client.sse(urlString = "$TEST_SERVER/sse/error", { bufferPolicy(SSEBufferPolicy.All) }) { }
             } catch (e: SSEClientException) {
                 assertEquals("Expected status code 200 but was 500", e.message)
-                assertEquals(e.response!!.bodyAsText(), "Server error")
+                assertEquals("Server error", e.response!!.bodyAsText())
             }
         }
     }
