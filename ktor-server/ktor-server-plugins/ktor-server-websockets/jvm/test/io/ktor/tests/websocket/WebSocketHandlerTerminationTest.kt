@@ -415,6 +415,123 @@ class WebSocketHandlerTerminationTest {
             )
         }
     }
+
+    @Test
+    fun testHandlerReturningWithLingeringChildCompletesTheSession() = testApplication {
+        val handlerOutcome = CompletableDeferred<String>()
+        val childJobDeferred = CompletableDeferred<Job>()
+
+        install(WebSockets)
+
+        routing {
+            webSocket("/ws") {
+                try {
+                    incoming.receive() as Frame.Text
+                    // Codex scenario: the handler starts a background child of its own job and
+                    // returns. A job completes only after its children, so the handler result
+                    // must be delivered when the handler returns, not when the job completes:
+                    // the session must end (and the child must be cancelled by the teardown)
+                    // instead of waiting forever for the child.
+                    val child = CoroutineScope(currentCoroutineContext()).launch { awaitCancellation() }
+                    childJobDeferred.complete(child)
+                    handlerOutcome.complete("returned")
+                } finally {
+                    handlerOutcome.complete("finally")
+                }
+            }
+        }
+
+        try {
+            withTimeout(10.seconds) {
+                createWebSocketsClient().webSocket("/ws") {
+                    send(Frame.Text("ping"))
+                    for (frame in incoming) {
+                        // Drain until the server ends the session after the handler returned.
+                    }
+                }
+            }
+        } catch (cause: TimeoutCancellationException) {
+            throw AssertionError(
+                "The session must end when the handler returns, even if it left a background child behind",
+                cause
+            )
+        }
+
+        assertEquals("returned", withTimeout(10.seconds) { handlerOutcome.await() })
+        val child = withTimeout(10.seconds) { childJobDeferred.await() }
+        try {
+            // The child is observed through its job, and not through a signal from its body:
+            // if the child is cancelled before its coroutine starts, the body never runs.
+            withTimeout(10.seconds) { child.join() }
+        } catch (cause: TimeoutCancellationException) {
+            throw AssertionError(
+                "The background child left behind by the returned handler must be cancelled",
+                cause
+            )
+        }
+        assertTrue(child.isCancelled, "The background child must be cancelled, not finished on its own")
+    }
+
+    @Test
+    fun testHandlerReturningAfterClientClosedWithLingeringChildCompletesTheSession() = testApplication {
+        val handlerOutcome = CompletableDeferred<String>()
+        val childJobDeferred = CompletableDeferred<Job>()
+
+        install(WebSockets)
+
+        routing {
+            webSocket("/ws") {
+                try {
+                    incoming.receive() as Frame.Text
+                    // The same lingering child as above, but the handler finishes by observing
+                    // the peer's closure instead of returning right away: consuming a frame
+                    // marks the handler as an active consumer, so the close watcher does not
+                    // cancel it, and the child must not leak the session after the peer closed.
+                    val child = CoroutineScope(currentCoroutineContext()).launch { awaitCancellation() }
+                    childJobDeferred.complete(child)
+                    for (frame in incoming) {
+                        // Drain until the client closes the session, then return.
+                    }
+                    handlerOutcome.complete("returned")
+                } finally {
+                    handlerOutcome.complete("finally")
+                }
+            }
+        }
+
+        try {
+            withTimeout(10.seconds) {
+                createWebSocketsClient().webSocket("/ws") {
+                    send(Frame.Text("ping"))
+                    close(CloseReason(CloseReason.Codes.NORMAL, "bye"))
+                }
+            }
+        } catch (cause: TimeoutCancellationException) {
+            throw AssertionError(
+                "The session must end after the peer closed, even if the returned handler left a background child behind",
+                cause
+            )
+        }
+
+        assertEquals("returned", withTimeout(10.seconds) { handlerOutcome.await() })
+        val child = withTimeout(10.seconds) { childJobDeferred.await() }
+        try {
+            // The child is observed through its job, and not through a signal from its body:
+            // if the child is cancelled before its coroutine starts, the body never runs. The
+            // peer closed before the handler returned, so the session may have already replied
+            // to the peer's close frame; in that case the handler's own close attempt ends the
+            // session through the session teardown, which bounds its final flush by the plugin
+            // timeout. The bound only has to cover that teardown (and stay well above the
+            // never-cancelled hang).
+            withTimeout(20.seconds) { child.join() }
+        } catch (cause: TimeoutCancellationException) {
+            throw AssertionError(
+                "The background child left behind by the handler that finished after the peer closed must be cancelled",
+                cause
+            )
+        }
+        assertTrue(child.isCancelled, "The background child must be cancelled, not finished on its own")
+    }
 }
 
 /**

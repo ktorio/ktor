@@ -20,6 +20,7 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.channels.ChannelIterator
 import kotlinx.coroutines.channels.ChannelResult
 import kotlinx.coroutines.channels.ReceiveChannel
@@ -243,9 +244,12 @@ private suspend fun WebSocketServerSession.proceedWebSocket(handler: suspend Def
     //
     // The handler's outcome is delivered through [handlerResult] instead of letting the child
     // job fail, so a failing handler is still propagated to the caller as an exception and is
-    // not reported as an unhandled coroutine failure. The result is completed from the job
-    // completion handler (and not only from the coroutine body), so it is delivered even when
-    // the job is cancelled before the coroutine starts: a dispatcher that does not run the
+    // not reported as an unhandled coroutine failure. The success result is completed from the
+    // coroutine body as soon as the handler returns, and not only from the job completion
+    // handler: a job completes only after all its children, so a handler that started a
+    // background coroutine of its own before returning would otherwise never complete its job
+    // and never deliver its result. The completion handler below is retained as a fallback for
+    // a job that is cancelled before the coroutine starts: a dispatcher that does not run the
     // dispatched handler within the grace period (e.g. a saturated engine event loop) never
     // enters the try/catch below, and only [Job.invokeOnCompletion] is guaranteed to run.
     val handlerResult = CompletableDeferred<Unit>()
@@ -260,6 +264,14 @@ private suspend fun WebSocketServerSession.proceedWebSocket(handler: suspend Def
     val handlerJob = launch {
         try {
             trackedSession.handleServerSession(call, handler)
+            // The handler returned, so its outcome is known: deliver the success result before
+            // waiting for the job to complete, then cancel the children it left behind so the
+            // job can complete and the upgraded request reaches the session teardown, which
+            // cancels them anyway (as it did before the handler ran in a child job). The close
+            // watcher does not cancel them: a handler that consumed [incoming] is an active
+            // consumer, and the children are not abandoned frames.
+            handlerResult.complete(Unit)
+            coroutineContext.cancelChildren()
         } catch (cancelled: CancellationException) {
             // Rethrow so the job completes as cancelled and the completion handler below decides
             // whether the cancellation ends the session normally or must reach the caller.
